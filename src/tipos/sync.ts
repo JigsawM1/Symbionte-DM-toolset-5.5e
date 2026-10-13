@@ -1,4 +1,3 @@
-import { EsquemaCapacidadesRasgosSync, type CapacidadesRasgosSync } from "./capacidadesRasgosSync";
 /**
  * @module tipos/sync
  * Definiciones de dominio, esquemas Zod y transformadores del wire format
@@ -17,18 +16,6 @@ export interface ConcentracionCombate {
   nombreHechizo: string;
 }
 
-export interface ConjurosCombatePJ {
-  espaciosMaximos: Record<string, number>;
-  espaciosGastados: Record<string, number>;
-  puntosMaximos?: number;
-  puntosGastados?: number;
-  pacto?: {
-    maximos: number;
-    gastados: number;
-    nivel: number;
-  };
-}
-
 export interface PasivasCombatePJ {
   percepcion: number;
   investigacion: number;
@@ -38,7 +25,6 @@ export interface PasivasCombatePJ {
 export interface EstadoCombateAcompanante {
   id: string;
   nombre: string;
-  idPlantilla?: string;
   vidaActual: number;
   vidaMaxima: number;
   vidaTemporal?: number;
@@ -47,12 +33,6 @@ export interface EstadoCombateAcompanante {
   efectos: EfectoActivo[];
   iniciativa?: number;
   idMiniaturaTS?: string | null;
-  velocidad?: string;
-  movimientoGastado?: number;
-  movimientoMaximoTemporal?: number | null;
-  esInvocacion?: boolean;
-  nivelConjuroInvocacion?: number;
-  subtipoInvocacion?: string;
 }
 
 /**
@@ -60,7 +40,6 @@ export interface EstadoCombateAcompanante {
  * Excluye inventario, rasgos descriptivos y catálogos estáticos.
  */
 export interface EstadoCombatePJ {
-  capacidadesRasgos?: CapacidadesRasgosSync;
   id: string;
   idMiniaturaTS?: string | null;
   nombre: string;
@@ -72,16 +51,12 @@ export interface EstadoCombatePJ {
   condiciones: string[];
   efectos: EfectoActivo[];
   pasivas: PasivasCombatePJ;
-  conjuros?: ConjurosCombatePJ;
   concentracion?: ConcentracionCombate | null;
-  movimientoGastado?: number;
-  movimientoMaximoTemporal?: number | null;
   acompanantes?: EstadoCombateAcompanante[];
   ts?: number;
 }
 
 export interface EstadoIniciativaDM {
-  capacidadesRasgos?: Record<string, CapacidadesRasgosSync>;
   cola: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   rondaActual: number;
@@ -91,7 +66,7 @@ export interface EstadoIniciativaDM {
 }
 
 // ==========================================
-// 2. WIRE FORMAT COMPACTO (Para transmisión < 1KB)
+// 2. FORMATO DE RED COMPACTO (fragmentado cuando supera el tamaño seguro)
 // ==========================================
 
 export interface WireEfecto {
@@ -113,17 +88,9 @@ export interface WireAcompanante {
   e?: WireEfecto[]; // efectos (se omite si está vacío)
   i?: number; // iniciativa (se omite si es 0)
   m?: string | null; // idMiniaturaTS
-  plant?: string; // idPlantilla
-  vel?: string; // velocidad
-  gast?: number; // movimientoGastado
-  maxT?: number; // movimientoMaximoTemporal
-  inv?: boolean; // esInvocacion
-  lvl?: number; // nivelConjuroInvocacion
-  sub?: string; // subtipoInvocacion
 }
 
 export interface WireEstadoCombatePJ {
-  cp?: CapacidadesRasgosSync;
   id: string;
   m?: string | null; // idMiniaturaTS
   n: string; // nombre
@@ -135,16 +102,7 @@ export interface WireEstadoCombatePJ {
   c?: string[]; // condiciones (se omite si está vacío)
   e?: WireEfecto[]; // efectos (se omite si está vacío)
   p?: [number, number, number]; // [percepcion, investigacion, perspicacia]
-  cj?: {
-    em: Record<string, number>; // espaciosMaximos
-    eg: Record<string, number>; // espaciosGastados
-    pm?: number; // puntosMaximos
-    pg?: number; // puntosGastados
-    pc?: [number, number, number]; // pacto: [maximos, gastados, nivel]
-  };
   co?: { id: string; n: string } | null; // concentracion
-  gast?: number; // movimientoGastado
-  maxT?: number; // movimientoMaximoTemporal
   ac?: WireAcompanante[]; // acompanantes
   b?: number; // revisión autoritativa de partida
   ts?: number; // secuencia de la emisión
@@ -161,18 +119,13 @@ export interface WireCriaturaIniciativa {
   m?: boolean; // esMonstruo (se omite si es false)
   c?: string[]; // condiciones (se omite si está vacío)
   e?: WireEfecto[]; // efectos (se omite si está vacío)
-  plant?: string; // idPlantillaAsociada
-  vel?: string; // velocidad (se omite si es "30 pies")
   bon?: number; // bonificadorIniciativa (se omite si es 0)
-  gast?: number; // movimientoGastado
-  maxT?: number; // movimientoMaximoTemporal
   ac?: boolean; // esAcompanante
   du?: string; // idPersonajeDuenio
   acId?: string; // idAcompanante
 }
 
 export interface WireEstadoIniciativaDM {
-  cp?: Record<string, CapacidadesRasgosSync>;
   rv?: Record<string, number>;
   c: WireCriaturaIniciativa[]; // cola
   t: number; // indiceTurnoActivo
@@ -217,17 +170,9 @@ const EsquemaWireAcompanante = z.object({
   e: z.array(EsquemaWireEfecto).default([]),
   i: z.number().nullable().optional().transform((v) => v ?? 0),
   m: z.string().nullable().optional(),
-  plant: z.string().nullable().optional().transform((v) => v ?? undefined),
-  vel: z.string().nullable().optional().transform((v) => v ?? undefined),
-  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
-  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
-  inv: z.boolean().optional(),
-  lvl: z.number().nullable().optional().transform((v) => v ?? undefined),
-  sub: z.string().nullable().optional().transform((v) => v ?? undefined),
 });
 
 export const EsquemaWireEstadoCombatePJ = z.object({
-  cp: EsquemaCapacidadesRasgosSync.optional(),
   id: z.string(),
   m: z.string().nullable().optional(),
   n: z.string().default("Personaje"),
@@ -239,15 +184,6 @@ export const EsquemaWireEstadoCombatePJ = z.object({
   c: z.array(z.string()).default([]),
   e: z.array(EsquemaWireEfecto).default([]),
   p: z.tuple([z.number(), z.number(), z.number()]).default([10, 10, 10]),
-  cj: z
-    .object({
-      em: z.record(z.string(), z.number()).default({}),
-      eg: z.record(z.string(), z.number()).default({}),
-      pm: z.number().optional(),
-      pg: z.number().optional(),
-      pc: z.tuple([z.number(), z.number(), z.number()]).optional(),
-    })
-    .optional(),
   co: z
     .object({
       id: z.string(),
@@ -255,8 +191,6 @@ export const EsquemaWireEstadoCombatePJ = z.object({
     })
     .nullable()
     .optional(),
-  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
-  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
   ac: z.array(EsquemaWireAcompanante).optional(),
   b: z.number().int().nonnegative().default(0),
   ts: z.number().optional(),
@@ -273,18 +207,13 @@ const EsquemaWireCriaturaIniciativa = z.object({
   m: z.boolean().default(false),
   c: z.array(z.string()).default([]),
   e: z.array(EsquemaWireEfecto).optional().default([]),
-  plant: z.string().nullable().optional().transform((v) => v ?? undefined),
-  vel: z.string().nullable().optional().transform((v) => v ?? undefined),
   bon: z.number().nullable().optional().transform((v) => v ?? undefined),
-  gast: z.number().nullable().optional().transform((v) => v ?? undefined),
-  maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
   ac: z.boolean().optional(),
   du: z.string().nullable().optional().transform((v) => v ?? undefined),
   acId: z.string().nullable().optional().transform((v) => v ?? undefined),
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
-  cp: z.record(z.string(), EsquemaCapacidadesRasgosSync).optional(),
   rv: z.record(z.string(), z.number().int().nonnegative()).optional(),
   c: z.array(EsquemaWireCriaturaIniciativa),
   t: z.number().int(),
@@ -371,7 +300,6 @@ export function serializarEstadoCombatePJ(
     vm: pj.hpMaximo ?? 0,
   };
 
-  if (pj.capacidadesRasgos) wire.cp = pj.capacidadesRasgos;
   if (pj.ts) wire.ts = pj.ts;
   if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
   if (pj.hpTemporal && pj.hpTemporal > 0) wire.vt = pj.hpTemporal;
@@ -440,7 +368,6 @@ export function serializarEstadoCombatePJ(
 
 export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCombatePJ {
   return {
-    capacidadesRasgos: wire.cp,
     id: wire.id,
     idMiniaturaTS: wire.m ?? null,
     nombre: wire.n || "Personaje",
@@ -463,21 +390,6 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
       investigacion: wire.p ? wire.p[1] : 10,
       perspicacia: wire.p ? wire.p[2] : 10,
     },
-    conjuros: wire.cj
-      ? {
-          espaciosMaximos: wire.cj.em || {},
-          espaciosGastados: wire.cj.eg || {},
-          puntosMaximos: wire.cj.pm,
-          puntosGastados: wire.cj.pg,
-          pacto: wire.cj.pc
-            ? {
-                maximos: wire.cj.pc[0],
-                gastados: wire.cj.pc[1],
-                nivel: wire.cj.pc[2],
-              }
-            : undefined,
-        }
-      : undefined,
     concentracion: wire.co
       ? {
           hechizoId: wire.co.id,
@@ -486,12 +398,9 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
       : wire.co === null
       ? null
       : undefined,
-    movimientoGastado: wire.gast,
-    movimientoMaximoTemporal: wire.maxT,
     acompanantes: (wire.ac || []).map((wa) => ({
       id: wa.id,
       nombre: wa.n || "Acompañante",
-      idPlantilla: wa.plant,
       vidaActual: wa.va ?? 0,
       vidaMaxima: wa.vm ?? 0,
       vidaTemporal: wa.vt ?? 0,
@@ -506,19 +415,12 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
       })),
       iniciativa: wa.i ?? 0,
       idMiniaturaTS: wa.m ?? null,
-      velocidad: wa.vel || "30 pies",
-      movimientoGastado: wa.gast ?? 0,
-      movimientoMaximoTemporal: wa.maxT ?? null,
-      esInvocacion: wa.inv,
-      nivelConjuroInvocacion: wa.lvl,
-      subtipoInvocacion: wa.sub,
     })),
   };
 }
 
 export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoIniciativaDM {
   return {
-    ...(dm.capacidadesRasgos ? { cp: dm.capacidadesRasgos } : {}),
     c: (dm.cola || []).map((criatura) => {
       const item: WireCriaturaIniciativa = {
         id: criatura.id,
@@ -561,7 +463,6 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
 
 export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIniciativaDM {
   return {
-    capacidadesRasgos: wire.cp,
     cola: (wire.c || []).map((w) => ({
       id: w.id,
       nombre: w.n || "Criatura",
@@ -579,11 +480,8 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
         concentracion: ef.c,
         duracion: ef.d,
       })),
-      idPlantillaAsociada: w.plant ?? undefined,
-      velocidad: w.vel || "30 pies",
+      velocidad: "30 pies",
       bonificadorIniciativa: w.bon ?? 0,
-      movimientoGastado: w.gast ?? 0,
-      movimientoMaximoTemporal: w.maxT ?? null,
       esAcompanante: Boolean(w.ac),
       idPersonajeDuenio: w.du ?? undefined,
       idAcompanante: w.acId ?? undefined,

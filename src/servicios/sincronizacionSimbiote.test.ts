@@ -103,10 +103,6 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
       condiciones: ["envenenado"],
       efectos: [{ id: "e1", nombre: "Marca del Cazador", expiraRonda: 5, concentracion: true }],
       pasivas: { percepcion: 16, investigacion: 12, perspicacia: 14 },
-      conjuros: {
-        espaciosMaximos: { "1": 4, "2": 2 },
-        espaciosGastados: { "1": 2, "2": 1 },
-      },
       concentracion: { hechizoId: "h-cazador", nombreHechizo: "Marca del Cazador" },
     };
 
@@ -175,8 +171,8 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     const wireMonstruo = wire.c[0];
     expect(wireMonstruo.m).toBe(true);
     expect(wireMonstruo.ca).toBeUndefined();
-    expect(wireMonstruo.plant).toBeUndefined();
-    expect(wireMonstruo.vel).toBeUndefined();
+    expect(wireMonstruo).not.toHaveProperty('plant');
+    expect(wireMonstruo).not.toHaveProperty('vel');
     expect(wireMonstruo.bon).toBeUndefined();
 
     // Verificar que para héroes o aliados se preservan los datos
@@ -364,7 +360,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(estadoFinal.colaIniciativa[0].vidaActual).toBe(35);
   });
 
-  it("DM sincroniza acompañantes del jugador y los refleja en la cola de iniciativa", () => {
+  it("DM sincroniza combate de acompañantes y conserva su movimiento y configuración locales", () => {
     usarAlmacenDM.setState({
       esGM: true,
       personajes: [
@@ -473,13 +469,17 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
 
     const estadoFinal = usarAlmacenDM.getState();
     const pjFinal = estadoFinal.personajes.find((p) => p.id === "pj-tryn");
-    expect(pjFinal?.movimientoGastado).toBe(15);
+    expect(pjFinal?.movimientoGastado).toBe(PERSONAJE_POR_DEFECTO.movimientoGastado);
 
     const acompFinal = pjFinal?.acompanantes?.[0];
     expect(acompFinal?.vidaActual).toBe(18);
     expect(acompFinal?.vidaTemporal).toBe(5);
     expect(acompFinal?.condiciones).toEqual(["derribado"]);
-    expect(acompFinal?.movimientoGastado).toBe(25);
+    expect(acompFinal?.movimientoGastado).toBe(0);
+    expect(acompFinal?.velocidad).toBe('60 pies');
+    expect(acompFinal?.idPlantilla).toBe('plantilla-corcel');
+    expect(acompFinal?.esInvocacion).toBe(true);
+    expect(acompFinal?.nivelConjuroInvocacion).toBe(3);
 
     // Verificar en la cola de iniciativa del Combat Tracker
     const criaturaCorcelCola = estadoFinal.colaIniciativa.find((c) => c.id === "mini-corcel-ts");
@@ -487,7 +487,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(criaturaCorcelCola?.vidaActual).toBe(18);
     expect(criaturaCorcelCola?.vidaTemporal).toBe(5);
     expect(criaturaCorcelCola?.condiciones).toEqual(["derribado"]);
-    expect(criaturaCorcelCola?.movimientoGastado).toBe(25);
+    expect(criaturaCorcelCola?.movimientoGastado).toBe(0);
   });
 
   it("garantiza que el paquete emitido de un PJ con acompanantes y efectos mida estrictamente menos de 500 caracteres", () => {

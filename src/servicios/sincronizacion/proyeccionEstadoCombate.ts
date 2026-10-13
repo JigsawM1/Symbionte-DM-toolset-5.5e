@@ -4,9 +4,9 @@
  * Excluye inventario, descripciones estáticas y rasgos innecesarios para combate en tiempo real.
  */
 
-import { proyectarCapacidadesRasgos } from "../rasgos/sincronizarCapacidadesRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos/personaje";
+import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import type { EstadoCombatePJ } from "@/tipos/sync";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
@@ -15,7 +15,7 @@ import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
  * Construye una proyección delgada de combate de un PersonajeJugador.
  * Resuelve CA y pasivas mediante calcularEstadisticasPersonaje.
  */
-export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVacios = false): EstadoCombatePJ {
+export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ {
   const stats = calcularEstadisticasPersonaje(pj);
   const estado = usarAlmacenDM.getState();
 
@@ -35,7 +35,6 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVaci
       : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
 
   return {
-    capacidadesRasgos: pj.rasgos?.length || incluirRasgosVacios ? proyectarCapacidadesRasgos(pj) : undefined,
     id: pj.id,
     idMiniaturaTS: pj.idMiniaturaTS,
     nombre: pj.nombre,
@@ -56,19 +55,6 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVaci
       percepcion: stats.pasivas?.percepcion ?? 10,
       investigacion: stats.pasivas?.investigacion ?? 10,
       perspicacia: stats.pasivas?.perspicacia ?? 10,
-    },
-    conjuros: {
-      espaciosMaximos: pj.espaciosConjuroMaximos || {},
-      espaciosGastados: pj.espaciosConjuroGastados || {},
-      puntosMaximos: pj.puntosConjuroMaximos,
-      puntosGastados: pj.puntosConjuroGastados,
-      pacto: pj.espaciosPactoMaximos
-        ? {
-            maximos: pj.espaciosPactoMaximos,
-            gastados: pj.espaciosPactoGastados,
-            nivel: pj.nivelEspacioPacto,
-          }
-        : undefined,
     },
     concentracion: pj.concentracionActiva
       ? {
@@ -94,7 +80,6 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVaci
       return {
         id: a.id,
         nombre: a.nombre,
-        idPlantilla: a.idPlantilla,
         vidaActual: a.vidaActual,
         vidaMaxima: a.vidaMaxima,
         vidaTemporal: a.vidaTemporal,
@@ -109,10 +94,38 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador, incluirRasgosVaci
         })),
         iniciativa: iniciativaFinalAcomp,
         idMiniaturaTS: a.idMiniaturaTS,
-        velocidad: typeof a.velocidad === "string" ? a.velocidad : `${a.velocidad?.caminar || 0} pies`,
-        esInvocacion: a.esInvocacion,
-        nivelConjuroInvocacion: a.nivelConjuroInvocacion,
-        subtipoInvocacion: a.subtipoInvocacion,
+      };
+    }),
+  };
+}
+
+/** Conserva además los datos que solo se usan al recuperar una edición local. */
+export function proyectarBorradorCombatePJ(pj: PersonajeJugador): BorradorCombatePJ {
+  const combate = proyectarEstadoCombatePJ(pj);
+  return {
+    ...combate,
+    conjuros: {
+      espaciosMaximos: pj.espaciosConjuroMaximos || {},
+      espaciosGastados: pj.espaciosConjuroGastados || {},
+      puntosMaximos: pj.puntosConjuroMaximos,
+      puntosGastados: pj.puntosConjuroGastados,
+      pacto: pj.espaciosPactoMaximos
+        ? {
+            maximos: pj.espaciosPactoMaximos,
+            gastados: pj.espaciosPactoGastados,
+            nivel: pj.nivelEspacioPacto,
+          }
+        : undefined,
+    },
+    acompanantes: combate.acompanantes?.map((acomp, indice) => {
+      const local = pj.acompanantes![indice];
+      return {
+        ...acomp,
+        idPlantilla: local.idPlantilla,
+        velocidad: typeof local.velocidad === 'string' ? local.velocidad : String(local.velocidad?.caminar || 0) + ' pies',
+        esInvocacion: local.esInvocacion,
+        nivelConjuroInvocacion: local.nivelConjuroInvocacion,
+        subtipoInvocacion: local.subtipoInvocacion,
       };
     }),
   };

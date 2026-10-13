@@ -2,6 +2,23 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-13] Limpieza del contrato de sincronización de combate
+
+- Retirados de DTOs, esquemas y recepción de red los campos que los emisores omitían: recursos mágicos, movimiento gastado/máximo temporal, plantillas, velocidades y detalles de invocación. Se conserva el contenido de combate realmente emitido y el protocolo v2 con FRAG, ACK, revisiones y validación de autoridad.
+- Separada la recuperación local con BorradorCombatePJ, proyectarBorradorCombatePJ y serialización propia. Los recursos y la configuración de acompañantes siguen disponibles al reaplicar borradores; el guardado conserva ahora esos datos, que antes se perdían al reutilizar el serializador de red. Los borradores compactos antiguos continúan siendo legibles.
+- La recepción remota ignora los campos retirados y conserva los recursos, movimiento y configuración locales. Se mantienen los cambios previos que excluyen definiciones, usos y elecciones de rasgos del tracker.
+- Verificación: 103 regresiones existentes seleccionadas y seis nuevas; pnpm run ci con salida 0, 134 suites/1850 pruebas, TypeScript, ESLint, auditoría de 158 archivos y build correctos. pnpm run test:sync-simulacion con salida 0 y 12 escenarios aprobados. Logs: scratch/ci-limpieza-sync.log y scratch/simulacion-limpieza-sync.log. Advertencia existente sobre chunks grandes.
+- Validación local y transporte simulado; no se certificó una sesión TaleSpire entre equipos ni se desplegó. pnpm se ejecutó fuera del sandbox tras reproducir EPERM.
+
+## [2026-10-13] Guerrero y subclases desde el constructor declarativo
+
+- Completadas cinco fases: Guerrero, Maestro del Combate, Campeón, Caballero Arcano y Guerrero Psiónico. Informe: IMPLEMENTACION_GUERRERO.md. Maniobras y opciones psiónicas separadas en cajas; su clasificación y ejecución individual permanecen pendientes por alcance explícito.
+- Constructor con tablas de progresión, descanso corto parcial, extensiones, condiciones de finalización/retirada, capacidad mágica y aptitud/componentes del lanzamiento gratuito. Tipos opcionales compartidos y ejecución general para rasgos personalizados; sin reglas nuevas por nombres de Guerrero.
+- Indómito conserva el bono si falla la emisión y finaliza después de una salvación emitida. Bastión aporta cobertura propia durante diez asaltos y finaliza por Incapacitado. Recursos y recargas auxiliares no duplican gasto. Resistencias/inmunidades se resumen a partir de datos declarativos, sin automatizar reducción de daño.
+- Auditoría final corrigió conservación de dotes de estilo independientes, capacidades mágicas y aprendizajes ajenos al cambiar de subclase/aplicar build, y gasto de recursos durante progresión. La ampliación inicial de sync con capacidadesRasgos se retiró por corrección del usuario: definiciones, usos y elecciones de rasgos no pertenecen al tracker. DTO, serialización, observación y recepción vuelven a su contrato de combate anterior; inventario completo en AUDITORIA_CAMBIOS_GUERRERO.md.
+- CI de cada fase correcto; cierre inicial: 133 suites y 1.843 pruebas; tras retirar la ampliación de sync: 133 suites y 1.844 pruebas, TypeScript/ESLint/auditoría de 158 archivos/build aprobados. test:guerrero-ui: seis flujos y dieciséis dimensiones, cero errores; test:rasgos-ui aprobado; test:sync-simulacion: doce escenarios aprobados. Logs en scratch; advertencia existente de chunks grandes.
+- Validaciones locales con Chromium y transporte simulado; no se certificaron clientes TaleSpire ni CEF nativo y no se desplegó.
+
 ## [2026-10-12] Integración de Rama cosa-syn-mejoras en Main: Autoridad Sync, Críticos d12 y Migración UI
 
 ## [2026-10-12] Migración a campos numéricos universales

@@ -5,7 +5,7 @@ import { sanearPersonaje, sanearCriaturaIniciativa, sanearElementoPendiente, san
 import { hidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
-import { EsquemaWireEstadoCombatePJ, deserializarEstadoCombatePJ } from '@/tipos/sync';
+import { deserializarBorradorSync } from './borradoresSync';
 
 const coleccion = z.array(z.record(z.string(), z.unknown())).optional();
 const esquema = z.object({
@@ -31,7 +31,7 @@ function validarColeccion<T>(datos: unknown[], sanear: (dato: unknown) => T | nu
 export function prepararCargaPersistida(raw: Record<string, unknown>): Partial<EstadoDM> {
   const datos = esquema.parse(raw);
   const cambios: Partial<EstadoDM> = {};
-  if (datos.borradores_sync) cambios.borradoresSync = Object.fromEntries(Object.entries(datos.borradores_sync).map(([id, dto]) => [id, deserializarEstadoCombatePJ(EsquemaWireEstadoCombatePJ.parse(dto))]));
+  if (datos.borradores_sync) cambios.borradoresSync = Object.fromEntries(Object.entries(datos.borradores_sync).map(([id, dto]) => [id, deserializarBorradorSync(dto)]));
   if (datos.monstruos_homebrew) cambios.baseDatosMonstruos = desduplicarEntidades(MONSTRUOS_INICIALES, datos.monstruos_homebrew.map(d => sanearMonstruoSentidosYPasiva(EsquemaMonstruoBase.parse(d))));
   if (datos.hechizos_homebrew) cambios.baseDatosHechizos = desduplicarEntidades(HECHIZOS_INICIALES, datos.hechizos_homebrew.map(d => sanearHechizoCD(EsquemaHechizoBase.parse(d))));
   if (datos.objetos_homebrew) cambios.objetosHomebrew = desduplicarEntidades(OBJETOS_INICIALES.map(sanearObjetoHomebrew), datos.objetos_homebrew.map(d => EsquemaObjetoJuego.parse(sanearObjetoHomebrew(d))));

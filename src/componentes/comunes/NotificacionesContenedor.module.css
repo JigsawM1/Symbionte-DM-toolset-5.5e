@@ -62,3 +62,38 @@
 .botonCerrar:hover {
   color: var(--color-texto-principal);
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .toast {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-panel);
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .toastExito {
+  border-left: 3px solid var(--pj-acento-exito) !important;
+}
+
+:global([data-tema="jugador"]) .toastError {
+  border-left: 3px solid var(--pj-acento-peligro) !important;
+}
+
+:global([data-tema="jugador"]) .toastInfo {
+  border-left: 3px solid var(--pj-borde-cian-fuerte) !important;
+}
+
+:global([data-tema="jugador"]) .toastAdvertencia {
+  border-left: 3px solid var(--pj-acento-oro) !important;
+}
+
+:global([data-tema="jugador"]) .botonCerrar {
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .botonCerrar:hover {
+  color: var(--pj-texto-primario);
+}

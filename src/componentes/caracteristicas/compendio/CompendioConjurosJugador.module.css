@@ -2,15 +2,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: #0b0f16;
-  color: #f1f5f9;
+  background-color: var(--pj-fondo-panel);
+  color: var(--pj-texto-primario);
   overflow: hidden;
 }
 
 .cabeceraPrincipal {
   padding: 12px 16px 0 16px;
-  background-color: #111622;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-bottom: 1px solid var(--pj-borde-acento);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -23,9 +23,9 @@
 }
 
 .tituloTexto {
-  font-size: 16px;
+  font-size: var(--pj-fuente-titulo);
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--pj-texto-primario);
   margin: 0;
   letter-spacing: 0.02em;
 }
@@ -53,52 +53,52 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: #94a3b8;
-  font-size: 11px;
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
   user-select: none;
   white-space: nowrap;
 }
 
 .botonPestaña:hover {
-  color: #cbd5e1;
-  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--pj-texto-secundario-claro);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .botonPestañaActiva {
-  color: #fb923c;
-  border-bottom-color: #fb923c;
-  background-color: rgba(251, 146, 60, 0.06);
+  color: var(--pj-texto-acento);
+  border-bottom-color: var(--pj-borde-acento-fuerte);
+  background-color: var(--pj-acento-primario-fondo);
 }
 
 .botonFiltrar {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background-color: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px;
-  color: #cbd5e1;
-  font-size: 11px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-secundario-claro);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   padding: 5px 9px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: none;
   white-space: nowrap;
 }
 
 .botonFiltrar:hover {
-  background-color: #273549;
-  border-color: rgba(148, 163, 184, 0.4);
-  color: #ffffff;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
 }
 
 .botonFiltrarActivo {
-  background-color: #c2410c;
-  border-color: #ea580c;
-  color: #ffffff;
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
 }
 
 .panelFiltros {
@@ -106,25 +106,25 @@
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  background-color: #161e2c;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-bottom: 1px solid var(--pj-borde-acento);
   flex-wrap: wrap;
 }
 
 .buscadorInput {
   flex: 1;
   min-width: 160px;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px;
-  color: #f8fafc;
-  font-size: 11px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-label);
   padding: 6px 10px;
   outline: none;
 }
 
 .buscadorInput:focus {
-  border-color: #3b82f6;
+  border-color: var(--pj-borde-acento);
 }
 
 .areaLista {
@@ -133,19 +133,21 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  padding-bottom: 84px;
+  scroll-padding-bottom: 84px;
 }
 
 .mensajeVacio {
   padding: 40px 20px;
   text-align: center;
-  color: #64748b;
-  font-size: 13px;
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-cuerpo);
   font-style: italic;
 }
 
 .contadorConjurosTexto {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
 }
 
 .contenedorBuscadorFiltro {
@@ -170,7 +172,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: var(--pj-fondo-modal-overlay);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -183,7 +185,7 @@
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
-  background-color: #161b22;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-radius: var(--pj-radio-panel);
+  border: 1px solid var(--pj-borde-acento);
 }

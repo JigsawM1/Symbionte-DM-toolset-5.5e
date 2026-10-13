@@ -355,6 +355,30 @@
   text-align: justify;
 }
 
+/* Lectura del detalle del DM igual al cuerpo de las fichas de criaturas. */
+:global([data-tema="dm"]) .cuerpoDetalle,
+:global([data-tema="dm"]) .descripcionCuerpoFicha {
+  font-family: var(--dm-fuente-principal, var(--fuente-principal));
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-texto-secundario);
+  text-align: left;
+}
+
+:global([data-tema="dm"]) .descripcionCuerpoFicha {
+  white-space: pre-wrap;
+}
+
+:global([data-tema="dm"]) .descripcionCuerpoFicha p {
+  color: inherit;
+  text-indent: 10px;
+}
+
+:global([data-tema="dm"]) .descripcionCuerpoFicha p + p {
+  margin-top: 1.4em;
+}
+
 .listaBadgesClases {
   display: flex;
   gap: 5px;
@@ -806,6 +830,479 @@
   padding: 1px 4px;
   border-radius: var(--dm-radio-control, 3px);
   border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
+}
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .panelLista {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .cabeceraPanel {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-acento);
+  border-bottom: 1px solid var(--pj-borde-medio);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .inputBuscadorHomebrew {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-base);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .inputBuscadorHomebrew:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonLimpiarBusquedaHomebrew {
+  font-size: var(--pj-fuente-boton);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonLimpiarBusquedaHomebrew:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.12);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .textoListaVacia {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .itemListaBrutal {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .itemListaBrutal:hover {
+  border-color: rgba(var(--pj-rgb-cian), 0.4);
+  background-color: rgba(var(--pj-rgb-cian), 0.04);
+}
+
+:global([data-tema="jugador"]) .itemNombre {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .itemSub {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonEditarItem {
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonEditarItem:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.12);
+}
+
+:global([data-tema="jugador"]) .botonEliminarItem {
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonEliminarItem:hover {
+  background-color: rgba(var(--pj-rgb-peligro), 0.12);
+}
+
+:global([data-tema="jugador"]) .panelDetalleOverlay {
+  border: 1px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-base);
+  box-shadow: var(--pj-sombra-tarjeta);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .cabeceraDetalle {
+  background-color: var(--pj-fondo-tarjeta);
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .objetoNivelOverlay {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: rgba(var(--pj-rgb-peligro), 0.1);
+  border: 1px solid var(--pj-texto-alerta);
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .nombreHechizoOverlay {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .botonCerrarDetalle {
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .gridMetadatos {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .iconoDetalle {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .metaLabel {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .metaValor {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .chipConcentracion {
+  font-size: var(--pj-fuente-badge);
+  background-color: rgba(var(--pj-rgb-oro), 0.15);
+  border: 1px solid var(--pj-texto-oro);
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasCombateObjeto {
+  background-color: rgba(var(--pj-rgb-peligro), 0.05);
+  border: 1.5px solid var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasObjeto {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .badgeClaseObjeto {
+  font-size: var(--pj-fuente-badge);
+  background-color: rgba(var(--pj-rgb-peligro), 0.1);
+  border: 1px solid rgba(var(--pj-rgb-peligro), 0.3);
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .cajaBonoMagico {
+  font-size: var(--pj-fuente-label);
+  background-color: rgba(var(--pj-rgb-cian), 0.05);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .descripcionTituloFicha {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-acento);
+  border-bottom: 1px solid var(--pj-borde-medio);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .descripcionCuerpoFicha {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+  line-height: 1.45;
+  text-align: left;
+}
+
+:global([data-tema="jugador"]) .descripcionCuerpoFicha p {
+  color: inherit;
+  text-indent: 10px;
+}
+
+:global([data-tema="jugador"]) .descripcionCuerpoFicha p + p {
+  margin-top: 1.45em;
+}
+
+:global([data-tema="jugador"]) .botonMostrarMas {
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .badgeVenenoObjeto {
+  font-size: var(--pj-fuente-badge);
+  border-radius: var(--pj-radio-control);
+  background: rgba(var(--pj-rgb-primario), 0.18);
+  border: 1px solid rgba(var(--pj-rgb-primario), 0.4);
+  color: var(--pj-texto-acento);
+}
+
+:global([data-tema="jugador"]) .botonNavegarAtras {
+  background: rgba(var(--pj-rgb-neutro), 0.08);
+  border: 1px solid rgba(var(--pj-rgb-neutro), 0.15);
+  color: var(--pj-texto-primario);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonPlantillaDetalle {
+  background: rgba(var(--pj-rgb-cian), 0.08);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Común"] {
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Poco Común"] {
+  color: var(--pj-texto-exito);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Raro"] {
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Muy Raro"] {
+  color: var(--pj-texto-acento);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Legendario"] {
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .metaValorRareza[data-rareza="Artefacto"] {
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .textoPurpuraVeneno {
+  color: var(--pj-texto-acento) !important;
+}
+
+:global([data-tema="jugador"]) .chipConcentracionMagico {
+  background-color: rgba(var(--pj-rgb-cian), 0.12);
+  color: var(--pj-borde-cian-fuerte);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .chipConcentracionVeneno {
+  background-color: rgba(var(--pj-rgb-primario), 0.18);
+  color: var(--pj-texto-acento);
+  border: 1px solid rgba(var(--pj-rgb-primario), 0.5);
+}
+
+:global([data-tema="jugador"]) .textoAdvertencia {
+  color: var(--pj-texto-oro) !important;
+}
+
+:global([data-tema="jugador"]) .enlaceObjetoCompendio {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasArmadura {
+  border-color: rgba(var(--pj-rgb-oro), 0.25);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasArmadura {
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .valorDesventajaSigilo[data-desventaja="true"] {
+  color: var(--pj-texto-alerta) !important;
+}
+
+:global([data-tema="jugador"]) .valorDesventajaSigilo[data-desventaja="false"] {
+  color: var(--pj-texto-exito) !important;
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasVeneno {
+  border-color: rgba(var(--pj-rgb-primario), 0.4);
+  background: rgba(var(--pj-rgb-primario), 0.05);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasVeneno {
+  color: var(--pj-texto-acento);
+}
+
+:global([data-tema="jugador"]) .botonTirarDanoVeneno {
+  background: rgba(var(--pj-rgb-peligro), 0.2);
+  border: 1px solid rgba(var(--pj-rgb-peligro), 0.55);
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .textoTextoPrincipal {
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasMagicas {
+  border-color: rgba(var(--pj-rgb-primario), 0.35);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasMagicas {
+  color: var(--pj-texto-acento);
+}
+
+:global([data-tema="jugador"]) .textoCian {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasMunicion {
+  border-color: rgba(var(--pj-rgb-cian), 0.25);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasMunicion {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .textoDescBono {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .nombreHechizoVinculado {
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .subDetallesHechizoVinculado {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .badgeCosteCargas {
+  font-size: var(--pj-fuente-badge);
+  background: var(--pj-fondo-base);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .cajaMecanicasArtesania {
+  border-color: rgba(var(--pj-rgb-primario), 0.25);
+}
+
+:global([data-tema="jugador"]) .textoTallerPrincipal {
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .chipComponenteArtesania {
+  font-size: var(--pj-fuente-badge);
+  background: rgba(var(--pj-rgb-primario), 0.15);
+  border: 1px solid var(--pj-acento-primario-solido);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .filaContenidoPaquete {
+  background: rgba(var(--pj-rgb-neutro), 0.04);
+  border-radius: var(--pj-radio-panel);
+  border: 1px solid rgba(var(--pj-rgb-neutro), 0.06);
+}
+
+:global([data-tema="jugador"]) .textoItemPaquete {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .botonVerObjetoContenido {
+  background: rgba(var(--pj-rgb-cian), 0.12);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .textoNoDisponible {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonCraftDisponible {
+  font-size: var(--pj-fuente-boton);
+  background: rgba(var(--pj-rgb-primario), 0.15);
+  border: 1px solid var(--pj-acento-primario-solido);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .chipCraftNoDisponible {
+  font-size: var(--pj-fuente-badge);
+  background: rgba(var(--pj-rgb-neutro), 0.05);
+  border: 1px solid rgba(var(--pj-rgb-neutro), 0.1);
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .tituloMecanicasObjetoConBotones {
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .botonTirarAtaqueArma {
+  background: rgba(var(--pj-rgb-oro), 0.18);
+  border: 1px solid rgba(var(--pj-rgb-oro), 0.6);
+  color: var(--pj-texto-oro);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonTirarAtaqueArma:hover {
+  background: rgba(var(--pj-rgb-oro), 0.3);
+}
+
+:global([data-tema="jugador"]) .botonTirarDanoArma {
+  background: rgba(var(--pj-rgb-peligro), 0.2);
+  border: 1px solid rgba(var(--pj-rgb-peligro), 0.55);
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonTirarDanoArma:hover {
+  background: rgba(var(--pj-rgb-peligro), 0.35);
+}
+
+:global([data-tema="jugador"]) .botonTirarMecanicaObjeto {
+  background: rgba(var(--pj-rgb-cian), 0.15);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonTirarMecanicaObjeto:hover {
+  background: rgba(var(--pj-rgb-cian), 0.25);
+}
+
+:global([data-tema="jugador"]) .botonTirarRecarga {
+  background: rgba(var(--pj-rgb-primario), 0.18);
+  border: 1px solid rgba(var(--pj-rgb-primario), 0.55);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonTirarRecarga:hover {
+  background: rgba(var(--pj-rgb-primario), 0.3);
+}
+
+:global([data-tema="jugador"]) .botonTirarHechizoVinculado {
+  background: rgba(var(--pj-rgb-primario), 0.2);
+  border: 1px solid rgba(var(--pj-rgb-primario), 0.55);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .botonTirarHechizoVinculado:hover {
+  background: rgba(var(--pj-rgb-primario), 0.35);
+}
+
+:global([data-tema="jugador"]) .badgeVerFichaHechizo {
+  font-size: var(--pj-fuente-badge);
+  background: rgba(var(--pj-rgb-cian), 0.12);
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+  border: 1px solid rgba(var(--pj-rgb-cian), 0.3);
 }
 
 

@@ -12,6 +12,7 @@ const TIMEOUT_ESPERA_ACK_MS = 2000;
 type EnviarEmision = () => void | Promise<boolean>;
 
 export class GestorReintentosSync {
+  constructor(private readonly alAgotar?: (id: string) => void) {}
   private req = { intentos: 0, activo: false, agotado: false,
     timer: null as ReturnType<typeof setTimeout> | null, enviar: null as (() => void) | null };
   private pendientesACK = new Map<string, EstadoPendienteACK>();
@@ -81,6 +82,7 @@ export class GestorReintentosSync {
       if (this.pendientesACK.get(entrada.pjId) !== entrada) return;
       if (entrada.intentos >= MAX_REINTENTOS_ACK) {
         this.pendientesACK.delete(entrada.pjId);
+        this.alAgotar?.(entrada.pjId);
         logger.warn(`[Sync] Agotados reintentos ACK para PJ ${entrada.pjId}.`);
         return;
       }

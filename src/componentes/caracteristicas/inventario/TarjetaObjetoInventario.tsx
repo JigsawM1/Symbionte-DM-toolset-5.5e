@@ -437,7 +437,7 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
             {/* Tracker de Cargas si aplica */}
             {objeto.cargasMaximas !== undefined && (
               <div className={estilos.grupoTrackerCargas}>
-                <Zap size={10} color="#fbbf24" />
+                <Zap size={10} color="var(--pj-texto-oro)" />
                 <button
                   type="button"
                   className={estilos.botonMonedaMod}

@@ -121,8 +121,8 @@ export function usarCalculoAtaquesJugador() {
 
   const statsCalculadas = useMemo(() => {
     if (!personajeActivo) return null;
-    return calcularEstadisticasPersonaje(personajeActivo);
-  }, [personajeActivo]);
+    return calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew);
+  }, [personajeActivo, objetosHomebrew]);
 
   // Habilidad mágica del personaje
   const habilidadMagica: Caracteristica = useMemo(() => {

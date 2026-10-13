@@ -114,7 +114,7 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
       {(objeto.sintonizacionRequerida || objetoBase?.sintonizacionRequerida) && (
         <div className={`${estilos.filaInteractiva} ${objeto.sintonizado ? estilos.filaInteractivaSintonizado : ""}`}>
           <div className={estilos.bloqueInfoInteractiva}>
-            <Link2 size={14} color={objeto.sintonizado ? "#c084fc" : "#94a3b8"} />
+            <Link2 size={14} color={objeto.sintonizado ? "var(--pj-texto-magia)" : "var(--pj-texto-terciario)"} />
             <div>
               <span className={objeto.sintonizado ? estilos.textoInteractivaActivo : estilos.textoInteractiva}>
                 {objeto.sintonizado ? "Sintonizado con este personaje" : "Requiere Sintonización (No sintonizado)"}

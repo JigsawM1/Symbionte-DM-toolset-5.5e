@@ -174,3 +174,118 @@
   border: 1px solid var(--color-borde-cian);
   border-radius: var(--dm-radio-panel, 2px);
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .cabecera {
+  background-color: var(--pj-fondo-panel);
+  border-bottom: 2px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .botonHamburguesa {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .tituloTexto {
+  font-size: var(--pj-fuente-subtitulo);
+  font-family: var(--fuente-principal);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .campañaTexto {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonConfiguracion {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonActivo {
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .navPestañas {
+  border-top: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .pestanaBoton {
+  background-color: var(--pj-fondo-panel);
+  border-right: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .pestanaActiva {
+  background-color: var(--pj-acento-primario-solido-hover);
+  color: var(--pj-texto-primario);
+  border-bottom: 1px solid var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .pestanaTexto {
+  font-size: var(--pj-fuente-label);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+:global([data-tema="jugador"]) .filaSuperior {
+  min-height: 40px;
+  height: auto;
+}
+
+:global([data-tema="jugador"]) .pestanaBoton {
+  min-width: 0;
+  height: auto;
+  min-height: 32px;
+  border-radius: 0;
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="jugador"]) .navPestañas {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  :global([data-tema="jugador"]) .pestanaBoton {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  :global([data-tema="jugador"]) .pestanaTexto {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+}
+
+:global([data-tema="jugador"]) .menuHomebrewDesplegable {
+  background-color: var(--pj-fondo-panel);
+  border: 2px solid var(--pj-borde-medio);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .cabeceraDesplegable {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .itemMenuDesplegable {
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .itemMenuActivo {
+  background-color: var(--pj-acento-primario-solido-hover);
+  color: var(--pj-texto-primario);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+}

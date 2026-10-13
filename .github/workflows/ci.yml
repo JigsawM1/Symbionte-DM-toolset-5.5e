@@ -32,10 +32,10 @@ jobs:
       - name: Instalar pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Configurar Node.js (v20) con caché de pnpm
+      - name: Configurar Node.js con caché de pnpm
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22.12.0
           cache: 'pnpm'
 
       - name: Instalar Dependencias
@@ -49,6 +49,16 @@ jobs:
 
       - name: Ejecución de Pruebas Automatizadas (Vitest)
         run: pnpm run test
+
+      - name: Simulación de sincronización DM y jugadores
+        run: pnpm run test:sync-simulacion
+
+      - name: Regresiones de interfaz y perfilado de ciclo de vida
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          pnpm run test:rasgos-ui
+          pnpm run test:ciclo-vida
 
       - name: Auditoría de Tamaño de Archivos y Prevención de Monolitos
         run: pnpm run verificar:lineas

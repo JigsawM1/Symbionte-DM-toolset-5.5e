@@ -59,7 +59,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {claseColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Swords size={13} color="#d4af37" />
+              <Swords size={13} color="var(--pj-texto-oro)" />
               <span className={estilos.tituloSeccion}>
                 Clase: {grupo.clase.nombre} (Nivel {grupo.clase.nivel})
               </span>
@@ -86,7 +86,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {canalizarColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Sun size={13} color="#f59e0b" />
+              <Sun size={13} color="var(--pj-texto-oro)" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloCanalizarDivinidad}`}>
                 Canalizar Divinidad ({grupo.clase.nombre})
               </span>
@@ -113,7 +113,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {subclaseColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Sparkles size={13} color="#38bdf8" />
+              <Sparkles size={13} color="var(--pj-texto-cian)" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloSubclase}`}>
                 Subclase: {grupo.clase.subclase || "Especialización"} ({grupo.clase.nombre})
               </span>
@@ -140,7 +140,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {invocacionesColapsada ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Flame size={13} color="#a78bfa" />
+              <Flame size={13} color="var(--pj-texto-magia)" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloInvocaciones}`}>
                 Invocaciones Sobrenaturales ({grupo.clase.nombre})
               </span>

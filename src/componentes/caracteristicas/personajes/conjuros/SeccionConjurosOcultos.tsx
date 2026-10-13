@@ -74,7 +74,7 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
         title={`Clic para ${estaAbierta ? "colapsar" : "expandir"} conjuros ocultos`}
       >
         <div className={estilos.tituloNivelFila}>
-          <EyeOff size={14} color="#94a3b8" />
+          <EyeOff size={14} color="var(--pj-texto-terciario)" />
           <span className={estilos.tituloOcultosTexto}>Conjuros Ocultos</span>
           <span className={estilos.badgeConteoOcultos}>
             {hayFiltrosActivos

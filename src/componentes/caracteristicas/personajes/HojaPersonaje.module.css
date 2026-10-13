@@ -12,10 +12,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 6px 8px 48px 8px;
+  padding: 6px 8px 84px 8px;
   box-sizing: border-box;
-  color: var(--pj-texto-primario-suave, #f8fafc);
-  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
+  color: var(--pj-texto-primario-suave);
+  font-family: var(--fuente-principal);
 }
 
 .cajaSinPersonaje {
@@ -24,7 +24,7 @@
 }
 
 .textoSinPersonaje {
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   margin: 0;
 }
 
@@ -33,28 +33,28 @@
    ========================================= */
 
 .neoRaised {
-  background-color: var(--pj-fondo-tarjeta, #121722);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  box-shadow: var(--pj-sombra-panel, 0 4px 12px rgba(0, 0, 0, 0.5));
-  border-radius: 8px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  box-shadow: var(--pj-sombra-panel);
+  border-radius: var(--pj-radio-panel);
   position: relative;
 }
 
 .neoPressed {
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  box-shadow: var(--pj-sombra-hundida, inset 0 2px 5px rgba(0, 0, 0, 0.7));
-  border-radius: 6px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  box-shadow: var(--pj-sombra-hundida);
+  border-radius: var(--pj-radio-control);
 }
 
 .neoButton {
-  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  color: var(--pj-texto-secundario, #cbd5e1);
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
   cursor: pointer;
   padding: 5px 10px;
-  border-radius: 6px;
-  font-size: var(--pj-fuente-boton, 12px);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -68,20 +68,20 @@
 }
 
 .neoButton:hover {
-  background-color: #242f42;
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  color: #ffffff;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
 }
 
 .neoButton:active {
-  background-color: #0e131c;
-  border-color: #6366f1;
+  background-color: var(--pj-fondo-tarjeta);
+  border-color: var(--pj-borde-acento);
 }
 
 .neoButton:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
+  border-color: var(--pj-borde-sutil);
 }
 
 /* ==========================================
@@ -93,8 +93,8 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
-  border: 1px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-acento-tenue);
 }
 
 .contenedorAvatar {
@@ -107,15 +107,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--pj-borde-acento-fuerte, #818cf8);
-  box-shadow: var(--pj-sombra-brillo-acento, 0 0 10px rgba(129, 140, 248, 0.3));
+  border: 2px solid var(--pj-borde-acento-fuerte);
+  box-shadow: var(--pj-sombra-brillo-acento);
   cursor: pointer;
-  background-color: var(--pj-fondo-hundido, #080c14);
+  background-color: var(--pj-fondo-hundido);
 }
 
 .contenedorAvatar:hover {
-  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
-  box-shadow: 0 0 14px rgba(165, 180, 252, 0.45);
+  border-color: var(--pj-borde-acento-luminoso);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .avatarImg,
@@ -132,7 +132,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: var(--pj-fondo-hundido, #080c14);
+  background-color: var(--pj-fondo-hundido);
   border-radius: 50%;
 }
 
@@ -150,14 +150,14 @@
 .avatarFallback {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #1e2638 0%, #312e81 100%);
+  background: linear-gradient(135deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-acento-primario-solido) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: 28px;
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-numero-xl);
   font-weight: 800;
-  color: #e0e7ff;
+  color: var(--pj-texto-primario);
   letter-spacing: -0.5px;
 }
 
@@ -168,9 +168,9 @@
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background-color: var(--pj-acento-exito, #10b981);
-  border: 2px solid var(--pj-fondo-hundido, #080c14);
-  box-shadow: 0 0 6px #10b981;
+  background-color: var(--pj-acento-exito);
+  border: 2px solid var(--pj-fondo-hundido);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .infoIdentidad {
@@ -195,14 +195,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  border-left: 3px solid var(--pj-acento-primario, #818cf8);
+  border-left: 3px solid var(--pj-acento-primario);
 }
 
 .nombrePersonaje {
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: var(--pj-fuente-titulo-grande, 18px);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo-grande);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -211,9 +211,9 @@
 }
 
 .subtituloNombre {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 600;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
@@ -227,34 +227,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.3));
-  background: linear-gradient(180deg, #1c2436 0%, #0d121c 100%);
+  border: 1px solid var(--pj-borde-acento);
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
 }
 
 .numeroNivel {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 20px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
   line-height: 1;
 }
 
 .etiquetaNivel {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 2px;
 }
 
 .botonConfigurarPj {
-  background: var(--pj-fondo-tarjeta-hover, #1b2434);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  color: var(--pj-texto-secundario, #cbd5e1);
+  background: var(--pj-fondo-tarjeta-hover);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
   cursor: pointer;
   padding: 0;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,9 +263,9 @@
 }
 
 .botonConfigurarPj:hover {
-  color: var(--pj-texto-acento, #a5b4fc);
-  background-color: #242f42;
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .cuadriculaDetalles {
@@ -280,23 +280,23 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .valorDetalle {
-  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
-  color: var(--pj-texto-primario-suave, #f8fafc);
+  color: var(--pj-texto-primario-suave);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .labelDetalle {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 600;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: 1px;
@@ -331,19 +331,19 @@
   display: inline-flex;
   padding: 2px;
   gap: 2px;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  border-radius: 6px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
 }
 
 .botonPill {
   background: transparent;
   border: 1px solid transparent;
-  color: var(--pj-texto-secundario, #cbd5e1);
-  font-size: var(--pj-fuente-micro, 11.5px);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   cursor: pointer;
   text-transform: uppercase;
   display: inline-flex;
@@ -353,46 +353,46 @@
 }
 
 .botonPill:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .botonPillDescansoCorto:hover {
-  color: var(--pj-texto-cian, #38bdf8);
-  border-color: rgba(56, 189, 248, 0.4);
+  color: var(--pj-texto-cian);
+  border-color: var(--pj-borde-cian);
 }
 
 .botonPillDescansoLargo:hover {
-  color: var(--pj-texto-oro, #fde047);
-  border-color: rgba(251, 191, 36, 0.4);
+  color: var(--pj-texto-oro);
+  border-color: var(--pj-borde-oro);
 }
 
 .botonPillDisv {
-  color: var(--pj-texto-alerta, #fca5a5);
+  color: var(--pj-texto-alerta);
 }
 
 .botonPillVent {
-  color: var(--pj-texto-exito, #6ee7b7);
+  color: var(--pj-texto-exito);
 }
 
 .botonPillActivoDisv {
-  background-color: #7f1d1d !important;
-  color: #fee2e2 !important;
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+  background-color: var(--pj-acento-peligro-oscuro) !important;
+  color: var(--pj-texto-primario) !important;
+  border-color: var(--pj-borde-peligro) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonPillActivoPlano {
-  background-color: #334155 !important;
-  color: #ffffff !important;
-  border-color: #64748b !important;
+  background-color: var(--pj-fondo-tarjeta-elevada) !important;
+  color: var(--pj-texto-primario) !important;
+  border-color: var(--pj-borde-acento) !important;
 }
 
 .botonPillActivoVent {
-  background-color: #064e3b !important;
-  color: #d1fae5 !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  background-color: var(--pj-acento-exito-oscuro) !important;
+  color: var(--pj-texto-exito) !important;
+  border-color: var(--pj-borde-exito) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .columnaCondicionesActivas {
@@ -402,7 +402,7 @@
   flex-direction: column;
   gap: 5px;
   min-height: 58px;
-  background-color: var(--pj-fondo-hundido, #080c14);
+  background-color: var(--pj-fondo-hundido);
   position: relative;
   overflow: visible;
 }
@@ -414,9 +414,9 @@
 }
 
 .tituloCondicionesActivas {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -431,32 +431,32 @@
 }
 
 .chipCondicion {
-  background-color: #1a2233;
-  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.4));
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
   padding: 3px 5px;
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-acento-brillante, #c7d2fe);
+  color: var(--pj-texto-acento-brillante);
   cursor: help;
   position: relative;
 }
 
 .chipDesangrado {
-  background-color: hsla(0, 80%, 9%, 0.85) !important;
-  border-color: hsla(0, 80%, 50%, 0.7) !important;
-  color: hsl(0, 100%, 88%) !important;
-  box-shadow: inset 0 0 4px rgba(239, 68, 68, 0.25) !important;
+  background-color: var(--pj-acento-peligro-fondo) !important;
+  border-color: var(--pj-borde-peligro) !important;
+  color: var(--pj-texto-alerta) !important;
+  box-shadow: var(--pj-sombra-hundida) !important;
   font-weight: 700;
 }
 
 .chipBotonCerrar {
   background: transparent;
   border: none;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
   cursor: pointer;
   padding: 0;
   display: flex;
@@ -467,12 +467,12 @@
 }
 
 .chipBotonCerrar:hover {
-  color: #f87171;
+  color: var(--pj-texto-alerta);
 }
 
 .textoSinCondiciones {
-  font-size: var(--pj-fuente-micro, 11.5px);
-  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
   font-style: italic;
 }
 
@@ -509,14 +509,14 @@
   justify-content: center;
   position: relative;
   text-align: center;
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b27 0%, #0e131d 100%));
+  border: 1px solid var(--pj-borde-sutil);
+  background: var(--pj-fondo-cabecera-gradiente);
   user-select: none;
 }
 
 .tarjetaMetricaInteractiva:hover {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  background: linear-gradient(180deg, #1a2333 0%, #111722 100%);
+  border-color: var(--pj-borde-acento-fuerte);
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-hover) 0%, var(--pj-fondo-tarjeta-hover) 100%);
 }
 
 .iconoMetricaDecorativo {
@@ -524,13 +524,13 @@
   top: 4px;
   right: 4px;
   opacity: 0.3;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
 }
 
 .etiquetaMetrica {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 3px;
@@ -538,29 +538,29 @@
 
 .valorMetrica {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 22px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   line-height: 1;
 }
 
 .valorMetricaAcento {
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
 }
 
 .unidadMetrica {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 600;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   margin-left: 2px;
 }
 
 .botonInspiracion {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -569,9 +569,9 @@
 }
 
 .botonInspiracionActiva {
-  background-color: var(--pj-acento-oro, #eab308);
-  border-color: #fef08a;
-  box-shadow: var(--pj-sombra-brillo-oro, 0 0 10px rgba(234, 179, 8, 0.6));
+  background-color: var(--pj-acento-oro-oscuro);
+  border-color: var(--pj-borde-oro);
+  box-shadow: var(--pj-sombra-brillo-oro);
 }
 
 /* --- Control de Velocidad Dinámica y Popover de Movimiento --- */
@@ -584,40 +584,40 @@
 .tarjetaMetricaVelocidad {
   cursor: pointer;
   position: relative;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: none;
 }
 
 .tarjetaMetricaVelocidad:hover {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  box-shadow: 0 0 8px rgba(129, 140, 248, 0.25);
+  border-color: var(--pj-borde-acento-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .tarjetaMetricaVelocidadAgotada {
-  border-color: rgba(239, 68, 68, 0.4) !important;
+  border-color: var(--pj-borde-peligro) !important;
 }
 
 .tarjetaMetricaVelocidadCarrera {
-  border-color: var(--pj-texto-cian, #38bdf8) !important;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.3) !important;
+  border-color: var(--pj-texto-cian) !important;
+  box-shadow: var(--pj-sombra-tarjeta) !important;
 }
 
 .separadorVelocidad {
-  font-size: 13px;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 600;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   margin-left: 2px;
 }
 
 .valorMetricaAgotado {
-  color: #ef4444 !important;
+  color: var(--pj-texto-alerta) !important;
 }
 
 .valorMetricaParcial {
-  color: #f59e0b !important;
+  color: var(--pj-texto-oro) !important;
 }
 
 .valorMetricaCarrera {
-  color: #38bdf8 !important;
+  color: var(--pj-texto-cian) !important;
 }
 
 .indicadorTSEnlace {
@@ -627,12 +627,12 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #10b981;
-  box-shadow: 0 0 4px #10b981;
+  background-color: var(--pj-acento-exito-oscuro);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .indicadorTSEnlaceInactivo {
-  background-color: #64748b;
+  background-color: var(--pj-acento-primario-solido);
   box-shadow: none;
 }
 
@@ -643,39 +643,34 @@
   left: 50%;
   transform: translateX(-50%);
   width: 270px;
-  background: #0f172a;
-  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 12px rgba(129, 140, 248, 0.3);
-  border-radius: 8px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+  border-radius: var(--pj-radio-panel);
   padding: 12px;
   z-index: 1200;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  color: #e2e8f0;
+  color: var(--pj-texto-primario-suave);
   text-align: left;
-  animation: fadeInPopover 0.15s ease-out;
-}
-
-@keyframes fadeInPopover {
-  from { opacity: 0; transform: translate(-50%, -4px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  animation: none;
 }
 
 .cabeceraPopoverVelocidad {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid var(--pj-borde-acento);
   padding-bottom: 6px;
 }
 
 .tituloPopoverVelocidad {
-  font-size: 12px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -684,30 +679,30 @@
 .botonCerrarPopover {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   cursor: pointer;
   padding: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
 }
 
 .botonCerrarPopover:hover {
-  color: #ffffff;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .badgeTSEnlace {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: var(--pj-fuente-badge);
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--pj-acento-exito-fondo);
+  color: var(--pj-texto-exito);
+  border: 1px solid var(--pj-borde-exito);
 }
 
 .indicadorTSEnlaceEstatico {
@@ -716,9 +711,9 @@
 }
 
 .badgeTSDesconectado {
-  background: rgba(100, 116, 139, 0.12);
-  color: #94a3b8;
-  border-color: rgba(100, 116, 139, 0.3);
+  background: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
+  border-color: var(--pj-borde-acento);
 }
 
 .badgeTSEnlace .indicadorTSEnlace {
@@ -733,9 +728,9 @@
 }
 
 .resumenMovimientoCaja {
-  background: #090d16;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 6px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 8px 10px;
   display: flex;
   justify-content: space-around;
@@ -744,21 +739,21 @@
 }
 
 .etiquetaMovimientoGrande {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   font-weight: 600;
 }
 
 .valorMovimientoGrande {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 18px;
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 
 .gastadoSubtexto {
-  font-size: 10px;
-  color: #eab308;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-oro);
   margin-top: 1px;
 }
 
@@ -769,35 +764,35 @@
 }
 
 .botonPasoPies {
-  background: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #f1f5f9;
-  border-radius: 4px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
+  border-radius: var(--pj-radio-control);
   padding: 5px 8px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 2px;
-  transition: all 0.15s ease;
+  transition: none;
   user-select: none;
 }
 
 .botonPasoPies:hover {
-  background: #334155;
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .inputRestanteManual {
   flex: 1;
-  background: #090d16;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 4px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 5px 6px;
-  color: #ffffff;
+  color: var(--pj-texto-primario);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: 13px;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
   text-align: center;
   width: 100%;
@@ -805,8 +800,8 @@
 
 .inputRestanteManual:focus {
   outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+  border-color: var(--pj-borde-cian);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .filaBotonesAccionVelocidad {
@@ -816,25 +811,25 @@
 }
 
 .botonAccionVelocidad {
-  background: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #cbd5e1;
-  border-radius: 5px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-secundario-claro);
+  border-radius: var(--pj-radio-control);
   padding: 6px 8px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  transition: all 0.15s ease;
+  transition: none;
 }
 
 .botonAccionVelocidad:hover:not(:disabled) {
-  background: #334155;
-  color: #ffffff;
-  border-color: #818cf8;
+  background: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-acento);
 }
 
 .botonAccionVelocidad:disabled {
@@ -843,28 +838,28 @@
 }
 
 .botonCarreraActivo {
-  background: #0369a1 !important;
-  color: #ffffff !important;
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+  background: var(--pj-acento-cian-solido) !important;
+  color: var(--pj-texto-primario) !important;
+  border-color: var(--pj-borde-cian) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonRestablecerTurno {
   grid-column: span 2;
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.3);
+  background: var(--pj-fondo-tarjeta-elevada);
+  border-color: var(--pj-borde-acento);
 }
 
 .botonRestablecerTurno:hover {
-  background: #0f766e !important;
-  border-color: #2dd4bf !important;
-  color: #ffffff !important;
+  background: var(--pj-acento-cian-solido) !important;
+  border-color: var(--pj-borde-cian) !important;
+  color: var(--pj-texto-primario) !important;
 }
 
 .piePopoverHistorial {
-  font-size: 12px;
-  color: #94a3b8;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-acento);
+  border-top: 1px solid var(--pj-borde-acento);
   padding-top: 5px;
   display: flex;
   align-items: center;
@@ -873,9 +868,9 @@
 
 /* Selector de Terreno (D&D 5.5e y 3D) */
 .seccionTerrenoPopover {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 6px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 8px;
   display: flex;
   flex-direction: column;
@@ -886,10 +881,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   letter-spacing: 0.5px;
 }
 
@@ -901,11 +896,11 @@
 }
 
 .badgeAltura3D {
-  font-size: 9px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.12);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: var(--pj-texto-cian);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian);
   padding: 1px 5px;
   border-radius: 3px;
 }
@@ -917,82 +912,82 @@
 }
 
 .botonTerreno {
-  background: #1e293b;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
-  border-radius: 4px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
   padding: 5px 3px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s ease;
+  transition: none;
   user-select: none;
 }
 
 .botonTerreno:hover {
-  background: #334155;
-  color: #ffffff;
-  border-color: rgba(148, 163, 184, 0.4);
+  background: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-acento);
 }
 
 .subMultiplicadorTerreno {
-  font-size: 9px;
+  font-size: var(--pj-fuente-label);
   font-weight: 500;
   opacity: 0.8;
 }
 
 .botonTerrenoActivoNormal {
-  background: rgba(30, 41, 59, 0.9) !important;
-  color: #ffffff !important;
-  border-color: #818cf8 !important;
-  box-shadow: 0 0 6px rgba(129, 140, 248, 0.3);
+  background: var(--pj-fondo-tarjeta-elevada) !important;
+  color: var(--pj-texto-primario) !important;
+  border-color: var(--pj-borde-acento) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonTerrenoActivoDificil {
-  background: rgba(220, 38, 38, 0.25) !important;
-  color: #fca5a5 !important;
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+  background: var(--pj-acento-peligro-fondo) !important;
+  color: var(--pj-texto-alerta) !important;
+  border-color: var(--pj-borde-peligro) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonTerrenoActivoExtremo {
-  background: rgba(147, 51, 234, 0.25) !important;
-  color: #d8b4fe !important;
-  border-color: #a855f7 !important;
-  box-shadow: 0 0 6px rgba(168, 85, 247, 0.4);
+  background: var(--pj-acento-magia-fondo) !important;
+  color: var(--pj-texto-magia) !important;
+  border-color: var(--pj-borde-magia) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .descripcionTerrenoTexto {
-  font-size: 10px;
-  color: #cbd5e1;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario-claro);
   line-height: 1.3;
   margin-top: 2px;
 }
 
 .badgeTerrenoTarjeta {
-  font-size: 9px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 800;
   padding: 1px 4px;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
   margin-top: 2px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .badgeTerrenoDificil {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
 }
 
 .badgeTerrenoExtremo {
-  background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.4);
+  background: var(--pj-acento-magia-fondo);
+  color: var(--pj-texto-magia);
+  border: 1px solid var(--pj-borde-magia);
 }
 
 
@@ -1005,7 +1000,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-top: 2px solid var(--pj-acento-cian, #0284c7);
+  border-top: 2px solid var(--pj-acento-cian);
 }
 
 .filaSaludPrincipal {
@@ -1028,9 +1023,9 @@
 }
 
 .tituloHp {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -1044,10 +1039,10 @@
 .botonModHpCurar {
   width: 26px;
   height: 26px;
-  border-radius: 4px;
-  background-color: var(--pj-acento-exito-oscuro, #064e3b);
-  border: 1px solid var(--pj-acento-exito, #10b981);
-  color: var(--pj-texto-exito-brillante, #a7f3d0);
+  border-radius: var(--pj-radio-control);
+  background-color: var(--pj-acento-exito-oscuro);
+  border: 1px solid var(--pj-acento-exito);
+  color: var(--pj-texto-exito-brillante);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1056,17 +1051,17 @@
 }
 
 .botonModHpCurar:hover {
-  background-color: #047857;
-  color: #ffffff;
+  background-color: var(--pj-acento-exito-oscuro);
+  color: var(--pj-texto-primario);
 }
 
 .botonModHpDano {
   width: 26px;
   height: 26px;
-  border-radius: 4px;
-  background-color: var(--pj-acento-peligro-oscuro, #7f1d1d);
-  border: 1px solid var(--pj-acento-peligro, #ef4444);
-  color: var(--pj-texto-alerta-brillante, #fee2e2);
+  border-radius: var(--pj-radio-control);
+  background-color: var(--pj-acento-peligro-oscuro);
+  border: 1px solid var(--pj-acento-peligro);
+  color: var(--pj-texto-alerta-brillante);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1075,8 +1070,8 @@
 }
 
 .botonModHpDano:hover {
-  background-color: #991b1b;
-  color: #ffffff;
+  background-color: var(--pj-acento-peligro-oscuro);
+  color: var(--pj-texto-primario);
 }
 
 .inputHpMod {
@@ -1084,30 +1079,30 @@
   height: 26px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-cuerpo, 13px);
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
-  color: var(--pj-texto-primario, #ffffff);
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  border-radius: 4px;
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
   padding: 0;
 }
 
 .inputHpMod:focus {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .barraVidaFondo {
   height: 38px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 12px;
-  background-color: var(--pj-fondo-hundido-profundo, #05080e);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background-color: var(--pj-fondo-hundido-profundo);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .barraVidaProgreso {
@@ -1121,42 +1116,42 @@
 
 /* Gradientes semánticos de estado de vida */
 .vidaPlena {
-  background: linear-gradient(90deg, #065f46 0%, #10b981 100%);
+  background: linear-gradient(90deg, var(--pj-acento-exito) 0%, var(--pj-acento-exito-medio) 100%);
 }
 
 .vidaHerida {
-  background: linear-gradient(90deg, #854d0e 0%, #eab308 100%);
+  background: linear-gradient(90deg, var(--pj-acento-oro) 0%, var(--pj-acento-oro-medio) 100%);
 }
 
 .vidaCritica {
-  background: linear-gradient(90deg, #7f1d1d 0%, #ef4444 100%);
+  background: linear-gradient(90deg, var(--pj-acento-peligro) 0%, var(--pj-acento-peligro-medio) 100%);
 }
 
 .barraVidaTexto {
   position: relative;
   z-index: 2;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 19px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   display: flex;
   align-items: center;
   gap: 4px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+  text-shadow: none;
 }
 
 .badgeEstadoVida {
   position: relative;
   z-index: 2;
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 2px 7px;
   border-radius: 3px;
-  background-color: rgba(0, 0, 0, 0.75);
-  border: 1px solid var(--pj-borde-medio, rgba(255, 255, 255, 0.15));
-  color: var(--pj-texto-secundario, #cbd5e1);
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
 }
 
 .inputHpDirecto {
@@ -1164,32 +1159,32 @@
   background: transparent;
   border: 1px solid transparent;
   outline: none;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 19px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   padding: 1px;
   cursor: text;
 }
 
 .inputHpDirecto:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-medio);
 }
 
 .inputHpDirecto:focus {
-  background-color: rgba(0, 0, 0, 0.9);
-  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-acento-fuerte);
 }
 
 .hpMaxAumentado {
-  color: var(--pj-texto-cian, #38bdf8) !important;
+  color: var(--pj-texto-cian) !important;
 }
 
 .hpMaxReducido {
-  color: var(--pj-texto-alerta, #f87171) !important;
+  color: var(--pj-texto-alerta) !important;
 }
 
 .cajaHpTemporal {
@@ -1202,29 +1197,52 @@
 
 .barraTempFondo {
   height: 38px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #0b131e;
-  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.3));
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-cian);
 }
 
 .barraTempFondo:hover {
-  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  border-color: var(--pj-borde-cian-fuerte);
 }
 
 .valorTempHp {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 20px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-cian, #38bdf8);
+  color: var(--pj-texto-cian);
 }
 
 .filaRecursosSalud {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 1.8fr) minmax(124px, 1fr);
+  grid-template-areas: "dados muerte cansancio";
   gap: 8px;
+}
+
+.recursoDadosGolpe {
+  grid-area: dados;
+  min-width: 0;
+}
+
+.recursoSalvacionesMuerte {
+  grid-area: muerte;
+  min-width: 0;
+}
+
+.recursoCansancio {
+  grid-area: cansancio;
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .filaRecursosSalud {
+    grid-template-columns: minmax(220px, 1.8fr) minmax(124px, 1fr);
+    grid-template-areas: "dados dados" "muerte cansancio";
+  }
 }
 
 .tarjetaRecursoSalud {
@@ -1234,8 +1252,8 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #131924 0%, #0d121b 100%));
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .filaCabeceraRecurso {
@@ -1248,39 +1266,39 @@
 }
 
 .tituloRecursoSalud {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .botonSalvacionMuerte {
   background: transparent;
-  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.3));
-  font-size: var(--pj-fuente-micro, 11px);
+  border: 1px solid var(--pj-borde-acento);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
   text-transform: uppercase;
   cursor: pointer;
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 
 .botonSalvacionMuerte:hover {
-  color: #ffffff;
-  background-color: #3730a3;
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .valorDadosGolpe {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo, 14px);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -1291,24 +1309,24 @@
   background: transparent;
   border: 1px solid transparent;
   outline: none;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo, 14px);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
   padding: 0;
   cursor: text;
 }
 
 .inputDadosGolpeDirecto:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-medio);
 }
 
 .inputDadosGolpeDirecto:focus {
-  background-color: rgba(0, 0, 0, 0.9);
-  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-acento-fuerte);
 }
 
 .filaPuntosMuerte {
@@ -1329,22 +1347,35 @@
 }
 
 .iconoSlotMuerte:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .puntoCansancio {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 1.5px solid var(--pj-borde-medio, rgba(255, 255, 255, 0.3));
-  background-color: var(--pj-fondo-hundido, #080c14);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
   cursor: pointer;
 }
 
-.puntoCansancioActivo {
-  background-color: var(--pj-acento-oro, #eab308);
-  border-color: #fbbf24;
-  box-shadow: var(--pj-sombra-brillo-oro, 0 0 6px rgba(245, 158, 11, 0.5));
+.puntoCansancio::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pj-texto-terciario);
+  background-color: var(--pj-fondo-hundido);
+}
+
+.puntoCansancio:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+}
+
+.puntoCansancioActivo::before {
+  background-color: var(--pj-acento-oro);
+  border-color: var(--pj-texto-oro);
+  box-shadow: var(--pj-sombra-brillo-oro);
 }
 
 /* ==========================================
@@ -1372,19 +1403,19 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #151c28 0%, #0d121c 100%));
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .tarjetaAtributo:hover {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  background: linear-gradient(180deg, #1b2434 0%, #101622 100%);
+  border-color: var(--pj-borde-acento-fuerte);
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-hover) 0%, var(--pj-fondo-tarjeta-hover) 100%);
 }
 
 .nombreAtributo {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.6px;
   margin-bottom: 3px;
@@ -1398,15 +1429,15 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 5px;
-  border: 2px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
-  background-color: var(--pj-fondo-hundido-profundo, #05080e);
+  border: 2px solid var(--pj-borde-acento-tenue);
+  background-color: var(--pj-fondo-hundido-profundo);
 }
 
 .textoModificador {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-xl, 25px);
+  font-size: var(--pj-fuente-numero-xl);
   font-weight: 800;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
 }
 
 /* Inputs numéricos sin flechas */
@@ -1431,14 +1462,14 @@
 }
 
 .badgePuntuacionBase {
-  background: var(--pj-fondo-hundido-profundo, #05080e);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background: var(--pj-fondo-hundido-profundo);
+  border: 1px solid var(--pj-borde-sutil);
   outline: none;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
   margin-bottom: 5px;
   width: 38px;
   text-align: center;
@@ -1447,27 +1478,27 @@
 }
 
 .badgePuntuacionBase:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--pj-borde-medio);
 }
 
 .badgePuntuacionBase:focus {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  color: #ffffff;
-  background-color: #000000;
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-base);
 }
 
 .filaSalvacionAtributo {
   width: 100%;
   padding-top: 5px;
-  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
+  border-top: 1px solid var(--pj-borde-sutil);
   display: flex;
   align-items: center;
   justify-content: space-around;
   padding-left: 2px;
   padding-right: 2px;
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   text-transform: uppercase;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
 }
 
 .botonToggleSalvacion {
@@ -1479,20 +1510,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
   outline: none;
 }
 
 .botonToggleSalvacion:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .puntoCompetenciaSalvacion {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1.5px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
+  background-color: var(--pj-fondo-hundido);
+  border: 1.5px solid var(--pj-borde-medio);
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
@@ -1500,9 +1531,9 @@
 }
 
 .puntoCompetenciaActivo {
-  background-color: var(--pj-acento-primario, #818cf8);
-  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
-  box-shadow: var(--pj-sombra-brillo-acento, 0 0 6px rgba(129, 140, 248, 0.5));
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-acento-luminoso);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonTextoSalvacion {
@@ -1510,25 +1541,25 @@
   border: 1px solid transparent;
   padding: 1px 4px;
   margin: -1px -3px;
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
   outline: none;
   display: flex;
   align-items: center;
 }
 
 .botonTextoSalvacion:hover {
-  color: var(--pj-texto-acento, #a5b4fc);
-  background-color: var(--pj-acento-primario-fondo, rgba(129, 140, 248, 0.12));
-  border-color: var(--pj-borde-acento, rgba(129, 140, 248, 0.25));
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento);
 }
 
 .textoSalvacionCompetente {
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   font-weight: 800;
 }
 
@@ -1539,16 +1570,16 @@
   flex-direction: column;
   justify-content: center;
   gap: 7px;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141a27 0%, #0d111a 100%));
+  background: var(--pj-fondo-cabecera-gradiente);
 }
 
 .tituloPanelLateral {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
+  border-bottom: 1px solid var(--pj-borde-sutil);
   padding-bottom: 4px;
 }
 
@@ -1557,21 +1588,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
-  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil);
+  background-color: var(--pj-fondo-hundido);
 }
 
 .valorSentidoPasivo {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg, 19px);
+  font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
 }
 
 .labelSentidoPasivo {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 600;
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   text-align: right;
   line-height: 1.2;
@@ -1593,7 +1624,7 @@
   display: flex;
   flex-direction: column;
   gap: 7px;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b28 0%, #0e131d 100%));
+  background: var(--pj-fondo-cabecera-gradiente);
 }
 
 .gridHabilidadesDobleColumna {
@@ -1610,13 +1641,13 @@
   border-radius: 4px;
   cursor: pointer;
   min-height: 30px;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.1));
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .itemHabilidad:hover {
-  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
-  border-color: var(--pj-borde-acento, rgba(129, 140, 248, 0.4));
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
 }
 
 .infoHabilidadIzquierda {
@@ -1626,27 +1657,27 @@
 }
 
 .nombreHabilidad {
-  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 600;
-  color: var(--pj-texto-primario-suave, #f8fafc);
+  color: var(--pj-texto-primario-suave);
 }
 
 .caracAbrevHabilidad {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   text-transform: uppercase;
 }
 
 .valorBonoHabilidad {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo, 14px);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
 }
 
 .valorBonoHabilidadDestacado {
-  color: var(--pj-texto-acento, #a5b4fc);
+  color: var(--pj-texto-acento);
   font-weight: 800;
 }
 
@@ -1659,13 +1690,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
   outline: none;
   flex-shrink: 0;
 }
 
 .botonToggleHabilidad:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 /* Indicador de 4 Estados de Grado de Habilidad */
@@ -1673,8 +1704,8 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  border: 1.5px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.35));
-  background-color: var(--pj-fondo-hundido, #080c14);
+  border: 1.5px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-hundido);
   cursor: pointer;
   flex-shrink: 0;
   display: flex;
@@ -1685,24 +1716,24 @@
 }
 
 .puntoGradoVacio {
-  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.25));
-  background-color: var(--pj-fondo-hundido, #080c14);
+  border-color: var(--pj-borde-sutil);
+  background-color: var(--pj-fondo-hundido);
 }
 
 .puntoGradoMedio {
-  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
-  background: linear-gradient(90deg, #818cf8 50%, #080c14 50%);
+  border-color: var(--pj-borde-acento-luminoso);
+  background: linear-gradient(90deg, var(--pj-acento-primario-solido) 50%, var(--pj-fondo-panel) 50%);
 }
 
 .puntoGradoCompetente {
-  border-color: var(--pj-acento-primario, #818cf8);
-  background-color: var(--pj-acento-primario, #818cf8);
+  border-color: var(--pj-acento-primario);
+  background-color: var(--pj-acento-primario-solido);
 }
 
 .puntoGradoPericia {
-  border-color: var(--pj-texto-cian, #38bdf8);
-  background-color: var(--pj-texto-cian, #38bdf8);
-  box-shadow: 0 0 0 1.5px var(--pj-fondo-hundido, #080c14), 0 0 0 2.5px #38bdf8;
+  border-color: var(--pj-texto-cian);
+  background-color: var(--pj-texto-cian);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .panelCompetencias {
@@ -1711,7 +1742,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141a27 0%, #0d111a 100%));
+  background: var(--pj-fondo-cabecera-gradiente);
 }
 
 .grupoCompetenciaItem {
@@ -1721,21 +1752,21 @@
 }
 
 .tituloGrupoCompetencia {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .cajaTextoCompetencia {
   padding: 6px 8px;
-  font-size: var(--pj-fuente-cuerpo, 12px);
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario-claro);
   line-height: 1.35;
   min-height: 28px;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .cajaTextoCompetenciaInteractiva {
@@ -1744,9 +1775,9 @@
 }
 
 .cajaTextoCompetenciaInteractiva:hover {
-  border-color: var(--pj-borde-cian, rgba(56, 189, 248, 0.4));
-  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.08));
-  color: #ffffff;
+  border-color: var(--pj-borde-cian);
+  background-color: var(--pj-acento-cian-fondo);
+  color: var(--pj-texto-primario);
 }
 
 /* ==========================================
@@ -1761,10 +1792,10 @@
 }
 
 .tituloGestor {
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: var(--pj-fuente-titulo-grande, 18px);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo-grande);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
 }
 
 .gridPersonajesGaleria {
@@ -1779,13 +1810,13 @@
   flex-direction: column;
   gap: 8px;
   position: relative;
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #141b27 0%, #0e131d 100%));
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .tarjetaPjGaleriaActiva {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
-  box-shadow: var(--pj-sombra-brillo-acento, 0 0 10px rgba(129, 140, 248, 0.25));
+  border-color: var(--pj-borde-acento-fuerte);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .filaPjCabeceraGaleria {
@@ -1795,15 +1826,15 @@
 }
 
 .nombrePjGaleria {
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: var(--pj-fuente-titulo, 16px);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo);
   font-weight: 700;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
 }
 
 .detallesPjGaleria {
-  font-size: var(--pj-fuente-micro, 11.5px);
-  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
   margin-top: 1px;
 }
 
@@ -1826,8 +1857,8 @@
 }
 
 .subtituloGestor {
-  font-size: var(--pj-fuente-micro, 11px);
-  color: var(--color-texto-apagado, #94a3b8);
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
   margin: 2px 0 0 0;
 }
 
@@ -1838,14 +1869,14 @@
 }
 
 .botonAccionGestor[data-copiado="true"] {
-  border-color: var(--color-borde-cian, #00f5d4);
-  color: var(--color-borde-cian, #00f5d4);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
 }
 
 .botonNuevoPersonaje {
-  background-color: var(--color-primario, #6366f1);
-  color: #ffffff;
-  border-color: var(--color-borde-cian, #00f5d4);
+  background-color: var(--pj-acento-primario-solido);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-cian-fuerte);
 }
 
 .filaNombrePj {
@@ -1855,27 +1886,27 @@
 }
 
 .badgePjActivo {
-  font-size: 9px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: var(--color-borde-cian, #00f5d4);
-  background-color: rgba(0, 245, 212, 0.12);
-  border: 1px solid var(--color-borde-cian, #00f5d4);
+  color: var(--pj-borde-cian-fuerte);
+  background-color: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-fuerte);
   padding: 1px 5px;
-  border-radius: 10px;
+  border-radius: var(--pj-radio-panel);
 }
 
 .avatarCirculoPj {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: var(--color-fondo-tarjeta, #121722);
-  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 14px;
-  color: var(--color-primario-brillante, #818cf8);
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-acento-brillante);
   overflow: hidden;
 }
 
@@ -1894,8 +1925,8 @@
 .filaEtiquetaSaludPj {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
-  color: var(--color-texto-apagado, #94a3b8);
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
 }
 
 .pistaSaludPj {
@@ -1910,16 +1941,16 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background-color: var(--color-primario, #6366f1);
+  background-color: var(--pj-acento-primario-solido);
 }
 
 .botonVerFicha {
-  border-color: var(--color-borde-cian, #00f5d4);
-  color: var(--color-borde-cian, #00f5d4);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
 }
 
 .botonEliminarPj {
-  color: var(--color-peligro, #ef4444);
+  color: var(--pj-texto-alerta);
 }
 
 .overlayModalJSON {
@@ -1928,7 +1959,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: var(--pj-fondo-modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1959,12 +1990,12 @@
 }
 
 .iconoModalCian {
-  color: var(--color-borde-cian, #00f5d4);
+  color: var(--pj-borde-cian-fuerte);
 }
 
 .tituloModalJSON {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--pj-fuente-subtitulo);
 }
 
 .botonCerrarModalCompacto {
@@ -1974,17 +2005,17 @@
 
 .textoInstruccionModal {
   margin: 0;
-  font-size: 11px;
-  color: var(--color-texto-apagado, #94a3b8);
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
 }
 
 .textareaCodigoJSON {
   width: 100%;
-  background-color: var(--color-fondo-panel, #0b0f16);
-  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
-  border-radius: 6px;
-  color: #e2e8f0;
-  font-size: 11px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario-suave);
+  font-size: var(--pj-fuente-label);
   font-family: monospace;
   padding: 8px;
   resize: vertical;
@@ -1998,9 +2029,9 @@
 }
 
 .botonAccionPrimarioModal {
-  background-color: var(--color-primario, #6366f1);
-  color: #ffffff;
-  border-color: var(--color-borde-cian, #00f5d4);
+  background-color: var(--pj-acento-primario-solido);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-cian-fuerte);
 }
 
 .filaBotonesPegar {
@@ -2014,11 +2045,11 @@
 
 .textareaPegarJSON {
   width: 100%;
-  background-color: var(--color-fondo-panel, #0b0f16);
-  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
-  border-radius: 6px;
-  color: #e2e8f0;
-  font-size: 11px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario-suave);
+  font-size: var(--pj-fuente-label);
   font-family: monospace;
   padding: 8px;
   resize: vertical;
@@ -2026,12 +2057,12 @@
 }
 
 .textareaPegarJSON[data-error="true"] {
-  border-color: var(--color-peligro, #ef4444);
+  border-color: var(--pj-acento-peligro);
 }
 
 .mensajeErrorPegado {
-  color: var(--color-peligro, #ef4444);
-  font-size: 11px;
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-label);
   font-weight: 600;
 }
 
@@ -2045,7 +2076,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--pj-fondo-modal-overlay, rgba(0, 0, 0, 0.85));
+  background-color: var(--pj-fondo-modal-overlay);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -2059,34 +2090,34 @@
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--pj-fondo-modal-cuerpo, #0b0f16);
-  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
-  border-radius: 8px;
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  border-radius: var(--pj-radio-panel);
   overflow: hidden;
-  box-shadow: var(--pj-sombra-modal, 0 10px 30px rgba(0, 0, 0, 0.9));
+  box-shadow: var(--pj-sombra-modal);
 }
 
 .cabeceraModal {
   padding: 10px 14px;
-  background-color: var(--pj-fondo-modal-cabecera, #141a26);
-  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
+  background-color: var(--pj-fondo-modal-cabecera);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .tituloModal {
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: var(--pj-fuente-titulo, 16px);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
 }
 
 .barraPestañasModal {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  background-color: #101622;
-  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   padding: 0;
   gap: 0;
   width: 100%;
@@ -2096,9 +2127,9 @@
   background: transparent !important;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   padding: 8px 2px;
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
@@ -2113,16 +2144,16 @@
 }
 
 .botonPestañaModal:hover {
-  background-color: #161e2c !important;
-  color: #ffffff;
-  border-bottom-color: var(--pj-borde-acento-luminoso, #a5b4fc);
+  background-color: var(--pj-fondo-modal-cuerpo) !important;
+  color: var(--pj-texto-primario);
+  border-bottom-color: var(--pj-borde-acento-luminoso);
 }
 
 .botonPestañaModalActiva,
 .botonPestañaModalActiva:hover {
-  background-color: #141b27 !important;
-  color: var(--pj-texto-cian, #38bdf8);
-  border-bottom-color: var(--pj-texto-cian, #38bdf8);
+  background-color: var(--pj-fondo-modal-cuerpo) !important;
+  color: var(--pj-texto-cian);
+  border-bottom-color: var(--pj-texto-cian);
 }
 
 .contenidoPestañaModal {
@@ -2147,30 +2178,30 @@
 }
 
 .labelFormulario {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-label, #a0aec0);
+  color: var(--pj-texto-label);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .inputFormulario {
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  color: var(--pj-texto-primario, #ffffff);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
   padding: 6px 8px;
-  border-radius: 4px;
-  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-cuerpo);
 }
 
 .inputFormulario:focus {
-  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .pieModal {
   padding: 10px 14px;
-  background-color: var(--pj-fondo-modal-cabecera, #141a26);
-  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
+  background-color: var(--pj-fondo-modal-cabecera);
+  border-top: 1px solid var(--pj-borde-sutil);
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -2178,33 +2209,33 @@
 
 .indicadorMiniaturaTablero {
   height: 38px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 10px;
   border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
-  color: var(--color-texto-apagado, #94a3b8);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-terciario);
 }
 
 .indicadorMiniaturaTablero[data-detectada="true"] {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-  color: #10b981;
+  background-color: var(--pj-acento-exito-fondo);
+  border-color: var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
 }
 
 .puntoMiniaturaTablero {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #64748b;
+  background-color: var(--pj-acento-primario-solido);
   flex-shrink: 0;
 }
 
 .puntoMiniaturaTablero[data-detectada="true"] {
-  background-color: #10b981;
+  background-color: var(--pj-acento-exito-oscuro);
 }
 
 .filaAvatarEdicion {
@@ -2219,7 +2250,7 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1px solid #818cf8;
+  border: 1px solid var(--pj-borde-acento);
 }
 
 .inputAvatarEdicion {
@@ -2227,8 +2258,8 @@
 }
 
 .textoInstruccionAtributos {
-  font-size: 12px;
-  color: #cbd5e1;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario-claro);
   margin: 0;
 }
 
@@ -2240,13 +2271,13 @@
 
 .tarjetaAtributoEdicion {
   padding: 10px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
 }
 
 .etiquetaAtributoEdicion {
-  font-size: 12px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
-  color: #a5b4fc;
+  color: var(--pj-texto-acento);
 }
 
 .filaInputsAtributoEdicion {
@@ -2260,8 +2291,8 @@
 }
 
 .labelMicroAtributo {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   display: block;
 }
 
@@ -2283,9 +2314,9 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--pj-fuente-label);
 }
 
 .gridHabilidadesEdicion {
@@ -2304,18 +2335,18 @@
 }
 
 .nombreHabilidadEdicion {
-  font-size: 11px;
-  color: #cbd5e1;
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-secundario-claro);
 }
 
 .botonGuardarEdicionPj {
-  background-color: #3730a3;
-  color: #ffffff;
-  border-color: #818cf8;
+  background-color: var(--pj-acento-primario-solido);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-acento);
 }
 
 .botonGuardarEdicionPj:hover {
-  background-color: #4338ca;
+  background-color: var(--pj-acento-primario-solido);
 }
 
 .iconoGuardarMargen {
@@ -2347,9 +2378,9 @@
 }
 
 .tituloMonedas {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -2358,11 +2389,11 @@
 }
 
 .resumenEquivalentePO {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-oro, #fde047);
-  background-color: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
-  border: 1px solid var(--pj-borde-oro, rgba(245, 158, 11, 0.35));
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
   padding: 2px 8px;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
@@ -2381,36 +2412,36 @@
   align-items: center;
   gap: 4px;
   text-align: center;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  border-radius: 6px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
   box-sizing: border-box;
 }
 
 .etiquetaMoneda {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.monedaPPT { color: var(--pj-moneda-platino, #e2e8f0); }
-.monedaPO  { color: var(--pj-moneda-oro, #fbbf24); }
-.monedaPE  { color: var(--pj-moneda-electrum, #38bdf8); }
-.monedaPP  { color: var(--pj-moneda-plata, #cbd5e1); }
-.monedaPC  { color: var(--pj-moneda-cobre, #d97706); }
+.monedaPPT { color: var(--pj-moneda-platino); }
+.monedaPO  { color: var(--pj-moneda-oro); }
+.monedaPE  { color: var(--pj-moneda-electrum); }
+.monedaPP  { color: var(--pj-moneda-plata); }
+.monedaPC  { color: var(--pj-moneda-cobre); }
 
 .inputMoneda {
   width: 100%;
   height: 26px;
   text-align: center;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo, 14px);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
-  background-color: var(--pj-fondo-hundido-profundo, #05080e);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  border-radius: 4px;
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-hundido-profundo);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
   padding: 0 4px;
   outline: none;
   box-sizing: border-box;
@@ -2424,9 +2455,9 @@
 }
 
 .inputMoneda:focus {
-  border-color: var(--pj-acento-oro, #eab308);
-  background-color: #111622;
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.4);
+  border-color: var(--pj-acento-oro);
+  background-color: var(--pj-fondo-hundido);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 /* --- SECCIÓN 2: CAPACIDAD DE CARGA --- */
@@ -2444,9 +2475,9 @@
 }
 
 .tituloCarga {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -2455,22 +2486,22 @@
 }
 
 .detalleCalculoCarga {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 600;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
 }
 
 .barraCargaFondo {
   height: 28px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 10px;
-  background-color: var(--pj-fondo-hundido-profundo, #05080e);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background-color: var(--pj-fondo-hundido-profundo);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .barraCargaProgreso {
@@ -2483,27 +2514,27 @@
 }
 
 .cargaNormal {
-  background: linear-gradient(90deg, #065f46 0%, #10b981 100%);
+  background: linear-gradient(90deg, var(--pj-acento-exito-oscuro) 0%, var(--pj-acento-exito-oscuro) 100%);
 }
 
 .cargaSobrecargado {
-  background: linear-gradient(90deg, #7f1d1d 0%, #ef4444 100%);
+  background: linear-gradient(90deg, var(--pj-acento-peligro-oscuro) 0%, var(--pj-acento-peligro-oscuro) 100%);
 }
 
 .barraCargaTexto {
   position: relative;
   z-index: 2;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo, 13.5px);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  color: var(--pj-texto-primario);
+  text-shadow: none;
 }
 
 .badgeEstadoCarga {
   position: relative;
   z-index: 2;
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2512,15 +2543,15 @@
 }
 
 .badgeCargaNormal {
-  background-color: rgba(6, 78, 59, 0.9);
-  border: 1px solid #10b981;
-  color: #d1fae5;
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
 }
 
 .badgeCargaSobrecargado {
-  background-color: rgba(127, 29, 29, 0.9);
-  border: 1px solid #ef4444;
-  color: #fee2e2;
+  background-color: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-primario);
 }
 
 /* --- SECCIÓN 3: SINTONIZACIÓN --- */
@@ -2538,9 +2569,9 @@
 }
 
 .tituloSintonizacion {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario-claro, #e2e8f0);
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -2560,36 +2591,36 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
   min-height: 30px;
   box-sizing: border-box;
 }
 
 .slotSintonizacionActivo {
-  background: linear-gradient(180deg, #1f1430 0%, #150f24 100%);
-  border-color: rgba(168, 85, 247, 0.6);
-  box-shadow: inset 0 0 6px rgba(168, 85, 247, 0.25);
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
+  border-color: var(--pj-borde-magia);
+  box-shadow: var(--pj-sombra-hundida);
 }
 
 .slotSintonizacionVacio {
   border-style: dashed;
-  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
-  color: var(--pj-texto-terciario, #94a3b8);
-  font-size: var(--pj-fuente-micro, 11px);
+  border-color: var(--pj-borde-sutil);
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-micro);
   font-style: italic;
   justify-content: center;
 }
 
 .iconoSlotSintonizacion {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
   flex-shrink: 0;
 }
 
 .textoSlotSintonizacion {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  color: var(--pj-texto-primario-suave, #f8fafc);
+  color: var(--pj-texto-primario-suave);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2608,7 +2639,7 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 4px;
-  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
+  border-bottom: 1px solid var(--pj-borde-sutil);
 }
 
 /* Barra de Búsqueda y Orden en Mochila */
@@ -2630,30 +2661,30 @@
 .iconoBuscadorMochila {
   position: absolute;
   left: 8px;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   pointer-events: none;
 }
 
 .inputBuscadorMochila {
   width: 100%;
   padding: 6px 28px 6px 28px;
-  background-color: var(--pj-fondo-hundido, #080c14);
-  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
-  border-radius: 5px;
-  color: var(--pj-texto-primario, #ffffff);
-  font-size: var(--pj-fuente-micro, 11.5px);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-micro);
   outline: none;
 }
 
 .inputBuscadorMochila:focus {
-  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
-  background-color: #0f1523;
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+  background-color: var(--pj-fondo-hundido);
 }
 
 .inputBuscadorMochila::placeholder {
-  color: var(--pj-texto-terciario, #94a3b8);
-  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-micro);
 }
 
 .botonLimpiarBusquedaMochila {
@@ -2661,18 +2692,18 @@
   right: 6px;
   background: transparent;
   border: none;
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   cursor: pointer;
   padding: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
 }
 
 .botonLimpiarBusquedaMochila:hover {
-  color: #f87171;
-  background-color: rgba(248, 113, 113, 0.1);
+  color: var(--pj-texto-alerta);
+  background-color: var(--pj-acento-peligro-fondo);
 }
 
 .selectorOrdenMochila {
@@ -2686,9 +2717,9 @@
   flex-direction: column;
   gap: 5px;
   padding: 6px 8px;
-  background: rgba(11, 15, 23, 0.4);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.12));
-  border-radius: 6px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
 }
 
 .cabeceraSubseccionMochila {
@@ -2696,19 +2727,19 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 3px;
-  border-bottom: 1px dashed var(--pj-borde-sutil, rgba(148, 163, 184, 0.14));
+  border-bottom: 1px dashed var(--pj-borde-sutil);
   cursor: pointer;
   user-select: none;
 }
 
 .cabeceraSubseccionMochila:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .tituloSubseccionMochila {
-  font-size: var(--pj-fuente-micro, 11.5px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   display: flex;
@@ -2722,31 +2753,31 @@
 }
 
 .cabeceraColapsableInventario:hover {
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .iconoChevronColapso {
-  color: var(--pj-texto-terciario, #94a3b8);
+  color: var(--pj-texto-terciario);
   display: inline-flex;
   align-items: center;
   margin-right: 4px;
 }
 
 .zonaDropActiva {
-  border-color: #38bdf8 !important;
+  border-color: var(--pj-borde-cian) !important;
   border-style: dashed !important;
-  background-color: rgba(56, 189, 248, 0.08) !important;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25) inset !important;
+  background-color: var(--pj-acento-cian-fondo) !important;
+  box-shadow: var(--pj-sombra-hundida) !important;
 }
 
 .tarjetaObjetoArrastrando {
   opacity: 0.4 !important;
   border-style: dashed !important;
-  border-color: #38bdf8 !important;
+  border-color: var(--pj-borde-cian) !important;
 }
 
 .iconoGripDrag {
-  color: #475569;
+  color: var(--pj-texto-terciario);
   cursor: grab;
   flex-shrink: 0;
   display: inline-flex;
@@ -2755,7 +2786,7 @@
 }
 
 .iconoGripDrag:hover {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 
 .iconoGripDrag:active {
@@ -2770,10 +2801,10 @@
 
 .botonControlColapso {
   background: transparent;
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 4px;
-  color: #94a3b8;
-  font-size: 11px;
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   padding: 3px 6px;
   cursor: pointer;
@@ -2785,9 +2816,9 @@
 }
 
 .botonControlColapso:hover {
-  background-color: #1a2230;
-  border-color: #38bdf8;
-  color: #f1f5f9;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-primario);
 }
 
 .metaSubseccionMochila {
@@ -2797,15 +2828,15 @@
 }
 
 .pesoSubseccionMochila {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 600;
-  color: #64748b;
+  color: var(--pj-texto-acento);
 }
 
 .tituloGrupoInventario {
-  font-size: 11px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   display: flex;
@@ -2814,12 +2845,12 @@
 }
 
 .contadorGrupoInventario {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
-  color: #94a3b8;
-  background-color: #1a2230;
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: var(--pj-radio-panel);
 }
 
 .listaItemsInventario {
@@ -2829,8 +2860,8 @@
 }
 
 .mensajeVacioInventario {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   font-style: italic;
   text-align: center;
   padding: 12px;
@@ -2838,9 +2869,9 @@
 
 /* --- TARJETA DE OBJETO DE INVENTARIO --- */
 .tarjetaObjetoInventario {
-  background-color: #0e131d;
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 6px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 6px 8px;
   display: flex;
   flex-direction: column;
@@ -2848,9 +2879,9 @@
 }
 
 .tarjetaObjetoEquipado {
-  background: linear-gradient(180deg, #141d2d 0%, #0e1420 100%);
-  border-color: rgba(96, 165, 250, 0.35);
-  box-shadow: inset 2px 0 0 #3b82f6;
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
+  border-color: var(--pj-borde-acento);
+  box-shadow: var(--pj-sombra-hundida);
 }
 
 .filaSuperiorObjeto {
@@ -2869,18 +2900,18 @@
 }
 
 .nombreObjeto {
-  font-size: 12px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .nombreObjetoClickable {
-  font-size: 12px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2890,12 +2921,12 @@
 }
 
 .nombreObjetoClickable:hover {
-  color: #38bdf8;
-  text-decoration: underline dotted #38bdf8;
+  color: var(--pj-texto-cian);
+  text-decoration: underline dotted var(--pj-texto-cian);
 }
 
 .nombreObjetoClickable:focus-visible {
-  outline: 1px solid #38bdf8;
+  outline: 1px solid var(--pj-borde-cian);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -2905,8 +2936,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
 }
 
 .badgesMetaObjeto {
@@ -2917,7 +2948,7 @@
 }
 
 .badgeMeta {
-  font-size: 11px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
@@ -2926,109 +2957,109 @@
 }
 
 .badgeTipoArma {
-  background-color: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background-color: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
 }
 
 .badgeTipoArmadura {
-  background-color: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
+  background-color: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
 }
 
 .badgeTipoEquipo {
-  background-color: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #cbd5e1;
+  background-color: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-secundario-claro);
 }
 
 .badgeBonoMagico {
-  background-color: rgba(236, 72, 153, 0.15);
-  color: #fbcfe8;
-  border: 1px solid rgba(236, 72, 153, 0.3);
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
   cursor: help;
 }
 
 .badgeVeneno {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: var(--pj-acento-exito-fondo);
+  color: var(--pj-texto-exito);
+  border: 1px solid var(--pj-borde-exito);
   cursor: help;
 }
 
 .badgeMaestria {
-  background-color: rgba(168, 85, 247, 0.15);
-  color: #d8b4fe;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background-color: var(--pj-acento-magia-fondo);
+  color: var(--pj-texto-magia);
+  border: 1px solid var(--pj-borde-magia);
   cursor: help;
 }
 
 .badgePropiedadArma {
-  background-color: rgba(99, 102, 241, 0.15);
-  color: #c7d2fe;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
+  border: 1px solid var(--pj-borde-acento);
   cursor: help;
 }
 
 .badgeDesventajaSigilo {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
   cursor: help;
 }
 
 .badgeRequisitoFuerza {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
+  border: 1px solid var(--pj-borde-oro);
   cursor: help;
 }
 
 .badgeMunicionGuardada {
-  background-color: rgba(56, 189, 248, 0.15);
-  color: #7dd3fc;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background-color: var(--pj-acento-cian-fondo);
+  color: var(--pj-texto-cian);
+  border: 1px solid var(--pj-borde-cian);
 }
 
 .badgeMunicionExceso {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
+  border: 1px solid var(--pj-borde-oro);
 }
 
 .badgeMunicionSuelta {
-  background-color: rgba(148, 163, 184, 0.1);
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
+  border: 1px solid var(--pj-borde-acento);
 }
 
 .badgeContenedorConContenido {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: var(--pj-acento-exito-fondo);
+  color: var(--pj-texto-exito);
+  border: 1px solid var(--pj-borde-exito);
 }
 
 .badgeContenedorEspecial {
-  border-radius: 3px;
+  border-radius: var(--pj-radio-control);
 }
 
 .badgeContenedorEspecial[data-contenedor="bolsa_contencion"] {
-  background-color: rgba(192, 132, 252, 0.1);
-  border: 1px solid rgba(192, 132, 252, 0.35);
-  color: #c084fc;
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
 }
 
 .badgeContenedorEspecial[data-contenedor="montura"] {
-  background-color: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
+  background-color: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian);
+  color: var(--pj-texto-cian);
 }
 
 .badgeContenedorEspecial[data-contenedor="almacen"] {
-  background-color: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  color: #94a3b8;
+  background-color: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
 }
 
 .iconoBadgeInline {
@@ -3039,39 +3070,39 @@
 
 /* Badges de Rareza */
 .rarezaComun {
-  background-color: #1a2230;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
 }
 
 .rarezaPocoComun {
-  background-color: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #6ee7b7;
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
 }
 
 .rarezaRaro {
-  background-color: rgba(96, 165, 250, 0.12);
-  border: 1px solid rgba(96, 165, 250, 0.35);
-  color: #93c5fd;
+  background-color: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
 }
 
 .rarezaMuyRaro {
-  background-color: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  color: #d8b4fe;
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
 }
 
 .rarezaLegendario {
-  background-color: rgba(251, 191, 36, 0.12);
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  color: #fde68a;
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
 }
 
 .rarezaArtefacto {
-  background-color: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  color: #fca5a5;
+  background-color: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
 }
 
 .accionesObjeto {
@@ -3081,13 +3112,13 @@
 }
 
 .botonAccionObjeto {
-  background: #1a2230;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  color: #94a3b8;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
   cursor: pointer;
   padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -3097,49 +3128,49 @@
 }
 
 .botonAccionObjeto:hover {
-  background-color: #242f42;
-  color: #ffffff;
-  border-color: #818cf8;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-borde-acento);
 }
 
 .botonAccionEquipadoActivo {
-  background: linear-gradient(180deg, #1e3a8a 0%, #172554 100%) !important;
-  border-color: #38bdf8 !important;
-  color: #93c5fd !important;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
+  background: linear-gradient(180deg, var(--pj-acento-primario-solido) 0%, var(--pj-acento-primario-solido) 100%) !important;
+  border-color: var(--pj-borde-cian) !important;
+  color: var(--pj-texto-acento) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonAccionSintonizadoActivo {
-  background: linear-gradient(180deg, #581c87 0%, #3b0764 100%) !important;
-  border-color: #c084fc !important;
-  color: #e9d5ff !important;
-  box-shadow: 0 0 6px rgba(192, 132, 252, 0.25);
+  background: linear-gradient(180deg, var(--pj-acento-magia-solido) 0%, var(--pj-acento-magia-solido) 100%) !important;
+  border-color: var(--pj-borde-magia) !important;
+  color: var(--pj-texto-magia) !important;
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonAccionUsar {
-  background: linear-gradient(180deg, #064e3b 0%, #022c22 100%) !important;
-  border-color: rgba(16, 185, 129, 0.45) !important;
-  color: #6ee7b7 !important;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.2);
+  background: linear-gradient(180deg, var(--pj-acento-exito-oscuro) 0%, var(--pj-acento-exito-oscuro) 100%) !important;
+  border-color: var(--pj-borde-exito) !important;
+  color: var(--pj-texto-exito) !important;
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .botonAccionUsar:hover {
-  background: linear-gradient(180deg, #047857 0%, #064e3b 100%) !important;
-  border-color: #10b981 !important;
-  color: #ffffff !important;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+  background: linear-gradient(180deg, var(--pj-acento-exito-oscuro) 0%, var(--pj-acento-exito-oscuro) 100%) !important;
+  border-color: var(--pj-borde-exito) !important;
+  color: var(--pj-texto-primario) !important;
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .botonAccionDesempaquetar {
-  background-color: rgba(56, 189, 248, 0.12) !important;
-  border-color: rgba(56, 189, 248, 0.35) !important;
-  color: #38bdf8 !important;
+  background-color: var(--pj-acento-cian-fondo) !important;
+  border-color: var(--pj-borde-cian) !important;
+  color: var(--pj-texto-cian) !important;
 }
 
 .botonAccionDesempaquetar:hover {
-  background-color: rgba(56, 189, 248, 0.25) !important;
-  border-color: #38bdf8 !important;
-  color: #ffffff !important;
+  background-color: var(--pj-acento-cian-fondo) !important;
+  border-color: var(--pj-borde-cian) !important;
+  color: var(--pj-texto-primario) !important;
 }
 
 .filaAccionesDerecha {
@@ -3156,35 +3187,35 @@
 }
 
 .textoPesoTachado {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   text-decoration: line-through;
 }
 
 .textoPesoEfectivo {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
 }
 
 .textoPesoEfectivo[data-contenedor="bolsa_contencion"] {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 
 .textoPesoEfectivo[data-contenedor="montura"] {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 
 .textoPesoEfectivo[data-contenedor="almacen"] {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 
 .botonRecargaCargas {
-  color: #fbbf24;
+  color: var(--pj-texto-oro);
 }
 
 .textoPesoSimple {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
 }
 
 .grupoModificadorCantidad {
@@ -3195,11 +3226,11 @@
 }
 
 .valorCantidadItem {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
   min-width: 16px;
   text-align: center;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario);
 }
 
 .grupoTrackerCargas {
@@ -3210,27 +3241,27 @@
 }
 
 .valorCargasItem {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
-  color: #fbbf24;
+  color: var(--pj-texto-oro);
 }
 
 .detalleCalculoCargaContenedores {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
   margin-left: 6px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
 }
 
 .barraCargaTextoTotal {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-primario);
   font-weight: 500;
 }
 
 .sintonizacionRanurasTexto {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   font-weight: 700;
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 
 .listaSubseccionesMochila {
@@ -3242,10 +3273,10 @@
 .botonEliminarObjeto {
   background: transparent;
   border: 1px solid transparent;
-  color: #64748b;
+  color: var(--pj-texto-acento);
   cursor: pointer;
   padding: 3px;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3253,9 +3284,9 @@
 }
 
 .botonEliminarObjeto:hover {
-  color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
+  color: var(--pj-texto-alerta);
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
 }
 
 /* --- SECCIÓN 6: BOTONES DE AGREGAR --- */
@@ -3267,13 +3298,13 @@
 }
 
 .botonAgregarPrincipal {
-  background: linear-gradient(180deg, #161e2c 0%, #111622 100%);
-  border: 1px solid rgba(129, 140, 248, 0.25);
-  color: #f1f5f9;
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
   cursor: pointer;
   padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11px;
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -3281,15 +3312,15 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--pj-sombra-tarjeta);
   transition: none;
 }
 
 .botonAgregarPrincipal:hover {
-  background: linear-gradient(180deg, #202b3e 0%, #161e2c 100%);
-  border-color: #38bdf8;
-  color: #ffffff;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-hover) 0%, var(--pj-fondo-tarjeta-hover) 100%);
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 /* --- MODAL AGREGAR OBJETO --- */
@@ -3297,19 +3328,19 @@
   display: flex;
   gap: 6px;
   padding: 8px 14px;
-  background-color: #101622;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-bottom: 1px solid var(--pj-borde-acento);
 }
 
 .tabBotonModal {
   flex: 1;
   padding: 6px 12px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   border: 1px solid transparent;
   background: transparent;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -3319,15 +3350,15 @@
 }
 
 .tabBotonModalActivo {
-  background-color: #1e293b;
-  border-color: rgba(148, 163, 184, 0.25);
-  color: #ffffff;
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
 }
 
 .cajaPreviewObjeto {
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 6px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -3336,9 +3367,9 @@
 }
 
 .descripcionPreview {
-  font-size: 11px;
-  color: #94a3b8;
-  line-height: 1.4;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+  line-height: 1.45;
   max-height: 100px;
   overflow-y: auto;
   white-space: pre-line;
@@ -3348,9 +3379,9 @@
 .barraSubPestanas {
   display: flex;
   gap: 6px;
-  background-color: #111622;
-  border: 1px solid rgba(148, 163, 184, 0.14);
-  border-radius: 6px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 4px;
 }
 
@@ -3362,9 +3393,9 @@
   gap: 6px;
   background-color: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
-  color: #94a3b8;
-  font-size: 12px;
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   padding: 6px 12px;
   cursor: pointer;
@@ -3372,22 +3403,22 @@
 }
 
 .botonSubPestana:hover {
-  color: #f1f5f9;
-  background-color: rgba(255, 255, 255, 0.04);
+  color: var(--pj-texto-primario);
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .botonSubPestanaActivo {
-  background-color: #1e293b;
-  border-color: rgba(148, 163, 184, 0.25);
-  color: #ffffff;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
 }
 
 .badgeContadorConjuros {
-  font-size: 11px;
-  background-color: rgba(129, 140, 248, 0.2);
-  color: #c7d2fe;
+  font-size: var(--pj-fuente-badge);
+  background-color: var(--pj-acento-primario-activo);
+  color: var(--pj-texto-acento);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: var(--pj-radio-panel);
   font-weight: 700;
 }
 
@@ -3400,39 +3431,39 @@
 }
 
 .badgeResumenRecursoPO {
-  font-size: 11px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: #fbbf24;
-  background-color: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
   padding: 1px 6px;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
 .badgeResumenRecursoCarga {
-  font-size: 11px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: #10b981;
-  background-color: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: var(--pj-texto-exito);
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
   padding: 1px 6px;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
 .badgeResumenCargaSobrecargado {
-  color: #f87171 !important;
-  background-color: rgba(239, 68, 68, 0.12) !important;
-  border-color: rgba(239, 68, 68, 0.35) !important;
+  color: var(--pj-texto-alerta) !important;
+  background-color: var(--pj-acento-peligro-fondo) !important;
+  border-color: var(--pj-borde-peligro) !important;
 }
 
 .badgeResumenRecursoSintonizacion {
-  font-size: 11px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: #c084fc;
-  background-color: rgba(192, 132, 252, 0.12);
-  border: 1px solid rgba(192, 132, 252, 0.25);
+  color: var(--pj-texto-magia);
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
   padding: 1px 6px;
   border-radius: 4px;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
@@ -3453,9 +3484,9 @@
 .contenedorMonedasInterior,
 .contenedorCargaInterior,
 .contenedorSintonizacionInterior {
-  background: rgba(11, 15, 23, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 6px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
@@ -3470,30 +3501,30 @@
   gap: 6px;
   width: 100%;
   padding: 7px 12px;
-  background: linear-gradient(180deg, #1c2638 0%, #131a28 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 6px;
-  color: #f8fafc;
-  font-size: 11px;
+  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta-elevada) 100%);
+  border: 1px solid var(--pj-borde-oro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--pj-sombra-tarjeta);
   margin-bottom: 2px;
 }
 
 .botonAgregarMochilaSuperior:hover {
-  background: linear-gradient(180deg, #243048 0%, #182236 100%);
-  border-color: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
+  background: linear-gradient(180deg, var(--pj-acento-primario-solido) 0%, var(--pj-fondo-tarjeta-hover) 100%);
+  border-color: var(--pj-borde-oro);
+  box-shadow: var(--pj-sombra-tarjeta);
   transform: translateY(-1px);
 }
 
 .botonAgregarMochilaSuperior:active {
   transform: translateY(0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 /* --- DOCK DE MOVILIZACIÓN RÁPIDA FLOTANTE INFERIOR (DRAG & DROP TÁCTICO) --- */
@@ -3509,23 +3540,12 @@
   flex-direction: column;
   gap: 6px;
   padding: 8px 12px;
-  background: rgba(11, 16, 26, 0.95);
-  border: 1.5px dashed rgba(56, 189, 248, 0.8);
-  border-radius: 10px;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.85), 0 0 15px rgba(56, 189, 248, 0.25);
-  backdrop-filter: blur(10px);
+  background: var(--pj-fondo-tarjeta);
+  border: 1.5px dashed var(--pj-borde-cian);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-tarjeta);
+  backdrop-filter: none;
   animation: none;
-}
-
-@keyframes aparecerDock {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 15px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
 }
 
 .dockMovilizacionRapida {
@@ -3533,25 +3553,25 @@
   flex-direction: column;
   gap: 5px;
   padding: 6px 8px;
-  background: rgba(11, 15, 23, 0.5);
-  border: 1px dashed rgba(148, 163, 184, 0.15);
-  border-radius: 6px;
+  background: var(--pj-fondo-panel);
+  border: 1px dashed var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   margin-bottom: 4px;
   transition: none;
 }
 
 .dockMovilizacionActivo {
-  border-color: rgba(56, 189, 248, 0.6);
-  background: rgba(15, 23, 42, 0.8);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+  border-color: var(--pj-borde-cian);
+  background: var(--pj-fondo-tarjeta-elevada);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .tituloDockMovilizacion {
-  font-size: 11px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   display: flex;
   align-items: center;
   gap: 5px;
@@ -3571,8 +3591,8 @@
   gap: 3px;
   padding: 6px 4px;
   border-radius: 5px;
-  border: 1px dashed rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed var(--pj-borde-acento);
+  background: var(--pj-fondo-tarjeta-elevada);
   cursor: pointer;
   transition: none;
   user-select: none;
@@ -3588,68 +3608,68 @@
 .cajaMovilizacionSobrevolada {
   border-style: solid !important;
   transform: scale(1.03);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 /* Modificadores de color por tipo de contenedor rápido */
 .cajaMovilizacionRapida[data-caja="mochila"] {
-  border-color: rgba(245, 158, 11, 0.4);
-  background: rgba(245, 158, 11, 0.08);
+  border-color: var(--pj-borde-oro);
+  background: var(--pj-acento-oro-fondo);
 }
 .cajaMovilizacionRapida[data-caja="mochila"] .nombreCajaMovilizacion {
-  color: #f59e0b;
+  color: var(--pj-texto-oro);
 }
 .cajaMovilizacionRapida[data-caja="mochila"].cajaMovilizacionSobrevolada {
-  border-color: #f59e0b;
-  background: rgba(245, 158, 11, 0.22);
+  border-color: var(--pj-borde-oro);
+  background: var(--pj-acento-oro-fondo);
 }
 
 .cajaMovilizacionRapida[data-caja="bolsa_contencion"] {
-  border-color: rgba(192, 132, 252, 0.4);
-  background: rgba(192, 132, 252, 0.08);
+  border-color: var(--pj-borde-magia);
+  background: var(--pj-acento-magia-fondo);
 }
 .cajaMovilizacionRapida[data-caja="bolsa_contencion"] .nombreCajaMovilizacion {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 .cajaMovilizacionRapida[data-caja="bolsa_contencion"].cajaMovilizacionSobrevolada {
-  border-color: #c084fc;
-  background: rgba(192, 132, 252, 0.22);
+  border-color: var(--pj-borde-magia);
+  background: var(--pj-acento-magia-fondo);
 }
 
 .cajaMovilizacionRapida[data-caja="montura"] {
-  border-color: rgba(56, 189, 248, 0.4);
-  background: rgba(56, 189, 248, 0.08);
+  border-color: var(--pj-borde-cian);
+  background: var(--pj-acento-cian-fondo);
 }
 .cajaMovilizacionRapida[data-caja="montura"] .nombreCajaMovilizacion {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 .cajaMovilizacionRapida[data-caja="montura"].cajaMovilizacionSobrevolada {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.22);
+  border-color: var(--pj-borde-cian);
+  background: var(--pj-acento-cian-fondo);
 }
 
 .cajaMovilizacionRapida[data-caja="almacen"] {
-  border-color: rgba(148, 163, 184, 0.4);
-  background: rgba(148, 163, 184, 0.08);
+  border-color: var(--pj-borde-acento);
+  background: var(--pj-acento-primario-fondo);
 }
 .cajaMovilizacionRapida[data-caja="almacen"] .nombreCajaMovilizacion {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 .cajaMovilizacionRapida[data-caja="almacen"].cajaMovilizacionSobrevolada {
-  border-color: #94a3b8;
-  background: rgba(148, 163, 184, 0.22);
+  border-color: var(--pj-borde-acento);
+  background: var(--pj-acento-primario-activo);
 }
 
 .cajaMovilizacionRapida[data-caja="equipados"] {
-  border-color: rgba(96, 165, 250, 0.4);
-  background: rgba(96, 165, 250, 0.08);
+  border-color: var(--pj-borde-acento);
+  background: var(--pj-acento-primario-fondo);
 }
 .cajaMovilizacionRapida[data-caja="equipados"] .nombreCajaMovilizacion {
-  color: #60a5fa;
+  color: var(--pj-texto-acento);
 }
 .cajaMovilizacionRapida[data-caja="equipados"].cajaMovilizacionSobrevolada {
-  border-color: #60a5fa;
-  background: rgba(96, 165, 250, 0.22);
+  border-color: var(--pj-borde-acento);
+  background: var(--pj-acento-primario-activo);
 }
 
 .iconoCajaMovilizacion {
@@ -3666,14 +3686,14 @@
 }
 
 .nombreCajaMovilizacion {
-  font-size: 11px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
   white-space: nowrap;
 }
 
 .subtituloCajaMovilizacion {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-acento);
   font-weight: 600;
 }
 
@@ -3690,22 +3710,22 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  background-color: #0b0f16;
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 5px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
   cursor: pointer;
   text-align: left;
   transition: none;
 }
 
 .botonSelectorDestino:hover {
-  background-color: #111622;
-  border-color: rgba(148, 163, 184, 0.3);
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
 }
 
 .botonSelectorDestinoActivo {
   border-width: 1.5px;
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.2);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .iconoSelectorDestino {
@@ -3722,19 +3742,19 @@
 }
 
 .nombreSelectorDestino {
-  font-size: 11px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
 }
 
 .subtituloSelectorDestino {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-acento);
 }
 
 .tarjetaObjetoSobrevolada {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 1px #38bdf8, 0 4px 8px rgba(56, 189, 248, 0.15) !important;
-  background: rgba(56, 189, 248, 0.06) !important;
+  border-color: var(--pj-borde-cian) !important;
+  box-shadow: var(--pj-sombra-tarjeta) !important;
+  background: var(--pj-acento-cian-fondo) !important;
 }
 
 /* ==========================================
@@ -3743,7 +3763,16 @@
 
 .modalAgregarObjeto {
   max-width: 520px;
-  overflow: visible;
+  overflow: hidden;
+}
+
+.overlayAgregarObjeto {
+  z-index: 10000;
+}
+
+.modalAgregarObjeto > .cabeceraModal,
+.tabsModalAgregar {
+  flex-shrink: 0;
 }
 
 .cabeceraModalRedondeada {
@@ -3752,12 +3781,28 @@
 }
 
 .formularioCompendioModal {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.contenidoFormularioAgregarObjeto {
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  overflow: visible;
-  min-height: 260px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.contenidoFormularioAgregarObjeto > * {
+  flex-shrink: 0;
 }
 
 .filaFiltrosCategoria {
@@ -3767,63 +3812,63 @@
 }
 
 .chipFiltroCategoria {
-  font-size: 9.5px;
+  font-size: var(--pj-fuente-badge);
   padding: 3px 8px;
   background-color: transparent;
-  border-color: rgba(148, 163, 184, 0.12);
-  color: #94a3b8;
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
 }
 
 .chipFiltroCategoriaActivo {
-  background-color: #1e293b;
-  border-color: #818cf8;
-  color: #ffffff;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
 }
 
 /* Reglas temáticas de selectores de destino en Modal */
 .botonSelectorDestino {
-  border-color: rgba(148, 163, 184, 0.2);
-  background-color: rgba(15, 23, 42, 0.5);
+  border-color: var(--pj-borde-acento);
+  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .botonSelectorDestino[data-caja="mochila"].botonSelectorDestinoActivo {
-  border-color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.15);
+  border-color: var(--pj-borde-oro);
+  background-color: var(--pj-acento-oro-fondo);
 }
 .botonSelectorDestino[data-caja="mochila"].botonSelectorDestinoActivo .nombreSelectorDestino {
-  color: #f59e0b;
+  color: var(--pj-texto-oro);
 }
 
 .botonSelectorDestino[data-caja="bolsa_contencion"].botonSelectorDestinoActivo {
-  border-color: #c084fc;
-  background-color: rgba(192, 132, 252, 0.15);
+  border-color: var(--pj-borde-magia);
+  background-color: var(--pj-acento-magia-fondo);
 }
 .botonSelectorDestino[data-caja="bolsa_contencion"].botonSelectorDestinoActivo .nombreSelectorDestino {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 
 .botonSelectorDestino[data-caja="montura"].botonSelectorDestinoActivo {
-  border-color: #38bdf8;
-  background-color: rgba(56, 189, 248, 0.15);
+  border-color: var(--pj-borde-cian);
+  background-color: var(--pj-acento-cian-fondo);
 }
 .botonSelectorDestino[data-caja="montura"].botonSelectorDestinoActivo .nombreSelectorDestino {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 
 .botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo {
-  border-color: #94a3b8;
-  background-color: rgba(148, 163, 184, 0.15);
+  border-color: var(--pj-borde-acento);
+  background-color: var(--pj-acento-primario-fondo);
 }
 .botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo .nombreSelectorDestino {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 
 .botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo {
-  border-color: #60a5fa;
-  background-color: rgba(96, 165, 250, 0.15);
+  border-color: var(--pj-borde-acento);
+  background-color: var(--pj-acento-primario-fondo);
 }
 .botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo .nombreSelectorDestino {
-  color: #60a5fa;
+  color: var(--pj-texto-acento);
 }
 
 /* Vista previa de objeto seleccionado */
@@ -3834,40 +3879,40 @@
 }
 
 .nombrePreviewObjeto {
-  font-size: 13px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #f1f5f9;
+  color: var(--pj-texto-primario);
 }
 
 .filaMetadatosPreview {
   display: flex;
   gap: 10px;
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-acento);
   align-items: center;
   flex-wrap: wrap;
 }
 
 .textoBlancoResaltado {
-  color: #f1f5f9;
+  color: var(--pj-texto-primario);
 }
 
 .textoPesoUnitario {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
   margin-left: 4px;
 }
 
 .textoValorPO {
-  color: #fbbf24;
+  color: var(--pj-texto-oro);
 }
 
 .avisoLoteCantidad {
-  color: #34d399;
+  color: var(--pj-texto-exito);
   font-weight: 700;
 }
 
 .avisoSintonizacionReq {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -3881,22 +3926,22 @@
 }
 
 .badgeDanoArma {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
 }
 
 .badgeVersatil {
-  background-color: rgba(99, 102, 241, 0.15);
-  color: #c7d2fe;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
+  border: 1px solid var(--pj-borde-acento);
   cursor: help;
 }
 
 .badgeCaArmadura {
-  background-color: rgba(16, 185, 129, 0.15);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background-color: var(--pj-acento-exito-fondo);
+  color: var(--pj-texto-exito);
+  border: 1px solid var(--pj-borde-exito);
 }
 
 .badgeBonoDes {
@@ -3909,16 +3954,16 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  background-color: rgba(16, 185, 129, 0.08);
+  background-color: var(--pj-acento-exito-fondo);
   padding: 8px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid var(--pj-borde-exito);
 }
 
 .tituloPaqueteContenido {
-  font-size: 10.5px;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
-  color: #34d399;
+  color: var(--pj-texto-exito);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -3933,40 +3978,40 @@
 }
 
 .filaItemPaquete {
-  font-size: 10px;
-  color: #cbd5e1;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario-claro);
   display: flex;
   justify-content: space-between;
 }
 
 .multiplicadorItemPaquete {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 
 .avisoSeleccionarObjeto {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   font-style: italic;
   text-align: center;
   padding: 8px;
 }
 
 .pieModalAjustado {
-  margin: -14px;
-  margin-top: 10px;
+  margin: 0;
+  flex-shrink: 0;
   padding: 10px 14px;
 }
 
 .botonConfirmarAgregarItem {
-  background-color: #1a2230;
+  background-color: var(--pj-fondo-tarjeta-elevada);
   border-color: transparent;
-  color: #ffffff;
+  color: var(--pj-texto-primario);
 }
 
 .botonConfirmarAgregarItemActivo {
-  background-color: #b45309;
-  border-color: #f59e0b;
-  color: #ffffff;
+  background-color: var(--pj-acento-oro-oscuro);
+  border-color: var(--pj-borde-oro);
+  color: var(--pj-texto-primario);
 }
 
 .iconoBotonAccion {
@@ -3975,20 +4020,23 @@
 
 /* Posesiones personalizadas */
 .formularioPosesionesModal {
-  padding: 14px;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  gap: 0;
 }
 
 .bannerInformativoPosesiones {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   line-height: 1.4;
-  background-color: rgba(15, 23, 42, 0.6);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   padding: 8px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  border: 1px solid var(--pj-borde-acento);
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -4018,54 +4066,54 @@
 
 /* Colores de cabecera de contenedores especiales por data-caja */
 .tituloGrupoInventario[data-caja="mochila"] {
-  color: #f59e0b;
+  color: var(--pj-texto-oro);
 }
 .tituloGrupoInventario[data-caja="bolsa_contencion"] {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 .tituloGrupoInventario[data-caja="montura"] {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 .tituloGrupoInventario[data-caja="almacen"] {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 .tituloGrupoInventario[data-caja="equipados"] {
-  color: #60a5fa;
+  color: var(--pj-texto-acento);
 }
 
 /* Colores temáticos de subsecciones de mochila por data-subseccion */
 .tituloSubseccionMochila[data-subseccion="consumibles"] {
-  color: #10b981;
+  color: var(--pj-texto-exito);
 }
 .tituloSubseccionMochila[data-subseccion="municion"] {
-  color: #06b6d4;
+  color: var(--pj-texto-cian);
 }
 .tituloSubseccionMochila[data-subseccion="armas"] {
-  color: #f87171;
+  color: var(--pj-texto-alerta);
 }
 .tituloSubseccionMochila[data-subseccion="armaduras"] {
-  color: #60a5fa;
+  color: var(--pj-texto-acento);
 }
 .tituloSubseccionMochila[data-subseccion="escudos"] {
-  color: #38bdf8;
+  color: var(--pj-texto-cian);
 }
 .tituloSubseccionMochila[data-subseccion="herramientas"] {
-  color: #f59e0b;
+  color: var(--pj-texto-oro);
 }
 .tituloSubseccionMochila[data-subseccion="focos-magicos"] {
-  color: #c084fc;
+  color: var(--pj-texto-magia);
 }
 .tituloSubseccionMochila[data-subseccion="contenedores"] {
-  color: #eab308;
+  color: var(--pj-texto-oro);
 }
 .tituloSubseccionMochila[data-subseccion="paquetes-equipo"] {
-  color: #a855f7;
+  color: var(--pj-texto-magia);
 }
 .tituloSubseccionMochila[data-subseccion="magicos"] {
-  color: #ec4899;
+  color: var(--pj-texto-alerta);
 }
 .tituloSubseccionMochila[data-subseccion="equipo"] {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 
 .alertaSinCompetenciaArmadura {
@@ -4085,8 +4133,8 @@
 }
 
 .badgePuntuacionBase[data-bono="true"] {
-  border-color: rgba(56, 189, 248, 0.7);
-  color: #7dd3fc;
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-cian);
 }
 
 .iconoInlineSalvacion {
@@ -4107,8 +4155,8 @@
 }
 
 .textoRondaActual {
-  font-size: 10px;
-  color: var(--color-texto-apagado);
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
   font-weight: 700;
 }
 
@@ -4124,8 +4172,8 @@
 
 /* Clases para PanelVitalidadPersonaje */
 .textoHpBase {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
 }
 
 .separadorHp {
@@ -4135,7 +4183,7 @@
 .inputTempFull {
   width: 100%;
   height: 100%;
-  font-size: 18px;
+  font-size: var(--pj-fuente-titulo-grande);
 }
 
 .filaDadosGolpeValores {
@@ -4145,20 +4193,20 @@
 }
 
 .textoDadosGolpeTotal {
-  font-size: 11px;
+  font-size: var(--pj-fuente-label);
   opacity: 0.7;
 }
 
 .botonGastarDado {
   padding: 2px 6px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   min-height: 24px;
 }
 
 .botonReiniciarSalvaciones {
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
   cursor: pointer;
   padding: 0;
 }
@@ -4169,12 +4217,14 @@
 }
 
 .separadorMuerte {
-  font-size: 11px;
-  color: #64748b;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   margin: 0 2px;
 }
 
 .filaPuntosCansancio {
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
   gap: 4px;
 }
 

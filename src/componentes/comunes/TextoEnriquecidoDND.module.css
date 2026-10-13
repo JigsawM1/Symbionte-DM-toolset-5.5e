@@ -18,3 +18,27 @@
   color: var(--dm-texto-cian, var(--pj-texto-cian, #38bdf8));
   font-style: italic;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .parrafoModalEnriquecido {
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.45;
+}
+
+:global([data-tema="jugador"]) .parrafoModalEnriquecido + .parrafoModalEnriquecido {
+  margin-top: 1.45em;
+}
+
+:global([data-tema="jugador"]) .subtituloRasgoModal {
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .negritaModal {
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .cursivaColoreadaModal {
+  color: var(--pj-texto-cian);
+}

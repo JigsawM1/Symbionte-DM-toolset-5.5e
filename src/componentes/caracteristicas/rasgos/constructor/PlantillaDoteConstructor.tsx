@@ -29,7 +29,7 @@ export function PlantillaDoteConstructor({ rasgosAdicionales, manejarSeleccionar
         </div>
 
         {rasgosAdicionales.length > 0 && (<div className={estilos.bannerRasgoAdicional}>
-            <Sparkles size={14} color="#10b981"/>
+            <Sparkles size={14} color="var(--pj-texto-exito)"/>
             <span>
               Esta dote incluye {rasgosAdicionales.length} rasgo(s) complementario(s) que se añadirá(n) automáticamente al guardar:{" "}
               <strong>{rasgosAdicionales.map((r) => `${r.nombre} (${r.formulaDados ? `Dados: ${r.formulaDados}` : ""}${r.categoriaMecanica === "curacion" ? " - Curación" : ""})`).join(", ")}</strong>

@@ -1,7 +1,7 @@
 .pestañasInternas {
-  display: flex; 
-  justify-content: space-around; 
-  gap: 4px; 
+  display: flex;
+  justify-content: flex-start;
+  gap: 4px;
   border-bottom: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   padding-bottom: 4px;
 }
@@ -11,7 +11,8 @@
   border: 1px solid var(--dm-borde, hsla(222, 18%, 14%, 1));
   color: var(--color-texto-secundario);
   font-size: var(--dm-fuente-minima, 9.5px);
-  padding: 3px 8px;
+  padding: 8px 12px;
+  min-height: 34px;
   border-radius: var(--dm-radio-control, 3px);
   cursor: pointer;
   display: inline-flex;
@@ -30,8 +31,8 @@
 
 .miniBotonTabActivo {
   background-color: var(--dm-superficie-cian, hsla(172, 90%, 8%, 0.85)) !important;
-  border-color: var(--color-borde-cian) !important;
-  color: var(--color-borde-cian) !important;
+  border-color: var(--dm-borde-cian, var(--color-borde-cian)) !important;
+  color: var(--dm-texto-cian, var(--color-borde-cian)) !important;
   box-shadow: 0 0 0 1px var(--color-borde-cian) !important;
 }
 
@@ -63,7 +64,7 @@
 }
 
 .listaCondicionesLateral {
-  width: 115px;
+  width: 155px;
   background-color: var(--dm-fondo-panel, hsl(222, 22%, 7%));
   border: 1px solid var(--color-borde-brutal);
   border-radius: var(--dm-radio-panel, 3px);
@@ -75,13 +76,18 @@
 }
 
 .itemCondicionLista {
-  padding: 5px 6px;
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  text-transform: none;
+  flex-shrink: 0;
+  min-height: 34px;
   font-size: var(--dm-fuente-minima, 9.5px);
   font-weight: 800;
-  font-family: var(--fuente-codigo);
+  font-family: var(--fuente-titulo);
   border-bottom: 1px solid var(--dm-borde, hsl(222, 20%, 11%));
   cursor: pointer;
-  text-transform: uppercase;
   letter-spacing: 0.01em;
   border-left: 3px solid transparent;
   color: var(--color-texto-secundario);
@@ -95,7 +101,7 @@
 
 .itemCondicionActivo {
   background-color: var(--dm-superficie-cian, hsla(172, 90%, 7%, 0.8)) !important;
-  color: var(--color-borde-cian) !important;
+  color: var(--dm-texto-cian, var(--color-borde-cian)) !important;
   border-left: 3px solid var(--color-borde-cian) !important;
   border-color: var(--dm-borde-cian, hsla(172, 90%, 45%, 0.8)) !important;
 }
@@ -109,10 +115,12 @@
 
 .detalleCondicionPanel {
   flex-grow: 1;
+  min-width: 0;
   background-color: var(--dm-fondo-panel, hsl(222, 20%, 8%));
   border: 1px solid var(--color-borde-brutal);
   border-radius: var(--dm-radio-panel, 3px);
-  padding: 8px 10px;
+  padding: 12px;
+  padding-bottom: 48px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -124,7 +132,7 @@
   font-weight: 800;
   font-family: var(--fuente-titulo);
   letter-spacing: 0.02em;
-  color: var(--color-borde-cian);
+  color: var(--dm-texto-cian, var(--color-borde-cian));
   text-transform: uppercase;
   margin-bottom: 2px;
 }
@@ -187,7 +195,7 @@
 }
 
 .bulletEfecto {
-  color: var(--color-borde-cian);
+  color: var(--dm-texto-cian, var(--color-borde-cian));
   margin-right: 5px;
   font-weight: bold;
 }
@@ -201,4 +209,9 @@
   font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-principal);
   line-height: 1.45;
+}
+
+@media (max-width: 420px) {
+  .listaCondicionesLateral { width: 120px; }
+  .pestañasInternas { flex-wrap: wrap; }
 }

@@ -1,3 +1,4 @@
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState } from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia, PersonalizacionHabilidad } from "@/tipos";
 import {
@@ -94,7 +95,8 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
   ];
 
   // Cálculos matemáticos a partir de estadísticas derivadas canónicas
-  const statsCalculadas = calcularEstadisticasPersonaje(personaje);
+  const catalogo = usarAlmacenDM(s => s.objetosHomebrew);
+  const statsCalculadas = calcularEstadisticasPersonaje(personaje, catalogo);
   const pb = statsCalculadas.bonoCompetencia;
   const modCarac = statsCalculadas.modificadores[caracAsociada] ?? 0;
 
@@ -263,7 +265,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                     alCerrar();
                   }}
                 >
-                  <Dices size={14} color="#94a3b8" />
+                  <Dices size={14} color="var(--pj-texto-terciario)" />
                   Lanzar Tirada 3D ({totalCalculado >= 0 ? `+${totalCalculado}` : totalCalculado})
                 </button>
               </div>

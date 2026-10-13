@@ -37,7 +37,7 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
     return (<div className={estilos.seccionCard}>
         <div className={estilos.cabeceraSeccion}>
           <div className={estilos.tituloSeccion}>
-            <Dice5 size={14} color="#38bdf8"/>
+            <Dice5 size={14} color="var(--pj-texto-cian)"/>
             <span>3. Usos, Cargas y Fórmulas de Dados</span>
           </div>
           <p className={estilos.descripcionSeccion}>Gestiona recursos limitados y tiradas directas a la bandeja 3D</p>

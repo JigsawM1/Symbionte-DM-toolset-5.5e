@@ -3,7 +3,7 @@ import { EsquemaWireMensajeSync, type WireMensajeSync, type WireEstadoIniciativa
 export const LIMITE_PAQUETE_SYNC = 380; // Unidades UTF-16, incluyendo el sobre JSON.
 export const EXPIRACION_FRAGMENTOS_MS = 3500;
 export type FragmentoSync = Extract<WireMensajeSync, { t: 'FRAG' }>;
-export type EstadoSync = { v: 1; t: 'DM'; d: WireEstadoIniciativaDM } | { v: 1; t: 'PJ'; d: WireEstadoCombatePJ };
+export type EstadoSync = { v: 2; s?: string; t: 'DM'; d: WireEstadoIniciativaDM } | { v: 2; s?: string; t: 'PJ'; d: WireEstadoCombatePJ };
 
 export function claveEstadoSync(tipo: 'DM' | 'PJ', id: string): string {
   return `${tipo}:${id}`;
@@ -15,7 +15,7 @@ export function empaquetarEstadoSync(mensaje: EstadoSync): string[] {
   if (texto.length <= LIMITE_PAQUETE_SYNC) return [texto];
   const ts = mensaje.d.ts;
   if (!ts || !Number.isSafeInteger(ts)) throw new Error('La emisión fragmentada necesita una revisión válida');
-  const base = { v: 1 as const, t: 'FRAG' as const, k: mensaje.t,
+  const base = { v: 2 as const, s: mensaje.s, t: 'FRAG' as const, k: mensaje.t,
     id: mensaje.t === 'PJ' ? mensaje.d.id : 'DM', ts };
   const partes: string[] = [];
   let posicion = 0;
@@ -87,7 +87,7 @@ export class BufferFragmentosSync {
       const parseo = EsquemaWireMensajeSync.safeParse(JSON.parse(texto));
       if (parseo.success && (parseo.data.t === 'DM' || parseo.data.t === 'PJ')) {
         const mensaje = parseo.data;
-        if (mensaje.t === k && mensaje.d.ts === ts && (mensaje.t === 'PJ' ? mensaje.d.id === id : id === 'DM')) {
+        if (mensaje.s === fragmento.s && mensaje.t === k && mensaje.d.ts === ts && (mensaje.t === 'PJ' ? mensaje.d.id === id : id === 'DM')) {
           return { tipo: 'completo', mensaje };
         }
       }

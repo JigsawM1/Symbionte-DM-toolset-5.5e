@@ -3,14 +3,14 @@
   flex-direction: column;
   gap: 5px;
   padding: 8px 12px;
-  background-color: #111622;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  background-color: var(--pj-fondo-tarjeta);
+  border-bottom: 1px solid var(--pj-borde-acento);
   cursor: pointer;
   user-select: none;
 }
 
 .filaContenedor:hover {
-  background-color: #161e2e;
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
 .lineaSuperior {
@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   flex-shrink: 0;
   cursor: pointer;
 }
@@ -48,11 +48,11 @@
 }
 
 .botonEstrella:not(.botonControlDeshabilitado):hover {
-  background-color: rgba(245, 158, 11, 0.15);
+  background-color: var(--pj-acento-oro-fondo);
 }
 
 .botonCheckbox:not(.botonControlDeshabilitado):hover {
-  background-color: rgba(59, 130, 246, 0.15);
+  background-color: var(--pj-acento-primario-fondo);
 }
 
 .iconoSinEventos {
@@ -67,51 +67,51 @@
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--pj-borde-acento);
+  background-color: var(--pj-fondo-hundido);
 }
 
 .cajaCheckboxMarcado {
-  border-color: #3b82f6;
-  background-color: #2563eb;
+  border-color: var(--pj-borde-acento);
+  background-color: var(--pj-acento-primario-solido);
 }
 
 /* Checkbox con orígenes otorgados */
 .cajaCheckbox[data-origen="clase"] {
-  border-color: rgba(59, 130, 246, 0.35);
-  background-color: rgba(59, 130, 246, 0.18);
-  color: #93c5fd;
+  border-color: var(--pj-borde-acento);
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
 }
 
 .cajaCheckbox[data-origen="subclase"] {
-  border-color: rgba(168, 85, 247, 0.35);
-  background-color: rgba(168, 85, 247, 0.18);
-  color: #c084fc;
+  border-color: var(--pj-borde-magia);
+  background-color: var(--pj-acento-magia-fondo);
+  color: var(--pj-texto-magia);
 }
 
 .cajaCheckbox[data-origen="especie"] {
-  border-color: rgba(234, 179, 8, 0.35);
-  background-color: rgba(234, 179, 8, 0.18);
-  color: #fde047;
+  border-color: var(--pj-borde-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
 }
 
 .cajaCheckbox[data-origen="legado"] {
-  border-color: rgba(6, 182, 212, 0.35);
-  background-color: rgba(6, 182, 212, 0.18);
-  color: #67e8f9;
+  border-color: var(--pj-borde-cian);
+  background-color: var(--pj-acento-cian-fondo);
+  color: var(--pj-texto-cian);
 }
 
 .cajaCheckbox[data-origen="rasgos"] {
-  border-color: rgba(249, 115, 22, 0.35);
-  background-color: rgba(249, 115, 22, 0.18);
-  color: #fb923c;
+  border-color: var(--pj-borde-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
 }
 
 .cajaIconoEscuela {
   width: 20px;
   height: 20px;
   border-radius: 4px;
-  background-color: rgba(15, 23, 42, 0.8);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,15 +127,15 @@
 
 .textoNombre {
   font-weight: 700;
-  color: #f8fafc;
-  font-size: 13px;
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-subtitulo);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .badgeOrigen {
-  font-size: 9px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   border-radius: 3px;
   padding: 1px 4px;
@@ -148,33 +148,33 @@
 }
 
 .badgeOrigen[data-origen="clase"] {
-  color: #93c5fd;
-  background-color: rgba(59, 130, 246, 0.18);
-  border-color: rgba(59, 130, 246, 0.35);
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento);
 }
 
 .badgeOrigen[data-origen="subclase"] {
-  color: #c084fc;
-  background-color: rgba(168, 85, 247, 0.18);
-  border-color: rgba(168, 85, 247, 0.35);
+  color: var(--pj-texto-magia);
+  background-color: var(--pj-acento-magia-fondo);
+  border-color: var(--pj-borde-magia);
 }
 
 .badgeOrigen[data-origen="especie"] {
-  color: #fde047;
-  background-color: rgba(234, 179, 8, 0.18);
-  border-color: rgba(234, 179, 8, 0.35);
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
 }
 
 .badgeOrigen[data-origen="legado"] {
-  color: #67e8f9;
-  background-color: rgba(6, 182, 212, 0.18);
-  border-color: rgba(6, 182, 212, 0.35);
+  color: var(--pj-texto-cian);
+  background-color: var(--pj-acento-cian-fondo);
+  border-color: var(--pj-borde-cian);
 }
 
 .badgeOrigen[data-origen="rasgos"] {
-  color: #fb923c;
-  background-color: rgba(249, 115, 22, 0.18);
-  border-color: rgba(249, 115, 22, 0.35);
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
 }
 
 .ladoDerecho {
@@ -185,18 +185,18 @@
 }
 
 .badgeNivel {
-  font-size: 10px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  color: #93c5fd;
-  background-color: rgba(59, 130, 246, 0.12);
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-acento-primario-fondo);
   padding: 1px 6px;
   border-radius: 4px;
   white-space: nowrap;
 }
 
 .textoEscuela {
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   text-transform: capitalize;
   white-space: nowrap;
 }
@@ -205,8 +205,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  color: #cbd5e1;
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-secundario-claro);
   flex-wrap: wrap;
   padding-left: 56px;
 }
@@ -222,44 +222,44 @@
 }
 
 .badgeRitual {
-  font-size: 8px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 800;
-  color: #c084fc;
-  background-color: rgba(168, 85, 247, 0.15);
-  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: var(--pj-texto-magia);
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
   padding: 0 4px;
   border-radius: 3px;
   line-height: 12px;
 }
 
 .badgeConcentracion {
-  font-size: 8px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 800;
-  color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
   padding: 0 3px;
   border-radius: 3px;
   line-height: 12px;
 }
 
 .separadorPunto {
-  color: rgba(148, 163, 184, 0.3);
+  color: var(--pj-texto-acento);
 }
 
 .textoComponentes {
-  color: #94a3b8;
+  color: var(--pj-texto-acento);
 }
 
 .textoDano {
-  color: #93c5fd;
+  color: var(--pj-texto-acento);
   font-weight: 700;
 }
 
 .resumenDescripcion {
   padding-left: 56px;
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;

@@ -101,7 +101,7 @@ export function extraerCaDePropiedades(propiedades?: string | string[]): number 
   return null;
 }
 
-const cacheEstadisticasPersonaje = new WeakMap<PersonajeJugador, EstadisticasCalculadasPersonaje>();
+const cacheEstadisticasPersonaje = new WeakMap<PersonajeJugador, { catalogo: ObjetoHomebrew[]; valor: EstadisticasCalculadasPersonaje }>();
 
 let cacheMapaObjetosRef: unknown = null;
 let cacheMapaObjetos: Map<string, ObjetoHomebrew | ObjetoBase> | null = null;
@@ -138,10 +138,11 @@ export function calcularEstadisticasPersonaje(
   pj: PersonajeJugador,
   homebrewsExternos?: ObjetoHomebrew[]
 ): EstadisticasCalculadasPersonaje {
-  if (pj && typeof pj === 'object' && !homebrewsExternos) {
+  const homebrews = homebrewsExternos ?? usarAlmacenDM.getState().objetosHomebrew;
+  if (pj && typeof pj === 'object') {
     const enCache = cacheEstadisticasPersonaje.get(pj);
-    if (enCache) {
-      return enCache;
+    if (enCache?.catalogo === homebrews) {
+      return enCache.valor;
     }
   }
   const nivel = pj?.nivel || 1;
@@ -197,7 +198,6 @@ export function calcularEstadisticasPersonaje(
   // Recopilar efectos pasivos activos de objetos equipados y sintonizados
   const efectosPasivosActivos: EfectoPasivo[] = [];
   let bonosModificadorDirectoArmadura = 0;
-  const homebrews = homebrewsExternos ?? usarAlmacenDM.getState?.()?.objetosHomebrew ?? [];
   const mapaObjetos = obtenerMapaObjetos(homebrews, normalizar);
 
   for (const item of inventario) {
@@ -718,7 +718,7 @@ export function calcularEstadisticasPersonaje(
   };
 
   if (pj && typeof pj === 'object') {
-    cacheEstadisticasPersonaje.set(pj, resultado);
+    cacheEstadisticasPersonaje.set(pj, { catalogo: homebrews, valor: resultado });
   }
 
   return resultado;
@@ -754,7 +754,8 @@ export function usarListaPersonajes(): PersonajeJugador[] {
  */
 export function usarEstadisticasPersonajeActivo(): EstadisticasCalculadasPersonaje | null {
   const personaje = usarPersonajeActivo();
-  return useMemo(() => (personaje ? calcularEstadisticasPersonaje(personaje) : null), [personaje]);
+  const catalogo = usarAlmacenDM(s => s.objetosHomebrew);
+  return useMemo(() => (personaje ? calcularEstadisticasPersonaje(personaje, catalogo) : null), [personaje, catalogo]);
 }
 
 /** Estado de lectura de personajes (Compatibilidad retroactiva). */

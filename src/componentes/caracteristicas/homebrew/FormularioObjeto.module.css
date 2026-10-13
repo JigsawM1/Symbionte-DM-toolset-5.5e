@@ -1093,3 +1093,543 @@
   color: var(--dm-texto-advertencia, hsl(50, 100%, 65%));
   display: inline-block;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .pestanasForm {
+  border-bottom: 1.5px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .pestanaBoton {
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .pestanaBoton:hover {
+  color: var(--pj-texto-primario);
+  background-color: rgba(var(--pj-rgb-neutro), 0.03);
+}
+
+:global([data-tema="jugador"]) .pestanaBotonActivo {
+  color: var(--pj-borde-cian-fuerte) !important;
+  border-bottom-color: var(--pj-borde-cian-fuerte);
+  background-color: rgba(var(--pj-rgb-cian), 0.04);
+}
+
+:global([data-tema="jugador"]) .labelForm {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .inputForm {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .inputForm:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .selectForm {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .selectForm:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .indicadorRarezaColor {
+  border: 1px solid rgba(var(--pj-rgb-neutro), 0.25);
+}
+
+:global([data-tema="jugador"]) .inputCostoValor {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .inputCostoValor:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .selectCostoUnidad {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .selectCostoUnidad:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoForm {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .tituloBloqueDinamico {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-borde-cian-fuerte);
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .subtituloInformacion {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .labelCheckbox {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonAgregarDinamico {
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .listaDinamicaVisual {
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .itemDinamicoVisual {
+  background-color: var(--pj-fondo-tarjeta);
+  font-size: var(--pj-fuente-cuerpo);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .bonoTextoInfo {
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .bonoTagCategoria {
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .botonEliminarDinamico {
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .botonEliminarDinamico:hover {
+  background-color: rgba(var(--pj-rgb-peligro), 0.12);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .textareaBrutal {
+  background-color: var(--pj-fondo-panel);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .textareaBrutal:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .stickyBottomBar {
+  background: var(--pj-fondo-modal-cuerpo);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-top: 1px solid rgba(var(--pj-rgb-neutro), 0.08);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyGuardar {
+  background: linear-gradient(135deg, var(--pj-acento-primario-solido-hover) 0%, var(--pj-acento-primario-solido) 100%);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyGuardar:hover:not(:disabled) {
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonStickyCancelar {
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonStickyCancelar:hover {
+  background-color: rgba(var(--pj-rgb-neutro), 0.04);
+  color: var(--pj-texto-primario);
+  border-color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .tooltipFlotante {
+  background: var(--pj-fondo-modal-cuerpo);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid rgba(var(--pj-rgb-cian), 0.3);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-modal);
+}
+
+:global([data-tema="jugador"]) .tooltipFlotante::after {
+  border-color: rgba(var(--pj-rgb-cian), 0.3) transparent transparent transparent;
+}
+
+:global([data-tema="jugador"]) .tooltipTitulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-borde-cian-fuerte);
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.08);
+}
+
+:global([data-tema="jugador"]) .tooltipTexto {
+  font-size: var(--pj-fuente-label);
+  color: rgba(var(--pj-rgb-neutro), 0.85);
+}
+
+:global([data-tema="jugador"]) .textoListaVacia {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .contenedorPlantillaBase {
+  background-color: rgba(var(--pj-rgb-cian), 0.04);
+  border: 1.5px dashed var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .labelPlantillaBase {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .selectPlantillaBase {
+  font-size: var(--pj-fuente-cuerpo);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .selectPlantillaBase:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonPresetRecarga {
+  background: rgba(var(--pj-rgb-neutro), 0.04);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  font-family: var(--fuente-principal);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonPresetRecarga:hover {
+  background: rgba(var(--pj-rgb-cian), 0.08);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .listaSugerenciasHechizos {
+  background: var(--pj-fondo-modal-cuerpo);
+  backdrop-filter: none;
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaHechizo {
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.05);
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaHechizo:hover {
+  background: rgba(var(--pj-rgb-cian), 0.12);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaDetalle {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoArma {
+  border-color: rgba(var(--pj-rgb-cian), 0.25);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoArmadura {
+  border-color: rgba(var(--pj-rgb-oro), 0.25);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoEscudo {
+  border-color: rgba(var(--pj-rgb-cian), 0.25);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoContenedor {
+  border-color: rgba(var(--pj-rgb-peligro), 0.25);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoEfectosPasivos {
+  background-color: rgba(var(--pj-rgb-cian), 0.02);
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoArtesania {
+  border-color: rgba(var(--pj-rgb-primario), 0.25);
+}
+
+:global([data-tema="jugador"]) .labelCheckboxBold14 {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .separadorArmaduraForm {
+  border-top: 1px dashed rgba(var(--pj-rgb-oro), 0.1);
+}
+
+:global([data-tema="jugador"]) .separadorContenedorForm {
+  border-top: 1px dashed rgba(var(--pj-rgb-peligro), 0.2);
+}
+
+:global([data-tema="jugador"]) .separadorArmaForm {
+  border-top: 1px dashed rgba(var(--pj-rgb-cian), 0.1);
+}
+
+:global([data-tema="jugador"]) .separadorSeccionDashed {
+  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.05);
+}
+
+:global([data-tema="jugador"]) .separadorSuaveDashed {
+  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.06);
+}
+
+:global([data-tema="jugador"]) .filaDobleTranslúcida {
+  background-color: rgba(var(--pj-rgb-neutro), 0.02);
+  border-radius: var(--pj-radio-panel);
+  border: 1px dashed rgba(var(--pj-rgb-neutro), 0.1);
+}
+
+:global([data-tema="jugador"]) .filaDobleArmaTranslúcida {
+  background-color: rgba(var(--pj-rgb-neutro), 0.02);
+  border-radius: var(--pj-radio-panel);
+  border: 1px dashed rgba(var(--pj-rgb-neutro), 0.06);
+}
+
+:global([data-tema="jugador"]) .textoFuente12 {
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .textoFuente11 {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .textoFuente10 {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .botonAgregarChipCompacto {
+  font-size: var(--pj-fuente-boton);
+}
+
+:global([data-tema="jugador"]) .chipPurpuraRemovible {
+  background: rgba(var(--pj-rgb-primario), 0.15);
+  border: 1px solid var(--pj-acento-primario-solido);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-badge);
+}
+
+:global([data-tema="jugador"]) .iconoRemoverChip {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .iconoEliminarPeligro {
+  color: var(--pj-texto-alerta);
+}
+
+:global([data-tema="jugador"]) .cajaMunicionVinculadaArma {
+  background-color: rgba(var(--pj-rgb-cian), 0.03);
+  border-radius: var(--pj-radio-panel);
+  border: 1px dashed rgba(var(--pj-rgb-cian), 0.15);
+}
+
+:global([data-tema="jugador"]) .chipPropiedadArma {
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .chipPropiedadArmaActivo {
+  background-color: rgba(var(--pj-rgb-cian), 0.08);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .textoChipActivo {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .textoChipInactivo {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .botonAlternadorProp {
+  font-size: var(--pj-fuente-boton);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonAlternadorPropActivo {
+  border: 1.5px solid var(--pj-borde-cian-fuerte);
+  background: rgba(var(--pj-rgb-cian), 0.12);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .botonAlternadorNaranja {
+  font-size: var(--pj-fuente-boton);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonAlternadorNaranjaActivo {
+  background: rgba(var(--pj-rgb-oro), 0.15);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .bloqueVenenoHomebrew {
+  border: 1px solid var(--pj-texto-exito);
+  box-shadow: var(--pj-sombra-hundida);
+  border-radius: var(--pj-radio-panel);
+  background-color: rgba(var(--pj-rgb-exito), 0.15);
+}
+
+:global([data-tema="jugador"]) .textoVerdeVeneno {
+  color: var(--pj-texto-exito);
+  text-shadow: none;
+}
+
+:global([data-tema="jugador"]) .menuDesplegableSugerencias {
+  background-color: var(--pj-fondo-panel);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaCompendio {
+  font-size: var(--pj-fuente-label);
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.03);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaCompendio:hover {
+  background-color: rgba(var(--pj-rgb-neutro), 0.05);
+}
+
+:global([data-tema="jugador"]) .itemSugerenciaCompendioActivo {
+  color: var(--pj-acento-primario-solido-hover);
+}
+
+:global([data-tema="jugador"]) .subtextoIdGris {
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .listaItemsContenido {
+  background-color: var(--pj-fondo-base);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .filaItemContenido {
+  font-size: var(--pj-fuente-label);
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.03);
+}
+
+:global([data-tema="jugador"]) .contenedorListaVaciaDashed {
+  border: 1px dashed rgba(var(--pj-rgb-neutro), 0.05);
+}
+
+:global([data-tema="jugador"]) .textoCianAcento {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .separadorPropiedadesCustom {
+  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.05);
+}
+
+:global([data-tema="jugador"]) .inputPropiedadCustom {
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .separadorArmaForm {
+  border-top: 1px dashed rgba(var(--pj-rgb-cian), 0.1);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoMagico {
+  background-color: rgba(var(--pj-rgb-cian), 0.02);
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .labelCheckboxDestacado {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .textoMagicoActivo {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .campoRecargaCargas {
+  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.06);
+}
+
+:global([data-tema="jugador"]) .etiquetaCompendioCian {
+  color: var(--pj-borde-cian-fuerte);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .bloqueDinamicoContenedor {
+  border-color: rgba(var(--pj-rgb-peligro), 0.25);
+}
+
+:global([data-tema="jugador"]) .separadorContenedorForm {
+  border-top: 1px dashed rgba(var(--pj-rgb-peligro), 0.2);
+}
+
+:global([data-tema="jugador"]) .tituloBloqueDinamicoMini {
+  font-size: var(--pj-fuente-subtitulo);
+}
+
+:global([data-tema="jugador"]) .inputBuscadorCompendio {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .textoMini {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .iconoMagiaDorado {
+  color: var(--pj-texto-oro);
+}

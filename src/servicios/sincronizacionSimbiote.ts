@@ -1,3 +1,4 @@
+import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
 /**
  * @module sincronizacionSimbiote
  * Motor de sincronización bidireccional en tiempo real entre instancias del Simbiote (DM y Jugadores).
@@ -34,24 +35,51 @@ const RETARDO_DEBOUNCE_GM_MS = 350;
 const RETARDO_DEBOUNCE_PJ_MS = 150;
 
 let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
-let timerDebouncePJ: ReturnType<typeof setTimeout> | null = null;
+const timersPJ = new Map<string, ReturnType<typeof setTimeout>>();
+const pendientesPJ = new Map<string, PersonajeJugador>();
+const emitidasPJ = new Map<string, { personaje: PersonajeJugador; revision: number }>();
+const revisionesDM = new Map<string, number>();
+let sesionLocal = crypto.randomUUID();
+let generacionSync = 0;
+let sesionDM: string | undefined;
+const sesionesDMRetiradas = new Set<string>();
 
 // Gestores modulares para fragmentos y reintentos resilientes
 const bufferChunks = new BufferChunksIniciativa();
-const gestorReintentos = new GestorReintentosSync();
+const gestorReintentos = new GestorReintentosSync(id => {
+  const pendiente = pendientesPJ.get(id);
+  const estado = usarAlmacenDM.getState();
+  if (pendiente) estado.guardarBorradorSync(id, proyectarEstadoCombatePJ(pendiente));
+  pendientesPJ.delete(id); emitidasPJ.delete(id);
+  estado.confirmarACKPJ(id, Number.MAX_SAFE_INTEGER);
+  estado.agregarNotificacion('No se confirmó tu cambio. Puedes recuperarlo desde los cambios pendientes.', 'advertencia');
+});
 const revisionesAplicadas = new Map<string, number>();
 let ultimaRevisionEmitida = 0;
-const bufferFragmentos = new BufferFragmentosSync((tipo) => {
-  if (tipo === 'DM' && !usarAlmacenDM.getState().esGM) gestorReintentos.continuarReintentosREQ();
-});
+const buffersPorOrigen = new Map<string, BufferFragmentosSync>();
+function obtenerBuffer(origen: string): BufferFragmentosSync {
+  let buffer = buffersPorOrigen.get(origen);
+  if (!buffer) {
+    if (buffersPorOrigen.size >= 32) {
+      const primero = buffersPorOrigen.keys().next().value as string;
+      buffersPorOrigen.get(primero)?.limpiar();
+      buffersPorOrigen.delete(primero);
+    }
+    buffer = new BufferFragmentosSync(tipo => {
+      if (tipo === 'DM' && !usarAlmacenDM.getState().esGM) gestorReintentos.continuarReintentosREQ();
+    });
+    buffersPorOrigen.set(origen, buffer);
+  }
+  return buffer;
+}
 
 function nuevaRevision(): number {
-  ultimaRevisionEmitida = Math.max(Date.now(), ultimaRevisionEmitida + 1);
+  ultimaRevisionEmitida = ultimaRevisionEmitida + 1;
   return ultimaRevisionEmitida;
 }
 
 function enviarSolicitud(): void {
-  void ts.sync.send(JSON.stringify({ v: 1, t: 'REQ' }), 'board');
+  void ts.sync.send(JSON.stringify({ v: 2, s: sesionLocal, t: 'REQ' }), 'board');
 }
 
 function purgarEstado(tipo: 'DM' | 'PJ', id = 'DM'): void {
@@ -69,15 +97,16 @@ function enviarPaquetes(paquetes: string[]): Promise<boolean> {
   return Promise.all(paquetes.map(p => ts.sync.send(p, 'board'))).then(resultados => resultados.every(Boolean));
 }
 
-function confirmarRecepcionPJ(id: string, revision: number): void {
-  void ts.sync.send(JSON.stringify({ v: 1, t: 'ACK', id, ts: revision }), 'board');
+function confirmarRecepcionPJ(id: string, revision: number, ok = true): void {
+  void ts.sync.send(JSON.stringify({ v: 2, s: sesionLocal, t: 'ACK', id, ts: revision, ok, rd: revisionesDM.get(id) ?? 0 }), 'board');
 }
 
-function aplicarEstadoRecibido(mensaje: EstadoSync): void {
+function aplicarEstadoRecibido(mensaje: EstadoSync, origen = ""): void {
+  const bufferFragmentos = obtenerBuffer(origen);
   const estado = usarAlmacenDM.getState();
   if ((mensaje.t === 'DM') === estado.esGM) return;
   const id = mensaje.t === 'PJ' ? mensaje.d.id : 'DM';
-  const clave = claveEstadoSync(mensaje.t, id);
+  const clave = `${origen}:${claveEstadoSync(mensaje.t, id)}`;
   const revision = mensaje.d.ts;
   const ultima = revisionesAplicadas.get(clave);
   const enCurso = bufferFragmentos.obtenerRevisionEnCurso(mensaje.t, id);
@@ -89,9 +118,24 @@ function aplicarEstadoRecibido(mensaje: EstadoSync): void {
     return;
   }
   if (mensaje.t === 'DM') {
+    if (mensaje.s && sesionesDMRetiradas.has(mensaje.s)) return;
+    if (sesionDM !== mensaje.s) {
+      if (sesionDM) sesionesDMRetiradas.add(sesionDM);
+      sesionDM = mensaje.s; revisionesDM.clear();
+    }
+    for (const [entidad, valor] of Object.entries(mensaje.d.rv ?? {})) revisionesDM.set(entidad, valor);
     estado.aplicarIniciativaDesdeSync(deserializarIniciativaDM(mensaje.d));
     gestorReintentos.cancelarReintentosREQ();
   } else {
+    const existente = estado.personajes.find(p => p.id === id);
+    if (existente && existente.idMiniaturaTS && existente.idMiniaturaTS !== mensaje.d.m) return;
+    const revisionActual = revisionesDM.get(id) ?? 0;
+    if (mensaje.d.b !== undefined && mensaje.d.b !== revisionActual) {
+      confirmarRecepcionPJ(id, revision ?? 0, false);
+      emitirEstadoComoGM();
+      return;
+    }
+    revisionesDM.set(id, revisionActual + 1);
     estado.actualizarPersonajeDesdeSync(deserializarEstadoCombatePJ(mensaje.d));
     confirmarRecepcionPJ(id, revision ?? Date.now());
     emitirEstadoComoGM();
@@ -103,10 +147,16 @@ function aplicarEstadoRecibido(mensaje: EstadoSync): void {
 /** Cancela el ciclo anterior, incluida cualquier emisión pendiente durante un cambio de rol. */
 export function reiniciarSincronizacion(): void {
   if (timerDebounceGM) clearTimeout(timerDebounceGM);
-  if (timerDebouncePJ) clearTimeout(timerDebouncePJ);
-  timerDebounceGM = timerDebouncePJ = null;
+  for (const timer of timersPJ.values()) clearTimeout(timer);
+  timersPJ.clear(); pendientesPJ.clear(); emitidasPJ.clear(); revisionesDM.clear();
+  generacionSync++; sesionLocal = crypto.randomUUID(); sesionDM = undefined;
+  sesionesDMRetiradas.clear();
+  usarAlmacenDM.getState().establecerIdClienteDM(null);
+  invalidarAutoridadSync();
+  timerDebounceGM = null;
   gestorReintentos.destruir();
-  bufferFragmentos.limpiar();
+  for (const buffer of buffersPorOrigen.values()) buffer.limpiar();
+  buffersPorOrigen.clear();
   bufferChunks.limpiar();
   revisionesAplicadas.clear();
   mensajesProcesadosRecientes.clear();
@@ -162,7 +212,8 @@ export function emitirEstadoComoGM(): void {
     };
 
     const wire = serializarIniciativaDM(datosDM);
-    const mensaje: EstadoSync = { v: 1, t: 'DM', d: wire };
+    wire.rv = Object.fromEntries(revisionesDM);
+    const mensaje: EstadoSync = { v: 2, s: sesionLocal, t: 'DM', d: wire };
     void enviarPaquetes(empaquetarEstadoSync(mensaje));
   }, RETARDO_DEBOUNCE_GM_MS);
 }
@@ -172,35 +223,59 @@ export function emitirEstadoComoGM(): void {
  * Implementa debounce de 150ms.
  */
 export function emitirMiPersonaje(personajeId?: string): void {
-  const idPendiente = personajeId ?? usarAlmacenDM.getState().idPersonajeActivo;
-  if (idPendiente) {
-    gestorReintentos.cancelarEmisionPJ(idPendiente);
-    purgarEstado('PJ', idPendiente);
+  const estado = usarAlmacenDM.getState();
+  const id = personajeId ?? estado.idPersonajeActivo;
+  const pj = estado.personajes.find(p => p.id === id);
+  if (!pj || estado.esGM || estado.aplicandoSync) return;
+  pendientesPJ.set(pj.id, pj);
+  estado.registrarModificacionLocalPJ(pj.id);
+  if (emitidasPJ.has(pj.id)) return;
+  clearTimeout(timersPJ.get(pj.id));
+  const generacion = generacionSync;
+  timersPJ.set(pj.id, setTimeout(() => {
+    timersPJ.delete(pj.id);
+    const pendiente = pendientesPJ.get(pj.id);
+    if (!pendiente) return;
+    void Promise.resolve(puedeEmitirPJ(pendiente.idMiniaturaTS)).then(autorizado => {
+      if (!autorizado || generacion !== generacionSync || usarAlmacenDM.getState().esGM || emitidasPJ.has(pj.id)) return;
+      const dto = proyectarEstadoCombatePJ(pendiente);
+      dto.ts = nuevaRevision();
+      const wire = serializarEstadoCombatePJ(dto, true);
+      wire.b = revisionesDM.get(pj.id) ?? 0;
+      const paquetes = empaquetarEstadoSync({ v: 2, s: sesionLocal, t: 'PJ', d: wire });
+      emitidasPJ.set(pj.id, { personaje: pendiente, revision: dto.ts });
+      gestorReintentos.registrarEmisionPJ(pj.id, dto.ts, () => enviarPaquetes(paquetes));
+    });
+  }, RETARDO_DEBOUNCE_PJ_MS));
+}
+
+/** Reaplica la edición conservada y solicita una emisión incluso si sus valores no cambiaron. */
+export async function reaplicarCambioPendienteSync(id: string): Promise<boolean> {
+  const estado = usarAlmacenDM.getState();
+  const borrador = estado.borradoresSync[id];
+  if (!borrador) return false;
+  const generacion = generacionSync;
+  const pj = estado.personajes.find(p => p.id === borrador.id ||
+    (borrador.idMiniaturaTS && p.idMiniaturaTS === borrador.idMiniaturaTS));
+  if (!estado.esGM && (!pj || !await puedeEmitirPJ(pj.idMiniaturaTS))) {
+    usarAlmacenDM.getState().agregarNotificacion('No se pudo reenviar el cambio. Vincula la ficha a una miniatura que te pertenezca. El borrador sigue disponible.', 'advertencia');
+    return false;
   }
-  if (timerDebouncePJ) {
-    clearTimeout(timerDebouncePJ);
-  }
-
-  timerDebouncePJ = setTimeout(() => {
-    const estado = usarAlmacenDM.getState();
-    if (estado.esGM || estado.aplicandoSync) return;
-
-    const pjAEmitir = personajeId
-      ? estado.personajes.find((p) => p.id === personajeId)
-      : (estado.personajes.find((p) => p.id === estado.idPersonajeActivo) || estado.personajes[0]);
-
-    if (!pjAEmitir) {
-      logger.debug("[Sync] No hay personaje para emitir.");
-      return;
-    }
-
-    const dto = proyectarEstadoCombatePJ(pjAEmitir);
-    dto.ts = nuevaRevision();
-    const wire = serializarEstadoCombatePJ(dto, false);
-    const mensaje: EstadoSync = { v: 1, t: 'PJ', d: wire };
-    const paquetes = empaquetarEstadoSync(mensaje);
-    gestorReintentos.registrarEmisionPJ(pjAEmitir.id, dto.ts, () => enviarPaquetes(paquetes));
-  }, RETARDO_DEBOUNCE_PJ_MS);
+  const actual = usarAlmacenDM.getState();
+  if (generacion !== generacionSync || actual.esGM !== estado.esGM || actual.borradoresSync[id] !== borrador) return false;
+  const idPJ = pj?.id ?? borrador.id;
+  clearTimeout(timersPJ.get(idPJ));
+  timersPJ.delete(idPJ);
+  gestorReintentos.cancelarEmisionPJ(idPJ);
+  emitidasPJ.delete(idPJ);
+  pendientesPJ.delete(idPJ);
+  if (!actual.reaplicarBorradorSync(id)) return false;
+  if (actual.esGM) emitirEstadoComoGM();
+  else emitirMiPersonaje(idPJ);
+  usarAlmacenDM.getState().agregarNotificacion(actual.esGM
+    ? 'Cambio reaplicado a la ficha y a la iniciativa.'
+    : 'Cambio reaplicado. Esperando confirmación del DM.', actual.esGM ? 'exito' : 'info');
+  return true;
 }
 
 /**
@@ -219,24 +294,36 @@ export function solicitarEstadoInicial(): void {
  * Procesa mensajes de sincronización entrantes recibidos a través del EventBus.
  */
 export function procesarMensajeSyncEntrante(evento: {
-  datos: unknown;
-  strCrudo: string;
-  fromClient?: FragmentoCliente;
-}): void {
-  if (esMensajeDuplicado(evento.strCrudo)) {
-    logger.debug("[Sync] Mensaje duplicado omitido por deduplicador de bus");
-    return;
-  }
-
+  datos: unknown; strCrudo: string; fromClient?: FragmentoCliente;
+}): void | Promise<void> {
   const parseo = EsquemaWireMensajeSync.safeParse(evento.datos);
-
   if (!parseo.success) {
-    logger.warn("[Sync] Mensaje descartado por validación de esquema:", parseo.error.format(), evento.datos);
+    if (typeof evento.datos === 'object' && evento.datos !== null && 'v' in evento.datos && evento.datos.v !== 2) {
+      usarAlmacenDM.getState().agregarNotificacion('La sincronización requiere que todos actualicen a la misma versión.', 'advertencia');
+    }
     return;
   }
+  const generacion = generacionSync;
+  const autorizado: boolean | Promise<boolean> = autorizarMensaje(parseo.data, evento.fromClient);
+  const aplicar = (valido: boolean): void | Promise<void> => {
+    if (!valido || generacion !== generacionSync) return;
+    if (parseo.data.t === "DM" || parseo.data.t === "ACK" || (parseo.data.t === "FRAG" && parseo.data.k === "DM")) {
+      const id = evento.fromClient?.id;
+      const conocido = usarAlmacenDM.getState().idClienteDM;
+      if (id && conocido && id !== conocido) return;
+      if (id && !conocido) usarAlmacenDM.getState().establecerIdClienteDM(id);
+    }
+    return procesarAutorizado(parseo.data, evento);
+  };
+  return typeof autorizado === 'boolean' ? aplicar(autorizado) : autorizado.then(aplicar);
+}
 
-  const mensaje = parseo.data;
+function procesarAutorizado(mensaje: WireMensajeSync, evento: { strCrudo: string; fromClient?: FragmentoCliente }): void | Promise<void> {
+  if ((mensaje.t === 'DM' || mensaje.t === 'ACK' || (mensaje.t === 'FRAG' && mensaje.k === 'DM')) && sesionesDMRetiradas.has(mensaje.s)) return;
+  if (esMensajeDuplicado(`${evento.fromClient?.id ?? ''}:${mensaje.s ?? ''}:${evento.strCrudo}`)) return;
   const estado = usarAlmacenDM.getState();
+  const origen = `${evento.fromClient?.id ?? ""}:${mensaje.s ?? ""}`;
+  const bufferFragmentos = obtenerBuffer(origen);
 
   switch (mensaje.t) {
     case "REQ": {
@@ -250,20 +337,26 @@ export function procesarMensajeSyncEntrante(evento: {
 
     case 'FRAG': {
       if ((mensaje.k === 'DM') === estado.esGM) break;
-      const ultima = revisionesAplicadas.get(claveEstadoSync(mensaje.k, mensaje.id));
+      const ultima = revisionesAplicadas.get(`${origen}:${claveEstadoSync(mensaje.k, mensaje.id)}`);
       if (ultima !== undefined && mensaje.ts <= ultima) {
         if (mensaje.k === 'PJ' && mensaje.ts === ultima && mensaje.chunk === 1) confirmarRecepcionPJ(mensaje.id, mensaje.ts);
         break;
       }
       const resultado = bufferFragmentos.registrar(mensaje);
-      if (resultado.tipo === 'completo') aplicarEstadoRecibido(resultado.mensaje);
+      if (resultado.tipo === 'completo') {
+        if (resultado.mensaje.t === 'PJ' && evento.fromClient) {
+          const generacion = generacionSync;
+          return autorizarPersonaje(resultado.mensaje.d, evento.fromClient).then(valido => { if (valido && generacion === generacionSync) aplicarEstadoRecibido(resultado.mensaje, origen); });
+        }
+        aplicarEstadoRecibido(resultado.mensaje, origen);
+      }
       else if (mensaje.k === 'DM' && resultado.tipo === 'progreso') gestorReintentos.pausarReintentosREQ(enviarSolicitud);
       break;
     }
 
     case 'DM':
     case 'PJ':
-      aplicarEstadoRecibido(mensaje);
+      aplicarEstadoRecibido(mensaje, origen);
       break;
 
     case "DM_CHUNK": {
@@ -281,8 +374,8 @@ export function procesarMensajeSyncEntrante(evento: {
             c: chunksCompletos.flatMap((ch) => ch.c),
             ts: primerChunk.ts,
           };
-          const completo = EsquemaWireMensajeSync.safeParse({ v: 1, t: 'DM', d: wireCompleto });
-          if (completo.success && completo.data.t === 'DM') aplicarEstadoRecibido(completo.data);
+          const completo = EsquemaWireMensajeSync.safeParse({ v: 2, s: mensaje.s, t: 'DM', d: wireCompleto });
+          if (completo.success && completo.data.t === 'DM') aplicarEstadoRecibido(completo.data, origen);
         }
       }
       break;
@@ -291,7 +384,21 @@ export function procesarMensajeSyncEntrante(evento: {
     case "ACK": {
       // Solo los jugadores procesan confirmaciones de sus personajes
       if (!estado.esGM) {
-        if (gestorReintentos.confirmarACK(mensaje.id, mensaje.ts)) estado.confirmarACKPJ(mensaje.id, mensaje.ts);
+        if (!gestorReintentos.confirmarACK(mensaje.id, mensaje.ts)) break;
+        const emitida = emitidasPJ.get(mensaje.id);
+        emitidasPJ.delete(mensaje.id);
+        revisionesDM.set(mensaje.id, mensaje.rd ?? revisionesDM.get(mensaje.id) ?? 0);
+        const pendiente = pendientesPJ.get(mensaje.id);
+        if (mensaje.ok === false) {
+          if (pendiente) estado.guardarBorradorSync(mensaje.id, proyectarEstadoCombatePJ(pendiente));
+          pendientesPJ.delete(mensaje.id);
+          estado.confirmarACKPJ(mensaje.id, Number.MAX_SAFE_INTEGER);
+          estado.agregarNotificacion('El DM cambió esta ficha. Tu edición se conserva en los cambios pendientes de sincronización.', 'advertencia');
+          solicitarEstadoInicial();
+        } else if (pendiente === emitida?.personaje) {
+          pendientesPJ.delete(mensaje.id);
+          estado.confirmarACKPJ(mensaje.id, Number.MAX_SAFE_INTEGER);
+        } else emitirMiPersonaje(mensaje.id);
       }
       break;
     }
@@ -414,6 +521,15 @@ export function inicializarObservadoresStoreSync(): () => void {
     }
 
     if (estadoActual.esGM) {
+      let cambioEntidad = false;
+      for (const pj of estadoActual.personajes) {
+        const firma = calcularFirmaPJ(pj, estadoActual.colaIniciativa);
+        if (prevFirmasPJs.get(pj.id) !== firma) {
+          revisionesDM.set(pj.id, (revisionesDM.get(pj.id) ?? 0) + 1);
+          cambioEntidad = true;
+        }
+        prevFirmasPJs.set(pj.id, firma);
+      }
       // ── Observación del DM ──
       const firmaActualDM = calcularFirmaIniciativaDM(
         estadoActual.colaIniciativa,
@@ -423,7 +539,7 @@ export function inicializarObservadoresStoreSync(): () => void {
         estadoActual.metodoVidaMonstruo
       );
 
-      if (firmaActualDM !== prevFirmaDM) {
+      if (firmaActualDM !== prevFirmaDM || cambioEntidad) {
         prevFirmaDM = firmaActualDM;
         emitirEstadoComoGM();
       }

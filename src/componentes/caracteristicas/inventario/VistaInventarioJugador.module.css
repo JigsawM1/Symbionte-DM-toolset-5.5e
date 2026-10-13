@@ -11,16 +11,16 @@
   flex-direction: column;
   gap: 10px;
   box-sizing: border-box;
-  color: var(--pj-texto-primario-suave, #f8fafc);
-  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
+  color: var(--pj-texto-primario-suave);
+  font-family: var(--fuente-principal);
 }
 
 .cabeceraPrincipal {
-  background: var(--pj-fondo-cabecera-gradiente, linear-gradient(180deg, #161e2c 0%, #111622 100%));
-  border: 1px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
-  border-radius: 8px;
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-acento-tenue);
+  border-radius: var(--pj-radio-panel);
   padding: 8px 12px;
-  box-shadow: var(--pj-sombra-panel, 0 4px 12px rgba(0, 0, 0, 0.5));
+  box-shadow: var(--pj-sombra-panel);
 }
 
 .filaTitulo {
@@ -38,36 +38,36 @@
 }
 
 .tituloTexto {
-  font-family: var(--fuente-titulo, 'Outfit', sans-serif);
-  font-size: var(--pj-fuente-subtitulo, 15px);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: var(--pj-texto-primario, #ffffff);
+  color: var(--pj-texto-primario);
   margin: 0;
   letter-spacing: 0.3px;
   text-transform: uppercase;
 }
 
 .contadorBadge {
-  font-size: var(--pj-fuente-micro, 11px);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  background-color: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
-  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.35));
-  color: var(--pj-texto-cian, #38bdf8);
+  background-color: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian);
+  color: var(--pj-texto-cian);
   padding: 1px 7px;
-  border-radius: 10px;
+  border-radius: var(--pj-radio-panel);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
 .tarjetaVacia {
-  background-color: var(--pj-fondo-tarjeta, #121722);
-  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
-  border-radius: 8px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
   padding: 32px;
   text-align: center;
-  color: var(--pj-texto-secundario, #cbd5e1);
+  color: var(--pj-texto-secundario);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-size: var(--pj-fuente-cuerpo);
 }

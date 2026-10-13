@@ -83,7 +83,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
       {/* Barra de Búsqueda y Filtros */}
       <div className={styles.cabeceraBuscadorConjuros}>
         <div className={styles.tituloBuscadorFila}>
-          <BookOpen size={15} color="#60a5fa" />
+          <BookOpen size={15} color="var(--pj-texto-cian)" />
           <span className={styles.tituloBuscadorTexto}>
             Añadir Conjuros del Compendio
           </span>
@@ -104,7 +104,7 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
       <div className={styles.filaControlesBuscador}>
         {/* Input de Búsqueda */}
         <div className={styles.cajaInputBuscador}>
-          <Search size={13} color="#64748b" />
+          <Search size={13} color="var(--pj-texto-terciario)" />
           <input
             type="text"
             placeholder="Buscar por nombre o descripción..."

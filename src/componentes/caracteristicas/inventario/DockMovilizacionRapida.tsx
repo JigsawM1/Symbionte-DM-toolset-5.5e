@@ -25,7 +25,7 @@ export const DockMovilizacionRapida: React.FC<DockMovilizacionRapidaProps> = ({
   return (
     <div className={estilos.dockMovilizacionFlotanteInferior}>
       <div className={estilos.tituloDockMovilizacion}>
-        <Package size={11} color="#38bdf8" />
+        <Package size={11} color="var(--pj-texto-cian)" />
         <span>Movilización Rápida (Suelta para transferir)</span>
       </div>
       <div className={estilos.gridCajasMovilizacion}>

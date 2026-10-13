@@ -57,7 +57,7 @@ export const ModalTiendaRecargaEspacio: React.FC<ModalTiendaRecargaEspacioProps>
       <div className={estilos.modal}>
         <div className={estilos.cabecera}>
           <h2 id="titulo-tienda-recarga" className={estilos.titulo}>
-            <Shield size={18} color="#38bdf8" />
+            <Shield size={18} color="var(--pj-texto-cian)" />
             <span>{rasgo.nombre}: Restablecer PG</span>
           </h2>
           <button

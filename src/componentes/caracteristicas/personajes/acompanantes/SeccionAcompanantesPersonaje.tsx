@@ -311,7 +311,7 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
           tabIndex={0}
           title="Haz clic para gestionar velocidad, terrenos y turnos"
         >
-          <Footprints size={12} color="#38bdf8" />
+          <Footprints size={12} color="var(--pj-texto-cian)" />
           <span className={estilos.textoEtiquetaVel}>Velocidad:</span>
           <span
             className={`
@@ -347,7 +347,7 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
           <div className={estilos.popoverVelocidadAcomp}>
             <div className={estilos.cabeceraPopoverVelocidad}>
               <span className={estilos.tituloPopoverVelocidad}>
-                <Footprints size={13} color="#38bdf8" />
+                <Footprints size={13} color="var(--pj-texto-cian)" />
                 Movimiento: {acomp.nombre}
               </span>
               <button
@@ -375,7 +375,7 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
               <div className={estilos.seccionTerrenoPopover}>
                 <div className={estilos.cabeceraTerreno}>
                   <span className={estilos.tituloTerreno}>
-                    <Mountain size={11} color="#94a3b8" />
+                    <Mountain size={11} color="var(--pj-texto-terciario)" />
                     Tipo de Terreno
                   </span>
                 </div>
@@ -1005,7 +1005,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
                           {res.conjuroAsociado && ` (${res.conjuroAsociado})`}
                         </span>
                       </div>
-                      <Plus size={14} color="#38bdf8" />
+                      <Plus size={14} color="var(--pj-texto-cian)" />
                     </div>
                   ))
                 )}

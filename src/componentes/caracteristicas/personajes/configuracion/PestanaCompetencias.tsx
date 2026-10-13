@@ -35,7 +35,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
       <div className={estilos.gridCompetenciasResumen}>
         {/* Tarjeta Armas */}
         <TarjetaResumenCompetencia
-          icono={<Swords size={14} color="#94a3b8" />}
+          icono={<Swords size={14} color="var(--pj-texto-terciario)" />}
           titulo="Competencias con Armas"
           conteo={form.competenciasArmasLista?.length || 0}
           etiquetaConteo="armas"
@@ -50,7 +50,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
 
         {/* Tarjeta Armaduras */}
         <TarjetaResumenCompetencia
-          icono={<Shield size={14} color="#94a3b8" />}
+          icono={<Shield size={14} color="var(--pj-texto-terciario)" />}
           titulo="Competencias con Armaduras"
           conteo={form.competenciasArmadurasLista?.length || 0}
           etiquetaConteo="armaduras"
@@ -65,7 +65,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
 
         {/* Tarjeta Idiomas */}
         <TarjetaResumenCompetencia
-          icono={<Languages size={14} color="#94a3b8" />}
+          icono={<Languages size={14} color="var(--pj-texto-terciario)" />}
           titulo="Idiomas Conocidos"
           conteo={form.idiomasLista?.length || 0}
           etiquetaConteo="idiomas"
@@ -80,7 +80,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
 
         {/* Tarjeta Herramientas */}
         <TarjetaResumenCompetencia
-          icono={<Wrench size={14} color="#94a3b8" />}
+          icono={<Wrench size={14} color="var(--pj-texto-terciario)" />}
           titulo="Herramientas y Kits"
           conteo={herramientasListaEfectiva.length}
           etiquetaConteo="herramientas"
@@ -94,7 +94,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
       <div className={`${estilos.campoFormulario} ${estilos.seccionHabilidadesConfig}`}>
         <div className={estilos.cabeceraHabilidades}>
           <div className={estilos.tituloIconoFila}>
-            <Sliders size={14} color="#94a3b8" />
+            <Sliders size={14} color="var(--pj-texto-terciario)" />
             <label className={`${estilos.labelFormulario} ${estilos.labelHabilidades}`}>
               Habilidades e Inspector de Desglose (18)
             </label>
@@ -136,7 +136,7 @@ export const PestanaCompetencias: React.FC<PestanaCompetenciasProps> = ({
                   onClick={() => alAbrirDetalleHabilidad({ clave: hab, nombre })}
                   className={estilos.botonEditarHabilidad}
                 >
-                  <Settings size={10} color="#94a3b8" />
+                  <Settings size={10} color="var(--pj-texto-terciario)" />
                   Editar
                 </button>
               </div>

@@ -207,3 +207,108 @@
   display: inline;
   vertical-align: middle;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedor {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .titulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario);
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .contador {
+  color: var(--pj-borde-cian-fuerte);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .iconoBuscador {
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .buscadorInput {
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .buscadorInput:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .selectorFiltro {
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .selectorFiltro:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .vacioTexto {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-terciario);
+  border: 1px dashed var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .tarjetaConjuro {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .tarjetaConjuro:hover {
+  border-color: rgba(var(--pj-rgb-cian), 0.4);
+  background-color: rgba(var(--pj-rgb-cian), 0.04);
+}
+
+:global([data-tema="jugador"]) .tarjetaExpandida {
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .cabeceraConjuro {
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .hechizoNivel {
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .hechizoNombre {
+  font-family: var(--fuente-principal);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .hechizoEscuela {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+  background-color: rgba(var(--pj-rgb-primario), 0.1);
+  border: 1px solid rgba(var(--pj-rgb-primario), 0.25);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .indicadorExpansion {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .panelDetalleOverlay {
+  border-top: 3px solid var(--pj-borde-medio);
+  border-left: 3px solid var(--pj-borde-medio);
+  border-right: 3px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-base);
+  box-shadow: var(--pj-sombra-tarjeta);
+}

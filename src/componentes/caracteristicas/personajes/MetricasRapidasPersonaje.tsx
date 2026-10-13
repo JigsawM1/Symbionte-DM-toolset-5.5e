@@ -180,7 +180,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
           <span className={estilos.etiquetaMetrica}>
             Clase Armadura
             {penalizacionArmadura?.sinCompetencia && (
-              <AlertTriangle size={10} color="#ef4444" className={estilos.alertaSinCompetenciaArmadura} />
+              <AlertTriangle size={10} color="var(--pj-texto-alerta)" className={estilos.alertaSinCompetenciaArmadura} />
             )}
           </span>
           <span className={estilos.valorMetrica}>{caTotal}</span>
@@ -275,7 +275,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
           <div className={estilos.popoverVelocidad}>
             <div className={estilos.cabeceraPopoverVelocidad}>
               <span className={estilos.tituloPopoverVelocidad}>
-                <Footprints size={14} color="#38bdf8" />
+                <Footprints size={14} color="var(--pj-texto-cian)" />
                 Control de Movimiento
               </span>
               <button
@@ -305,7 +305,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               <div className={estilos.seccionTerrenoPopover}>
                 <div className={estilos.cabeceraTerreno}>
                   <span className={estilos.tituloTerreno}>
-                    <Mountain size={12} color="#94a3b8" />
+                    <Mountain size={12} color="var(--pj-texto-terciario)" />
                     Terreno
                   </span>
                 </div>
@@ -477,7 +477,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
         >
           <span className={estilos.etiquetaMetrica}>Insp.</span>
           <div className={`${estilos.botonInspiracion} ${personaje.inspiracion ? estilos.botonInspiracionActiva : ""}`}>
-            <Sparkles size={12} color={personaje.inspiracion ? "#000" : "var(--color-texto-apagado, #64748b)"} />
+            <Sparkles size={12} color={personaje.inspiracion ? "var(--pj-texto-oro-brillante)" : "var(--pj-texto-terciario)"} />
           </div>
         </div>
       </TooltipUniversal>

@@ -77,7 +77,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
       {/* Sección: Trucos Listos */}
       <SeccionNivelConjuros
         titulo="Trucos Listos"
-        icono={<Sparkles size={14} color="#a78bfa" />}
+        icono={<Sparkles size={14} color="var(--pj-texto-magia)" />}
         nivel={0}
         esTruco={true}
         conjurosVisibles={trucosVisibles}
@@ -107,7 +107,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
       {/* Estado Vacío de Conjuros */}
       {conteoEfectivo.total === 0 && (
         <div className={estilos.tarjetaVaciaConjuros}>
-          <BookOpen size={24} color="#94a3b8" />
+          <BookOpen size={24} color="var(--pj-texto-terciario)" />
           <span className={estilos.tituloVacioConjuros}>
             {requierePreparacion
               ? "No tienes conjuros preparados para el día"

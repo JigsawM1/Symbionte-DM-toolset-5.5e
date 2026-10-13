@@ -2,6 +2,51 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-12] Autorrevisión del estilo de jugador: estados y recursos
+
+- Reproducidos fallos que las vistas estáticas anteriores no detectaban: la regla general de botones imponía radios rectangulares a ranuras circulares; el hover rellenaba una ranura gastada; cansancio seguía usando controles no nativos de 14px y su tarjeta salía de pantalla a 433px; las barras de vida de iniciativa tenían contraste de 1.67–1.93:1. Además quedaban colores fijos en iconos del compendio.
+- Corregidos la especificidad de los valores predeterminados, el hover de ranuras, los indicadores de vida y los iconos. Cansancio usa botones con nombre y estado accesibles, mantiene indicadores interiores de 14px y admite Espacio/Enter dentro de un área de clic de 32px. La rejilla de recursos se adapta sin ocultar controles; a 433px, los iconos de navegación se sitúan sobre sus etiquetas para evitar cortar palabras.
+- Prueba repetible incorporada al repositorio: `pnpm run test:tema-jugador`, con 22 casos de regresión en Chromium local. Comprueba gasto/recuperación, forma y hover de ranuras, recursos a 599/433px, cansancio por teclado, contraste de los tres estados de vida, selector abierto, foco y acceso al final de las siete vistas principales. Contraste de barras de iniciativa tras corregir: 4.44–8.72:1. Verificadas 587 clases compartidas del contexto DM y repetidos los 28 escenarios de la migración sin diferencias frente a la referencia DM anterior.
+- CI final: salida 0, 128 suites y 1.745 pruebas; TypeScript, ESLint, límite de líneas y build correctos. Prueba visual adicional independiente del CI. Informe: `scratch/informe-autorrevision-jugador.md`. El muestreo de texto solo cubre superficies planas y estados probados; no se certifica accesibilidad completa ni CEF dentro de TaleSpire.
+- Corrección adicional del inventario: escribir Daga expandía la vista previa y empujaba el pie fuera de pantalla, porque el formulario tenía overflow visible. Cabecera y acciones permanecen fuera del cuerpo desplazable; el diálogo se sitúa por encima de los dados. Descripción a 12.5px. Verificadas selección y adición real de Daga a 599/433px y alturas 760/600px, además de Otras posesiones a 433x600. La fixture anterior pasaba un catálogo inexistente y solo probaba el modal vacío; ahora usa OBJETOS_INICIALES. Prueba visual, build y lint posteriores con salida 0.
+
+## [2026-10-12] Migración completa del estilo de jugador a DESIGN.md
+
+- Unificados los tokens de hoja, configuración de personaje, acompañantes, acciones, conjuros, rasgos, inventario e iniciativa. Corregidas referencias inexistentes a tokens y retirados colores fijos de los módulos e iconos propios del jugador. Los componentes compartidos usan variantes bajo `data-tema="jugador"`; sus declaraciones del DM se conservan.
+- Lectura de descripciones a 12.5px, sangría de 10px y separación entre párrafos; controles de botón de al menos 32px, foco índigo y estados deshabilitados legibles sin reducir la opacidad. Navegación en cuatro columnas hasta 620px, formularios de multiclase en dos columnas y espacio inferior para los dados flotantes.
+- Chromium local con datos de prueba: 14 vistas, editores y detalles a 599×760 y 433×760; sin desbordes horizontales, botones menores de 32px, textos visibles menores de 11px, selectores nativos ni errores JavaScript. Verificados los párrafos, el tooltip portado a `document.body` y el estado deshabilitado. Comparación de 587 clases compartidas bajo el contexto DM sin diferencias de estilos calculados. Script: `scratch/probar-tema-jugador.mjs`.
+- `pnpm run ci`: salida 0, 128 suites y 1.745 pruebas. ESLint y compilación repetidos tras los ajustes finales, con salida 0. Se conserva el aviso existente de chunks grandes. Estas comprobaciones son locales en Chromium; no se verificó CEF dentro del cliente TaleSpire ni se desplegó.
+
+## [2026-10-12] Descarga de cambios pendientes y recuperación visible del JSON
+
+- Verificación de la implementación anterior con clic real y eventos de descarga en Chromium: descarga permitida produce `cambio-pendiente.json` idéntico al borrador. Una descarga denegada por el navegador se cancela sin excepción JavaScript y el botón no mostraba ninguna respuesta ni alternativa. El booleano del helper solo confirma que se solicitó la descarga, no que el archivo se guardó.
+- El botón conserva la descarga y abre un diálogo con el JSON seleccionable, copia mediante el servicio de portapapeles existente y mensajes que distinguen solicitud, fallo al iniciar, copia confirmada y copia fallida. El borrador permanece guardado. Se usa diálogo nativo para foco modal y cierre con Escape; estilos locales con tokens existentes.
+- Chromium: archivo real y comparación completa del JSON; descarga denegada, fallo de Blob y fallo de portapapeles con contenido recuperable; portapapeles TaleSpire simulado recibe exactamente el JSON; ajuste del diálogo a 460×766, 599×600 y 433×300. Las pruebas previas de reaplicación siguen aprobadas. Script: `scratch/probar-reaplicar-sync.mjs`.
+- `pnpm run ci`: salida 0, 128 suites y 1.745 pruebas, compilación correcta con el aviso existente de chunks grandes. El inspector CEF no estaba disponible en localhost:8080: no se certificó la descarga ni el portapapeles dentro del cliente TaleSpire real. Compilación local; no se desplegó.
+
+## [2026-10-12] Reaplicación explícita de cambios pendientes de sincronización
+
+- Fallos reproducidos antes de corregir: reaplicar valores iguales a la ficha eliminaba el borrador sin generar otro envío; desde el DM, cambiar la ficha no actualizaba la tarjeta de iniciativa.
+- El botón solicita una emisión explícita, cancela la emisión PJ anterior y reutiliza la actualización de combate para restaurar ficha, recursos, concentración, acompañantes e iniciativa. La reaplicación local se distingue de un mensaje remoto para evitar que la protección contra revisiones antiguas bloquee la elección explícita del usuario.
+- Si falta el destino o el jugador no posee la miniatura vinculada, se conserva el borrador y se muestra el motivo. El reenvío usa una secuencia nueva y la revisión autoritativa más reciente del DM.
+- Validación: seis regresiones nuevas; `pnpm run ci` con salida 0, 128 suites y 1.745 pruebas. Chromium a 460×766 con componentes reales: clic DM cambia tarjeta de 33/66 a 12/66; clic jugador reenvía 33/66 sin modificar sus valores. Script local: `scratch/probar-reaplicar-sync.mjs`.
+- El sandbox bloqueó pnpm con EPERM; el CI y Chromium se ejecutaron correctamente fuera del sandbox. Compilación local completada con el aviso existente de chunks grandes; no se desplegó ni se verificó una sesión nativa entre equipos TaleSpire.
+
+## [2026-10-12] Tablas DM: altura acotada y navegación compacta
+
+- Fallo reproducido en la aplicación completa: `App.areaContenido` usa layout de bloque y `overflow: hidden`. El `flex: 1` de Tablas no acotaba su altura, por lo que las calculadoras crecían por encima del viewport y no activaban su scroll interno. La prueba anterior con un padre flexible ocultaba este problema.
+- Corrección localizada: `contenedorTablas` ocupa `height: 100%`; sus hijos mantienen `min-height: 0` y scroll interno. Navegación de una fila a 599px, títulos sin segunda línea descriptiva y consola con etiquetas/controles en filas compactas. Margen final de 48px para que los dados flotantes no tapen contenido.
+- Verificación en navegador visible con App, BarraSuperior y el layout real: scroll de calculadoras hasta Cobre, críticos/pifias hasta el resultado 12 y reglas hasta Asfixia a 599×760; detalle de Petrificado hasta el final a 433×600. Se probaron tiradas para las seis combinaciones de ataque/efecto y navegación por teclado.
+- `pnpm run ci`: salida 0, 128 suites y 1.739 pruebas aprobadas. Se conserva el aviso de Vite sobre chunks mayores de 500 kB. No se verificó una sesión nativa de TaleSpire.
+
+## [2026-10-11] Tablas DM: críticos y pifias d12 e interfaz de consulta
+
+- Sustituidos los datos anteriores por los 72 efectos de `src/utiles/compendios/tabla criticos.md`: críticos y pifias de cuerpo a cuerpo, distancia y magia, 12 resultados por tabla. El documento proporcionado se conserva sin modificaciones.
+- Consola con tirada virtual d12, consulta en grupos 1–6 y 7–12 y campos separados para nombre, narrativa e impacto mecánico; retiradas las tiradas severas d4. Se conservan el envío automático al chat y la interceptación de mousedown, mouseup y click en tirada/reenvío para proteger el lienzo 3D de TaleSpire.
+- Subpestañas con título, descripción, selección visible y teclado; condiciones con botones operables, calculadoras espaciadas y reglas en una columna a 599px. Estilos localizados en los módulos de Tablas y patrón documentado en `DESIGN_MASTER.md`.
+- Validación: `pnpm run ci` terminó con salida 0, 128 suites y 1.739 pruebas aprobadas, incluidas 9 regresiones de las tablas que contrastan los 72 efectos con el documento. Comprobación local Chromium a 599/1100px: cuatro vistas sin desbordes, 24 tiradas de límites y transición 6/7, teclado, scroll al último resultado, chat simulado, reenvío, fallos de chat y aislamiento de eventos. No se certifica una sesión real de TaleSpire con estas pruebas.
+- TypeScript, lint y build se repitieron tras los ajustes finales de eventos y estilos; build correcto con el aviso existente de chunks mayores de 500 kB.
+
 ## [2026-10-09] Callback opcional en chips de rasgos
 
 - Causa: `TarjetaRasgo` declara `alVerDetalle` opcional, pero `ChipsSelectoresYDadosRasgo` lo exigía, provocando TS2322 en CI.
@@ -13045,3 +13090,15 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - El receptor consulta la revisión en curso antes de aplicar estados completos y rechaza mensajes sin revisión si ya existe una revisión aplicada o en tránsito. Conserva los fragmentos y la recuperación REQ; se verifica tanto DM como PJ.
 - Cuatro regresiones nuevas. Validación local ejecutada: 73 pruebas de sincronización y pnpm run ci con salida 0, 1705 pruebas unitarias, 9 escenarios, TypeScript, ESLint, auditoría de líneas, prueba de interfaz y compilación correctos.
 - Observación previa ajena al sync: scripts/probar-constructor-rasgos.mjs está referenciado por CI, existe localmente, pero está ignorado y no versionado. La validación local no certifica GitHub Actions ni un checkout limpio. Informe: scratch/autorrevision-sync.md.
+
+## [2026-10-11] Correcciones de auditoría de seguridad y calidad H01–H14
+
+- Carga persistida validada antes de aplicar: errores de API, JSON o esquemas suspenden el guardado y permiten recuperar el original. Lecturas antiguas se descartan; escrituras se serializan. Se restauran arrays vacíos y se persiste sistemaMagia.
+- Protocolo sync v2: todos los clientes deben actualizar juntos. Remitentes contrastados con clients.getMoreInfo; propiedad de minis obtenida mediante getCreaturesOwnedByPlayer. Se autoriza también en el receptor, incluidos acompañantes y fragmentos; no se autorizan identidades por nombre.
+- Debounce por ficha, revisiones autoritativas y ACK de aceptación/rechazo. Prevalece el DM en conflictos. Borradores rechazados o no confirmados persistidos, descargables y reaplicables explícitamente.
+- Consumo mágico atómico; desequipado conserva instancias; apilado compara estado completo. Caché de estadísticas incluye catálogo y sus consumidores reaccionan a sus cambios. Notas pasan al almacén en cada edición; selectores React acotados.
+- Correcciones de ciclo de vida: el puente restaura callbacks al remontar, se limpian registros de tiradas al desconectar y se purgan registros expirados periódicamente.
+- Validación ejecutada: pnpm run ci salida 0, 127 suites y 1730 pruebas, TypeScript/ESLint, control de líneas y build correctos; doce escenarios de simulación aprobados; interfaz de rasgos aprobada; perfilado Chromium con 270 ciclos, cero timers/intervalos/suscripciones pendientes, DOM/listeners constantes y crecimiento de heap de 334804 bytes.
+- Para 1/10/50 minis: una consulta de propiedad y una agrupada de información. Comparación de persistencia de 1000 iteraciones: 46.7 ms con comportamiento anterior modelado y 43.1 ms con caché, JSON idéntico. No extrapolar estas cifras a CEF.
+- GitHub Actions incluye simulación y pruebas de navegador; Node 22.12.0 por Puppeteer 25. Scripts de prueba antes ignorados ahora incluidos en control de versiones. No se ejecutó workflow remoto ni se desplegó. CEF y transporte entre equipos reales pendientes; no se encontró inspector accesible en localhost:8080.
+- Informe: scratch/informe-auditoria-seguridad-calidad.md. Métricas: scratch/perfil-ciclo-vida.json. Ausencia de SQL/ORM/IndexedDB confirmada en fuentes, scripts y manifiesto; índices SQL no aplicables al almacenamiento actual.

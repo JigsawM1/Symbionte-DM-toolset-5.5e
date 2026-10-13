@@ -114,7 +114,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
       {/* Cabecera */}
       <div className={styles.cabeceraArcanoMistico}>
         <div className={styles.tituloArcanoFila}>
-          <Sparkles size={15} color="#c084fc" />
+          <Sparkles size={15} color="var(--pj-texto-magia)" />
           <span className={styles.tituloArcanoTexto}>
             Arcano Místico (Brujo)
           </span>
@@ -163,7 +163,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                     onClick={() => alAbrirFichaHechizo && alAbrirFichaHechizo(hechizo)}
                     title="Clic para ver ficha completa"
                   >
-                    <BookOpen size={13} color="#93c5fd" />
+                    <BookOpen size={13} color="var(--pj-texto-cian-claro)" />
                     <span
                       className={styles.nombreConjuroArcano}
                       data-gastado={estaGastado ? "true" : "false"}

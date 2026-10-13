@@ -36,22 +36,22 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
       gastados: espaciosPactoGastados,
       alGastar: alGastarEspacioPacto,
       alRecuperar: alRecuperarEspaciosPacto,
-      colorTema: "#c084fc",
-      colorTemaFondo: "#7e22ce"
+      colorTema: "var(--pj-texto-magia)",
+      colorTemaFondo: "var(--pj-acento-magia-solido)"
     }
   ];
 
   return (
     <TrackerRecursoMagico
       titulo="Magia de Pacto"
-      iconoColor="#c084fc"
+      iconoColor="var(--pj-texto-magia)"
       grupos={grupos}
       alRestablecerTodos={alRecuperarEspaciosPacto}
       etiquetaRestablecer="Descanso Corto"
       mostrarBotonRestablecer={mostrarBotonRecuperar}
       soloLectura={soloLectura}
       modoGrid={false}
-      colorBordeContenedor="rgba(192, 132, 252, 0.25)"
+      colorBordeContenedor="var(--pj-borde-magia)"
       pieDePagina={`Ranuras fijas de nivel ${nivelEspacioPacto} • Recuperación en descanso corto`}
     />
   );

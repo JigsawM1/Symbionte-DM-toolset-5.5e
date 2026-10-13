@@ -1,84 +1,63 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
+import { BookOpen, Footprints, Sparkles, HelpCircle } from "lucide-react";
 import { DiccionarioCondiciones } from "./DiccionarioCondiciones";
 import { CalculadoraViaje } from "./CalculadoraViaje";
 import { CalculadoraSalto } from "./CalculadoraSalto";
 import { ConversorDivisas } from "./ConversorDivisas";
 import { ConsolaCriticosPifias } from "./ConsolaCriticosPifias";
 import { ReglasBasicas } from "./ReglasBasicas";
-import {
-  BookOpen,
-  Footprints,
-  Sparkles,
-  HelpCircle
-} from "lucide-react";
-import estilosClases from "./TablasDM.module.css";
+import estilos from "./TablasDM.module.css";
+
+const SUBPESTANAS = [
+  { id: "condiciones", titulo: "Condiciones", detalle: "Estados y efectos", Icono: BookOpen },
+  { id: "fisica", titulo: "Calculadoras", detalle: "Viaje, salto y divisas", Icono: Footprints },
+  { id: "pifias", titulo: "Críticos y pifias", detalle: "Tablas de combate · d12", Icono: Sparkles },
+  { id: "reglas", titulo: "Reglas básicas", detalle: "Referencia rápida", Icono: HelpCircle },
+] as const;
+type SubCategoria = typeof SUBPESTANAS[number]["id"];
 
 export const TablasDM: React.FC = () => {
-  const [subCategoria, setSubCategoria] = useState<"condiciones" | "fisica" | "pifias" | "reglas">("condiciones");
+  const [subCategoria, setSubCategoria] = useState<SubCategoria>("condiciones");
+  const id = useId();
+
+  const navegarConTeclado = (evento: React.KeyboardEvent<HTMLButtonElement>, indice: number) => {
+    let siguiente: number;
+    switch (evento.key) {
+      case "ArrowRight": siguiente = (indice + 1) % SUBPESTANAS.length; break;
+      case "ArrowLeft": siguiente = (indice + SUBPESTANAS.length - 1) % SUBPESTANAS.length; break;
+      case "Home": siguiente = 0; break;
+      case "End": siguiente = SUBPESTANAS.length - 1; break;
+      default: return;
+    }
+    evento.preventDefault();
+    setSubCategoria(SUBPESTANAS[siguiente].id);
+    evento.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[siguiente].focus();
+  };
 
   return (
-    <div className={estilosClases.contenedorTablas}>
-      {/* Selector de Sub-categoría superior */}
-      <div className={estilosClases.subNavegacion}>
-        <button
-          onClick={() => setSubCategoria("condiciones")}
-          className={`${estilosClases.subBotonNav} ${
-            subCategoria === "condiciones" ? estilosClases.subBotonNavActivo : ""
-          }`}
-        >
-          <BookOpen size={10} />
-          Condiciones
-        </button>
-
-        <button
-          onClick={() => setSubCategoria("fisica")}
-          className={`${estilosClases.subBotonNav} ${
-            subCategoria === "fisica" ? estilosClases.subBotonNavActivo : ""
-          }`}
-        >
-          <Footprints size={10} />
-          Calculadoras Viaje/Salto
-        </button>
-
-        <button
-          onClick={() => setSubCategoria("pifias")}
-          className={`${estilosClases.subBotonNav} ${
-            subCategoria === "pifias" ? estilosClases.subBotonNavActivo : ""
-          }`}
-        >
-          <Sparkles size={10} />
-          Pifias y Críticos
-        </button>
-
-        <button
-          onClick={() => setSubCategoria("reglas")}
-          className={`${estilosClases.subBotonNav} ${
-            subCategoria === "reglas" ? estilosClases.subBotonNavActivo : ""
-          }`}
-        >
-          <HelpCircle size={10} />
-          Reglas Básicas
-        </button>
+    <div className={estilos.contenedorTablas}>
+      <div className={estilos.subNavegacion} role="tablist" aria-label="Tablas del DM">
+        {SUBPESTANAS.map(({ id: categoria, titulo, detalle, Icono }, indice) => (
+          <button key={categoria} type="button" role="tab" id={`${id}-${categoria}`}
+            title={detalle}
+            aria-controls={`${id}-panel`} aria-selected={subCategoria === categoria}
+            tabIndex={subCategoria === categoria ? 0 : -1}
+            onClick={() => setSubCategoria(categoria)} onKeyDown={evento => navegarConTeclado(evento, indice)}
+            className={`${estilos.subBotonNav} ${subCategoria === categoria ? estilos.subBotonNavActivo : ""}`}>
+            <Icono size={14} aria-hidden="true" />
+            <span className={estilos.tituloNav}>{titulo}</span>
+          </button>
+        ))}
       </div>
-
-      {/* Cuerpo del Visualizador */}
-      <div className={estilosClases.cuerpoVisualizador}>
-        {/* SECCIÓN 1: CONDICIONES Y EFECTOS ACTIVOS */}
+      <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${subCategoria}`}
+        tabIndex={0} className={estilos.cuerpoVisualizador}>
         {subCategoria === "condiciones" && <DiccionarioCondiciones />}
-
-        {/* SECCIÓN 2: CALCULADORAS FÍSICAS (Viaje, Salto, Divisas) */}
         {subCategoria === "fisica" && (
-          <div className={estilosClases.seccionCalculadoras}>
-            <CalculadoraViaje />
-            <CalculadoraSalto />
-            <ConversorDivisas />
+          <div className={estilos.seccionCalculadoras}>
+            <CalculadoraViaje /><CalculadoraSalto /><ConversorDivisas />
           </div>
         )}
-
-        {/* SECCIÓN 3: PIFIAS Y CRÍTICOS (CONSOLA E CONSULTA) */}
         {subCategoria === "pifias" && <ConsolaCriticosPifias />}
-
-        {/* SECCIÓN 4: REGLAS BÁSICAS D&D 5.5e */}
         {subCategoria === "reglas" && <ReglasBasicas />}
       </div>
     </div>

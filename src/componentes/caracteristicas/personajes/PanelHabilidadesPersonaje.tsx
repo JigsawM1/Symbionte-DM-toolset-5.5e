@@ -132,12 +132,12 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
                   <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
                   {evalHab.tieneDesventaja && (
                     <span title={`Desventaja en ${nombreMostrar} por: ${motivosHab}`}>
-                      <AlertTriangle size={10} color="#f59e0b" className={estilos.iconoInlineHabilidad} />
+                      <AlertTriangle size={10} color="var(--pj-texto-oro)" className={estilos.iconoInlineHabilidad} />
                     </span>
                   )}
                   {evalHab.tieneVentaja && !evalHab.tieneDesventaja && (
                     <span title={`Ventaja en ${nombreMostrar} por: ${motivosHab}`}>
-                      <Sparkles size={10} color="#38bdf8" className={estilos.iconoInlineHabilidad} />
+                      <Sparkles size={10} color="var(--pj-texto-cian)" className={estilos.iconoInlineHabilidad} />
                     </span>
                   )}
                 </div>
@@ -161,7 +161,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
 
         <div className={estilos.grupoCompetenciaItem}>
           <span className={estilos.tituloGrupoCompetencia}>
-            <Swords size={11} color="#94a3b8" /> Armas
+            <Swords size={11} color="var(--pj-texto-terciario)" /> Armas
           </span>
           <div
             className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
@@ -176,7 +176,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
 
         <div className={estilos.grupoCompetenciaItem}>
           <span className={estilos.tituloGrupoCompetencia}>
-            <Shield size={11} color="#94a3b8" /> Armaduras
+            <Shield size={11} color="var(--pj-texto-terciario)" /> Armaduras
           </span>
           <div
             className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
@@ -191,7 +191,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
 
         <div className={estilos.grupoCompetenciaItem}>
           <span className={estilos.tituloGrupoCompetencia}>
-            <Languages size={11} color="#94a3b8" /> Idiomas
+            <Languages size={11} color="var(--pj-texto-terciario)" /> Idiomas
           </span>
           <div
             className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}
@@ -206,7 +206,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
 
         <div className={estilos.grupoCompetenciaItem}>
           <span className={estilos.tituloGrupoCompetencia}>
-            <Wrench size={11} color="#94a3b8" /> Herramientas
+            <Wrench size={11} color="var(--pj-texto-terciario)" /> Herramientas
           </span>
           <div
             className={`${estilos.cajaTextoCompetencia} ${estilos.neoPressed} ${alAbrirSelectorCompetencias ? estilos.cajaTextoCompetenciaInteractiva : ""}`}

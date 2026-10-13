@@ -163,7 +163,7 @@ export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEs
         {/* Cabecera */}
         <div className={estilos.cabecera}>
           <h2 id="titulo-tienda-recuperacion" className={estilos.titulo}>
-            <Sparkles size={18} color="#c084fc" />
+            <Sparkles size={18} color="var(--pj-texto-magia)" />
             <span>Recuperación de Magia: {rasgo.nombre}</span>
           </h2>
           <button
@@ -187,7 +187,7 @@ export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEs
                 className={`${estilos.botonModo} ${modo === "puntos" ? estilos.botonModoActivo : ""}`}
                 onClick={() => setModo("puntos")}
               >
-                <Flame size={14} color="#38bdf8" />
+                <Flame size={14} color="var(--pj-texto-cian)" />
                 <span>Puntos de Conjuro</span>
               </button>
               <button
@@ -195,7 +195,7 @@ export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEs
                 className={`${estilos.botonModo} ${modo === "espacios" ? estilos.botonModoActivo : ""}`}
                 onClick={() => setModo("espacios")}
               >
-                <Layers size={14} color="#c084fc" />
+                <Layers size={14} color="var(--pj-texto-magia)" />
                 <span>Espacios de Conjuro</span>
               </button>
             </div>

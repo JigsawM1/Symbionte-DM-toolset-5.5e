@@ -49,7 +49,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {seccionesColapsadas.especie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <User size={13} color="#10b981" />
+              <User size={13} color="var(--pj-texto-exito)" />
               <span className={estilos.tituloSeccion}>
                 Raza: {personajeActivo.especie || "Humano"}
               </span>
@@ -76,7 +76,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {seccionesColapsadas.subespecie ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Sparkles size={13} color="#10b981" />
+              <Sparkles size={13} color="var(--pj-texto-exito)" />
               <span className={`${estilos.tituloSeccion} ${estilos.tituloSubespecie}`}>
                 {obtenerEtiquetaSubespecie(personajeActivo.especie)}: {personajeActivo.subespecie || "Especialización"} ({personajeActivo.especie})
               </span>
@@ -116,7 +116,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
           >
             <div className={estilos.ladoIzquierdoCabecera}>
               {seccionesColapsadas.dotes ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-              <Award size={13} color="#a78bfa" />
+              <Award size={13} color="var(--pj-texto-magia)" />
               <span className={estilos.tituloSeccion}>Dotes</span>
               <span className={estilos.badgeConteoSeccion}>
                 {datosJerarquicos.dotes.length}
@@ -153,7 +153,7 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
         >
           <div className={estilos.ladoIzquierdoCabecera}>
             {seccionesColapsadas.personalizados ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-            <Layers size={13} color="#38bdf8" />
+            <Layers size={13} color="var(--pj-texto-cian)" />
             <span className={estilos.tituloSeccion}>
               Rasgos Personalizados y Homebrew
             </span>

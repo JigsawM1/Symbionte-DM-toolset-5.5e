@@ -9,33 +9,33 @@
 .tablaEstilizada {
   width: 100%;
   border-collapse: collapse;
-  background: #181d26;
-  border-top: 1px solid rgba(255, 255, 255, 0.25);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 12px;
+  background: var(--pj-fondo-tarjeta);
+  border-top: 1px solid var(--pj-borde-medio);
+  border-bottom: 1px solid var(--pj-borde-medio);
+  font-size: var(--pj-fuente-cuerpo);
 }
 
 .encabezadoTabla {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--pj-borde-medio);
+  background: var(--pj-fondo-tarjeta-elevada);
 }
 
 .thNivel {
   padding: 8px 12px;
   text-align: center;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--pj-texto-primario);
   white-space: nowrap;
   width: 1%;
   min-width: 80px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--pj-borde-sutil);
 }
 
 .thDescripcion {
   padding: 8px 14px;
   text-align: left;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--pj-texto-primario);
 }
 
 /* Estilos específicos para la tabla de conjuros de subclase según manual PHB 2024 */
@@ -43,45 +43,45 @@
   border-collapse: separate;
   border-spacing: 0;
   background: transparent;
-  border-top: 1px solid rgba(255, 255, 255, 0.45);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-top: 1px solid var(--pj-borde-fuerte);
+  border-bottom: 1px solid var(--pj-borde-fuerte);
 }
 
 .thNivelConjuros {
   padding: 8px 12px;
   text-align: center;
   font-weight: 700;
-  color: #f8fafc;
-  font-size: 13px;
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
   white-space: nowrap;
   width: 28%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 1px solid var(--pj-borde-fuerte);
 }
 
 .thConjuros {
   padding: 8px 14px;
   text-align: center;
   font-weight: 700;
-  color: #f8fafc;
-  font-size: 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+  border-bottom: 1px solid var(--pj-borde-fuerte);
 }
 
 .filaConjuroEnmarcada {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--pj-fondo-tarjeta-elevada);
 }
 
 .filaConjuroEnmarcada td {
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  border-top: 1px solid var(--pj-borde-medio);
+  border-bottom: 1px solid var(--pj-borde-medio);
 }
 
 .filaConjuroEnmarcada td:first-child {
-  border-left: 1px solid rgba(255, 255, 255, 0.35);
+  border-left: 1px solid var(--pj-borde-medio);
 }
 
 .filaConjuroEnmarcada td:last-child {
-  border-right: 1px solid rgba(255, 255, 255, 0.35);
+  border-right: 1px solid var(--pj-borde-medio);
 }
 
 .filaConjuroSimple {
@@ -95,27 +95,27 @@
 .celdaNivelConjuros {
   padding: 8px 12px;
   text-align: center;
-  color: #cbd5e1;
-  font-size: 13px;
-  font-family: inherit;
+  color: var(--pj-texto-secundario-claro);
+  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-principal);
   font-weight: 500;
 }
 
 .celdaConjuros {
   padding: 8px 14px;
   text-align: center;
-  color: #d97d5c;
+  color: var(--pj-texto-alerta);
   line-height: 1.45;
-  font-size: 13px;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 500;
 }
 
 .celdaTextoEnmarcada {
   padding: 8px 14px;
   text-align: center;
-  color: #cbd5e1;
+  color: var(--pj-texto-secundario-claro);
   line-height: 1.45;
-  font-size: 13px;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 500;
 }
 
@@ -123,8 +123,8 @@
   padding: 8px 12px;
   text-align: left;
   font-weight: 700;
-  color: #f8fafc;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pj-texto-primario);
+  border-right: 1px solid var(--pj-borde-sutil);
 }
 
 .thGenerico:last-child {
@@ -132,7 +132,7 @@
 }
 
 .filaProgresion {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   transition: none;
 }
 
@@ -141,56 +141,56 @@
 }
 
 .filaProgresion:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--pj-fondo-tarjeta-hover);
 }
 
 .filaNivelAlcanzado {
-  background: rgba(56, 189, 248, 0.04);
+  background: var(--pj-acento-cian-fondo);
 }
 
 .filaNivelActual {
-  background: rgba(212, 175, 55, 0.14);
+  background: var(--pj-acento-oro-fondo);
   font-weight: 600;
 }
 
 .filaNivelActual td {
-  border-top: 1px solid rgba(212, 175, 55, 0.45);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.45);
+  border-top: 1px solid var(--pj-borde-oro);
+  border-bottom: 1px solid var(--pj-borde-oro);
 }
 
 .filaNivelActual td:first-child {
-  border-left: 1px solid rgba(212, 175, 55, 0.45);
+  border-left: 1px solid var(--pj-borde-oro);
 }
 
 .filaNivelActual td:last-child {
-  border-right: 1px solid rgba(212, 175, 55, 0.45);
+  border-right: 1px solid var(--pj-borde-oro);
 }
 
 .filaNivelActual .celdaNivelConjuros,
 .filaNivelActual .celdaNivel {
-  color: #fbbf24;
+  color: var(--pj-texto-oro);
   font-weight: 700;
 }
 
 .celdaNivel {
   padding: 7px 12px;
   text-align: center;
-  color: #e2e8f0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pj-texto-primario-suave);
+  border-right: 1px solid var(--pj-borde-sutil);
   font-family: var(--fuente-codigo, monospace);
-  font-size: 11.5px;
+  font-size: var(--pj-fuente-label);
 }
 
 .celdaDescripcion {
   padding: 7px 14px;
-  color: #e2e8f0;
+  color: var(--pj-texto-primario-suave);
   line-height: 1.4;
 }
 
 .celdaGenerica {
   padding: 7px 12px;
-  color: #e2e8f0;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pj-texto-primario-suave);
+  border-right: 1px solid var(--pj-borde-sutil);
 }
 
 .celdaGenerica:last-child {
@@ -200,13 +200,13 @@
 .badgeActual {
   display: inline-block;
   margin-left: 6px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 3px;
-  background: rgba(212, 175, 55, 0.25);
-  color: #fbbf24;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
+  border: 1px solid var(--pj-borde-oro);
   text-transform: uppercase;
 }
 
@@ -214,8 +214,8 @@
   margin: 0;
   padding: 0 4px;
   text-align: right;
-  font-size: 11px;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
   font-style: normal;
   letter-spacing: 0.2px;
 }

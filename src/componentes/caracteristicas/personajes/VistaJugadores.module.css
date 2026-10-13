@@ -2,23 +2,23 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--color-fondo-oscuro, #0f1115);
-  color: var(--color-texto-principal, #e2e8f0);
-  font-family: var(--fuente-principal, 'Inter', system-ui, sans-serif);
+  background-color: var(--pj-fondo-base);
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-principal);
   padding: 12px;
   gap: 12px;
   overflow-y: auto;
 }
 
 .tarjetaModoPrueba {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
-  border: 1px solid rgba(99, 102, 241, 0.4);
-  border-radius: 8px;
+  background: linear-gradient(135deg, var(--pj-fondo-tarjeta-elevada), var(--pj-fondo-tarjeta-elevada));
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-panel);
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .infoModo {
@@ -32,8 +32,8 @@
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  font-size: 0.95rem;
-  color: #818cf8;
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-acento);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -42,32 +42,32 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: var(--pj-fuente-badge);
   padding: 2px 8px;
   border-radius: 9999px;
   font-weight: 600;
-  background-color: rgba(99, 102, 241, 0.15);
-  color: #c7d2fe;
-  border: 1px solid rgba(129, 140, 248, 0.3);
+  background-color: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento);
+  border: 1px solid var(--pj-borde-acento);
 }
 
 .botonAlternarRol {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #4f46e5, #4338ca);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--pj-acento-primario-solido), var(--pj-acento-primario-solido));
+  color: var(--pj-texto-primario);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
   padding: 6px 12px;
-  font-size: 0.8rem;
+  font-size: var(--pj-fuente-boton);
   font-weight: 600;
   cursor: pointer;
   transition: none;
 }
 
 .botonAlternarRol:hover {
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  background: linear-gradient(135deg, var(--pj-acento-primario-solido), var(--pj-acento-primario-solido));
   transform: translateY(-1px);
 }
 
@@ -78,9 +78,9 @@
 }
 
 .panelSeccion {
-  background-color: rgba(22, 27, 34, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -91,10 +91,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
-  color: #f1f5f9;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--pj-texto-primario);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   padding-bottom: 8px;
 }
 
@@ -108,21 +108,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
   padding: 8px 12px;
 }
 
 .nombreCriatura {
   font-weight: 700;
-  font-size: 0.95rem;
-  color: #e2e8f0;
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario-suave);
 }
 
 .vidaCriatura {
-  font-size: 0.85rem;
-  color: #34d399;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-exito);
   font-weight: 700;
 }
 
@@ -133,12 +133,12 @@
 }
 
 .botonDado {
-  background-color: rgba(30, 41, 59, 0.7);
-  border: 1px solid rgba(129, 140, 248, 0.2);
-  color: #c7d2fe;
-  border-radius: 6px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control);
   padding: 10px;
-  font-size: 0.9rem;
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
   cursor: pointer;
   transition: none;
@@ -149,14 +149,14 @@
 }
 
 .botonDado:hover {
-  background-color: rgba(99, 102, 241, 0.25);
-  border-color: #818cf8;
-  color: #ffffff;
+  background-color: var(--pj-acento-primario-activo);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
 }
 
 .textoVacio {
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-acento);
   font-style: italic;
 }
 
@@ -167,10 +167,10 @@
 }
 
 .insigniaCondicion {
-  background: rgba(239, 68, 68, 0.22);
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  color: #fca5a5;
-  font-size: 0.8rem;
+  background: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   border-radius: 5px;
   padding: 4px 8px;
@@ -182,10 +182,10 @@
 }
 
 .contenedorInsignia:hover .insigniaCondicion {
-  background: rgba(239, 68, 68, 0.45);
-  border-color: #f87171;
-  color: #ffffff;
-  box-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .tooltipFlotante {
@@ -197,10 +197,10 @@
   transform: translateY(-4px);
   width: 280px;
   max-width: 85vw;
-  background: #111118;
-  border: 1px solid rgba(248, 113, 113, 0.7);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95);
-  border-radius: 8px;
+  background: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-peligro);
+  box-shadow: var(--pj-sombra-modal);
+  border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
   z-index: 9999;
   pointer-events: none;
@@ -217,19 +217,19 @@
 }
 
 .tooltipTitulo {
-  font-size: 0.95rem;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #f87171;
+  color: var(--pj-texto-alerta);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(248, 113, 113, 0.3);
+  border-bottom: 1px solid var(--pj-borde-peligro);
   padding-bottom: 4px;
 }
 
 .tooltipDesc {
-  font-size: 0.85rem;
-  color: #f3f4f6;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario-suave);
   line-height: 1.45;
   font-weight: 500;
 }
@@ -237,8 +237,8 @@
 .listaEfectosTooltip {
   margin: 6px 0 0 0;
   padding-left: 16px;
-  font-size: 0.82rem;
-  color: #fca5a5;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-alerta);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -249,9 +249,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--color-fondo-panel);
-  border: 1px solid var(--color-borde-brutal);
-  border-radius: 6px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
   padding: 4px 8px;
 }
 
@@ -263,11 +263,11 @@
 .botonSubPestana {
   background-color: transparent;
   border: 1px solid transparent;
-  color: var(--color-texto-secundario);
+  color: var(--pj-texto-secundario);
   padding: 4px 10px;
-  font-size: 11px;
+  font-size: var(--pj-fuente-boton);
   font-weight: 700;
-  border-radius: 4px;
+  border-radius: var(--pj-radio-control);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -275,9 +275,9 @@
 }
 
 .botonSubPestana[data-activa="true"] {
-  background-color: var(--color-primario);
-  border-color: var(--color-borde-cian);
-  color: #ffffff;
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
 }
 
 .iconoSubPestana {

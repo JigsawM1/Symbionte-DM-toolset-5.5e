@@ -42,7 +42,7 @@ export const SeccionObjetosEquipados: React.FC<SeccionObjetosEquipadosProps> = (
           <span className={estilos.iconoChevronColapso}>
             {estaAbierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </span>
-          <Swords size={14} color="#60a5fa" />
+          <Swords size={14} color="var(--pj-texto-cian)" />
           <span>Equipados Activos</span>
         </div>
         <span className={estilos.contadorGrupoInventario}>

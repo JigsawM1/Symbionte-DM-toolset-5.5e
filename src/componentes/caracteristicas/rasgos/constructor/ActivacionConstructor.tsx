@@ -32,7 +32,7 @@ export function ActivacionConstructor({ borrador, actualizarBorrador, opcionesRa
     return (<div className={estilos.seccionCard}>
         <div className={estilos.cabeceraSeccion}>
           <div className={estilos.tituloSeccion}>
-            <Zap size={14} color="#38bdf8"/>
+            <Zap size={14} color="var(--pj-texto-cian)"/>
             <span>2. Conmutador Táctico, Dependencias y TaleSpire</span>
           </div>
           <p className={estilos.descripcionSeccion}>Configura si este rasgo se enciende/apaga e interactúa con la barra táctica</p>

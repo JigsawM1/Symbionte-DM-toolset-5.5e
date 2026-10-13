@@ -92,6 +92,11 @@ En modo oscuro, TaleSpire puede proporcionar `--ts-background-color`, `--ts-fore
 ### C. Tablas, Pendientes, Notas y Configuración
 
 - Mantener las mismas superficies, bordes y tipografía del DM.
+- En Tablas, usar subpestañas compactas con icono y título en una fila a `599px`; las descripciones quedan en el tooltip. Selección violeta con indicador inferior cian, foco visible y navegación por flechas, Inicio y Fin. En anchos de `420px` o menos, distribuirlas en dos columnas.
+- El contenedor de Tablas debe ocupar el `100%` de la altura disponible del `main` de App, cuyo layout es de bloque. Verificar el scroll en la aplicación completa: montar Tablas bajo un padre flexible puede ocultar un fallo de altura. Reservar `48px` al final de las zonas de scroll para el botón flotante de dados.
+- Críticos y pifias: una tirada virtual `d12` por tabla, con nombre, narrativa e impacto mecánico separados. Agrupar la consulta en `1–6` narrativo/táctico y `7–12` mecánico. A `599px`, apilar consola y consulta con desplazamiento vertical; en pantallas amplias, mostrarlas lado a lado.
+- Mantener los selectores de ataque y efecto en filas compactas, con etiquetas al lado; el estado vacío de la consola ocupa una sola línea.
+- Dar a calculadoras y reglas cabeceras claras, padding de `12px` y resultados numéricos alineados. En el ancho CEF, mostrar las tarjetas de reglas en una columna.
 - En tablas y calculadoras, alinear datos numéricos y destacar resultados con acentos semánticos.
 - En notas y bloques de reglas, favorecer la lectura con mayor altura de línea y texto sin mayúsculas sostenidas.
 - En configuración, distinguir grupos de opciones, estado de conexión y acciones de importación o reinicio.

@@ -57,7 +57,7 @@ export const SeccionMochilaInventario: React.FC<SeccionMochilaInventarioProps> =
     >
       <div className={estilos.cabeceraGrupoInventario}>
         <div className={estilos.tituloGrupoInventario}>
-          <Backpack size={14} color="#f59e0b" />
+          <Backpack size={14} color="var(--pj-texto-oro)" />
           <span>Mochila</span>
         </div>
         <span className={estilos.contadorGrupoInventario}>

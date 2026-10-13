@@ -37,7 +37,7 @@ export const SeccionMulticlase: React.FC<SeccionMulticlaseProps> = ({
       {/* Cabecera */}
       <div className={estilos.cabeceraMulticlase}>
         <div className={estilos.tituloIconoFila}>
-          <Award size={14} color="#60a5fa" />
+          <Award size={14} color="var(--pj-texto-cian)" />
           <strong className={estilos.tituloSeccion}>
             Clases y Progresión Multiclase
           </strong>

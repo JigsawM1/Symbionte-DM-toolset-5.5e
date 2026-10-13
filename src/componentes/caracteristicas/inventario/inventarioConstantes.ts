@@ -41,36 +41,36 @@ export const CAJAS_MOVILIZACION_RAPIDA: CajaMovilizacionRapida[] = [
     id: "mochila",
     titulo: "Mochila",
     subtitulo: "Carga directa",
-    color: "#f59e0b",
-    icono: React.createElement(Backpack, { size: 13, color: "#f59e0b" })
+    color: "var(--pj-texto-oro)",
+    icono: React.createElement(Backpack, { size: 13, color: "var(--pj-texto-oro)" })
   },
   {
     id: "bolsa_contencion",
     titulo: "Bolsa Contención",
     subtitulo: "0 lb carga",
-    color: "#c084fc",
-    icono: React.createElement(Sparkles, { size: 13, color: "#c084fc" })
+    color: "var(--pj-texto-magia)",
+    icono: React.createElement(Sparkles, { size: 13, color: "var(--pj-texto-magia)" })
   },
   {
     id: "montura",
     titulo: "Montura / Carreta",
     subtitulo: "0 lb carga",
-    color: "#38bdf8",
-    icono: React.createElement(Box, { size: 13, color: "#38bdf8" })
+    color: "var(--pj-texto-cian)",
+    icono: React.createElement(Box, { size: 13, color: "var(--pj-texto-cian)" })
   },
   {
     id: "almacen",
     titulo: "Almacén / Base",
     subtitulo: "0 lb carga",
-    color: "#94a3b8",
-    icono: React.createElement(Package, { size: 13, color: "#94a3b8" })
+    color: "var(--pj-texto-terciario)",
+    icono: React.createElement(Package, { size: 13, color: "var(--pj-texto-terciario)" })
   },
   {
     id: "equipados",
     titulo: "Equipar",
     subtitulo: "Armas / Armadura",
-    color: "#60a5fa",
-    icono: React.createElement(Swords, { size: 13, color: "#60a5fa" })
+    color: "var(--pj-texto-cian)",
+    icono: React.createElement(Swords, { size: 13, color: "var(--pj-texto-cian)" })
   }
 ];
 
@@ -85,20 +85,20 @@ export const CONTENEDORES_ESPECIALES_CONFIG: ContenedorEspecialConfig[] = [
   {
     id: "bolsa_contencion",
     titulo: "Bolsa de Contención (Bag of Holding)",
-    icono: React.createElement(Sparkles, { size: 14, color: "#c084fc" }),
-    color: "#c084fc"
+    icono: React.createElement(Sparkles, { size: 14, color: "var(--pj-texto-magia)" }),
+    color: "var(--pj-texto-magia)"
   },
   {
     id: "montura",
     titulo: "Montura / Carreta / Alforjas",
-    icono: React.createElement(Box, { size: 14, color: "#38bdf8" }),
-    color: "#38bdf8"
+    icono: React.createElement(Box, { size: 14, color: "var(--pj-texto-cian)" }),
+    color: "var(--pj-texto-cian)"
   },
   {
     id: "almacen",
     titulo: "Almacén / Base / Campamento",
-    icono: React.createElement(Package, { size: 14, color: "#94a3b8" }),
-    color: "#94a3b8"
+    icono: React.createElement(Package, { size: 14, color: "var(--pj-texto-terciario)" }),
+    color: "var(--pj-texto-terciario)"
   }
 ];
 

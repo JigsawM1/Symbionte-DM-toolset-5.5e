@@ -40,7 +40,6 @@ export function procesarAlternarEquipado(
   if (!objTarget || !esObjetoEquipable(objTarget)) return inventarioActual;
 
   const vaAEquipar = !objTarget.equipado;
-  const normalizar = (s: string) => s.toLowerCase().trim();
 
   if (vaAEquipar) {
     // 1. REGLA DE ARMADURA Y ESCUDO (D&D 5.5e):
@@ -84,36 +83,7 @@ export function procesarAlternarEquipado(
     }
 
     return inventarioProcesado;
-  } else {
-    // Va a desequipar (volver a la mochila): Si ya existe un objeto idéntico en mochila, fusionar sumando cantidad
-    const indiceMochila = inventarioActual.findIndex(
-      (o) =>
-        !o.equipado &&
-        o.idInstancia !== idInstancia &&
-        ((o.idObjeto &&
-          objTarget.idObjeto &&
-          !o.idObjeto.startsWith("obj_custom") &&
-          !objTarget.idObjeto.startsWith("obj_custom") &&
-          o.idObjeto === objTarget.idObjeto) ||
-          (normalizar(o.nombre) === normalizar(objTarget.nombre) &&
-            o.categoria === objTarget.categoria))
-    );
-
-    if (indiceMochila !== -1) {
-      const idTargetMochila = inventarioActual[indiceMochila].idInstancia;
-      const nuevoInventario = inventarioActual
-        .filter((o) => o.idInstancia !== idInstancia)
-        .map((o) => {
-          if (o.idInstancia === idTargetMochila) {
-            return { ...o, cantidad: (o.cantidad || 1) + (objTarget.cantidad || 1) };
-          }
-          return o;
-        });
-      return nuevoInventario;
-    } else {
-      return inventarioActual.map((o) =>
-        o.idInstancia === idInstancia ? { ...o, equipado: false } : o
-      );
-    }
   }
+  // Cada instancia conserva su ubicación, cargas, notas y sintonización al desequiparse.
+  return inventarioActual.map((o) => o.idInstancia === idInstancia ? { ...o, equipado: false } : o);
 }

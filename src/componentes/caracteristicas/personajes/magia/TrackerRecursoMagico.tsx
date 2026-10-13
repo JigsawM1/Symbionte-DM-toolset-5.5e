@@ -29,7 +29,7 @@ export interface TrackerRecursoMagicoProps {
 
 export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
   titulo,
-  iconoColor = "#818cf8",
+  iconoColor = "var(--pj-texto-acento)",
   grupos,
   alRestablecerTodos,
   etiquetaRestablecer = "Restablecer",

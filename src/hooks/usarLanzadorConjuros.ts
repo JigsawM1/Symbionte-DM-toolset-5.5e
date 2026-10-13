@@ -1,3 +1,4 @@
+import { useShallow } from "zustand/react/shallow";
 import { useCallback, useMemo } from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -13,10 +14,9 @@ import {
   type ResultadoValidacion
 } from "@/servicios/servicioLanzamientoConjuros";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { usarAccionesConfiguracion, usarEstadoConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
+import { usarAccionesConfiguracion, usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
-import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -34,6 +34,15 @@ export interface ControlLanzadorConjuros {
   lanzar: (solicitud: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }) => Promise<boolean>;
 }
 
+function contextoVigente(contexto: ContextoMagicoPersonaje, personaje?: PersonajeJugador | null): ContextoMagicoPersonaje {
+  const actual = personaje ? usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id) ?? personaje : undefined;
+  if (!actual) return contexto;
+  return { ...contexto, personajeActual: actual, espaciosConjuroMaximos: actual.espaciosConjuroMaximos,
+    espaciosConjuroGastados: actual.espaciosConjuroGastados, puntosConjuroDisponibles: actual.puntosConjuroMaximos - actual.puntosConjuroGastados,
+    espaciosPactoGastados: actual.espaciosPactoGastados, espaciosPactoMaximos: actual.espaciosPactoMaximos,
+    nivelEspacioPacto: actual.nivelEspacioPacto, arcanoMisticoGastados: actual.arcanoMisticoGastados };
+}
+
 /**
  * Hook centralizado para orquestar la validación, construcción de fórmulas,
  * tirada de dados 3D en TaleSpire, deducción de recursos mágicos en Zustand
@@ -48,18 +57,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     sistemaMagia: sistemaMagiaProp
   } = opciones;
 
-  const { sistemaMagia: sistemaMagiaConfigurado } = usarEstadoConfiguracion();
+  const sistemaMagiaConfigurado = usarSistemaMagia();
   const sistemaMagiaEfectivo = sistemaMagiaProp ?? sistemaMagiaConfigurado ?? "espacios";
 
-  const {
-    gastarEspacioConjuro,
-    gastarPuntosConjuro,
-    gastarEspacioPacto,
-    gastarArcanoMistico,
-    gastarUsoRasgoPersonaje,
-    establecerConcentracion,
-    modificarCargasObjeto
-  } = usarAlmacenDM();
+  const { consumirRecursoConjuro, establecerConcentracion } = usarAlmacenDM(useShallow(s => ({
+    consumirRecursoConjuro: s.consumirRecursoConjuro, establecerConcentracion: s.establecerConcentracion,
+  })));
 
   const { agregarNotificacion } = usarAccionesConfiguracion();
 
@@ -90,8 +93,11 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     }
 
     return {
+      personajeActual: personaje,
       penalizacionArmadura: penalizacionArmadura ?? null,
       espaciosConjuroMaximos: personaje.espaciosConjuroMaximos || {},
+      espaciosConjuroGastados: personaje.espaciosConjuroGastados,
+      puntosConjuroDisponibles: personaje.puntosConjuroMaximos - personaje.puntosConjuroGastados,
       nivelConjuroMaximo: personaje.nivelConjuroMaximo || 0,
       sistemaMagia: sistemaMagiaEfectivo,
       costePuntosPorNivel: COSTE_PUNTOS_POR_NIVEL,
@@ -118,7 +124,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   // 3. Validador reactivo
   const validar = useCallback(
     (solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }): ResultadoValidacion => {
-      let contextoEfectivo = contexto;
+      let contextoEfectivo = contextoVigente(contexto, personaje);
       if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
         const objEnInventario = (personaje?.inventario || []).find(
           (o) => o.idInstancia === solicitudIncompleta.objetoInstanciaId
@@ -127,7 +133,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           const cMax = objEnInventario.cargasMaximas ?? 0;
           const cAct = objEnInventario.cargasActuales !== undefined ? objEnInventario.cargasActuales : cMax;
           contextoEfectivo = {
-            ...contexto,
+            ...contextoEfectivo,
             cargasObjetoActuales: cAct
           };
         }
@@ -164,7 +170,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     async (
       solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }
     ): Promise<boolean> => {
-      let contextoEfectivo = contexto;
+      let contextoEfectivo = contextoVigente(contexto, personaje);
       if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
         const objEnInventario = (personaje?.inventario || []).find(
           (o) => o.idInstancia === solicitudIncompleta.objetoInstanciaId
@@ -173,7 +179,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           const cMax = objEnInventario.cargasMaximas ?? 0;
           const cAct = objEnInventario.cargasActuales !== undefined ? objEnInventario.cargasActuales : cMax;
           contextoEfectivo = {
-            ...contexto,
+            ...contextoEfectivo,
             cargasObjetoActuales: cAct
           };
         }
@@ -216,47 +222,10 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
         // C. Ejecutar deducción garantizada de recursos en Zustand si el personaje existe
         if (personaje) {
-          switch (preparado.gasto.tipo) {
-            case "espacio":
-              gastarEspacioConjuro(personaje.id, preparado.gasto.nivel);
-              break;
-            case "puntos":
-              gastarPuntosConjuro(personaje.id, preparado.gasto.cantidad);
-              break;
-            case "pacto":
-              gastarEspacioPacto(personaje.id);
-              break;
-            case "cargasObjeto":
-              modificarCargasObjeto(personaje.id, preparado.gasto.objetoInstanciaId, -preparado.gasto.cantidad);
-              break;
-            case "arcanoMistico":
-              gastarArcanoMistico(personaje.id, preparado.gasto.nivel);
-              break;
-            case "gratuitoInnato": {
-              const hId = preparado.gasto.hechizoId;
-              const hNomNorm = (solicitudCompleta.hechizo.nombre || "").toLowerCase().trim();
-              const rasgoAsociado = (personaje.rasgos || []).find((r) =>
-                r.tieneUsosLimitados &&
-                !r.esActivable &&
-                (r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)) > 0 &&
-                (
-                  (r.conjurosOtorgados || []).some((c) => coincideHechizoId(c, hId) || coincideHechizoId(c, solicitudCompleta.hechizo.nombre)) ||
-                  (r.selectores || []).some((sel) =>
-                    sel.esConjuroGratuito &&
-                    (sel.valorActual || []).some((v) => coincideHechizoId(v, hId) || coincideHechizoId(v, solicitudCompleta.hechizo.nombre))
-                  ) ||
-                  r.nombre.toLowerCase().includes(hNomNorm) ||
-                  hNomNorm.includes(r.nombre.toLowerCase())
-                )
-              );
-              if (rasgoAsociado) {
-                gastarUsoRasgoPersonaje(personaje.id, rasgoAsociado.id);
-              }
-              break;
-            }
-            case "ninguno":
-            default:
-              break;
+          const consumo = consumirRecursoConjuro(personaje.id, preparado.gasto);
+          if (!consumo.permitido) {
+            agregarNotificacion(consumo.motivo ?? 'No se pudo consumir el recurso.', 'advertencia');
+            return false;
           }
 
           // D. Activar concentración si el conjuro lo requiere
@@ -292,12 +261,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       cdSalvacionPersonaje,
       contexto,
       agregarNotificacion,
-      gastarEspacioConjuro,
-      gastarPuntosConjuro,
-      gastarEspacioPacto,
-      gastarArcanoMistico,
+      consumirRecursoConjuro,
       establecerConcentracion,
-      modificarCargasObjeto
     ]
   );
 

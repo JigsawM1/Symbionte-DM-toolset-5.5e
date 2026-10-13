@@ -1,3 +1,4 @@
+import { useShallow } from "zustand/react/shallow";
 import React, { useState, useEffect } from "react";
 import type { HechizoBase } from "@/tipos";
 import {
@@ -40,7 +41,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
     asignarArcanoMistico, quitarArcanoMistico,
     gastarArcanoMistico, recuperarArcanoMistico,
     sincronizarConjurosSubclase
-  } = usarAlmacenDM();
+  } = usarAlmacenDM(useShallow(s => ({ asignarArcanoMistico: s.asignarArcanoMistico, quitarArcanoMistico: s.quitarArcanoMistico, gastarArcanoMistico: s.gastarArcanoMistico, recuperarArcanoMistico: s.recuperarArcanoMistico, sincronizarConjurosSubclase: s.sincronizarConjurosSubclase })));
 
   const { establecerPestaña } = usarAccionesConfiguracion();
 

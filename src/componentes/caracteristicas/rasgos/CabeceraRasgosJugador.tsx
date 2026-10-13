@@ -49,7 +49,7 @@ export const CabeceraRasgosJugador: React.FC<CabeceraRasgosJugadorProps> = ({
     <div className={estilos.cabeceraCompacta}>
       <div className={estilos.filaCabecera}>
         <div className={estilos.grupoTitulo}>
-          <BookMarked size={15} color="#38bdf8" />
+          <BookMarked size={15} color="var(--pj-texto-cian)" />
           <h1 className={estilos.tituloTexto}>Rasgos y Dotes</h1>
           <span className={estilos.contadorBadge}>
             {totalRasgosFiltrados} / {totalRasgosPj}
@@ -116,7 +116,7 @@ export const CabeceraRasgosJugador: React.FC<CabeceraRasgosJugadorProps> = ({
       {modoVista === "mis_rasgos" && (
         <div className={estilos.filaHerramientas}>
           <div className={estilos.cajaBuscadorCompacta}>
-            <Search size={13} color="#64748b" />
+            <Search size={13} color="var(--pj-texto-terciario)" />
             <input
               type="text"
               className={estilos.inputBuscador}

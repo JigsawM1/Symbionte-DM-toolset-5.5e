@@ -179,3 +179,86 @@
   text-align: center;
   font-style: italic;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .input {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .input:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonDesplegable {
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonDesplegable:hover {
+  color: var(--pj-borde-cian-fuerte);
+  background-color: rgba(var(--pj-rgb-cian), 0.12);
+}
+
+:global([data-tema="jugador"]) .botonDesplegableAbierto {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .dropdown {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-modal);
+}
+
+:global([data-tema="jugador"]) .encabezadoGrupo {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-top: 1px solid rgba(var(--pj-rgb-neutro), 0.16);
+  border-bottom: 1px solid rgba(var(--pj-rgb-neutro), 0.12);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .badgeConteoGrupo {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-terciario);
+  background-color: rgba(var(--pj-rgb-neutro), 0.08);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .nombreOpcion {
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .subtituloOpcion {
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .opcion {
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .opcion:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.15);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .opcionSeleccionada {
+  background-color: rgba(var(--pj-rgb-cian), 0.2);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .sinResultados {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}

@@ -3,31 +3,33 @@
   flex-direction: column;
   height: 100%;
   gap: 16px;
-  background: rgba(18, 18, 26, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
   padding: 16px;
   box-sizing: border-box;
   overflow-y: auto;
+  padding-bottom: 84px;
+  scroll-padding-bottom: 84px;
 }
 
 /* Banner Destacado del Turno Activo */
 .bannerTurnoActivo {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(30, 27, 75, 0.4));
-  border: 1px solid rgba(129, 140, 248, 0.4);
-  border-radius: 8px;
+  background: linear-gradient(135deg, var(--pj-acento-primario-activo), var(--pj-acento-primario-activo));
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-panel);
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--pj-sombra-brillo-acento);
   transition: none;
 }
 
 .bannerTurnoActivo.bannerTuTurno {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.25), rgba(161, 98, 7, 0.4));
-  border-color: rgba(250, 204, 21, 0.6);
-  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+  background: linear-gradient(135deg, var(--pj-acento-oro-fondo), var(--pj-acento-oro-fondo));
+  border-color: var(--pj-borde-oro);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .infoBannerTurno {
@@ -37,30 +39,30 @@
 }
 
 .iconoTurnoBanner {
-  color: #818cf8;
+  color: var(--pj-texto-acento);
 }
 
 .bannerTuTurno .iconoTurnoBanner {
-  color: #facc15;
+  color: var(--pj-texto-oro);
 }
 
 .etiquetaTurnoBanner {
-  font-size: 0.75rem;
+  font-size: var(--pj-fuente-label);
   font-weight: 800;
-  color: #c7d2fe;
+  color: var(--pj-texto-acento);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .bannerTuTurno .etiquetaTurnoBanner {
-  color: #fef08a;
+  color: var(--pj-texto-oro);
 }
 
 .nombreCriaturaBanner {
   margin: 2px 0 0 0;
-  font-size: 1.05rem;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #ffffff;
+  color: var(--pj-texto-primario);
 }
 
 .datosIniciativaBanner {
@@ -70,38 +72,33 @@
 }
 
 .valIniciativaBanner {
-  font-size: 0.9rem;
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
-  color: #e5e7eb;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--pj-texto-primario-suave);
+  background: var(--pj-fondo-tarjeta-elevada);
   padding: 3px 10px;
-  border-radius: 6px;
+  border-radius: var(--pj-radio-control);
 }
 
 .insigniaTuTurno {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(250, 204, 21, 0.2);
-  border: 1px solid rgba(250, 204, 21, 0.5);
-  color: #fef08a;
-  font-size: 0.8rem;
+  background: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
+  font-size: var(--pj-fuente-badge);
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 9999px;
   animation: none;
 }
 
-@keyframes pulso {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.03); }
-}
-
 .encabezadoTracker {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   padding-bottom: 12px;
 }
 
@@ -112,31 +109,31 @@
 }
 
 .iconoTitulo {
-  color: #818cf8;
+  color: var(--pj-texto-acento);
 }
 
 .tituloTexto {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: var(--pj-fuente-titulo);
   font-weight: 800;
-  color: #f3f4f6;
+  color: var(--pj-texto-primario-suave);
 }
 
 .insigniaRonda {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(99, 102, 241, 0.15);
-  border: 1px solid rgba(129, 140, 248, 0.3);
+  background: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento);
   padding: 4px 12px;
   border-radius: 9999px;
-  font-size: 0.85rem;
-  color: #c7d2fe;
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-acento);
 }
 
 .numeroRonda {
-  color: #818cf8;
-  font-size: 1rem;
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-cuerpo);
   font-weight: 800;
 }
 
@@ -151,9 +148,9 @@
 }
 
 .tarjetaCriatura {
-  background: rgba(10, 10, 15, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -164,9 +161,9 @@
 }
 
 .tarjetaCriatura.turnoActivo {
-  border-left: 4px solid #818cf8;
-  background: rgba(129, 140, 248, 0.12);
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+  border-left: 4px solid var(--pj-borde-acento);
+  background: var(--pj-acento-primario-fondo);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .filaEncabezadoCriatura {
@@ -182,31 +179,31 @@
 }
 
 .iconoTurnoActivo {
-  color: #818cf8;
+  color: var(--pj-texto-acento);
 }
 
 .posicionTexto {
-  font-size: 0.85rem;
-  color: #9ca3af;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
   font-weight: 700;
 }
 
 .nombreCriatura {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #f3f4f6;
+  color: var(--pj-texto-primario-suave);
 }
 
 .iniciativaBadge {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--pj-fondo-tarjeta-elevada);
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 0.85rem;
-  color: #9ca3af;
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-secundario);
 }
 
 .seccionSalud {
@@ -219,14 +216,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.85rem;
+  font-size: var(--pj-fuente-cuerpo);
 }
 
 .saludEtiqueta {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #9ca3af;
+  color: var(--pj-texto-secundario);
 }
 
 .saludTextoValor {
@@ -234,20 +231,20 @@
 }
 
 .saludTextoValor[data-salud="saludable"] {
-  color: #34d399;
+  color: var(--pj-texto-exito);
 }
 .saludTextoValor[data-salud="herido"] {
-  color: #fbbf24;
+  color: var(--pj-texto-oro);
 }
 .saludTextoValor[data-salud="critico"] {
-  color: #ef4444;
+  color: var(--pj-texto-alerta);
 }
 
 .barraVidaContenedor {
   width: 100%;
   height: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border-radius: var(--pj-radio-control);
   overflow: hidden;
 }
 
@@ -257,13 +254,13 @@
 }
 
 .barraVidaRelleno[data-salud="saludable"] {
-  background-color: #34d399;
+  background-color: var(--pj-acento-exito);
 }
 .barraVidaRelleno[data-salud="herido"] {
-  background-color: #fbbf24;
+  background-color: var(--pj-acento-oro);
 }
 .barraVidaRelleno[data-salud="critico"] {
-  background-color: #ef4444;
+  background-color: var(--pj-acento-peligro);
 }
 
 .seccionCondiciones {
@@ -280,10 +277,10 @@
 }
 
 .insigniaCondicion {
-  background: rgba(239, 68, 68, 0.22);
-  border: 1px solid rgba(248, 113, 113, 0.5);
-  color: #fca5a5;
-  font-size: 0.8rem;
+  background: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-badge);
   font-weight: 700;
   border-radius: 5px;
   padding: 4px 8px;
@@ -295,10 +292,10 @@
 }
 
 .contenedorInsignia:hover .insigniaCondicion {
-  background: rgba(239, 68, 68, 0.45);
-  border-color: #f87171;
-  color: #ffffff;
-  box-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 .tooltipFlotante {
@@ -310,10 +307,10 @@
   transform: translateY(-4px);
   width: 280px;
   max-width: 85vw;
-  background: #111118;
-  border: 1px solid rgba(248, 113, 113, 0.7);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95);
-  border-radius: 8px;
+  background: var(--pj-fondo-modal-cuerpo);
+  border: 1px solid var(--pj-borde-peligro);
+  box-shadow: var(--pj-sombra-modal);
+  border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
   z-index: 9999;
   pointer-events: none;
@@ -330,19 +327,19 @@
 }
 
 .tooltipTitulo {
-  font-size: 0.95rem;
+  font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: #f87171;
+  color: var(--pj-texto-alerta);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(248, 113, 113, 0.3);
+  border-bottom: 1px solid var(--pj-borde-peligro);
   padding-bottom: 4px;
 }
 
 .tooltipDesc {
-  font-size: 0.85rem;
-  color: #f3f4f6;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-primario-suave);
   line-height: 1.45;
   font-weight: 500;
 }
@@ -350,8 +347,8 @@
 .listaEfectosTooltip {
   margin: 6px 0 0 0;
   padding-left: 16px;
-  font-size: 0.82rem;
-  color: #fca5a5;
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-alerta);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -368,12 +365,12 @@
 }
 
 .iconoVacio {
-  color: #4b5563;
+  color: var(--pj-texto-terciario);
 }
 
 .textoVacio {
   margin: 0;
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
   font-style: italic;
 }

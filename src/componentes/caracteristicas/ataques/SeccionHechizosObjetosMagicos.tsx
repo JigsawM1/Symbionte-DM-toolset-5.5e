@@ -48,7 +48,7 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
         title="Clic para mostrar u ocultar hechizos de objetos mágicos"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="#ec4899" />
+          <Sparkles size={14} color="var(--pj-texto-magia)" />
           <span>Hechizos de Objetos Mágicos</span>
           <span className={estilos.badgeConteoSeccion}>{hechizosObjetosFiltrados.length}</span>
         </div>
@@ -108,7 +108,7 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
               >
                 <div className={estilos.filaSuperiorAtaque}>
                   <div className={estilos.grupoTitulo}>
-                    <Sparkles size={14} color="#ec4899" />
+                    <Sparkles size={14} color="var(--pj-texto-magia)" />
                     <span className={estilos.nombreAtaque}>{item.hechizo.nombre}</span>
                     <span className={estilos.nombreFuenteObjeto}>({item.objetoNombre})</span>
                   </div>

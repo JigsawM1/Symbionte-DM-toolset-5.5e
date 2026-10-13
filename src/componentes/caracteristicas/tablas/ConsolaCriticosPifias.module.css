@@ -1,342 +1,304 @@
 .seccionPifiasConsola {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: minmax(290px, 0.9fr) minmax(0, 1.2fr);
+  gap: 10px;
   width: 100%;
-  height: 100%;
-  min-height: 0;
   flex: 1;
+  min-height: 0;
 }
 
-.consolaTiradorCard {
-  flex: 1;
-  background-color: var(--color-fondo-panel);
-  border: 1.5px solid var(--color-borde-brutal);
-  padding: 10px;
+.consolaTiradorCard, .diccionarioConsultadorCard {
+  min-width: 0;
+  min-height: 0;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border-radius: var(--dm-radio-panel, 8px);
-  height: 100%;
+  background: var(--dm-fondo-panel, var(--color-fondo-panel));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-panel, 4px);
+}
+
+.consolaTiradorCard {
   overflow-y: auto;
 }
 
 .diccionarioConsultadorCard {
-  flex: 1.2;
-  background-color: var(--color-fondo-panel);
-  border: 1.5px solid var(--color-borde-brutal);
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-radius: var(--dm-radio-panel, 8px);
-  height: 100%;
-  min-height: 0;
   overflow: hidden;
 }
 
-.tituloConsolaTactico {
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  padding-bottom: 4px;
-  color: var(--color-borde-cian);
-  text-transform: uppercase;
+.cabeceraPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  padding-bottom: 6px;
 }
 
-.tituloDiccionarioHeader {
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  padding-bottom: 4px;
-  color: var(--dm-texto-acento, #ffcc00);
-  text-transform: uppercase;
+.cabeceraPanel h2 {
+  margin: 0;
+  font: 700 14px var(--dm-fuente-titulo, var(--fuente-titulo));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.etiquetaPanel {
+  font-size: var(--dm-fuente-minima, 12.5px);
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+}
+
+.insigniaDado {
+  padding: 3px 6px;
+  background: var(--dm-superficie-primario, var(--color-fondo-tarjeta));
+  border: 1px solid var(--dm-borde-primario, var(--color-primario));
+  color: var(--dm-texto-acento, var(--color-texto-principal));
+  font: 700 14px var(--fuente-codigo);
 }
 
 .grupoControlesConsola {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  padding: 8px;
-  border-radius: var(--dm-radio-control, 6px);
+  gap: 6px;
 }
 
 .filaControlConsola {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 
 .labelControlConsola {
-  font-size: var(--dm-fuente-minima, 10px);
-  font-weight: bold;
+  flex: 0 0 54px;
+  font: 700 var(--dm-fuente-minima, 12.5px) var(--fuente-titulo);
   color: var(--color-texto-secundario);
 }
 
 .togglesRow {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
   gap: 4px;
+  flex: 1;
 }
 
-.botonToggleChico {
-  font-size: var(--dm-fuente-minima, 10px);
-  padding: 3px 6px;
-  cursor: pointer;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  border-radius: var(--dm-radio-control, 3px);
-  transition: none;
+.botonToggle, .botonEnviarChat {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-}
-
-.botonToggleChico:hover {
-  background-color: var(--color-fondo-profundo);
-  color: var(--color-texto-principal);
-}
-
-.botonToggleChicoActivo {
-  background-color: var(--dm-primario-hover, var(--color-primario-brillante)) !important;
-  border-color: var(--color-borde-cian) !important;
-  color: var(--dm-texto-principal, #ffffff) !important;
-}
-
-.toggleCriticoActivo {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15) !important;
-  border-color: var(--color-borde-cian) !important;
-  color: var(--color-borde-cian) !important;
-  font-weight: bold;
-}
-
-.togglePifiaActivo {
-  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.15) !important;
-  border-color: var(--color-peligro) !important;
-  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
-  font-weight: bold;
-}
-
-.filaAccionesDados {
-  display: flex;
-  flex-direction: row;
   gap: 6px;
-  margin-top: 4px;
-}
-
-.botonLanzarDadoCustom {
-  flex: 1;
-  height: 28px;
-  font-size: var(--dm-fuente-minima, 11px);
-  font-weight: bold;
-  cursor: pointer;
-  border: 1.5px solid;
-  border-radius: var(--dm-radio-control, 4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  transition: none;
-  background-color: var(--color-fondo-tarjeta);
-  border-color: var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-}
-
-.botonLanzarD20Critico {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1) !important;
-  border-color: var(--color-borde-cian) !important;
-  color: var(--color-borde-cian) !important;
-}
-
-.botonLanzarD20Critico:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2) !important;
-  color: var(--dm-texto-principal, #ffffff) !important;
-}
-
-.botonLanzarD20Pifia {
-  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1) !important;
-  border-color: var(--color-peligro) !important;
-  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
-}
-
-.botonLanzarD20Pifia:hover {
-  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2) !important;
-  color: var(--dm-texto-principal, #ffffff) !important;
-}
-
-.botonLanzarD4Critico {
-  background-color: rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.1) !important;
-  border-color: var(--dm-texto-acento, #ffcc00) !important;
-  color: var(--dm-texto-acento, #ffcc00) !important;
-}
-
-.botonLanzarD4Critico:hover {
-  background-color: rgba(var(--dm-rgb-advertencia, 255, 204, 0), 0.2) !important;
-  color: var(--dm-texto-principal, #ffffff) !important;
-}
-
-.botonLanzarD4Pifia {
-  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.1) !important;
-  border-color: var(--dm-arcano, #7b2cbf) !important;
-  color: var(--dm-texto-acento, #a29bfe) !important;
-}
-
-.botonLanzarD4Pifia:hover {
-  background-color: rgba(var(--dm-rgb-primario, 123, 44, 191), 0.2) !important;
-  color: var(--dm-texto-principal, #ffffff) !important;
-}
-
-.cajaResultadoConsola {
-  background-color: var(--color-fondo-profundo);
-  border: 2px solid;
-  padding: 10px;
-  border-radius: var(--dm-radio-panel, 6px);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border-color: var(--color-borde-brutal);
-}
-
-.cajaResultadoCritico {
-  border-color: var(--color-borde-cian) !important;
-}
-
-.cajaResultadoPifia {
-  border-color: var(--color-peligro) !important;
-}
-
-.tituloResultadoConsola {
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.tituloResultadoCritico {
-  color: var(--color-borde-cian) !important;
-}
-
-.tituloResultadoPifia {
-  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
-}
-
-.textoResultadoConsola {
-  font-size: var(--dm-fuente-minima, 11.5px);
-  color: var(--color-texto-principal);
-  line-height: 1.4;
-  font-family: var(--fuente-codigo);
-  white-space: pre-line;
-}
-
-.botonEnviarConsolaChat {
-  align-self: flex-start;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--dm-fuente-minima, 10px);
-  padding: 4px 8px;
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
-  border: 1px solid var(--color-borde-cian);
-  color: var(--color-borde-cian);
-  cursor: pointer;
-  border-radius: var(--dm-radio-control, 4px);
-  font-weight: bold;
-  margin-top: 4px;
-  transition: none;
-}
-
-.botonEnviarConsolaChat:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
-  color: var(--dm-texto-principal, #ffffff);
-}
-
-.cajaVaciaConsola {
-  font-size: var(--dm-fuente-minima, 10.5px);
-  color: var(--color-texto-apagado);
-  font-style: italic;
-  text-align: center;
-  padding: 20px;
-  border: 1px dashed var(--color-borde-brutal);
-  background-color: var(--color-fondo-profundo);
-  border-radius: var(--dm-radio-panel, 6px);
-}
-
-.cuerpoDiccionarioScroll {
-  flex-grow: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-right: 4px;
-  min-height: 0;
-}
-
-.subtituloDiccionarioSeccion {
-  font-size: var(--dm-fuente-minima, 10px);
-  font-weight: bold;
-  color: var(--color-texto-apagado);
-  text-transform: uppercase;
-  border-bottom: 1px dashed var(--color-borde-brutal);
-  padding-bottom: 2px;
-}
-
-.listaItemsDiccionario {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.filaItemDiccionario {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 6px;
+  min-height: 28px;
   padding: 4px 6px;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-panel, 4px);
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--color-texto-secundario);
+  font: 600 var(--dm-fuente-minima, 12.5px) var(--fuente-principal);
+  cursor: pointer;
 }
 
-.filaItemDiccionario:hover {
-  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.02);
-}
-
-.diccItemNumero {
-  font-size: var(--dm-fuente-minima, 9px);
-  font-weight: bold;
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
-  border: 1px solid var(--color-borde-cian);
-  color: var(--color-borde-cian);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.botonToggle svg, .botonEnviarChat svg {
   flex-shrink: 0;
 }
 
-.diccItemTexto {
-  font-size: var(--dm-fuente-minima, 10px);
+.botonToggle:hover, .botonEnviarChat:hover {
+  background: var(--dm-fondo-foco, var(--color-fondo-tarjeta-foco));
   color: var(--color-texto-principal);
-  line-height: 1.3;
 }
 
-.iconoChat {
-  margin-right: 4px;
+.botonToggle[aria-pressed="true"] {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, var(--color-fondo-tarjeta));
+  color: var(--dm-texto-cian, var(--color-texto-principal));
 }
 
-.subtituloDiccionarioEspaciado {
-  margin-top: 10px;
+.botonLanzarDado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px;
+  background: var(--dm-primario, var(--color-primario));
+  border: 1px solid var(--dm-borde-primario, var(--color-primario));
+  color: var(--dm-texto-en-acento, var(--color-texto-principal));
+  font: 700 14px var(--fuente-titulo);
+  cursor: pointer;
 }
 
-.diccItemNumeroSevero {
-  background-color: var(--dm-arcano, #7b2cbf) !important;
-  border-color: var(--dm-texto-acento, #a29bfe) !important;
+.botonLanzarDado:hover {
+  background: var(--dm-primario-hover, var(--color-primario));
+  border-color: var(--dm-cian, var(--color-borde-cian));
+}
+
+.notaTirada {
+  margin: 0;
+  font-size: var(--dm-fuente-minima, 12.5px);
+  line-height: 1.45;
+  color: var(--color-texto-apagado);
+}
+
+.cajaVacia {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px dashed var(--dm-borde, var(--color-borde-brutal));
+  color: var(--color-texto-apagado);
+  font-size: var(--dm-fuente-minima, 12.5px);
+  line-height: 1.5;
+}
+
+.cajaVacia svg {
+  flex-shrink: 0;
+}
+
+.cajaResultado {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--dm-borde-primario, var(--color-primario));
+  background: var(--dm-superficie-primario, var(--color-fondo-tarjeta));
+}
+
+.cajaPifia {
+  border-color: var(--dm-borde-peligro, var(--color-peligro));
+  background: var(--dm-superficie-peligro, var(--color-fondo-tarjeta));
+}
+
+.cabeceraResultado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cabeceraResultado > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--dm-fuente-minima, 12.5px);
+}
+
+.cabeceraResultado strong {
+  color: var(--color-texto-principal);
+}
+
+.cabeceraResultado > div > span {
+  color: var(--color-texto-secundario);
+}
+
+.numeroResultado {
+  font: 800 36px var(--fuente-codigo);
+  color: var(--dm-texto-acento, var(--color-texto-principal));
+}
+
+.numeroResultado small {
+  font-size: var(--dm-fuente-minima, 12.5px);
+  margin-left: 4px;
+  color: var(--color-texto-apagado);
+}
+
+.cajaPifia .numeroResultado {
+  color: var(--dm-texto-peligro, var(--color-texto-principal));
+}
+
+.contenidoEfecto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nombreEfecto {
+  margin: 0;
+  font: 700 14px var(--fuente-titulo);
+  color: var(--color-texto-principal);
+}
+
+.narrativaEfecto {
+  margin: 0;
+  font-size: var(--dm-fuente-minima, 12.5px);
+  line-height: 1.5;
+  color: var(--color-texto-secundario);
+}
+
+.mecanicaEfecto {
+  margin: 0;
+  font-size: var(--dm-fuente-minima, 12.5px);
+  line-height: 1.5;
+  color: var(--color-texto-principal);
+}
+
+.mecanicaEfecto strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: var(--dm-fuente-minima, 12.5px);
+  color: var(--dm-texto-acento, var(--color-texto-secundario));
+}
+
+.cuerpoDiccionarioScroll {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding-right: 4px;
+  padding-bottom: 48px;
+}
+
+.grupoEfectos + .grupoEfectos {
+  margin-top: 14px;
+}
+
+.subtituloDiccionario {
+  margin: 0 0 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  font: 700 var(--dm-fuente-minima, 12.5px) var(--fuente-titulo);
+  color: var(--dm-texto-acento, var(--color-texto-secundario));
+}
+
+.filaEfecto {
+  display: flex;
+  gap: 10px;
+  padding: 10px 6px;
+  border: 1px solid transparent;
+  border-bottom-color: var(--dm-borde, var(--color-borde-brutal));
+}
+
+.numeroEfecto {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  background: var(--dm-fondo-profundo, var(--color-fondo-profundo));
+  font: 700 14px var(--fuente-codigo);
+  color: var(--color-texto-secundario);
+}
+
+.filaSeleccionada {
+  border-color: var(--dm-borde-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, var(--color-fondo-tarjeta));
+}
+
+@media (max-width: 760px) {
+  .seccionPifiasConsola {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-bottom: 48px;
+  }
+  .consolaTiradorCard {
+    flex-shrink: 0;
+    overflow: visible;
+  }
+  .diccionarioConsultadorCard {
+    flex-shrink: 0;
+    overflow: visible;
+  }
+  .cuerpoDiccionarioScroll {
+    overflow: visible;
+    padding-bottom: 0;
+  }
 }

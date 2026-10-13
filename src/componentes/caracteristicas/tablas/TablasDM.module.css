@@ -3,79 +3,91 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   width: 100%;
-  background-color: var(--color-fondo-profundo);
-  padding: 2px;
+  /* El main de App usa layout de bloque: flex: 1 no limita esta altura. */
+  height: 100%;
+  background: var(--dm-fondo-profundo, var(--color-fondo-profundo));
+  gap: 6px;
   overflow: hidden;
 }
 
 .subNavegacion {
-  display: flex;
-  flex-direction: row;
-  gap: 5px;
-  background-color: var(--dm-fondo-panel, hsl(222, 22%, 7%));
-  border-bottom: 1px solid var(--dm-borde, hsl(222, 18%, 15%));
-  padding: 5px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 3px;
+  background: var(--dm-fondo-panel, var(--color-fondo-panel));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-panel, 4px);
   flex-shrink: 0;
 }
 
 .subBotonNav {
-  background-color: var(--dm-fondo-panel, hsl(222, 18%, 10%));
-  border: 1px solid var(--dm-borde, hsla(222, 18%, 15%, 1));
-  color: var(--color-texto-secundario);
-  font-size: var(--dm-fuente-minima, 10px);
-  font-weight: 800;
-  font-family: var(--fuente-titulo);
-  letter-spacing: 0.02em;
-  padding: 4px 8px;
-  border-radius: var(--dm-radio-control, 3px);
-  cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  user-select: none;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  text-align: left;
+  text-transform: none;
+  cursor: pointer;
   transition: none;
 }
 
+.subBotonNav svg {
+  flex-shrink: 0;
+}
+
+.tituloNav {
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
+  font-size: var(--dm-fuente-minima, 12.5px);
+  font-weight: 700;
+}
+
 .subBotonNav:hover {
-  background-color: var(--dm-fondo-tarjeta, hsl(222, 18%, 14%));
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
   color: var(--color-texto-principal);
-  border-color: var(--dm-borde, hsl(222, 18%, 25%));
 }
 
 .subBotonNavActivo {
-  background-color: var(--dm-primario, hsla(172, 90%, 8%, 0.8)) !important;
-  border-color: var(--color-borde-cian) !important;
-  color: var(--dm-texto-en-acento, var(--color-borde-cian)) !important;
-  box-shadow: 0 0 0 1px var(--color-borde-cian) !important;
+  background: var(--dm-superficie-primario, var(--color-fondo-tarjeta));
+  border-color: var(--dm-borde-primario, var(--color-primario));
+  box-shadow: inset 0 -2px var(--dm-cian, var(--color-borde-cian));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.subBotonNavActivo svg {
+  color: var(--dm-texto-acento, var(--color-texto-principal));
 }
 
 .cuerpoVisualizador {
   display: flex;
   flex: 1;
   min-height: 0;
-  padding: 2px;
+  min-width: 0;
 }
 
 .seccionCalculadoras {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 8px;
-  padding-right: 2px;
+  gap: 10px;
+  padding-right: 4px;
+  padding-bottom: 48px;
   overflow-y: auto;
   flex: 1;
   min-height: 0;
 }
 
-@media (max-width: 620px) {
-  :global([data-tema="dm"]) .subNavegacion {
-    display: grid;
+@media (max-width: 420px) {
+  .subNavegacion {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  :global([data-tema="dm"]) .subBotonNav {
-    min-width: 0;
-    white-space: normal;
   }
 }

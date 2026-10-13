@@ -114,9 +114,9 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
       <div className={estilos.ladoIzquierdoAtaque}>
         {/* Fila 1: Icono + Nombre + Badges de Tipo y Estado */}
         <div className={estilos.filaTituloAtaque}>
-          {ataque.tipo === "Arma" && <Swords size={13} color="#38bdf8" />}
-          {ataque.tipo === "Desarmado" && <Zap size={13} color="#94a3b8" />}
-          {ataque.tipo === "Conjuro" && <Sparkles size={13} color="#c084fc" />}
+          {ataque.tipo === "Arma" && <Swords size={13} color="var(--pj-texto-cian)" />}
+          {ataque.tipo === "Desarmado" && <Zap size={13} color="var(--pj-texto-terciario)" />}
+          {ataque.tipo === "Conjuro" && <Sparkles size={13} color="var(--pj-texto-magia)" />}
 
           <span className={estilos.nombreAtaque}>{ataque.nombre}</span>
 

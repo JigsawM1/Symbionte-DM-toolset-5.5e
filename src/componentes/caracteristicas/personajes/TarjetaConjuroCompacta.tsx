@@ -166,7 +166,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 title={motivoBloqueoArmadura || "Lanzamiento bloqueado por armadura sin competencia"}
                 className={estilos.iconoAlertaArmadura}
               >
-                <AlertTriangle size={11} color="#ef4444" />
+                <AlertTriangle size={11} color="var(--pj-texto-alerta)" />
               </span>
             )}
           </div>
@@ -277,7 +277,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
                 }
                 className={`${estilos.botonLanzarGratis} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
               >
-                <Sparkles size={11} color="#34d399" />
+                <Sparkles size={11} color="var(--pj-texto-exito)" />
                 <span>Gratis</span>
               </button>
             )}

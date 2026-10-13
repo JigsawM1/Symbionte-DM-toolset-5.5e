@@ -1,3 +1,4 @@
+import { sonObjetosApilables } from "@/servicios/compatibilidadInventario";
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { ObjetoInventario } from "@/tipos";
@@ -15,30 +16,7 @@ export const crearSubSliceInventario: StateCreator<
   agregarObjetoInventario: (idPj, objeto) => {
     mutarPersonaje(set, idPj, (pj) => {
       const inventarioActual = pj.inventario || [];
-      const normalizar = (s: string) => s.toLowerCase().trim();
-      const contNuevo = objeto.contenedor || "mochila";
-
-      // Buscar si ya existe un objeto IDÉNTICO NO EQUIPADO en el mismo contenedor para fusionar
-      const indiceExistente = inventarioActual.findIndex((o) => {
-        if (o.equipado || objeto.equipado) return false;
-        const contExistente = o.contenedor || "mochila";
-        if (contExistente !== contNuevo) return false;
-
-        // Si ambos provienen del compendio y tienen idObjeto válido
-        if (
-          o.idObjeto &&
-          objeto.idObjeto &&
-          !o.idObjeto.startsWith("obj_custom") &&
-          !objeto.idObjeto.startsWith("obj_custom")
-        ) {
-          return o.idObjeto === objeto.idObjeto;
-        }
-        // Comparación por nombre normalizado y categoría
-        return (
-          normalizar(o.nombre) === normalizar(objeto.nombre) &&
-          o.categoria === objeto.categoria
-        );
-      });
+      const indiceExistente = inventarioActual.findIndex(o => sonObjetosApilables(o, objeto));
 
       if (indiceExistente !== -1) {
         const copia = [...inventarioActual];

@@ -286,8 +286,8 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                       >
                         <span className={estilos.nombreOpcionSelector}>
                           {op.nombre}
-                          {estaActiva && <Check size={12} color="#38bdf8" />}
-                          {bloqueada && <Lock size={12} color="#f87171" />}
+                          {estaActiva && <Check size={12} color="var(--pj-texto-cian)" />}
+                          {bloqueada && <Lock size={12} color="var(--pj-texto-alerta)" />}
                         </span>
                       </button>
                     </TooltipUniversal>

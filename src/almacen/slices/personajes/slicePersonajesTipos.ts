@@ -111,6 +111,7 @@ export interface SubSliceCondiciones {
 }
 
 export interface SubSliceMagia {
+  consumirRecursoConjuro: (id: string, gasto: import("@/servicios/servicioLanzamientoConjuros").InstruccionGasto) => { permitido: boolean; motivo?: string };
   configurarLanzadorConjuros: (
     id: string,
     config: {

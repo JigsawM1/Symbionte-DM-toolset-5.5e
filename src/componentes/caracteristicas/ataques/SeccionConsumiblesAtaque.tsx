@@ -31,7 +31,7 @@ export const SeccionConsumiblesAtaque: React.FC<SeccionConsumiblesAtaqueProps> =
         title="Clic para mostrar u ocultar consumibles y pociones"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <FlaskConical size={14} color="#10b981" />
+          <FlaskConical size={14} color="var(--pj-texto-exito)" />
           <span>Consumibles y Pociones</span>
           <span className={estilos.badgeConteoSeccion}>{consumiblesFiltrados.length}</span>
         </div>

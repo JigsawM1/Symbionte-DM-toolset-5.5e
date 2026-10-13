@@ -89,7 +89,7 @@ export const BarraHerramientasInventario: React.FC<BarraHerramientasInventarioPr
         className={estilos.botonAgregarMochilaSuperior}
         onClick={alAbrirModalAgregar}
       >
-        <Plus size={14} color="#f59e0b" />
+        <Plus size={14} color="var(--pj-texto-oro)" />
         <span>Agregar Objeto</span>
       </button>
     </>

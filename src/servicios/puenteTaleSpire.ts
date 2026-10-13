@@ -66,6 +66,11 @@ class PuenteTaleSpireClass {
     this.registrarCallbacksGlobales();
   }
 
+  /** Restaura los callbacks después de desmontar y volver a montar el contexto CEF. */
+  activar(): void {
+    if (typeof window !== 'undefined' && !window.manejarMensajeSync) this.registrarCallbacksGlobales();
+  }
+
   /**
    * Suscribe un callback tipado a un evento específico.
    * El tipo del payload se infiere automáticamente del nombre del evento.

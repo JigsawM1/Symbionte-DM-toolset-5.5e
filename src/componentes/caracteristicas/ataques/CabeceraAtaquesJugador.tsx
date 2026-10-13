@@ -55,7 +55,7 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
     <div className={estilos.cabeceraPrincipal}>
       <div className={estilos.filaTitulo}>
         <div className={estilos.grupoTitulo}>
-          <Swords size={18} color="#38bdf8" />
+          <Swords size={18} color="var(--pj-texto-cian)" />
           <h2 className={estilos.tituloTexto}>Acciones de Combate</h2>
           <span className={estilos.contadorBadge}>{conteoTotal}</span>
         </div>
@@ -122,7 +122,7 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
       {/* Banner de Advertencia: Penalización por Armadura sin Competencia (D&D 5.5e) */}
       {statsCalculadas?.penalizacionArmadura?.sinCompetencia && (
         <div className={estilos.bannerPenalizacionArmadura}>
-          <AlertTriangle size={16} color="#ef4444" className={estilos.bannerPenalizacionIcono} />
+          <AlertTriangle size={16} color="var(--pj-texto-alerta)" className={estilos.bannerPenalizacionIcono} />
           <div>
             <strong>Penalización por Armadura sin Competencia:</strong>
             {statsCalculadas.penalizacionArmadura.armaduraNoCompetente && (

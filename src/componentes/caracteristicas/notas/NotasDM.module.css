@@ -166,3 +166,99 @@
   color: var(--dm-texto-acento, var(--color-primario-brillante));
 }
 
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedor {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-panel);
+}
+
+:global([data-tema="jugador"]) .cabecera {
+  border-bottom: 1px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .titulo {
+  font-size: var(--pj-fuente-subtitulo);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .indicadorContenedor {
+  font-size: var(--pj-fuente-label);
+}
+
+:global([data-tema="jugador"]) .indicadorGuardado {
+  color: var(--pj-texto-exito);
+}
+
+:global([data-tema="jugador"]) .indicadorModificado {
+  color: var(--pj-texto-oro);
+}
+
+:global([data-tema="jugador"]) .indicadorGuardando {
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .puntoPulso {
+  background-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .boton {
+  font-size: var(--pj-fuente-boton);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .boton:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.08);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .botonGuardarDestacado {
+  font-size: var(--pj-fuente-boton);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-control);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+:global([data-tema="jugador"]) .botonLimpiar {
+  font-size: var(--pj-fuente-boton);
+  background-color: rgba(var(--pj-rgb-peligro), 0.1);
+  border: 1px solid var(--pj-acento-peligro);
+  color: var(--pj-texto-alerta);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonLimpiar:hover {
+  background-color: rgba(var(--pj-rgb-peligro), 0.2);
+}
+
+:global([data-tema="jugador"]) .textarea {
+  background-color: var(--pj-fondo-base);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.45;
+  padding-bottom: 84px;
+}
+
+:global([data-tema="jugador"]) .textarea:focus {
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .barraInformacion {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+  border-top: 1px dashed var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .numero {
+  color: var(--pj-texto-acento);
+}
+

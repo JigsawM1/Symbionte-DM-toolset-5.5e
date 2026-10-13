@@ -44,7 +44,7 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
         title="Clic para mostrar u ocultar armas y ataques físicos"
       >
         <div className={estilos.tituloGrupoAtaques}>
-          <Swords size={14} color="#38bdf8" />
+          <Swords size={14} color="var(--pj-texto-cian)" />
           <span>Armas y Ataques Físicos</span>
           <span className={estilos.badgeConteoSeccion}>{ataquesFisicos.length}</span>
         </div>

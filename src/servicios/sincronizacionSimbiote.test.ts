@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
+vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   proyectarEstadoCombatePJ,
   procesarMensajeSyncEntrante,
@@ -230,11 +231,11 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
   });
 
   it("EsquemaWireMensajeSync valida y discrimina por tipo de mensaje", () => {
-    const msgReq = { v: 1, t: "REQ" };
+    const msgReq = { v: 2, s: 'prueba', t: "REQ" };
     const parseReq = EsquemaWireMensajeSync.safeParse(msgReq);
     expect(parseReq.success).toBe(true);
 
-    const msgInvalido = { v: 1, t: "DESCONOCIDO", d: {} };
+    const msgInvalido = { v: 2, s: 'prueba', t: "DESCONOCIDO", d: {} };
     const parseInvalido = EsquemaWireMensajeSync.safeParse(msgInvalido);
     expect(parseInvalido.success).toBe(false);
   });
@@ -264,7 +265,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
 
   it("jugador aplica mensaje DM actualizando la cola, configuración del Master y condiciones del personaje", () => {
     const mensajeDM = {
-      v: 1,
+      v: 2, s: 'prueba',
       t: "DM",
       d: {
         c: [
@@ -334,7 +335,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     });
 
     const mensajePJ = {
-      v: 1,
+      v: 2, s: 'prueba',
       t: "PJ",
       d: {
         id: "pj-test-1",
@@ -440,7 +441,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     });
 
     const mensajePJ = {
-      v: 1,
+      v: 2, s: 'prueba',
       t: "PJ",
       d: {
         id: "pj-tryn",
@@ -520,7 +521,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     };
 
     const wire = serializarEstadoCombatePJ(pjCompleto);
-    const mensajeRed = JSON.stringify({ v: 1, t: "PJ", d: wire });
+    const mensajeRed = JSON.stringify({ v: 2, s: 'prueba', t: "PJ", d: wire });
 
     // La API de TaleSpire impone un límite estricto de 500 caracteres
     expect(mensajeRed.length).toBeLessThan(500);
@@ -596,7 +597,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     };
 
     const wire = serializarIniciativaDM(estadoDM);
-    const mensajeRed = JSON.stringify({ v: 1, t: "DM", d: wire });
+    const mensajeRed = JSON.stringify({ v: 2, s: 'prueba', t: "DM", d: wire });
 
     expect(mensajeRed.length).toBeLessThan(500);
 
@@ -683,7 +684,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
 
     // Comprobar serialización y deserialización
     const wire = serializarEstadoCombatePJ(dto);
-    const mensajeRed = JSON.stringify({ v: 1, t: "PJ", d: wire });
+    const mensajeRed = JSON.stringify({ v: 2, s: 'prueba', t: "PJ", d: wire });
     expect(mensajeRed.length).toBeLessThan(500);
 
     const deserializado = deserializarEstadoCombatePJ(wire);

@@ -1,0 +1,82 @@
+.dialogo {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  margin: auto;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid var(--color-borde-cian);
+  border-radius: var(--dm-radio-panel, 6px);
+  background: var(--dm-fondo-modal, var(--color-fondo-panel));
+  color: var(--color-texto-principal);
+  font-family: var(--fuente-principal);
+  font-size: var(--dm-fuente-minima, 12.5px);
+}
+
+.dialogo::backdrop {
+  background: rgba(2, 4, 8, 0.8);
+}
+
+.dialogo h2 {
+  margin: 0 0 12px;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.dialogo p {
+  margin: 0 0 12px;
+  line-height: 1.5;
+  color: var(--color-texto-secundario);
+}
+
+.dialogo textarea {
+  box-sizing: border-box;
+  width: 100%;
+  height: min(260px, 40vh);
+  resize: vertical;
+  padding: 8px;
+  background: var(--color-fondo-profundo);
+  color: var(--color-texto-principal);
+  border: 1px solid var(--color-borde-brutal);
+  font-family: var(--fuente-codigo);
+  font-size: 12.5px;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .dialogo {
+  border: 1px solid var(--pj-borde-cian-fuerte);
+  border-radius: var(--pj-radio-panel);
+  background: var(--pj-fondo-modal-cuerpo);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+:global([data-tema="jugador"]) .dialogo::backdrop {
+  background: var(--pj-fondo-base);
+}
+
+:global([data-tema="jugador"]) .dialogo h2 {
+  font-family: var(--fuente-principal);
+  font-size: var(--pj-fuente-titulo);
+}
+
+:global([data-tema="jugador"]) .dialogo p {
+  color: var(--pj-texto-secundario);
+}
+
+:global([data-tema="jugador"]) .dialogo textarea {
+  background: var(--pj-fondo-base);
+  color: var(--pj-texto-primario);
+  border: 1px solid var(--pj-borde-medio);
+  font-size: var(--pj-fuente-cuerpo);
+}

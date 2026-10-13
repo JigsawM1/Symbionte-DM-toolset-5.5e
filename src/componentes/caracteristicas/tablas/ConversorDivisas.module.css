@@ -1,7 +1,9 @@
 .tarjetaCalculadora {
   background-color: var(--color-fondo-panel);
   border: 1px solid var(--color-borde-brutal);
-  padding: 4px;
+  padding: 12px;
+  border-radius: var(--dm-radio-panel, 4px);
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -13,7 +15,10 @@
   font-weight: bold;
   text-transform: uppercase;
   border-bottom: 1px solid var(--color-borde-brutal);
-  padding-bottom: 2px;
+  padding-bottom: 8px;
+  gap: 6px;
+  font-family: var(--fuente-titulo);
+  color: var(--dm-texto-principal, var(--color-texto-principal));
   display: flex;
   align-items: center;
 }
@@ -21,7 +26,7 @@
 .cuerpoCalculadora {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 8px;
 }
 
 .filaFormulario {
@@ -39,8 +44,8 @@
 
 .selectForm {
   font-size: var(--dm-fuente-minima, 12px);
-  height: 24px;
-  padding: 1px 2px;
+  height: 32px;
+  padding: 4px 6px;
   width: 200px;
   background-color: var(--color-fondo-profundo);
   color: var(--color-texto-principal);
@@ -49,13 +54,13 @@
 
 .selectForm:focus {
   outline: none;
-  border-color: var(--color-borde-cian);
+  border-color: var(--dm-borde-cian, var(--color-borde-cian));
 }
 
 .inputForm {
   font-size: var(--dm-fuente-minima, 12px);
-  height: 24px;
-  padding: 1px 2px;
+  height: 32px;
+  padding: 4px 6px;
   width: 200px;
   text-align: center;
   background-color: var(--color-fondo-profundo);
@@ -65,7 +70,7 @@
 
 .inputForm:focus {
   outline: none;
-  border-color: var(--color-borde-cian);
+  border-color: var(--dm-borde-cian, var(--color-borde-cian));
 }
 
 .contenedorCambios {
@@ -113,7 +118,7 @@
 }
 
 .cambioValorOrigen {
-  color: var(--color-borde-cian) !important;
+  color: var(--dm-texto-cian, var(--color-borde-cian)) !important;
 }
 
 .iconoTitulo {
@@ -151,4 +156,9 @@
 .descMoneda {
   font-size: var(--dm-fuente-minima, 8px);
   color: var(--color-texto-secundario);
+}
+
+@media (max-width: 420px) {
+  .filaFormulario { flex-wrap: wrap; }
+  .contenedorSelector, .inputForm { width: 100%; }
 }

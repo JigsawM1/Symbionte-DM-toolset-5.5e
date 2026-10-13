@@ -264,7 +264,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
       {/* 2. Sub-fila: Dados de Golpe, Salvaciones de Muerte y Cansancio */}
       <div className={estilos.filaRecursosSalud}>
         {/* Dados de Golpe */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoDadosGolpe}`}>
           <div className={estilos.filaCabeceraRecurso}>
             <span className={estilos.tituloRecursoSalud}>Dados Golpe</span>
           </div>
@@ -304,7 +304,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
         </div>
 
         {/* Salvaciones de Muerte (con Corazones y Calaveras interactivos) */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoSalvacionesMuerte}`}>
           <div className={estilos.filaCabeceraRecurso}>
             <button
               type="button"
@@ -343,8 +343,8 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                     <Heart
                       size={16}
                       strokeWidth={activo ? 2.5 : 1.5}
-                      fill={activo ? "#10b981" : "none"}
-                      color={activo ? "#34d399" : "rgba(255, 255, 255, 0.25)"}
+                      fill={activo ? "var(--pj-texto-exito)" : "none"}
+                      color={activo ? "var(--pj-texto-exito)" : "rgba(255, 255, 255, 0.25)"}
                     />
                   </button>
                 );
@@ -371,7 +371,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                     <Skull
                       size={16}
                       strokeWidth={activo ? 2.5 : 1.5}
-                      color={activo ? "#f87171" : "rgba(255, 255, 255, 0.25)"}
+                      color={activo ? "var(--pj-texto-alerta)" : "rgba(255, 255, 255, 0.25)"}
                     />
                   </button>
                 );
@@ -381,7 +381,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
         </div>
 
         {/* Cansancio D&D 5.5e (6 niveles) */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoCansancio}`}>
           <div className={estilos.filaCabeceraRecurso}>
             <span className={estilos.tituloRecursoSalud}>
               Cansancio {personaje.cansancio > 0 ? `(${personaje.cansancio})` : ""}
@@ -391,9 +391,12 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
             {[1, 2, 3, 4, 5, 6].map((nivel) => {
               const activo = personaje.cansancio >= nivel;
               return (
-                <div
+                <button
+                  type="button"
                   key={`cansancio-${nivel}`}
                   className={`${estilos.puntoCansancio} ${activo ? estilos.puntoCansancioActivo : ""}`}
+                  aria-label={`Cansancio nivel ${nivel}`}
+                  aria-pressed={activo}
                   onClick={() => {
                     const delta = activo && personaje.cansancio === nivel ? -1 : 1;
                     alModificarCansancio(delta);

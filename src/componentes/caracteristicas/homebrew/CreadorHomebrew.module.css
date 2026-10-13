@@ -135,3 +135,70 @@
     white-space: normal;
   }
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .contenedorHomebrew {
+  background-color: var(--pj-fondo-base);
+}
+
+:global([data-tema="jugador"]) .subNavegacion {
+  background-color: var(--pj-fondo-panel);
+  border-bottom: 2px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .subBotonNav {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .subBotonNav:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.12);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .subBotonNavActivo {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .pestanasModoHomebrew {
+  border-bottom: 1.5px solid var(--pj-borde-medio);
+}
+
+:global([data-tema="jugador"]) .botonModoHomebrew {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1.5px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  border-radius: var(--pj-radio-control);
+}
+
+:global([data-tema="jugador"]) .botonModoHomebrew:hover {
+  background-color: rgba(var(--pj-rgb-cian), 0.08);
+  color: var(--pj-borde-cian-fuerte);
+}
+
+:global([data-tema="jugador"]) .botonModoHomebrewActivo {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-brillo-acento);
+}
+
+:global([data-tema="jugador"]) .panelFormulario {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .cabeceraPanel {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-borde-cian-fuerte);
+  border-bottom: 2px solid var(--pj-borde-cian-fuerte);
+}

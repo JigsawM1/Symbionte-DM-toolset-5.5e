@@ -195,3 +195,85 @@
   text-align: center;
   font-style: italic;
 }
+
+/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
+
+:global([data-tema="jugador"]) .gatillo {
+  background-color: var(--pj-fondo-panel);
+  border: 1.5px solid rgba(var(--pj-rgb-neutro), 0.25);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+  font-family: var(--fuente-principal);
+}
+
+:global([data-tema="jugador"]) .gatillo:hover:not(:disabled) {
+  border-color: rgba(var(--pj-rgb-cian), 0.45);
+}
+
+:global([data-tema="jugador"]) .gatillo:focus,
+:global([data-tema="jugador"]) .gatilloAbierto {
+  border-color: var(--pj-acento-cian-brillante) !important;
+  box-shadow: var(--pj-sombra-tarjeta);
+  background-color: var(--pj-fondo-tarjeta-hover);
+}
+
+:global([data-tema="jugador"]) .tamanoCompacto {
+  font-size: var(--pj-fuente-cuerpo) !important;
+}
+
+:global([data-tema="jugador"]) .tamanoMini {
+  font-size: var(--pj-fuente-label) !important;
+}
+
+:global([data-tema="jugador"]) .textoSeleccionado {
+  color: var(--pj-texto-primario);
+}
+
+:global([data-tema="jugador"]) .textoPlaceholder {
+  color: var(--pj-texto-terciario);
+}
+
+:global([data-tema="jugador"]) .indicadorColor {
+  border: 1px solid rgba(var(--pj-rgb-neutro), 0.25);
+}
+
+:global([data-tema="jugador"]) .chevronIcono {
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .dropdown {
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid rgba(var(--pj-rgb-cian), 0.4);
+  border-radius: var(--pj-radio-panel);
+  box-shadow: var(--pj-sombra-modal);
+}
+
+:global([data-tema="jugador"]) .dropdownEnFlujo {
+  box-shadow: var(--pj-sombra-modal) !important;
+}
+
+:global([data-tema="jugador"]) .opcion {
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-secundario);
+  border-radius: var(--pj-radio-panel);
+}
+
+:global([data-tema="jugador"]) .opcion:hover {
+  background-color: rgba(var(--pj-rgb-primario), 0.18);
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .opcionSeleccionada {
+  background-color: rgba(var(--pj-rgb-primario), 0.28);
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .checkIcono {
+  color: var(--pj-texto-cian);
+}
+
+:global([data-tema="jugador"]) .sinOpciones {
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-terciario);
+}

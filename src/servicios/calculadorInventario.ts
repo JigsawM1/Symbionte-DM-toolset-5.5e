@@ -1,3 +1,4 @@
+import { sonObjetosApilables } from "./compatibilidadInventario";
 import type {
   ObjetoInventario,
   BolsaMonedas,
@@ -476,26 +477,14 @@ export function desempaquetarPaqueteInventario(
       });
     }
 
-    // Fusionar con stack existente en mochila si coincide
-    const indiceExistente = nuevoInventario.findIndex(
-      (o) =>
-        !o.equipado &&
-        (o.contenedor || "mochila") === "mochila" &&
-        ((o.idObjeto &&
-          nuevoObj.idObjeto &&
-          !o.idObjeto.startsWith("obj_custom") &&
-          !nuevoObj.idObjeto.startsWith("obj_custom") &&
-          o.idObjeto === nuevoObj.idObjeto) ||
-          (normalizar(o.nombre) === normalizar(nuevoObj.nombre) &&
-            o.categoria === nuevoObj.categoria))
-    );
+    const indiceExistente = nuevoInventario.findIndex(o => sonObjetosApilables(o, nuevoObj));
 
     if (indiceExistente !== -1) {
       const itemExistente = nuevoInventario[indiceExistente];
       if (itemExistente) {
         nuevoInventario[indiceExistente] = {
           ...itemExistente,
-          cantidad: (itemExistente.cantidad || 1) + itemQty
+          cantidad: (itemExistente.cantidad || 1) + nuevoObj.cantidad
         };
       }
     } else {

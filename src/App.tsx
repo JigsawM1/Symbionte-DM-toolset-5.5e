@@ -1,3 +1,5 @@
+import { CambiosSyncPendientes } from "@/componentes/comunes/CambiosSyncPendientes";
+import { AvisoCargaDatos } from "@/componentes/comunes/AvisoCargaDatos";
 import React, { Suspense } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
@@ -90,6 +92,8 @@ const AppContenido: React.FC = () => {
 
       {/* Panel de Contenido Principal Reactivo de Alta Densidad */}
       <main className={estilos.areaContenido}>
+        <AvisoCargaDatos />
+        <CambiosSyncPendientes />
         <Suspense
           fallback={
             <div className={estilos.cargadorPestana}>

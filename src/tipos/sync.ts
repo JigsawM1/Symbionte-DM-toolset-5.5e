@@ -142,7 +142,8 @@ export interface WireEstadoCombatePJ {
   gast?: number; // movimientoGastado
   maxT?: number; // movimientoMaximoTemporal
   ac?: WireAcompanante[]; // acompanantes
-  ts?: number; // timestamp ms de la emisión
+  b?: number; // revisión autoritativa de partida
+  ts?: number; // secuencia de la emisión
 }
 
 export interface WireCriaturaIniciativa {
@@ -167,6 +168,7 @@ export interface WireCriaturaIniciativa {
 }
 
 export interface WireEstadoIniciativaDM {
+  rv?: Record<string, number>;
   c: WireCriaturaIniciativa[]; // cola
   t: number; // indiceTurnoActivo
   r: number; // rondaActual
@@ -219,7 +221,7 @@ const EsquemaWireAcompanante = z.object({
   sub: z.string().nullable().optional().transform((v) => v ?? undefined),
 });
 
-const EsquemaWireEstadoCombatePJ = z.object({
+export const EsquemaWireEstadoCombatePJ = z.object({
   id: z.string(),
   m: z.string().nullable().optional(),
   n: z.string().default("Personaje"),
@@ -250,6 +252,7 @@ const EsquemaWireEstadoCombatePJ = z.object({
   gast: z.number().nullable().optional().transform((v) => v ?? undefined),
   maxT: z.number().nullable().optional().transform((v) => v ?? undefined),
   ac: z.array(EsquemaWireAcompanante).optional(),
+  b: z.number().int().nonnegative().default(0),
   ts: z.number().optional(),
 });
 
@@ -275,6 +278,7 @@ const EsquemaWireCriaturaIniciativa = z.object({
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
+  rv: z.record(z.string(), z.number().int().nonnegative()).optional(),
   c: z.array(EsquemaWireCriaturaIniciativa),
   t: z.number().int(),
   r: z.number().int(),
@@ -297,7 +301,8 @@ const EsquemaWireChunkIniciativa = z.object({
 
 export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("FRAG"),
     k: z.enum(["DM", "PJ"]),
     id: z.string().min(1),
@@ -307,29 +312,37 @@ export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
     d: z.string().min(1).max(380),
   }),
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("PJ"),
     d: EsquemaWireEstadoCombatePJ,
   }),
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("DM"),
     d: EsquemaWireEstadoIniciativaDM,
   }),
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("DM_CHUNK"),
     d: EsquemaWireChunkIniciativa,
   }),
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("REQ"),
   }),
   z.object({
-    v: z.literal(1),
+    v: z.literal(2),
+    s: z.string().min(1).max(64),
     t: z.literal("ACK"),
     id: z.string(),
     ts: z.number(),
+    ok: z.boolean().optional(),
+    rd: z.number().int().nonnegative().optional(),
+    motivo: z.string().max(120).optional(),
   }),
 ]);
 
@@ -370,9 +383,7 @@ export function serializarEstadoCombatePJ(
   if (
     incluirPasivas &&
     pj.pasivas &&
-    (pj.pasivas.percepcion !== 10 ||
-      pj.pasivas.investigacion !== 10 ||
-      pj.pasivas.perspicacia !== 10)
+    true
   ) {
     wire.p = [
       pj.pasivas.percepcion ?? 10,
@@ -608,7 +619,7 @@ export function dividirEnChunksIniciativa(
       c: pruebaGrupo,
       ts: wire.ts,
     };
-    const longitudSerializada = JSON.stringify({ v: 1, t: "DM_CHUNK", d: pruebaWire }).length;
+    const longitudSerializada = JSON.stringify({ v: 2, t: "DM_CHUNK", d: pruebaWire }).length;
 
     if (
       (longitudSerializada > maxBytesPorChunk || grupoActual.length >= MAX_CRIATURAS_POR_CHUNK) &&

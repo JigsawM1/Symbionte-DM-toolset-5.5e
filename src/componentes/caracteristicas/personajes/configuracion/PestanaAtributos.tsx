@@ -162,7 +162,7 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
                 onClick={() => alAbrirDetalleCaracteristica(carac)}
                 className={estilos.botonConfigurarAtributo}
               >
-                <Settings size={12} color="#94a3b8" />
+                <Settings size={12} color="var(--pj-texto-terciario)" />
                 Configurar / Desglose
               </button>
             </div>

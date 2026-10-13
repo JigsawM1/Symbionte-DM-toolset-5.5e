@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { forzarFlushPersistencia } from "@/almacen/persistencia";
 import { usarEstadoUtiles, usarAccionesUtiles } from "@/almacen/selectores";
 import { Save, Trash2, Check, AlertTriangle } from "lucide-react";
 import estilos from "./NotasDM.module.css";
@@ -8,7 +10,8 @@ export const NotasDM: React.FC = () => {
   const { notasDM } = usarEstadoUtiles();
   const { guardarNotasDM } = usarAccionesUtiles();
   const [textoLocal, setTextoLocal] = useState(notasDM);
-  const [estadoGuardado, setEstadoGuardado] = useState<"guardado" | "modificado" | "guardando">("guardado");
+  const estadoPersistencia = usarAlmacenDM(s => s.estadoGuardado);
+  const estadoGuardado = estadoPersistencia === "guardado" ? "guardado" : estadoPersistencia === "error" ? "modificado" : "guardando";
   const [confirmarAccion, setConfirmarAccion] = useState<{
     titulo: string;
     mensaje: string;
@@ -20,42 +23,17 @@ export const NotasDM: React.FC = () => {
     setTextoLocal(notasDM);
   }, [notasDM]);
 
-  // Temporizador para simular auto-guardado debouncificado
-  const timerAutoGuardado = useRef<NodeJS.Timeout | null>(null);
-
   const alCambiarTexto = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const nuevoTexto = e.target.value;
-    setTextoLocal(nuevoTexto);
-    setEstadoGuardado("modificado");
-
-    // Limpiar temporizador previo
-    if (timerAutoGuardado.current) {
-      clearTimeout(timerAutoGuardado.current);
-    }
-
-    // Programar auto-guardado en 800ms
-    setEstadoGuardado("guardando");
-    timerAutoGuardado.current = setTimeout(() => {
-      guardarNotasDM(nuevoTexto);
-      setEstadoGuardado("guardado");
-    }, 800);
+    const texto = e.target.value;
+    setTextoLocal(texto);
+    guardarNotasDM(texto);
   };
 
-  // Limpiar temporizador al desmontar
-  useEffect(() => {
-    return () => {
-      if (timerAutoGuardado.current) {
-        clearTimeout(timerAutoGuardado.current);
-      }
-    };
-  }, []);
-
   const alGuardarManual = () => {
-    if (timerAutoGuardado.current) {
-      clearTimeout(timerAutoGuardado.current);
-    }
     guardarNotasDM(textoLocal);
-    setEstadoGuardado("guardado");
+    void forzarFlushPersistencia(usarAlmacenDM.getState()).then(exito => {
+      usarAlmacenDM.setState({ estadoGuardado: exito ? 'guardado' : 'error' });
+    });
   };
 
   const alLimpiarNotas = () => {
@@ -63,12 +41,8 @@ export const NotasDM: React.FC = () => {
       titulo: "Limpiar Notas",
       mensaje: "¿Estás seguro de que deseas borrar todas tus notas? Esta acción no se puede deshacer.",
       onConfirmar: () => {
-        if (timerAutoGuardado.current) {
-          clearTimeout(timerAutoGuardado.current);
-        }
         setTextoLocal("");
         guardarNotasDM("");
-        setEstadoGuardado("guardado");
       }
     });
   };

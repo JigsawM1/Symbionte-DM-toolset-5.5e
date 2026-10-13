@@ -384,7 +384,7 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
       expect(restoMochila?.equipado).toBe(false);
     });
 
-    it("desequipar fusiona de vuelta en la mochila si ya existe un objeto idéntico", () => {
+    it("desequipar conserva las instancias individuales de mochila", () => {
       const dagaEquipada: ObjetoInventario = {
         ...dagasApiladas,
         idInstancia: "inv_daga_eq",
@@ -401,9 +401,8 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
       const inv = [dagaEquipada, dagaMochila];
       const res = procesarAlternarEquipado(inv, "inv_daga_eq");
 
-      expect(res).toHaveLength(1);
-      expect(res[0].idInstancia).toBe("inv_daga_mochila");
-      expect(res[0].cantidad).toBe(3);
+      expect(res).toHaveLength(2);
+      expect(res.reduce((total, o) => total + o.cantidad, 0)).toBe(3);
       expect(res[0].equipado).toBe(false);
     });
   });

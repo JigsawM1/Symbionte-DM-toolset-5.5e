@@ -17,6 +17,7 @@ import {
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 import { migrarMetadatosRasgos } from "./migradorRasgosHeredados";
 import { fusionarEstadoRasgo } from "./rasgos/fusionarEstadoRasgo";
+import { construirRasgosDesdeSelectores } from "./rasgos/seleccionesRasgos";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -146,6 +147,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
       (r.personalizado || r.origen === "personalizado" || r.origen === "dote" || r.origen === "trasfondo") &&
       !esRasgoPlaceholderSubclase(r.nombre) &&
       !esDoteLigadaSintetica(r)
+      && !r.idSelectorOrigen
   );
 
   // 2. Resolver rasgos canónicos según Especie y Clases
@@ -219,6 +221,10 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     }
 
     nuevo = fusionarEstadoRasgo(nuevo, mapaExistentes.get(nuevo.id));
+    for (const sel of nuevo.selectores ?? []) if (sel.destinoConjuros === "arcano_mistico" && !mapaExistentes.get(nuevo.id)?.selectores?.some(s => s.id === sel.id)) {
+      const previa = personaje.arcanoMisticoIds?.find(id => id.startsWith(`${sel.nivelConjuro}:`));
+      if (previa) sel.valorActual = [previa.split(":")[1]];
+    }
 
     // Si es un rasgo de Mejora de Característica o Don Épico, generar/sincronizar la dote asociada en el bloque de dotes
     if (esRasgoMejoraCaracteristica(nuevo.nombre)) {
@@ -279,5 +285,5 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     }
   }
 
-  return listaFinal;
+  return construirRasgosDesdeSelectores({ ...personaje, rasgos: listaFinal }, rasgosExistentes);
 }

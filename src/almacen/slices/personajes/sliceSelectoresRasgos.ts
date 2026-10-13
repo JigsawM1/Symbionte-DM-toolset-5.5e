@@ -11,6 +11,7 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import type { TamanoPersonaje } from "@/tipos";
 import { normalizarTextoSeguro } from "./condicionesRasgosHelpers";
 import { generarId } from "@/utiles/generarId";
+import { seleccionOpcionValida } from "@/servicios/rasgos/seleccionesRasgos";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
 actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
@@ -22,6 +23,8 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       if (!selectorPedido || selectorPedido.modo === "consulta" || new Set(valorActual).size !== valorActual.length || valorActual.length > maxPedido
         || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === id.split(/:|__/)[0])))) return pj;
       if (selectorPedido.categoriaDote === "estilo_combate" && valorActual.some(id => !puedeElegirDoteEstilo(pj, idRasgo, id))) return pj;
+      if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")
+        && valorActual.some(id => !seleccionOpcionValida(selectorPedido, id, valorActual, obtenerNivelEfectivoParaRasgo(pj, rasgoPedido!), pj))) return pj;
       let tamanoActualizado = pj.tamano;
       const esSelectorTamano =
         idSelector === "selector_tamano_especie" || idSelector.toLowerCase().includes("tamano");

@@ -3,6 +3,13 @@ import { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros } fro
 
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
+  // Recursos de pacto: ejecución atómica al usar o recargar un rasgo.
+  recuperarPactoAlUsar: z.enum(["mitad_maximo", "maximo"]).optional(),
+  recargarUsoConPacto: z.boolean().optional(),
+  curacionDirigida: z.object({ maxDados: z.string(), alcance: z.number().positive() }).optional(),
+  idSelectorOrigen: z.string().optional(),
+  hpTemporalAlDescansar: z.boolean().optional(),
+  hpTemporalAlUsarRasgo: z.string().optional(),
   autoDesactivarAlTirarSalvacion: z.boolean().optional(),
   desactivarConCondiciones: z.array(z.string()).optional(),
   eliminarCondicionesAlActivar: z.array(z.string()).optional(),

@@ -1,4 +1,5 @@
 import type { PersonajeJugador } from "@/tipos";
+import { aplicarHpTemporalPorEvento } from "./rasgos/eventosHpTemporal";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
 import {
   evaluarRecuperacionInspiracionEnDescanso,
@@ -201,7 +202,7 @@ export function ejecutarDescansoCorto(
     cansancio: cansancioNuevoCorto
   };
 
-  return { personajeActualizado, acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(personajeActualizado, "descanso"), acciones };
 }
 
 // ==========================================
@@ -399,5 +400,5 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     inspiracion: inspiracionNueva
   };
 
-  return { personajeActualizado, acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(personajeActualizado, "descanso"), acciones };
 }

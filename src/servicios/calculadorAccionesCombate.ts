@@ -13,6 +13,7 @@ import { calcularMaximosConjurosYTrucos } from "@/servicios/calculadorMagia";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 import { crearResolutorOrigenConjuros } from "@/servicios/resolutorOrigenConjuros";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
 import {
   resolverIdRasgoObjetivoGasto,
   aplicarModificadoresInvocacionesAHechizo,
@@ -223,19 +224,19 @@ export function resolverRasgosAcciones(
 
   if (!Array.isArray(listaRasgos) || listaRasgos.length === 0) return [];
 
-  const pjNivel = personajeActivo.nivel || 1;
   const resultado: RasgoAccionCombate[] = [];
 
   // Extraer rasgos base y sintetizar opciones activas de selectores que tengan mecánicas de combate (ej. Invocaciones como Castigo arcano)
   const todosLosRasgos: RasgoPersonaje[] = [...listaRasgos];
   for (const r of listaRasgos) {
     if (r.activo === false) continue;
-    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+    if (r.nivelRequerido && obtenerNivelEfectivoParaRasgo(personajeActivo, r) < r.nivelRequerido) continue;
     if (r.requiereOpcion && !esRasgoHabilitadoPorOpcion(r, listaRasgos)) continue;
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
         if (!Array.isArray(sel.valorActual)) continue;
         for (const opId of sel.valorActual) {
+          if (listaRasgos.some(h => h.idSelectorOrigen === sel.id && h.ligadoA === r.id && h.requiereOpcion === opId)) continue;
           const baseId = opId.includes("__") ? opId.split("__")[0] : opId;
           const opcion = sel.opciones?.find((o) => o.id === baseId || o.id === opId);
           if (
@@ -275,7 +276,7 @@ export function resolverRasgosAcciones(
 
   for (const rasgo of todosLosRasgos) {
     // 1. Filtrar por nivel mínimo requerido si está definido
-    if (rasgo.nivelRequerido && pjNivel < rasgo.nivelRequerido) {
+    if (rasgo.nivelRequerido && obtenerNivelEfectivoParaRasgo(personajeActivo, rasgo) < rasgo.nivelRequerido) {
       continue;
     }
 
@@ -322,7 +323,7 @@ export function resolverRasgosAcciones(
     let formulaDadosEfectiva = rasgo.formulaDados;
     if (rasgo.escaladoFormulaDados && rasgo.escaladoFormulaDados.length > 0) {
       const escalones = [...rasgo.escaladoFormulaDados].sort((a, b) => b.nivelMinimo - a.nivelMinimo);
-      const escalon = escalones.find((e) => pjNivel >= e.nivelMinimo);
+      const escalon = escalones.find((e) => obtenerNivelEfectivoParaRasgo(personajeActivo, rasgo) >= e.nivelMinimo);
       if (escalon) {
         formulaDadosEfectiva = escalon.valor;
       }
@@ -335,7 +336,7 @@ export function resolverRasgosAcciones(
         let fPadre = rasgoPadre.formulaDados;
         if (rasgoPadre.escaladoFormulaDados && rasgoPadre.escaladoFormulaDados.length > 0) {
           const escalones = [...rasgoPadre.escaladoFormulaDados].sort((a, b) => b.nivelMinimo - a.nivelMinimo);
-          const escalon = escalones.find((e) => pjNivel >= e.nivelMinimo);
+          const escalon = escalones.find((e) => obtenerNivelEfectivoParaRasgo(personajeActivo, rasgo) >= e.nivelMinimo);
           if (escalon) fPadre = escalon.valor;
         }
         if (fPadre) {

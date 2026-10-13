@@ -39,6 +39,7 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     case 'gratuitoInnato': {
       const rasgo = buscarRasgoConjuroGratuito(pj, gasto.hechizoId);
       if (!rasgo) return insuficiente;
+      if (!rasgo.tieneUsosLimitados) break;
       const idRecurso = resolverIdRasgoObjetivoGasto(rasgo, pj.rasgos);
       const recursos = pj.rasgos.filter(r => r.id === idRecurso || (rasgo.gastarDePadre && r.id === rasgo.id));
       if (!recursos.length || recursos.some(r => (r.usosRestantes ?? calcularUsosMaximosRasgo(r, pj)) <= 0)) return insuficiente;

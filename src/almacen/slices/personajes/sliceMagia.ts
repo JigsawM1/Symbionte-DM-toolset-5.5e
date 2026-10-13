@@ -200,14 +200,17 @@ export const crearSubSliceMagia: StateCreator<
   agregarTrucoConocido: (id, hechizoId) => {
     mutarPersonaje(set, id, (pj) => {
       const listaActual = pj.trucosConocidosIds || [];
-      if (listaActual.some((hId) => coincideHechizoId(hId, hechizoId))) return pj;
-      return { ...pj, trucosConocidosIds: [...listaActual, hechizoId] };
+      const aprendizajes = pj.aprendizajesConjurosIndependientes ?? { trucos: [], conjuros: [] };
+      return { ...pj, trucosConocidosIds: listaActual.some(hId => coincideHechizoId(hId, hechizoId)) ? listaActual : [...listaActual, hechizoId],
+        aprendizajesConjurosIndependientes: { ...aprendizajes, trucos: Array.from(new Set([...aprendizajes.trucos, hechizoId])) } };
     });
   },
 
   quitarTrucoConocido: (id, hechizoId) => {
     mutarPersonaje(set, id, (pj) => ({
       ...pj,
+      aprendizajesConjurosIndependientes: pj.aprendizajesConjurosIndependientes ? { ...pj.aprendizajesConjurosIndependientes,
+        trucos: pj.aprendizajesConjurosIndependientes.trucos.filter(id => !coincideHechizoId(id, hechizoId)) } : undefined,
       trucosConocidosIds: (pj.trucosConocidosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId))
     }));
   },
@@ -215,14 +218,17 @@ export const crearSubSliceMagia: StateCreator<
   agregarConjuroConocido: (id, hechizoId) => {
     mutarPersonaje(set, id, (pj) => {
       const listaActual = pj.conjurosConocidosIds || [];
-      if (listaActual.some((hId) => coincideHechizoId(hId, hechizoId))) return pj;
-      return { ...pj, conjurosConocidosIds: [...listaActual, hechizoId] };
+      const aprendizajes = pj.aprendizajesConjurosIndependientes ?? { trucos: [], conjuros: [] };
+      return { ...pj, conjurosConocidosIds: listaActual.some(hId => coincideHechizoId(hId, hechizoId)) ? listaActual : [...listaActual, hechizoId],
+        aprendizajesConjurosIndependientes: { ...aprendizajes, conjuros: Array.from(new Set([...aprendizajes.conjuros, hechizoId])) } };
     });
   },
 
   quitarConjuroConocido: (id, hechizoId) => {
     mutarPersonaje(set, id, (pj) => ({
       ...pj,
+      aprendizajesConjurosIndependientes: pj.aprendizajesConjurosIndependientes ? { ...pj.aprendizajesConjurosIndependientes,
+        conjuros: pj.aprendizajesConjurosIndependientes.conjuros.filter(id => !coincideHechizoId(id, hechizoId)) } : undefined,
       conjurosConocidosIds: (pj.conjurosConocidosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId)),
       conjurosPreparadosIds: (pj.conjurosPreparadosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId))
     }));
@@ -356,7 +362,8 @@ export const crearSubSliceMagia: StateCreator<
       );
       return {
         ...pj,
-        arcanoMisticoIds: [...anteriores, entrada]
+        arcanoMisticoIds: [...anteriores, entrada],
+        rasgos: pj.rasgos.map(r => ({ ...r, selectores: r.selectores?.map(s => s.destinoConjuros === "arcano_mistico" && s.nivelConjuro === nivel ? { ...s, valorActual: [hechizoId] } : s) }))
       };
     });
   },
@@ -367,7 +374,8 @@ export const crearSubSliceMagia: StateCreator<
       const filtrados = (pj.arcanoMisticoIds || []).filter(
         (item) => !item.startsWith(`${nivelClave}:`)
       );
-      return { ...pj, arcanoMisticoIds: filtrados };
+      return { ...pj, arcanoMisticoIds: filtrados,
+        rasgos: pj.rasgos.map(r => ({ ...r, selectores: r.selectores?.map(s => s.destinoConjuros === "arcano_mistico" && s.nivelConjuro === nivel ? { ...s, valorActual: [] } : s) })) };
     });
   },
 

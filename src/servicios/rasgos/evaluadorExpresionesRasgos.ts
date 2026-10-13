@@ -1,5 +1,7 @@
 import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
 import { resolverExtensionesRasgos } from "./extensionesRasgos";
+import { seleccionesValidas } from "./seleccionesRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import {
   type PersonajeJugador,
   type RasgoPersonaje,
@@ -36,6 +38,7 @@ export function cumpleCondicionEfecto(
   if (!condicion || condicion === "siempre") return true;
 
   const condNorm = normalizar(condicion);
+  if (condNorm === "luz_tenue_u_oscuridad") return (personaje.condicionesActivas ?? []).some(c => ["luz tenue", "oscuridad"].includes(normalizar(c)));
   const estadoArmadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
 
@@ -84,11 +87,10 @@ export function cumpleCondicionEfecto(
 export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): EfectoMecanicoRasgo[] {
   const efectosResultado: EfectoMecanicoRasgo[] = [];
   const rasgos = resolverExtensionesRasgos(normalizarCondicionesRasgos(personaje).rasgos || [], personaje.nivel || 1);
-  const nivelPj = personaje.nivel || 1;
 
   for (const rasgo of rasgos) {
     // Si el rasgo exige un nivel mínimo superior al nivel actual del personaje, omitirlo
-    if (rasgo.nivelRequerido && nivelPj < rasgo.nivelRequerido) continue;
+    if (rasgo.nivelRequerido && obtenerNivelEfectivoParaRasgo(personaje, rasgo) < rasgo.nivelRequerido) continue;
 
     const nomNorm = normalizar(rasgo.nombre);
     const idNorm = normalizar(rasgo.id);
@@ -178,6 +180,13 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       }
 
       for (const efecto of efectosBase) {
+        if (efecto.selectorObjetivo) {
+          const sel = rasgo.selectores?.find(s => s.id === efecto.selectorObjetivo);
+          const valores = sel ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : [];
+          if (efecto.activo !== false && cumpleCondicionEfecto(efecto.condicion, personaje))
+            for (const valor of valores) efectosResultado.push({ ...efecto, aplicaA: valor });
+          continue;
+        }
         if (efecto.activo !== false && cumpleCondicionEfecto(efecto.condicion, personaje)) {
           let efFinal = efecto;
           if (efecto.tipo === "dano_secundario" && tipoDanoSelector) {
@@ -245,8 +254,10 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     // 2. Efectos procedentes de opciones seleccionadas en selectores
     if (Array.isArray(rasgo.selectores)) {
       for (const selector of rasgo.selectores) {
-        const selecciones = selector.modo === "consulta" ? selector.opciones.map(o => o.id) : selector.valorActual || [];
+        const selecciones = selector.modo === "consulta" ? selector.opciones.map(o => o.id)
+          : selector.tipoSelector === "invocacion" ? seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : selector.valorActual || [];
         for (const opId of selecciones) {
+          if (rasgos.some(r => r.idSelectorOrigen === selector.id && r.ligadoA === rasgo.id && r.requiereOpcion === opId)) continue;
           const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
           const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
           let opcion = selector.opciones?.find((o) => o.id === opId || o.id === baseId);
@@ -274,8 +285,9 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
 
           if (opcion && Array.isArray(opcion.efectos)) {
             for (const efOp of opcion.efectos) {
+              if (efOp.selectorObjetivo && !opId.includes(":")) continue;
               if (efOp.activo !== false && cumpleCondicionEfecto(efOp.condicion, personaje)) {
-                let efectoFinal = efOp;
+                let efectoFinal = efOp.selectorObjetivo ? { ...efOp, aplicaA: opId.split(":")[1] } : efOp;
                 if (efOp.tipo === "dano_secundario") {
                   let tipoDanoResuelto = efOp.tipoDano;
                   const mapaTipos: Record<string, string> = {

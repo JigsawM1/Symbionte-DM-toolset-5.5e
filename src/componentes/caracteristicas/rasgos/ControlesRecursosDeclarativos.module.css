@@ -1,0 +1,4 @@
+.dialogo { width: min(420px, calc(100vw - 32px)); box-sizing: border-box; max-height: calc(100vh - 40px); overflow-y: auto; border: 1px solid var(--pj-borde-acento); border-radius: var(--pj-radio-control); padding: 16px; background: var(--pj-fondo-tarjeta); color: var(--pj-texto-primario); }
+.dialogo::backdrop { background: rgb(0 0 0 / 65%); }
+.dialogo label { display: block; margin: 12px 0 6px; }
+.acciones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }

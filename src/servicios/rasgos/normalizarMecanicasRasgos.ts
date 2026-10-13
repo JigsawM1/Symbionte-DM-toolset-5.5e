@@ -3,6 +3,8 @@ import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { normalizarMagiaRasgos } from "./magiaRasgos";
 import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
+import { construirRasgosDesdeSelectores } from "./seleccionesRasgos";
+import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
 export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador): PersonajeJugador {
@@ -33,6 +35,19 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     cambio = true;
     return actualizado;
   });
-  const actual = normalizarCondicionesRasgos(cambio ? { ...pj, rasgos } : pj);
+  let actual = normalizarCondicionesRasgos(cambio ? { ...pj, rasgos } : pj);
+  if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(s => s.tipoSelector === "invocacion"))) {
+    const proyectados = construirRasgosDesdeSelectores(actual);
+    if (JSON.stringify(proyectados) !== JSON.stringify(actual.rasgos)) {
+      actual = { ...actual, rasgos: proyectados, ...reconciliarConjurosRasgos(anterior ?? pj, proyectados) };
+    }
+    if (anterior && JSON.stringify(anterior.rasgos) !== JSON.stringify(actual.rasgos))
+      actual = { ...actual, ...reconciliarConjurosRasgos(anterior, actual.rasgos) };
+  }
+  const arcanos = actual.rasgos.flatMap(r => (r.selectores ?? []).filter(s => s.destinoConjuros === "arcano_mistico"));
+  if (arcanos.length) {
+    const ids = arcanos.flatMap(s => s.valorActual.map(id => `${s.nivelConjuro}:${id}`));
+    if (JSON.stringify(ids) !== JSON.stringify(actual.arcanoMisticoIds)) actual = { ...actual, arcanoMisticoIds: ids };
+  }
   return normalizarMagiaRasgos(anterior, actual);
 }

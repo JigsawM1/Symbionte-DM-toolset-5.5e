@@ -55,6 +55,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "bono_dano_ataque",
   "bono_ataque",
   "bono_dano_conjuro",
+  "modificador_alcance_conjuro",
   "bono_salvacion",
   "inmunidad_condicion",
   "resistencia_dano",
@@ -79,6 +80,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
 
 export const EsquemaEfectoMecanicoRasgo = z.object({
+  selectorObjetivo: z.string().optional(),
   id: z.string().optional(),
   tipo: EsquemaTipoEfectoMecanico,
   objetivo: z.string(), // ej. "fuerza", "ca", "velocidad.caminar", "salvacion.destreza", "iniciativa", "ataque_fuerza"
@@ -103,6 +105,8 @@ export const EsquemaRecursoGastado = z.enum(["espacio_pacto", "uso_rasgo", "ning
 export type RecursoGastado = z.infer<typeof EsquemaRecursoGastado>;
 
 export const EsquemaOpcionSelector = z.object({
+  ...EsquemaMecanicasRasgo.shape,
+  esActivable: z.boolean().optional(),
   id: z.string(),
   nombre: z.string(),
   descripcion: z.string().default(""),
@@ -140,7 +144,8 @@ export type OpcionSelector = Omit<z.infer<typeof EsquemaOpcionSelector>, "select
   selectores?: SelectorRasgo[];
 };
 
-export interface InvocacionSobrenatural {
+export interface InvocacionSobrenatural extends MecanicasRasgo {
+  esActivable?: boolean;
   id: string;
   nombre: string;
   descripcion: string;
@@ -231,7 +236,15 @@ export const EsquemaSelectorRasgo = z.object({
   // ── Indica si las opciones seleccionadas se lanzan sin gastar espacios de conjuro ──
   esConjuroGratuito: z.boolean().default(false).optional(),
   // ── Destino de los conjuros elegidos: "libro" solo los añade a conocidos (grimorio), sin prepararlos ──
-  destinoConjuros: z.enum(["siempre_preparados", "libro"]).optional(),
+  destinoConjuros: z.enum(["siempre_preparados", "libro", "referencia", "arcano_mistico"]).optional(),
+  nivelConjuro: z.number().int().min(0).max(9).optional(),
+  filtroConjuros: z.object({
+    soloConocidos: z.boolean().optional(),
+    clase: z.string().optional(),
+    requiereDano: z.boolean().optional(),
+    requiereAtaque: z.boolean().optional(),
+    alcanceMinimo: z.number().min(0).optional()
+  }).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),
   // ── NUEVO: max selecciones escalado por nivel ──

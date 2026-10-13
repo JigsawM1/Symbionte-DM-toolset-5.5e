@@ -455,6 +455,7 @@ export const EsquemaPersonajeJugador = z.object({
   conjurosConocidosIds: z.array(z.string()).default([]),
   conjurosPreparadosIds: z.array(z.string()).default([]),
   conjurosSiemprePreparadosIds: z.array(z.string()).default([]),
+  aprendizajesConjurosIndependientes: z.object({ trucos: z.array(z.string()), conjuros: z.array(z.string()) }).optional(),
 
   // Recursos: Espacios de Conjuro
   espaciosConjuroMaximos: z.record(z.string(), z.number()).default({}),

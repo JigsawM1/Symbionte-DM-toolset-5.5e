@@ -17,6 +17,7 @@ export function fusionarExtensionRasgo(
       : `${claseNombre} (Niveles ${nivelesPrevios.join(", ")})`;
     padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
     if (r.formulaDados) padre.formulaDados = r.formulaDados;
+    if (r.recuperarPactoAlUsar) padre.recuperarPactoAlUsar = r.recuperarPactoAlUsar;
     if (r.guardaDadosTirada) padre.guardaDadosTirada = true;
     if (r.recargaConEspacio) padre.recargaConEspacio = true;
     if (r.multiplicadorRecargaEspacio) padre.multiplicadorRecargaEspacio = r.multiplicadorRecargaEspacio;

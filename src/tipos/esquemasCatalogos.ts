@@ -240,6 +240,8 @@ export const EsquemaDefinicionEspecieJSON = z.object({
 // =======================================================
 
 export const EsquemaInvocacionSobrenaturalJSON = z.object({
+  ...EsquemaMecanicasRasgo.shape,
+  esActivable: z.boolean().optional(),
   id: z.string().min(1),
   nombre: z.string().min(1),
   descripcion: z.string(),

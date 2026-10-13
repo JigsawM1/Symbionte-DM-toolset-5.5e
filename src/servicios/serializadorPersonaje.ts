@@ -42,6 +42,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
   // Rasgo canónico: persistir únicamente su estado mutable e identificadores clave
   return {
     id: rasgo.id,
+    idSelectorOrigen: rasgo.idSelectorOrigen,
     nombre: rasgo.nombre,
     descripcion: "", // Se omite el texto estático; se rehidrata desde el compendio
     origen: rasgo.origen,

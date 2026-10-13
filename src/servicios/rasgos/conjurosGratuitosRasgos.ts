@@ -4,13 +4,15 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import type { SolicitudLanzamiento } from "../servicioLanzamientoConjuros";
 import { obtenerModificadorAptitudMagica } from "../calculadorMagia";
+import { cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 
 export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string): RasgoPersonaje | undefined {
-  return (pj.rasgos ?? []).find(r => r.tieneUsosLimitados && !r.esActivable && r.activo !== false
+  return (pj.rasgos ?? []).find(r => !r.esActivable && r.activo !== false
     && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r, pj.rasgos)
-    && (r.usosRestantes ?? r.usosMaximos ?? 0) > 0 && (
-      (r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, hechizo))
+    && (!r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) > 0) && (
+      (r.tieneUsosLimitados && (r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, hechizo)))
       || (r.conjuroGratuito && coincideHechizoId(r.conjuroGratuito, hechizo))
+      || r.efectos?.some(e => e.tipo === "conjuro_gratuito" && e.activo !== false && coincideHechizoId(e.objetivo, hechizo) && cumpleCondicionEfecto(e.condicion, pj))
       || (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, hechizo)))));
 }
 

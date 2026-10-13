@@ -109,6 +109,11 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   trucos_mago: () => generarOpcionesConjuros("mago", 0),
   conjuros1_mago: () => generarOpcionesConjuros("mago", 1),
   trucos_brujo: () => generarOpcionesConjuros("brujo", 0),
+  trucos_todas_clases: () => (HECHIZOS_JSON.filter(h => h.nivel === 0)).map(h => ({ id: h.id, nombre: h.nombre, descripcion: h.escuela })),
+  conjuros6_brujo: () => generarOpcionesConjuros("brujo", 6),
+  conjuros7_brujo: () => generarOpcionesConjuros("brujo", 7),
+  conjuros8_brujo: () => generarOpcionesConjuros("brujo", 8),
+  conjuros9_brujo: () => generarOpcionesConjuros("brujo", 9),
   conjuros1_accion_mago: () => generarOpcionesConjuros("mago", 1, true),
   conjuros2_accion_mago: () => generarOpcionesConjuros("mago", 2, true),
   conjuros3_mago: () => generarOpcionesConjuros("mago", 3),
@@ -118,8 +123,9 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros_ilusion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "ilusion"),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
-    (origenJson as unknown as DotePersonaje[])
+    origenJson.map(d => EsquemaDotePersonaje.parse(d))
       .map((d) => ({
+        ...d,
         id: d.id,
         nombre: d.nombre,
         descripcion: d.descripcion,

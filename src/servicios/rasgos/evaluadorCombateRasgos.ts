@@ -584,23 +584,6 @@ export function aplicarModificadoresInvocacionesAHechizo(
     return hechizo;
   }
 
-  // 1. Recolectar selecciones activas de invocaciones del personaje
-  const invocacionesActivas: string[] = [];
-  for (const r of personaje.rasgos || []) {
-    if (r.activo === false) continue;
-    if (Array.isArray(r.selectores)) {
-      for (const sel of r.selectores) {
-        if (Array.isArray(sel.valorActual)) {
-          for (const val of sel.valorActual) {
-            if (typeof val === "string" && val.trim()) {
-              invocacionesActivas.push(val.trim());
-            }
-          }
-        }
-      }
-    }
-  }
-
   let modificado = false;
   let nuevoAgregarModificadorHabilidad = hechizo.agregarModificadorHabilidad;
   let nuevoAlcance = hechizo.alcance;
@@ -639,52 +622,19 @@ export function aplicarModificadoresInvocacionesAHechizo(
     );
   });
 
-  // Respaldo de compatibilidad directa para selecciones de invocaciones en mocks unitarios
-  const coincideInvocacionDirecta =
-    !tieneBonoHabilidadTruco &&
-    invocacionesActivas.some((inv) => {
-      if (!inv.startsWith("descarga_agonica")) return false;
-      if (inv.includes(":")) {
-        const trucoId = inv.split(":")[1];
-        return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
-      }
-      return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
-    });
-
-  if ((tieneBonoHabilidadTruco || coincideInvocacionDirecta) && !nuevoAgregarModificadorHabilidad) {
+  if (tieneBonoHabilidadTruco && !nuevoAgregarModificadorHabilidad) {
     nuevoAgregarModificadorHabilidad = true;
     modificado = true;
   }
-
-  // 3. Evaluar Lanza Sobrenatural: añade (nivelBrujo * 10) pies al alcance si es >= 10 pies
-  const tieneLanzaSobrenatural = invocacionesActivas.some((inv) => {
-    if (!inv.startsWith("lanza_sobrenatural")) return false;
-    if (inv.includes(":")) {
-      const trucoId = inv.split(":")[1];
-      return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+  // El catálogo declara el alcance y el conjuro elegido; se evalúa la fórmula genérica.
+  const baseAlcance = nuevoAlcance?.match(/^(\d+)\s*(pies|ft)?$/i);
+  if (baseAlcance) {
+    let bono = 0;
+    for (const ef of efectosRasgosActivos) if (ef.tipo === "modificador_alcance_conjuro" && ef.aplicaA
+      && (coincideHechizoId(ef.aplicaA, hechizo.id) || coincideHechizoId(ef.aplicaA, hechizo.nombre))) {
+      bono += evaluarExpresionNumericaSegura(resolverFormulaDinamica(ef.valor, personaje));
     }
-    return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
-  });
-
-  if (tieneLanzaSobrenatural && nuevoAlcance) {
-    // Parsear alcance numérico (ej. "120 pies", "120 ft", "60 pies", "30")
-    const matchAlcance = nuevoAlcance.match(/^(\d+)\s*(pies|ft|m|metros)?$/i);
-    if (matchAlcance) {
-      const valorBase = parseInt(matchAlcance[1], 10);
-      const unidad = matchAlcance[2] || "pies";
-      if (valorBase >= 10) {
-        const nivelBrujo =
-          personaje.clases?.find(
-            (c) => normalizar(c.nombre) === "brujo"
-          )?.nivel ||
-          (normalizar(personaje.clase) === "brujo" ? personaje.nivel : 0) ||
-          1;
-
-        const bonoPies = nivelBrujo * 10;
-        nuevoAlcance = `${valorBase + bonoPies} ${unidad}`;
-        modificado = true;
-      }
-    }
+    if (bono) { nuevoAlcance = String(Number(baseAlcance[1]) + bono) + " pies"; modificado = true; }
   }
 
   if (!modificado) return hechizo;

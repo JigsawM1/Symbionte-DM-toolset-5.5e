@@ -3,6 +3,7 @@ import { EsquemaInvocacionSobrenaturalJSON } from "@/tipos/esquemasCatalogos";
 import { validarColeccionJSON } from "@/servicios/cargadorCatalogos";
 import { obtenerOpcionesDinamicas } from "@/servicios/hidratadorDotes";
 import invocacionesRaw from "@/datos/invocaciones-sobrenaturales.json";
+import { copiarMecanicasRasgo } from "@/tipos/mecanicasRasgos";
 
 // =========================================================================
 // CATÁLOGO OFICIAL DE INVOCACIONES SOBRENATURALES DEL BRUJO (D&D 5.5e / 2024)
@@ -64,6 +65,8 @@ export function generarOpcionesSelectorInvocaciones(_nivelBrujo: number = 20): O
     }
 
     return {
+      ...copiarMecanicasRasgo(inv),
+      esActivable: inv.esActivable,
       id: inv.id,
       nombre: inv.nombre,
       descripcion: desc,

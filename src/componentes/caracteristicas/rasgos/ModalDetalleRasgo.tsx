@@ -1,5 +1,6 @@
 import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import React from "react";
+import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import {
   X,
@@ -299,7 +300,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {formulaEfectiva && (
+            {formulaEfectiva && !rasgo.curacionDirigida && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}
@@ -328,6 +329,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </button>
             )}
 
+            <ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
             {rasgo.recuperarEspacios && (
               <button
                 type="button"

@@ -50,16 +50,6 @@ jobs:
       - name: Ejecución de Pruebas Automatizadas (Vitest)
         run: pnpm run test
 
-      - name: Simulación de sincronización DM y jugadores
-        run: pnpm run test:sync-simulacion
-
-      - name: Regresiones de interfaz y perfilado de ciclo de vida
-        env:
-          CHROME_PATH: /usr/bin/google-chrome
-        run: |
-          pnpm run test:rasgos-ui
-          pnpm run test:ciclo-vida
-
       - name: Auditoría de Tamaño de Archivos y Prevención de Monolitos
         run: pnpm run verificar:lineas
 

@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { HABILIDADES_LISTA } from "@/constantes/homebrewConstantes";
 import { Habilidades } from "@/tipos";
@@ -20,16 +21,16 @@ export const SeccionHabilidades: React.FC<SeccionHabilidadesProps> = ({
       <div className={estilos.gridHabilidades}>
         {HABILIDADES_LISTA.map(({ clave, nombre }: { clave: string; nombre: string }) => {
           const valorHabilidad = monstruoForm.habilidades?.[clave as keyof Habilidades] ?? "";
-          
+
           return (
             <div key={clave} className={estilos.itemHabilidadFila}>
               <span className={estilos.habilidadNombreEtiqueta}>{nombre}:</span>
-              <input
-                type="number"
+              <CampoNumerico
                 value={valorHabilidad}
-                onChange={(e) => actualizarHabilidad(clave, e.target.value)}
+                alConfirmar={(valor) => actualizarHabilidad(clave, String(valor))}
                 placeholder="—"
                 className={estilos.inputHabilidad}
+                alVaciar={() => actualizarHabilidad(clave, "")}
               />
             </div>
           );

@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useRef, useEffect } from "react";
 import type { PersonajeJugador, TipoTerreno } from "@/tipos";
 import { INFORMACION_TERRENO } from "@/tipos";
@@ -126,12 +127,7 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
 
   // Estado del menú popover interactivo
   const [menuVelocidadAbierto, setMenuVelocidadAbierto] = useState(false);
-  const [inputRestante, setInputRestante] = useState<string>(estadoVelocidad.movimientoRestante.toString());
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setInputRestante(estadoVelocidad.movimientoRestante.toString());
-  }, [estadoVelocidad.movimientoRestante]);
 
   useEffect(() => {
     if (!menuVelocidadAbierto) return;
@@ -143,15 +139,6 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     document.addEventListener("mousedown", clickFuera);
     return () => document.removeEventListener("mousedown", clickFuera);
   }, [menuVelocidadAbierto]);
-
-  const manejarAplicarInputManual = () => {
-    const val = Number(inputRestante);
-    if (!isNaN(val) && val >= 0) {
-      ejecutarModificarRestante(val);
-    } else {
-      setInputRestante(estadoVelocidad.movimientoRestante.toString());
-    }
-  };
 
   // Historial para deshacer
   const historial = Array.isArray(personaje.historialMovimiento) ? personaje.historialMovimiento : [];
@@ -365,21 +352,15 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
                   5 ft
                 </button>
 
-                <input
-                  type="number"
+                <CampoNumerico
                   step="any"
                   min="0"
                   max={estadoVelocidad.velocidadTotal * 2}
                   className={estilos.inputRestanteManual}
-                  value={inputRestante}
-                  onChange={(e) => setInputRestante(e.target.value)}
-                  onBlur={manejarAplicarInputManual}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      manejarAplicarInputManual();
-                    }
-                  }}
+                  value={estadoVelocidad.movimientoRestante}
+                  alConfirmar={ejecutarModificarRestante}
                   title="Escribe directamente los pies restantes y pulsa Enter"
+                  tipo="decimal" identidad={personaje.id}
                 />
 
                 <button

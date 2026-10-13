@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
 import { ArrowUp } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -33,13 +34,13 @@ export const CalculadoraSalto: React.FC = () => {
       <div className={estilos.cuerpoCalculadora}>
         <div className={estilos.filaFormulario}>
           <label className={estilos.labelForm}>Fuerza de Criatura:</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={puntuacionFuerza}
-            onChange={(e) => setPuntuacionFuerza(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            alConfirmar={setPuntuacionFuerza}
             className={estilos.inputForm}
             min={1}
             max={30}
+
           />
         </div>
 

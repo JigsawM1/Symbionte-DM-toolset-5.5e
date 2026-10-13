@@ -143,6 +143,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
     <div className={estilos.seccionInventario}>
       {/* SECCIÓN 1: RECURSOS, CARGA Y FINANZAS */}
       <BarraMetricasInventario
+        key={personaje.id}
         estaAbierta={seccionesAbiertas.recursos !== false}
         alAlternar={() => alternarSeccion("recursos")}
         totalPOEquivalente={totalPOEquivalente}
@@ -220,6 +221,7 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
       {/* MODAL DE ADICIÓN DE OBJETOS */}
       {modalAgregarAbierto && (
         <ModalAgregarObjeto
+          key={personaje.id}
           tabInicial={tabModalAgregar}
           baseDatosObjetos={baseDatosObjetos}
           alAgregarObjeto={alAgregarObjeto}

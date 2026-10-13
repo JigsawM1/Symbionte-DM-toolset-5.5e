@@ -1,3 +1,5 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { Dices, X } from "lucide-react";
 import { usarBandejaDados } from "@/hooks/usarBandejaDados";
 import estilosClases from "./PanelDados.module.css";
@@ -36,7 +38,7 @@ export function PanelDados() {
   }
 
   return (
-    <div className={estilosClases.contenedorPanel}>
+    <div data-panel-dados className={estilosClases.contenedorPanel}>
       {/* Cabecera del Panel */}
       <div className={estilosClases.cabecera}>
         <div className="u-flex u-alinear-centro u-gap-lg">
@@ -93,18 +95,18 @@ export function PanelDados() {
         <div className={estilosClases.contenedorModificador}>
           <span className={estilosClases.labelMod}>Modificador:</span>
           <div className={estilosClases.controlesMod}>
-            <button onClick={() => setModificador((m) => m - 1)} className={estilosClases.btnModControl} type="button">
+            <BotonNumerico onClick={() => setModificador((m) => m - 1)} className={estilosClases.btnModControl} type="button">
               -
-            </button>
-            <input
-              type="number"
+            </BotonNumerico>
+            <CampoNumerico
               value={modificador}
-              onChange={(e) => setModificador(parseInt(e.target.value, 10) || 0)}
+              alConfirmar={setModificador}
               className={estilosClases.inputMod}
+
             />
-            <button onClick={() => setModificador((m) => m + 1)} className={estilosClases.btnModControl} type="button">
+            <BotonNumerico onClick={() => setModificador((m) => m + 1)} className={estilosClases.btnModControl} type="button">
               +
-            </button>
+            </BotonNumerico>
           </div>
         </div>
 
@@ -125,7 +127,7 @@ export function PanelDados() {
           <button onClick={limpiarBandeja} className={estilosClases.botonLimpiar} type="button">
             Limpiar
           </button>
-          <button
+          <BotonNumerico ambito="[data-panel-dados]"
             onClick={manejarLanzamiento}
             disabled={!formulaActual}
             className={`${estilosClases.botonLanzar} ${
@@ -134,7 +136,7 @@ export function PanelDados() {
             type="button"
           >
             Lanzar en TaleSpire
-          </button>
+          </BotonNumerico>
         </div>
       </div>
     </div>

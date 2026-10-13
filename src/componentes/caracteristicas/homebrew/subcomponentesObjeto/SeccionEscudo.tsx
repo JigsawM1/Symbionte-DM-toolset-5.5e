@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Shield } from "lucide-react";
 
@@ -28,13 +29,13 @@ export const SeccionEscudo: React.FC<Props> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Bonificador / CA Base otorgada (+2 estándar):</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={oCaEscudo}
-            onChange={(e) => setOCaEscudo(parseInt(e.target.value) || 2)}
+            alConfirmar={setOCaEscudo}
             placeholder="2"
             className={estilos.inputForm}
             min={1}
+
           />
         </div>
 

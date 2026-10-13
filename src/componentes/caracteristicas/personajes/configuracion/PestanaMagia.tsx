@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { X } from "lucide-react";
 import type { PersonajeJugador, Caracteristica, TipoLanzador, ClaseLanzadora } from "@/tipos";
@@ -14,7 +15,7 @@ export interface PestanaMagiaProps {
     valor: string | number
   ) => void;
   alEliminarClaseLanzadora: (index: number) => void;
-  alActualizarOverrideEspacios: (nivel: number, cantidad: number) => void;
+  alActualizarOverrideEspacios: (nivel: number, cantidad: number | undefined) => void;
 }
 
 /**
@@ -80,15 +81,13 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                 />
 
                 {/* Nivel en la clase */}
-                <input
-                  type="number"
+                <CampoNumerico
                   min={1}
                   max={20}
                   value={claseItem.nivel}
-                  onChange={(e) =>
-                    alActualizarClaseLanzadora(idx, "nivel", parseInt(e.target.value, 10) || 1)
-                  }
+                  alConfirmar={(valor) => alActualizarClaseLanzadora(idx, "nivel", valor)}
                   className={`${estilos.inputFormulario} ${estilos.inputNivelLanzador}`}
+                  identidad={`${form.id}:${idx}:${claseItem.clase}`}
                 />
 
                 {/* Tipo de lanzador */}
@@ -151,16 +150,13 @@ export const PestanaMagia: React.FC<PestanaMagiaProps> = ({
                     <span className={estilos.etiquetaNivelOverride}>
                       Nivel {nv}
                     </span>
-                    <input
-                      type="number"
+                    <CampoNumerico
                       min={0}
                       max={10}
                       value={valActual}
-                      onChange={(e) => {
-                        const cant = parseInt(e.target.value, 10) || 0;
-                        alActualizarOverrideEspacios(nv, cant);
-                      }}
+                      alConfirmar={(valor) => alActualizarOverrideEspacios(nv, valor)}
                       className={`${estilos.inputFormulario} ${estilos.inputCantidadOverride}`}
+                      alVaciar={() => alActualizarOverrideEspacios(nv, undefined)} identidad={form.id}
                     />
                   </div>
                 );

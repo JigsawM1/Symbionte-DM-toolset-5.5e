@@ -84,15 +84,15 @@ export const usarModalCaracteristica = ({
 
   // Cálculos reactivos para preview
   const pb = obtenerBonoCompetenciaPorNivel(personaje.nivel || 1);
-  const baseNumPreview = parseInt(valorBaseForm, 10);
+  const baseNumPreview = Number(valorBaseForm);
   const baseValidaPreview = !isNaN(baseNumPreview) && baseNumPreview >= 1 && baseNumPreview <= 30 ? baseNumPreview : valorBaseActual;
-  const overrideNumPreview = overrideForm.trim() !== "" ? parseInt(overrideForm, 10) : null;
+  const overrideNumPreview = overrideForm.trim() !== "" ? Number(overrideForm) : null;
   const overrideValidoPreview = overrideNumPreview !== null && !isNaN(overrideNumPreview) && overrideNumPreview >= 1 && overrideNumPreview <= 30 ? overrideNumPreview : null;
   const valorEfectivoPreview = overrideValidoPreview !== null ? overrideValidoPreview : baseValidaPreview;
   const modBasePreview = calcularModificadorCaracteristica(valorEfectivoPreview);
-  const modExtraNumPreview = parseInt(modExtraForm, 10) || 0;
+  const modExtraNumPreview = Number(modExtraForm) || 0;
   const modTotalPreview = modBasePreview + modExtraNumPreview;
-  const bonoSalvExtraNumPreview = parseInt(bonoSalvacionExtraForm, 10) || 0;
+  const bonoSalvExtraNumPreview = Number(bonoSalvacionExtraForm) || 0;
   const bonoSalvacionPreview = (competenteSalvacionForm ? modTotalPreview + pb : modTotalPreview) + bonoSalvExtraNumPreview;
 
   // Valores guardados para tiradas directas
@@ -107,7 +107,7 @@ export const usarModalCaracteristica = ({
   const descripcionMostrar = customExistente?.descripcionPersonalizada || descripcionSalvacionOficial;
 
   const cambiarBaseDelta = (delta: number) => {
-    const num = parseInt(valorBaseForm, 10);
+    const num = Number(valorBaseForm);
     const actual = !isNaN(num) ? num : valorBaseActual;
     const nuevo = Math.max(1, Math.min(30, actual + delta));
     setValorBaseForm(String(nuevo));
@@ -133,12 +133,12 @@ export const usarModalCaracteristica = ({
 
   const manejarGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    const baseNum = parseInt(valorBaseForm, 10);
+    const baseNum = Number(valorBaseForm);
     const baseFinal = !isNaN(baseNum) && baseNum >= 1 && baseNum <= 30 ? baseNum : valorBaseActual;
-    const overrideNum = overrideForm.trim() !== "" ? parseInt(overrideForm, 10) : null;
+    const overrideNum = overrideForm.trim() !== "" ? Number(overrideForm) : null;
     const overrideFinal = overrideNum !== null && !isNaN(overrideNum) && overrideNum >= 1 && overrideNum <= 30 ? overrideNum : null;
-    const modExtraFinal = parseInt(modExtraForm, 10) || 0;
-    const bonoSalvExtraFinal = parseInt(bonoSalvacionExtraForm, 10) || 0;
+    const modExtraFinal = Number(modExtraForm) || 0;
+    const bonoSalvExtraFinal = Number(bonoSalvacionExtraForm) || 0;
 
     alGuardar(caracteristicaClave, {
       valorBase: baseFinal,

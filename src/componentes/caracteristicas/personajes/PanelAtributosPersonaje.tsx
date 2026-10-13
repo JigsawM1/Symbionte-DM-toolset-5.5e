@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
+import React, { useState } from "react";
 import type { PersonajeJugador, Caracteristica } from "@/tipos";
 import { CARACTERISTICAS_CLAVES } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -27,39 +28,6 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
 
   // Estado local para permitir escribir libremente y dejar el campo vacío antes de confirmar
   const [campoEnEdicion, setCampoEnEdicion] = useState<Caracteristica | null>(null);
-  const [valoresLocales, setValoresLocales] = useState<Record<Caracteristica, string>>({
-    fuerza: String(personaje.caracteristicas?.fuerza ?? 10),
-    destreza: String(personaje.caracteristicas?.destreza ?? 10),
-    constitucion: String(personaje.caracteristicas?.constitucion ?? 10),
-    inteligencia: String(personaje.caracteristicas?.inteligencia ?? 10),
-    sabiduria: String(personaje.caracteristicas?.sabiduria ?? 10),
-    carisma: String(personaje.caracteristicas?.carisma ?? 10)
-  });
-
-  useEffect(() => {
-    setValoresLocales({
-      fuerza: String(personaje.caracteristicas?.fuerza ?? 10),
-      destreza: String(personaje.caracteristicas?.destreza ?? 10),
-      constitucion: String(personaje.caracteristicas?.constitucion ?? 10),
-      inteligencia: String(personaje.caracteristicas?.inteligencia ?? 10),
-      sabiduria: String(personaje.caracteristicas?.sabiduria ?? 10),
-      carisma: String(personaje.caracteristicas?.carisma ?? 10)
-    });
-  }, [personaje.caracteristicas]);
-
-  const manejarGuardarAtributo = (carac: Caracteristica) => {
-    const valNum = parseInt(valoresLocales[carac], 10);
-    if (!isNaN(valNum) && valNum >= 1 && valNum <= 30) {
-      alModificarCaracteristicaBase(carac, valNum);
-    } else {
-      // Si el campo quedó vacío o inválido, restablecer al valor anterior
-      setValoresLocales((prev) => ({
-        ...prev,
-        [carac]: String(personaje.caracteristicas?.[carac] ?? 10)
-      }));
-    }
-    setCampoEnEdicion(null);
-  };
 
   const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
 
@@ -147,7 +115,7 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                   override !== null && override !== undefined
                     ? override
                     : campoEnEdicion === carac
-                    ? valoresLocales[carac]
+                    ? puntBase
                     : puntEfectiva;
 
                 const tooltipTexto =
@@ -158,29 +126,20 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                     : "Puntuación base. Clic para modificar directamente.";
 
                 return (
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.badgePuntuacionBase}
                     data-bono={tieneBono && (override === null || override === undefined)}
                     value={valorMostrar}
+                    valorBase={puntBase}
+                    readOnly={override !== null && override !== undefined}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
                     onFocus={() => {
-                      setCampoEnEdicion(carac);
-                      setValoresLocales((prev) => ({ ...prev, [carac]: String(puntBase) }));
-                    }}
-                    onChange={(e) => {
-                      const texto = e.target.value;
-                      setValoresLocales((prev) => ({ ...prev, [carac]: texto }));
-                    }}
-                    onBlur={() => manejarGuardarAtributo(carac)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        manejarGuardarAtributo(carac);
-                        (e.target as HTMLInputElement).blur();
-                      }
-                    }}
+                      setCampoEnEdicion(carac);                    }}
+                    alConfirmar={(valor) => alModificarCaracteristicaBase(carac, valor)}
+                    onBlur={() => setCampoEnEdicion(null)}
                     title={tooltipTexto}
+                    identidad={personaje.id} min={1} max={30}
                   />
                 );
               })()}

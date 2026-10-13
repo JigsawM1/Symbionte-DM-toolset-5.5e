@@ -1,3 +1,5 @@
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
 import { Sparkles, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
@@ -31,7 +33,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   const porcentaje = puntosMaximos > 0 ? (puntosDisponibles / puntosMaximos) * 100 : 0;
 
   const manejarGastoPersonalizado = () => {
-    const cant = parseInt(puntosPersonalizados, 10);
+    const cant = Number(puntosPersonalizados);
     if (!isNaN(cant) && cant > 0 && alGastarPuntos) {
       alGastarPuntos(cant);
       setPuntosPersonalizados("");
@@ -39,7 +41,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   };
 
   const manejarRecuperacionPersonalizada = () => {
-    const cant = parseInt(puntosPersonalizados, 10);
+    const cant = Number(puntosPersonalizados);
     if (!isNaN(cant) && cant > 0 && alRecuperarPuntos) {
       alRecuperarPuntos(cant);
       setPuntosPersonalizados("");
@@ -105,32 +107,32 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
       <div className={styles.filaAccionesPuntos}>
         {mostrarGastoManual && (
           <div className={styles.grupoGastoManualPuntos}>
-            <input
-              type="number"
-              min={1}
+            <CampoNumerico
+              min={0}
               max={puntosMaximos}
               placeholder="Cant."
               value={puntosPersonalizados}
-              onChange={(e) => setPuntosPersonalizados(e.target.value)}
+              alConfirmar={(valor) => setPuntosPersonalizados(String(valor))}
               onKeyDown={(e) => {
                 if (e.key === "Enter") manejarGastoPersonalizado();
               }}
               className={styles.inputGastoManualPuntos}
+              alVaciar={() => setPuntosPersonalizados("")}
             />
-            <button
+            <BotonNumerico
               type="button"
               onClick={manejarGastoPersonalizado}
               className={styles.botonGastarPuntos}
             >
               Gastar
-            </button>
-            <button
+            </BotonNumerico>
+            <BotonNumerico
               type="button"
               onClick={manejarRecuperacionPersonalizada}
               className={styles.botonRecuperarPuntos}
             >
               +Recuperar
-            </button>
+            </BotonNumerico>
           </div>
         )}
 

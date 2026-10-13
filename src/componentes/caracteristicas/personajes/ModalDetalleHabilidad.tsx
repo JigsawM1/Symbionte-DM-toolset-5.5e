@@ -1,3 +1,5 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState } from "react";
 import type { PersonajeJugador, Habilidad, GradoCompetencia, PersonalizacionHabilidad } from "@/tipos";
@@ -125,8 +127,8 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
 
   const manejarGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    const modExtraParsed = parseInt(modExtraForm, 10);
-    const valorFijoParsed = valorFijoForm.trim() === "" ? null : parseInt(valorFijoForm, 10);
+    const modExtraParsed = Number(modExtraForm);
+    const valorFijoParsed = valorFijoForm.trim() === "" ? null : Number(valorFijoForm);
     const gradoAGuardar = (gradoForm === "ninguna" && tieneAprendiz) ? "medio" : gradoForm;
 
     alGuardarPersonalizacion(habilidadClave, gradoAGuardar, {
@@ -276,7 +278,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
 
         {/* PESTAÑA 2: PERSONALIZAR */}
         {pestanaActiva === "personalizar" && (
-          <form onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModalCarac.formularioPersonalizarContenedor}`}>
+          <FormularioNumerico onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModalCarac.formularioPersonalizarContenedor}`}>
             <p className={estilosHab.textoIntroPersonalizarHab}>
               Puedes personalizar el nombre y la descripción a mostrar.
             </p>
@@ -314,23 +316,23 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
             <div className={estilos.filaFormulario}>
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Modificador</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   className={estilos.inputFormulario}
                   value={modExtraForm}
-                  onChange={(e) => setModExtraForm(e.target.value)}
+                  alConfirmar={(valor) => setModExtraForm(String(valor))}
                   placeholder="Añade un modificador adic..."
+                  alVaciar={() => setModExtraForm("")} identidad={personaje.id}
                 />
               </div>
 
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Valor fijo</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   className={estilos.inputFormulario}
                   value={valorFijoForm}
-                  onChange={(e) => setValorFijoForm(e.target.value)}
+                  alConfirmar={(valor) => setValorFijoForm(String(valor))}
                   placeholder="Establece un valor fijo"
+                  alVaciar={() => setValorFijoForm("")} identidad={personaje.id}
                 />
               </div>
             </div>
@@ -372,7 +374,7 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                 Guardar
               </button>
             </div>
-          </form>
+          </FormularioNumerico>
         )}
 
       </div>

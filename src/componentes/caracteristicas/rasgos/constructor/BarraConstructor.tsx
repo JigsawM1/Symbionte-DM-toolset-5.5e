@@ -1,14 +1,12 @@
 import { ArrowLeft, Save, Settings2 } from "lucide-react";
 import estilos from "../ConstructorRasgoDote.module.css";
 import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
-import type { usarConstructorRasgo } from "./usarConstructorRasgo";
 interface Props {
     borrador: Pick<BorradorRasgo, "nombre">;
     esEdicion: boolean;
     alVolver: () => void;
-    manejarGuardar: ReturnType<typeof usarConstructorRasgo>["manejarGuardar"];
 }
-export function BarraConstructor({ borrador, esEdicion, alVolver, manejarGuardar }: Props) {
+export function BarraConstructor({ borrador, esEdicion, alVolver }: Props) {
     const { nombre } = borrador;
     return (<div className={estilos.barraSuperiorAcciones}>
         <div className={estilos.ladoIzquierdoBarra}>
@@ -25,9 +23,8 @@ export function BarraConstructor({ borrador, esEdicion, alVolver, manejarGuardar
 
         <div className={estilos.ladoDerechoBarra}>
           <button
-            type="button"
+            type="submit"
             className={estilos.botonGuardar}
-            onClick={() => manejarGuardar()}
             disabled={!nombre.trim()}
             title="Guardar rasgo en este personaje"
           >

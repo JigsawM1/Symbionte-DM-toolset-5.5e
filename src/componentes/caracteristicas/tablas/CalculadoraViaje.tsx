@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
 import { Compass } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -36,7 +37,7 @@ export const CalculadoraViaje: React.FC = () => {
         <Compass size={12} className={estilosClases.iconoTitulo} />
         <span>Calculadora de Viaje</span>
       </div>
-      
+
       <div className={estilosClases.cuerpoCalculadora}>
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Paso del Viaje:</label>
@@ -52,13 +53,13 @@ export const CalculadoraViaje: React.FC = () => {
 
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Horas de Viaje:</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={horasViaje}
-            onChange={(e) => setHorasViaje(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            alConfirmar={setHorasViaje}
             className={estilosClases.inputForm}
             min={1}
             max={24}
+
           />
         </div>
 

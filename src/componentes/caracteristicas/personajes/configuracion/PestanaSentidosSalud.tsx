@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import type { PersonajeJugador } from "@/tipos";
 import { SelectorSugerencias } from "@/componentes/comunes/SelectorSugerencias";
@@ -23,16 +24,13 @@ export const PestanaSentidosSalud: React.FC<PestanaSentidosSaludProps> = ({
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>HP Máximo Base (Verdadero)</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={estilos.inputFormulario}
             value={form.hpMaximoBase || 10}
-            onChange={(e) => {
-              const maxBaseVal = Math.max(1, parseInt(e.target.value, 10) || 1);
-              alActualizarHPMaximoBase(maxBaseVal);
-            }}
+            alConfirmar={alActualizarHPMaximoBase}
             min="1"
             required
+            identidad={form.id}
           />
         </div>
 
@@ -52,12 +50,12 @@ export const PestanaSentidosSalud: React.FC<PestanaSentidosSaludProps> = ({
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Clase de Armadura (CA Base)</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={estilos.inputFormulario}
             value={form.ca}
-            onChange={(e) => alActualizarCampo("ca", parseInt(e.target.value, 10) || 10)}
+            alConfirmar={(valor) => alActualizarCampo("ca", valor)}
             min="1"
+            identidad={form.id}
           />
         </div>
 
@@ -76,13 +74,11 @@ export const PestanaSentidosSalud: React.FC<PestanaSentidosSaludProps> = ({
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Bonificador Extra de Iniciativa</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={estilos.inputFormulario}
             value={form.iniciativaBono}
-            onChange={(e) =>
-              alActualizarCampo("iniciativaBono", parseInt(e.target.value, 10) || 0)
-            }
+            alConfirmar={(valor) => alActualizarCampo("iniciativaBono", valor)}
+            identidad={form.id}
           />
         </div>
 

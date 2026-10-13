@@ -78,6 +78,7 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
           {tieneMagiaEstandar &&
             (sistemaMagia === "puntos" ? (
               <TrackerPuntosConjuro
+                key={personajeActivo.id}
                 puntosMaximos={personajeActivo.puntosConjuroMaximos || 0}
                 puntosGastados={personajeActivo.puntosConjuroGastados || 0}
                 nivelMaximo={personajeActivo.nivelConjuroMaximo || 0}

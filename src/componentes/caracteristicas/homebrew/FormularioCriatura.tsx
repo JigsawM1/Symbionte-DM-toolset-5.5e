@@ -1,3 +1,4 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import React, { useEffect } from "react";
 import { usarFormularioCriatura } from "@/hooks/usarFormularioCriatura";
 import { usarEstadoHomebrew } from "@/almacen/selectores";
@@ -27,7 +28,7 @@ export const FormularioCriatura: React.FC<Props> = ({
     setSubPestanaCriatura,
     subDefensas,
     setSubDefensas,
-    
+
     // Quick Actions
     tQNombre, setTQNombre,
     tQBono, setTQBono,
@@ -127,8 +128,8 @@ export const FormularioCriatura: React.FC<Props> = ({
   };
 
   return (
-    <form 
-      onSubmit={manejarGuardarCriatura} 
+    <FormularioNumerico key={idEnEdicion ?? "nuevo"}
+      onSubmit={manejarGuardarCriatura}
       className={estilos.formularioBrutal}
       onMouseDown={detenerPropagacion}
       onMouseUp={detenerPropagacion}
@@ -208,7 +209,7 @@ export const FormularioCriatura: React.FC<Props> = ({
         <SeccionListasAtaques
           monstruoForm={monstruoForm}
           actualizarGeneral={actualizarGeneral}
-          
+
           tQNombre={tQNombre} setTQNombre={setTQNombre}
           tQBono={tQBono} setTQBono={setTQBono}
           tQDados={tQDados} setTQDados={setTQDados}
@@ -276,28 +277,28 @@ export const FormularioCriatura: React.FC<Props> = ({
       )}
 
       {/* STICKY BOTTOM BAR (Barra de Acción Flotante Consistente) */}
-      <div 
+      <div
         className={estilos.stickyBottomBar}
         onMouseDown={detenerPropagacion}
         onMouseUp={detenerPropagacion}
       >
         {idEnEdicion && (
-          <button 
-            type="button" 
-            onClick={cancelarEdicion} 
+          <button
+            type="button"
+            onClick={cancelarEdicion}
             className={estilos.botonStickyCancelar}
           >
             Cancelar
           </button>
         )}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={estilos.botonStickyGuardar}
           disabled={!monstruoForm.nombre?.trim()}
         >
           {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}
         </button>
       </div>
-    </form>
+    </FormularioNumerico>
   );
 };

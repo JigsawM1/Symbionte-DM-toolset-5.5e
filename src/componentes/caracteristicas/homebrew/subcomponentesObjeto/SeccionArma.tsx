@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { TIPOS_DAÑO_DND } from "@/constantes/homebrewConstantes";
 import {
@@ -130,22 +131,22 @@ export const SeccionArma: React.FC<Props> = ({
         <div className={`${estilos.filaDobleForm} ${estilos.filaDobleArmaTranslúcida}`}>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Alcance Normal (pies):</label>
-            <input
-              type="number"
+            <CampoNumerico
               value={oAlcanceNormal}
-              onChange={(e) => setOAlcanceNormal(e.target.value === "" ? "" : parseInt(e.target.value))}
+              alConfirmar={setOAlcanceNormal}
               placeholder="Ej. 20"
               className={estilos.inputForm}
+              alVaciar={() => setOAlcanceNormal("")} min={0}
             />
           </div>
           <div className={estilos.campoForm}>
             <label className={estilos.labelForm}>Alcance Máximo (pies):</label>
-            <input
-              type="number"
+            <CampoNumerico
               value={oAlcanceLargo}
-              onChange={(e) => setOAlcanceLargo(e.target.value === "" ? "" : parseInt(e.target.value))}
+              alConfirmar={setOAlcanceLargo}
               placeholder="Ej. 60"
               className={estilos.inputForm}
+              alVaciar={() => setOAlcanceLargo("")} min={0}
             />
           </div>
         </div>
@@ -159,7 +160,7 @@ export const SeccionArma: React.FC<Props> = ({
             const estaChecked = oPropiedadesArma.includes(prop);
             return (
               <div key={prop} className={estilos.tooltipContenedor}>
-                <label 
+                <label
                   className={`${estilos.labelCheckbox} ${estilos.chipPropiedadArma} ${estaChecked ? estilos.chipPropiedadArmaActivo : ""}`}
                 >
                   <input
@@ -228,15 +229,15 @@ export const SeccionArma: React.FC<Props> = ({
           {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).length > 0 && (
             <div className={estilos.contenedorChipsCustom}>
               {oPropiedadesArma.filter(p => !PROPIEDADES_ARMAS_DND.includes(p)).map((prop) => (
-                <span 
-                  key={prop} 
+                <span
+                  key={prop}
                   className={estilos.chipPurpuraRemovible}
                 >
                   {prop}
-                  <X 
-                    size={12} 
+                  <X
+                    size={12}
                     className={estilos.iconoRemoverChip}
-                    onClick={() => setOPropiedadesArma((prev) => prev.filter((p) => p !== prop))} 
+                    onClick={() => setOPropiedadesArma((prev) => prev.filter((p) => p !== prop))}
                   />
                 </span>
               ))}
@@ -257,7 +258,7 @@ export const SeccionArma: React.FC<Props> = ({
             className={estilos.inputForm}
           />
         </div>
-        
+
         {oMunicionRequerida && (
           <div className={`${estilos.campoForm} ${estilos.cajaMunicionVinculadaArma}`}>
             <label className={`${estilos.labelForm} u-mb-xs`}>Seleccionar Munición Vinculada:</label>

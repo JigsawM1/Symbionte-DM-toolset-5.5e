@@ -1,3 +1,5 @@
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useMemo } from "react";
 import { Rareza } from "@/almacen/usarAlmacenDM";
 import { EfectoPasivo, HechizoBase } from "@/tipos";
@@ -191,13 +193,13 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Cargas Máximas:</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   min="0"
                   value={oCargas}
-                  onChange={(e) => setOCargas(e.target.value === "" ? "" : parseInt(e.target.value) || "")}
+                  alConfirmar={setOCargas}
                   placeholder="Ej. 7 (Opcional)"
                   className={estilos.inputForm}
+                  alVaciar={() => setOCargas("")}
                 />
               </div>
             </div>
@@ -244,14 +246,14 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
           {/* Modificador Mágico Directo */}
           <div className={`${estilos.campoForm} u-mt-xs`}>
             <label className={estilos.labelForm}>Modificador Mágico Directo (Ataque, Daño o Defensa):</label>
-            <input
-              type="number"
+            <CampoNumerico
               value={oModificadorAtaqueDano}
-              onChange={(e) => setOModificadorAtaqueDano(e.target.value === "" ? "" : parseInt(e.target.value))}
+              alConfirmar={setOModificadorAtaqueDano}
               placeholder="Ej. 1 para un objeto +1..."
               className={estilos.inputForm}
               min={-5}
               max={10}
+              alVaciar={() => setOModificadorAtaqueDano("")}
             />
           </div>
 
@@ -409,12 +411,12 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
 
               <div className={`${estilos.campoBonoValor} ${estilos.campoBonoFlex1}`}>
                 <label className={estilos.labelForm}>CD (Opc. usa la del personaje si esta vacio):</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   value={oNuevoHechizoCd}
-                  onChange={(e) => setONuevoHechizoCd(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  alConfirmar={setONuevoHechizoCd}
                   placeholder="Ej. 15"
                   className={estilos.inputForm}
+                  alVaciar={() => setONuevoHechizoCd("")} min={0}
                 />
               </div>
             </div>
@@ -422,32 +424,32 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
             <div className={`${estilos.filaTripleForm} u-mt-sm`}>
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Bono Ataque (Opc.):</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   value={oNuevoHechizoBonoAtaque}
-                  onChange={(e) => setONuevoHechizoBonoAtaque(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  alConfirmar={setONuevoHechizoBonoAtaque}
                   placeholder="Ej. +7"
                   className={estilos.inputForm}
+                  alVaciar={() => setONuevoHechizoBonoAtaque("")}
                 />
               </div>
               <div className={estilos.campoForm}>
                 <label className={estilos.labelForm}>Coste Cargas (Opc.):</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   value={oNuevoHechizoCosteCargas}
-                  onChange={(e) => setONuevoHechizoCosteCargas(e.target.value === "" ? "" : parseInt(e.target.value))}
+                  alConfirmar={setONuevoHechizoCosteCargas}
                   placeholder="Ej. 1"
                   className={estilos.inputForm}
+                  alVaciar={() => setONuevoHechizoCosteCargas("")} min={0}
                 />
               </div>
               <div className={`${estilos.campoForm} ${estilos.campoFormFin}`}>
-                <button
+                <BotonNumerico ambito="form"
                   type="button"
                   onClick={agregarHechizoVinculado}
                   className={`${estilos.botonAgregarDinamico} ${estilos.botonAgregarConjuroPasivo}`}
                 >
                   + Añadir Hechizo
-                </button>
+                </BotonNumerico>
               </div>
             </div>
 

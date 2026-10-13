@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import type { OrigenRasgo, TipoAccionRasgo } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { Shield } from "lucide-react";
@@ -6,7 +7,7 @@ import { OPCIONES_ORIGEN, OPCIONES_TIPO_ACCION, OPCIONES_CATEGORIA_MECANICA } fr
 import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
 import type { ActualizarBorradorRasgo } from "./usarConstructorRasgo";
 interface Props {
-    borrador: Pick<BorradorRasgo, 
+    borrador: Pick<BorradorRasgo,
       | "nombre"
       | "descripcion"
       | "origen"
@@ -90,8 +91,7 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
             <label className={estilos.labelCampo}>
               <span>Nivel Requerido</span>
             </label>
-            <input
-              type="number"
+            <CampoNumerico
               min={1}
               max={20}
               className={estilos.inputControl}
@@ -100,7 +100,8 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
               aria-label="Nivel Requerido"
               aria-invalid={Boolean(errores.nivelRequerido)}
               aria-describedby={errores.nivelRequerido ? "error-rasgo-nivelRequerido" : undefined}
-              onChange={(e) => actualizarBorrador("nivelRequerido", e.target.value ? parseInt(e.target.value, 10) : undefined)}
+              alConfirmar={(valor) => actualizarBorrador("nivelRequerido", valor)}
+              alVaciar={() => actualizarBorrador("nivelRequerido", undefined)}
             />
           </div>
         </div>

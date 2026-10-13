@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useMemo } from "react";
 import { Sparkles } from "lucide-react";
 import type { PersonajeJugador } from "@/tipos";
@@ -139,14 +140,14 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Nivel Global Total (1 - 20)</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={`${estilos.inputFormulario} ${estilos.inputNivelGlobal}`}
             value={form.nivel}
-            onChange={(e) => alCambiarNivelTotal(e.target.value)}
+            alConfirmar={(valor) => alCambiarNivelTotal(String(valor))}
             min="1"
             max="20"
             required
+            identidad={form.id}
           />
         </div>
 
@@ -159,12 +160,12 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
               Rango Nv. {form.nivel}: {rangoXP.texto}
             </span>
           </div>
-          <input
-            type="number"
+          <CampoNumerico
             className={`${estilos.inputFormulario} ${estilos.inputExperiencia}`}
             value={form.experiencia}
-            onChange={(e) => alCambiarExperiencia(e.target.value)}
+            alConfirmar={(valor) => alCambiarExperiencia(String(valor))}
             min="0"
+            identidad={form.id}
           />
         </div>
       </div>

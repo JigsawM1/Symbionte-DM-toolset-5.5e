@@ -1,5 +1,6 @@
 import type { TipoEfectoMecanico } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { Plus, Trash2, Sparkles } from "lucide-react";
 import estilos from "../ConstructorRasgoDote.module.css";
 import { OPCIONES_APLICA_A_ATAQUE } from "./constantesConstructor";
@@ -111,7 +112,7 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
               setNuevoCondicion={setNuevoCondicion}
             />
 
-            
+
 
             {(nuevoTipoEfecto === "bono_dano_fuerza" || nuevoTipoEfecto === "bono_dano_ataque" || nuevoTipoEfecto === "bono_ataque") && (<div className={estilos.gridDosColumnas}>
                 <div className={estilos.campoGrupo}>
@@ -173,11 +174,11 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
               setNuevoCondicion={setNuevoCondicion}
             />
 
-            
 
-            
 
-            
+
+
+
 
             <CamposSalvaciones
               nuevoTipoEfecto={nuevoTipoEfecto}
@@ -187,41 +188,41 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
               setNuevoValor={setNuevoValor}
             />
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
 
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div className={estilos.botonesNuevoEfecto}>
               <button type="button" className={estilos.botonCancelarEfecto} onClick={() => setModoCreandoEfecto(false)}>
                 Cancelar
               </button>
-              <button type="button" className={estilos.botonConfirmarEfecto} onClick={manejarAnadirEfecto}>
+              <BotonNumerico ambito="form" type="button" className={estilos.botonConfirmarEfecto} onClick={manejarAnadirEfecto}>
                 Confirmar Efecto
-              </button>
+              </BotonNumerico>
             </div>
           </div>) : (<button type="button" className={estilos.botonAnadirEfecto} onClick={() => setModoCreandoEfecto(true)}>
             <Plus size={14}/>

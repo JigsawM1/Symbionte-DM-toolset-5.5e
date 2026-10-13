@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import type { RecuperacionRasgo } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { Dice5, AlertTriangle } from "lucide-react";
@@ -6,7 +7,7 @@ import { OPCIONES_RECUPERACION, OPCIONES_FORMULA_ESCALADO } from "./constantesCo
 import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
 import type { ActualizarBorradorRasgo, usarConstructorRasgo } from "./usarConstructorRasgo";
 interface Props {
-    borrador: Pick<BorradorRasgo, 
+    borrador: Pick<BorradorRasgo,
       | "ligadoA"
       | "tieneUsosLimitados"
       | "gastarDePadre"
@@ -64,20 +65,15 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
                 <label className={estilos.labelCampo}>
                   <span>Usos Máximos</span>
                 </label>
-                <input
-                  type="number"
+                <CampoNumerico
                   min={1}
                   className={estilos.inputControl}
                   value={Number.isNaN(usosMaximos) ? "" : usosMaximos}
                   aria-label="Usos Máximos"
                   aria-invalid={Boolean(errores.usosMaximos)}
                   aria-describedby={errores.usosMaximos ? "error-rasgo-usosMaximos" : undefined}
-                  onChange={(e) => {
-                const val = e.target.valueAsNumber;
-                actualizarBorrador("usosMaximos", val);
-                if (usosRestantes > val)
-                    actualizarBorrador("usosRestantes", val);
-            }}
+                  alConfirmar={(valor) => { actualizarBorrador("usosMaximos", valor); if (usosRestantes > valor) actualizarBorrador("usosRestantes", valor); }}
+
                 />
               </div>
 
@@ -85,8 +81,7 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
                 <label className={estilos.labelCampo}>
                   <span>Usos Restantes Actuales</span>
                 </label>
-                <input
-                  type="number"
+                <CampoNumerico
                   min={0}
                   max={usosMaximos}
                   className={estilos.inputControl}
@@ -94,7 +89,8 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
                   aria-label="Usos Restantes Actuales"
                   aria-invalid={Boolean(errores.usosRestantes)}
                   aria-describedby={errores.usosRestantes ? "error-rasgo-usosRestantes" : undefined}
-                  onChange={(e) => actualizarBorrador("usosRestantes", e.target.valueAsNumber)}
+                  alConfirmar={(valor) => actualizarBorrador("usosRestantes", valor)}
+
                 />
               </div>
 

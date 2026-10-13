@@ -1,3 +1,5 @@
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
 import { normalizarTexto } from "@/almacen/usarAlmacenDM";
 import {
@@ -91,7 +93,7 @@ export const SelectorCondiciones: React.FC = () => {
 
   // Daño y Curación en Área Directo
   const manejarAplicarDaño = (esCuracion: boolean) => {
-    const val = parseInt(cantidadDaño, 10);
+    const val = Number(cantidadDaño);
     if (isNaN(val) || val <= 0) return;
     const finalCantidad = esCuracion ? -val : val;
     aplicarDañoEnArea(finalCantidad, resolverIdsObjetivo());
@@ -135,10 +137,10 @@ export const SelectorCondiciones: React.FC = () => {
 
   // Ejecutar Tirada de Salvación en Área
   const manejarEjecutarSalvacion = () => {
-    const cdVal = parseInt(cdSalvacion, 10);
+    const cdVal = Number(cdSalvacion);
     if (isNaN(cdVal) || cdVal <= 0) return;
 
-    const dañoVal = parseInt(cantidadDaño, 10);
+    const dañoVal = Number(cantidadDaño);
     const dañoBruto = !isNaN(dañoVal) && dañoVal > 0 ? dañoVal : undefined;
 
     let condicionObj: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean } | undefined = undefined;
@@ -168,7 +170,7 @@ export const SelectorCondiciones: React.FC = () => {
   };
 
   return (
-    <div className={estilosClases.bloqueCondiciones}>
+    <div data-acciones-condiciones className={estilosClases.bloqueCondiciones}>
       {/* 1. Selector de Target */}
       <div className={estilosClases.contenedorTarget}>
         <button
@@ -240,29 +242,29 @@ export const SelectorCondiciones: React.FC = () => {
 
       {/* 2. Sección de Daño / Curación Directa */}
       <div className={estilosClases.seccionDaño}>
-        <input
-          type="number"
-          min="1"
+        <CampoNumerico
+          min="0"
           value={cantidadDaño}
-          onChange={(e) => setCantidadDaño(e.target.value)}
+          alConfirmar={(valor) => setCantidadDaño(String(valor))}
           onKeyDown={(e) => e.key === "Enter" && manejarAplicarDaño(false)}
           placeholder="DAÑO..."
           className={estilosClases.inputDaño}
+          alVaciar={() => setCantidadDaño("")}
         />
-        <button
+        <BotonNumerico ambito="[data-acciones-condiciones]"
           onClick={() => manejarAplicarDaño(false)}
           className={estilosClases.botonDaño}
           title="Aplicar daño directo al objetivo"
         >
           - DAÑO
-        </button>
-        <button
+        </BotonNumerico>
+        <BotonNumerico ambito="[data-acciones-condiciones]"
           onClick={() => manejarAplicarDaño(true)}
           className={estilosClases.botonCurar}
           title="Aplicar curación al objetivo"
         >
           + CURAR
-        </button>
+        </BotonNumerico>
       </div>
 
       {/* 3. Búsqueda de Condiciones / Efectos (Seleccionar completa el campo) */}
@@ -366,15 +368,15 @@ export const SelectorCondiciones: React.FC = () => {
           )}
         </div>
 
-        <input
-          type="number"
+        <CampoNumerico
           min="1"
           value={cdSalvacion}
-          onChange={(e) => setCdSalvacion(e.target.value)}
+          alConfirmar={(valor) => setCdSalvacion(String(valor))}
           onKeyDown={(e) => e.key === "Enter" && manejarEjecutarSalvacion()}
           placeholder="CD..."
           className={estilosClases.inputCD}
           title="Dificultad CD para la salvación"
+          alVaciar={() => setCdSalvacion("")}
         />
 
         {/* Dropdown Custom Mitigación */}
@@ -421,14 +423,14 @@ export const SelectorCondiciones: React.FC = () => {
           )}
         </div>
 
-        <button
+        <BotonNumerico ambito="[data-acciones-condiciones]"
           onClick={manejarEjecutarSalvacion}
           className={estilosClases.botonSalvacion}
           title="Ejecutar salvación en área (aplica daño mitigado a éxito y condición/efecto a fallo)"
         >
           <ShieldAlert size={11} className={estilosClases.iconoShield} />
           TIRAR
-        </button>
+        </BotonNumerico>
       </div>
 
       {/* Panel Flotante Resumen de Resultados de Salvación */}

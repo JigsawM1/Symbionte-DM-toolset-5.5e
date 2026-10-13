@@ -1,3 +1,5 @@
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useRef, useEffect } from "react";
 import { Trash2, Heart, Swords, Dices } from "lucide-react";
 import { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
@@ -76,50 +78,24 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   const [hpInput, setHpInput] = useState("");
   const [dropdownAbierto, setDropdownAbierto] = useState<"condicion" | "efecto" | null>(null);
   const [editandoIniciativa, setEditandoIniciativa] = useState(false);
-  const [valorIniciativaTemp, setValorIniciativaTemp] = useState("");
   const refInputIniciativa = useRef<HTMLInputElement>(null);
-  const iniciativaOriginalRef = useRef<number>(criatura.iniciativa);
 
   const [editandoVidaMaxima, setEditandoVidaMaxima] = useState(false);
-  const [valorVidaMaximaTemp, setValorVidaMaximaTemp] = useState("");
   const refInputVidaMaxima = useRef<HTMLInputElement>(null);
-  const vidaMaximaOriginalRef = useRef<number>(criatura.vidaMaxima);
 
   const estaMuerto = criatura.vidaActual === 0;
 
   const ejecutarCuracion = () => {
-    const valor = parseInt(hpInput, 10);
+    const valor = Number(hpInput);
     if (!isNaN(valor) && valor > 0) { onCurar(valor); setHpInput(""); }
   };
 
   const ejecutarDaño = () => {
-    const valor = parseInt(hpInput, 10);
+    const valor = Number(hpInput);
     if (!isNaN(valor) && valor > 0) { onDañar(valor); setHpInput(""); }
   };
 
-  const manejarCambioIniciativa = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValorIniciativaTemp(e.target.value);
-    const valNum = parseInt(e.target.value, 10);
-    if (!isNaN(valNum)) onEstablecerIniciativa(valNum);
-  };
-
-  const finalizarEdicionIniciativa = () => {
-    const valor = parseInt(valorIniciativaTemp, 10);
-    if (isNaN(valor)) onEstablecerIniciativa(iniciativaOriginalRef.current);
-    setEditandoIniciativa(false);
-    setValorIniciativaTemp("");
-  };
-
-  const cancelarEdicionIniciativa = () => {
-    onEstablecerIniciativa(iniciativaOriginalRef.current);
-    setEditandoIniciativa(false);
-    setValorIniciativaTemp("");
-  };
-
-  const activarEdicionIniciativa = () => {
-    iniciativaOriginalRef.current = criatura.iniciativa;
-    setValorIniciativaTemp(String(criatura.iniciativa));
-    setEditandoIniciativa(true);
+  const activarEdicionIniciativa = () => {    setEditandoIniciativa(true);
   };
 
   useEffect(() => {
@@ -129,29 +105,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     }
   }, [editandoIniciativa]);
 
-  const manejarCambioVidaMaxima = (e: React.ChangeEvent<HTMLInputElement>) => setValorVidaMaximaTemp(e.target.value);
-
-  const finalizarEdicionVidaMaxima = () => {
-    const valor = parseInt(valorVidaMaximaTemp, 10);
-    if (!isNaN(valor) && valor > 0 && onEstablecerVidaMaxima) {
-      onEstablecerVidaMaxima(valor);
-    } else if (onEstablecerVidaMaxima) {
-      onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
-    }
-    setEditandoVidaMaxima(false);
-    setValorVidaMaximaTemp("");
-  };
-
-  const cancelarEdicionVidaMaxima = () => {
-    if (onEstablecerVidaMaxima) onEstablecerVidaMaxima(vidaMaximaOriginalRef.current);
-    setEditandoVidaMaxima(false);
-    setValorVidaMaximaTemp("");
-  };
-
-  const activarEdicionVidaMaxima = () => {
-    vidaMaximaOriginalRef.current = criatura.vidaMaxima;
-    setValorVidaMaximaTemp(String(criatura.vidaMaxima));
-    setEditandoVidaMaxima(true);
+  const activarEdicionVidaMaxima = () => {    setEditandoVidaMaxima(true);
   };
 
   useEffect(() => {
@@ -194,18 +148,14 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
         {/* Valor de iniciativa — clic para editar en caliente */}
         {editandoIniciativa ? (
-          <input
+          <CampoNumerico
             ref={refInputIniciativa}
-            type="number"
-            value={valorIniciativaTemp}
-            onChange={manejarCambioIniciativa}
-            onBlur={finalizarEdicionIniciativa}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") finalizarEdicionIniciativa();
-              if (e.key === "Escape") cancelarEdicionIniciativa();
-            }}
+            value={criatura.iniciativa}
+            alConfirmar={onEstablecerIniciativa}
+            onBlur={() => setEditandoIniciativa(false)}
             className={estilosClases.inputIniciativaEditable}
             data-turno-activo={esTurnoActivo}
+            identidad={criatura.id}
           />
         ) : (
           <span
@@ -390,18 +340,14 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             {editandoVidaMaxima ? (
               <span className={estilosClases.textoVidaMaxima}>
                 /{" "}
-                <input
+                <CampoNumerico
                   ref={refInputVidaMaxima}
-                  type="number"
                   min="1"
-                  value={valorVidaMaximaTemp}
-                  onChange={manejarCambioVidaMaxima}
-                  onBlur={finalizarEdicionVidaMaxima}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") finalizarEdicionVidaMaxima();
-                    if (e.key === "Escape") cancelarEdicionVidaMaxima();
-                  }}
+                  value={criatura.vidaMaxima}
+                  alConfirmar={(valor) => onEstablecerVidaMaxima?.(valor)}
+                  onBlur={() => setEditandoVidaMaxima(false)}
                   className={estilosClases.inputVidaMaximaEditable}
+                  identidad={criatura.id}
                 />
               </span>
             ) : (
@@ -422,34 +368,35 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         <div className={estilosClases.inputsSaludFila}>
           {/* Control HP Vertical Curar/Dañar */}
           <div className={estilosClases.controlHPVertical}>
-            <button onClick={ejecutarCuracion} className={estilosClases.botonCurarVertical} title="Aplicar Curación">
+            <BotonNumerico onClick={ejecutarCuracion} className={estilosClases.botonCurarVertical} title="Aplicar Curación">
               CURAR
-            </button>
-            <input
-              type="number"
+            </BotonNumerico>
+            <CampoNumerico
               placeholder="0"
               min="0"
               value={hpInput}
-              onChange={(e) => setHpInput(e.target.value)}
+              identidad={criatura.id}
+              alConfirmar={(valor) => setHpInput(String(valor))}
               onKeyDown={(e) => { if (e.key === "Enter") ejecutarDaño(); }}
               className={estilosClases.inputHPVertical}
+              alVaciar={() => setHpInput("")}
             />
-            <button onClick={ejecutarDaño} className={estilosClases.botonDañoVertical} title="Aplicar Daño">
+            <BotonNumerico onClick={ejecutarDaño} className={estilosClases.botonDañoVertical} title="Aplicar Daño">
               DAÑO
-            </button>
+            </BotonNumerico>
           </div>
 
           {/* Control Temp HP Vertical */}
           <div className={estilosClases.cajaTempVertical}>
             <span className={estilosClases.etiquetaTempVertical}>TEMP</span>
-            <input
-              type="number"
+            <CampoNumerico
               placeholder="0"
               min="0"
-              value={criatura.vidaTemporal || ""}
-              onChange={(e) => onCambiarTempHP(parseInt(e.target.value, 10) || 0)}
+              value={criatura.vidaTemporal ?? 0}
+              alConfirmar={onCambiarTempHP}
               className={estilosClases.inputTempVertical}
               title="Vida Temporal"
+              identidad={criatura.id}
             />
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Rareza } from "@/almacen/usarAlmacenDM";
 import { TipoMoneda } from "@/tipos";
@@ -146,7 +147,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
             required
           />
         </div>
-        
+
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Categoría Canónica (5.5e):</label>
           <SelectorDesplegable
@@ -206,13 +207,13 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
           <label className={estilos.labelForm}>
             <Scale size={12} /> Peso (lb):
           </label>
-          <input
-            type="number"
+          <CampoNumerico
             step="any"
             value={oPesoLb}
-            onChange={(e) => setOPesoLb(parseFloat(e.target.value) || 0)}
+            alConfirmar={setOPesoLb}
             placeholder="0 lb"
             className={estilos.inputForm}
+            tipo="decimal" min={0}
           />
         </div>
 
@@ -221,13 +222,13 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
             <Coins size={12} /> Valor / Costo:
           </label>
           <div className={`u-flex u-gap-sm ${estilos.anchoCompleto}`}>
-            <input
-              type="number"
+            <CampoNumerico
               min="0"
               value={oCostoCantidad}
-              onChange={(e) => setOCostoCantidad(Math.max(0, parseFloat(e.target.value) || 0))}
+              alConfirmar={setOCostoCantidad}
               placeholder="0"
               className={`${estilos.inputForm} u-flex-1`}
+              tipo="decimal"
             />
             <div className={estilos.ancho115}>
               <SelectorDesplegable
@@ -279,13 +280,13 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
           <label className={estilos.labelForm}>
             <Package size={12} /> Unidades por Lote (Opcional):
           </label>
-          <input
-            type="number"
+          <CampoNumerico
             min="1"
             value={oQuantity}
-            onChange={(e) => setOQuantity(e.target.value === "" ? "" : Math.max(1, parseInt(e.target.value) || 1))}
+            alConfirmar={setOQuantity}
             placeholder="Ej. 20 (flechas), 10 (antorchas)"
             className={estilos.inputForm}
+            alVaciar={() => setOQuantity("")}
           />
         </div>
 
@@ -293,14 +294,14 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
           <label className={estilos.labelForm}>
             <Scale size={12} /> Peso Individual / Unidad (lb):
           </label>
-          <input
-            type="number"
+          <CampoNumerico
             step="any"
             min="0"
             value={oPesoUnitario}
-            onChange={(e) => setOPesoUnitario(e.target.value === "" ? "" : Math.max(0, parseFloat(e.target.value) || 0))}
+            alConfirmar={setOPesoUnitario}
             placeholder="Ej. 0.05"
             className={estilos.inputForm}
+            alVaciar={() => setOPesoUnitario("")} tipo="decimal"
           />
         </div>
       </div>
@@ -335,7 +336,7 @@ export const SeccionDatosGenerales: React.FC<Props> = ({
         <div className={estilos.tituloBloqueDinamico}>
           <span>RECETA DE CRAFTEO / ARTESANÍA (OPCIONAL)</span>
         </div>
-        
+
         <div className={`${estilos.campoForm} ${estilos.margenBottom10}`}>
           <label className={estilos.labelForm}>Taller Requerido:</label>
           <input

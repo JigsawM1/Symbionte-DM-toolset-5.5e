@@ -1,3 +1,4 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 /**
  * FormularioObjeto.tsx
  * --------------------
@@ -212,8 +213,8 @@ export const FormularioObjeto: React.FC<Props> = ({
     : [];
 
   return (
-    <form 
-      onSubmit={manejarGuardarObjeto} 
+    <FormularioNumerico key={`${idEnEdicion ?? "nuevo"}:${objetoPlantilla?.id ?? objetoPlantillaSeleccionado?.id ?? "sin-plantilla"}`}
+      onSubmit={manejarGuardarObjeto}
       className={estilos.formularioBrutal}
       onMouseDown={detenerPropagacion}
       onMouseUp={detenerPropagacion}
@@ -442,22 +443,22 @@ export const FormularioObjeto: React.FC<Props> = ({
       )}
 
       {/* STICKY BOTTOM BAR */}
-      <div 
+      <div
         className={estilos.stickyBottomBar}
         onMouseDown={detenerPropagacion}
         onMouseUp={detenerPropagacion}
       >
         {idEnEdicion && (
-          <button 
-            type="button" 
-            onClick={cancelarEdicion} 
+          <button
+            type="button"
+            onClick={cancelarEdicion}
             className={estilos.botonStickyCancelar}
           >
             Cancelar
           </button>
         )}
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className={estilos.botonStickyGuardar}
           disabled={!oNombre.trim() || !oCategoria}
         >
@@ -465,6 +466,6 @@ export const FormularioObjeto: React.FC<Props> = ({
           {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}
         </button>
       </div>
-    </form>
+    </FormularioNumerico>
   );
 };

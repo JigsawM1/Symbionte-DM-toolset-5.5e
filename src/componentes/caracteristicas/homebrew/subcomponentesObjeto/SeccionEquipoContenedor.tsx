@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
 import { ObjetoHomebrew } from "@/tipos";
@@ -100,12 +101,12 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Cantidad Inicial:</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={oCantidad}
-            onChange={(e) => setOCantidad(e.target.value === "" ? "" : parseInt(e.target.value))}
+            alConfirmar={setOCantidad}
             placeholder="1"
             className={estilos.inputForm}
+            alVaciar={() => setOCantidad("")} min={1}
           />
         </div>
         <div className={estilos.campoForm} />
@@ -198,7 +199,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
           <div className={`${estilos.tituloBloqueDinamico} ${estilos.tituloBloqueDinamicoMini}`}>
             <span>CONTENIDO DEL PAQUETE / CONTENEDOR</span>
           </div>
-          
+
           <div className={estilos.filaBuscadorContenido}>
             <div className={estilos.contenedorBuscadorRelativo}>
               <input
@@ -226,13 +227,13 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
                 </div>
               )}
             </div>
-            <input
-              type="number"
+            <CampoNumerico
               min="1"
               placeholder="Cant"
               value={nuevoContenidoQty}
-              onChange={(e) => setNuevoContenidoQty(parseInt(e.target.value) || 1)}
+              alConfirmar={setNuevoContenidoQty}
               className={`${estilos.inputForm} ${estilos.ancho65} ${estilos.textoMini}`}
+
             />
             <button
               type="button"
@@ -280,7 +281,7 @@ export const SeccionEquipoContenedor: React.FC<Props> = ({
           <div className={`${estilos.tituloBloqueDinamico} ${estilos.tituloBloqueDinamicoMini}`}>
             <span>OBJETOS QUE PUEDE ELABORAR (RECETAS)</span>
           </div>
-          
+
           <div className={estilos.filaBuscadorContenido}>
             <div className={estilos.contenedorBuscadorRelativo}>
               <input

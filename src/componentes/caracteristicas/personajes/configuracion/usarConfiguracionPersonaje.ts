@@ -375,9 +375,10 @@ export function usarConfiguracionPersonaje(
     }));
   };
 
-  const manejarActualizarOverrideEspacios = (nivel: number, cantidad: number) => {
+  const manejarActualizarOverrideEspacios = (nivel: number, cantidad: number | undefined) => {
     const overridesActuales = { ...(form.overrideEspaciosConjuro || {}) };
-    overridesActuales[String(nivel)] = cantidad;
+    if (cantidad === undefined) delete overridesActuales[String(nivel)];
+    else overridesActuales[String(nivel)] = cantidad;
     const recursos = calcularTodosRecursosMagicos(
       form.clasesLanzadoras || [],
       overridesActuales,

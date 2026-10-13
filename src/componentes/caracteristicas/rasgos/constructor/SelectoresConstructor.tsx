@@ -1,3 +1,5 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { Plus, Trash2, ListFilter } from "lucide-react";
 import estilos from "../ConstructorRasgoDote.module.css";
@@ -97,15 +99,15 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
             ]}
                     alCambiar={(val) => setNuevoSelectorTipo(val)}
                   />
-                  {nuevoSelectorTipo === "multiple" && (<input
-                    type="number"
-                    min={1}
-                    className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
-                    title="Máximo de selecciones"
-                    placeholder="Máx."
-                    value={nuevoSelectorMax}
-                    onChange={(e) => setNuevoSelectorMax(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                  />)}
+                  {nuevoSelectorTipo === "multiple" && (<CampoNumerico
+                                                          min={1}
+                                                          className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
+                                                          title="Máximo de selecciones"
+                                                          placeholder="Máx."
+                                                          value={nuevoSelectorMax}
+                                                          alConfirmar={setNuevoSelectorMax}
+
+                                                        />)}
                 </div>
               </div>
 
@@ -145,9 +147,9 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
               <button type="button" className={estilos.botonCancelarEfecto} onClick={() => setModoCreandoSelector(false)}>
                 Cancelar
               </button>
-              <button type="button" className={estilos.botonConfirmarEfecto} onClick={manejarAgregarSelector}>
+              <BotonNumerico ambito="form" type="button" className={estilos.botonConfirmarEfecto} onClick={manejarAgregarSelector}>
                 Confirmar Selector
-              </button>
+              </BotonNumerico>
             </div>
           </div>) : (<button type="button" className={estilos.botonAnadirEfecto} onClick={() => setModoCreandoSelector(true)}>
             <Plus size={14}/>

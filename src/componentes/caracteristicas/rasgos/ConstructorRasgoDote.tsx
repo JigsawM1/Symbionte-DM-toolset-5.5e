@@ -1,4 +1,5 @@
 import type React from "react";
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import { usarConstructorRasgo } from "./constructor/usarConstructorRasgo";
 import type { ConstructorRasgoDoteProps } from "./constructor/tiposConstructor";
 import { BarraConstructor } from "./constructor/BarraConstructor";
@@ -13,12 +14,11 @@ import estilos from "./ConstructorRasgoDote.module.css";
 
 export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = (props) => {
   const constructor = usarConstructorRasgo(props);
-  return <div className={estilos.panelConstructor}>
+  return <FormularioNumerico className={estilos.panelConstructor} key={`${props.personaje.id}:${props.rasgoInicial?.id ?? "nuevo"}`} onSubmit={() => constructor.manejarGuardar()}>
     <BarraConstructor
       borrador={constructor.borrador}
       esEdicion={Boolean(props.rasgoInicial)}
       alVolver={props.alVolver}
-      manejarGuardar={constructor.manejarGuardar}
     />
     <PlantillaDoteConstructor
       rasgosAdicionales={constructor.rasgosAdicionales}
@@ -50,5 +50,5 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = (props)
     {Object.keys(constructor.errores).length > 0 && <div role="alert">
       {Object.entries(constructor.errores).map(([campo, mensaje]) => <p id={`error-rasgo-${campo}`} key={campo}>{mensaje}</p>)}
     </div>}
-  </div>;
+  </FormularioNumerico>;
 };

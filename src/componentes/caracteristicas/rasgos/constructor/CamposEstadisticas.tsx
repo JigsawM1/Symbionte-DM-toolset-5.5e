@@ -1,8 +1,9 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import estilos from "../ConstructorRasgoDote.module.css";
 import { OPCIONES_MODO_CA, OPCIONES_CONDICION_CA, OPCIONES_ATRIBUTO_CA, OPCIONES_CARACTERISTICAS } from "./constantesConstructor";
 import type { usarEditorEfectos } from "./usarEditorEfectos";
-type Props = Pick<ReturnType<typeof usarEditorEfectos>, 
+type Props = Pick<ReturnType<typeof usarEditorEfectos>,
   | "nuevoTipoEfecto"
   | "nuevoObjetivo"
   | "setNuevoObjetivo"
@@ -69,12 +70,12 @@ export function CamposEstadisticas({
                       <label className={estilos.labelCampo}>
                         <span>Bono Plano a la CA</span>
                       </label>
-                      <input
-                        type="text"
+                      <CampoNumerico
                         className={estilos.inputControl}
                         placeholder="ej. 1, 2"
                         value={nuevoValor}
-                        onChange={(e) => setNuevoValor(e.target.value)}
+                        alConfirmar={(valor) => setNuevoValor(String(valor))}
+                        identidad={`${nuevoTipoEfecto}:${nuevoObjetivo}`}
                       />
                     </div>)}
                 </div>
@@ -118,12 +119,12 @@ export function CamposEstadisticas({
                   <label className={estilos.labelCampo}>
                     <span>Incremento</span>
                   </label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputControl}
                     placeholder="ej. 2 o 4"
                     value={nuevoValor}
-                    onChange={(e) => setNuevoValor(e.target.value)}
+                    alConfirmar={(valor) => setNuevoValor(String(valor))}
+
                   />
                 </div>
 
@@ -131,13 +132,13 @@ export function CamposEstadisticas({
                   <label className={estilos.labelCampo}>
                     <span>Nuevo Límite Máximo</span>
                   </label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     min={20}
                     max={30}
                     className={estilos.inputControl}
                     value={nuevoLimiteMaximo}
-                    onChange={(e) => setNuevoLimiteMaximo(parseInt(e.target.value, 10) || 20)}
+                    alConfirmar={setNuevoLimiteMaximo}
+
                   />
                 </div>
               </div>)}
@@ -145,14 +146,14 @@ export function CamposEstadisticas({
                 <label className={estilos.labelCampo}>
                   <span>Incremento de Velocidad (Pies)</span>
                 </label>
-                <input
-                  type="number"
+                <CampoNumerico
                   min={5}
                   step={5}
                   className={estilos.inputControl}
                   value={nuevoValor}
-                  onChange={(e) => setNuevoValor(e.target.value)}
+                  alConfirmar={(valor) => setNuevoValor(String(valor))}
                   placeholder="10"
+
                 />
               </div>)}
         {nuevoTipoEfecto === "movimiento_especial" && (<div className={estilos.gridDosColumnas}>
@@ -189,14 +190,14 @@ export function CamposEstadisticas({
                   <label className={estilos.labelCampo}>
                     <span>Multiplicador de Capacidad de Carga</span>
                   </label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     step="0.5"
                     min="0.5"
                     className={estilos.inputControl}
                     placeholder="ej. 2 (doble), 0.5 (mitad)..."
                     value={nuevoValor}
-                    onChange={(e) => setNuevoValor(e.target.value)}
+                    alConfirmar={(valor) => setNuevoValor(String(valor))}
+                    tipo="decimal"
                   />
                   <p className={estilos.pistaCampo}>
                     Factor multiplicador sobre la carga máxima (ej. 2 para Constitución poderosa / categoría de tamaño superior).

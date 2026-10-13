@@ -1,3 +1,4 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import React from "react";
 import type { PersonajeJugador } from "@/tipos";
 import { ModalDetalleHabilidad } from "./ModalDetalleHabilidad";
@@ -132,7 +133,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
       </div>
 
       {/* Formulario Principal de Configuración */}
-      <form onSubmit={manejarGuardar} className={estilos.formularioConfiguracion}>
+      <FormularioNumerico key={personaje.id} onSubmit={manejarGuardar} className={estilos.formularioConfiguracion}>
         {pestanaActiva === "identidad" && (
           <PestanaIdentidad
             form={form}
@@ -199,7 +200,7 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
             Guardar Cambios
           </button>
         </div>
-      </form>
+      </FormularioNumerico>
 
       {/* Modal Inspector / Personalización de Habilidad */}
       {habilidadEnDetalle && (

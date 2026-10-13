@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Shield, Heart } from "lucide-react";
 import estilos from "../FormularioCriatura.module.css";
@@ -86,12 +87,12 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           <label className={estilos.labelForm}>
             <Shield size={12} /> CA:
           </label>
-          <input
-            type="number"
+          <CampoNumerico
             value={monstruoForm.ca}
-            onChange={(e) => actualizarGeneral("ca", parseInt(e.target.value, 10) || 10)}
+            alConfirmar={(valor) => actualizarGeneral("ca", valor)}
             className={estilos.inputForm}
             min={1}
+
           />
         </div>
         <div className={estilos.campoForm}>
@@ -108,12 +109,12 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           <label className={estilos.labelForm}>
             <Heart size={12} /> HP Máx:
           </label>
-          <input
-            type="number"
+          <CampoNumerico
             value={monstruoForm.vidaMaxima}
-            onChange={(e) => actualizarGeneral("vidaMaxima", parseInt(e.target.value, 10) || 10)}
+            alConfirmar={(valor) => actualizarGeneral("vidaMaxima", valor)}
             className={estilos.inputForm}
             min={1}
+
           />
         </div>
       </div>
@@ -131,11 +132,11 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Bonif. Inic:</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={monstruoForm.iniciativaBonificador || 0}
-            onChange={(e) => actualizarGeneral("iniciativaBonificador", parseInt(e.target.value, 10) || 0)}
+            alConfirmar={(valor) => actualizarGeneral("iniciativaBonificador", valor)}
             className={estilos.inputForm}
+
           />
         </div>
         <div className={estilos.campoForm}>
@@ -153,13 +154,10 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Desafío (CR):</label>
-          <input
-            type="text"
-            value={monstruoForm.desafio || ""}
-            onChange={(e) => actualizarGeneral("desafio", e.target.value)}
+          <CampoNumerico value={monstruoForm.desafio || ""}
+            alConfirmar={(valor) => actualizarGeneral("desafio", ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" } as Record<number, string>)[valor] ?? String(valor))}
             placeholder="Ej. 5 o 1/2"
-            className={estilos.inputForm}
-          />
+            className={estilos.inputForm} min={0} tipo="decimal" alVaciar={() => actualizarGeneral("desafio", "")} />
         </div>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Fuente:</label>

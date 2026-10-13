@@ -1,3 +1,5 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useMemo } from "react";
 import type {
   PersonajeJugador,
@@ -210,7 +212,7 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
         </div>
 
         {/* Contenido de la Pestaña Activa */}
-        <form onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal}>
+        <FormularioNumerico onSubmit={manejarGuardar} className={estilos.contenidoPestañaModal}>
           {/* PESTAÑA 1: IDENTIDAD */}
           {pestañaActiva === "identidad" && (
             <>
@@ -263,25 +265,25 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Nivel (1 - 20)</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputFormulario}
                     value={form.nivel}
-                    onChange={(e) => manejarCambioNivel(e.target.value)}
+                    alConfirmar={(valor) => manejarCambioNivel(String(valor))}
                     min="1"
                     max="20"
                     required
+                    identidad={form.id}
                   />
                 </div>
 
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Puntos de Experiencia (PX)</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputFormulario}
                     value={form.experiencia}
-                    onChange={(e) => actualizarCampo("experiencia", parseInt(e.target.value, 10) || 0)}
+                    alConfirmar={(valor) => actualizarCampo("experiencia", valor)}
                     min="0"
+                    identidad={form.id}
                   />
                 </div>
               </div>
@@ -407,29 +409,26 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
                       <div className={estilos.filaInputsAtributoEdicion}>
                         <div className={estilos.columnaInputAtributo}>
                           <label className={estilos.labelMicroAtributo}>Base</label>
-                          <input
-                            type="number"
+                          <CampoNumerico
                             className={`${estilos.inputFormulario} ${estilos.inputAtributoNumerico}`}
                             value={valorBase}
-                            onChange={(e) => actualizarCaracteristicaBase(carac, parseInt(e.target.value, 10))}
+                            alConfirmar={(valor) => actualizarCaracteristicaBase(carac, valor)}
                             min="1"
                             max="30"
+                            identidad={form.id}
                           />
                         </div>
 
                         <div className={estilos.columnaInputAtributo}>
                           <label className={estilos.labelMicroAtributo}>Override Fijo</label>
-                          <input
-                            type="number"
+                          <CampoNumerico
                             className={`${estilos.inputFormulario} ${estilos.inputAtributoNumerico}`}
                             value={override !== null && override !== undefined ? override : ""}
-                            onChange={(e) => {
-                              const val = e.target.value.trim() === "" ? null : parseInt(e.target.value, 10);
-                              actualizarOverrideFijo(carac, val);
-                            }}
+                            alConfirmar={(valor) => actualizarOverrideFijo(carac, valor)}
                             placeholder="Ninguno"
                             min="1"
                             max="30"
+                            alVaciar={() => actualizarOverrideFijo(carac, null)} identidad={form.id}
                           />
                         </div>
                       </div>
@@ -547,21 +546,13 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>HP Máximo Base (Verdadero)</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputFormulario}
                     value={form.hpMaximoBase || 10}
-                    onChange={(e) => {
-                      const maxBaseVal = Math.max(1, parseInt(e.target.value, 10) || 1);
-                      setForm((prev) => ({
-                        ...prev,
-                        hpMaximoBase: maxBaseVal,
-                        hpMaximo: maxBaseVal,
-                        hpActual: Math.min(prev.hpActual, maxBaseVal)
-                      }));
-                    }}
+                    alConfirmar={(valor) => setForm(prev => ({ ...prev, hpMaximoBase: valor, hpMaximo: valor, hpActual: Math.min(prev.hpActual, valor) }))}
                     min="1"
                     required
+                    identidad={form.id}
                   />
                 </div>
 
@@ -579,12 +570,12 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Clase de Armadura (CA Base)</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputFormulario}
                     value={form.ca}
-                    onChange={(e) => actualizarCampo("ca", parseInt(e.target.value, 10) || 10)}
+                    alConfirmar={(valor) => actualizarCampo("ca", valor)}
                     min="1"
+                    identidad={form.id}
                   />
                 </div>
 
@@ -603,11 +594,11 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               <div className={estilos.filaFormulario}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Bonificador Extra de Iniciativa</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={estilos.inputFormulario}
                     value={form.iniciativaBono}
-                    onChange={(e) => actualizarCampo("iniciativaBono", parseInt(e.target.value, 10) || 0)}
+                    alConfirmar={(valor) => actualizarCampo("iniciativaBono", valor)}
+                    identidad={form.id}
                   />
                 </div>
 
@@ -653,7 +644,7 @@ export const ModalEditarPersonaje: React.FC<ModalEditarPersonajeProps> = ({
               Guardar Cambios
             </button>
           </div>
-        </form>
+        </FormularioNumerico>
       </div>
     </div>
   );

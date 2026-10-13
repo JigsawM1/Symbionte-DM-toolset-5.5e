@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
+import React, { useState, useRef } from "react";
 import type { PersonajeJugador } from "@/tipos";
 import { Plus, Minus, Dices, RotateCcw, Heart, Skull } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
@@ -31,29 +33,8 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
   alTirarSalvacionMuerte3D
 }) => {
   const [valorDeltaHp, setValorDeltaHp] = useState<string>("0");
+  const refCantidad = useRef<HTMLInputElement>(null);
   const [editandoTemp, setEditandoTemp] = useState(false);
-  const [valorTempInput, setValorTempInput] = useState(String(personaje.hpTemporal || 0));
-
-  // Estados locales para los inputs directos en la barra
-  const [hpActualInput, setHpActualInput] = useState(String(personaje.hpActual));
-  const [hpMaxInput, setHpMaxInput] = useState(String(personaje.hpMaximo));
-  const [dadosGolpeInput, setDadosGolpeInput] = useState(String(personaje.dadosGolpeRestantes));
-
-  useEffect(() => {
-    setHpActualInput(String(personaje.hpActual));
-  }, [personaje.hpActual]);
-
-  useEffect(() => {
-    setHpMaxInput(String(personaje.hpMaximo));
-  }, [personaje.hpMaximo]);
-
-  useEffect(() => {
-    setValorTempInput(String(personaje.hpTemporal || 0));
-  }, [personaje.hpTemporal]);
-
-  useEffect(() => {
-    setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
-  }, [personaje.dadosGolpeRestantes]);
 
   const maxBase = personaje.hpMaximoBase || personaje.hpMaximo || 10;
   const maxEfectivo = personaje.hpMaximo || 10;
@@ -85,43 +66,19 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
       : "Saludable";
 
   const manejarAplicarCuracion = () => {
-    const cantidad = parseInt(valorDeltaHp, 10) || 1;
+    if (refCantidad.current && !refCantidad.current.checkValidity()) return;
+    const cantidad = Number(valorDeltaHp);
+    if (!Number.isFinite(cantidad) || cantidad <= 0) return;
     alModificarHP(Math.abs(cantidad));
     setValorDeltaHp("0");
   };
 
   const manejarAplicarDano = () => {
-    const cantidad = parseInt(valorDeltaHp, 10) || 1;
+    if (refCantidad.current && !refCantidad.current.checkValidity()) return;
+    const cantidad = Number(valorDeltaHp);
+    if (!Number.isFinite(cantidad) || cantidad <= 0) return;
     alModificarHP(-Math.abs(cantidad));
     setValorDeltaHp("0");
-  };
-
-  const manejarGuardarTemp = () => {
-    const valor = parseInt(valorTempInput, 10);
-    if (!isNaN(valor) && valor >= 0) {
-      alModificarHPTemporal(valor);
-    } else {
-      setValorTempInput(String(personaje.hpTemporal || 0));
-    }
-    setEditandoTemp(false);
-  };
-
-  const manejarGuardarHpActualDirecto = () => {
-    const valor = parseInt(hpActualInput, 10);
-    if (!isNaN(valor)) {
-      alEstablecerHPActual(valor);
-    } else {
-      setHpActualInput(String(personaje.hpActual));
-    }
-  };
-
-  const manejarGuardarHpMaxDirecto = () => {
-    const valor = parseInt(hpMaxInput, 10);
-    if (!isNaN(valor) && valor > 0) {
-      alModificarHPMaximoEfectivo(valor);
-    } else {
-      setHpMaxInput(String(personaje.hpMaximo));
-    }
   };
 
   // Alternar slot de éxito (Corazón)
@@ -144,15 +101,6 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
     }
   };
 
-  const confirmarDadosGolpeDirecto = () => {
-    const val = parseInt(dadosGolpeInput, 10);
-    if (!isNaN(val) && alEstablecerDadosGolpeRestantes) {
-      alEstablecerDadosGolpeRestantes(val);
-    } else {
-      setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
-    }
-  };
-
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionVitalidad}`}>
       {/* 1. Fila de Salud Principal y HP Temporal */}
@@ -162,18 +110,19 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
           <div className={estilos.cabeceraHp}>
             <div className={estilos.controlesHpMod}>
               <span className={estilos.tituloHp}>Puntos de Golpe</span>
-              <button
+              <BotonNumerico
                 type="button"
                 className={estilos.botonModHpCurar}
                 onClick={manejarAplicarCuracion}
                 title="Curar cantidad ingresada (+)"
               >
                 <Plus size={14} />
-              </button>
-              <input
-                type="number"
+              </BotonNumerico>
+              <CampoNumerico
                 value={valorDeltaHp}
-                onChange={(e) => setValorDeltaHp(e.target.value)}
+                ref={refCantidad}
+                identidad={personaje.id}
+                alConfirmar={(valor) => setValorDeltaHp(String(valor))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     manejarAplicarDano();
@@ -183,15 +132,16 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 min="0"
                 placeholder="0"
                 title="Escribe la cantidad y pulsa Enter o [-] para dañar, o [+] para curar"
+                alVaciar={() => setValorDeltaHp("")}
               />
-              <button
+              <BotonNumerico
                 type="button"
                 className={estilos.botonModHpDano}
                 onClick={manejarAplicarDano}
                 title="Infligir daño por cantidad ingresada (- o Enter)"
               >
                 <Minus size={14} />
-              </button>
+              </BotonNumerico>
             </div>
             <span className={estilos.textoHpBase} title="HP Máximo Base fijado en configuración">
               Base: {maxBase}
@@ -206,29 +156,25 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
             />
             <div className={estilos.barraVidaTexto}>
               {/* HP Actual editable directamente (discreto) */}
-              <input
-                type="number"
+              <CampoNumerico
                 className={estilos.inputHpDirecto}
-                value={hpActualInput}
-                onChange={(e) => setHpActualInput(e.target.value)}
-                onBlur={manejarGuardarHpActualDirecto}
-                onKeyDown={(e) => e.key === "Enter" && manejarGuardarHpActualDirecto()}
+                value={personaje.hpActual}
+                alConfirmar={alEstablecerHPActual}
                 title="Haz clic para editar HP actual directamente"
+                identidad={personaje.id} min={0} max={personaje.hpMaximo}
               />
               <span className={estilos.separadorHp}>/</span>
               {/* HP Máximo Efectivo editable directamente (discreto) */}
-              <input
-                type="number"
+              <CampoNumerico
                 className={`${estilos.inputHpDirecto} ${claseHpMax}`}
-                value={hpMaxInput}
-                onChange={(e) => setHpMaxInput(e.target.value)}
-                onBlur={manejarGuardarHpMaxDirecto}
-                onKeyDown={(e) => e.key === "Enter" && manejarGuardarHpMaxDirecto()}
+                value={personaje.hpMaximo}
+                alConfirmar={alModificarHPMaximoEfectivo}
                 title={
                   maxEfectivo !== maxBase
                     ? `HP Máximo temporal modificado (${maxEfectivo} vs Base ${maxBase})`
                     : "Haz clic para modificar el HP Máximo efectivo directamente"
                 }
+                identidad={personaje.id} min={1}
               />
             </div>
             <span className={estilos.badgeEstadoVida}>{etiquetaEstadoVida}</span>
@@ -244,15 +190,14 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
             title="Haz clic para editar HP Temporal"
           >
             {editandoTemp ? (
-              <input
-                type="number"
-                value={valorTempInput}
-                onChange={(e) => setValorTempInput(e.target.value)}
-                onBlur={manejarGuardarTemp}
-                onKeyDown={(e) => e.key === "Enter" && manejarGuardarTemp()}
+              <CampoNumerico
+                value={personaje.hpTemporal ?? 0}
+                alConfirmar={(valor) => alModificarHPTemporal(valor)}
+                onBlur={() => setEditandoTemp(false)}
                 autoFocus
                 className={`${estilos.inputHpMod} ${estilos.inputTempFull}`}
                 min="0"
+                identidad={personaje.id}
               />
             ) : (
               <span className={estilos.valorTempHp}>{personaje.hpTemporal || 0}</span>
@@ -270,23 +215,14 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
           </div>
           <div className={estilos.valorDadosGolpe}>
             <div className={estilos.filaDadosGolpeValores}>
-              <input
-                type="number"
+              <CampoNumerico
                 className={estilos.inputDadosGolpeDirecto}
-                value={dadosGolpeInput}
-                onChange={(e) => setDadosGolpeInput(e.target.value)}
-                onBlur={confirmarDadosGolpeDirecto}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.currentTarget.blur();
-                  } else if (e.key === "Escape") {
-                    setDadosGolpeInput(String(personaje.dadosGolpeRestantes));
-                    e.currentTarget.blur();
-                  }
-                }}
+                value={personaje.dadosGolpeRestantes}
+                alConfirmar={(valor) => alEstablecerDadosGolpeRestantes?.(valor)}
                 min="0"
                 max={personaje.dadosGolpeTotal}
                 title="Editar cantidad de dados de golpe disponibles"
+                identidad={personaje.id}
               />
               <span>{personaje.tipoDadoGolpe}{" "}</span>
               <span className={estilos.textoDadosGolpeTotal}>/ {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}</span>

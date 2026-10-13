@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Coins, Weight, Link2, Sparkles, ChevronDown, ChevronRight } from "lucide-react";
 import type { BolsaMonedas, TipoMonedaClave, ObjetoInventario } from "@/tipos";
-import { evaluarOperacionMoneda } from "@/servicios/calculadorInventario";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 const MONEDAS_CONFIG: { clave: TipoMonedaClave; etiqueta: string; claseColor: string }[] = [
@@ -27,39 +27,17 @@ const CasillaMoneda: React.FC<CasillaMonedaProps> = ({
   valorActual,
   alGuardar
 }) => {
-  const [texto, setTexto] = useState(String(valorActual));
-
-  useEffect(() => {
-    setTexto(String(valorActual));
-  }, [valorActual]);
-
-  const aplicarOperacion = () => {
-    const evaluado = evaluarOperacionMoneda(valorActual, texto);
-    setTexto(String(evaluado));
-    if (evaluado !== valorActual) {
-      alGuardar(clave, evaluado);
-    }
-  };
-
-  const manejarKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.currentTarget.blur();
-    }
-  };
-
   return (
     <div className={estilos.tarjetaMoneda}>
       <span className={`${estilos.etiquetaMoneda} ${claseColor}`}>
         {etiqueta}
       </span>
-      <input
-        type="text"
+      <CampoNumerico
+        min={0}
         inputMode="numeric"
         className={estilos.inputMoneda}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        onBlur={aplicarOperacion}
-        onKeyDown={manejarKeyDown}
+        value={valorActual}
+        alConfirmar={(valor) => alGuardar(clave, valor)}
         placeholder="0"
         title="Ingresa un número directo o una operación (+10, -5, 50+20)"
       />

@@ -4,6 +4,15 @@ Este archivo registra reglas globales, errores encontrados, sus causas raíz y l
 
 ## [2026-10-12] Integración de Rama cosa-syn-mejoras en Main: Autoridad Sync, Críticos d12 y Migración UI
 
+## [2026-10-12] Migración a campos numéricos universales
+
+- Migradas 81 declaraciones en 36 archivos: 73 casillas originales, monedas y siete campos de texto numéricos. Evaluador puro compartido, CampoNumerico y usarCampoNumerico; sin dependencias nuevas ni cambios en el formato de fichas o el protocolo sync. Las fórmulas persistentes de dados/rasgos y los campos mixtos conservan sus editores. Inventario por campo y contratos: MIGRACION_CAMPOS_NUMERICOS.md.
+- Números directos y operaciones completas con precedencia, paréntesis y decimales. +5/-5 ajustan el valor reciente; =-5 asigna un negativo. Vacío obligatorio recupera el valor; opcional limpia su representación original. Enter/blur confirman una vez; Escape descarta; resultados fuera de rango se ajustan. Entradas inválidas y divisiones por cero no se guardan.
+- Guardado de formularios y botones de acción resuelve borradores antes de consultar el manejador actualizado; los límites dependientes se actualizan entre confirmaciones. Vida, iniciativa y movimiento usan valores autoritativos sin estados duplicados. Daño vacío o cero no se convierte en una unidad. Cambios externos preservan borradores y rebasan incrementos; cambio de destino o bloqueo descarta la edición.
+- Comprobado con pnpm run test:campos-numericos: salida 0, 35 regresiones en Chromium real y 36 combinaciones dimensionales a 599/433 px en los dos temas; sin errores JavaScript. Regresiones de monedas, daño por Enter/clic, negativos, overrides, multiclase, recursos, movimiento, peso/cantidad y guardado homebrew. pnpm run test:tema-jugador: salida 0 y 22 regresiones existentes.
+- CI final real: pnpm run ci, salida 0, 129 suites y 1.784 pruebas; TypeScript, ESLint, auditoría de líneas y build correctos. Aviso existente de chunks grandes. Cero inputs type=number/valueAsNumber en componentes y git diff --check correcto. Logs y resultados en scratch.
+- pnpm necesita ejecución fuera del sandbox por EPERM y para resolver correctamente sus dependencias. Validación local en Chromium y simulación de actualizaciones externas; no se certificó CEF, una sesión nativa de TaleSpire ni se desplegó.
+
 **Alcance de la Fusión en `main`:**
 - Integración completa de 185 archivos (+10.484 / -6.102 líneas) provenientes de `cosa-syn-mejoras`.
 - **Sincronización Segura y Autoridad (`autoridadSync.ts`, `sliceSync.ts`):** Validación nativa de posesión de miniaturas en TaleSpire antes de emitir estados de PJ, protección autoritativa de revisiones del DM sin perder ediciones de jugadores (`borradoresSync`), diálogo accesible de descarga/reaplicación manual de cambios (`CambiosSyncPendientes.tsx`) y carga persistida transaccional con Zod (`cargaPersistida.ts`).

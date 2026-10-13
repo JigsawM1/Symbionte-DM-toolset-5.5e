@@ -1,3 +1,5 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useMemo, useEffect } from "react";
 import type { ObjetoJuego, ObjetoInventario, Arma, Armadura, Escudo, TipoContenedor } from "@/tipos";
 import { DICCIONARIO_CATEGORIAS_EQUIPO, type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
@@ -268,7 +270,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
     const nuevoObj = crearObjetoInventarioCustom({
       nombre: nombrePosesion.trim(),
-      pesoLb: parseFloat(pesoPosesion) || 0,
+      pesoLb: Number(pesoPosesion) || 0,
       cantidad: Math.max(1, cantidadPosesion || 1),
       categoria: "equipo-aventurero",
       esConsumible: false,
@@ -325,7 +327,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
         {/* Contenido según Tab */}
         {tabActiva === "compendio" ? (
-          <form
+          <FormularioNumerico
             onSubmit={manejarAgregarDesdeCompendio}
             className={estilos.formularioCompendioModal}
           >
@@ -360,12 +362,12 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
               {/* Selector de Cantidad */}
               <div className={estilos.campoFormulario}>
                 <label className={estilos.labelFormulario}>Cantidad a Añadir:</label>
-                <input
-                  type="number"
+                <CampoNumerico
                   min="1"
                   className={estilos.inputFormulario}
                   value={cantidadCompendio}
-                  onChange={(e) => setCantidadCompendio(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  alConfirmar={setCantidadCompendio}
+
                 />
               </div>
 
@@ -598,9 +600,9 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 Añadir al Inventario
               </button>
             </div>
-          </form>
+          </FormularioNumerico>
         ) : (
-          <form onSubmit={manejarCrearOtrasPosesiones} className={estilos.formularioPosesionesModal}>
+          <FormularioNumerico onSubmit={manejarCrearOtrasPosesiones} className={estilos.formularioPosesionesModal}>
             <div className={estilos.contenidoFormularioAgregarObjeto}>
               <div className={estilos.bannerInformativoPosesiones}>
                 <FileText size={14} color="var(--pj-texto-cian)" className={estilos.iconoBannerPosesiones} />
@@ -625,25 +627,25 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
               <div className={estilos.gridDosColumnasPosesion}>
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Cantidad</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     min="1"
                     className={estilos.inputFormulario}
                     value={cantidadPosesion}
-                    onChange={(e) => setCantidadPosesion(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                    alConfirmar={setCantidadPosesion}
+
                   />
                 </div>
 
                 <div className={estilos.campoFormulario}>
                   <label className={estilos.labelFormulario}>Peso Total (lb)</label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     step="0.1"
                     min="0"
                     className={estilos.inputFormulario}
                     value={pesoPosesion}
-                    onChange={(e) => setPesoPosesion(e.target.value)}
+                    alConfirmar={(valor) => setPesoPosesion(String(valor))}
                     placeholder="0 (ligero / insignificante)"
+                    tipo="decimal"
                   />
                 </div>
               </div>
@@ -709,7 +711,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 Añadir a Posesiones
               </button>
             </div>
-          </form>
+          </FormularioNumerico>
         )}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import {
   PawPrint,
@@ -163,14 +164,7 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
 
   // 2. Control de Popover de Movimiento
   const [menuVelocidadAbierto, setMenuVelocidadAbierto] = useState(false);
-  const [inputRestante, setInputRestante] = useState<string>(
-    estadoVelocidad.movimientoRestante.toString()
-  );
   const popoverRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setInputRestante(estadoVelocidad.movimientoRestante.toString());
-  }, [estadoVelocidad.movimientoRestante]);
 
   useEffect(() => {
     if (!menuVelocidadAbierto) return;
@@ -182,15 +176,6 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
     document.addEventListener("mousedown", clickFuera);
     return () => document.removeEventListener("mousedown", clickFuera);
   }, [menuVelocidadAbierto]);
-
-  const manejarAplicarInputManual = () => {
-    const val = Number(inputRestante);
-    if (!isNaN(val) && val >= 0) {
-      modificarMovimientoRestanteManualAcompanante(personajeId, acomp.id, val);
-    } else {
-      setInputRestante(estadoVelocidad.movimientoRestante.toString());
-    }
-  };
 
   // Historial de movimientos
   const historial = Array.isArray(acomp.historialMovimiento) ? acomp.historialMovimiento : [];
@@ -441,21 +426,15 @@ const ItemAcompanante: React.FC<ItemAcompananteProps> = ({
                   5 ft
                 </button>
 
-                <input
-                  type="number"
+                <CampoNumerico
                   step="any"
                   min="0"
                   max={estadoVelocidad.velocidadTotal * 2}
                   className={estilos.inputRestanteManual}
-                  value={inputRestante}
-                  onChange={(e) => setInputRestante(e.target.value)}
-                  onBlur={manejarAplicarInputManual}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      manejarAplicarInputManual();
-                    }
-                  }}
+                  value={estadoVelocidad.movimientoRestante}
+                  alConfirmar={(valor) => modificarMovimientoRestanteManualAcompanante(personajeId, acomp.id, valor)}
                   title="Escribe directamente los pies restantes y pulsa Enter"
+                  tipo="decimal" identidad={acomp.id}
                 />
 
                 <button

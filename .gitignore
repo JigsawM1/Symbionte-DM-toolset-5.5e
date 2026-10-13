@@ -56,3 +56,5 @@ respaldo.yaml
 !/scripts/probar-constructor-rasgos.mjs
 !/scripts/probar-tema-jugador.mjs
 !/scripts/fixture-tema-jugador.mjs
+!/scripts/probar-campos-numericos.mjs
+!/scripts/fixture-campos-numericos.mjs

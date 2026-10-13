@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Sparkles } from "lucide-react";
 import estilos from "../HojaPersonaje.module.css";
@@ -17,7 +18,6 @@ interface EditorPuntuacionYOverrideProps {
 export const EditorPuntuacionYOverride: React.FC<EditorPuntuacionYOverrideProps> = ({
   valorBaseForm,
   setValorBaseForm,
-  valorBaseActual,
   modBasePreview,
   overrideForm,
   setOverrideForm,
@@ -47,22 +47,10 @@ export const EditorPuntuacionYOverride: React.FC<EditorPuntuacionYOverrideProps>
             -
           </button>
 
-          <input
-            type="text"
-            inputMode="numeric"
-            className={`${estilos.inputFormulario} ${estilosModal.inputBasePuntuacion}`}
+          <CampoNumerico className={`${estilos.inputFormulario} ${estilosModal.inputBasePuntuacion}`}
             value={valorBaseForm}
-            onChange={(e) => setValorBaseForm(e.target.value)}
-            onBlur={() => {
-              const num = parseInt(valorBaseForm, 10);
-              if (!isNaN(num) && num >= 1 && num <= 30) {
-                setValorBaseForm(String(num));
-              } else {
-                setValorBaseForm(String(valorBaseActual));
-              }
-            }}
-            placeholder="10"
-          />
+            alConfirmar={(valor) => setValorBaseForm(String(valor))}
+            placeholder="10" min={1} max={30} />
 
           <button
             type="button"
@@ -89,15 +77,11 @@ export const EditorPuntuacionYOverride: React.FC<EditorPuntuacionYOverrideProps>
         </div>
 
         <div className={estilosModal.filaDeltaPuntuacion}>
-          <input
-            type="text"
-            inputMode="numeric"
-            className={`${estilos.inputFormulario} ${estilosModal.inputOverrideFijo}`}
+          <CampoNumerico className={`${estilos.inputFormulario} ${estilosModal.inputOverrideFijo}`}
             data-activo={overrideValidoPreview !== null ? "true" : undefined}
             value={overrideForm}
-            onChange={(e) => setOverrideForm(e.target.value)}
-            placeholder="Ninguno (usar puntuación base)"
-          />
+            alConfirmar={(valor) => setOverrideForm(String(valor))}
+            placeholder="Ninguno (usar puntuación base)" min={1} max={30} alVaciar={() => setOverrideForm("")} />
 
           {overrideForm !== "" && (
             <button

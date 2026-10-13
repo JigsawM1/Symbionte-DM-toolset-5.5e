@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { TipoBonoDestreza } from "@/almacen/usarAlmacenDM";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -48,24 +49,24 @@ export const SeccionArmadura: React.FC<Props> = ({
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Clase de Armadura (CA Base):</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={oCaBase}
-            onChange={(e) => setOCaBase(parseInt(e.target.value) || 10)}
+            alConfirmar={setOCaBase}
             placeholder="10"
             className={estilos.inputForm}
             min={1}
+
           />
         </div>
 
         <div className={estilos.campoForm}>
           <label className={estilos.labelForm}>Requisito de Fuerza (FUE):</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={oRequisitoFuerza}
-            onChange={(e) => setORequisitoFuerza(e.target.value === "" ? "" : parseInt(e.target.value))}
+            alConfirmar={setORequisitoFuerza}
             placeholder="Ninguno"
             className={estilos.inputForm}
+            alVaciar={() => setORequisitoFuerza("")} min={0}
           />
         </div>
       </div>

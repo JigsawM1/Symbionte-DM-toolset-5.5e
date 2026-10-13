@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
 import { Coins, Star } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -46,12 +47,12 @@ export const ConversorDivisas: React.FC = () => {
       <div className={estilosClases.cuerpoCalculadora}>
         <div className={estilosClases.filaFormulario}>
           <label className={estilosClases.labelForm}>Cantidad a Convertir:</label>
-          <input
-            type="number"
+          <CampoNumerico
             value={cantidadDivisa}
-            onChange={(e) => setCantidadDivisa(Math.max(0, parseFloat(e.target.value) || 0))}
+            alConfirmar={setCantidadDivisa}
             className={estilosClases.inputForm}
             min={0}
+            tipo="decimal"
           />
         </div>
 

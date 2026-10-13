@@ -1,3 +1,4 @@
+import { evaluarCampoNumerico } from "@/utiles/evaluadorCampoNumerico";
 import { sonObjetosApilables } from "./compatibilidadInventario";
 import type {
   ObjetoInventario,
@@ -215,40 +216,8 @@ export function calcularEquivalentePO(monedas: BolsaMonedas): number {
  * - Asegura siempre un resultado entero no negativo (>= 0).
  */
 export function evaluarOperacionMoneda(valorActual: number, entrada: string): number {
-  const texto = entrada.trim();
-  if (!texto) return valorActual;
-
-  // Caso 1: Delta con prefijo + o - (+10, -5)
-  if (texto.startsWith("+")) {
-    const num = parseFloat(texto.substring(1).trim());
-    if (Number.isNaN(num)) return valorActual;
-    return Math.max(0, Math.round(valorActual + num));
-  }
-  if (texto.startsWith("-")) {
-    const num = parseFloat(texto.substring(1).trim());
-    if (Number.isNaN(num)) return valorActual;
-    return Math.max(0, Math.round(valorActual - num));
-  }
-
-  // Caso 2: Expresión con sumas y restas intermedias (ej: "50 + 20", "100 - 30 + 5")
-  if (texto.includes("+") || texto.includes("-")) {
-    const tokens = texto.match(/([+-]?\s*\d+(\.\d+)?)/g);
-    if (tokens && tokens.length > 0) {
-      let acumulado = 0;
-      for (const token of tokens) {
-        const num = parseFloat(token.replace(/\s+/g, ""));
-        if (!Number.isNaN(num)) {
-          acumulado += num;
-        }
-      }
-      return Math.max(0, Math.round(acumulado));
-    }
-  }
-
-  // Caso 3: Asignación directa de número entero
-  const parsed = parseFloat(texto);
-  if (Number.isNaN(parsed)) return valorActual;
-  return Math.max(0, Math.round(parsed));
+  const resultado = evaluarCampoNumerico(entrada, valorActual, { min: 0 });
+  return resultado.estado === "valido" ? resultado.valor : valorActual;
 }
 
 /**

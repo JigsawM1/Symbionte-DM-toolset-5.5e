@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Award, Trash2, Plus, Sparkles } from "lucide-react";
 import type { ClasePersonaje } from "@/tipos";
@@ -90,14 +91,15 @@ export const SeccionMulticlase: React.FC<SeccionMulticlaseProps> = ({
                   <label className={estilos.labelPequeno}>
                     Nivel (Max {maxNivelClase})
                   </label>
-                  <input
-                    type="number"
+                  <CampoNumerico
                     className={`${estilos.inputFormulario} ${estilos.inputNivelClase}`}
                     value={claseItem.nivel}
-                    onChange={(e) => alCambiarClaseNivel(index, e.target.value)}
+                    identidad={`${index}:${claseItem.nombre}`}
+                    alConfirmar={(valor) => alCambiarClaseNivel(index, String(valor))}
                     min="1"
                     max={maxNivelClase}
                     required
+
                   />
                 </div>
 

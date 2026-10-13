@@ -1,3 +1,5 @@
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useRef } from "react";
 import { Plus, Trash2, Edit2, X, Zap } from "lucide-react";
 import { RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
@@ -37,7 +39,7 @@ interface SeccionListasAtaquesProps {
     accionesLegendarias?: RasgoBase[];
   };
   actualizarGeneral?: (campo: string, valor: unknown) => void;
-  
+
   // Ataques Rápidos
   tQNombre: string; setTQNombre: (v: string) => void;
   tQBono: string; setTQBono: (v: string) => void;
@@ -207,13 +209,10 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               placeholder="Nombre (ej. Mordisco)"
               className={estilos.inputDinamicoMediano}
             />
-            <input
-              type="text"
-              value={tQBono}
-              onChange={(e) => setTQBono(e.target.value)}
-              placeholder="Bono (+5)"
-              className={estilos.inputDinamicoMini}
-            />
+            <CampoNumerico value={tQBono}
+            alConfirmar={(valor) => setTQBono(valor >= 0 ? `+${valor}` : String(valor))}
+            placeholder="Bono (+5)"
+            className={estilos.inputDinamicoMini} alVaciar={() => setTQBono("")} />
             <input
               type="text"
               value={tQDados}
@@ -444,13 +443,10 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               placeholder="Nombre de la acción"
               className={estilos.inputDinamicoMediano}
             />
-            <input
-              type="text"
-              value={tAccionBono}
-              onChange={(e) => setTAccionBono(e.target.value)}
-              placeholder="Bono (+5)"
-              className={estilos.inputDinamicoMini}
-            />
+            <CampoNumerico value={tAccionBono}
+            alConfirmar={(valor) => setTAccionBono(valor >= 0 ? `+${valor}` : String(valor))}
+            placeholder="Bono (+5)"
+            className={estilos.inputDinamicoMini} alVaciar={() => setTAccionBono("")} />
             <input
               type="text"
               value={tAccionDaño}
@@ -475,14 +471,14 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             spellCheck={false}
           />
           <div className="u-flex u-gap-sm">
-            <button
+            <BotonNumerico ambito="form"
               type="button"
               onClick={agregarAccion}
               className={`${estilos.botonAgregarCompleto} ${accionEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {accionEdicionIdx !== null ? "Guardar Cambios de la Acción" : "Agregar Acción"}
-            </button>
-            <button
+            </BotonNumerico>
+            <BotonNumerico ambito="form"
               type="button"
               onClick={() => {
                 preRellenarAtaqueRapido?.({
@@ -498,7 +494,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             >
               <Zap size={14} />
               <span>A Ataque Rápido</span>
-            </button>
+            </BotonNumerico>
             {accionEdicionIdx !== null && (
               <button
                 type="button"
@@ -528,7 +524,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                   </div>
                 </div>
                 <div className="u-flex u-gap-xs">
-                  <button
+                  <BotonNumerico ambito="form"
                     type="button"
                     onClick={() => {
                       preRellenarAtaqueRapido?.(a);
@@ -538,7 +534,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                     title="Agregar a Ataques Rápidos (pre-rellenar)"
                   >
                     <Zap size={12} />
-                  </button>
+                  </BotonNumerico>
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccion(idx)}
@@ -578,13 +574,10 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
               placeholder="Nombre de la acción adicional"
               className={estilos.inputDinamicoMediano}
             />
-            <input
-              type="text"
-              value={tAccionAdicionalBono}
-              onChange={(e) => setTAccionAdicionalBono(e.target.value)}
-              placeholder="Bono (+5)"
-              className={estilos.inputDinamicoMini}
-            />
+            <CampoNumerico value={tAccionAdicionalBono}
+            alConfirmar={(valor) => setTAccionAdicionalBono(valor >= 0 ? `+${valor}` : String(valor))}
+            placeholder="Bono (+5)"
+            className={estilos.inputDinamicoMini} alVaciar={() => setTAccionAdicionalBono("")} />
             <input
               type="text"
               value={tAccionAdicionalDaño}
@@ -609,14 +602,14 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             spellCheck={false}
           />
           <div className="u-flex u-gap-sm">
-            <button
+            <BotonNumerico ambito="form"
               type="button"
               onClick={agregarAccionAdicional}
               className={`${estilos.botonAgregarCompleto} ${accionAdicionalEdicionIdx !== null ? estilos.botonAgregarCompletoGuardar : estilos.botonAgregarCompletoNormal}`}
             >
               {accionAdicionalEdicionIdx !== null ? "Guardar Cambios Acción Adicional" : "Agregar Acción Adicional"}
-            </button>
-            <button
+            </BotonNumerico>
+            <BotonNumerico ambito="form"
               type="button"
               onClick={() => {
                 preRellenarAtaqueRapido?.({
@@ -632,7 +625,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
             >
               <Zap size={14} />
               <span>A Ataque Rápido</span>
-            </button>
+            </BotonNumerico>
             {accionAdicionalEdicionIdx !== null && (
               <button
                 type="button"
@@ -662,7 +655,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                   </div>
                 </div>
                 <div className="u-flex u-gap-xs">
-                  <button
+                  <BotonNumerico ambito="form"
                     type="button"
                     onClick={() => {
                       preRellenarAtaqueRapido?.(a);
@@ -672,7 +665,7 @@ export const SeccionListasAtaques: React.FC<SeccionListasAtaquesProps> = ({
                     title="Agregar a Ataques Rápidos (pre-rellenar)"
                   >
                     <Zap size={12} />
-                  </button>
+                  </BotonNumerico>
                   <button
                     type="button"
                     onClick={() => iniciarEditarAccionAdicional(idx)}

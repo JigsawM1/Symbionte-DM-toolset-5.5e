@@ -1,10 +1,11 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { Zap } from "lucide-react";
 import estilos from "../ConstructorRasgoDote.module.css";
 import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
 import type { ActualizarBorradorRasgo, usarConstructorRasgo } from "./usarConstructorRasgo";
 interface Props {
-    borrador: Pick<BorradorRasgo, 
+    borrador: Pick<BorradorRasgo,
       | "esActivable"
       | "autoDesactivar"
       | "ligadoA"
@@ -92,16 +93,13 @@ export function ActivacionConstructor({ borrador, actualizarBorrador, opcionesRa
               <label className={estilos.labelCampo}>
                 <span>Duración del Efecto / Condición (Asaltos)</span>
               </label>
-              <input
-                type="number"
+              <CampoNumerico
                 min={1}
                 className={estilos.inputControl}
                 placeholder="ej. 10 (1 min), 100 (10 min)..."
                 value={duracionEfectoAlActivar ?? ""}
-                onChange={(e) => {
-                const val = parseInt(e.target.value, 10);
-                actualizarBorrador("duracionEfectoAlActivar", !isNaN(val) && val > 0 ? val : undefined);
-            }}
+                alConfirmar={(valor) => actualizarBorrador("duracionEfectoAlActivar", valor)}
+                alVaciar={() => actualizarBorrador("duracionEfectoAlActivar", undefined)}
               />
               <p className={estilos.pistaCampo}>
                 Duración en asaltos para el combate y TaleSpire (opcional, ej. 100 asaltos para 10 minutos).
@@ -168,13 +166,13 @@ export function ActivacionConstructor({ borrador, actualizarBorrador, opcionesRa
                 ]}
                       alCambiar={(val) => actualizarBorrador("tipoCantidadRestaurar", val)}
                     />
-                    {tipoCantidadRestaurar === "fijo" && (<input
-                      type="number"
-                      min={1}
-                      className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
-                      value={cantidadRestaurarFija}
-                      onChange={(e) => actualizarBorrador("cantidadRestaurarFija", Math.max(1, parseInt(e.target.value, 10) || 1))}
-                    />)}
+                    {tipoCantidadRestaurar === "fijo" && (<CampoNumerico
+                                                            min={1}
+                                                            className={`${estilos.inputControl} ${estilos.inputNumeroAncho80}`}
+                                                            value={cantidadRestaurarFija}
+                                                            alConfirmar={(valor) => actualizarBorrador("cantidadRestaurarFija", valor)}
+
+                                                          />)}
                   </div>
                 </div>
               </div>)}

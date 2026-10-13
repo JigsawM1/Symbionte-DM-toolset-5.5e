@@ -1,3 +1,4 @@
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { CARACTERISTICAS_CLAVES } from "@/constantes/homebrewConstantes";
 import { Salvaciones } from "@/tipos";
@@ -31,17 +32,17 @@ export const SeccionAtributos: React.FC<SeccionAtributosProps> = ({
         {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }: { clave: string; etiqueta: string }) => {
           const valorCaract = monstruoForm.caracteristicas[clave as keyof typeof monstruoForm.caracteristicas] ?? 10;
           const modificador = Math.floor((valorCaract - 10) / 2);
-          
+
           return (
             <div key={clave} className={estilos.campoMiniForm}>
               <label className={estilos.labelMiniForm}>{etiqueta}</label>
-              <input
-                type="number"
+              <CampoNumerico
                 value={valorCaract}
-                onChange={(e) => actualizarCaracteristica(clave, parseInt(e.target.value, 10) || 10)}
+                alConfirmar={(valor) => actualizarCaracteristica(clave, valor)}
                 className={estilos.inputMiniForm}
                 min={0}
                 max={30}
+
               />
               <span className={estilos.modificadorPrevisualizado}>
                 {modificador >= 0 ? "+" : ""}
@@ -56,16 +57,16 @@ export const SeccionAtributos: React.FC<SeccionAtributosProps> = ({
       <div className={estilos.filaSeisForm}>
         {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }: { clave: string; etiqueta: string }) => {
           const valorSalvacion = monstruoForm.salvaciones?.[clave as keyof Salvaciones] ?? "";
-          
+
           return (
             <div key={`salv_${clave}`} className={estilos.campoMiniForm}>
               <label className={estilos.labelMiniForm}>{etiqueta}</label>
-              <input
-                type="number"
+              <CampoNumerico
                 value={valorSalvacion}
-                onChange={(e) => actualizarSalvacion(clave, e.target.value)}
+                alConfirmar={(valor) => actualizarSalvacion(clave, String(valor))}
                 placeholder="—"
                 className={estilos.inputMiniForm}
+                alVaciar={() => actualizarSalvacion(clave, "")}
               />
             </div>
           );

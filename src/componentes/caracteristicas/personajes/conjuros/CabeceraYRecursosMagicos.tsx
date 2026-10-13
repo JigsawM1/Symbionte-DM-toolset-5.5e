@@ -141,6 +141,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
         {tieneMagiaEstandar &&
           (sistemaMagia === "puntos" ? (
             <TrackerPuntosConjuro
+              key={personaje.id}
               puntosMaximos={personaje.puntosConjuroMaximos || 0}
               puntosGastados={personaje.puntosConjuroGastados || 0}
               nivelMaximo={personaje.nivelConjuroMaximo || 0}

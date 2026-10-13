@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:rasgos-ui": "node scripts/probar-constructor-rasgos.mjs",
     "test:tema-jugador": "node scripts/probar-tema-jugador.mjs --validar",
+    "test:campos-numericos": "node scripts/probar-campos-numericos.mjs",
     "test:ciclo-vida": "node scripts/probar-ciclo-vida.mjs",
     "test:sync-simulacion": "vitest run --config scripts/vitest.simulacion.config.ts",
     "verificar:lineas": "node scripts/verificar-limite-lineas.js",

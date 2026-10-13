@@ -1,3 +1,5 @@
+import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Save } from "lucide-react";
 import estilos from "../HojaPersonaje.module.css";
@@ -62,7 +64,7 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
   alCerrar
 }) => {
   return (
-    <form onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModal.formularioPersonalizarContenedor}`}>
+    <FormularioNumerico onSubmit={manejarGuardar} className={`${estilos.contenidoPestañaModal} ${estilosModal.formularioPersonalizarContenedor}`}>
       <p className={estilosModal.textoAyudaPersonalizar}>
         Personaliza el nombre a mostrar, descripción, puntuaciones base, overrides y bonificadores especiales.
       </p>
@@ -108,23 +110,23 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Modificador Extra a Pruebas</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={estilos.inputFormulario}
             value={modExtraForm}
-            onChange={(e) => setModExtraForm(e.target.value)}
+            alConfirmar={(valor) => setModExtraForm(String(valor))}
             placeholder="+0"
+            alVaciar={() => setModExtraForm("")}
           />
         </div>
 
         <div className={estilos.campoFormulario}>
           <label className={estilos.labelFormulario}>Bono Extra a Salvaciones</label>
-          <input
-            type="number"
+          <CampoNumerico
             className={estilos.inputFormulario}
             value={bonoSalvacionExtraForm}
-            onChange={(e) => setBonoSalvacionExtraForm(e.target.value)}
+            alConfirmar={(valor) => setBonoSalvacionExtraForm(String(valor))}
             placeholder="+0"
+            alVaciar={() => setBonoSalvacionExtraForm("")}
           />
         </div>
       </div>
@@ -186,6 +188,6 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
           Guardar Personalización
         </button>
       </div>
-    </form>
+    </FormularioNumerico>
   );
 };

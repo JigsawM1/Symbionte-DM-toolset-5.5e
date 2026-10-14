@@ -78,16 +78,17 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
   };
 
   const opcionesEvaluadas = useMemo(() => {
+    const padre = personajeActivo?.rasgos.find((r) => r.selectores?.some((s) => s.id === selector.id));
     return selector.opciones.map((op) => {
       const res = evaluarRequisitoDote(op.requisito, personajeActivo, nivelPersonaje);
       const estaActiva = seleccionados.includes(op.id);
-      const padre = personajeActivo?.rasgos.find(r => r.selectores?.some(s => s.id === selector.id));
       const repetida = selector.categoriaDote === "estilo_combate" && personajeActivo && padre && !puedeElegirDoteEstilo(personajeActivo, padre.id, op.id);
       return {
         ...op,
         cumpleRequisitos: res.cumple && !repetida,
         motivoBloqueo: repetida ? "Esta dote no es repetible y ya está concedida." : res.motivo,
-        estaActiva
+        estaActiva,
+        textoBusqueda: normalizar(`${op.nombre} ${op.requisito || ""} ${op.descripcion}`)
       };
     });
   }, [selector.opciones, selector.id, selector.categoriaDote, personajeActivo, nivelPersonaje, seleccionados]);
@@ -104,12 +105,8 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
     const texto = normalizar(busqueda);
     return opcionesEvaluadas.filter((op) => {
       // Filtro de búsqueda
-      if (texto) {
-        const coincide =
-          normalizar(op.nombre).includes(texto) ||
-          normalizar(op.descripcion).includes(texto) ||
-          normalizar(op.requisito || "").includes(texto);
-        if (!coincide) return false;
+      if (texto && !op.textoBusqueda.includes(texto)) {
+        return false;
       }
 
       // Filtro de estado

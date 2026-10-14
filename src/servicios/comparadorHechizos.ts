@@ -61,10 +61,27 @@ export function coincideHechizoId(idA: string, idB: string): boolean {
  */
 export function deduplicarListaIds(lista: string[]): string[] {
   const resultado: string[] = [];
+  const exactos = new Set<string>();
   for (const item of lista) {
+    if (!item) continue;
+    if (exactos.has(item)) continue;
     if (!resultado.some((existente) => coincideHechizoId(existente, item))) {
       resultado.push(item);
+      exactos.add(item);
     }
   }
   return resultado;
+}
+
+/**
+ * Crea un verificador de pertenencia optimizado para listas de IDs de conjuros.
+ * Comprueba primero por Set exacto O(1) antes de recurrir a comparaciones tolerantes.
+ */
+export function crearMatcherHechizos(lista: readonly string[] | string[]): (id: string) => boolean {
+  const exactos = new Set(lista);
+  return (id: string): boolean => {
+    if (!id) return false;
+    if (exactos.has(id)) return true;
+    return lista.some((existente) => coincideHechizoId(existente, id));
+  };
 }

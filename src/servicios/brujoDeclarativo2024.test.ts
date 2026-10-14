@@ -10,12 +10,12 @@ import { consumirRecursoConjuro } from "./consumidorRecursosConjuros";
 import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
 import { evaluarEfectosRasgosActivos, aplicarModificadoresInvocacionesAHechizo, tieneConjuroGratuitoActivo, calcularBonoIniciativaRasgos } from "./evaluadorEfectosRasgos";
 import { resolverRasgosAcciones } from "./calculadorAccionesCombate";
-import { seleccionesValidas } from "./rasgos/seleccionesRasgos";
+import { seleccionesValidas, opcionesElegiblesConjuros } from "./rasgos/seleccionesRasgos";
 import { construirRasgosDesdeSelectores } from "./rasgos/seleccionesRasgos";
 import HECHIZOS from "@/utiles/compendios/all.json";
 import brujo from "@/datos/clases/brujo.json";
 import invocaciones from "@/datos/invocaciones-sobrenaturales.json";
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, SelectorRasgo } from "@/tipos";
 import { EsquemaHechizoBase } from "@/tipos";
 import { obtenerConfiguracionPactoDelFilo } from "./rasgos/evaluadorCombateRasgos";
 import { crearBorradorRasgo, construirRasgoDesdeBorrador } from "./rasgos/borradorRasgo";
@@ -32,6 +32,37 @@ const elegir = (valores: string[]) => {
   usarAlmacenDM.getState().actualizarSeleccionRasgo(pj().id,padre.id,padre.selectores![0].id,valores);
 };
 const sembrar = (nivel=9,subclase="") => usarAlmacenDM.setState({ personajes:[crear(nivel,subclase)],idPersonajeActivo:"brujo-declarativo",colaIniciativa:[] });
+
+const selectorFiltro = (ids: string[], filtroConjuros: SelectorRasgo["filtroConjuros"]): SelectorRasgo => ({
+  id:"selector_regresion_filtro", tipo:"multiple", tipoSelector:"conjuro", etiqueta:"Conjuros",
+  maxSelecciones:3, valorActual:[], opciones:ids.map(id=>({id,nombre:id,descripcion:""})), filtroConjuros
+});
+
+describe("Filtro de conjuros: compatibilidad y cambios de contexto", () => {
+  it.each(["h_rayo-de-escarcha", "Rayo de escarcha", " RAYO DE ESCARCHA ", "h_rayo_de_escarcha"])(
+    "conserva la opción %s al repetir la consulta", id => {
+      const selector=selectorFiltro([id],{requiereDano:true,requiereAtaque:true,alcanceMinimo:10});
+      for(let i=0;i<2;i++)expect(opcionesElegiblesConjuros(selector)).toEqual(selector.opciones);
+    });
+  it("conserva alias de traducción y rechaza identificadores desconocidos en consultas repetidas", () => {
+    const selector=selectorFiltro(["Susurros disonantes", "conjuro_desconocido_regresion"],{requiereDano:true});
+    for(let i=0;i<2;i++)expect(opcionesElegiblesConjuros(selector).map(o=>o.id)).toEqual(["Susurros disonantes"]);
+  });
+  it("recalcula la elegibilidad al cambiar preparados y conserva la elección vigente", () => {
+    const selector=selectorFiltro(["h_rayo-de-escarcha", "h_alarma"],{excluirPreparados:true});
+    const anterior=crear();expect(opcionesElegiblesConjuros(selector,anterior)).toHaveLength(2);
+    const actualizado={...anterior,trucosConocidosIds:[...anterior.trucosConocidosIds,"h_rayo-de-escarcha"],conjurosPreparadosIds:["h_alarma"]};
+    expect(opcionesElegiblesConjuros(selector,actualizado)).toEqual([]);
+    expect(opcionesElegiblesConjuros({...selector,valorActual:["h_rayo-de-escarcha"]},actualizado).map(o=>o.id)).toEqual(["h_rayo-de-escarcha"]);
+    expect(opcionesElegiblesConjuros(selector,anterior)).toHaveLength(2);
+  });
+  it("mantiene el filtro de clase y conocimiento cuando cambian los aprendizajes", () => {
+    const selector=selectorFiltro(["h_rayo-de-escarcha", "h_descarga-sobrenatural"],{soloConocidos:true,clase:"brujo",requiereDano:true});
+    const anterior=crear();
+    expect(opcionesElegiblesConjuros(selector,anterior).map(o=>o.id)).toEqual(["h_descarga-sobrenatural"]);
+    expect(opcionesElegiblesConjuros(selector,{...anterior,trucosConocidosIds:["h_rayo-de-escarcha"]})).toEqual([]);
+  });
+});
 
 describe("Brujo PHB 2024: recorrido declarativo completo", () => {
   beforeEach(() => sembrar());

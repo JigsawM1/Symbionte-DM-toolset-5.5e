@@ -5,6 +5,23 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { fusionarEstadoRasgo } from "./fusionarEstadoRasgo";
 
+type HechizoCatalogo = (typeof HECHIZOS)[number];
+const hechizosPorId = new Map<string, HechizoCatalogo>();
+for (const hechizo of HECHIZOS) {
+  if (!hechizosPorId.has(hechizo.id)) hechizosPorId.set(hechizo.id, hechizo);
+}
+const coincidenciasCompatibles = new Map<string, HechizoCatalogo | undefined>();
+
+/** El catálogo es estático; nombres y alias antiguos solo requieren una búsqueda inicial. */
+function obtenerHechizoCatalogo(id: string): HechizoCatalogo | undefined {
+  const canonico = hechizosPorId.get(id);
+  if (canonico) return canonico;
+  if (!coincidenciasCompatibles.has(id)) {
+    coincidenciasCompatibles.set(id, HECHIZOS.find(h => coincideHechizoId(h.id, id)));
+  }
+  return coincidenciasCompatibles.get(id);
+}
+
 /** El ID de instancia y su elección son independientes de la identidad del catálogo. */
 export function descomponerSeleccion(valor: string): { base: string; instancia: string; argumento?: string } {
   const [instancia, argumento] = valor.split(":");
@@ -15,7 +32,7 @@ export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: Personaj
   const filtro = selector.filtroConjuros;
   if (!filtro) return selector.opciones;
   return selector.opciones.filter(op => {
-    const h = HECHIZOS.find(h => coincideHechizoId(h.id, op.id));
+    const h = obtenerHechizoCatalogo(op.id);
     if (!h) return false;
     if (filtro.excluirPreparados && !selector.valorActual.some(id=>coincideHechizoId(id,h.id))
       && [...(pj?.conjurosPreparadosIds ?? []),...(pj?.conjurosSiemprePreparadosIds ?? []),...(pj?.trucosConocidosIds ?? [])].some(id=>coincideHechizoId(id,h.id))) return false;

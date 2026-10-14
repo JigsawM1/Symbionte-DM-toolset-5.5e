@@ -1229,7 +1229,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   font-size: var(--pj-fuente-cuerpo);
   line-height: 1.55;
   color: var(--pj-texto-primario);

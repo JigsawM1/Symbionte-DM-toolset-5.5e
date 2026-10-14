@@ -2,6 +2,14 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-14] Rendimiento del selector de conjuros del grimorio
+
+- Corrección limitada al rendimiento: índice estático por ID en seleccionesRasgos.ts, caché de coincidencias compatibles por nombres/alias e identificación desconocida; opciones elegibles memorizadas en SeccionSelectoresModalRasgo según referencias de selectores y personaje. Se conservan contratos, formato de guardado, requisitos y elecciones. Botones, Pasos feéricos y agrupación de invocaciones quedan pendientes.
+- Comprobada equivalencia de la primera coincidencia para los 391 IDs actuales mediante el cargador Vite. Añadidas siete regresiones sobre IDs/nombres antiguos, alias, desconocidos, preparados, elecciones vigentes, clase y conocimiento. Las 63 pruebas seleccionadas pasan; pnpm run ci termina con salida 0, 135 suites/1904 pruebas, TypeScript, ESLint, auditoría de 159 archivos y build correctos.
+- Chromium local con App y ficha temporal de Brujo 9: coste acumulado del filtro al seleccionar truco pasa de 201,7 a 7,0 ms (96,5 % menos). Respuesta hasta repintar: 265 a 84 ms; con CPU ralentizada x4: 1293 a 217 ms y filtrado 1085,7 a 27,7 ms. Escribir en el buscador ya no recalcula la elegibilidad; cada elección efectiva produce una actualización del personaje y en reposo no se observaron actualizaciones. Los tiempos incluyen instrumentación y son mediciones locales, no certificación CEF.
+- pnpm run test:brujo-ui: salida 0, nueve flujos y cuatro dimensiones, sin errores JavaScript ni desbordes. pnpm run test:rasgos-ui: salida 0 al repetir secuencialmente tras una colisión EPERM de caché entre servidores Vite simultáneos. Selección/retirada, activación y guardado/recarga permanecen operativos. Se preservó por SHA-256 el cambio local existente en VistaRasgosJugador.module.css.
+- Evidencia: scratch/perfil-selector-hechizos-despues.log, pruebas-rendimiento-selector.log, brujo-ui-rendimiento-selector.log, rasgos-ui-rendimiento-selector.log y ci-rendimiento-selector.log. No se desplegó ni se verificó TaleSpire real. Permanece el aviso existente de chunks grandes.
+
 ## [2026-10-13] Brujo y cuatro subclases PHB 2024: recorrido declarativo
 
 - Revisados Brujo 1–20, Archihadas, Celestial, Infernal, Gran Primigenio y las 28 invocaciones de invocaciones-sobrenaturales.json. Matriz previa y resultados por rasgo en INVENTARIO_BRUJO_PREVIO.md e IMPLEMENTACION_BRUJO.md. La fuente de criaturas invocadas se conserva. Se retomó la rama del Brujo desde 47befff y se preservó el cambio local de BarraSuperior.tsx, comprobado por SHA-256.

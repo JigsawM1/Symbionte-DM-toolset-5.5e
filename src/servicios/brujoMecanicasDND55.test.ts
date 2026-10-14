@@ -145,23 +145,23 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
 
       const pasos = build?.rasgos.find((r) => r.nombre === "Pasos feéricos");
       expect(pasos?.categoriaMecanica).toBe("consumible");
-      expect(pasos?.formulaDados).toBeUndefined();
+      expect(pasos?.formulaDados).toBe("1d10");
       expect(pasos?.conjuroGratuito).toBe("Paso brumoso");
       expect(pasos?.escaladoUsos?.tipo).toBe("por_modificador");
       expect(pasos?.escaladoUsos?.modificador).toBe("carisma");
     });
 
-    it("Nivel 6: Escapada brumosa conserva la reacción sin exigir la reserva gratuita", () => {
+    it("Nivel 6: Escapada brumosa recupera 2d10 para Paso pavoroso con gasto del padre", () => {
       const build = construirBuildClase("Brujo", 6, "patron_de_los_archihadas");
       const pasos = build?.rasgos.find((r) => r.nombre === "Pasos feéricos");
       expect(pasos).toBeDefined();
       const escapada = build?.rasgos.find((r) => r.nombre === "Escapada brumosa");
       expect(escapada).toBeDefined();
-      expect(escapada?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(escapada?.categoriaMecanica).toBe("consumible");
       expect(escapada?.tipoAccion).toBe("reaccion");
-      expect(escapada?.formulaDados).toBeUndefined();
+      expect(escapada?.formulaDados).toBe("2d10");
       expect(escapada?.ligadoA).toBe("Pasos feéricos");
-      expect(escapada?.gastarDePadre).toBe(false);
+      expect(escapada?.gastarDePadre).toBe(true);
     });
 
     it("Nivel 10 y 14: Defensas fascinantes tiene 1 uso e inmunidad, y Magia embrujadora es pasivo_permanente", () => {

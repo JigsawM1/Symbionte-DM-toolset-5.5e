@@ -153,12 +153,12 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
       expect(pasos).toBeDefined();
       expect(pasos?.categoriaMecanica).toBe("consumible");
       expect(pasos?.tipoAccion).toBe("accion_adicional");
-      expect(pasos?.formulaDados).toBeUndefined();
+      expect(pasos?.formulaDados).toBe("1d10");
       expect(pasos?.conjuroGratuito).toBe("Paso brumoso");
       expect(pasos?.usosMaximos).toBe(3);
     });
 
-    it("a nivel 6 Escapada brumosa habilita una reacción sin imponer gasto del padre", () => {
+    it("a nivel 6 Escapada brumosa recupera 2d10 y gasta un uso del padre", () => {
       const pjInicial: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-hada-6",
@@ -174,9 +174,9 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(escapada).toBeDefined();
       expect(escapada?.tipoAccion).toBe("reaccion");
-      expect(escapada?.formulaDados).toBeUndefined();
+      expect(escapada?.formulaDados).toBe("2d10");
       expect(escapada?.ligadoA).toBe("Pasos feéricos");
-      expect(escapada?.gastarDePadre).toBe(false);
+      expect(escapada?.gastarDePadre).toBe(true);
       expect(pasos?.usosMaximos).toBe(4);
     });
 

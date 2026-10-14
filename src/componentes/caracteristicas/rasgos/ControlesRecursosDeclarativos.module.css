@@ -2,3 +2,4 @@
 .dialogo::backdrop { background: rgb(0 0 0 / 65%); }
 .dialogo label { display: block; margin: 12px 0 6px; }
 .acciones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.botonCompacto { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 32px; min-height: 32px; padding: 4px 8px; flex: 0 0 auto; font-size: var(--pj-fuente-boton); white-space: nowrap; }

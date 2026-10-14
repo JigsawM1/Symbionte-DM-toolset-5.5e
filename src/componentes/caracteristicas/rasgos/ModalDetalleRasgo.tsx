@@ -300,7 +300,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {formulaEfectiva && !rasgo.curacionDirigida && (
+            {formulaEfectiva && !rasgo.tiradaCuracionManual && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}

@@ -20,6 +20,15 @@ const TIPOS_DANO_HEREDADOS: Array<[RegExp, string]> = [
   [/golpe divino/, "Radiante"], [/devorador de vida/, "Necrótico"]
 ];
 
+// Corrige fichas oficiales guardadas durante la migración del Brujo, sin tocar su estado.
+const CORRECCIONES_BRUJO: Record<string, Partial<RasgoPersonaje>> = {
+  rasgo_sub_patron_de_los_archihadas_pasos_feericos: { formulaDados: "1d10", selectores: undefined },
+  rasgo_sub_patron_de_los_archihadas_escapada_brumosa: {
+    formulaDados: "2d10", ligadoA: "Pasos feéricos", gastarDePadre: true, heredarDadosPadre: false, categoriaMecanica: "consumible"
+  },
+  rasgo_sub_patron_celestial_luz_sanadora: { tiradaCuracionManual: { maxDados: "max(1, carisma)" } }
+};
+
 function textoSeguro(valor: unknown): string {
   return typeof valor === "string" ? normalizar(valor) : "";
 }
@@ -69,6 +78,15 @@ export function migrarMetadatosRasgos(rasgos: RasgoPersonaje[]): RasgoPersonaje[
     if (!rasgo || typeof rasgo !== "object" ||
       (rasgo.efectos !== undefined && !Array.isArray(rasgo.efectos)) ||
       (rasgo.selectores !== undefined && !Array.isArray(rasgo.selectores))) return rasgo;
+    const dirigida = Reflect.get(rasgo, "curacionDirigida") as { maxDados?: unknown } | undefined;
+    if (dirigida && typeof dirigida.maxDados === "string") {
+      rasgo = { ...rasgo, tiradaCuracionManual: rasgo.tiradaCuracionManual ?? { maxDados: dirigida.maxDados } };
+      Reflect.deleteProperty(rasgo, "curacionDirigida");
+    }
+    if (!rasgo.personalizado && rasgo.origen !== "personalizado" && CORRECCIONES_BRUJO[rasgo.id]) {
+      rasgo = { ...rasgo, ...CORRECCIONES_BRUJO[rasgo.id] };
+      Reflect.deleteProperty(rasgo, "curacionDirigida");
+    }
     const nombre = textoSeguro(rasgo.nombre);
     const id = textoSeguro(rasgo.id);
     let ligadoA = rasgo.ligadoA;

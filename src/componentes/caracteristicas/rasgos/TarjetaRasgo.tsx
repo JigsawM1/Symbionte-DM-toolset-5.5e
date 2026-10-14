@@ -313,7 +313,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación regular */}
-          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.curacionDirigida && (
+          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracionManual && (
             <button
               type="button"
               className={estilos.botonTirarDados}

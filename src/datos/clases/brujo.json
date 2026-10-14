@@ -530,47 +530,7 @@
           "conjuroGratuito": "Paso brumoso",
           "recuperacionConjuro": "descanso_largo",
           "aptitudConjuroGratuito": "carisma",
-          "selectores": [
-            {
-              "id": "efecto_pasos_feericos",
-              "tipo": "unico",
-              "tipoSelector": "general",
-              "etiqueta": "Efecto adicional de Paso brumoso (consulta)",
-              "modo": "consulta",
-              "visualizacion": "lista",
-              "opciones": [
-                {
-                  "id": "paso_refrescante",
-                  "nombre": "Paso refrescante",
-                  "descripcion": "Tú o una criatura visible a 10 pies obtiene 1d10 PG temporales."
-                },
-                {
-                  "id": "paso_burlon",
-                  "nombre": "Paso burlón",
-                  "descripcion": "Criaturas a 5 pies del espacio abandonado: salvación de Sabiduría; si fallan, desventaja contra otras criaturas hasta tu siguiente turno."
-                }
-              ],
-              "maxSelecciones": 1,
-              "valorActual": [],
-              "opcionesDinamicas": [
-                {
-                  "nivelMinimo": 6,
-                  "opciones": [
-                    {
-                      "id": "paso_desvanecedor",
-                      "nombre": "Paso desvanecedor",
-                      "descripcion": "Invisible hasta tu siguiente turno o inmediatamente después de atacar, causar daño o lanzar un conjuro."
-                    },
-                    {
-                      "id": "paso_temible",
-                      "nombre": "Paso temible",
-                      "descripcion": "Criaturas a 5 pies del espacio elegido: salvación de Sabiduría o 2d10 de daño psíquico."
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+          "formulaDados": "1d10"
         },
         {
           "nivel": 6,
@@ -579,7 +539,10 @@
           "tipoAccion": "reaccion",
           "subclase": "Patrón de los Archihadas",
           "ligadoA": "Pasos feéricos",
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "consumible",
+          "formulaDados": "2d10",
+          "gastarDePadre": true,
+          "heredarDadosPadre": false
         },
         {
           "nivel": 10,
@@ -710,9 +673,8 @@
             "minimo": 2
           },
           "categoriaMecanica": "curacion",
-          "curacionDirigida": {
-            "maxDados": "max(1, carisma)",
-            "alcance": 60
+          "tiradaCuracionManual": {
+            "maxDados": "max(1, carisma)"
           }
         },
         {

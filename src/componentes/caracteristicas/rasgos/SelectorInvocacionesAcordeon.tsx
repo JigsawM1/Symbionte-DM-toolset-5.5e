@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { SelectorRasgo } from "@/tipos";
+import type { RasgoPersonaje, SelectorRasgo } from "@/tipos";
+import type { ReactNode } from "react";
 import { Lock, Plus, Trash2, Search } from "lucide-react";
 import { TextoEnriquecidoDND, SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
@@ -12,11 +13,13 @@ interface Props {
   selector: SelectorRasgo; nivelPersonaje?: number;
   alActualizarSeleccion?: (id: string, valores: string[]) => void;
   elementosPorPagina?: number; tamanoPaginacion?: "compacto" | "normal";
+  rasgosAprendidos?: RasgoPersonaje[];
+  renderizarTarjetaRasgo?: (rasgo: RasgoPersonaje, indice: number) => ReactNode;
 }
 
 /** Las elecciones y su configuración se derivan del catálogo validado. */
 export function SelectorInvocacionesAcordeon({ selector, nivelPersonaje = 1, alActualizarSeleccion,
-  elementosPorPagina = ELEMENTOS_POR_PAGINA_INVOCACIONES, tamanoPaginacion = "normal" }: Props) {
+  elementosPorPagina = ELEMENTOS_POR_PAGINA_INVOCACIONES, tamanoPaginacion = "normal", rasgosAprendidos, renderizarTarjetaRasgo }: Props) {
   const pj = usarAlmacenDM(s => s.personajes.find(p => p.id === s.idPersonajeActivo));
   const actualizar = usarAlmacenDM(s => s.actualizarSeleccionRasgo);
   const valores = selector.valorActual;
@@ -25,7 +28,8 @@ export function SelectorInvocacionesAcordeon({ selector, nivelPersonaje = 1, alA
   const [pagina, setPagina] = useState(1);
   const max = [...(selector.escaladoMaxSelecciones ?? [])].sort((a,b) => b.nivelMinimo-a.nivelMinimo)
     .find(e => nivelPersonaje >= e.nivelMinimo)?.valor ?? selector.maxSelecciones;
-  const opciones = selector.opciones.filter(o => (filtro !== "aprendidas" || valores.some(v => descomponerSeleccion(v).base === o.id))
+  const opciones = selector.opciones.filter(o => (filtro !== "aprendidas" || valores.some(v => descomponerSeleccion(v).base === o.id
+      && (!rasgosAprendidos || rasgosAprendidos.some(r => r.requiereOpcion === v))))
     && o.nombre.toLocaleLowerCase("es").includes(busqueda.toLocaleLowerCase("es")));
   const paginaActual = Math.max(1, Math.min(pagina, Math.ceil(opciones.length / elementosPorPagina) || 1));
   const cambiar = (nuevos: string[]) => alActualizarSeleccion?.(selector.id, nuevos);
@@ -50,13 +54,16 @@ export function SelectorInvocacionesAcordeon({ selector, nivelPersonaje = 1, alA
         const referencia = op.repetible && op.selectores?.length === 1 ? op.selectores[0] : undefined;
         return <details key={op.id} className={estilos.tarjetaInvocacionCaja}>
           <summary className={estilos.cabeceraInvocacionCaja}>{op.nombre}{instancias.length > 0 ? ` (${instancias.length} aprendida${instancias.length > 1 ? "s" : ""})` : ""}</summary>
-          <div className={estilos.cuerpoInvocacionCaja}><TextoEnriquecidoDND texto={op.descripcion} />
+          <div className={estilos.cuerpoInvocacionCaja}>
+          {(filtro !== "aprendidas" || !renderizarTarjetaRasgo) && <TextoEnriquecidoDND texto={op.descripcion} />}
           {instancias.map((valor, indice) => {
-            const hijo = pj?.rasgos.find(r => r.id === `${padre?.id}_${valor}`);
+            const hijo = pj?.rasgos.find(r => r.ligadoA === padre?.id && r.idSelectorOrigen === selector.id && r.requiereOpcion === valor);
+            if (filtro === "aprendidas" && rasgosAprendidos && !rasgosAprendidos.some(r => r.id === hijo?.id)) return null;
             const argumento = descomponerSeleccion(valor).argumento;
             const opcionesReferencia = referencia ? opcionesElegiblesConjuros(referencia, pj).filter(o =>
               !instancias.some(v => v !== valor && descomponerSeleccion(v).argumento === o.id)) : [];
             return <div key={valor} className={estilos.zonaConfiguracionMecanica}>
+              {filtro === "aprendidas" && hijo && renderizarTarjetaRasgo?.(hijo, indice)}
               {referencia ? <SelectorDesplegable valor={argumento ?? ""} placeholder="Elige una opción válida"
                 titulo={`${op.nombre}: ${referencia.etiqueta} ${indice+1}`}
                 opciones={opcionesReferencia.map(o => ({ valor:o.id, etiqueta:o.nombre }))}

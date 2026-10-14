@@ -9,7 +9,7 @@ export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
   eliminarCondicionesAlActivar: true, configuracionMagica: true,
   aptitudConjuroGratuito: true, ignorarComponentesConjuro: true,
   conjuroGratuito: true, recuperacionConjuro: true,
-  recuperarPactoAlUsar: true, recargarUsoConPacto: true, curacionDirigida: true,
+  recuperarPactoAlUsar: true, recargarUsoConPacto: true, tiradaCuracionManual: true,
   idSelectorOrigen: true, hpTemporalAlDescansar: true, hpTemporalAlUsarRasgo: true,
   claseConjurosOtorgados: true, vinculoArma: true
 });

@@ -1,38 +1,42 @@
 import { useState, useRef, useEffect } from "react";
 import type { RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { CampoNumerico, SelectorDesplegable } from "@/componentes/comunes";
+import { CampoNumerico, FormularioNumerico, SelectorDesplegable } from "@/componentes/comunes";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "@/servicios/evaluadorEfectosRasgos";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
+import { Dices, RotateCcw, Sparkles } from "lucide-react";
 
 export function ControlesRecursosDeclarativos({ rasgo, idPersonaje }: { rasgo: RasgoPersonaje; idPersonaje?: string }) {
   const personajes = usarAlmacenDM(s => s.personajes);
   const { objetosHomebrew } = usarEstadoHomebrew();
   const pj = personajes.find(p => p.id === idPersonaje);
   const [mostrar, setMostrar] = useState(false);
-  const [objetivo, setObjetivo] = useState(idPersonaje ?? "");
   const [dados, setDados] = useState(1);
   const [enCurso, setEnCurso] = useState(false);
+  const [error, setError] = useState("");
   const dialogo = useRef<HTMLDialogElement>(null);
   const bloqueado = useRef(false);
   useEffect(() => { if (mostrar) dialogo.current?.showModal(); }, [mostrar]);
   if (!pj) return null;
   const restantes = rasgo.usosRestantes ?? rasgo.usosMaximos ?? 0;
-  const maxDados = rasgo.curacionDirigida ? Math.min(restantes, Math.max(1, evaluarExpresionNumericaSegura(
-    resolverFormulaDinamica(rasgo.curacionDirigida.maxDados, pj, rasgo.fuente)))) : 1;
+  const maxDados = rasgo.tiradaCuracionManual ? Math.min(restantes, Math.max(1, evaluarExpresionNumericaSegura(
+    resolverFormulaDinamica(rasgo.tiradaCuracionManual.maxDados, pj, rasgo.fuente)))) : 1;
   const lanzar = async () => {
-    if (bloqueado.current || !objetivo || !Number.isInteger(dados) || dados < 1 || dados > maxDados) return;
-    const vigente = usarAlmacenDM.getState().personajes.find(p => p.id === idPersonaje)?.rasgos.find(r => r.id === rasgo.id);
-    if (!vigente || (vigente.usosRestantes ?? 0) < dados
-      || !usarAlmacenDM.getState().personajes.some(p => p.id === objetivo)) return;
-    bloqueado.current = true; setEnCurso(true);
+    if (bloqueado.current || !Number.isInteger(dados) || dados < 1 || dados > maxDados) return;
+    const actual = usarAlmacenDM.getState().personajes.find(p => p.id === idPersonaje);
+    const vigente = actual?.rasgos.find(r => r.id === rasgo.id);
+    if (!actual || !vigente?.tiradaCuracionManual || (vigente.usosRestantes ?? vigente.usosMaximos ?? 0) < dados
+      || dados > Math.max(1, evaluarExpresionNumericaSegura(resolverFormulaDinamica(vigente.tiradaCuracionManual.maxDados, actual, vigente.fuente)))) return;
+    bloqueado.current = true; setEnCurso(true); setError("");
     try {
-      const formula = (rasgo.formulaDados ?? "1d6").replace(/^1d/, `${dados}d`);
-      const emitida = await lanzarDadosTaleSpire(`!${rasgo.nombre}:${formula}`, `${pj.nombre} - ${rasgo.nombre}`, undefined, undefined, undefined,
-        { tipo:"curacionRasgo", personajeId:objetivo, rasgoId:rasgo.id, nombreRasgo:rasgo.nombre, cantidadDadosGastados:dados });
+      const formula = (vigente.formulaDados ?? "1d6").replace(/^1d/, `${dados}d`);
+      const emitida = await lanzarDadosTaleSpire(`!${rasgo.nombre}:${formula}`, `${pj.nombre} - ${rasgo.nombre}`);
       if (emitida) { usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj.id, rasgo.id, dados); setMostrar(false); }
+      else setError("No se pudo lanzar la tirada. Los dados siguen disponibles.");
+    } catch {
+      setError("No se pudo lanzar la tirada. Los dados siguen disponibles.");
     } finally { bloqueado.current = false; setEnCurso(false); }
   };
   return <>
@@ -44,24 +48,27 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje }: { rasgo: R
         return base && "tipoAtaque" in base && base.tipoAtaque !== "A Distancia";
       }).map(o => ({valor:o.idInstancia,etiqueta:o.nombre}))]}
       alCambiar={idInstancia => usarAlmacenDM.getState().actualizarRasgoPersonaje(pj.id,rasgo.id,{vinculoArma:{...rasgo.vinculoArma!,idInstancia:idInstancia||undefined}})} />}
-    {rasgo.recuperarPactoAlUsar && <button type="button" disabled={restantes < 1}
+    {rasgo.recuperarPactoAlUsar && <button type="button" className={estilos.botonCompacto} disabled={restantes < 1}
+      title="Usar y recuperar espacios de pacto" aria-label="Usar y recuperar espacios de pacto"
       onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj.id, rasgo.id); }}>
-      Usar y recuperar espacios de pacto</button>}
-    {rasgo.recargarUsoConPacto && <button type="button" disabled={restantes >= (rasgo.usosMaximos ?? 1) || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos}
-      onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().recargarUsoRasgoConPacto(pj.id, rasgo.id); }}>Recargar uso con un espacio de pacto</button>}
-    {rasgo.curacionDirigida && <button type="button" disabled={restantes < 1}
-      onClick={e => { e.stopPropagation(); setDados(1); if (!personajes.some(p => p.id === objetivo)) setObjetivo(pj.id); setMostrar(true); }}>Elegir curación y destinatario</button>}
+      <Sparkles size={13} aria-hidden="true" />Usar</button>}
+    {rasgo.recargarUsoConPacto && <button type="button" className={estilos.botonCompacto} disabled={restantes >= (rasgo.usosMaximos ?? 1) || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos}
+      title="Recargar uso con un espacio de pacto" aria-label="Recargar uso con un espacio de pacto"
+      onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().recargarUsoRasgoConPacto(pj.id, rasgo.id); }}><RotateCcw size={13} aria-hidden="true" />Recargar</button>}
+    {rasgo.tiradaCuracionManual && <button type="button" className={estilos.botonCompacto} disabled={restantes < 1}
+      title="Elegir cuántos dados de curación gastar" aria-label="Elegir cuántos dados de curación gastar"
+      onClick={e => { e.stopPropagation(); setDados(1); setError(""); setMostrar(true); }}><Dices size={13} aria-hidden="true" />Lanzar d6</button>}
     {mostrar && <dialog ref={dialogo} className={estilos.dialogo} aria-label={`Curación: ${rasgo.nombre}`}
       onCancel={() => setMostrar(false)} onClick={e => e.stopPropagation()}>
       <h3>{rasgo.nombre}</h3>
-      <p>Elige una criatura que puedas ver a {rasgo.curacionDirigida?.alcance} pies o menos. Comprueba la distancia en el tablero.</p>
-      <label>Destinatario</label>
-      <SelectorDesplegable valor={objetivo} alCambiar={setObjetivo} titulo="Destinatario de la curación" enFlujo
-        opciones={personajes.map(p => ({ valor:p.id, etiqueta:p.nombre }))} />
-      <label>Dados a gastar (máximo {maxDados})</label>
-      <CampoNumerico aria-label="Dados de curación" min={1} max={Math.max(1,maxDados)} value={dados} alConfirmar={setDados} />
+      <FormularioNumerico onSubmit={() => void lanzar()}>
+      <p>Elige cuántos dados gastar. Aplica el resultado de la curación manualmente al destinatario.</p>
+      <label htmlFor={`dados-${rasgo.id}`}>Dados a gastar (máximo {maxDados})</label>
+      <CampoNumerico id={`dados-${rasgo.id}`} aria-label="Dados de curación" min={1} max={Math.max(1,maxDados)} value={dados} alConfirmar={setDados} disabled={enCurso} />
+      {error && <p role="status">{error}</p>}
       <div className={estilos.acciones}><button type="button" disabled={enCurso} onClick={() => setMostrar(false)}>Cancelar</button>
-        <button type="button" disabled={enCurso || maxDados < 1 || !Number.isInteger(dados) || dados > maxDados || !personajes.some(p => p.id === objetivo)} onClick={() => void lanzar()}>Curar {dados}d6</button></div>
+        <button type="submit" disabled={enCurso || maxDados < 1 || !Number.isInteger(dados) || dados < 1 || dados > maxDados}>Lanzar {dados}d6</button></div>
+      </FormularioNumerico>
     </dialog>}
   </>;
 }

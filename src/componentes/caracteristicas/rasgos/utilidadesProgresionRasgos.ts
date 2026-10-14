@@ -151,7 +151,8 @@ export function calcularProgresionClases(
  */
 export function agruparRasgosJerarquicos(
   rasgosFiltrados: RasgoPersonaje[],
-  clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>
+  clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>,
+  rasgosCompletos: RasgoPersonaje[] = rasgosFiltrados
 ): DatosJerarquicosRasgos {
   const especie: RasgoPersonaje[] = [];
   const subespecie: RasgoPersonaje[] = [];
@@ -168,12 +169,15 @@ export function agruparRasgosJerarquicos(
     rasgosSubclase: [],
     rasgosCanalizarDivinidad: [],
     rasgoInvocaciones: undefined,
+    rasgosInvocaciones: [],
     total: 0
   }));
 
   const otrosClase: RasgoPersonaje[] = [];
 
   for (const rasgo of rasgosFiltrados) {
+    const padreInvocacion = rasgo.idSelectorOrigen && rasgosCompletos.find(p => p.id === rasgo.ligadoA
+      && p.selectores?.some(s => s.id === rasgo.idSelectorOrigen && s.tipoSelector === "invocacion"));
     if (rasgo.origen === "subespecie") {
       subespecie.push(rasgo);
     } else if (rasgo.origen === "especie") {
@@ -201,8 +205,11 @@ export function agruparRasgosJerarquicos(
 
         if (normFuente.includes(normNombreClase) || rasgo.id.includes(`_${normNombreClase}_`)) {
           const nomRasgoNorm = normalizar(rasgo.nombre);
-          if (
-            nomRasgoNorm.includes("invocaciones sobrenaturales") &&
+          if (padreInvocacion) {
+            mc.rasgoInvocaciones = padreInvocacion;
+            mc.rasgosInvocaciones!.push(rasgo);
+          } else if (
+            (nomRasgoNorm.includes("invocaciones sobrenaturales") || rasgo.selectores?.some(s => s.tipoSelector === "invocacion")) &&
             Array.isArray(rasgo.selectores) &&
             rasgo.selectores.length > 0
           ) {

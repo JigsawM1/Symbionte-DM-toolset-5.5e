@@ -8,6 +8,15 @@ import React from 'react';import {createRoot} from 'react-dom/client';import App
 import {usarAlmacenDM} from '/src/almacen/usarAlmacenDM.ts';import {PERSONAJE_POR_DEFECTO} from '/src/constantes/personajeConstantes.ts';
 import {aplicarBuildClaseAPersonaje} from '/src/servicios/gestorClases.ts';
 import {deshidratarPersonaje,hidratarPersonaje} from '/src/servicios/serializadorPersonaje.ts';
+import {procesarResultadosDadosTaleSpire} from '/src/utiles/lanzadorDados.ts';
+window.simularDados=()=>{
+ window.tiradas=[];window.modoDados='ok';
+ window.TS={dice:{isValidRollString:()=>true,makeRollDescriptors:async formula=>[{name:'Prueba',roll:formula}],
+ putDiceInTray:async descriptores=>{window.tiradas.push(descriptores);if(window.modoDados==='fallo')throw new Error('Fallo simulado');
+ if(window.modoDados==='pausa')await new Promise(r=>window.continuarDados=r);return 'tirada-'+window.tiradas.length;},
+ evaluateDiceResultsGroup:async grupo=>grupo.total,sendDiceResult:async()=>{}},chat:{send:async()=>{if(window.modoDados==='fallo')throw new Error('Fallo simulado de chat');return true;}},debug:{log:()=>{}}};
+};
+window.resultadoDados=total=>procesarResultadosDadosTaleSpire({rollId:'tirada-'+window.tiradas.length,resultsGroups:[{total}]});
 usarAlmacenDM.setState({esGM:false,pestañaActiva:'rasgos',cargandoDatos:false,datosInicialesCargados:false,
 cargarDatosPersistidos:async()=>{},establecerEsGM:()=>{},personajes:[],idPersonajeActivo:'',colaIniciativa:[]});
 window.estado=()=>usarAlmacenDM.getState();window.pj=()=>window.estado().personajes.find(p=>p.id===window.estado().idPersonajeActivo);
@@ -33,9 +42,10 @@ await servidor.listen();navegador=await puppeteer.launch({executablePath:ejecuta
 const pagina=await navegador.newPage();pagina.on("pageerror",e=>informe.errores.push(e.message));await pagina.setViewport({width:599,height:760});
 await pagina.goto(`http://127.0.0.1:${servidor.httpServer.address().port}/__brujo`);await pagina.waitForFunction(()=>window.listo);
 const pulsar=async(nombre,patron)=>{
+ const minimizar=await pagina.$('button[title="Minimizar panel"]');if(minimizar)await minimizar.click();
  const h=await pagina.evaluateHandle((n,p)=>{const tarjeta=[...document.querySelectorAll('article')].find(a=>a.querySelector('[class*="nombreRasgo"]')?.textContent.trim().replace(/^Nv \d+: /,'')===n);
  return tarjeta&&[...tarjeta.querySelectorAll('button')].find(b=>new RegExp(p).test(`${b.textContent} ${b.title}`));},nombre,patron);
- const boton=h.asElement();assert(boton,`Falta control de ${nombre}: ${patron}`);await boton.scrollIntoView();await boton.click();await h.dispose();};
+ const boton=h.asElement();assert(boton,`Falta control de ${nombre}: ${patron}`);await boton.evaluate(b=>b.scrollIntoView({block:'center'}));await boton.click();await h.dispose();};
 const esperar=async fn=>{
  try { await pagina.waitForFunction(fn); }
  catch(error){
@@ -56,6 +66,8 @@ await pagina.evaluate(()=>window.sembrar(9));await pagina.waitForSelector('input
 const seleccionarTodo=async()=>{await pagina.keyboard.down('Control');await pagina.keyboard.press('A');await pagina.keyboard.up('Control');};
 const buscar=async texto=>{const input=await pagina.$('input[aria-label="Buscar invocaciones"]');await input.click();await seleccionarTodo();await input.press('Backspace');await input.type(texto);};
 const invocacion=async(nombre,aprender=true)=>{
+ const todas=await pagina.evaluateHandle(()=>[...document.querySelectorAll('button[aria-pressed]')].find(b=>b.textContent.trim()==='Todas'));
+ if(todas.asElement())await todas.asElement().click();await todas.dispose();
  await buscar(nombre);
  try { await pagina.waitForFunction(n=>[...document.querySelectorAll('details > summary')].some(s=>s.textContent.startsWith(n)),{timeout:5000},nombre); }
  catch(error){fs.writeFileSync('scratch/brujo-ui-fallo.html',await pagina.content());await pagina.screenshot({path:'scratch/brujo-ui-fallo.png'});throw error;}
@@ -71,6 +83,10 @@ assert.equal(await pagina.$eval('button[title="Otra invocación requiere esta el
 await pagina.evaluate(()=>window.recargar());assert.equal(await pagina.evaluate(()=>window.rasgo('Castigo arcano').formulaDados),'6d8');
 informe.casos.push('Aprendizaje bloqueado por requisito; adquisición y retirada bloqueada del padre; recarga de elecciones');
 await pagina.evaluate(()=>window.sembrar(9));await invocacion('Descarga agónica');
+const mostrarAprendidas=async()=>{
+ const boton=await pagina.$('button[aria-pressed][class*="botonFiltroEstado"]');assert(boton);await boton.click();
+ const summaries=await pagina.$$('details > summary');for(const summary of summaries){if(!await summary.evaluate(s=>s.parentElement.open))await summary.click();}
+};
 const elegirDesplegable=async(titulo,etiqueta)=>{
  const gatillo=await pagina.$(`button[title="${titulo}"]`);assert(gatillo,`Falta ${titulo}`);await gatillo.scrollIntoView();await gatillo.click();
  const h=await pagina.evaluateHandle(t=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()===t),etiqueta);
@@ -92,6 +108,9 @@ await pagina.evaluate(()=>{
  const objeto=(base,id,nombre,esMagico=false)=>({idInstancia:id,idObjeto:base.id,nombre,categoria:'armas',cantidad:1,peso:base.peso??0,valor:0,equipado:true,esMagico});
  for(const o of [objeto(espada,'vinculo-espada','Espada de prueba'),objeto(arco,'arco-simple','Arco sin magia'),objeto(arco,'arco-magico','Arco mágico',true)])window.estado().agregarObjetoInventario(window.pj().id,o);
 });
+await mostrarAprendidas();
+assert.equal(await pagina.$$eval('[data-seccion-rasgos="clase"] article',as=>as.some(a=>a.textContent.includes('Pacto del filo'))),false);
+assert.equal(await pagina.$$eval('[data-seccion-rasgos="invocaciones"] article',as=>as.filter(a=>a.textContent.includes('Pacto del filo')).length),1);
 await elegirDesplegable('Arma vinculada','Espada de prueba');
 await esperar(()=>window.rasgo('Pacto del filo').vinculoArma.idInstancia==='vinculo-espada');
 const vincular=await pagina.$('button[title="Arma vinculada"]');await vincular.click();
@@ -138,9 +157,9 @@ await buscarLibro('Rayo de escarcha');
 const trucoLibro=await pagina.evaluateHandle(()=>[...document.querySelectorAll('details button')].find(b=>b.textContent.trim()==='Rayo de escarcha'));
 assert(trucoLibro.asElement());await trucoLibro.asElement().click();
 await esperar(()=>window.rasgo('Pacto del grimorio').selectores[0].valorActual.includes('h_rayo-de-escarcha'));
-await pulsar('Pacto del grimorio','Rasgo inactivo');await esperar(()=>window.pj().trucosConocidosIds.includes('h_rayo-de-escarcha'));
+await mostrarAprendidas();await pulsar('Pacto del grimorio','Rasgo inactivo');await esperar(()=>window.pj().trucosConocidosIds.includes('h_rayo-de-escarcha'));
 await pulsar('Pacto del grimorio','Rasgo activo');await esperar(()=>!window.pj().trucosConocidosIds.includes('h_rayo-de-escarcha'));
-await pulsar('Pacto del grimorio','Rasgo inactivo');await pagina.evaluate(()=>window.recargar());
+await mostrarAprendidas();await pulsar('Pacto del grimorio','Rasgo inactivo');await pagina.evaluate(()=>window.recargar());
 assert(await pagina.evaluate(()=>window.rasgo('Pacto del grimorio').activo&&window.pj().trucosConocidosIds.includes('h_rayo-de-escarcha')));
 informe.casos.push('Libro: excluye trucos ya preparados, aporta el elegido mientras está activo y conserva selección y estado al recargar');
 await pagina.evaluate(()=>window.sembrar(4));
@@ -160,26 +179,80 @@ await pagina.click('button[title="Ver catálogo completo de dotes oficiales"]');
 const epica=await pagina.$('button[class*="botonSeleccionarDote"]');assert(epica);assert.equal(await epica.evaluate(b=>b.disabled),true);
 await pagina.click('button[title="Cerrar modal"]');
 informe.casos.push('Mejora exige elección: Duro aplica PG y persiste sin duplicados; Don épico queda bloqueado a nivel 4');
+await pagina.evaluate(()=>{window.sembrar(6,'Patrón de los Archihadas');window.simularDados();});
+await pulsar('Pasos feéricos','1d10');await esperar(()=>window.rasgo('Pasos feéricos').usosRestantes===2);
+await pulsar('Escapada brumosa','2d10');await esperar(()=>window.rasgo('Pasos feéricos').usosRestantes===1);
+const lanzarDesdeDetalle=async(nombre,formula)=>{
+ await pulsar(nombre,'Ver descripción completa');
+ let boton;
+ try{boton=await pagina.waitForSelector('button[class*="botonLanzarDadosModal"]',{timeout:5000});}
+ catch(e){await pagina.screenshot({path:'scratch/brujo-detalle-fallo.png'});fs.writeFileSync('scratch/brujo-detalle-fallo.html',await pagina.content());console.log('Detalle ausente',nombre,await pagina.evaluate(()=>({titulo:document.querySelector('h2[class*="tituloRasgoModal"]')?.textContent,rasgos:window.pj().rasgos.filter(r=>r.nombre.includes('brumosa')||r.nombre.includes('feéricos'))})));throw e;}
+
+ assert.match(await boton.evaluate(b=>b.textContent),new RegExp(formula));await boton.click();
+ await pagina.click('button[title="Cerrar modal"]');
+};
+await lanzarDesdeDetalle('Pasos feéricos','1d10');await esperar(()=>window.rasgo('Pasos feéricos').usosRestantes===0);
+await pagina.evaluate(()=>window.estado().recuperarUsoRasgoPersonaje(window.pj().id,window.rasgo('Pasos feéricos').id));
+await lanzarDesdeDetalle('Escapada brumosa','2d10');await esperar(()=>window.rasgo('Pasos feéricos').usosRestantes===0);
+assert.deepEqual(await pagina.evaluate(()=>window.tiradas.map(t=>t[0].roll.match(/\d+d\d+/)[0])),['1d10','2d10','1d10','2d10']);
+assert.equal(await pagina.evaluate(()=>document.body.textContent.includes('Efecto adicional de Paso brumoso (consulta)')),false);
+await pagina.evaluate(()=>window.recargar());assert.equal(await pagina.evaluate(()=>window.rasgo('Pasos feéricos').usosRestantes),0);
+await pagina.evaluate(()=>{delete window.TS;});
+informe.casos.push('Archihadas: 1d10 y 2d10 desde tarjeta y detalle gastan la misma reserva, persisten agotados y no muestran selector de consulta');
 await pagina.evaluate(()=>window.sembrar(3,'Patrón Celestial'));
 await pagina.evaluate(()=>{const aliado={...structuredClone(window.pj()),id:'aliado-ui',nombre:'Aliado de prueba',hpActual:1,hpTemporal:0,rasgos:[]};window.estado().crearPersonaje(aliado);window.estado().seleccionarPersonajeActivo('brujo-ui');});
-await pulsar('Luz sanadora','Elegir curación');await pagina.waitForSelector('dialog[aria-label="Curación: Luz sanadora"]');
-const destino=await pagina.$('dialog button[title="Destinatario de la curación"]');await destino.click();
-const aliado=await pagina.evaluateHandle(()=>[...document.querySelectorAll('dialog button')].find(b=>b.textContent.trim()==='Aliado de prueba'));
-assert(aliado.asElement(),'No aparece el destinatario');await aliado.asElement().click();
-const dados=await pagina.$('input[aria-label="Dados de curación"]');await dados.click();await seleccionarTodo();await dados.press('Backspace');await dados.type('3');await dados.press('Enter');
-const curar=await pagina.evaluateHandle(()=>[...document.querySelectorAll('dialog button')].find(b=>b.textContent==='Curar 3d6'));assert(curar.asElement());await curar.asElement().click();
+await pagina.evaluate(()=>window.simularDados());
+const abrirLuz=async()=>{await pulsar('Luz sanadora','Elegir cuántos dados');await pagina.waitForSelector('dialog[aria-label="Curación: Luz sanadora"]');};
+const elegirDados=async cantidad=>{const input=await pagina.$('input[aria-label="Dados de curación"]');await input.click();await seleccionarTodo();await input.press('Backspace');await input.type(String(cantidad));await input.press('Enter');};
+const botonLanzar=async()=>pagina.evaluateHandle(()=>[...document.querySelectorAll('dialog button')].find(b=>b.textContent.startsWith('Lanzar ')));
+const vidaAntes=await pagina.evaluate(()=>window.estado().personajes.map(p=>[p.id,p.hpActual,p.hpTemporal]));
+const hpSinCambios=async()=>assert.deepEqual(await pagina.evaluate(()=>window.estado().personajes.map(p=>[p.id,p.hpActual,p.hpTemporal])),vidaAntes);
+await abrirLuz();assert.equal(await pagina.$('dialog button[title="Destinatario de la curación"]'),null);
+assert.match(await pagina.$eval('dialog label',e=>e.textContent),/máximo 3/);
+await elegirDados(3);let lanzar=await botonLanzar();assert(lanzar.asElement());await lanzar.asElement().click();
 await esperar(()=>window.rasgo('Luz sanadora').usosRestantes===1);
-assert.equal(await pagina.evaluate(()=>window.pj().hpActual),2);
-assert(await pagina.evaluate(()=>window.estado().personajes.find(p=>p.nombre==='Aliado de prueba').hpActual)>1);
-informe.casos.push('Luz sanadora gasta tres dados y cura al destinatario sin curar al emisor');
+assert.match(await pagina.evaluate(()=>window.tiradas[0][0].roll),/3d6/);await pagina.evaluate(()=>window.resultadoDados(12));await hpSinCambios();
+await abrirLuz();assert.match(await pagina.$eval('dialog label',e=>e.textContent),/máximo 1/);
+lanzar=await botonLanzar();await lanzar.asElement().click();await esperar(()=>window.rasgo('Luz sanadora').usosRestantes===0);
+assert.match(await pagina.evaluate(()=>window.tiradas[1][0].roll),/1d6/);await pagina.evaluate(()=>window.resultadoDados(6));await hpSinCambios();
+assert.equal(await pagina.$eval('article button[title="Elegir cuántos dados de curación gastar"]',b=>b.disabled),true);
+await pagina.evaluate(()=>window.recargar());assert.equal(await pagina.evaluate(()=>window.rasgo('Luz sanadora').usosRestantes),0);
+informe.casos.push('Luz sanadora: 3d6 y 1d6 exactos, límites de Carisma y reserva, agotamiento y recarga, sin cambiar PG al recibir resultados');
+await pagina.evaluate(()=>{window.sembrar(3,'Patrón Celestial');window.modoDados='fallo';});
+await abrirLuz();lanzar=await botonLanzar();await lanzar.asElement().click();
+await pagina.waitForSelector('dialog [role="status"]');assert.equal(await pagina.evaluate(()=>window.rasgo('Luz sanadora').usosRestantes),4);
+const cantidadInvalida=await pagina.$('input[aria-label="Dados de curación"]');
+await cantidadInvalida.click();await seleccionarTodo();await cantidadInvalida.press('Backspace');await cantidadInvalida.type('1/0');
+lanzar=await botonLanzar();await lanzar.asElement().click();
+assert.equal(await pagina.evaluate(()=>window.tiradas.length),3);assert.equal(await pagina.evaluate(()=>window.rasgo('Luz sanadora').usosRestantes),4);
+await elegirDados(1);
+await pagina.evaluate(()=>window.modoDados='pausa');lanzar=await botonLanzar();
+await lanzar.evaluate(b=>{b.click();b.click();});await esperar(()=>window.tiradas.length===4);
+assert.equal(await pagina.evaluate(()=>window.rasgo('Luz sanadora').usosRestantes),4);
+await pagina.evaluate(()=>window.continuarDados());await esperar(()=>window.rasgo('Luz sanadora').usosRestantes===3);
+assert.equal(await pagina.evaluate(()=>window.tiradas.length),4);await pagina.evaluate(()=>{delete window.TS;});
+informe.casos.push('Luz sanadora: fallo y cantidad inválida conservan reserva y diálogo recuperable; reintento y doble clic emiten una sola tirada y gastan un dado');
 for(const width of [599,433])for(const height of [760,600]){
  await pagina.setViewport({width,height});await pagina.evaluate(()=>window.sembrar(10,'Patrón Celestial'));await pagina.waitForSelector('article');
  const medicion=await pagina.evaluate(()=>{const controles=[...document.querySelectorAll('main article,main button,main input')].filter(e=>e.getClientRects().length);
  return {desbordes:controles.filter(e=>{const r=e.getBoundingClientRect();return r.left< -1||r.right>innerWidth+1;}).map(e=>e.className)};});
  informe.dimensiones.push({width,height,...medicion});assert.deepEqual(medicion.desbordes,[]);
- await pulsar('Luz sanadora','Elegir curación');await pagina.waitForSelector('dialog');
+ const usar=await pagina.$('article button[aria-label="Usar y recuperar espacios de pacto"]');assert(usar);
+ const compacto=await usar.evaluate(b=>{const r=b.getBoundingClientRect();return {texto:b.textContent,ancho:r.width,alto:r.height};});
+ assert.equal(compacto.texto,'Usar');assert(compacto.ancho<110&&compacto.alto>=32);
+
+ await pulsar('Luz sanadora','Elegir cuántos dados');await pagina.waitForSelector('dialog');
  assert(await pagina.$eval('dialog',d=>{const r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight;}));
  await pagina.screenshot({path:`scratch/brujo-curacion-${width}-${height}.png`});await pagina.keyboard.press('Escape');
+ await pagina.evaluate(()=>window.sembrar(9));await invocacion('Pacto del filo');await mostrarAprendidas();
+ assert.equal(await pagina.$$eval('[data-seccion-rasgos="clase"] article',as=>as.some(a=>a.textContent.includes('Pacto del filo'))),false);
+ assert.equal(await pagina.$$eval('[data-seccion-rasgos="invocaciones"] article',as=>as.filter(a=>a.textContent.includes('Pacto del filo')).length),1);
+ assert.deepEqual(await pagina.$$eval('[data-seccion-rasgos="invocaciones"] article',as=>as.filter(a=>{const r=a.getBoundingClientRect();return r.left<0||r.right>innerWidth;}).map(a=>a.className)),[]);
+ await pagina.screenshot({path:`scratch/brujo-invocaciones-${width}-${height}.png`});
+ await pagina.evaluate(()=>window.sembrar(14,'Patrón Infernal'));
+ const recargar=await pagina.$('article button[aria-label="Recargar uso con un espacio de pacto"]');assert(recargar);
+ assert(await recargar.evaluate(b=>{const r=b.getBoundingClientRect();return b.textContent==='Recargar'&&r.width<120&&r.height>=32;}));
+
 }
 await pagina.setViewport({width:599,height:760});
 await pagina.goto(`http://127.0.0.1:${servidor.httpServer.address().port}/__brujo?nivel=9`);
@@ -187,7 +260,7 @@ await pagina.waitForFunction(()=>window.listo);await pagina.waitForSelector('art
 await invocacion('Pacto del grimorio');await buscarLibro('Rayo de escarcha');
 const eleccionLibroContadores=await pagina.evaluateHandle(()=>[...document.querySelectorAll('details button')].find(b=>b.textContent.trim()==='Rayo de escarcha'));
 assert(eleccionLibroContadores.asElement());await eleccionLibroContadores.asElement().click();await eleccionLibroContadores.dispose();
-await pulsar('Pacto del grimorio','Rasgo inactivo');
+await mostrarAprendidas();await pulsar('Pacto del grimorio','Rasgo inactivo');
 await pulsar('Contactar con el patrón','Gastar 1 uso');
 await esperar(()=>window.rasgo('Contactar con el patrón').usosRestantes===0);
 await pulsar('Contactar con el patrón','Recuperar 1 uso');

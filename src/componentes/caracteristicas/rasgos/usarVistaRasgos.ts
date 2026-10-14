@@ -91,8 +91,11 @@ export function usarVistaRasgos() {
     const faltanRasgos = canonicos.some((r) => !mapaActual.has(r.id));
     const selectoresDesactualizados = canonicos.some((rCan) => {
       const rAct = mapaActual.get(rCan.id);
-      if (!rAct || !rCan.selectores || !rAct.selectores) return false;
-      return rCan.selectores.some((sCan) => {
+      if (!rAct || rAct.personalizado || rAct.origen === "personalizado") return false;
+      if (rCan.formulaDados !== rAct.formulaDados
+        || JSON.stringify(rCan.tiradaCuracionManual) !== JSON.stringify(rAct.tiradaCuracionManual)
+        || (rCan.selectores?.length ?? 0) !== (rAct.selectores?.length ?? 0)) return true;
+      return rCan.selectores?.some((sCan) => {
         const sAct = rAct.selectores?.find((s) => s.id === sCan.id);
         return !sAct || sAct.maxSelecciones !== sCan.maxSelecciones;
       });
@@ -220,8 +223,8 @@ export function usarVistaRasgos() {
   }, [personajeActivo, dotesInvocacion, filtroAccion, consultaBusqueda]);
 
   const datosJerarquicos = useMemo<DatosJerarquicosRasgos>(() => {
-    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje);
-  }, [rasgosFiltrados, clasesPersonaje]);
+    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos);
+  }, [rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos]);
 
   const abrirModalCreacion = (origen: OrigenRasgo = "personalizado") => {
     setRasgoParaEditar(null);

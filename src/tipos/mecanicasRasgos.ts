@@ -6,7 +6,7 @@ export const EsquemaMecanicasRasgo = z.object({
   // Recursos de pacto: ejecución atómica al usar o recargar un rasgo.
   recuperarPactoAlUsar: z.enum(["mitad_maximo", "maximo"]).optional(),
   recargarUsoConPacto: z.boolean().optional(),
-  curacionDirigida: z.object({ maxDados: z.string(), alcance: z.number().positive() }).optional(),
+  tiradaCuracionManual: z.object({ maxDados: z.string() }).optional(),
   idSelectorOrigen: z.string().optional(),
   hpTemporalAlDescansar: z.boolean().optional(),
   hpTemporalAlUsarRasgo: z.string().optional(),

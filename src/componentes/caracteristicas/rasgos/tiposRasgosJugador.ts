@@ -18,6 +18,7 @@ export interface GrupoClaseJerarquico {
   rasgosSubclase: RasgoPersonaje[];
   rasgosCanalizarDivinidad: RasgoPersonaje[];
   rasgoInvocaciones?: RasgoPersonaje;
+  rasgosInvocaciones?: RasgoPersonaje[];
   total: number;
 }
 

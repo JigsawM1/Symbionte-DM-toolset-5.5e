@@ -94,7 +94,7 @@ export function usarAccionesTarjetaRasgo({
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
   const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const esCuracionAuto = esCuracion && !esManosCurativas && !esPreservarVida;
+  const esCuracionAuto = esCuracion && !rasgo.tiradaCuracionManual && !esManosCurativas && !esPreservarVida;
   const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
   const gastaUsoAlTirar =
     !rasgo.noGastarAlTirarDados &&

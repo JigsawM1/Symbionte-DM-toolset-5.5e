@@ -1,5 +1,15 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-14] Integración de Optimizaciones Algorítmicas Transversales (optimizacion-bigO) en Rama de Brujo
+
+- Fusión completa de la rama `optimizacion-bigO` en `brujo-revision-probablemente-scope-creep-de-nuevo`.
+- **Compendio de Conjuros:** Perfil de lanzador precalculado con `construirPerfilLanzadorPersonaje` (-98,2% tiempo en compendio).
+- **Búsqueda Tolerante:** Memoización local $O(N)$ en `compararPorRelevanciaTitulo` (-89,4% de coste en ordenación) y ampliación de caché FIFO a 5.000 entradas.
+- **Dotes e Inventario:** Pre-normalización y extracción de `rasgoPadre` en `SelectorDotesAcordeon.tsx`, partición en un solo paso en `usarInventarioOrdenado.ts` y `useMemo` en monstruos de iniciativa.
+- **Sinergia:** Coexistencia limpia con los controles declarativos de recursos del Brujo PHB 2024 y la agrupación de pestañas compacta de `BarraSuperior.tsx`.
+
+---
+
 ## [2026-10-14] Rendimiento de recursos y lanzamiento gratuito del Brujo
 
 - Corregido el coste de las evaluaciones sin cachés globales de personaje: resolverExtensionesRasgos copia profundamente únicamente los padres que reciben extensiones, una vez por proyección; los consumidores restantes leen los rasgos sin copiarlos. seleccionOpcionValida comprueba opciones puntuales y detiene las consultas anidadas al encontrar una opción elegible, conservando filtros, alias, requisitos y repetibilidad.
@@ -8,7 +18,7 @@
 - pnpm run test:brujo-ui y pnpm run test:rasgos-ui con salida 0. Diez flujos del Brujo y cuatro dimensiones sin errores JavaScript ni desbordes. Nueva regresión con App fresca: contadores +/−, lanzamiento Gratis de Contactar, un único gasto, ausencia de actualizaciones en reposo y conservación del gasto y elecciones del libro al serializar y recargar. El caso se aísla de los formularios de otras fichas de prueba.
 - Evidencias locales en scratch/perfil-contactar-antes.json, perfil-contactar-resultados.json, ci-contadores-brujo.log, ui-contadores-brujo.log y ui-rasgos-contadores.log. Sin despliegue ni certificación en TaleSpire/CEF nativos. No se modificaron los botones, Pasos feéricos, agrupación de invocaciones ni las reglas del lanzamiento.
 
-Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
+---
 
 ## [2026-10-14] Optimización transversal de rendimiento y mitigación de regresiones de catálogo
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { calcularVidaPorDados, MonstruoBase, formatearVelocidad, normalizarTexto } from "@/almacen/usarAlmacenDM";
 import {
   usarEstadoHomebrew,
@@ -19,11 +19,12 @@ export const BuscadorMonstruos: React.FC = () => {
 
   // Filtrar monstruos por la búsqueda usando normalización de acentos precalculada
   const queryNormalizada = normalizarTexto(busquedaMonstruo);
-  const monstruosFiltrados = queryNormalizada === ""
-    ? baseDatosMonstruos
-    : baseDatosMonstruos.filter((m) =>
-        (m.nombreNormalizado || normalizarTexto(m.nombre)).includes(queryNormalizada)
-      );
+  const monstruosFiltrados = useMemo(() => {
+    if (!queryNormalizada) return baseDatosMonstruos;
+    return baseDatosMonstruos.filter((m) =>
+      (m.nombreNormalizado || normalizarTexto(m.nombre)).includes(queryNormalizada)
+    );
+  }, [baseDatosMonstruos, queryNormalizada]);
 
   // Añadir un monstruo de la base de datos a la iniciativa activa
   const manejarAñadirMonstruoPorPlantilla = (plantilla: MonstruoBase, limpiarBuscador = true) => {

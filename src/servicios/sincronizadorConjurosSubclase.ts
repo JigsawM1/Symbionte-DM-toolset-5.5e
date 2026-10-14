@@ -1,6 +1,6 @@
 import type { PersonajeJugador, ClasePersonaje } from "@/tipos";
 import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
-import { coincideHechizoId, deduplicarListaIds } from "@/servicios/comparadorHechizos";
+import { deduplicarListaIds, crearMatcherHechizos } from "@/servicios/comparadorHechizos";
 import { obtenerConjurosOtorgadosPorRasgos } from "@/servicios/evaluadorEfectosRasgos";
 
 /**
@@ -32,40 +32,41 @@ export function sincronizarConjurosSubclaseHelper(
   const viejosSiemprePrep = pj.conjurosSiemprePreparadosIds || [];
 
   // Conjuros que eran de subclase pero ya no lo son (por bajada de nivel o cambio de subclase)
-  const eliminadosSubclase = viejosSiemprePrep.filter(
-    (viejo) => !nuevosSiemprePrep.some((nuevo) => coincideHechizoId(viejo, nuevo))
-  );
+  const esNuevoSiemprePrep = crearMatcherHechizos(nuevosSiemprePrep);
+  const eliminadosSubclase = viejosSiemprePrep.filter((viejo) => !esNuevoSiemprePrep(viejo));
 
   // Filtrar de preparados los que correspondían a la subclase anterior
+  const esEliminadoSubclase = crearMatcherHechizos(eliminadosSubclase);
   const preparados = deduplicarListaIds(
-    (pj.conjurosPreparadosIds || []).filter(
-      (prep) => !eliminadosSubclase.some((elim) => coincideHechizoId(prep, elim))
-    )
+    (pj.conjurosPreparadosIds || []).filter((prep) => !esEliminadoSubclase(prep))
   );
   // Añadir los nuevos de subclase sin duplicar
+  const esPreparado = crearMatcherHechizos(preparados);
   nuevosSiemprePrep.forEach((nuevo) => {
-    if (!preparados.some((p) => coincideHechizoId(p, nuevo))) {
+    if (!esPreparado(nuevo)) {
       preparados.push(nuevo);
     }
   });
 
   // Filtrar de conocidos los eliminados de subclase
+  const aprendizajesIndependientes = crearMatcherHechizos(pj.aprendizajesConjurosIndependientes?.conjuros ?? []);
   const conocidos = deduplicarListaIds(
     (pj.conjurosConocidosIds || []).filter(
-      (con) => !eliminadosSubclase.some((elim) => coincideHechizoId(con, elim))
-        || (pj.aprendizajesConjurosIndependientes?.conjuros ?? []).some(id => coincideHechizoId(con, id))
+      (con) => !esEliminadoSubclase(con) || aprendizajesIndependientes(con)
     )
   );
+  const esConocido = crearMatcherHechizos(conocidos);
   nuevosSiemprePrep.forEach((nuevo) => {
-    if (!conocidos.some((c) => coincideHechizoId(c, nuevo))) {
+    if (!esConocido(nuevo)) {
       conocidos.push(nuevo);
     }
   });
 
   // Trucos de subclase, especie y rasgos
   const trucos = deduplicarListaIds([...(pj.trucosConocidosIds || [])]);
+  const esTrucoRegistrado = crearMatcherHechizos(trucos);
   (resultadoSubclase.trucos || []).forEach((t) => {
-    if (!trucos.some((tr) => coincideHechizoId(tr, t))) {
+    if (!esTrucoRegistrado(t)) {
       trucos.push(t);
     }
   });
@@ -76,7 +77,7 @@ export function sincronizarConjurosSubclaseHelper(
       for (const c of r.conjurosOtorgados) {
         const cNorm = c.toLowerCase().trim();
         const esTruco = cNorm === "luz" || (r.descripcion && r.descripcion.toLowerCase().includes("truco " + cNorm));
-        if (esTruco && !trucos.some((tr) => coincideHechizoId(tr, c))) {
+        if (esTruco && !esTrucoRegistrado(c)) {
           trucos.push(c);
         }
       }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, Search, X, Check } from "lucide-react";
 import { MonstruoBase } from "@/utiles/datosIniciales";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
@@ -18,9 +18,12 @@ export const VinculadorPlantilla: React.FC<VinculadorPlantillaProps> = ({
   const [filtroBuscadorVinculo, setFiltroBuscadorVinculo] = useState("");
   const [mostrarListaVinculos, setMostrarListaVinculos] = useState(false);
 
-  const plantillasFiltradas = baseDatosMonstruos.filter((m) =>
-    coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion], filtroBuscadorVinculo)
-  );
+  const plantillasFiltradas = useMemo(() => {
+    if (!filtroBuscadorVinculo.trim()) return baseDatosMonstruos;
+    return baseDatosMonstruos.filter((m) =>
+      coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion], filtroBuscadorVinculo)
+    );
+  }, [baseDatosMonstruos, filtroBuscadorVinculo]);
 
   return (
     <div className={estilos.cajaVinculacionManual}>

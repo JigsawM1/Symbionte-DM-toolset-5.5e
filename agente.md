@@ -10,6 +10,32 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-14] Optimización transversal de rendimiento y mitigación de regresiones de catálogo
+
+- **Alcance y contexto**: Auditoría transversal e implementación de optimizaciones inspiradas en la solución del selector de conjuros del *Pacto del grimorio*. Se detectaron y mitigaron patrones de recorridos lineales repetidos sobre catálogos estáticos, comparaciones cuadráticas en ordenaciones tolerantes, filtros redundantes en cada render y recálculos de perfiles de clase.
+- **Magia y compendio (`calculadorMagia.ts`, `CompendioConjurosJugador.tsx`)**:
+  - Se desacopló la extracción del perfil del lanzador mediante `construirPerfilLanzadorPersonaje(pj)`.
+  - `puedePersonajeLanzarHechizo` admite opcionalmente este perfil precalculado, evitando re-extraer clases, subclases y ranuras en cada uno de los 391 conjuros del compendio.
+  - Medición empírica: el filtrado completo de los 391 conjuros pasó de 33,45 ms a 0,59 ms (reducción del 98,2%, conservando exactamente los 68 conjuros lanzables para el personaje de prueba).
+- **Búsqueda tolerante (`busquedaTolerante.ts`)**:
+  - `compararPorRelevanciaTitulo`: Se introdujo memoización de relevancia local $O(N)$ mediante `cacheRelevancia = new Map<T, number>()` por operación de ordenación, evitando recalcular `calcularRelevanciaExactaEInicio` decenas de veces por elemento en `sort()`.
+  - Medición empírica: la ordenación de 391 elementos pasó de 2,04 ms a 0,21 ms (ahorro del 89,4%).
+  - Caché de normalización de cadenas ampliada a 5.000 entradas con desalojo progresivo FIFO de 1.000 entradas para evitar picos de recolección de basura.
+- **Selector de Dotes (`SelectorDotesAcordeon.tsx`)**:
+  - Extracción de la resolución del rasgo padre (`rasgoPadre`) fuera del `.map()` de opciones de dote.
+  - Pre-normalización del campo `textoBusqueda` en `opcionesEvaluadas`.
+  - Medición empírica: el filtrado al escribir en el buscador pasó de 1,28 ms a 0,07 ms (94,5% de ahorro).
+- **Catálogo del DM (`BuscadorMonstruos.tsx`, `VinculadorPlantilla.tsx`)**:
+  - Inclusión de `useMemo` en el filtrado de los 520 monstruos sobre `baseDatosMonstruos` en ambos componentes de iniciativa, evitando el recorrido completo en cada re-render del panel del DM.
+- **Inventario (`usarInventarioOrdenado.ts`)**:
+  - Partición memoizada en un único recorrido $O(N)$ para `objetosEquipados`, `objetosNoEquipados`, `objetosMochilaBase`, `objetosBolsaContencionBase`, `objetosMonturaBase` y `objetosAlmacenBase`.
+  - Estabilización referencial que previene ejecuciones innecesarias de `clasificarMochilaPorTipo` y `ordenarInventarioPlano` ante cambios no relacionados en el estado del inventario.
+- **Sincronizadores de conjuros (`comparadorHechizos.ts`, `sincronizadorConjurosSubclase.ts`, `sincronizadorMulticlase.ts`)**:
+  - Exportación de `crearMatcherHechizos(lista)` con optimización `Set.has(id)` $O(1)$ previo a la resolución de alias.
+  - Deduplicación rápida en `deduplicarListaIds` mediante `Set<string>`.
+- **Verificación y certificación**:
+  - `pnpm run ci` completado con éxito (código de salida 0): TypeScript 0 errores, ESLint 0 advertencias, 135 suites / 1.904 pruebas pasadas, 159 archivos dentro del límite (< 500 líneas), build de Vite exitoso. Conservados cambios locales.
+
 ## [2026-10-14] Rendimiento del selector de conjuros del grimorio
 
 - Corrección limitada al rendimiento: índice estático por ID en seleccionesRasgos.ts, caché de coincidencias compatibles por nombres/alias e identificación desconocida; opciones elegibles memorizadas en SeccionSelectoresModalRasgo según referencias de selectores y personaje. Se conservan contratos, formato de guardado, requisitos y elecciones. Botones, Pasos feéricos y agrupación de invocaciones quedan pendientes.

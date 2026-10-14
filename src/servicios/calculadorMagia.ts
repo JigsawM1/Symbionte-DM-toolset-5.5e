@@ -1015,50 +1015,140 @@ export function obtenerNivelesConjuroDisponiblesPersonaje(
   return niveles;
 }
 
+export interface PerfilLanzadorPersonaje {
+  esLanzador: boolean;
+  trucosConocidos: string[];
+  nivelesGenerales: Set<number>;
+  clasesPersonajeNorm: string[];
+  clasesLanzadoras: {
+    nombreNorm: string;
+    listaNorm: string;
+    niveles: Set<number>;
+  }[];
+  clasesBase: {
+    nombreNorm: string;
+    subNorm: string;
+    listaSubNorm: string;
+    niveles: Set<number>;
+  }[];
+  clasePrincipal?: {
+    nombreNorm: string;
+    listaNorm: string;
+    niveles: Set<number>;
+  };
+  overrideEspacios?: Record<string, number> | null;
+  espaciosMaximos?: Record<string, number>;
+  esMonoClase: boolean;
+}
+
+/**
+ * Precomputa el perfil de lanzador, clases normalizadas y niveles de conjuro accesibles
+ * para un personaje, permitiendo evaluar el catálogo completo de conjuros sin recalcular
+ * estructuras estáticas del personaje en cada conjuro.
+ */
+export function construirPerfilLanzadorPersonaje(
+  personaje: PersonajeJugador
+): PerfilLanzadorPersonaje {
+  const esLanzador =
+    personaje.esLanzador ||
+    (Array.isArray(personaje.clasesLanzadoras) && personaje.clasesLanzadoras.length > 0) ||
+    Boolean(detectarTipoLanzador(personaje.clase || "", personaje.subclase));
+
+  const trucosConocidos = personaje.trucosConocidosIds || [];
+  const nivelesGenerales = obtenerNivelesConjuroDisponiblesPersonaje(personaje);
+  const tieneTrucos = trucosConocidos.length > 0;
+  const clasesPersonajeNorm = obtenerClasesListaMagicaPersonaje(personaje).map((c) => normalizarTexto(c));
+
+  const clasesLanzadoras = (personaje.clasesLanzadoras || []).map((cl) => ({
+    nombreNorm: normalizarTexto(cl.clase),
+    listaNorm: cl.listaConjuros ? normalizarTexto(cl.listaConjuros) : "",
+    niveles: obtenerNivelesLanzablesPorClase(cl.tipoLanzador, cl.nivel, { tieneTrucos })
+  }));
+
+  const clasesBase: {
+    nombreNorm: string;
+    subNorm: string;
+    listaSubNorm: string;
+    niveles: Set<number>;
+  }[] = [];
+
+  if (Array.isArray(personaje.clases)) {
+    for (const cItem of personaje.clases) {
+      const info = detectarTipoLanzador(cItem.nombre, cItem.subclase);
+      clasesBase.push({
+        nombreNorm: normalizarTexto(cItem.nombre || (cItem as { clase?: string }).clase || ""),
+        subNorm: cItem.subclase ? normalizarTexto(cItem.subclase) : "",
+        listaSubNorm: info?.listaConjuros ? normalizarTexto(info.listaConjuros) : "",
+        niveles: info
+          ? obtenerNivelesLanzablesPorClase(info.tipo, cItem.nivel || 1, { tieneTrucos })
+          : new Set<number>()
+      });
+    }
+  }
+
+  let clasePrincipal: PerfilLanzadorPersonaje["clasePrincipal"] = undefined;
+  const infoPrinc = detectarTipoLanzador(personaje.clase || "", personaje.subclase);
+  if (infoPrinc) {
+    clasePrincipal = {
+      nombreNorm: normalizarTexto(personaje.clase || ""),
+      listaNorm: infoPrinc.listaConjuros ? normalizarTexto(infoPrinc.listaConjuros) : "",
+      niveles: obtenerNivelesLanzablesPorClase(infoPrinc.tipo, personaje.nivel || 1, { tieneTrucos })
+    };
+  }
+
+  const esMonoClase = !personaje.clases || personaje.clases.length <= 1;
+
+  return {
+    esLanzador,
+    trucosConocidos,
+    nivelesGenerales,
+    clasesPersonajeNorm,
+    clasesLanzadoras,
+    clasesBase,
+    clasePrincipal,
+    overrideEspacios: personaje.overrideEspaciosConjuro,
+    espaciosMaximos: personaje.espaciosConjuroMaximos,
+    esMonoClase
+  };
+}
+
 /**
  * Evalúa si un conjuro específico está disponible para ser lanzado o aprendido por el personaje,
  * verificando tanto la pertenencia de clase como la capacidad del personaje de lanzar conjuros de ese nivel.
  */
 export function puedePersonajeLanzarHechizo(
   personaje: PersonajeJugador | null | undefined,
-  hechizo: HechizoBase
+  hechizo: HechizoBase,
+  perfilPrecalculado?: PerfilLanzadorPersonaje
 ): boolean {
   if (!personaje) return true;
 
-  // Si el personaje no es lanzador y no tiene clases lanzadoras registradas
-  const esLanzador =
-    personaje.esLanzador ||
-    (Array.isArray(personaje.clasesLanzadoras) && personaje.clasesLanzadoras.length > 0) ||
-    Boolean(detectarTipoLanzador(personaje.clase || "", personaje.subclase));
+  const perfil = perfilPrecalculado ?? construirPerfilLanzadorPersonaje(personaje);
 
-  if (!esLanzador) {
+  // Si el personaje no es lanzador y no tiene clases lanzadoras registradas
+  if (!perfil.esLanzador) {
     // Si tiene trucos raciales o de dote pero no es lanzador de clase, solo puede lanzar sus trucos
-    if (hechizo.nivel === 0 && (personaje.trucosConocidosIds?.length ?? 0) > 0) {
-      return personaje.trucosConocidosIds.some((id) => coincideHechizoId(id, hechizo.id));
+    if (hechizo.nivel === 0 && perfil.trucosConocidos.length > 0) {
+      return perfil.trucosConocidos.some((id) => coincideHechizoId(id, hechizo.id));
     }
     return false;
   }
 
-  const clasesPersonaje = obtenerClasesListaMagicaPersonaje(personaje);
-  if (clasesPersonaje.length === 0) return false;
+  if (perfil.clasesPersonajeNorm.length === 0) return false;
 
   const clasesHechizo = hechizo.clases || [];
   const esHechizoUniversal = clasesHechizo.length === 0;
 
   // 1. Si el hechizo no tiene clases declaradas, comprobar si el personaje puede lanzar su nivel de forma general
   if (esHechizoUniversal) {
-    const nivelesGenerales = obtenerNivelesConjuroDisponiblesPersonaje(personaje);
-    return nivelesGenerales.has(hechizo.nivel);
+    return perfil.nivelesGenerales.has(hechizo.nivel);
   }
 
   // 2. Comprobar si al menos una clase del conjuro coincide con alguna clase/lista mágica del personaje
-  const clasesCoincidentes = clasesHechizo.filter((ch) =>
-    clasesPersonaje.some((cp) => {
-      const chNorm = normalizarTexto(ch);
-      const cpNorm = normalizarTexto(cp);
-      return chNorm.includes(cpNorm) || cpNorm.includes(chNorm);
-    })
-  );
+  const clasesCoincidentes = clasesHechizo.filter((ch) => {
+    const chNorm = normalizarTexto(ch);
+    return perfil.clasesPersonajeNorm.some((cp) => chNorm.includes(cp) || cp.includes(chNorm));
+  });
 
   if (clasesCoincidentes.length === 0) {
     return false;
@@ -1069,97 +1159,61 @@ export function puedePersonajeLanzarHechizo(
     const chNorm = normalizarTexto(claseCoincidente);
 
     // Buscar en clasesLanzadoras
-    let claseLanzadoraEncontrada: ClaseLanzadora | undefined;
-    if (Array.isArray(personaje.clasesLanzadoras)) {
-      claseLanzadoraEncontrada = personaje.clasesLanzadoras.find((cl) => {
-        const cNom = normalizarTexto(cl.clase);
-        const lNom = cl.listaConjuros ? normalizarTexto(cl.listaConjuros) : "";
-        return cNom.includes(chNorm) || chNorm.includes(cNom) || (lNom && (lNom.includes(chNorm) || chNorm.includes(lNom)));
-      });
-    }
-
-    if (claseLanzadoraEncontrada) {
-      const nivelesClase = obtenerNivelesLanzablesPorClase(
-        claseLanzadoraEncontrada.tipoLanzador,
-        claseLanzadoraEncontrada.nivel,
-        { tieneTrucos: (personaje.trucosConocidosIds?.length ?? 0) > 0 }
-      );
-      if (nivelesClase.has(hechizo.nivel)) {
-        return true;
-      }
+    const clLanz = perfil.clasesLanzadoras.find(
+      (cl) =>
+        cl.nombreNorm.includes(chNorm) ||
+        chNorm.includes(cl.nombreNorm) ||
+        (cl.listaNorm && (cl.listaNorm.includes(chNorm) || chNorm.includes(cl.listaNorm)))
+    );
+    if (clLanz && clLanz.niveles.has(hechizo.nivel)) {
+      return true;
     }
 
     // Buscar en clases base y subclases si no se encontró en clasesLanzadoras
-    if (Array.isArray(personaje.clases)) {
-      for (const cItem of personaje.clases) {
-        const cItemNom = normalizarTexto(cItem.nombre || (cItem as { clase?: string }).clase || "");
-        const subNom = cItem.subclase ? normalizarTexto(cItem.subclase) : "";
-        const info = detectarTipoLanzador(cItem.nombre, cItem.subclase);
-        const listaSub = info?.listaConjuros ? normalizarTexto(info.listaConjuros) : "";
-
-        if (
-          cItemNom.includes(chNorm) ||
-          chNorm.includes(cItemNom) ||
-          (listaSub && (listaSub.includes(chNorm) || chNorm.includes(listaSub))) ||
-          (subNom && (subNom.includes(chNorm) || chNorm.includes(subNom)))
-        ) {
-          if (info) {
-            const nivelesClase = obtenerNivelesLanzablesPorClase(
-              info.tipo,
-              cItem.nivel || 1,
-              { tieneTrucos: (personaje.trucosConocidosIds?.length ?? 0) > 0 }
-            );
-            if (nivelesClase.has(hechizo.nivel)) {
-              return true;
-            }
-          }
-        }
-      }
+    const clBase = perfil.clasesBase.find(
+      (cb) =>
+        cb.nombreNorm.includes(chNorm) ||
+        chNorm.includes(cb.nombreNorm) ||
+        (cb.listaSubNorm && (cb.listaSubNorm.includes(chNorm) || chNorm.includes(cb.listaSubNorm))) ||
+        (cb.subNorm && (cb.subNorm.includes(chNorm) || chNorm.includes(cb.subNorm)))
+    );
+    if (clBase && clBase.niveles.has(hechizo.nivel)) {
+      return true;
     }
 
     // Fallback: clase principal directa
-    const clasePrincNom = normalizarTexto(personaje.clase || "");
-    const infoPrinc = detectarTipoLanzador(personaje.clase || "", personaje.subclase);
-    const listaPrinc = infoPrinc?.listaConjuros ? normalizarTexto(infoPrinc.listaConjuros) : "";
-
-    if (
-      clasePrincNom.includes(chNorm) ||
-      chNorm.includes(clasePrincNom) ||
-      (listaPrinc && (listaPrinc.includes(chNorm) || chNorm.includes(listaPrinc)))
-    ) {
-      if (infoPrinc) {
-        const nivelesClase = obtenerNivelesLanzablesPorClase(
-          infoPrinc.tipo,
-          personaje.nivel || 1,
-          { tieneTrucos: (personaje.trucosConocidosIds?.length ?? 0) > 0 }
-        );
-        if (nivelesClase.has(hechizo.nivel)) {
-          return true;
-        }
+    if (perfil.clasePrincipal) {
+      const cp = perfil.clasePrincipal;
+      if (
+        (cp.nombreNorm.includes(chNorm) ||
+          chNorm.includes(cp.nombreNorm) ||
+          (cp.listaNorm && (cp.listaNorm.includes(chNorm) || chNorm.includes(cp.listaNorm)))) &&
+        cp.niveles.has(hechizo.nivel)
+      ) {
+        return true;
       }
     }
   }
 
-  // 4. Overrides manuales o ranuras en personajes mono-clase
-  const esMonoClase = !personaje.clases || personaje.clases.length <= 1;
+  // 3. Overrides manuales o ranuras en personajes mono-clase
   if (
-    personaje.overrideEspaciosConjuro &&
-    typeof personaje.overrideEspaciosConjuro[String(hechizo.nivel)] === "number" &&
-    personaje.overrideEspaciosConjuro[String(hechizo.nivel)] > 0
+    perfil.overrideEspacios &&
+    typeof perfil.overrideEspacios[String(hechizo.nivel)] === "number" &&
+    perfil.overrideEspacios[String(hechizo.nivel)] > 0
   ) {
     return true;
   }
 
   if (
-    esMonoClase &&
-    typeof personaje.espaciosConjuroMaximos?.[String(hechizo.nivel)] === "number" &&
-    personaje.espaciosConjuroMaximos[String(hechizo.nivel)] > 0
+    perfil.esMonoClase &&
+    typeof perfil.espaciosMaximos?.[String(hechizo.nivel)] === "number" &&
+    perfil.espaciosMaximos[String(hechizo.nivel)] > 0
   ) {
     return true;
   }
 
   if (
-    personaje.puntosConjuroMaximos > 0 &&
+    (personaje.puntosConjuroMaximos || 0) > 0 &&
     hechizo.nivel >= 1 &&
     hechizo.nivel <= (personaje.nivelConjuroMaximo || 0)
   ) {

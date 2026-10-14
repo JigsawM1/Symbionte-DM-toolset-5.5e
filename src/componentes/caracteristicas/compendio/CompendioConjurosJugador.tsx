@@ -21,7 +21,8 @@ import {
   obtenerConjurosSubclasePersonaje,
   requiereSincronizacionSubclase,
   obtenerNivelesConjuroDisponiblesPersonaje,
-  puedePersonajeLanzarHechizo
+  puedePersonajeLanzarHechizo,
+  construirPerfilLanzadorPersonaje
 } from "@/servicios/calculadorMagia";
 import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/TarjetasMetricasMagia";
@@ -169,7 +170,8 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
         return baseDatosHechizos.filter((h) => estaEnLista(h));
       case "disponibles": {
         if (!personajeActivo) return baseDatosHechizos;
-        return baseDatosHechizos.filter((h) => puedePersonajeLanzarHechizo(personajeActivo, h));
+        const perfil = construirPerfilLanzadorPersonaje(personajeActivo);
+        return baseDatosHechizos.filter((h) => puedePersonajeLanzarHechizo(personajeActivo, h, perfil));
       }
       case "todos":
       default:

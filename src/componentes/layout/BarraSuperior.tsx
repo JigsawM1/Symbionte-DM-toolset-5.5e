@@ -21,7 +21,14 @@ import {
   Swords,
   BookMarked
 } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import estilosClases from "./BarraSuperior.module.css";
+
+const pestanasAdicionalesJugador = [
+  { valor: "rasgos", etiqueta: "Rasgos", icono: <BookMarked size={13} /> },
+  { valor: "notas", etiqueta: "Notas", icono: <FileText size={13} /> },
+  { valor: "iniciativa", etiqueta: "Iniciativa", icono: <Play size={13} /> },
+];
 
 export const BarraSuperior: React.FC = () => {
   const { pestañaActiva, campañaNombre, esGM } = usarEstadoConfiguracion();
@@ -29,6 +36,7 @@ export const BarraSuperior: React.FC = () => {
   const { modoHomebrew } = usarEstadoHomebrew();
   const { establecerModoHomebrew } = usarAccionesHomebrew();
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
+  const esPestanaAdicional = pestanasAdicionalesJugador.some(({ valor }) => valor === pestañaActiva);
 
   return (
     <header className={estilosClases.cabecera}>
@@ -163,41 +171,14 @@ export const BarraSuperior: React.FC = () => {
               <span className={estilosClases.pestanaTexto}>Inventario</span>
             </button>
 
-            <button
-              onClick={() => establecerPestaña("rasgos")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "rasgos" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Rasgos de Clase, Especie, Dotes y Homebrew"
-              type="button"
-            >
-              <BookMarked size={13} />
-              <span className={estilosClases.pestanaTexto}>Rasgos</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("notas")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "notas" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Notas Personales del Jugador"
-              type="button"
-            >
-              <FileText size={13} />
-              <span className={estilosClases.pestanaTexto}>Notas</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("iniciativa")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "iniciativa" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Tracker de Iniciativa y Combate"
-              type="button"
-            >
-              <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
-              <span className={estilosClases.pestanaTexto}>Iniciativa</span>
-            </button>
+            <SelectorDesplegable
+              valor={esPestanaAdicional ? pestañaActiva : ""}
+              alCambiar={establecerPestaña}
+              opciones={pestanasAdicionalesJugador}
+              placeholder="Más"
+              titulo="Más pestañas: Rasgos, Notas e Iniciativa"
+              className={`${estilosClases.selectorPestanas} ${esPestanaAdicional ? estilosClases.selectorPestanasActivo : ""}`}
+            />
           </>
         ) : (
           <>

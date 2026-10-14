@@ -44,7 +44,7 @@
     "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
+    "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\n\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
     "conjuroGratuito": "encontrar familiar",
     "recuperacionConjuro": "ilimitado",
     "efectos": [
@@ -64,7 +64,7 @@
     "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
+    "descripcion": "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\n\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
     "selectores": [
       {
         "id": "tipo_dano_pacto_del_filo",
@@ -112,7 +112,7 @@
     "tipoAccion": "pasivo",
     "repetible": false,
     "categoriaMecanica": "activable",
-    "descripcion": "Uniendo hebras de sombras, conjuras un libro en tu mano al terminar un descanso corto o largo. Este Libro de las sombras (tú eliges su aspecto) contiene magia sobrenatural a la que solo tú puedes acceder y que te proporciona los beneficios presentados a continuación. El libro desaparece si conjuras otro con este rasgo o si mueres.\n- **Trucos y rituales.** Cuando aparezca el libro, elige tres trucos y dos conjuros de nivel 1 que estén marcados como “ritual”. Los conjuros pueden ser de la lista de cualquier clase y deben ser conjuros que no tengas ya preparados. Mientras lleves el libro contigo, tendrás preparados los conjuros elegidos y funcionarán como conjuros de brujo para ti.\n- **Canalizador mágico.** Puedes usar el libro como canalizador mágico.",
+    "descripcion": "Uniendo hebras de sombras, conjuras un libro en tu mano al terminar un descanso corto o largo. Este Libro de las sombras (tú eliges su aspecto) contiene magia sobrenatural a la que solo tú puedes acceder y que te proporciona los beneficios presentados a continuación. El libro desaparece si conjuras otro con este rasgo o si mueres.\n\n- **Trucos y rituales.** Cuando aparezca el libro, elige tres trucos y dos conjuros de nivel 1 que estén marcados como “ritual”. Los conjuros pueden ser de la lista de cualquier clase y deben ser conjuros que no tengas ya preparados. Mientras lleves el libro contigo, tendrás preparados los conjuros elegidos y funcionarán como conjuros de brujo para ti.\n\n- **Canalizador mágico.** Puedes usar el libro como canalizador mágico.",
     "efectos": [],
     "selectores": [
       {
@@ -123,7 +123,7 @@
         "opciones": [],
         "maxSelecciones": 3,
         "valorActual": [],
-        "visualizacion": "normal",
+        "visualizacion": "lista",
         "claveOpcionesDinamicas": "trucos_todas_clases",
         "filtroConjuros": {
           "excluirPreparados": true
@@ -137,7 +137,7 @@
         "opciones": [],
         "maxSelecciones": 2,
         "valorActual": [],
-        "visualizacion": "normal",
+        "visualizacion": "lista",
         "claveOpcionesDinamicas": "rituales_nivel_1",
         "filtroConjuros": {
           "excluirPreparados": true
@@ -456,7 +456,7 @@
     "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Cuando lanzas *encontrar familiar*, imbuyes al familiar invocado de una cierta cantidad de tu poder sobrenatural, lo que le otorga a la criatura los siguientes beneficios:\n- **Acuático o aéreo.** El familiar obtiene una velocidad nadando o una velocidad volando (a tu elección) de 40 pies.\n- **Ataque rápido.** Como acción adicional, puedes ordenar al familiar que realice la acción de atacar.\n- **Daño necrótico o radiante.** Siempre que el familiar haga daño contundente, cortante o perforante, puedes hacer que cause daño necrótico o radiante en su lugar.\n- **Tu CD de salvación.** Si el familiar obliga a una criatura a realizar una tirada de salvación, esta utiliza tu CD de salvación de conjuros.\n- **Resistencia.** Cuando el familiar recibe daño, puedes usar una reacción para otorgarle resistencia contra ese daño."
+    "descripcion": "Cuando lanzas *encontrar familiar*, imbuyes al familiar invocado de una cierta cantidad de tu poder sobrenatural, lo que le otorga a la criatura los siguientes beneficios:\n\n- **Acuático o aéreo.** El familiar obtiene una velocidad nadando o una velocidad volando (a tu elección) de 40 pies.\n\n- **Ataque rápido.** Como acción adicional, puedes ordenar al familiar que realice la acción de atacar.\n\n- **Daño necrótico o radiante.** Siempre que el familiar haga daño contundente, cortante o perforante, puedes hacer que cause daño necrótico o radiante en su lugar.\n\n- **Tu CD de salvación.** Si el familiar obliga a una criatura a realizar una tirada de salvación, esta utiliza tu CD de salvación de conjuros.\n\n- **Resistencia.** Cuando el familiar recibe daño, puedes usar una reacción para otorgarle resistencia contra ese daño."
   },
   {
     "id": "maestro_de_las_formas_innumerables",
@@ -605,7 +605,7 @@
     "usosMaximos": 1,
     "usosRestantes": 1,
     "recuperacion": "descanso_largo",
-    "descripcion": "Aparece una nueva página en el Libro de las sombras cuando lo conjuras. Con tu permiso, una criatura puede usar una acción para escribir su nombre en esa página, que puede contener una cantidad de nombres igual a tu modificador por Carisma (mínimo un nombre).\nCuando los puntos de golpe de cualquier criatura cuyo nombre esté en la página se reduzcan a 0, pero no muera, en vez de eso pasará a tener 1 punto de golpe mágicamente. Cuando esta magia se active, ninguna criatura podrá beneficiarse de ella hasta que finalices un descanso largo.\nComo acción de magia, puedes borrar un nombre de la página tocándolo."
+    "descripcion": "Aparece una nueva página en el Libro de las sombras cuando lo conjuras. Con tu permiso, una criatura puede usar una acción para escribir su nombre en esa página, que puede contener una cantidad de nombres igual a tu modificador por Carisma (mínimo un nombre).\n\nCuando los puntos de golpe de cualquier criatura cuyo nombre esté en la página se reduzcan a 0, pero no muera, en vez de eso pasará a tener 1 punto de golpe mágicamente. Cuando esta magia se active, ninguna criatura podrá beneficiarse de ella hasta que finalices un descanso largo.\n\nComo acción de magia, puedes borrar un nombre de la página tocándolo."
   },
   {
     "id": "visiones_de_reinos_remotos",

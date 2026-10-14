@@ -1,6 +1,6 @@
 import type { EfectoMecanicoRasgo, SelectorRasgo } from "@/tipos";
 import { logger } from "@/utiles/logger";
-import { evaluarExpresionNumericaSegura } from "@/servicios/evaluadorEfectosRasgos";
+import { evaluarExpresionNumericaSegura } from "../rasgos/evaluadorExpresionesRasgos";
 
 
 /**

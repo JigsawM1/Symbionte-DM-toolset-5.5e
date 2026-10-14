@@ -53,6 +53,7 @@ export function sincronizarConjurosSubclaseHelper(
   const conocidos = deduplicarListaIds(
     (pj.conjurosConocidosIds || []).filter(
       (con) => !eliminadosSubclase.some((elim) => coincideHechizoId(con, elim))
+        || (pj.aprendizajesConjurosIndependientes?.conjuros ?? []).some(id => coincideHechizoId(con, id))
     )
   );
   nuevosSiemprePrep.forEach((nuevo) => {

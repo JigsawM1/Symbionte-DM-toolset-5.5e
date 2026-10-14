@@ -60,3 +60,4 @@ respaldo.yaml
 !/scripts/fixture-campos-numericos.mjs
 
 !/scripts/probar-guerrero.mjs
+!/scripts/probar-brujo.mjs

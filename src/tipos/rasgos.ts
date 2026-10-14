@@ -223,6 +223,7 @@ export const EsquemaSelectorRasgo = z.object({
   tipoSelector: z.enum(["general", "dote", "invocacion", "conjuro"]).default("general").optional(),
   ubicacion: z.enum(["tarjeta", "seccion"]).optional(),
   modo: z.enum(["seleccion", "consulta"]).optional(),
+  requiereEleccionExplicita: z.boolean().optional(),
   categoriaDote: z.enum(["origen", "general", "estilo_combate", "don_epico"]).optional(),
   etiqueta: z.string(),
   opciones: z.array(EsquemaOpcionSelector).default([]),
@@ -243,7 +244,8 @@ export const EsquemaSelectorRasgo = z.object({
     clase: z.string().optional(),
     requiereDano: z.boolean().optional(),
     requiereAtaque: z.boolean().optional(),
-    alcanceMinimo: z.number().min(0).optional()
+    alcanceMinimo: z.number().min(0).optional(),
+    excluirPreparados: z.boolean().optional()
   }).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
   opcionesDinamicas: z.array(EsquemaOpcionesDinamicas).optional(),

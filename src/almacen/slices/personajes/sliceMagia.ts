@@ -1,4 +1,5 @@
 import { consumirRecursoConjuro } from "@/servicios/consumidorRecursosConjuros";
+import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
 import {
@@ -357,7 +358,10 @@ export const crearSubSliceMagia: StateCreator<
     const nivelClave = String(nivel);
     const entrada = `${nivelClave}:${hechizoId}`;
     mutarPersonaje(set, id, (pj) => {
-      const anteriores = (pj.arcanoMisticoIds || []).filter(
+        const declarados = obtenerSelectoresArcanos(pj);
+        if (declarados.length && !obtenerSelectoresArcanos(pj,true).some(s => s.nivelConjuro === nivel
+          && s.opciones.some(o => o.id === hechizoId))) return pj;
+        const anteriores = (pj.arcanoMisticoIds || []).filter(
         (item) => !item.startsWith(`${nivelClave}:`) && item !== hechizoId
       );
       return {

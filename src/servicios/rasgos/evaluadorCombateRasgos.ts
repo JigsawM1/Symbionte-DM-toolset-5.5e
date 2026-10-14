@@ -6,6 +6,7 @@ import {
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import {
   normalizar,
+  esRasgoHabilitadoPorOpcion,
   estaRevelacionCelestialActiva,
   obtenerBonoCompetenciaPersonaje,
   obtenerNivelClasePersonaje,
@@ -514,37 +515,21 @@ export function personajeTieneMaestriaArma(
 export interface ConfiguracionPactoDelFilo {
   activo: boolean;
   tipoDano: "propio" | "necrotico" | "psiquico" | "radiante";
+  caracteristica?: Caracteristica;
 }
 
 /**
  * Obtiene el estado y configuración de la invocación Pacto del filo para el personaje.
  * Determina si está activo y el tipo de daño seleccionado ('propio', 'necrotico', 'psiquico', 'radiante').
  */
-export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador): ConfiguracionPactoDelFilo {
+export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador, idInstancia?: string): ConfiguracionPactoDelFilo {
   if (!personaje) return { activo: false, tipoDano: "propio" };
-
-  for (const r of personaje.rasgos || []) {
-    if (r.activo === false) continue;
-    if (Array.isArray(r.selectores)) {
-      for (const sel of r.selectores) {
-        for (const val of sel.valorActual || []) {
-          if (
-            typeof val === "string" &&
-            (val === "pacto_del_filo" || val.startsWith("pacto_del_filo:") || val.startsWith("pacto_del_filo__"))
-          ) {
-            const subtipo = val.includes(":") ? val.split(":")[1].toLowerCase() : "propio";
-            const tipoValido =
-              subtipo === "necrotico" || subtipo === "psiquico" || subtipo === "radiante"
-                ? subtipo
-                : "propio";
-            return { activo: true, tipoDano: tipoValido };
-          }
-        }
-      }
-    }
-    if (r.id === "pacto_del_filo" || normalizar(r.nombre) === "pacto del filo") {
-      return { activo: true, tipoDano: "propio" };
-    }
+  for (const r of personaje.rasgos || []) if (r.activo !== false && r.vinculoArma?.idInstancia
+    && esRasgoHabilitadoPorOpcion(r, personaje.rasgos)
+    && (!idInstancia || r.vinculoArma.idInstancia === idInstancia)) {
+    const tipo = r.selectores?.find(s => s.id === r.vinculoArma?.selectorTipoDano)?.valorActual[0];
+    return { activo:true, caracteristica:r.vinculoArma.caracteristica,
+      tipoDano: tipo === "necrotico" || tipo === "psiquico" || tipo === "radiante" ? tipo : "propio" };
   }
   return { activo: false, tipoDano: "propio" };
 }

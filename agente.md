@@ -2,6 +2,16 @@
 
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
+## [2026-10-13] Brujo y cuatro subclases PHB 2024: recorrido declarativo
+
+- Revisados Brujo 1–20, Archihadas, Celestial, Infernal, Gran Primigenio y las 28 invocaciones de invocaciones-sobrenaturales.json. Matriz previa y resultados por rasgo en INVENTARIO_BRUJO_PREVIO.md e IMPLEMENTACION_BRUJO.md. La fuente de criaturas invocadas se conserva. Se retomó la rama del Brujo desde 47befff y se preservó el cambio local de BarraSuperior.tsx, comprobado por SHA-256.
+- Opciones materializadas en rasgos efectivos con recursos y elecciones propios; validación común de requisitos, repetición y filtros. Arcanos independientes por nivel conectados al consumidor existente, sin reserva duplicada. Recuperación atómica de pacto con Astucia/Maestro, recarga de un uso con pacto y curación dirigida con gasto variable de dados.
+- Corregidos alcance de Lanza (30 pies por nivel de Brujo), Vigor (12 PG temporales), listas de subclase, resistencias reales, eventos propios de Resiliencia, referencia a trucos sin regalarlos y elección explícita de Mejora/Don. Vínculo de arma por instancia; aptitud declarada del Libro y arcanos al lanzar en multiclase. Se retiró el daño inseguro de Devorador a todas las armas cuerpo a cuerpo.
+- Persistencia conserva identidades de opciones, dependencia, selecciones, estado, gasto y vínculo. El aprendizaje independiente nuevo se registra para conservarlo al retirar aportaciones. No se amplió el protocolo de combate de sincronización con datos de rasgos.
+- Verificación final: pnpm run ci, salida 0; 135 suites y 1897 pruebas, incluidas 47 nuevas regresiones del recorrido del Brujo. TypeScript, ESLint, auditoría de 159 archivos y build correctos. pnpm run test:brujo-ui, salida 0: nueve flujos en App real, cuatro dimensiones (599/433 por 760/600), cero errores JavaScript y desbordes; capturas revisadas. pnpm run test:rasgos-ui y pnpm run test:sync-simulacion, salida 0; doce escenarios de transporte simulado. git diff --check correcto. Logs en scratch/ci-brujo.log, brujo-ui.log, rasgos-ui-brujo.log y sync-simulacion-brujo.log.
+- Limitaciones documentadas por rasgo: blancos, impacto, salvaciones, una vez por turno, sentidos, vínculos telepáticos, excepciones por lanzamiento y PG de aliados permanecen parciales o informativos. La curación dirigida elige PJ locales; distancia y visibilidad se confirman en mesa. La aptitud global de fichas multiclase y la procedencia histórica ambigua no se presentan como resueltas.
+- Validado en Chromium local y simulación; no se certificó TaleSpire real, CEF nativo ni una sesión entre equipos. No se desplegó. pnpm se ejecutó fuera del sandbox por EPERM; permanece el aviso existente de chunks grandes.
+
 ## [2026-10-13] Limpieza del contrato de sincronización de combate
 
 - Retirados de DTOs, esquemas y recepción de red los campos que los emisores omitían: recursos mágicos, movimiento gastado/máximo temporal, plantillas, velocidades y detalles de invocación. Se conserva el contenido de combate realmente emitido y el protocolo v2 con FRAG, ACK, revisiones y validación de autoridad.

@@ -6,6 +6,26 @@ Fuentes contrastadas: [reglas oficiales 2024](https://www.dndbeyond.com/sources/
 
 Carencias detectadas antes de ampliar contratos: recuperación de espacios de pacto al consumir un rasgo, recarga de un uso con pacto, gasto variable y destinatario de curación, filtro de conjuros de referencia, alcance de conjuro elegido y estado persistente de opciones consumibles. Arcano místico ya tiene un consumidor por nivel en la vista de conjuros: debe reutilizarse. Los efectos sobre objetivos y los eventos de impacto no tienen contexto suficiente.
 
+Hallazgos del contraste entre los datos anteriores y sus consumidores, detallados en el informe final:
+
+| Rasgos afectados | Estado anterior y necesidad concreta | Soporte que faltaba |
+|---|---|---|
+| Astucia / Maestro | Contador y descripción sin recuperación ejecutable; Maestro no modificaba la reserva de pacto | Operación atómica y propiedad fusionada en el padre |
+| Arcanos 11/13/15/17 | Consumible y extensiones con contador compartido, frente al consumidor existente por nivel | Conectar selectores a reservas independientes, filtrar opciones y validar gasto |
+| Invocaciones | La selección no construía todos los metadatos ni conservaba recursos propios de la opción | Rasgos hijos persistentes y requisitos compartidos entre UI/almacén/evaluadores |
+| Agónica / Lanza | Reconocimiento particular y selección de referencia confundida con aprendizaje; alcance incorrecto | Selección explícita, filtro y efecto dirigido al conjuro; 30 pies por nivel de Brujo |
+| Grimorio / Lecciones | Elecciones predeterminadas y opciones anidadas incompletas | Fuentes dinámicas completas, instancias independientes, activación y procedencia |
+| Pacto del filo / Devorador | Aportaciones extendidas a todas las armas cuerpo a cuerpo | Vínculo real a una instancia; retirar daño inseguro mientras falta evento de impacto |
+| Vigor / Profundidades | Vigor escalaba como espacio de pacto; el gratuito de Profundidades no tenía estado propio efectivo | 12 PG temporales fijos y reserva de lanzamiento independiente de la movilidad |
+| Luz sanadora | Reserva indicada, pero gasto variable y receptor no llegaban al flujo de curación | Dados elegidos y receptor local, sin coste fijo ni autocuración del emisor |
+| Defensas / Arrojar / Combatiente | Recuperación por descanso sin recarga adicional ejecutable con pacto | Recarga de un uso mediante un único espacio |
+| Alma / Escudo / Resiliencia infernal | Efectos personalizados o no consumidos como resistencias | Efectos de resistencia con objetivo y tipo de daño interpretados |
+| Resiliencia celestial | PG temporales sin evento de descanso/Astucia | Eventos propios declarados; aliados continúan manuales |
+| Conjuros de subclase | Listas que mezclaban aportaciones anteriores y etiquetas distintas de las entradas reales | Progresiones PHB 2024 a 3/5/7/9 y retirada por procedencia |
+| Mejora / Don | Constructor añadía decisiones automáticamente | Elección explícita nueva y conservación de las decisiones ya guardadas |
+
+No se intentó representar ventajas contra blancos concretos, telepatía, sentidos del tablero o efectos de impacto mediante condiciones ficticias. Sus límites se identifican por rasgo en [IMPLEMENTACION_BRUJO.md](IMPLEMENTACION_BRUJO.md).
+
 | Rasgo | Nivel | Origen | Regla y fuente | Estado previo | Cambio necesario | Soporte o limitación |
 |---|---:|---|---|---|---|---|
 | Invocaciones sobrenaturales | 1 | Brujo | PHB 2024, Brujo | selector_informativo; sin efectos | Contrastar progresión y consumidor; ver informe final | Contratos y consumidores inspeccionados |

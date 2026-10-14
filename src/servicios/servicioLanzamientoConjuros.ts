@@ -9,6 +9,8 @@
 import type { HechizoBase } from "@/tipos";
 import type { PersonajeJugador } from '@/tipos';
 import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
+import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
+import { coincideHechizoId } from "./comparadorHechizos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   sanitizarEtiqueta
@@ -131,6 +133,11 @@ export function validarLanzamiento(
 
     case "arcanoMistico": {
       const nivel = solicitud.nivelLanzamiento ?? solicitud.hechizo.nivel;
+      const pj = contexto.personajeActual;
+      if (pj && obtenerSelectoresArcanos(pj).length && !obtenerSelectoresArcanos(pj,true).some(s =>
+        s.nivelConjuro === nivel && s.valorActual.some(id => coincideHechizoId(id,solicitud.hechizo.id)))) {
+        return { permitido:false, motivo:"Este conjuro no corresponde a un arcano adquirido y elegido." };
+      }
       const gastados = contexto.arcanoMisticoGastados ?? [];
       if (gastados.includes(String(nivel))) {
         return {

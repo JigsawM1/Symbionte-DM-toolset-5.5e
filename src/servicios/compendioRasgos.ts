@@ -227,6 +227,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     }
 
     // Si es un rasgo de Mejora de Característica o Don Épico, generar/sincronizar la dote asociada en el bloque de dotes
+    if (nuevo.selectores?.some(s => s.requiereEleccionExplicita && !s.valorActual.length)) return nuevo;
     if (esRasgoMejoraCaracteristica(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_asi"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_mejora_caracteristica";

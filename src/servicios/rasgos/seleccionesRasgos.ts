@@ -17,7 +17,11 @@ export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: Personaj
   return selector.opciones.filter(op => {
     const h = HECHIZOS.find(h => coincideHechizoId(h.id, op.id));
     if (!h) return false;
-    if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase())) return false;
+    if (filtro.excluirPreparados && !selector.valorActual.some(id=>coincideHechizoId(id,h.id))
+      && [...(pj?.conjurosPreparadosIds ?? []),...(pj?.conjurosSiemprePreparadosIds ?? []),...(pj?.trucosConocidosIds ?? [])].some(id=>coincideHechizoId(id,h.id))) return false;
+    if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !pj?.rasgos.some(r =>
+      r.activo !== false && r.claseConjurosOtorgados === filtro.clase && r.selectores?.some(s => s.tipoSelector === "conjuro"
+        && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id,h.id))))) return false;
     if (filtro.soloConocidos && (!pj || !(pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id)))) return false;
     if (filtro.requiereDano && !h.dadosDaño) return false;
     if (filtro.requiereAtaque && !h.requiereAtaque) return false;
@@ -56,6 +60,13 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
   const bases = pj.rasgos.filter(r => !r.idSelectorOrigen);
   const resultado = [...bases];
   const estados = new Map(anteriores.map(r => [r.id, r]));
+  const concesionesPrevias = anteriores.filter(r => r.idSelectorOrigen && bases.some(p => p.id === r.ligadoA
+    && p.selectores?.some(s => s.id === r.idSelectorOrigen && s.valorActual.includes(r.requiereOpcion ?? "")))).map(r => {
+      const padre = bases.find(p => p.id === r.ligadoA);
+      const op = padre?.selectores?.find(s => s.id === r.idSelectorOrigen)?.opciones.find(o => o.id === descomponerSeleccion(r.requiereOpcion ?? "").base);
+      return { ...op, ...r };
+    });
+  const contextoElegibilidad = { ...pj, rasgos: [...bases, ...concesionesPrevias] };
   const proyectar = (padre: RasgoPersonaje, selector: SelectorRasgo, valor: string) => {
     const { base, argumento } = descomponerSeleccion(valor);
     const op = selector.opciones.find(o => o.id === base);
@@ -80,7 +91,7 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
     }
   };
   for (const padre of bases) for (const sel of padre.selectores ?? []) if (sel.tipoSelector === "invocacion") {
-    for (const valor of seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(pj, padre), pj)) proyectar(padre, sel, valor);
+    for (const valor of seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(pj, padre), contextoElegibilidad)) proyectar(padre, sel, valor);
   }
   return resultado;
 }

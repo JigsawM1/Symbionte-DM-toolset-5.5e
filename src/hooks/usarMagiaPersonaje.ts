@@ -1,4 +1,5 @@
 import { useMemo, useCallback } from "react";
+import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { PersonajeJugador, HechizoBase, Caracteristica, ModeloConjuros } from "@/tipos";
 import {
   calcularCDConjuros,
@@ -113,6 +114,8 @@ export function usarMagiaPersonaje(
   }, [personaje?.clases, personaje?.clase, personaje?.nivel]);
 
   const nivelesArcanoDisponibles = useMemo(() => {
+    if (personaje && obtenerSelectoresArcanos(personaje).length) return obtenerSelectoresArcanos(personaje,true)
+      .map(s => s.nivelConjuro!).sort((a,b) => a-b);
     const disponibles = obtenerNivelesArcanoMisticoDisponibles(nivelBrujo);
     for (const item of personaje?.arcanoMisticoIds || []) {
       const lvl = Number(item.split(":")[0]);
@@ -121,7 +124,7 @@ export function usarMagiaPersonaje(
       }
     }
     return disponibles.sort((a, b) => a - b);
-  }, [nivelBrujo, personaje?.arcanoMisticoIds]);
+  }, [nivelBrujo, personaje]);
 
   // Pre-computar variantes normalizadas de cada hechizo una sola vez para O(1) permanente
   const clavesLookupPorHechizo = useMemo(() => {

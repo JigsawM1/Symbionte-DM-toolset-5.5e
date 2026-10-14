@@ -152,18 +152,6 @@ export const BarraSuperior: React.FC = () => {
             </button>
 
             <button
-              onClick={() => establecerPestaña("rasgos")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "rasgos" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Rasgos de Clase, Especie, Dotes y Homebrew"
-              type="button"
-            >
-              <BookMarked size={13} />
-              <span className={estilosClases.pestanaTexto}>Rasgos</span>
-            </button>
-
-            <button
               onClick={() => establecerPestaña("inventario")}
               className={`${estilosClases.pestanaBoton} ${
                 pestañaActiva === "inventario" ? estilosClases.pestanaActiva : ""
@@ -173,6 +161,18 @@ export const BarraSuperior: React.FC = () => {
             >
               <Backpack size={13} />
               <span className={estilosClases.pestanaTexto}>Inventario</span>
+            </button>
+
+            <button
+              onClick={() => establecerPestaña("rasgos")}
+              className={`${estilosClases.pestanaBoton} ${
+                pestañaActiva === "rasgos" ? estilosClases.pestanaActiva : ""
+              }`}
+              title="Rasgos de Clase, Especie, Dotes y Homebrew"
+              type="button"
+            >
+              <BookMarked size={13} />
+              <span className={estilosClases.pestanaTexto}>Rasgos</span>
             </button>
 
             <button

@@ -36,6 +36,7 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
   return {
     ...nuevo,
     selectores: nuevo.selectores?.map((s) => fusionarSelector(s, existente?.selectores?.find((a) => a.id === s.id))),
+    vinculoArma: nuevo.vinculoArma ? { ...nuevo.vinculoArma, idInstancia: existente?.vinculoArma?.idInstancia } : undefined,
     condicionAlActivar: nuevo.condicionAlActivar ?? existente?.condicionAlActivar,
     restaurarUsosAlActivar: nuevo.restaurarUsosAlActivar ?? existente?.restaurarUsosAlActivar,
     usosRestantes: typeof disponibles === "number" && nuevo.usosMaximos !== undefined

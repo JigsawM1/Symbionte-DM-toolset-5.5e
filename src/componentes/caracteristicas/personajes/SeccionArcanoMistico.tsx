@@ -11,6 +11,7 @@ interface SeccionArcanoMisticoProps {
   arcanoMisticoGastados: string[];
   nivelesDisponibles: number[];
   baseDatosHechizos: HechizoBase[];
+  opcionesPorNivel?: Record<number, string[]>;
   nombrePersonaje: string;
   bonoAtaqueMagico?: number;
   cdConjuros?: number;
@@ -29,6 +30,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
   arcanoMisticoGastados,
   nivelesDisponibles,
   baseDatosHechizos,
+  opcionesPorNivel,
   nombrePersonaje,
   bonoAtaqueMagico = 0,
   cdConjuros: _cdConjuros,
@@ -132,7 +134,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
 
           // Conjuros disponibles de este nivel para el selector
           const opcionesHechizosNivel = baseDatosHechizos
-            .filter((h) => h.nivel === nivel)
+            .filter((h) => h.nivel === nivel && (!opcionesPorNivel || opcionesPorNivel[nivel]?.includes(h.id)))
             .sort((a, b) => a.nombre.localeCompare(b.nombre))
             .map((h) => ({
               valor: h.id,

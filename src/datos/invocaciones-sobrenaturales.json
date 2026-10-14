@@ -3,7 +3,7 @@
     "id": "armadura_de_sombras",
     "nombre": "Armadura de sombras",
     "nivelMinimo": 1,
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *armadura de mago* sobre ti sin gastar un espacio de conjuro.",
@@ -16,7 +16,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Armadura de mago sobre ti mismo sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "mente_sobrenatural",
@@ -40,7 +41,7 @@
     "id": "pacto_de_la_cadena",
     "nombre": "Pacto de la cadena",
     "nivelMinimo": 1,
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
@@ -53,7 +54,8 @@
         "valor": "sin_espacio",
         "descripcion": "Lanza Encontrar familiar como acción de magia sin gastar espacios de conjuro con formas especiales"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "pacto_del_filo",
@@ -92,10 +94,16 @@
             "descripcion": "Cambia el daño del arma a daño radiante"
           }
         ],
-        "valorActual": []
+        "valorActual": [],
+        "visualizacion": "normal"
       }
     ],
-    "efectos": []
+    "efectos": [],
+    "vinculoArma": {
+      "caracteristica": "carisma",
+      "selectorTipoDano": "tipo_dano_pacto_del_filo",
+      "soloCuerpoACuerpoOMagica": true
+    }
   },
   {
     "id": "pacto_del_grimorio",
@@ -116,7 +124,10 @@
         "maxSelecciones": 3,
         "valorActual": [],
         "visualizacion": "normal",
-        "claveOpcionesDinamicas": "trucos_todas_clases"
+        "claveOpcionesDinamicas": "trucos_todas_clases",
+        "filtroConjuros": {
+          "excluirPreparados": true
+        }
       },
       {
         "id": "rituales_libro_sombras",
@@ -127,10 +138,14 @@
         "maxSelecciones": 2,
         "valorActual": [],
         "visualizacion": "normal",
-        "claveOpcionesDinamicas": "rituales_nivel_1"
+        "claveOpcionesDinamicas": "rituales_nivel_1",
+        "filtroConjuros": {
+          "excluirPreparados": true
+        }
       }
     ],
-    "esActivable": true
+    "esActivable": true,
+    "claseConjurosOtorgados": "brujo"
   },
   {
     "id": "descarga_agonica",
@@ -150,13 +165,14 @@
         "opciones": [],
         "maxSelecciones": 1,
         "valorActual": [],
-        "claveOpcionesDinamicas": "trucos_brujo",
+        "claveOpcionesDinamicas": "trucos_todas_clases",
         "destinoConjuros": "referencia",
         "filtroConjuros": {
           "requiereDano": true,
           "soloConocidos": true,
           "clase": "brujo"
-        }
+        },
+        "visualizacion": "normal"
       }
     ],
     "efectos": [
@@ -187,14 +203,15 @@
         "opciones": [],
         "maxSelecciones": 1,
         "valorActual": [],
-        "claveOpcionesDinamicas": "trucos_brujo",
+        "claveOpcionesDinamicas": "trucos_todas_clases",
         "destinoConjuros": "referencia",
         "filtroConjuros": {
           "requiereDano": true,
           "requiereAtaque": true,
           "soloConocidos": true,
           "clase": "brujo"
-        }
+        },
+        "visualizacion": "normal"
       }
     ]
   },
@@ -216,14 +233,15 @@
         "opciones": [],
         "maxSelecciones": 1,
         "valorActual": [],
-        "claveOpcionesDinamicas": "trucos_brujo",
+        "claveOpcionesDinamicas": "trucos_todas_clases",
         "destinoConjuros": "referencia",
         "filtroConjuros": {
           "requiereDano": true,
           "alcanceMinimo": 10,
           "soloConocidos": true,
           "clase": "brujo"
-        }
+        },
+        "visualizacion": "normal"
       }
     ],
     "efectos": [
@@ -265,7 +283,7 @@
     "nombre": "Máscara de los mil rostros",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *disfrazarse* sin gastar un espacio de conjuro.",
@@ -278,14 +296,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Disfrazarse a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "salto_sobrenatural",
     "nombre": "Salto sobrenatural",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *salto* sobre ti sin gastar un espacio de conjuro.",
@@ -298,7 +317,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Salto sobre ti mismo a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "vigor_infernal",
@@ -324,14 +344,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Falsa vida sobre ti mismo a voluntad sin gastar espacios de conjuro (obtiene el valor máximo del dado)"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "visiones_brumosas",
     "nombre": "Visiones brumosas",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *imagen silenciosa* sin gastar un espacio de conjuro.",
@@ -344,7 +365,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Imagen silenciosa a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "vista_del_diablo",
@@ -388,7 +410,7 @@
     "nombre": "Don de las profundidades",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "consumible",
     "descripcion": "Puedes respirar bajo el agua y obtienes una velocidad nadando igual a tu velocidad.\nTambién puedes lanzar *respirar bajo el agua* una vez sin gastar un espacio de conjuro. Recuperas la capacidad de lanzarlo de este modo tras finalizar un descanso largo.",
@@ -410,7 +432,8 @@
     ],
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
-    "recuperacion": "descanso_largo"
+    "recuperacion": "descanso_largo",
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "filo_sediento",
@@ -440,7 +463,7 @@
     "nombre": "Maestro de las formas innumerables",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *alterar el propio aspecto* sin gastar un espacio de conjuro.",
@@ -453,7 +476,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Alterar el propio aspecto a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "mirada_de_las_dos_mentes",
@@ -470,7 +494,7 @@
     "nombre": "Paso ascendente",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *levitar* sobre ti sin gastar un espacio de conjuro.",
@@ -483,14 +507,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Levitar sobre ti mismo a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "uno_con_las_sombras",
     "nombre": "Uno con las sombras",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Mientras estés en una zona de luz tenue u oscuridad, puedes lanzar *invisibilidad* sobre ti sin gastar un espacio de conjuro.",
@@ -510,7 +535,7 @@
     "nombre": "Susurros del sepulcro",
     "nivelMinimo": 7,
     "requisitoPrevio": "Brujo nivel 7+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *hablar con los muertos* sin gastar un espacio de conjuro.",
@@ -523,7 +548,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Hablar con los muertos a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "devorador_de_vida",
@@ -559,7 +585,8 @@
             "descripcion": "1d6 de daño radiante adicional"
           }
         ],
-        "valorActual": []
+        "valorActual": [],
+        "visualizacion": "normal"
       }
     ],
     "efectos": [],
@@ -585,7 +612,7 @@
     "nombre": "Visiones de reinos remotos",
     "nivelMinimo": 9,
     "requisitoPrevio": "Brujo nivel 9+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *ojo arcano* sin gastar un espacio de conjuro.",
@@ -598,7 +625,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Ojo arcano a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "hoja_devoradora",

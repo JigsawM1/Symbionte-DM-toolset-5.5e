@@ -1,4 +1,4 @@
-import { aplicarConfiguracionConjuroGratuito } from "@/servicios/rasgos/conjurosGratuitosRasgos";
+import { aplicarConfiguracionConjurosRasgos } from "@/servicios/rasgos/conjurosGratuitosRasgos";
 import { useShallow } from "zustand/react/shallow";
 import { useCallback, useMemo } from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
@@ -152,7 +152,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
       const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
 
-      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjuroGratuito(contextoEfectivo.personajeActual, {
+      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
@@ -198,7 +198,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
       const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
 
-      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjuroGratuito(contextoEfectivo.personajeActual, {
+      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,

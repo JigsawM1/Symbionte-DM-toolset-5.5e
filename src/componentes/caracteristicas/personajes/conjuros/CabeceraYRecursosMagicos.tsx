@@ -7,6 +7,7 @@ import { TrackerPuntosConjuro } from "../TrackerPuntosConjuro";
 import { SeccionArcanoMistico } from "../SeccionArcanoMistico";
 import type { CabeceraYRecursosMagicosProps } from "./tiposPanelConjuros";
 import estilos from "../PanelConjurosPersonaje.module.css";
+import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 
 export type { CabeceraYRecursosMagicosProps };
 
@@ -175,6 +176,8 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
             arcanoMisticoGastados={personaje.arcanoMisticoGastados || []}
             nivelesDisponibles={nivelesArcanoDisponibles}
             baseDatosHechizos={baseDatosHechizos}
+            opcionesPorNivel={obtenerSelectoresArcanos(personaje).length ? Object.fromEntries(
+              obtenerSelectoresArcanos(personaje,true).map(s => [s.nivelConjuro!,s.opciones.map(o => o.id)])) : undefined}
             nombrePersonaje={personaje.nombre}
             bonoAtaqueMagico={bonoAtaqueMagico}
             cdConjuros={cdConjuros}

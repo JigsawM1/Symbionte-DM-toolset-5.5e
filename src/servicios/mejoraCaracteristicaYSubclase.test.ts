@@ -70,7 +70,7 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
     });
   });
 
-  describe("2. Rasgo Mejora de Característica y Dote Homónima por Defecto", () => {
+  describe("2. Mejora de característica del Brujo mediante elección explícita", () => {
     it("crea un rasgo individual por cada nivel en que la clase gana Mejora de Característica", () => {
       // Brujo nivel 6: gana el rasgo a nivel 4 (1 rasgo)
       const rasgosBrujoNv6 = obtenerRasgosClaseYSubclase("Brujo", 6);
@@ -78,17 +78,18 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
       expect(mejorasNv6).toHaveLength(1);
       expect(mejorasNv6[0].nivelRequerido).toBe(4);
       expect(mejorasNv6[0].selectores).toBeDefined();
-      expect(mejorasNv6[0].selectores?.[0].valorActual).toEqual(["dote_mejora_caracteristica"]);
+      expect(mejorasNv6[0].selectores?.[0].valorActual).toEqual([]);
+      expect(mejorasNv6[0].selectores?.[0].requiereEleccionExplicita).toBe(true);
 
       // Brujo nivel 8: gana el rasgo a nivel 4 y nivel 8 (2 rasgos individuales)
       const rasgosBrujoNv8 = obtenerRasgosClaseYSubclase("Brujo", 8);
       const mejorasNv8 = rasgosBrujoNv8.filter((r) => r.nombre === "Mejora de característica");
       expect(mejorasNv8).toHaveLength(2);
       expect(mejorasNv8.map((m) => m.nivelRequerido)).toEqual([4, 8]);
-      expect(mejorasNv8.every((m) => m.selectores?.[0].valorActual[0] === "dote_mejora_caracteristica")).toBe(true);
+      expect(mejorasNv8.every((m) => m.selectores?.[0].valorActual.length === 0)).toBe(true);
     });
 
-    it("sincronizarRasgosAutomaticos añade por defecto la dote con el mismo nombre en la sección de dotes", () => {
+    it("no genera una dote hasta que el jugador elige y conserva la elección al reconstruir", () => {
       const personajeBrujoNv6: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj_brujo_6",
@@ -107,8 +108,10 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
       );
       expect(rasgoClaseMejora).toBeDefined();
 
-      // Debe contener la dote homónima generada por defecto
-      const doteGenerada = rasgosSincronizados.find(
+      expect(rasgosSincronizados.some(r => r.origen === "dote" && r.ligadoA === rasgoClaseMejora?.id)).toBe(false);
+      rasgoClaseMejora!.selectores![0].valorActual = ["dote_mejora_caracteristica"];
+      const reconstruidos = sincronizarRasgosAutomaticos({ ...personajeBrujoNv6, rasgos: rasgosSincronizados });
+      const doteGenerada = reconstruidos.find(
         (r) => r.origen === "dote" && r.nombre === "Mejora de Característica" && r.ligadoA === rasgoClaseMejora?.id
       );
       expect(doteGenerada).toBeDefined();
@@ -181,7 +184,11 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
         rasgos: []
       };
 
-      const sincronizados = sincronizarRasgosAutomaticos(personajeBrujoNv8);
+      const iniciales = sincronizarRasgosAutomaticos(personajeBrujoNv8);
+      for (const r of iniciales.filter(r => r.nombre === "Mejora de característica")) {
+        r.selectores![0].valorActual = ["dote_mejora_caracteristica"];
+      }
+      const sincronizados = sincronizarRasgosAutomaticos({ ...personajeBrujoNv8, rasgos: iniciales });
 
       const dotesASI = sincronizados.filter((r) => r.origen === "dote" && r.id.startsWith("dote_asi_"));
       expect(dotesASI).toHaveLength(2);
@@ -232,11 +239,15 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
       expect(doteDuro?.nombre).toBe("Duro");
       expect(doteDuro?.efectos?.some((e) => e.tipo === "modificador_hp_maximo")).toBe(true);
       expect(pjTrasDuro?.hpMaximo).toBe(25 + 4 * 2); // 33 HP
+      store.actualizarSeleccionRasgo("pj_store_asi", rasgoMejora!.id, selectorId, []);
+      const sinEleccion = usarAlmacenDM.getState().personajes.find(p => p.id === "pj_store_asi");
+      expect(sinEleccion?.rasgos.some(r => r.origen === "dote" && r.ligadoA === rasgoMejora!.id)).toBe(false);
+      expect(sinEleccion?.hpMaximo).toBe(25);
     });
   });
 
   describe("3. Rasgo Don Épico a Nivel 19 y Priorización de Dones Épicos", () => {
-    it("crea el rasgo Don épico a nivel 19 con selector que prioriza Dones Épicos y selecciona el recomendado", () => {
+    it("crea Don épico a nivel 19 con catálogo de dotes y ninguna elección arbitraria", () => {
       // Brujo nivel 19
       const rasgosBrujoNv19 = obtenerRasgosClaseYSubclase("Brujo", 19);
       const rasgoDonEpico = rasgosBrujoNv19.find((r) => r.nombre === "Don épico");
@@ -246,14 +257,13 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
 
       const selector = rasgoDonEpico?.selectores?.[0];
       expect(selector).toBeDefined();
-      expect(selector?.etiqueta).toBe("Don épico elegido");
+      expect(selector?.etiqueta).toBe("Don épico u otra dote");
 
-      // Por defecto para Brujo se recomienda Don del destino
-      expect(selector?.valorActual).toEqual(["dote_don_destino"]);
+      expect(selector?.valorActual).toEqual([]);
+      expect(selector?.requiereEleccionExplicita).toBe(true);
 
-      // Las primeras opciones del selector deben ser Dones Épicos (priorizados)
-      const primerasOpciones = selector?.opciones.slice(0, 10) || [];
-      expect(primerasOpciones.every((op) => op.id.startsWith("dote_don_"))).toBe(true);
+      expect(selector?.opciones.some(op => op.id === "dote_don_destino")).toBe(true);
+      expect(selector?.opciones.some(op => op.id === "dote_mejora_caracteristica")).toBe(true);
     });
 
     it("asigna la dote recomendada respectiva por clase (ej. Guerrero -> Don de la pericia en combate, Bárbaro -> Don del ataque imparable)", () => {

@@ -137,7 +137,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
       expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain("Paso brumoso");
     });
 
-    it("a nivel 3 adquiere Pasos feéricos con dado 1d10 y usos dependientes de Carisma", () => {
+    it("a nivel 3 adquiere Pasos feéricos con lanzamiento gratuito y usos dependientes de Carisma", () => {
       const pjInicial: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-hada-3",
@@ -152,12 +152,13 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(pasos).toBeDefined();
       expect(pasos?.categoriaMecanica).toBe("consumible");
-      expect(pasos?.tipoAccion).toBe("especial");
-      expect(pasos?.formulaDados).toBe("1d10");
+      expect(pasos?.tipoAccion).toBe("accion_adicional");
+      expect(pasos?.formulaDados).toBeUndefined();
+      expect(pasos?.conjuroGratuito).toBe("Paso brumoso");
       expect(pasos?.usosMaximos).toBe(3);
     });
 
-    it("a nivel 6 Escapada brumosa usa 2d10 y gasta usos del padre (Pasos feéricos)", () => {
+    it("a nivel 6 Escapada brumosa habilita una reacción sin imponer gasto del padre", () => {
       const pjInicial: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-hada-6",
@@ -173,9 +174,9 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(escapada).toBeDefined();
       expect(escapada?.tipoAccion).toBe("reaccion");
-      expect(escapada?.formulaDados).toBe("2d10");
+      expect(escapada?.formulaDados).toBeUndefined();
       expect(escapada?.ligadoA).toBe("Pasos feéricos");
-      expect(escapada?.gastarDePadre).toBe(true);
+      expect(escapada?.gastarDePadre).toBe(false);
       expect(pasos?.usosMaximos).toBe(4);
     });
 
@@ -262,7 +263,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(alma).toBeDefined();
       expect(alma?.efectos).toMatchObject([
-        { tipo: "personalizado", objetivo: "radiante" },
+        { tipo: "resistencia_dano", objetivo: "Radiante" },
       ]);
     });
 
@@ -282,7 +283,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
       expect(resiliencia).toBeDefined();
       expect(resiliencia?.tieneUsosLimitados).toBe(false);
       expect(resiliencia?.efectos?.[0].tipo).toBe("hp_temporal");
-      expect(resiliencia?.efectos?.[0].valor).toBe("nivel + carisma");
+      expect(resiliencia?.efectos?.[0].valor).toBe("nivel_brujo + carisma");
     });
 
     it("a nivel 14 Venganza abrasadora inflige 2d8+carisma con 1 uso por descanso largo", () => {
@@ -341,7 +342,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
       expect(bendicion).toBeDefined();
       expect(bendicion?.tieneUsosLimitados).toBe(false);
       expect(bendicion?.efectos?.[0].tipo).toBe("hp_temporal");
-      expect(bendicion?.efectos?.[0].valor).toBe("max(1, carisma + nivel)");
+      expect(bendicion?.efectos?.[0].valor).toBe("max(1, carisma + nivel_brujo)");
     });
 
     it("a nivel 6 Propia suerte del Oscuro otorga 1d10 recuperable en descanso largo y usos por Carisma", () => {
@@ -472,7 +473,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
 
       expect(escudo).toBeDefined();
       expect(escudo?.efectos).toMatchObject([
-        { tipo: "personalizado", objetivo: "psiquico" },
+        { tipo: "resistencia_dano", objetivo: "Psíquico" },
       ]);
     });
 
@@ -571,6 +572,7 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-multi-inv",
         nombre: "Zariel",
+        trucosConocidosIds: ["h_descarga-sobrenatural"],
         clase: "Brujo",
         nivel: 5,
         clases: [{ nombre: "Brujo", subclase: "", nivel: 5 }],

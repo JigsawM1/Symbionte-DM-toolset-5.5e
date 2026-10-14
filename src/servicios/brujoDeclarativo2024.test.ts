@@ -16,6 +16,11 @@ import HECHIZOS from "@/utiles/compendios/all.json";
 import brujo from "@/datos/clases/brujo.json";
 import invocaciones from "@/datos/invocaciones-sobrenaturales.json";
 import type { PersonajeJugador } from "@/tipos";
+import { EsquemaHechizoBase } from "@/tipos";
+import { obtenerConfiguracionPactoDelFilo } from "./rasgos/evaluadorCombateRasgos";
+import { crearBorradorRasgo, construirRasgoDesdeBorrador } from "./rasgos/borradorRasgo";
+import { aplicarConfiguracionConjurosRasgos } from "./rasgos/conjurosGratuitosRasgos";
+import { validarLanzamiento } from "./servicioLanzamientoConjuros";
 
 const crear = (nivel=9, subclase=""): PersonajeJugador => aplicarBuildClaseAPersonaje({ ...structuredClone(PERSONAJE_POR_DEFECTO),
   id:"brujo-declarativo", especie:"", clase:"Brujo", nivel, caracteristicas:{...PERSONAJE_POR_DEFECTO.caracteristicas,carisma:16},
@@ -36,6 +41,7 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
     expect(clase.rasgos[0].selectores?.[0].valorActual).toEqual([]);
     for(const i of invocaciones) expect(EsquemaInvocacionSobrenaturalJSON.parse(i).id).toBe(i.id);
     expect(rasgo("Magia del pacto").configuracionMagica?.tipoLanzador).toBe("pacto");
+    expect(crear(20).rasgos.filter(r=>r.origen==="dote")).toEqual([]);
   });
   it.each(Array.from({length:20},(_,i)=>i+1))("adquiere los rasgos y recursos de nivel %i sin adelantar progresiones", nivel => {
     const p=crear(nivel);
@@ -68,7 +74,7 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
   it("bloquea requisitos, repeticiones inválidas y retirada del requisito de un dependiente", () => {
     elegir(["castigo_arcano"]); expect(rasgo("Invocaciones sobrenaturales").selectores![0].valorActual).toEqual([]);
     elegir(["pacto_del_filo","castigo_arcano"]); expect(rasgo("Castigo arcano").formulaDados).toBe("6d8");
-    expect(resolverRasgosAcciones(pj()).filter(r=>r.nombre==="Castigo arcano")).toHaveLength(1);
+    expect(resolverRasgosAcciones(pj()).filter(r=>r.rasgo.nombre==="Castigo arcano")).toHaveLength(1);
     elegir(["castigo_arcano"]); expect(rasgo("Pacto del filo")).toBeDefined();
     elegir(["armadura_de_sombras","armadura_de_sombras__2"]); expect(rasgo("Pacto del filo")).toBeDefined();
   });
@@ -82,7 +88,7 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
   });
   it("las invocaciones repetibles modifican solo el truco elegido y no lo conceden", () => {
     elegir(["descarga_agonica:h_descarga-sobrenatural","descarga_agonica__dos:h_toque-helado","lanza_sobrenatural:h_descarga-sobrenatural"]);
-    const descarga=HECHIZOS.find(h=>h.id==="h_descarga-sobrenatural")!;
+    const descarga=EsquemaHechizoBase.parse(HECHIZOS.find(h=>h.id==="h_descarga-sobrenatural"));
     expect(aplicarModificadoresInvocacionesAHechizo(descarga,pj())).toMatchObject({agregarModificadorHabilidad:true,alcance:"390 pies"});
     const conocidos=[...pj().trucosConocidosIds];
     elegir(["descarga_agonica:h_descarga-sobrenatural","descarga_agonica__dos:h_descarga-sobrenatural"]);
@@ -106,7 +112,7 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
     const truco=libro.selectores![0].opciones.find(o=>o.nombre==="Luz")!.id;
     usarAlmacenDM.getState().actualizarSeleccionRasgo(pj().id,libro.id,libro.selectores![0].id,[truco]);
     expect(pj().trucosConocidosIds).not.toContain(truco);
-    usarAlmacenDM.getState().alternarRasgoActivo(pj().id,libro.id);
+    usarAlmacenDM.getState().alternarActivoRasgo(pj().id,libro.id);
     expect(pj().trucosConocidosIds).toContain(truco);
     usarAlmacenDM.getState().agregarTrucoConocido(pj().id,truco);
     const restaurado=hidratarPersonaje(deshidratarPersonaje(pj()));
@@ -148,5 +154,66 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
     elegir(["lecciones_de_los_primeros:dote_alerta"]);
     expect(calcularBonoIniciativaRasgos(pj())).toBe(4);
     elegir([]);expect(calcularBonoIniciativaRasgos(pj())).toBe(0);
+  });
+  it("el vínculo de arma y las capacidades sobreviven a edición, reconstrucción y guardado", () => {
+    elegir(["pacto_del_filo"]);const pacto=rasgo("Pacto del filo");
+    expect(obtenerConfiguracionPactoDelFilo(pj(),"espada-1").activo).toBe(false);
+    usarAlmacenDM.getState().actualizarRasgoPersonaje(pj().id,pacto.id,{vinculoArma:{...pacto.vinculoArma!,idInstancia:"espada-1"}});
+    const actual=rasgo("Pacto del filo");
+    usarAlmacenDM.getState().actualizarSeleccionRasgo(pj().id,actual.id,actual.selectores![0].id,["psiquico"]);
+    expect(obtenerConfiguracionPactoDelFilo(pj(),"espada-1")).toMatchObject({activo:true,caracteristica:"carisma",tipoDano:"psiquico"});
+    expect(obtenerConfiguracionPactoDelFilo(pj(),"otra-arma").activo).toBe(false);
+    const restaurado=hidratarPersonaje(deshidratarPersonaje(pj()));
+    expect(obtenerConfiguracionPactoDelFilo(restaurado,"espada-1").tipoDano).toBe("psiquico");
+    const editado=construirRasgoDesdeBorrador(crearBorradorRasgo(rasgo("Astucia mágica")),rasgo("Astucia mágica"));
+    expect(editado.recuperarPactoAlUsar).toBe("mitad_maximo");
+  });
+  it("los trucos del Libro son conjuros de Brujo elegibles incluso si su lista original es otra", () => {
+    elegir(["pacto_del_grimorio"]);const libro=rasgo("Pacto del grimorio");
+    usarAlmacenDM.getState().actualizarSeleccionRasgo(pj().id,libro.id,libro.selectores![0].id,["h_rayo-de-escarcha"]);
+    usarAlmacenDM.getState().alternarActivoRasgo(pj().id,libro.id);
+    elegir(["pacto_del_grimorio","descarga_agonica:h_rayo-de-escarcha"]);
+    expect(pj().rasgos.some(r=>r.nombre==="Descarga agónica")).toBe(true);
+    const restaurado=hidratarPersonaje(deshidratarPersonaje(pj()));
+    expect(restaurado.rasgos.some(r=>r.nombre==="Descarga agónica")).toBe(true);
+    expect(evaluarEfectosRasgosActivos(restaurado).some(e=>e.tipo==="bono_dano_conjuro"&&e.aplicaA==="h_rayo-de-escarcha")).toBe(true);
+  });
+  it("el Libro y los arcanos conservan Carisma cuando otra clase lanzadora figura primero", () => {
+    sembrar(17);elegir(["pacto_del_grimorio"]);const libro=rasgo("Pacto del grimorio");
+    usarAlmacenDM.getState().actualizarSeleccionRasgo(pj().id,libro.id,libro.selectores![0].id,["h_rayo-de-escarcha"]);
+    usarAlmacenDM.getState().alternarActivoRasgo(pj().id,libro.id);
+    const arcano=rasgo("Arcano místico");const sel=arcano.selectores![0];
+    usarAlmacenDM.getState().asignarArcanoMistico(pj().id,6,sel.opciones[0].id);
+    const multiclase: PersonajeJugador={...pj(),clase:"Mago",nivel:20,
+      clases:[{nombre:"Mago",nivel:3,subclase:""},{nombre:"Brujo",nivel:17,subclase:""}],
+      clasesLanzadoras:[{clase:"Mago",nivel:3,tipoLanzador:"completo",habilidadConjuro:"inteligencia",modeloConjuros:"preparados"},
+        {clase:"Brujo",nivel:17,tipoLanzador:"pacto",habilidadConjuro:"carisma",modeloConjuros:"preparados"}]};
+    for(const [id,modo] of [["h_rayo-de-escarcha","truco"],[sel.opciones[0].id,"arcanoMistico"]] as const){
+      const hechizo=EsquemaHechizoBase.parse(HECHIZOS.find(h=>h.id===id));
+      expect(aplicarConfiguracionConjurosRasgos(multiclase,{hechizo,modo,bonoAtaqueMagico:2,modificadorHabilidad:0}))
+        .toMatchObject({modificadorHabilidad:3,bonoAtaqueMagico:9,cdSalvacionPersonaje:17});
+    }
+  });
+  it("Arcano bloquea otra lista, otro conjuro y un rasgo apagado sin reiniciar su gasto", () => {
+    sembrar(17);const arcano=rasgo("Arcano místico");const sel=arcano.selectores![0];
+    const ajeno=HECHIZOS.find(h=>h.nivel===6&&!h.clases.some(c=>c.toLowerCase()==="brujo"))!;
+    usarAlmacenDM.getState().asignarArcanoMistico(pj().id,6,ajeno.id);expect(pj().arcanoMisticoIds).toEqual([]);
+    usarAlmacenDM.getState().asignarArcanoMistico(pj().id,6,sel.opciones[0].id);
+    expect(validarLanzamiento({modo:"arcanoMistico",hechizo:EsquemaHechizoBase.parse(ajeno)}, {personajeActual:pj()}).permitido).toBe(false);
+    usarAlmacenDM.getState().consumirRecursoConjuro(pj().id,{tipo:"arcanoMistico",nivel:6});
+    usarAlmacenDM.getState().asignarArcanoMistico(pj().id,6,sel.opciones[1].id);
+    expect(pj().arcanoMisticoGastados).toEqual(["6"]);
+    usarAlmacenDM.getState().recuperarArcanoMistico(pj().id,6);
+    usarAlmacenDM.getState().actualizarRasgoPersonaje(pj().id,arcano.id,{activo:false});
+    expect(consumirRecursoConjuro(pj(),{tipo:"arcanoMistico",nivel:6}).permitido).toBe(false);
+  });
+  it("retirar Maestro al bajar de nivel reconstruye Astucia sin descripción duplicada ni restaurar el uso", () => {
+    sembrar(20);const astucia=rasgo("Astucia mágica");
+    usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj().id,astucia.id);
+    const reconstruido=aplicarBuildClaseAPersonaje(pj(),"Brujo",20);
+    expect(reconstruido.rasgos.find(r=>r.id===astucia.id)!.descripcion.match(/Maestro sobrenatural/g)).toHaveLength(1);
+    const reducido=aplicarBuildClaseAPersonaje(reconstruido,"Brujo",19).rasgos.find(r=>r.id===astucia.id)!;
+    expect(reducido.recuperarPactoAlUsar).toBe("mitad_maximo");
+    expect(reducido.usosRestantes).toBe(0);expect(reducido.descripcion).not.toContain("Maestro sobrenatural");
   });
 });

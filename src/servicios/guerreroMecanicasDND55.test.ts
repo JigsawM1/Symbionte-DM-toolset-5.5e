@@ -156,7 +156,7 @@ describe("Maestro del Combate", () => {
     const reserva = rasgos.find(r => r.nombre === "Supremacía en combate")!;
     const objetivo = rasgos.find(r => r.nombre === "Conoce a tu enemigo")!;
     const recarga = rasgos.find(r => r.restaurarUsosAlActivar?.idRasgoObjetivo === objetivo.id)!;
-    const id = usarAlmacenDM.getState().crearPersonaje({ ...PERSONAJE_POR_DEFECTO, rasgos });
+    const id = usarAlmacenDM.getState().crearPersonaje({ ...PERSONAJE_POR_DEFECTO, clase: "Guerrero", nivel: 7, rasgos });
     const leer = () => usarAlmacenDM.getState().personajes.find(p => p.id === id)!.rasgos;
     usarAlmacenDM.getState().alternarActivoRasgo(id, recarga.id);
     expect(leer().find(r => r.id === reserva.id)!.usosRestantes).toBe(5);
@@ -196,7 +196,7 @@ describe("Guerrero: clase general declarativa", () => {
   it("gasta y devuelve únicamente el recurso padre, incluso con nombre personalizado", () => {
     const padre = { ...obtener(2, "Tomar aliento"), nombre: "Reserva propia", id: "reserva" };
     const hijo = { ...obtener(2, "Mente táctica"), nombre: "Prueba propia", id: "prueba", ligadoA: padre.id };
-    const id = usarAlmacenDM.getState().crearPersonaje({ ...PERSONAJE_POR_DEFECTO, rasgos: [padre, hijo] });
+    const id = usarAlmacenDM.getState().crearPersonaje({ ...PERSONAJE_POR_DEFECTO, clase: "Guerrero", nivel: 2, rasgos: [padre, hijo] });
     usarAlmacenDM.getState().gastarUsoRasgoPersonaje(id, hijo.id);
     expect(usarAlmacenDM.getState().personajes.find(p => p.id === id)!.rasgos[0].usosRestantes).toBe(1);
     usarAlmacenDM.getState().recuperarUsoRasgoPersonaje(id, hijo.id);

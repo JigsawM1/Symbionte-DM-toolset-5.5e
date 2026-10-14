@@ -43,6 +43,8 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
   return {
     id: rasgo.id,
     idSelectorOrigen: rasgo.idSelectorOrigen,
+    vinculoArma: rasgo.vinculoArma,
+    claseConjurosOtorgados: rasgo.claseConjurosOtorgados,
     nombre: rasgo.nombre,
     descripcion: "", // Se omite el texto estático; se rehidrata desde el compendio
     origen: rasgo.origen,
@@ -61,6 +63,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     autoDesactivarAlTirarDano: rasgo.autoDesactivarAlTirarDano,
     dispararAlTirarIniciativa: rasgo.dispararAlTirarIniciativa,
     ligadoA: rasgo.ligadoA,
+    requiereOpcion: rasgo.requiereOpcion,
     gastarDePadre: rasgo.gastarDePadre,
     heredarDadosPadre: rasgo.heredarDadosPadre,
     condicionAlActivar: rasgo.condicionAlActivar,

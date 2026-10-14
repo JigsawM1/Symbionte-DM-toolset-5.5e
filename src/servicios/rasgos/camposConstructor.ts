@@ -8,6 +8,9 @@ export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
   autoDesactivarAlTirarSalvacion: true, desactivarConCondiciones: true,
   eliminarCondicionesAlActivar: true, configuracionMagica: true,
   aptitudConjuroGratuito: true, ignorarComponentesConjuro: true,
-  conjuroGratuito: true, recuperacionConjuro: true
+  conjuroGratuito: true, recuperacionConjuro: true,
+  recuperarPactoAlUsar: true, recargarUsoConPacto: true, curacionDirigida: true,
+  idSelectorOrigen: true, hpTemporalAlDescansar: true, hpTemporalAlUsarRasgo: true,
+  claseConjurosOtorgados: true, vinculoArma: true
 });
 export type CamposConstructor = z.infer<typeof EsquemaCamposConstructor>;

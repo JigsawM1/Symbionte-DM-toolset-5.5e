@@ -48,9 +48,9 @@ export function SelectorInvocacionesAcordeon({ selector, nivelPersonaje = 1, alA
         const permitido = valores.length < max && seleccionOpcionValida(selector, op.id, [...valores, op.id], nivelPersonaje, pj);
         const dependientes = valores.some(v => selector.opciones.find(o => o.id === descomponerSeleccion(v).base)?.requisitoInvocacion === op.id);
         const referencia = op.repetible && op.selectores?.length === 1 ? op.selectores[0] : undefined;
-        return <details key={op.id} className={estilos.cajaInvocacion}>
-          <summary>{op.nombre}{instancias.length > 0 ? ` (${instancias.length} aprendida${instancias.length > 1 ? "s" : ""})` : ""}</summary>
-          <TextoEnriquecidoDND texto={op.descripcion} />
+        return <details key={op.id} className={estilos.tarjetaInvocacionCaja}>
+          <summary className={estilos.cabeceraInvocacionCaja}>{op.nombre}{instancias.length > 0 ? ` (${instancias.length} aprendida${instancias.length > 1 ? "s" : ""})` : ""}</summary>
+          <div className={estilos.cuerpoInvocacionCaja}><TextoEnriquecidoDND texto={op.descripcion} />
           {instancias.map((valor, indice) => {
             const hijo = pj?.rasgos.find(r => r.id === `${padre?.id}_${valor}`);
             const argumento = descomponerSeleccion(valor).argumento;
@@ -74,6 +74,7 @@ export function SelectorInvocacionesAcordeon({ selector, nivelPersonaje = 1, alA
             onClick={() => cambiar([...valores, instancias.length ? `${op.id}__${crypto.randomUUID()}` : op.id])}>
             {permitido || op.repetible ? <Plus size={13} /> : <Lock size={13} />} {instancias.length ? "Aprender otra" : "Aprender invocación"}
           </button>}
+          </div>
         </details>;
       })}
     </div>

@@ -36,12 +36,14 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     return actualizado;
   });
   let actual = normalizarCondicionesRasgos(cambio ? { ...pj, rasgos } : pj);
+  const mismaBuild = !anterior || (anterior.clase === actual.clase && anterior.subclase === actual.subclase
+    && anterior.nivel === actual.nivel && JSON.stringify(anterior.clases) === JSON.stringify(actual.clases));
   if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(s => s.tipoSelector === "invocacion"))) {
     const proyectados = construirRasgosDesdeSelectores(actual);
     if (JSON.stringify(proyectados) !== JSON.stringify(actual.rasgos)) {
-      actual = { ...actual, rasgos: proyectados, ...reconciliarConjurosRasgos(anterior ?? pj, proyectados) };
+      actual = { ...actual, rasgos: proyectados, ...(mismaBuild ? reconciliarConjurosRasgos(anterior ?? pj, proyectados) : {}) };
     }
-    if (anterior && JSON.stringify(anterior.rasgos) !== JSON.stringify(actual.rasgos))
+    if (anterior && mismaBuild && JSON.stringify(anterior.rasgos) !== JSON.stringify(actual.rasgos))
       actual = { ...actual, ...reconciliarConjurosRasgos(anterior, actual.rasgos) };
   }
   const arcanos = actual.rasgos.flatMap(r => (r.selectores ?? []).filter(s => s.destinoConjuros === "arcano_mistico"));

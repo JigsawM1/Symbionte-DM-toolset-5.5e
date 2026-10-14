@@ -10,6 +10,13 @@ export const EsquemaMecanicasRasgo = z.object({
   idSelectorOrigen: z.string().optional(),
   hpTemporalAlDescansar: z.boolean().optional(),
   hpTemporalAlUsarRasgo: z.string().optional(),
+  claseConjurosOtorgados: z.string().optional(),
+  vinculoArma: z.object({
+    idInstancia: z.string().optional(),
+    caracteristica: EsquemaCaracteristica,
+    selectorTipoDano: z.string().optional(),
+    soloCuerpoACuerpoOMagica: z.boolean().optional()
+  }).optional(),
   autoDesactivarAlTirarSalvacion: z.boolean().optional(),
   desactivarConCondiciones: z.array(z.string()).optional(),
   eliminarCondicionesAlActivar: z.array(z.string()).optional(),

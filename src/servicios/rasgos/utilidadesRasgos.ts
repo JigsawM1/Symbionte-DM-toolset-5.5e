@@ -72,7 +72,7 @@ export function esRasgoHabilitadoPorOpcion(
     );
   }
 
-  if (!padre || !Array.isArray(padre.selectores)) return false;
+  if (!padre || padre.activo === false || !Array.isArray(padre.selectores)) return false;
 
   return padre.selectores.some((s) =>
     (s.valorActual || []).some((v) => normalizar(v) === reqNorm)

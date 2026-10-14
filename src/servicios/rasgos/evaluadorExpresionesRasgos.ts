@@ -258,6 +258,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
           : selector.tipoSelector === "invocacion" ? seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : selector.valorActual || [];
         for (const opId of selecciones) {
           if (rasgos.some(r => r.idSelectorOrigen === selector.id && r.ligadoA === rasgo.id && r.requiereOpcion === opId)) continue;
+          if (selector.tipoSelector === "dote" && rasgos.some(r => r.origen === "dote" && r.ligadoA === rasgo.id)) continue;
           const baseSinArg = opId.includes(":") ? opId.split(":")[0] : opId;
           const baseId = baseSinArg.includes("__") ? baseSinArg.split("__")[0] : baseSinArg;
           let opcion = selector.opciones?.find((o) => o.id === opId || o.id === baseId);

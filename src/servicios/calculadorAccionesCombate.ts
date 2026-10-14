@@ -14,6 +14,7 @@ import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 import { crearResolutorOrigenConjuros } from "@/servicios/resolutorOrigenConjuros";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
+import { construirRasgosDesdeSelectores } from "./rasgos/seleccionesRasgos";
 import {
   resolverIdRasgoObjetivoGasto,
   aplicarModificadoresInvocacionesAHechizo,
@@ -217,12 +218,13 @@ export function resolverRasgosAcciones(
 ): RasgoAccionCombate[] {
   if (!personajeActivo) return [];
 
-  const listaRasgos =
+  const declarados =
     Array.isArray(personajeActivo.rasgos) && personajeActivo.rasgos.length > 0
       ? personajeActivo.rasgos
       : sincronizarRasgosAutomaticos(personajeActivo);
 
-  if (!Array.isArray(listaRasgos) || listaRasgos.length === 0) return [];
+  if (!Array.isArray(declarados) || declarados.length === 0) return [];
+  const listaRasgos = construirRasgosDesdeSelectores({ ...personajeActivo, rasgos: declarados });
 
   const resultado: RasgoAccionCombate[] = [];
 
@@ -234,6 +236,7 @@ export function resolverRasgosAcciones(
     if (r.requiereOpcion && !esRasgoHabilitadoPorOpcion(r, listaRasgos)) continue;
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
+        if (sel.tipoSelector === "invocacion") continue;
         if (!Array.isArray(sel.valorActual)) continue;
         for (const opId of sel.valorActual) {
           if (listaRasgos.some(h => h.idSelectorOrigen === sel.id && h.ligadoA === r.id && h.requiereOpcion === opId)) continue;

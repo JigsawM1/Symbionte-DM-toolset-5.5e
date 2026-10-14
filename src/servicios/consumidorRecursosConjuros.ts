@@ -1,4 +1,5 @@
 import { buscarRasgoConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
+import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { resolverIdRasgoObjetivoGasto, calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
@@ -26,6 +27,8 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       personaje = { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1 };
       break;
     case 'arcanoMistico':
+      if (obtenerSelectoresArcanos(pj).length && !obtenerSelectoresArcanos(pj,true).some(s =>
+        s.nivelConjuro === gasto.nivel && s.valorActual.some(id => s.opciones.some(o => o.id === id)))) return insuficiente;
       if (pj.arcanoMisticoGastados.includes(String(gasto.nivel))) return insuficiente;
       personaje = { ...pj, arcanoMisticoGastados: [...pj.arcanoMisticoGastados, String(gasto.nivel)] };
       break;

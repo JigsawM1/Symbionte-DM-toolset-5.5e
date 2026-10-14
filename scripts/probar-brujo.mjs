@@ -20,10 +20,10 @@ p.espaciosPactoGastados=p.espaciosPactoMaximos;
 window.estado().seleccionarPersonajeActivo(null);usarAlmacenDM.setState({personajes:[p],colaIniciativa:[],rondaActual:1,idPersonajeActivo:p.id,esGM:false,pestañaActiva:'rasgos'});
 };
 window.recargar=()=>{const p=hidratarPersonaje(JSON.parse(JSON.stringify(deshidratarPersonaje(window.pj()))));usarAlmacenDM.setState({personajes:[p]});};
-window.sembrar(20,'Patrón Celestial');createRoot(document.getElementById('root')).render(React.createElement(App));window.listo=true;
+window.sembrar(Number(new URLSearchParams(location.search).get('nivel'))||20,'Patrón Celestial');createRoot(document.getElementById('root')).render(React.createElement(App));window.listo=true;
 </script></body></html>`;
 const servidor=await createServer({server:{host:"127.0.0.1",port:0},logLevel:"error",plugins:[{
-name:"prueba-brujo",configureServer(s){s.middlewares.use(async(req,res,next)=>{if(req.url!=="/__brujo")return next();
+name:"prueba-brujo",configureServer(s){s.middlewares.use(async(req,res,next)=>{if(req.url?.split("?")[0]!=="/__brujo")return next();
 try{res.setHeader("Content-Type","text/html");res.end(await s.transformIndexHtml(req.url,html));}catch(e){next(e);}});}}]});
 const ejecutable=[process.env.CHROME_PATH,"C:/Program Files/Google/Chrome/Application/chrome.exe","C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"].find(p=>p&&fs.existsSync(p));
 assert(ejecutable,"Se requiere Chromium local.");
@@ -147,7 +147,8 @@ await pagina.evaluate(()=>window.sembrar(4));
 assert.equal(await pagina.evaluate(()=>window.pj().rasgos.filter(r=>r.origen==='dote').length),0);
 const hpAntes=await pagina.evaluate(()=>window.pj().hpMaximo);
 await pulsar('Mejora de característica','Ver descripción completa');
-await pagina.waitForSelector('input[placeholder="Buscar por nombre, requisito o efecto..."]');
+try { await pagina.waitForSelector('input[placeholder="Buscar por nombre, requisito o efecto..."]'); }
+catch(error){await pagina.screenshot({path:'scratch/brujo-contadores-fallo.png'});fs.writeFileSync('scratch/brujo-contadores-fallo.html',await pagina.content());throw error;}
 const buscarDote=async texto=>{const input=await pagina.$('input[placeholder="Buscar por nombre, requisito o efecto..."]');assert(input);await input.click();await seleccionarTodo();await input.press('Backspace');await input.type(texto);};
 await buscarDote('Duro');
 const dote=await pagina.$('button[class*="botonSeleccionarDote"]');assert(dote);assert.equal(await dote.evaluate(b=>b.disabled),false);await dote.click();
@@ -180,5 +181,40 @@ for(const width of [599,433])for(const height of [760,600]){
  assert(await pagina.$eval('dialog',d=>{const r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.bottom<=innerHeight;}));
  await pagina.screenshot({path:`scratch/brujo-curacion-${width}-${height}.png`});await pagina.keyboard.press('Escape');
 }
+await pagina.setViewport({width:599,height:760});
+await pagina.goto(`http://127.0.0.1:${servidor.httpServer.address().port}/__brujo?nivel=9`);
+await pagina.waitForFunction(()=>window.listo);await pagina.waitForSelector('article');
+await invocacion('Pacto del grimorio');await buscarLibro('Rayo de escarcha');
+const eleccionLibroContadores=await pagina.evaluateHandle(()=>[...document.querySelectorAll('details button')].find(b=>b.textContent.trim()==='Rayo de escarcha'));
+assert(eleccionLibroContadores.asElement());await eleccionLibroContadores.asElement().click();await eleccionLibroContadores.dispose();
+await pulsar('Pacto del grimorio','Rasgo inactivo');
+await pulsar('Contactar con el patrón','Gastar 1 uso');
+await esperar(()=>window.rasgo('Contactar con el patrón').usosRestantes===0);
+await pulsar('Contactar con el patrón','Recuperar 1 uso');
+await esperar(()=>window.rasgo('Contactar con el patrón').usosRestantes===1);
+const eleccionesLibroAntes=await pagina.evaluate(()=>window.rasgo('Pacto del grimorio').selectores.map(s=>s.valorActual));
+await pagina.click('button[title="Ficha y Características del Personaje"]');
+await pagina.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.textContent.includes('Conjuros y Magia')));
+await pagina.evaluate(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Conjuros y Magia')).click());
+await pagina.waitForFunction(()=>[...document.querySelectorAll('button')].some(b=>b.textContent==='Contactar con otro plano'));
+const gratisPatron=()=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Gratis'
+ && b.parentElement?.parentElement?.parentElement?.parentElement?.textContent.includes('Contactar con otro plano'));
+const contar=await pagina.evaluate(async()=>{const {usarAlmacenDM}=await import('/src/almacen/usarAlmacenDM.ts');
+ window.actualizacionesContador=0;window.dejarConteo=usarAlmacenDM.subscribe((s,p)=>{if(s.personajes!==p.personajes)window.actualizacionesContador++});return true;});
+assert(contar);
+const botonGratis=await pagina.evaluateHandle(gratisPatron);assert(botonGratis.asElement(),'Falta el lanzamiento gratuito del patrón');
+await botonGratis.asElement().click();await botonGratis.dispose();
+await esperar(()=>window.rasgo('Contactar con el patrón').usosRestantes===0);
+await esperar(()=>window.actualizacionesContador===1);
+assert.equal(await pagina.evaluate(gratisPatron),undefined);
+assert.deepEqual(await pagina.evaluate(()=>window.rasgo('Pacto del grimorio').selectores.map(s=>s.valorActual)),eleccionesLibroAntes);
+await new Promise(r=>setTimeout(r,500));assert.equal(await pagina.evaluate(()=>window.actualizacionesContador),1);
+await pagina.evaluate(()=>window.dejarConteo());
+await pagina.evaluate(()=>window.recargar());
+assert.equal(await pagina.evaluate(()=>window.rasgo('Contactar con el patrón').usosRestantes),0);
+assert.deepEqual(await pagina.evaluate(()=>window.rasgo('Pacto del grimorio').selectores.map(s=>s.valorActual)),eleccionesLibroAntes);
+informe.casos.push('Contactar con el patrón: contadores +/− y Gratis agotan un único uso, sin actualizaciones en reposo; gasto y elecciones del libro sobreviven a recarga');
+const minimizarDados=await pagina.$('button[title="Minimizar panel"]');
+if(minimizarDados)await minimizarDados.click();
 assert.deepEqual(informe.errores,[]);console.log(JSON.stringify(informe,null,2));
 }finally{fs.writeFileSync('scratch/brujo-ui-resultados.json',JSON.stringify(informe,null,2));await navegador?.close();await servidor.close();}

@@ -29,35 +29,41 @@ export function descomponerSeleccion(valor: string): { base: string; instancia: 
 }
 
 export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: PersonajeJugador): OpcionSelector[] {
+  if (!selector.filtroConjuros) return selector.opciones;
+  return selector.opciones.filter(op => opcionConjuroElegible(op, selector, pj));
+}
+
+/** Comprueba una opción sin recorrer el resto del catálogo del selector. */
+function opcionConjuroElegible(op: OpcionSelector, selector: SelectorRasgo, pj?: PersonajeJugador): boolean {
   const filtro = selector.filtroConjuros;
-  if (!filtro) return selector.opciones;
-  return selector.opciones.filter(op => {
-    const h = obtenerHechizoCatalogo(op.id);
-    if (!h) return false;
-    if (filtro.excluirPreparados && !selector.valorActual.some(id=>coincideHechizoId(id,h.id))
-      && [...(pj?.conjurosPreparadosIds ?? []),...(pj?.conjurosSiemprePreparadosIds ?? []),...(pj?.trucosConocidosIds ?? [])].some(id=>coincideHechizoId(id,h.id))) return false;
-    if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !pj?.rasgos.some(r =>
-      r.activo !== false && r.claseConjurosOtorgados === filtro.clase && r.selectores?.some(s => s.tipoSelector === "conjuro"
-        && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id,h.id))))) return false;
-    if (filtro.soloConocidos && (!pj || !(pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id)))) return false;
-    if (filtro.requiereDano && !h.dadosDaño) return false;
-    if (filtro.requiereAtaque && !h.requiereAtaque) return false;
-    if (filtro.alcanceMinimo && (parseInt(h.alcance, 10) || 0) < filtro.alcanceMinimo) return false;
-    return true;
-  });
+  if (!filtro) return true;
+  const h = obtenerHechizoCatalogo(op.id);
+  if (!h) return false;
+  if (filtro.excluirPreparados && !selector.valorActual.some(id=>coincideHechizoId(id,h.id))
+    && [...(pj?.conjurosPreparadosIds ?? []),...(pj?.conjurosSiemprePreparadosIds ?? []),...(pj?.trucosConocidosIds ?? [])].some(id=>coincideHechizoId(id,h.id))) return false;
+  if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !pj?.rasgos.some(r =>
+    r.activo !== false && r.claseConjurosOtorgados === filtro.clase && r.selectores?.some(s => s.tipoSelector === "conjuro"
+      && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id,h.id))))) return false;
+  if (filtro.soloConocidos && (!pj || !(pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id)))) return false;
+  if (filtro.requiereDano && !h.dadosDaño) return false;
+  if (filtro.requiereAtaque && !h.requiereAtaque) return false;
+  if (filtro.alcanceMinimo && (parseInt(h.alcance, 10) || 0) < filtro.alcanceMinimo) return false;
+  return true;
 }
 
 /** Requisitos ejecutables compartidos por almacén, proyección y UI. */
 export function seleccionOpcionValida(selector: SelectorRasgo, valor: string, seleccion: string[], nivel: number, pj?: PersonajeJugador): boolean {
   const { base, argumento } = descomponerSeleccion(valor);
-  const op = opcionesElegiblesConjuros(selector, pj).find(o => o.id === base);
+  const op = selector.opciones.find(o => o.id === base && opcionConjuroElegible(o, selector, pj));
   if (!op || (op.nivelMinimo ?? 1) > nivel) return false;
-  if (op.selectores?.some(s => s.filtroConjuros && !opcionesElegiblesConjuros(s, pj).length)) return false;
+  if (op.selectores?.some((s: SelectorRasgo) => s.filtroConjuros && !s.opciones.some(o => opcionConjuroElegible(o, s, pj)))) return false;
   if (op.requisitoInvocacion && !seleccion.some(v => descomponerSeleccion(v).base === op.requisitoInvocacion)) return false;
   const iguales = seleccion.filter(v => descomponerSeleccion(v).base === base);
   if (!op.repetible && iguales.length > 1) return false;
   if (op.repetible && argumento && iguales.filter(v => descomponerSeleccion(v).argumento === argumento).length > 1) return false;
-  if (argumento && op.selectores?.[0] && !opcionesElegiblesConjuros(op.selectores[0], pj).some(o => coincideHechizoId(o.id, argumento) || o.id === argumento)) return false;
+  const selectorArgumento: SelectorRasgo | undefined = op.selectores?.[0];
+  if (argumento && selectorArgumento && !selectorArgumento.opciones.some(o =>
+    (coincideHechizoId(o.id, argumento) || o.id === argumento) && opcionConjuroElegible(o, selectorArgumento, pj))) return false;
   return true;
 }
 

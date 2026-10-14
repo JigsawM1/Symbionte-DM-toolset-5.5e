@@ -1,5 +1,13 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-14] Rendimiento de recursos y lanzamiento gratuito del Brujo
+
+- Corregido el coste de las evaluaciones sin cachés globales de personaje: resolverExtensionesRasgos copia profundamente únicamente los padres que reciben extensiones, una vez por proyección; los consumidores restantes leen los rasgos sin copiarlos. seleccionOpcionValida comprueba opciones puntuales y detiene las consultas anidadas al encontrar una opción elegible, conservando filtros, alias, requisitos y repetibilidad.
+- Chromium local, Contactar con el patrón en Brujo 9 con cinco invocaciones incluido Grimorio: coste acumulado de evaluación de efectos de 39,3 a 6,3 ms; CPU x4 de 207,1 a 17,4 ms (91,6 % menos). Tiempo desde la interacción hasta finalizar la llamada local de lanzamiento de 94,4 a 79,1 ms; CPU x4 de 484,8 a 259,1 ms. Incluye instrumentación y fallback local; no mide emisión nativa de TaleSpire. La tirada de 6d6 queda intacta por instrucción del usuario.
+- Seis regresiones nuevas sobre fusión sin mutar originales ni copiar catálogos ajenos, extensiones apagadas/futuras, filtros puntuales y cambios de contexto. Pasan 89 pruebas seleccionadas y pnpm run ci con salida 0: TypeScript, ESLint, 136 suites/1910 pruebas, auditoría de 159 archivos y build; permanece el aviso de chunks grandes.
+- pnpm run test:brujo-ui y pnpm run test:rasgos-ui con salida 0. Diez flujos del Brujo y cuatro dimensiones sin errores JavaScript ni desbordes. Nueva regresión con App fresca: contadores +/−, lanzamiento Gratis de Contactar, un único gasto, ausencia de actualizaciones en reposo y conservación del gasto y elecciones del libro al serializar y recargar. El caso se aísla de los formularios de otras fichas de prueba.
+- Evidencias locales en scratch/perfil-contactar-antes.json, perfil-contactar-resultados.json, ci-contadores-brujo.log, ui-contadores-brujo.log y ui-rasgos-contadores.log. Sin despliegue ni certificación en TaleSpire/CEF nativos. No se modificaron los botones, Pasos feéricos, agrupación de invocaciones ni las reglas del lanzamiento.
+
 Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
 
 ## [2026-10-14] Rendimiento del selector de conjuros del grimorio

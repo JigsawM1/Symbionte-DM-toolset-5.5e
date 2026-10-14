@@ -62,12 +62,20 @@ export function fusionarExtensionRasgo(
 
 /** Proyección efectiva; conserva las declaraciones y el estado original para poder editarlos. */
 export function resolverExtensionesRasgos(rasgos: RasgoPersonaje[], nivel: number): RasgoPersonaje[] {
-  const resultado = structuredClone(rasgos.filter(r => r.categoriaMecanica !== "extension"));
+  const resultado = rasgos.filter(r => r.categoriaMecanica !== "extension");
+  const copiados = new Set<RasgoPersonaje>();
   const extensiones = rasgos.filter(r => r.categoriaMecanica === "extension" && r.activo !== false && (r.nivelRequerido ?? 1) <= nivel)
     .sort((a, b) => (a.nivelRequerido ?? 1) - (b.nivelRequerido ?? 1));
   for (const r of extensiones) {
-    const padre = resolverRasgoPadre(r, resultado);
+    let padre = resolverRasgoPadre(r, resultado);
     if (!padre) continue;
+    // Solo la fusión escribe en el padre. El resto de la proyección es de lectura.
+    if (!copiados.has(padre)) {
+      const indice = resultado.indexOf(padre);
+      padre = structuredClone(padre);
+      resultado[indice] = padre;
+      copiados.add(padre);
+    }
     fusionarExtensionRasgo(padre, { ...r, nivel: r.nivelRequerido ?? 1, recuperacion: r.recuperacion === "ninguno" ? undefined : r.recuperacion }, padre.fuente, padre.subclase);
   }
   return resultado;

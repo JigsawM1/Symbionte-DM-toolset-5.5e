@@ -36,12 +36,14 @@ export interface ContextoAtaquePersonaje {
 /**
  * Comprueba si un efecto mecánico de daño aplica al contexto del ataque actual.
  */
-function aplicaEfectoAAtaque(
+export function aplicaEfectoAAtaque(
   aplicaA: string | undefined,
   objetivo: string,
   contexto: ContextoAtaquePersonaje
 ): boolean {
   const criterio = normalizar(aplicaA || objetivo || "");
+
+  if (criterio === "arma") return contexto.tipo === "arma" || contexto.tipo === "improvisada";
 
   if (criterio === "todos_ataques" || criterio === "todos" || criterio === "ataque") {
     return true;

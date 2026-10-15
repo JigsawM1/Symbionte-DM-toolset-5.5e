@@ -148,6 +148,7 @@ export const TIPOS_EFECTO_DISPONIBLES: {
     desc: string;
 }[] = [
     { tipo: "dado_extra_dano", etiqueta: "Dados Extra de Daño", desc: "Añade dados al arma o ataque (ej. 1d10 de Golpe Brutal o 2d6 de Frenesí)" },
+    { tipo: "dado_extra_tirada", etiqueta: "Dado adicional en pruebas", desc: "Suma dados a iniciativa o habilidad.sigilo; admite dados_padre" },
     { tipo: "dano_secundario", etiqueta: "Daño Secundario con Tipo (/)", desc: "Grupo de daño independiente con tipo separado (ej. 1d6+mitad_nivel Radiante/Necrótico)" },
     { tipo: "bono_dano_ataque", etiqueta: "Bono Numérico de Daño a Ataques", desc: "Suma daño plano (+PB, +2, dano_furia, mitad_nivel) a ataques seleccionados" },
     { tipo: "bono_ataque", etiqueta: "Bono Numérico a Tiradas de Ataque", desc: "Suma un bono (+2, +PB) a tiradas de ataque (ej. Tiro con arco)" },

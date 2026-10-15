@@ -106,7 +106,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
 
       {/* Rasgos de Subclase */}
       {grupo.rasgosSubclase.length > 0 && (
-        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubclase}`}>
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubclase}`} data-seccion-rasgos="subclase">
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoSubclase)}
@@ -130,6 +130,8 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
           )}
         </div>
       )}
+
+      {grupo.seccionesOpciones?.map(renderizarTarjetaRasgo)}
 
       {/* Invocaciones Sobrenaturales */}
       {grupo.rasgoInvocaciones && selectorInvocaciones && (

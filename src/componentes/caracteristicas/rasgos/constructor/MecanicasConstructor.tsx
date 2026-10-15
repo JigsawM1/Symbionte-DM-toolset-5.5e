@@ -10,13 +10,16 @@ export function MecanicasConstructor({ borrador: b, actualizarBorrador: cambiar 
 }) {
   const toggles = [
     ["autoDesactivarAlTirarSalvacion", "Desactivar tras la siguiente salvación"],
+    ["autoDesactivarAlTirarDano", "Desactivar tras emitir daño"],
+    ["recargarUsoConPadre", "Recargar un uso gastando el recurso padre"],
     ["noGastarAlTirarDados", "Tirar dados sin gastar usos"],
     ["sincronizarEfectosConFormula", "Actualizar los efectos de dados con la fórmula"],
     ["ignorarComponentesConjuro", "El conjuro gratuito no requiere componentes"]
   ] as const;
   const listas = [
     ["desactivarConCondiciones", "Finalizar al recibir estas condiciones"],
-    ["eliminarCondicionesAlActivar", "Retirar estas condiciones al ejecutar"]
+    ["eliminarCondicionesAlActivar", "Retirar estas condiciones al ejecutar"],
+    ["autoDesactivarEnTirada", "Desactivar tras estas tiradas (iniciativa, habilidad.sigilo, etc.)"]
   ] as const;
   const magia = b.configuracionMagica;
   return <div className={estilos.seccionCard}>

@@ -27,7 +27,8 @@ describe("Guerrero Psiónico", () => {
     const caja = obtener(nivel, "Opciones de poder psiónico", "Guerrero Psiónico").selectores![0];
     expect(caja.modo).toBe("consulta");
     expect(caja.opciones).toHaveLength(cantidad);
-    expect(caja.opciones.every(o => !o.categoriaMecanica && !o.efectos)).toBe(true);
+    expect(caja.materializarRasgos).toBe(true);
+    expect(caja.opciones.every(o => o.categoriaMecanica)).toBe(true);
   });
   it("los descansos recuperan uno o todos los dados psiónicos", () => {
     const reserva = { ...obtener(17, "Poder psiónico", "Guerrero Psiónico"), usosRestantes: 2 };
@@ -149,7 +150,8 @@ describe("Maestro del Combate", () => {
     const sel = obtener(nivel, "Opciones de maniobras", "Maestro del Combate").selectores![0];
     expect(sel).toMatchObject({ maxSelecciones: selecciones, ubicacion: "seccion", tipoSelector: "general" });
     expect(sel.opciones).toHaveLength(20);
-    expect(sel.opciones.every(o => o.descripcion && !o.categoriaMecanica && !o.formulaDados)).toBe(true);
+    expect(sel.materializarRasgos).toBe(true);
+    expect(sel.opciones.every(o => o.descripcion && o.categoriaMecanica && o.gastarDePadre)).toBe(true);
   });
   it("restaura un uso gastando un dado y bloquea la recarga de un recurso lleno", () => {
     const rasgos = obtenerRasgosClaseYSubclase("Guerrero", 7, "Maestro del Combate");
@@ -226,4 +228,99 @@ describe("Guerrero: clase general declarativa", () => {
     expect(resultado.filter(r => r.nombre === "Indómito")).toHaveLength(1);
     expect(resultado.find(r => r.nombre === "Indómito")!.usosRestantes).toBe(1);
   });
+  it("expone las tablas de progresión canónicas del Guerrero (Tomar aliento, Maestría con armas, Acción súbita, Ataque adicional, Indómito)", () => {
+    const tomarAliento = obtener(1, "Tomar aliento");
+    expect(tomarAliento.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 1, valores: ["2 usos"] },
+        { nivel: 4, valores: ["3 usos"] },
+        { nivel: 10, valores: ["4 usos"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    const maestria = obtener(1, "Maestría con armas");
+    expect(maestria.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 1, valores: ["3 maestrías"] },
+        { nivel: 4, valores: ["4 maestrías"] },
+        { nivel: 10, valores: ["5 maestrías"] },
+        { nivel: 16, valores: ["6 maestrías"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    const accionSubita = obtener(2, "Acción súbita");
+    expect(accionSubita.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 2, valores: ["1 vez / descanso"] },
+        { nivel: 17, valores: ["2 veces / descanso. Máximo uno por turno"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    const ataqueAdicional = obtener(5, "Ataque adicional");
+    expect(ataqueAdicional.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 5, valores: ["2 ataques"] },
+        { nivel: 11, valores: ["3 ataques"] },
+        { nivel: 20, valores: ["4 ataques"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    const indomito = obtener(9, "Indómito");
+    expect(indomito.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 9, valores: ["1 vez / descanso"] },
+        { nivel: 13, valores: ["2 veces / descanso"] },
+        { nivel: 17, valores: ["3 veces / descanso"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+  });
+
+  it("expone las tablas de progresión canónicas de las subclases (Caballero Arcano, Maestro del Combate, Guerrero Psiónico)", () => {
+    const conjurosCaballero = obtener(3, "Lanzamiento de conjuros", "Caballero Arcano");
+    expect(conjurosCaballero.tablaProgresion).toBeDefined();
+    expect(conjurosCaballero.tablaProgresion?.columnas).toEqual(["Nivel", "Trucos", "Preparados"]);
+    expect(conjurosCaballero.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
+    expect(conjurosCaballero.tablaProgresion?.filas).toHaveLength(18);
+    expect(conjurosCaballero.tablaProgresion?.filas[0]).toEqual({ nivel: 3, valores: ["2", "3"] });
+    expect(conjurosCaballero.tablaProgresion?.filas[7]).toEqual({ nivel: 10, valores: ["3", "7"] });
+    expect(conjurosCaballero.tablaProgresion?.filas[17]).toEqual({ nivel: 20, valores: ["3", "13"] });
+
+    const supremacia = obtener(3, "Supremacía en combate", "Maestro del Combate");
+    expect(supremacia.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 3, valores: ["4d8 dados de superioridad"] },
+        { nivel: 7, valores: ["5d8"] },
+        { nivel: 10, valores: ["5d10"] },
+        { nivel: 15, valores: ["6d10"] },
+        { nivel: 18, valores: ["6d12"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    const poderPsionico = obtener(3, "Poder psiónico", "Guerrero Psiónico");
+    expect(poderPsionico.tablaProgresion).toEqual({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 3, valores: ["4d6"] },
+        { nivel: 5, valores: ["6d8"] },
+        { nivel: 9, valores: ["8d8"] },
+        { nivel: 11, valores: ["8d10"] },
+        { nivel: 13, valores: ["10d10"] },
+        { nivel: 17, valores: ["12d12"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+  });
 });
+

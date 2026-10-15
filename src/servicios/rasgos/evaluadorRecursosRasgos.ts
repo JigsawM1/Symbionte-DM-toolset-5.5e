@@ -1,6 +1,6 @@
 import { resolverExtensionesRasgos } from "./extensionesRasgos";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { normalizar, resolverRasgoPadre } from "./utilidadesRasgos";
+import { normalizar, resolverRasgoRecurso } from "./utilidadesRasgos";
 import { resolverFormulaDinamica } from "./evaluadorExpresionesRasgos";
 
 /**
@@ -35,7 +35,8 @@ export function resolverRecursosPadre(
 
   const efectivos = resolverExtensionesRasgos(personaje.rasgos || [], personaje.nivel || 1);
   rasgo = efectivos.find(r => r.id === rasgo.id) ?? rasgo;
-  const padre = resolverRasgoPadre(rasgo, efectivos);
+  const padre = resolverRasgoRecurso(rasgo, efectivos);
+  const padreDados = rasgo.heredarDadosPadre ? resolverRasgoRecurso(rasgo, efectivos, "dados") : undefined;
 
   const usosPadre =
     rasgo.gastarDePadre && padre
@@ -47,13 +48,13 @@ export function resolverRecursosPadre(
       : undefined;
 
   const formulaBase = rasgo.heredarDadosPadre
-    ? padre?.formulaDados || rasgo.formulaDados
+    ? (rasgo.formulaDados?.includes("dados_padre") ? rasgo.formulaDados : padreDados?.formulaDados || rasgo.formulaDados)
     : rasgo.formulaDados;
 
   const claseContexto = rasgo.fuente;
 
   const formulaDadosEfectiva = formulaBase
-    ? resolverFormulaDinamica(formulaBase, personaje, claseContexto)
+    ? resolverFormulaDinamica(formulaBase, personaje, claseContexto, rasgo)
     : undefined;
 
   return { usosPadre, formulaDadosEfectiva };

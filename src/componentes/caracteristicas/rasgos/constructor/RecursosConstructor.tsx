@@ -13,6 +13,7 @@ interface Props {
       | "tieneUsosLimitados"
       | "gastarDePadre"
       | "heredarDadosPadre"
+      | "recargarUsoConPadre"
       | "usosMaximos"
       | "usosRestantes"
       | "recuperacion"
@@ -26,6 +27,7 @@ interface Props {
 export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasgosPadre, errores }: Props) {
     const {
       categoriaMecanica,
+      recargarUsoConPadre,
       ligadoA,
       tieneUsosLimitados,
       gastarDePadre,
@@ -175,7 +177,7 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
           </label>
         </div>
 
-        {(gastarDePadre || heredarDadosPadre || categoriaMecanica === "extension") && (<div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
+        {(gastarDePadre || heredarDadosPadre || recargarUsoConPadre || categoriaMecanica === "extension") && (<div className={`${estilos.campoGrupo} ${estilos.margenTop8}`}>
             <label className={estilos.labelCampo}>
               <span>Vincular al Rasgo Padre (ligadoA)</span>
             </label>

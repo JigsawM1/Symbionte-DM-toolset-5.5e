@@ -313,5 +313,11 @@
       "+2 a la CA.",
       "+2 a las tiradas de salvación de Destreza."
     ]
+  },
+  {
+    "nombre": "Salto psiónico",
+    "descripcion": "Velocidad de vuelo igual al doble de tu velocidad de caminar durante un asalto.",
+    "duracionEstandar": 1,
+    "aliases": ["salto psionico"]
   }
 ]

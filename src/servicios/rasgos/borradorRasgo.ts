@@ -100,6 +100,7 @@ export function construirRasgoDesdeBorrador(borrador: BorradorRasgo, rasgoInicia
         ...rasgoInicial,
         ...EsquemaCamposConstructor.parse(borrador),
         desactivarConCondiciones: borrador.desactivarConCondiciones?.map(c => c.trim()).filter(Boolean),
+        autoDesactivarEnTirada: borrador.autoDesactivarEnTirada?.map(c => c.trim().toLowerCase()).filter(Boolean),
         eliminarCondicionesAlActivar: borrador.eliminarCondicionesAlActivar?.map(c => c.trim()).filter(Boolean),
         id: rasgoInicial?.id || "preview_rasgo",
         nombre: nombre.trim(),

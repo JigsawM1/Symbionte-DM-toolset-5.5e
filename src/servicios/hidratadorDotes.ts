@@ -8,6 +8,7 @@ import origenJson from "@/datos/dotes/origen.json";
 import generalesJson from "@/datos/dotes/generales.json";
 import epicasJson from "@/datos/dotes/epicas.json";
 import estiloCombateJson from "@/datos/dotes/estilo_combate.json";
+import { CATALOGO_MANIOBRAS_COMBATE } from "@/constantes/maniobrasCombate";
 
 // =======================================================
 // UTILIDADES PURAS DE BÚSQUEDA Y FILTRADO DE CONJUROS
@@ -102,6 +103,7 @@ export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
 
 // Opciones calculadas de conjuros en memoria
 const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
+  maniobras_combate: () => CATALOGO_MANIOBRAS_COMBATE,
   dotes_elegibles: () => [...origenJson,...generalesJson,...epicasJson,...estiloCombateJson].map(d => EsquemaDotePersonaje.parse(d))
     .map(d => ({ id:d.id,nombre:d.nombre,descripcion:d.descripcion,requisito:d.requisito,categoria:d.categoria })),
   trucos_clerigo: () => generarOpcionesConjuros("clérigo", 0),

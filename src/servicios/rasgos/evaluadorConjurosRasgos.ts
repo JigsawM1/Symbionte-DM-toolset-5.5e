@@ -4,7 +4,7 @@ import {
   type RasgoPersonaje
 } from "@/tipos";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
-import { normalizar, resolverRasgoPadre } from "./utilidadesRasgos";
+import { normalizar, resolverRasgoRecurso } from "./utilidadesRasgos";
 import { esSelectorDeConjuros } from "@/utiles/selectoresConjuros";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
@@ -260,5 +260,5 @@ export function resolverIdRasgoObjetivoGasto(
   if (!targetTrait) return "";
   if (!targetTrait.gastarDePadre) return targetTrait.id;
 
-  return resolverRasgoPadre(targetTrait, rasgos)?.id ?? targetTrait.id;
+  return resolverRasgoRecurso(targetTrait, rasgos)?.id ?? targetTrait.id;
 }

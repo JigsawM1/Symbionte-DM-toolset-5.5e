@@ -1,3 +1,5 @@
+import { emitirTiradaDanoConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   usarEstadoPersonajes,
@@ -18,7 +20,7 @@ import type { AtaquePersonajeCalculado } from "./TarjetaAtaquePersonaje";
 import type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
 import { calcularBonoAtaqueConjuro, calcularCDConjuros } from "@/servicios/calculadorMagia";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
-import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje, PersonajeJugador } from "@/tipos";
+import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje } from "@/tipos";
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { generarListaAtaquesFisicos } from "@/servicios/calculadorAtaquesArmas";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
@@ -225,24 +227,22 @@ export function usarCalculoAtaquesJugador() {
     });
   }, [personajeActivo, statsCalculadas, baseDatosObjetos, modificarCantidadObjeto, agregarNotificacion]);
 
-  const desactivarRasgosDeImpactoDano = useCallback((pj: PersonajeJugador | null) => {
-    if (!pj || !Array.isArray(pj.rasgos)) return;
-    for (const r of pj.rasgos) {
-      if (r.activo && r.autoDesactivarAlTirarDano) {
-        alternarActivoRasgo(pj.id, r.id);
-      }
-    }
-  }, [alternarActivoRasgo]);
+  const emitirDanoConRasgos = useCallback(async (ataque: AtaquePersonajeCalculado, emitir: () => Promise<boolean>) => {
+    if (!personajeActivo) return;
+    await emitirTiradaDanoConRasgos(personajeActivo, ataque, emitir, id => {
+      const estado = usarAlmacenDM.getState();
+      if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
+        estado.alternarActivoRasgo(personajeActivo.id, id);
+    });
+  }, [personajeActivo]);
 
-  const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean | "adicional" = false) => {
-    await ejecutarTiradaDanoFisico(ataque, personajeActivo, esVersatil);
-    desactivarRasgosDeImpactoDano(personajeActivo);
-  }, [personajeActivo, desactivarRasgosDeImpactoDano]);
+  const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, modo: boolean | "adicional" = false) => {
+    await emitirDanoConRasgos(ataque, () => ejecutarTiradaDanoFisico(ataque, personajeActivo, modo));
+  }, [personajeActivo, emitirDanoConRasgos]);
 
-  const manejarTirarCritico = useCallback(async (ataque: AtaquePersonajeCalculado, esVersatil: boolean | "adicional" = false) => {
-    await ejecutarTiradaCritico(ataque, personajeActivo, esVersatil);
-    desactivarRasgosDeImpactoDano(personajeActivo);
-  }, [personajeActivo, desactivarRasgosDeImpactoDano]);
+  const manejarTirarCritico = useCallback(async (ataque: AtaquePersonajeCalculado, modo: boolean | "adicional" = false) => {
+    await emitirDanoConRasgos(ataque, () => ejecutarTiradaCritico(ataque, personajeActivo, modo));
+  }, [personajeActivo, emitirDanoConRasgos]);
 
   const manejarUsarConsumible = useCallback(async (consumible: ConsumibleAccionCalculado) => {
     await ejecutarUsoConsumible({

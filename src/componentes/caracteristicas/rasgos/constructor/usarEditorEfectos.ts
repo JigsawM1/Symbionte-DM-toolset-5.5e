@@ -26,6 +26,10 @@ export function usarEditorEfectos(efectos: EfectoMecanicoRasgo[], actualizarBorr
             setNuevoObjetivo("arma_fuerza");
             setNuevoAplicaA("arma_fuerza");
         }
+        else if (t === "dado_extra_tirada") {
+            setNuevoObjetivo("habilidad.sigilo");
+            setNuevoValor("dados_padre");
+        }
         else if (t === "dano_secundario") {
             setNuevoValor("1d6+mitad_nivel");
             setNuevoTipoDano("Radiante o Necrótico");

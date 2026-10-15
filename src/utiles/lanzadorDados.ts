@@ -5,6 +5,7 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
+import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 
 /**
  * Módulo de Lanzamiento de Dados para TaleSpire (window.TS.dice)
@@ -23,6 +24,7 @@ export interface MetadataTiradaEspecial {
   nombreGrupoOriginal: string;
   grupoAName: string;
   grupoBName: string;
+  grupoBonificacionName?: string;
   creadoEn?: number;
 }
 
@@ -493,7 +495,7 @@ export async function lanzarDadosPorChatTaleSpire(formula: string): Promise<void
     const formulaLimpia = formula.replace(/!/g, "");
     const comandoChat = `!${formulaLimpia}`;
     logger.debug(`[Lanzador Dados (Chat)] Enviando comando de tirada física al chat: "${comandoChat}"`);
-    await ts.chat.send(comandoChat);
+    if (!await ts.chat.send(comandoChat)) throw new Error("TaleSpire no confirmó el envío de la tirada por chat.");
   } else {
     throw new Error("La API de chat de TaleSpire tampoco está disponible.");
   }
@@ -604,16 +606,23 @@ export async function lanzarDadosTaleSpire(
         d20Encontrado = true;
         const grupoAName = `${nombreBaseGrupo} (${sufijoTipo} 1)`;
         const grupoBName = `${nombreBaseGrupo} (${sufijoTipo} 2)`;
+        // El dado adicional se tira una vez; la ventaja compara únicamente los d20.
+        const patronDadosExtra = /[+-](?:\d+)?d(?!20\b)\d+/gi;
+        const dadosExtra = formulaDados.match(patronDadosExtra)?.join("") ?? "";
+        const formulaD20 = formulaDados.replace(patronDadosExtra, "");
+        const grupoBonificacionName = dadosExtra ? `${nombreBaseGrupo} (Dados adicionales)` : undefined;
         
         tiradaEspecial = {
           tipo: tipoTirada as "ventaja" | "desventaja",
           etiquetaOriginal: etiqueta || nombreBaseGrupo,
           nombreGrupoOriginal: nombreBaseGrupo,
           grupoAName,
-          grupoBName
+          grupoBName,
+          grupoBonificacionName
         };
         
-        return `${grupoAName}:${formulaDados}/${grupoBName}:${formulaDados}`;
+        return `${grupoAName}:${formulaD20}/${grupoBName}:${formulaD20}`
+          + (grupoBonificacionName ? `/${grupoBonificacionName}:${dadosExtra.replace(/^\+/, "")}` : "");
       }
       return grupo;
     });
@@ -766,10 +775,18 @@ export async function lanzarDadosTaleSpire(
 
     // Si es una tirada de iniciativa en entorno local fuera de TaleSpire
     if (metaIniciativa) {
-      const matchBono = formulaLimpia.match(/1d20([+-]\d+)/i);
-      const bono = matchBono ? parseInt(matchBono[1], 10) : 0;
-      const d20 = Math.floor(Math.random() * 20) + 1;
-      const totalInic = d20 + bono;
+      const formulaIniciativa = formula.split("/")[0].split(":").at(-1) ?? "1d20";
+      const terminos = formulaIniciativa.replace(/\s/g, "").match(/[+-]?(?:\d+d\d+|\d+)/gi) ?? [];
+      const totalInic = terminos.reduce((total, termino) => {
+        const signo = termino.startsWith("-") ? -1 : 1;
+        if (!termino.includes("d")) return total + Number(termino);
+        let valor = evaluarFormulaDados(termino.replace(/^[+-]/, ""));
+        if (/d20$/i.test(termino) && tipoTirada !== "plano") {
+          const segundo = evaluarFormulaDados("1d20");
+          valor = tipoTirada === "ventaja" ? Math.max(valor, segundo) : Math.min(valor, segundo);
+        }
+        return total + signo * valor;
+      }, 0);
       aplicarResultadoIniciativaEnEstado(metaIniciativa, totalInic);
     }
 
@@ -1049,6 +1066,10 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     
     const grupoElegido = (elegirA ? grupoA : grupoB) as Record<string, unknown>;
     const totalElegido = elegirA ? totalA : totalB;
+    const grupoBonificacion = infoTirada.grupoBonificacionName && resultsGroups.find(g =>
+      (g as { name?: string }).name === infoTirada.grupoBonificacionName);
+    const totalBonificacion = grupoBonificacion ? await ts.dice.evaluateDiceResultsGroup(grupoBonificacion) : 0;
+    const totalFinal = totalElegido + totalBonificacion;
     const totalDescartado = elegirA ? totalB : totalA;
     
     logger.debug(`[Lanzador Dados] Elegido ${grupoElegido.name} (${totalElegido}) - Descartado (${totalDescartado})`);
@@ -1099,7 +1120,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     if (!tarjetaEnviada) {
       try {
         const etiquetaChat = infoTirada.etiquetaOriginal || infoTirada.nombreGrupoOriginal;
-        const mensajeChat = `[Tirada] ${etiquetaChat}${etiquetaChat.includes("(") ? "" : sufijoChat}: ${totalElegido} (${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}])`;
+        const mensajeChat = `[Tirada] ${etiquetaChat}${etiquetaChat.includes("(") ? "" : sufijoChat}: ${totalFinal} (${esVentaja ? "Mayor" : "Menor"} de [${totalA}, ${totalB}])`;
         await ts.chat.send(mensajeChat);
       } catch (errChat) {
         logger.error("[Lanzador Dados] Error enviando mensaje a ts.chat:", errChat);
@@ -1110,7 +1131,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
     if (infoIniciativaEspecial) {
       logger.debug(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido}`);
-      aplicarResultadoIniciativaEnEstado(infoIniciativaEspecial, totalElegido);
+      aplicarResultadoIniciativaEnEstado(infoIniciativaEspecial, totalFinal);
       delete tiradasIniciativaActivas[rollId];
     }
 

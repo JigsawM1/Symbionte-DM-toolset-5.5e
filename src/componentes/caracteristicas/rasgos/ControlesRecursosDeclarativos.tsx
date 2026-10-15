@@ -7,6 +7,7 @@ import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { Dices, RotateCcw, Sparkles } from "lucide-react";
+import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 
 export function ControlesRecursosDeclarativos({ rasgo, idPersonaje }: { rasgo: RasgoPersonaje; idPersonaje?: string }) {
   const personajes = usarAlmacenDM(s => s.personajes);
@@ -21,6 +22,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje }: { rasgo: R
   useEffect(() => { if (mostrar) dialogo.current?.showModal(); }, [mostrar]);
   if (!pj) return null;
   const restantes = rasgo.usosRestantes ?? rasgo.usosMaximos ?? 0;
+  const padre = resolverRasgoRecurso(rasgo, pj.rasgos);
   const maxDados = rasgo.tiradaCuracionManual ? Math.min(restantes, Math.max(1, evaluarExpresionNumericaSegura(
     resolverFormulaDinamica(rasgo.tiradaCuracionManual.maxDados, pj, rasgo.fuente)))) : 1;
   const lanzar = async () => {
@@ -40,6 +42,11 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje }: { rasgo: R
     } finally { bloqueado.current = false; setEnCurso(false); }
   };
   return <>
+    {rasgo.recargarUsoConPadre && <button type="button" className={estilos.botonCompacto}
+      disabled={restantes >= (rasgo.usosMaximos ?? 1) || !padre || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < 1}
+      title={`Recargar uso gastando 1 uso de ${padre?.nombre ?? "la reserva padre"}`} aria-label={`Recargar ${rasgo.nombre} con el recurso padre`}
+      onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().recargarUsoRasgoConPadre(pj.id, rasgo.id); }}>
+      <RotateCcw size={13} aria-hidden="true" />Recargar</button>}
     {rasgo.vinculoArma && <SelectorDesplegable valor={rasgo.vinculoArma.idInstancia ?? ""} titulo="Arma vinculada" placeholder="Vincular un arma"
       opciones={[{valor:"",etiqueta:"Sin arma vinculada"},...pj.inventario.filter(o => {
         if (o.categoria !== "armas") return false;

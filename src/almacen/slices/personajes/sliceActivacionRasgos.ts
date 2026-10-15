@@ -9,6 +9,7 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideCondicionConRasgo } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
+import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
 alternarActivoRasgo: (idPj, idRasgo) => {
@@ -19,6 +20,7 @@ alternarActivoRasgo: (idPj, idRasgo) => {
       if (!targetTrait) return pj;
 
       const nuevoActivo = !targetTrait.activo;
+      if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return pj;
       if (nuevoActivo && targetTrait.tieneUsosLimitados && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1)) return pj;
       if (nuevoActivo && targetTrait.restaurarUsosAlActivar) {
         const cfg = targetTrait.restaurarUsosAlActivar;

@@ -15,6 +15,7 @@ import { crearResolutorOrigenConjuros } from "@/servicios/resolutorOrigenConjuro
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
 import { construirRasgosDesdeSelectores } from "./rasgos/seleccionesRasgos";
+import { resolverExtensionesRasgos } from "./rasgos/extensionesRasgos";
 import {
   resolverIdRasgoObjetivoGasto,
   aplicarModificadoresInvocacionesAHechizo,
@@ -224,7 +225,7 @@ export function resolverRasgosAcciones(
       : sincronizarRasgosAutomaticos(personajeActivo);
 
   if (!Array.isArray(declarados) || declarados.length === 0) return [];
-  const listaRasgos = construirRasgosDesdeSelectores({ ...personajeActivo, rasgos: declarados });
+  const listaRasgos = resolverExtensionesRasgos(construirRasgosDesdeSelectores({ ...personajeActivo, rasgos: declarados }), personajeActivo.nivel);
 
   const resultado: RasgoAccionCombate[] = [];
 

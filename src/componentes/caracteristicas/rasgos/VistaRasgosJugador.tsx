@@ -1,4 +1,6 @@
 import React from "react";
+import { SeccionOpcionesRasgos } from "./SeccionOpcionesRasgos";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
 import { ResumenDefensasRasgos } from "./ResumenDefensasRasgos";
 import type { RasgoPersonaje } from "@/tipos";
 import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
@@ -65,7 +67,15 @@ export const VistaRasgosJugador: React.FC = () => {
   const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
   const hayFiltrosActivos = consultaBusqueda.trim() !== "" || filtroAccion !== "todos";
 
-  const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number) => {
+  const efectivos = resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel);
+  const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number): React.ReactNode => {
+    if (rasgo.selectores?.some(s => s.ubicacion === "seccion" && s.materializarRasgos)) {
+      const clave = `opciones_${rasgo.id}`;
+      return <SeccionOpcionesRasgos key={rasgo.id} rasgo={rasgo} nivel={obtenerNivelEfectivoParaRasgo(rasgo)}
+        colapsada={!!seccionesColapsadas[clave]} alternar={() => alternarColapso(clave)} renderizar={renderizarTarjetaRasgo}
+        hijos={efectivos.filter(r => r.idRasgoSelectorOrigen === rasgo.id)}
+        actualizar={(id, valores) => actualizarSeleccionRasgo(personajeActivo.id, rasgo.id, id, valores)} />;
+    }
     if (rasgo.selectores?.some(s => s.ubicacion === "seccion")) return <div key={rasgo.id} className={estilos.seccionPrincipal}>
       <SeccionSelectoresModalRasgo selectores={rasgo.selectores} nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgo)}
         alActualizarSeleccion={(idSelector, valores) => actualizarSeleccionRasgo(personajeActivo.id, rasgo.id, idSelector, valores)} />

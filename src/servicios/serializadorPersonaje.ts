@@ -43,6 +43,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
   return {
     id: rasgo.id,
     idSelectorOrigen: rasgo.idSelectorOrigen,
+    idRasgoSelectorOrigen: rasgo.idRasgoSelectorOrigen,
     vinculoArma: rasgo.vinculoArma,
     claseConjurosOtorgados: rasgo.claseConjurosOtorgados,
     nombre: rasgo.nombre,

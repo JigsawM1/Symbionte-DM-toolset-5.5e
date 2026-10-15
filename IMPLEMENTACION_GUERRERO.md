@@ -1,10 +1,40 @@
 # Implementación de Guerrero desde el builder
 
-Fecha: 13 de octubre de 2026.
+Actualización: 15 de octubre de 2026.
 
-Las cinco fases están implementadas en el catálogo y en las capacidades generales del constructor. Los rasgos personalizados utilizan los mismos contratos de recursos, efectos, magia y selectores. Las maniobras y poderes individuales conservan sus descripciones y todavía no tienen clasificación ni ejecución propia.
+Las cinco fases están implementadas en el catálogo y en las capacidades generales del constructor. Las veinte maniobras y los cinco poderes psiónicos ya tienen clasificación y ejecución declarativa. Los rasgos personalizados utilizan los mismos contratos de recursos, efectos, magia y selectores.
 
-## Resultado por fase
+## Maniobras y poderes individuales
+
+- Las veinte maniobras están en `src/datos/maniobras-combate.json`, validadas e hidratadas mediante `maniobras_combate`. Se mantienen los identificadores previos, incluidos los de Ataque amenazador y Arremetida. Los textos proceden de las carpetas de referencia; Presencia imponente conserva su descripción anterior.
+- Las cajas independientes **Maniobras de combate** y **Poderes psiónicos** tienen colapso persistido, búsqueda y paginación. Las maniobras admiten filtro de aprendidas y los límites 3/5/7/9. Sus controles se reutilizan desde las tarjetas existentes, sin duplicar opciones en Clase/Subclase.
+- Emboscada añade el dado a Sigilo o iniciativa y queda bloqueada por Incapacitado. Evaluación táctica y Presencia imponente aplican el dado únicamente a sus habilidades declaradas. Los activables terminan después de una emisión coincidente correcta.
+- Nueve maniobras añaden el dado al daño, incluido Derribo. Finta mantiene ventaja y dado hasta emitir daño. Parada tira el dado más el mayor modificador de Fuerza/Destreza; Reagrupar usa la mitad del nivel efectivo de Guerrero. Las restantes tiradas y Orden de ataque conservan la resolución informativa acordada.
+- Campo protector tira el dado psiónico más Inteligencia. Golpe psiónico añade un grupo `/` de Fuerza con dado más Inteligencia; conserva su activación ante daño desarmado. Empujón telequinético amplía su descripción desde nivel 7 mediante la fusión general de extensiones.
+- Movimiento y Salto gastan un uso propio por descanso corto o largo. Un control separado restaura ese uso gastando un dado psiónico; la operación rechaza reservas agotadas o usos completos.
+- Salto crea el efecto predefinido **Salto psiónico**, de un asalto. El vuelo se calcula como el doble de la velocidad efectiva de caminar, conserva fuentes de vuelo superiores y desaparece al expirar, retirar o desactivar el efecto.
+
+### Capacidades reutilizables del builder
+
+`SelectorRasgo.materializarRasgos` permite ejecutar opciones seleccionadas o conceder todas las de consulta según el nivel. `idRasgoSelectorOrigen` conserva su procedencia incluso cuando una opción amplía a otra. La reserva de usos y el dado se resuelven por relaciones `ligadoA`, atravesando contenedores y evitando ciclos.
+
+Las fórmulas aceptan `dados_padre`, combinable con modificadores y `max(fuerza,destreza)`. El efecto `dado_extra_tirada` utiliza objetivos como `iniciativa` o `habilidad.sigilo`; `autoDesactivarEnTirada` declara los eventos que lo finalizan. El constructor expone estos datos, la finalización tras daño, la materialización y `recargarUsoConPadre`. El movimiento especial admite expresiones con `velocidad_caminar`, por ejemplo `velocidad_caminar*2`.
+
+La emisión compartida impide tiradas simultáneas duplicadas. Una emisión rechazada conserva usos o activaciones pendientes; se comprueba tanto la bandeja como la confirmación del chat. Con ventaja/desventaja el dado adicional se tira una sola vez, separado de los dos d20, y se incluye en el total de iniciativa. Las definiciones y elecciones permanecen en la persistencia local.
+
+Las distancias, objetivos, efectos sobre terceros, salvaciones y límites de mesa siguen siendo informativos. La cancelación manual de un activable no devuelve su coste.
+
+### Validación de esta actualización
+
+- `pnpm run ci`: salida 0; TypeScript, ESLint, 140 suites / 1.954 pruebas, auditoría de 160 archivos y build correctos. Permanece el aviso existente de chunks grandes.
+- Regresiones del recorrido completo: catálogo, materialización, dados por nivel, multiclase, modificadores negativos, reservas, recargas, descansos, persistencia y extensiones. Incluyen un rasgo personalizado sin nombres del Guerrero y emisión nativa simulada con ventaja/desventaja.
+- `pnpm run test:guerrero-ui`: ocho flujos y dieciséis dimensiones, cero errores y desbordes; incluye fallo de emisión y reintento, colapso, tiradas reales desde la hoja/acciones, Salto, recargas y guardado/reapertura del constructor.
+- `pnpm run test:brujo-ui`: doce flujos y cuatro dimensiones, cero errores y desbordes. Se corrigen los selectores de prueba del libro para identificar el título del control, que incluye una descripción en su texto.
+- `pnpm run test:rasgos-ui`: edición, validación, conjuro gratuito y cambio de plantilla correctos.
+- Evidencias: `scratch/ci-maniobras.log`, `pruebas-maniobras.log`, `ui-maniobras.log`, `ui-brujo-maniobras.log`, `ui-constructor-maniobras.log` y capturas `maniobras-ejecucion-*` / `poderes-ejecucion-*`.
+- Validación local en Chromium y APIs simuladas; queda pendiente la comprobación en clientes TaleSpire y CEF nativos. Sin despliegue.
+
+## Resultado inicial por fase
 
 | Fase | Resultado |
 | --- | --- |
@@ -61,7 +91,6 @@ Evidencias locales en `scratch/`: `ci-guerrero-fase1.log` a `ci-guerrero-fase5.l
 
 ## Alcance pendiente acordado
 
-- Clasificación y automatización individual de maniobras y poderes psiónicos.
 - Aliados de Bastión, ataque adicional durante Telequinesis, críticos y demás beneficios expresamente informativos.
 - Validación entre clientes TaleSpire reales y comprobación en su CEF nativo. Chromium local y la simulación no certifican esa sesión.
 

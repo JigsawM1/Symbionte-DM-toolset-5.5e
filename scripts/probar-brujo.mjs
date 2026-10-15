@@ -152,9 +152,15 @@ const buscarLibro=async nombre=>{
  const input=await pagina.$('input[placeholder="Buscar en trucos del libro de las sombras..."]');assert(input);await input.click();await seleccionarTodo();await input.press('Backspace');await input.type(nombre);
 };
 await buscarLibro('Descarga sobrenatural');
-assert.equal(await pagina.evaluate(()=>[...document.querySelectorAll('details button')].some(b=>b.textContent.trim()==='Descarga sobrenatural')),false);
+assert.equal(await pagina.evaluate(()=>Boolean(document.querySelector('details button[title="Descarga sobrenatural"]'))),false);
 await buscarLibro('Rayo de escarcha');
-const trucoLibro=await pagina.evaluateHandle(()=>[...document.querySelectorAll('details button')].find(b=>b.textContent.trim()==='Rayo de escarcha'));
+try { await pagina.waitForSelector('details button[title="Rayo de escarcha"]'); }
+catch(error) {
+ console.log('Diagnóstico del libro', await pagina.evaluate(()=>({inputs:[...document.querySelectorAll('input')].map(e=>({placeholder:e.placeholder,value:e.value})),
+  botones:[...document.querySelectorAll('details button')].map(b=>b.textContent.trim()),trucos:window.pj().trucosConocidosIds})));
+ fs.writeFileSync('scratch/brujo-ui-fallo.html',await pagina.content());await pagina.screenshot({path:'scratch/brujo-ui-fallo.png'});throw error;
+}
+const trucoLibro=await pagina.evaluateHandle(()=>document.querySelector('details button[title="Rayo de escarcha"]'));
 assert(trucoLibro.asElement());await trucoLibro.asElement().click();
 await esperar(()=>window.rasgo('Pacto del grimorio').selectores[0].valorActual.includes('h_rayo-de-escarcha'));
 await mostrarAprendidas();await pulsar('Pacto del grimorio','Rasgo inactivo');await esperar(()=>window.pj().trucosConocidosIds.includes('h_rayo-de-escarcha'));
@@ -258,7 +264,8 @@ await pagina.setViewport({width:599,height:760});
 await pagina.goto(`http://127.0.0.1:${servidor.httpServer.address().port}/__brujo?nivel=9`);
 await pagina.waitForFunction(()=>window.listo);await pagina.waitForSelector('article');
 await invocacion('Pacto del grimorio');await buscarLibro('Rayo de escarcha');
-const eleccionLibroContadores=await pagina.evaluateHandle(()=>[...document.querySelectorAll('details button')].find(b=>b.textContent.trim()==='Rayo de escarcha'));
+await pagina.waitForSelector('details button[title="Rayo de escarcha"]');
+const eleccionLibroContadores=await pagina.evaluateHandle(()=>document.querySelector('details button[title="Rayo de escarcha"]'));
 assert(eleccionLibroContadores.asElement());await eleccionLibroContadores.asElement().click();await eleccionLibroContadores.dispose();
 await mostrarAprendidas();await pulsar('Pacto del grimorio','Rasgo inactivo');
 await pulsar('Contactar con el patrón','Gastar 1 uso');

@@ -64,6 +64,8 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
                     onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, ubicacion: e.target.checked ? "seccion" : "tarjeta" } : s))} /></label>
                   <label>Solo consulta <input type="checkbox" checked={sel.modo === "consulta"}
                     onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, modo: e.target.checked ? "consulta" : "seleccion" } : s))} /></label>
+                  <label>Crear rasgos ejecutables <input type="checkbox" checked={!!sel.materializarRasgos}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, materializarRasgos: e.target.checked } : s))} /></label>
                   <label>Etiqueta <input className={estilos.inputControl} value={sel.etiqueta}
                     onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, etiqueta: e.target.value } : s))} /></label>
                   {sel.opciones.map(op => <label key={op.id}>{op.nombre}

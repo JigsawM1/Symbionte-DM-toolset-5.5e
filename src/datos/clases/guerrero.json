@@ -90,7 +90,34 @@
         ],
         "minimo": 2
       },
-      "categoriaMecanica": "curacion"
+      "categoriaMecanica": "curacion",
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 1,
+            "valores": [
+              "2 usos"
+            ]
+          },
+          {
+            "nivel": 4,
+            "valores": [
+              "3 usos"
+            ]
+          },
+          {
+            "nivel": 10,
+            "valores": [
+              "4 usos"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "nivel": 1,
@@ -170,7 +197,40 @@
             }
           ]
         }
-      ]
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 1,
+            "valores": [
+              "3 maestrías"
+            ]
+          },
+          {
+            "nivel": 4,
+            "valores": [
+              "4 maestrías"
+            ]
+          },
+          {
+            "nivel": 10,
+            "valores": [
+              "5 maestrías"
+            ]
+          },
+          {
+            "nivel": 16,
+            "valores": [
+              "6 maestrías"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "nivel": 2,
@@ -193,7 +253,28 @@
         ],
         "minimo": 1
       },
-      "categoriaMecanica": "consumible"
+      "categoriaMecanica": "consumible",
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 2,
+            "valores": [
+              "1 vez / descanso"
+            ]
+          },
+          {
+            "nivel": 17,
+            "valores": [
+              "2 veces / descanso. Máximo uno por turno"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "nivel": 2,
@@ -224,7 +305,34 @@
       "nombre": "Ataque adicional",
       "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, podrás hacer dos ataques en lugar de uno.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 5,
+            "valores": [
+              "2 ataques"
+            ]
+          },
+          {
+            "nivel": 11,
+            "valores": [
+              "3 ataques"
+            ]
+          },
+          {
+            "nivel": 20,
+            "valores": [
+              "4 ataques"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "nivel": 5,
@@ -289,7 +397,34 @@
           "objetivo": "todas",
           "valor": "nivel_guerrero"
         }
-      ]
+      ],
+      "tablaProgresion": {
+        "columnas": [
+          "Nivel",
+          "Descripción"
+        ],
+        "filas": [
+          {
+            "nivel": 9,
+            "valores": [
+              "1 vez / descanso"
+            ]
+          },
+          {
+            "nivel": 13,
+            "valores": [
+              "2 veces / descanso"
+            ]
+          },
+          {
+            "nivel": 17,
+            "valores": [
+              "3 veces / descanso"
+            ]
+          }
+        ],
+        "notaPie": "Cada nivel reemplaza al anterior"
+      }
     },
     {
       "nivel": 9,
@@ -405,6 +540,45 @@
                 "valor": 6
               }
             ]
+          },
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel",
+              "Descripción"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "4d8 dados de superioridad"
+                ]
+              },
+              {
+                "nivel": 7,
+                "valores": [
+                  "5d8"
+                ]
+              },
+              {
+                "nivel": 10,
+                "valores": [
+                  "5d10"
+                ]
+              },
+              {
+                "nivel": 15,
+                "valores": [
+                  "6d10"
+                ]
+              },
+              {
+                "nivel": 18,
+                "valores": [
+                  "6d12"
+                ]
+              }
+            ],
+            "notaPie": "Cada nivel reemplaza al anterior"
           }
         },
         {
@@ -418,121 +592,20 @@
         {
           "nivel": 3,
           "nombre": "Opciones de maniobras",
-          "descripcion": "Las maniobras se presentan aquí en orden alfabético.\n\n***Ataque amenazante.*** Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar asustar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo debe superar una tirada de salvación de Sabiduría o tendrá el estado de asustado hasta el final de tu siguiente turno.\n\n***Ataque con arremetida.*** Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de correr. Si te mueves al menos 5 pies en línea recta inmediatamente antes de acertar con un ataque cuerpo a cuerpo como parte de la acción de atacar en este turno, puedes sumar el dado de supremacía a la tirada de daño del ataque.\n\n***Ataque de barrido.*** Cuando aciertes a una criatura con una tirada de ataque cuerpo a cuerpo usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar dañar a otra criatura. Elige otra criatura a 5 pies o menos del objetivo original y que esté a tu alcance. Si la tirada de ataque original hubiera acertado a la segunda criatura, esta sufrirá una cantidad de daño igual al resultado que saques en el dado de supremacía. El daño es del mismo tipo que inflige el ataque original.\n\n***Ataque preciso.*** Cuando falles con una tirada de ataque, puedes gastar un dado de supremacía, tirarlo y sumar el resultado a la tirada de ataque, lo que podría hacer que el ataque acierte.\n\n***Ataque provocador.*** Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar provocar al objetivo para que te ataque. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Sabiduría o tendrá desventaja en sus tiradas de ataque contra cualquier objetivo que no seas tú hasta el final de tu siguiente turno.\n\n***Ataque y derribo.*** Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía y sumarlo a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o tendrá el estado de derribado.\n\n***Ataque y desarme.*** Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar desarmar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Fuerza o soltará un objeto de tu elección que esté sujetando, que caerá en su espacio.\n\n***Ataque y distracción.*** Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para distraer al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. La siguiente tirada de ataque contra el objetivo que realice un atacante que no seas tú tendrá ventaja si el ataque se lleva a cabo antes del principio de tu siguiente turno.\n\n***Ataque y empujón.*** Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar hacer retroceder al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o será empujado hasta 15 pies en línea recta alejándose de ti.\n\n***Ataque y maniobra.*** Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para que uno de tus compañeros maniobre para cambiar de posición. Suma el dado de supremacía a la tirada de daño del ataque y elige a una criatura voluntaria que pueda verte u oírte. La criatura podrá usar su reacción para moverse hasta la mitad de su velocidad sin provocar un ataque de oportunidad por parte del objetivo de tu ataque.\n\n***Cambio de posición ventajoso.*** Si en tu turno estás a 5 pies o menos de una criatura, puedes gastar un dado de supremacía y cambiar tu posición por la de ella, siempre que gastes al menos 5 pies de movimiento y que esa criatura acceda voluntariamente y no tenga el estado de incapacitada. Este movimiento no provoca ataques de oportunidad. Tira el dado de supremacía. Hasta el principio de tu siguiente turno, tú o la otra criatura (a tu elección) obtienen un bonificador a la CA igual al resultado.\n\n***Contraataque.*** Cuando una criatura falle una tirada de ataque cuerpo a cuerpo contra ti, puedes llevar a cabo una reacción y gastar un dado de supremacía para realizar una tirada de ataque cuerpo a cuerpo con un arma o con un ataque sin armas contra esa criatura. Si aciertas, suma el dado de supremacía al daño del ataque.\n\n***Emboscada.*** Cuando hagas una prueba de Destreza (Sigilo) o una tirada de iniciativa, puedes gastar un dado de supremacía y sumarlo a la tirada, salvo que tengas el estado de incapacitado.\n\n***Evaluación táctica.*** Cuando hagas una prueba de Inteligencia (Historia o Investigación) o de Sabiduría (Perspicacia), puedes gastar un dado de supremacía y sumarlo a la prueba de característica.\n\n***Finta.*** Como acción adicional, puedes gastar un dado de supremacía para realizar una finta eligiendo a una criatura a 5 pies o menos de ti como objetivo. Tendrás ventaja en tu siguiente tirada de ataque contra ese objetivo ese turno. Si el ataque acierta, suma el dado de supremacía a la tirada de daño del ataque.\n\n***Juego de pies evasivo.*** Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de destrabarse. También tiras el dado y sumas el resultado a tu CA hasta el principio de tu siguiente turno.\n\n***Orden de ataque.*** Cuando lleves a cabo la acción de atacar en tu turno, puedes renunciar a uno de tus ataques para ordenar a uno de tus compañeros que ataque. Cuando lo hagas, elige a una criatura voluntaria que pueda verte u oírte y gasta un dado de supremacía. Esa criatura podrá usar su reacción de inmediato para realizar un ataque con un arma o un ataque sin armas y sumar el dado de supremacía a la tirada de daño del ataque si acierta.\n\n***Parada.*** Cuando otra criatura te dañe con una tirada de ataque cuerpo a cuerpo, puedes llevar a cabo una reacción y gastar un dado de supremacía para reducir el daño en una cantidad igual al resultado del dado de supremacía más tu modificador por Fuerza o Destreza (a tu elección).\n\n***Presencia imponente.*** Cuando hagas una prueba de Carisma (Interpretación, Intimidación o Persuasión), puedes gastar un dado de supremacía y sumarlo a la tirada.\n\n***Reagrupar.*** Como acción adicional, puedes gastar un dado de supremacía para reforzar la determinación de un compañero. Elige a un aliado que esté a 30 pies o menos de ti que pueda verte u oírte. La criatura obtendrá una cantidad de puntos de golpe temporales igual al resultado del dado de supremacía más la mitad de tu nivel de guerrero (redondeando hacia abajo).",
+          "descripcion": "Aprende y utiliza tus maniobras de combate. Solo puedes emplear una maniobra por ataque.",
           "tipoAccion": "pasivo",
           "subclase": "Maestro del Combate",
           "categoriaMecanica": "selector_informativo",
           "selectores": [
             {
               "id": "maniobras_aprendidas",
-              "etiqueta": "Opciones de maniobras",
+              "etiqueta": "Maniobras de combate",
               "tipo": "multiple",
               "tipoSelector": "general",
               "visualizacion": "lista",
               "ubicacion": "seccion",
               "modo": "seleccion",
-              "opciones": [
-                {
-                  "id": "maniobra_ataque_amenazante",
-                  "nombre": "Ataque amenazante",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar asustar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo debe superar una tirada de salvación de Sabiduría o tendrá el estado de asustado hasta el final de tu siguiente turno."
-                },
-                {
-                  "id": "maniobra_ataque_con_arremetida",
-                  "nombre": "Ataque con arremetida",
-                  "descripcion": "Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de correr. Si te mueves al menos 5 pies en línea recta inmediatamente antes de acertar con un ataque cuerpo a cuerpo como parte de la acción de atacar en este turno, puedes sumar el dado de supremacía a la tirada de daño del ataque."
-                },
-                {
-                  "id": "maniobra_ataque_de_barrido",
-                  "nombre": "Ataque de barrido",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque cuerpo a cuerpo usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar dañar a otra criatura. Elige otra criatura a 5 pies o menos del objetivo original y que esté a tu alcance. Si la tirada de ataque original hubiera acertado a la segunda criatura, esta sufrirá una cantidad de daño igual al resultado que saques en el dado de supremacía. El daño es del mismo tipo que inflige el ataque original."
-                },
-                {
-                  "id": "maniobra_ataque_preciso",
-                  "nombre": "Ataque preciso",
-                  "descripcion": "Cuando falles con una tirada de ataque, puedes gastar un dado de supremacía, tirarlo y sumar el resultado a la tirada de ataque, lo que podría hacer que el ataque acierte."
-                },
-                {
-                  "id": "maniobra_ataque_provocador",
-                  "nombre": "Ataque provocador",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar provocar al objetivo para que te ataque. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Sabiduría o tendrá desventaja en sus tiradas de ataque contra cualquier objetivo que no seas tú hasta el final de tu siguiente turno."
-                },
-                {
-                  "id": "maniobra_ataque_y_derribo",
-                  "nombre": "Ataque y derribo",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía y sumarlo a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o tendrá el estado de derribado."
-                },
-                {
-                  "id": "maniobra_ataque_y_desarme",
-                  "nombre": "Ataque y desarme",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar desarmar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Fuerza o soltará un objeto de tu elección que esté sujetando, que caerá en su espacio."
-                },
-                {
-                  "id": "maniobra_ataque_y_distraccion",
-                  "nombre": "Ataque y distracción",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para distraer al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. La siguiente tirada de ataque contra el objetivo que realice un atacante que no seas tú tendrá ventaja si el ataque se lleva a cabo antes del principio de tu siguiente turno."
-                },
-                {
-                  "id": "maniobra_ataque_y_empujon",
-                  "nombre": "Ataque y empujón",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar hacer retroceder al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o será empujado hasta 15 pies en línea recta alejándose de ti."
-                },
-                {
-                  "id": "maniobra_ataque_y_maniobra",
-                  "nombre": "Ataque y maniobra",
-                  "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para que uno de tus compañeros maniobre para cambiar de posición. Suma el dado de supremacía a la tirada de daño del ataque y elige a una criatura voluntaria que pueda verte u oírte. La criatura podrá usar su reacción para moverse hasta la mitad de su velocidad sin provocar un ataque de oportunidad por parte del objetivo de tu ataque."
-                },
-                {
-                  "id": "maniobra_cambio_de_posicion_ventajoso",
-                  "nombre": "Cambio de posición ventajoso",
-                  "descripcion": "Si en tu turno estás a 5 pies o menos de una criatura, puedes gastar un dado de supremacía y cambiar tu posición por la de ella, siempre que gastes al menos 5 pies de movimiento y que esa criatura acceda voluntariamente y no tenga el estado de incapacitada. Este movimiento no provoca ataques de oportunidad. Tira el dado de supremacía. Hasta el principio de tu siguiente turno, tú o la otra criatura (a tu elección) obtienen un bonificador a la CA igual al resultado."
-                },
-                {
-                  "id": "maniobra_contraataque",
-                  "nombre": "Contraataque",
-                  "descripcion": "Cuando una criatura falle una tirada de ataque cuerpo a cuerpo contra ti, puedes llevar a cabo una reacción y gastar un dado de supremacía para realizar una tirada de ataque cuerpo a cuerpo con un arma o con un ataque sin armas contra esa criatura. Si aciertas, suma el dado de supremacía al daño del ataque."
-                },
-                {
-                  "id": "maniobra_emboscada",
-                  "nombre": "Emboscada",
-                  "descripcion": "Cuando hagas una prueba de Destreza (Sigilo) o una tirada de iniciativa, puedes gastar un dado de supremacía y sumarlo a la tirada, salvo que tengas el estado de incapacitado."
-                },
-                {
-                  "id": "maniobra_evaluacion_tactica",
-                  "nombre": "Evaluación táctica",
-                  "descripcion": "Cuando hagas una prueba de Inteligencia (Historia o Investigación) o de Sabiduría (Perspicacia), puedes gastar un dado de supremacía y sumarlo a la prueba de característica."
-                },
-                {
-                  "id": "maniobra_finta",
-                  "nombre": "Finta",
-                  "descripcion": "Como acción adicional, puedes gastar un dado de supremacía para realizar una finta eligiendo a una criatura a 5 pies o menos de ti como objetivo. Tendrás ventaja en tu siguiente tirada de ataque contra ese objetivo ese turno. Si el ataque acierta, suma el dado de supremacía a la tirada de daño del ataque."
-                },
-                {
-                  "id": "maniobra_juego_de_pies_evasivo",
-                  "nombre": "Juego de pies evasivo",
-                  "descripcion": "Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de destrabarse. También tiras el dado y sumas el resultado a tu CA hasta el principio de tu siguiente turno."
-                },
-                {
-                  "id": "maniobra_orden_de_ataque",
-                  "nombre": "Orden de ataque",
-                  "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes renunciar a uno de tus ataques para ordenar a uno de tus compañeros que ataque. Cuando lo hagas, elige a una criatura voluntaria que pueda verte u oírte y gasta un dado de supremacía. Esa criatura podrá usar su reacción de inmediato para realizar un ataque con un arma o un ataque sin armas y sumar el dado de supremacía a la tirada de daño del ataque si acierta."
-                },
-                {
-                  "id": "maniobra_parada",
-                  "nombre": "Parada",
-                  "descripcion": "Cuando otra criatura te dañe con una tirada de ataque cuerpo a cuerpo, puedes llevar a cabo una reacción y gastar un dado de supremacía para reducir el daño en una cantidad igual al resultado del dado de supremacía más tu modificador por Fuerza o Destreza (a tu elección)."
-                },
-                {
-                  "id": "maniobra_presencia_imponente",
-                  "nombre": "Presencia imponente",
-                  "descripcion": "Cuando hagas una prueba de Carisma (Interpretación, Intimidación o Persuasión), puedes gastar un dado de supremacía y sumarlo a la tirada."
-                },
-                {
-                  "id": "maniobra_reagrupar",
-                  "nombre": "Reagrupar",
-                  "descripcion": "Como acción adicional, puedes gastar un dado de supremacía para reforzar la determinación de un compañero. Elige a un aliado que esté a 30 pies o menos de ti que pueda verte u oírte. La criatura obtendrá una cantidad de puntos de golpe temporales igual al resultado del dado de supremacía más la mitad de tu nivel de guerrero (redondeando hacia abajo)."
-                }
-              ],
+              "opciones": [],
               "maxSelecciones": 3,
               "valorActual": [],
               "escaladoMaxSelecciones": [
@@ -552,9 +625,12 @@
                   "nivelMinimo": 15,
                   "valor": 9
                 }
-              ]
+              ],
+              "claveOpcionesDinamicas": "maniobras_combate",
+              "materializarRasgos": true
             }
-          ]
+          ],
+          "ligadoA": "rasgo_sub_maestro_del_combate_supremacia_en_combate"
         },
         {
           "nivel": 7,
@@ -724,6 +800,34 @@
             "modeloConjuros": "preparados",
             "nivelInicio": 3,
             "listaConjuros": "mago"
+          },
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel",
+              "Trucos",
+              "Preparados"
+            ],
+            "filas": [
+              { "nivel": 3, "valores": ["2", "3"] },
+              { "nivel": 4, "valores": ["2", "4"] },
+              { "nivel": 5, "valores": ["2", "4"] },
+              { "nivel": 6, "valores": ["2", "4"] },
+              { "nivel": 7, "valores": ["2", "5"] },
+              { "nivel": 8, "valores": ["2", "6"] },
+              { "nivel": 9, "valores": ["2", "6"] },
+              { "nivel": 10, "valores": ["3", "7"] },
+              { "nivel": 11, "valores": ["3", "8"] },
+              { "nivel": 12, "valores": ["3", "8"] },
+              { "nivel": 13, "valores": ["3", "9"] },
+              { "nivel": 14, "valores": ["3", "10"] },
+              { "nivel": 15, "valores": ["3", "10"] },
+              { "nivel": 16, "valores": ["3", "11"] },
+              { "nivel": 17, "valores": ["3", "11"] },
+              { "nivel": 18, "valores": ["3", "11"] },
+              { "nivel": 19, "valores": ["3", "12"] },
+              { "nivel": 20, "valores": ["3", "13"] }
+            ],
+            "notaPie": "Cada nivel reemplaza al anterior"
           }
         },
         {
@@ -834,6 +938,51 @@
                 "valor": 12
               }
             ]
+          },
+          "tablaProgresion": {
+            "columnas": [
+              "Nivel",
+              "Descripción"
+            ],
+            "filas": [
+              {
+                "nivel": 3,
+                "valores": [
+                  "4d6"
+                ]
+              },
+              {
+                "nivel": 5,
+                "valores": [
+                  "6d8"
+                ]
+              },
+              {
+                "nivel": 9,
+                "valores": [
+                  "8d8"
+                ]
+              },
+              {
+                "nivel": 11,
+                "valores": [
+                  "8d10"
+                ]
+              },
+              {
+                "nivel": 13,
+                "valores": [
+                  "10d10"
+                ]
+              },
+              {
+                "nivel": 17,
+                "valores": [
+                  "12d12"
+                ]
+              }
+            ],
+            "notaPie": "Cada nivel reemplaza al anterior"
           }
         },
         {
@@ -847,7 +996,7 @@
           "selectores": [
             {
               "id": "poderes_psionicos",
-              "etiqueta": "Opciones de poder psiónico",
+              "etiqueta": "Poderes psiónicos",
               "tipo": "multiple",
               "tipoSelector": "general",
               "visualizacion": "lista",
@@ -859,19 +1008,50 @@
                 {
                   "id": "poder_campo_protector",
                   "nombre": "Campo protector",
-                  "descripcion": "Cuando tú u otra criatura que puedas ver a 30 pies o menos de ti reciban daño, puedes usar una reacción para gastar un dado de energía psiónica; tira el dado y reduce el daño sufrido en una cantidad igual al resultado más tu modificador por Inteligencia (el daño se reduce en 1 como mínimo), ya que creas un escudo temporal de fuerza telequinética."
+                  "descripcion": "Cuando tú u otra criatura que puedas ver a 30 pies o menos de ti reciban daño, puedes usar tu reacción para gastar un dado de energía psiónica; tira el dado y reduce el daño sufrido en una cantidad igual al resultado más tu modificador de Inteligencia (el daño se reduce en 1 como mínimo), manifestando un escudo temporal de fuerza telequinética.",
+                  "nivelMinimo": 3,
+                  "categoriaMecanica": "consumible",
+                  "tipoAccion": "reaccion",
+                  "gastarDePadre": true,
+                  "heredarDadosPadre": true,
+                  "formulaDados": "dados_padre+inteligencia"
                 },
                 {
                   "id": "poder_golpe_psionico",
                   "nombre": "Golpe psiónico",
-                  "descripcion": "Puedes impulsar tus armas con fuerza psiónica. Una vez en cada uno de tus turnos, inmediatamente después de acertar a un objetivo que esté a 30 pies o menos de ti con un ataque e infligirle daño con un arma, puedes gastar un dado de energía psiónica, tirarlo e infligir una cantidad de daño de fuerza al objetivo igual al resultado más tu modificador por Inteligencia."
+                  "descripcion": "Puedes imbuir tus armas con fuerza psiónica. Una vez en cada uno de tus turnos, inmediatamente después de impactar a un objetivo a 30 pies o menos de ti con un ataque y causarle daño con un arma, puedes gastar un dado de energía psiónica, tirarlo e infligir una cantidad de daño de fuerza al objetivo igual al resultado más tu modificador de Inteligencia.",
+                  "nivelMinimo": 3,
+                  "categoriaMecanica": "activable",
+                  "tipoAccion": "especial",
+                  "esActivable": true,
+                  "gastarDePadre": true,
+                  "autoDesactivarAlTirarDano": true,
+                  "noGastarAlTirarDados": true,
+                  "efectos": [
+                    {
+                      "tipo": "dano_secundario",
+                      "objetivo": "arma",
+                      "aplicaA": "arma",
+                      "valor": "dados_padre+inteligencia",
+                      "tipoDano": "Fuerza"
+                    }
+                  ]
                 },
                 {
                   "id": "poder_movimiento_telequinetico",
                   "nombre": "Movimiento telequinético",
-                  "descripcion": "Puedes mover objetos o criaturas con la mente. Como acción de magia, elige un objetivo que puedas ver a 30 pies o menos de ti; deberá ser un objeto suelto Grande o más pequeño o una criatura voluntaria que no seas tú. Teletransportas al objetivo hasta 30 pies a un espacio sin ocupar que puedas ver. Como alternativa, si se trata de un objeto Diminuto, puedes moverlo hacia tu mano o desde ella.\nCuando lleves a cabo esta acción, no podrás volver a hacerla hasta que finalices un descanso corto o largo, a menos que gastes un dado de energía psiónica (no requiere acción) para restablecer su uso."
+                  "descripcion": "Puedes mover objetos o criaturas con la mente. Como acción mágica, elige un objetivo que puedas ver a 30 pies o menos de ti; debe ser un objeto suelto de tamaño Grande o menor, o una criatura voluntaria distinta de ti. Transportas al objetivo hasta 30 pies a un espacio desocupado que puedas ver. De manera alternativa, si se trata de un objeto Diminuto, puedes moverlo hacia tu mano o desde ella.\n\nUna vez que realizas esta acción, no puedes volver a usarla hasta completar un descanso corto o largo, a menos que gastes un dado de energía psiónica (no requiere acción) para restablecer su uso.",
+                  "nivelMinimo": 3,
+                  "categoriaMecanica": "consumible",
+                  "tipoAccion": "accion",
+                  "esActivable": false,
+                  "tieneUsosLimitados": true,
+                  "usosMaximos": 1,
+                  "recuperacion": "descanso_corto",
+                  "recargarUsoConPadre": true
                 }
-              ]
+              ],
+              "materializarRasgos": true
             }
           ]
         },
@@ -896,12 +1076,33 @@
                 {
                   "id": "poder_salto_psionico",
                   "nombre": "Salto psiónico",
-                  "descripcion": "Como acción adicional, obtienes una velocidad volando igual al doble de tu velocidad hasta el final del turno actual. Cuando lleves a cabo esta acción adicional, no podrás volver a hacerla hasta que finalices un descanso corto o largo, a menos que gastes un dado de energía psiónica (no requiere acción) para restablecer su uso."
+                  "descripcion": "Como acción adicional, obtienes una velocidad de vuelo igual al doble de tu velocidad de movimiento hasta el final del turno actual.\n\nUna vez que realizas esta acción adicional, no puedes volver a usarla hasta completar un descanso corto o largo, a menos que gastes un dado de energía psiónica (no requiere acción) para restablecer su uso.",
+                  "nivelMinimo": 7,
+                  "categoriaMecanica": "activable",
+                  "tipoAccion": "accion_adicional",
+                  "esActivable": true,
+                  "tieneUsosLimitados": true,
+                  "usosMaximos": 1,
+                  "recuperacion": "descanso_corto",
+                  "recargarUsoConPadre": true,
+                  "condicionAlActivar": "Salto psiónico",
+                  "duracionEfectoAlActivar": 1,
+                  "efectos": [
+                    {
+                      "tipo": "movimiento_especial",
+                      "objetivo": "volar",
+                      "valor": "velocidad_caminar*2"
+                    }
+                  ]
                 },
                 {
                   "id": "poder_empujon_telequinetico",
                   "nombre": "Empujón telequinético",
-                  "descripcion": "Cuando inflijas daño a un objetivo con tu Golpe psiónico, puedes obligarlo a hacer una tirada de salvación de Fuerza (CD 8 más tu modificador por Inteligencia y tu bonificador por competencia). Si la falla, puedes darle el estado de derribado o transportarlo hasta 10 pies en horizontal."
+                  "descripcion": "Cuando inflijas daño a un objetivo con tu Golpe psiónico, puedes obligarlo a realizar una tirada de salvación de Fuerza (CD 8 más tu modificador de Inteligencia y tu bonificador de competencia). Si falla, el objetivo queda derribado o lo desplazas horizontalmente hasta 10 pies en la dirección que elijas.",
+                  "nivelMinimo": 7,
+                  "categoriaMecanica": "extension",
+                  "ligadoA": "poder_golpe_psionico",
+                  "tipoAccion": "pasivo"
                 }
               ]
             }

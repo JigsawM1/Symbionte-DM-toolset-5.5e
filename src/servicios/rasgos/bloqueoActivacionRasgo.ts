@@ -1,5 +1,5 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { resolverRasgoPadre, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
+import { resolverRasgoPadre, resolverRasgoRecurso, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import { claveEstado } from "./estadoCondicionesRasgos";
 
 export function obtenerBloqueoActivacionRasgo(pj: PersonajeJugador | null, r: RasgoPersonaje): { bloqueado: boolean; motivo?: string } {
@@ -11,7 +11,8 @@ export function obtenerBloqueoActivacionRasgo(pj: PersonajeJugador | null, r: Ra
   if (r.ligadoA) {
     const padre = resolverRasgoPadre(r, pj.rasgos);
     if (!padre || padre.activo === false) return fallo("El rasgo padre no está activo.");
-    if (r.gastarDePadre && (padre.usosRestantes ?? padre.usosMaximos ?? 0) < (r.costeFijo ?? 1)) return fallo("No quedan usos del recurso padre.");
+    const recurso = resolverRasgoRecurso(r, pj.rasgos);
+    if (r.gastarDePadre && (!recurso || (recurso.usosRestantes ?? recurso.usosMaximos ?? 0) < (r.costeFijo ?? 1))) return fallo("No quedan usos del recurso padre.");
   }
   if (r.restaurarUsosAlActivar) {
     const objetivo = pj.rasgos.find(a => a.id === r.restaurarUsosAlActivar!.idRasgoObjetivo);

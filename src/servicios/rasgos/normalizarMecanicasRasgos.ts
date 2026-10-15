@@ -3,7 +3,7 @@ import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { normalizarMagiaRasgos } from "./magiaRasgos";
 import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
-import { construirRasgosDesdeSelectores } from "./seleccionesRasgos";
+import { construirRasgosDesdeSelectores, materializaSelector } from "./seleccionesRasgos";
 import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
@@ -38,7 +38,7 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   let actual = normalizarCondicionesRasgos(cambio ? { ...pj, rasgos } : pj);
   const mismaBuild = !anterior || (anterior.clase === actual.clase && anterior.subclase === actual.subclase
     && anterior.nivel === actual.nivel && JSON.stringify(anterior.clases) === JSON.stringify(actual.clases));
-  if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(s => s.tipoSelector === "invocacion"))) {
+  if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(materializaSelector))) {
     const proyectados = construirRasgosDesdeSelectores(actual);
     if (JSON.stringify(proyectados) !== JSON.stringify(actual.rasgos)) {
       actual = { ...actual, rasgos: proyectados, ...(mismaBuild ? reconciliarConjurosRasgos(anterior ?? pj, proyectados) : {}) };

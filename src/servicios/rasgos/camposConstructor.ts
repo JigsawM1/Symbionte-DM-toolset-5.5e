@@ -6,6 +6,7 @@ export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
   escaladoEfectos: true, recargaDescansoCorto: true, costeFijo: true,
   sincronizarEfectosConFormula: true, noGastarAlTirarDados: true,
   autoDesactivarAlTirarSalvacion: true, desactivarConCondiciones: true,
+  autoDesactivarAlTirarDano: true, autoDesactivarEnTirada: true, recargarUsoConPadre: true,
   eliminarCondicionesAlActivar: true, configuracionMagica: true,
   aptitudConjuroGratuito: true, ignorarComponentesConjuro: true,
   conjuroGratuito: true, recuperacionConjuro: true,

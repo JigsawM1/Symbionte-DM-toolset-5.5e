@@ -26,6 +26,7 @@ import {
   tieneArmaduraEquipada,
   tieneEscudoEquipado
 } from "./utilidadesRasgos";
+import { resolverRasgoRecurso } from "./utilidadesRasgos";
 
 
 /**
@@ -116,7 +117,8 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     }
 
     // Efectos base del rasgo (con hidratación de respaldo si proviene de un snapshot antiguo de localStorage)
-    let efectosBase = rasgo.efectos;
+    let efectosBase = rasgo.efectos?.map(ef => typeof ef.valor === "string" && ef.valor.includes("dados_padre")
+      ? { ...ef, valor: resolverFormulaDinamica(ef.valor, personaje, rasgo.fuente, rasgo) } : ef);
     if (esRevelacion && (!Array.isArray(efectosBase) || efectosBase.length === 0)) {
       efectosBase = [
         {
@@ -378,13 +380,14 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
 export function resolverFormulaDinamica(
   formula: string | number,
   personaje: PersonajeJugador,
-  nombreClaseContexto?: string
+  nombreClaseContexto?: string,
+  rasgo?: RasgoPersonaje
 ): string {
   if (typeof formula === "number") return String(formula);
   if (!formula || typeof formula !== "string") return "";
 
   const nivelGlobal = personaje.nivel || 1;
-  const nivelClase = nombreClaseContexto
+  const nivelClase = rasgo ? obtenerNivelEfectivoParaRasgo(personaje, rasgo) : nombreClaseContexto
     ? obtenerNivelClasePersonaje(personaje, nombreClaseContexto) || nivelGlobal
     : nivelGlobal;
   const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
@@ -422,6 +425,7 @@ export function resolverFormulaDinamica(
 
   // Normalizar prefijos de modificadores (ej. "modificador_carisma", "modificador por carisma", "mod_carisma")
   const formulaNormalizada = formula
+    .replace(/\bdados_padre\b/gi, () => rasgo ? resolverRasgoRecurso(rasgo, personaje.rasgos, "dados")?.formulaDados ?? "0" : "0")
     .replace(/modificador[_\s]*(de[_\s]+|por[_\s]+)?/gi, "")
     .replace(/mod[_\s]+/gi, "");
 
@@ -451,11 +455,11 @@ export function resolverFormulaDinamica(
     .replace(/\b(inteligencia|int)\b/gi, String(modInt))
     .replace(/\b(sabiduria|sab|wis)\b/gi, String(modSab))
     .replace(/\b(carisma|car|cha)\b/gi, String(modCar))
-    .replace(/max\s*\(\s*(\d+)\s*,\s*(-?\d+)\s*\)\s*d(\d+)/gi, (_m, minStr, valStr, caraStr) => {
+    .replace(/max\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*d(\d+)/gi, (_m, minStr, valStr, caraStr) => {
       const cantDados = Math.max(parseInt(minStr, 10), parseInt(valStr, 10));
       return `${cantDados}d${caraStr}`;
     })
-    .replace(/max\s*\(\s*(\d+)\s*,\s*(-?\d+)\s*\)/gi, (_m, minStr, valStr) => {
+    .replace(/max\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/gi, (_m, minStr, valStr) => {
       return String(Math.max(parseInt(minStr, 10), parseInt(valStr, 10)));
     })
     .replace(/(\d+)\s+d/gi, "$1d")

@@ -22,6 +22,18 @@ export function resolverRasgoPadre(
   return rasgos.find((r) => r.id !== rasgo.id && (normalizar(r.id) === clave || normalizar(r.nombre) === clave));
 }
 
+/** Recorre relaciones explícitas hasta la reserva; los contenedores no duplican recursos. */
+export function resolverRasgoRecurso(rasgo: RasgoPersonaje, rasgos: RasgoPersonaje[], tipo: "usos" | "dados" = "usos"): RasgoPersonaje | undefined {
+  const visitados = new Set([rasgo.id]);
+  let padre = resolverRasgoPadre(rasgo, rasgos);
+  while (padre && !visitados.has(padre.id)) {
+    visitados.add(padre.id);
+    if (tipo === "usos" ? padre.tieneUsosLimitados : padre.formulaDados && !padre.formulaDados.includes("dados_padre")) return padre;
+    padre = resolverRasgoPadre(padre, rasgos);
+  }
+  return undefined;
+}
+
 /**
  * Determina si un rasgo que depende de una opción de un selector padre (requiereOpcion y ligadoA)
  * está habilitado por la selección actual del padre.
@@ -75,6 +87,7 @@ export function esRasgoHabilitadoPorOpcion(
   if (!padre || padre.activo === false || !Array.isArray(padre.selectores)) return false;
 
   return padre.selectores.some((s) =>
+    (s.modo === "consulta" && s.opciones.some(o => normalizar(o.id) === reqNorm)) ||
     (s.valorActual || []).some((v) => normalizar(v) === reqNorm)
   );
 }

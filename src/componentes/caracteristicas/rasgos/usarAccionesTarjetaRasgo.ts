@@ -1,4 +1,5 @@
 import React from "react";
+import { emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import type { RasgoPersonaje } from "@/tipos";
 import {
   lanzarDadosTaleSpire,
@@ -150,7 +151,7 @@ export function usarAccionesTarjetaRasgo({
         };
       }
 
-      const emitida = await lanzarDadosTaleSpire(
+      const emitir = () => lanzarDadosTaleSpire(
         formula,
         etiqueta,
         undefined,
@@ -158,6 +159,7 @@ export function usarAccionesTarjetaRasgo({
         undefined,
         metaEspecial
       );
+      const emitida = personajeActivoAlmacen ? await emitirTiradaConRasgos(personajeActivoAlmacen, `rasgo.${rasgo.id}`, emitir, () => {}) : await emitir();
       if (emitida) {
         if (esRecursoEspacioPacto && idPersonaje) usarAlmacenDM.getState().gastarEspacioPacto(idPersonaje);
         else if (gastaUsoAlTirar) alGastarUso?.(rasgo.costeFijo || 1);

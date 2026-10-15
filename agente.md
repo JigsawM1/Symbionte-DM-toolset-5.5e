@@ -1,5 +1,27 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-15] Integración de Tablas de Progresión Canónicas del Guerrero (PHB 2024 / D&D 5.5)
+
+- **Alcance y propósito**: Incorporación de los metadatos declarativos de tablas de escalado (`tablaProgresion`) en `src/datos/clases/guerrero.json` para los rasgos canónicos de la clase base, coincidentes con las referencias visuales oficiales provistas.
+- **Rasgos de Clase Base con Tabla de Progresión**:
+  - *Tomar aliento* (Nivel 1): 1 -> 2 usos; 4 -> 3 usos; 10 -> 4 usos. Pie: "Cada nivel reemplaza al anterior".
+  - *Maestría con armas* (Nivel 1): 1 -> 3 maestrías; 4 -> 4 maestrías; 10 -> 5 maestrías; 16 -> 6 maestrías. Pie: "Cada nivel reemplaza al anterior".
+  - *Acción súbita* (Nivel 2): 2 -> 1 vez / descanso; 17 -> 2 veces / descanso. Máximo uno por turno. Pie: "Cada nivel reemplaza al anterior".
+  - *Ataque adicional* (Nivel 5): 5 -> 2 ataques; 11 -> 3 ataques; 20 -> 4 ataques. Pie: "Cada nivel reemplaza al anterior".
+  - *Indómito* (Nivel 9): 9 -> 1 vez / descanso; 13 -> 2 veces / descanso; 17 -> 3 veces / descanso. Pie: "Cada nivel reemplaza al anterior".
+- **Rasgos de Subclases con Tabla de Progresión**:
+  - *Lanzamiento de conjuros* (Caballero Arcano, Nivel 3): 18 filas (niveles 3 a 20) con columnas 'Trucos' y 'Preparados'. Pie: "Cada nivel reemplaza al anterior".
+  - *Supremacía en combate* (Maestro del Combate, Nivel 3): 5 filas (3 -> 4d8 dados de superioridad, 7 -> 5d8, 10 -> 5d10, 15 -> 6d10, 18 -> 6d12). Pie: "Cada nivel reemplaza al anterior".
+  - *Poder psiónico* (Guerrero Psiónico, Nivel 3): 6 filas (3 -> 4d6, 5 -> 6d8, 9 -> 8d8, 11 -> 8d10, 13 -> 10d10, 17 -> 12d12). Pie: "Cada nivel reemplaza al anterior".
+- **Integridad y Verificación**:
+  - `src/servicios/guerreroMecanicasDND55.test.ts`: pruebas de regresión unitaria para las 5 tablas base y las 3 tablas de subclases.
+  - `pnpm test src/servicios/guerreroMecanicasDND55.test.ts`: 44/44 pruebas pasadas con salida 0.
+  - `pnpm run test:guerrero-ui`: 8 casos, 16 dimensiones responsive, 0 errores.
+  - `pnpm exec tsc --noEmit`: 0 errores de tipado bajo `strict: true`.
+  - `pnpm run lint`: 0 errores, 0 advertencias.
+
+---
+
 ## [2026-10-14] Actualización canónica de descripciones del Guerrero desde diccionario_herramientas
 
 - **Alcance y propósito**: Sincronización quirúrgica de todas las descripciones en `src/datos/clases/guerrero.json` a partir de `dicionario_herramientas/guerrero descripciones.json` (PHB 2024 oficial en español).

@@ -5,6 +5,8 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { fusionarEstadoRasgo } from "./fusionarEstadoRasgo";
 
+export const materializaSelector = (s: SelectorRasgo): boolean => s.materializarRasgos === true || s.tipoSelector === "invocacion";
+
 type HechizoCatalogo = (typeof HECHIZOS)[number];
 const hechizosPorId = new Map<string, HechizoCatalogo>();
 for (const hechizo of HECHIZOS) {
@@ -99,12 +101,14 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
     if (argumento && selectores[0]) selectores[0].valorActual = [argumento];
     const escalados = resolverEscaladosRasgo(op, nivel, op.efectos ?? [], selectores);
     let hijo: RasgoPersonaje = {
-      ...op, id: `${padre.id}_${valor}`, idSelectorOrigen: selector.id,
+      ...op, id: `${padre.id}_${valor}`, idSelectorOrigen: selector.id, idRasgoSelectorOrigen: padre.id,
       nombre: op.nombre, descripcion: op.descripcion, origen: selector.tipoSelector === "dote" ? "dote" : padre.origen,
-      fuente: padre.fuente, tipoAccion: op.tipoAccion ?? "pasivo", nivelRequerido: op.nivelMinimo ?? padre.nivelRequerido,
+      fuente: padre.fuente, subclase: padre.subclase, tipoAccion: op.tipoAccion ?? "pasivo", nivelRequerido: op.nivelMinimo ?? padre.nivelRequerido,
       tieneUsosLimitados: !!op.tieneUsosLimitados, usosMaximos: op.usosMaximos, usosRestantes: op.usosMaximos,
       recuperacion: op.recuperacion ?? "ninguno", personalizado: false, activo: !op.esActivable,
-      ligadoA: padre.id, requiereOpcion: valor, formulaDados: escalados.formulaDados, efectos: escalados.efectos,
+      ligadoA: op.categoriaMecanica === "extension" && op.ligadoA ? `${padre.id}_${op.ligadoA}` : padre.id,
+      requiereOpcion: op.categoriaMecanica === "extension" ? undefined : valor,
+      formulaDados: escalados.formulaDados, efectos: escalados.efectos,
       selectores: escalados.selectores, notas: ""
     };
     hijo = fusionarEstadoRasgo(hijo, estados.get(hijo.id));
@@ -113,8 +117,11 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
       for (const elegida of sel.valorActual) proyectar(hijo, sel, elegida);
     }
   };
-  for (const padre of bases) for (const sel of padre.selectores ?? []) if (sel.tipoSelector === "invocacion") {
-    for (const valor of seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(pj, padre), contextoElegibilidad)) proyectar(padre, sel, valor);
+  for (const padre of bases) for (const sel of padre.selectores ?? []) if (materializaSelector(sel)) {
+    const nivel = obtenerNivelEfectivoParaRasgo(pj, padre);
+    const valores = sel.modo === "consulta" ? sel.opciones.filter(o => (o.nivelMinimo ?? 1) <= nivel).map(o => o.id)
+      : seleccionesValidas(sel, nivel, contextoElegibilidad);
+    for (const valor of valores) proyectar(padre, sel, valor);
   }
   return resultado;
 }

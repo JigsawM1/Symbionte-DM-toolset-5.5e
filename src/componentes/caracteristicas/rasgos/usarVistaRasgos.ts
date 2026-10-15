@@ -1,4 +1,5 @@
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
   usarEstadoPersonajes,
@@ -50,7 +51,7 @@ export function usarVistaRasgos() {
   const rasgoDetalleEfectivo = useMemo(() => {
     if (!rasgoSeleccionadoDetalle || !personajeActivo) return null;
     return (
-      (personajeActivo.rasgos || []).find((r) => r.id === rasgoSeleccionadoDetalle.id) ||
+      resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel).find((r) => r.id === rasgoSeleccionadoDetalle.id) ||
       rasgoSeleccionadoDetalle
     );
   }, [rasgoSeleccionadoDetalle, personajeActivo]);
@@ -129,6 +130,8 @@ export function usarVistaRasgos() {
       dotes: true,
       personalizados: true
     };
+    for (const r of personajeActivo?.rasgos ?? []) if (r.selectores?.some(s => s.ubicacion === "seccion"))
+      colapsadas[`opciones_${r.id}`] = true;
     if (personajeActivo?.clases) {
       personajeActivo.clases.forEach((c, idx) => {
         colapsadas[`clase_${idx}_${normalizar(c.nombre)}`] = true;
@@ -233,7 +236,7 @@ export function usarVistaRasgos() {
   };
 
   const abrirModalEdicion = (rasgo: RasgoPersonaje) => {
-    setRasgoParaEditar(rasgo);
+    setRasgoParaEditar(personajeActivo?.rasgos.find(r => r.id === rasgo.id) ?? rasgo);
     setOrigenPredeterminadoModal(rasgo.origen);
     setModoVista("creador_homebrew");
   };

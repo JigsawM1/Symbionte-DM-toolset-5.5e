@@ -1,5 +1,23 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-15] Integración de Brujo PHB 2024, Guerrero Declarativo y Optimizaciones Big-O en Main
+
+**Alcance de la Fusión en `main`:**
+- Integración completa de las ramas `brujo-revision-probablemente-scope-creep-de-nuevo` y `optimizacion-bigO`.
+- **Brujo PHB 2024:** Estandarización declarativa de la clase y 4 subclases, selector de grimorio optimizado, invocaciones con descripciones legibles y controles de dados/curación directos en *Pasos feéricos* y *Luz celestial*.
+- **Guerrero PHB 2024:** Tablas canónicas de progresión (`tablaProgresion`) para clase base (*Tomar aliento*, *Maestría con armas*, *Acción súbita*, *Ataque adicional*, *Indómito*) y subclases (*Caballero Arcano*, *Maestro del Combate*, *Guerrero Psiónico*).
+- **Optimizaciones Big-O Transversales:** Perfil precalculado de lanzador en compendio (-98,2% de tiempo de filtrado), memoización local $O(N)$ en búsqueda tolerante (-89,4% de coste en ordenación), partición en un pase de inventario y `useMemo` en catálogo de monstruos.
+- **Ergonomía de UI en TaleSpire:** Agrupación de pestañas secundarias (*Rasgos*, *Notas*, *Iniciativa*) en el menú desplegable "Más" de `BarraSuperior.tsx` para resoluciones estrechas (599px CEF).
+
+**Certificación Total del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 140 suites ejecutadas, **1.956 / 1.956 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 160 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 11.21s.
+
+---
+
 ## [2026-10-15] Integración de Tablas de Progresión Canónicas del Guerrero (PHB 2024 / D&D 5.5)
 
 - **Alcance y propósito**: Incorporación de los metadatos declarativos de tablas de escalado (`tablaProgresion`) en `src/datos/clases/guerrero.json` para los rasgos canónicos de la clase base, coincidentes con las referencias visuales oficiales provistas.

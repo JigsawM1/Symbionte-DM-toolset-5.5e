@@ -50,3 +50,14 @@ respaldo.yaml
 .cursor/hooks.json
 /docs
 /scripts/*
+!/scripts/simulacion-sync-6pj-20monstruos.ts
+!/scripts/vitest.simulacion.config.ts
+!/scripts/probar-ciclo-vida.mjs
+!/scripts/probar-constructor-rasgos.mjs
+!/scripts/probar-tema-jugador.mjs
+!/scripts/fixture-tema-jugador.mjs
+!/scripts/probar-campos-numericos.mjs
+!/scripts/fixture-campos-numericos.mjs
+
+!/scripts/probar-guerrero.mjs
+!/scripts/probar-brujo.mjs

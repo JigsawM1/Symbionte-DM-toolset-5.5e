@@ -1,3 +1,6 @@
+import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   usarPersonajeActivo,
@@ -195,12 +198,13 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     bono: number,
     metaIniciativa?: MetadataIniciativa,
     tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
-    sufijoMotivo?: string
+    sufijoMotivo?: string,
+    objetivoRasgo?: string
   ) => {
-    if (!personajeActivo) return;
+    if (!personajeActivo) return false;
     try {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
-      const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}`;
+      const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}${objetivoRasgo ? dadosAdicionalesTirada(personajeActivo, objetivoRasgo) : ""}`;
       
       const tieneVentManual = tipoTirada === "ventaja";
       const tieneDisvManual = tipoTirada === "desventaja";
@@ -218,15 +222,21 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
       const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
       
-      await lanzarDadosTaleSpire(
+      const emitir = () => lanzarDadosTaleSpire(
         formulaDados,
         etiquetaLog,
         metaIniciativa,
         undefined,
         tipoTiradaCondicion
       );
+      return objetivoRasgo ? await emitirTiradaConRasgos(personajeActivo, objetivoRasgo, emitir, id => {
+        const estado = usarAlmacenDM.getState();
+        if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
+          estado.alternarActivoRasgo(personajeActivo.id, id);
+      }) : await emitir();
     } catch (err) {
       logger.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
+      return false;
     }
   }, [personajeActivo, tipoTirada]);
 
@@ -254,7 +264,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     );
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarSalvacion = useCallback((carac: Caracteristica, etiqueta: string, bono: number) => {
+  const manejarTirarSalvacion = useCallback(async (carac: Caracteristica, etiqueta: string, bono: number) => {
     if (!personajeActivo) return;
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
     const evaluacion = evaluarEfectosCondicionesEnTirada({
@@ -267,13 +277,14 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     });
     const bonoFinal = bono + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
-    lanzarTiradaD20Personaje(
-      `Salvación de ${etiquetaLimpia}`,
-      bonoFinal,
-      undefined,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      motivos
-    );
+    await emitirSalvacionConRasgos(personajeActivo, () => lanzarTiradaD20Personaje(
+      `Salvación de ${etiquetaLimpia}`, bonoFinal, undefined,
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined, motivos
+    ), idRasgo => {
+      const estado = usarAlmacenDM.getState();
+      const actual = estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === idRasgo);
+      if (actual?.activo) estado.alternarActivoRasgo(personajeActivo.id, idRasgo);
+    });
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number) => {
@@ -295,11 +306,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       bonoFinal,
       undefined,
       evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      motivos
+      motivos,
+      `habilidad.${hab}`
     );
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarIniciativa = useCallback(() => {
+  const manejarTirarIniciativa = useCallback(async () => {
     if (!personajeActivo || !statsCalculadas) return;
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "iniciativa",
@@ -321,15 +333,16 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       idMiniaturaTS: personajeActivo.idMiniaturaTS,
       idPersonaje: personajeActivo.id
     };
-    lanzarTiradaD20Personaje(
+    const emitida = await lanzarTiradaD20Personaje(
       "Iniciativa",
       bonoFinal,
       metaInic,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined
+      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
+      undefined, "iniciativa"
     );
 
     // Procesar rasgos declarativos automáticos al tirar iniciativa (ej. Furia persistente)
-    dispararRasgosIniciativaPersonaje(personajeActivo.id);
+    if (emitida) dispararRasgosIniciativaPersonaje(personajeActivo.id);
   }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje, dispararRasgosIniciativaPersonaje]);
 
   const manejarTirarSalvacionMuerte3D = useCallback(async () => {

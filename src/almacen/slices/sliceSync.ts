@@ -7,7 +7,8 @@
 
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import type { EstadoCombatePJ, EstadoIniciativaDM } from "@/tipos/sync";
+import type { EstadoIniciativaDM } from "@/tipos/sync";
+import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 
@@ -16,8 +17,8 @@ export interface SliceSync {
   ultimoSyncRecibido: number | null;
   idClienteDM: string | null;
   timestampsModificacionLocal: Record<string, number>;
-  borradoresSync: Record<string, EstadoCombatePJ>;
-  guardarBorradorSync: (id: string, borrador: EstadoCombatePJ) => void;
+  borradoresSync: Record<string, BorradorCombatePJ>;
+  guardarBorradorSync: (id: string, borrador: BorradorCombatePJ) => void;
   descartarBorradorSync: (id: string) => void;
   reaplicarBorradorSync: (id: string) => boolean;
 
@@ -26,7 +27,7 @@ export interface SliceSync {
   registrarModificacionLocalPJ: (id: string, ts?: number) => void;
   confirmarACKPJ: (id: string, ts: number) => void;
   aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => void;
-  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ, origen?: 'remoto' | 'borrador') => void;
+  actualizarPersonajeDesdeSync: (dto: BorradorCombatePJ, origen?: 'remoto' | 'borrador') => void;
 }
 
 const VENTANA_PROTECCION_MUTACION_MS = 2500;
@@ -194,11 +195,12 @@ export const crearSliceSync: StateCreator<
     });
   },
 
-  actualizarPersonajeDesdeSync: (dto: EstadoCombatePJ, origen = 'remoto') => {
+  actualizarPersonajeDesdeSync: (dto, origen = 'remoto') => {
     logger.debug("[SliceSync] Actualizando personaje desde sync:", dto.nombre, dto.id);
 
     const { personajes, colaIniciativa, timestampsModificacionLocal } = get();
     const ahora = Date.now();
+    const locales = origen === 'borrador' ? dto : undefined;
 
     // 1. Localizar personaje en la colección del DM
     const indexPj = personajes.findIndex((p) => {
@@ -225,6 +227,7 @@ export const crearSliceSync: StateCreator<
 
           if (!acompDTO) return acompExistente;
           idsProcesados.add(acompDTO.id);
+          const local = locales?.acompanantes?.find(a => a.id === acompDTO.id);
 
           const tsModAcompDM = timestampsModificacionLocal[acompExistente.id];
           const edicionRecienteAcompDM = Boolean(
@@ -247,47 +250,50 @@ export const crearSliceSync: StateCreator<
             iniciativa: acompDTO.iniciativa ?? acompExistente.iniciativa,
             idMiniaturaTS:
               acompDTO.idMiniaturaTS !== undefined ? acompDTO.idMiniaturaTS : acompExistente.idMiniaturaTS,
-            velocidad: acompDTO.velocidad ?? acompExistente.velocidad,
-            movimientoGastado: acompDTO.movimientoGastado ?? acompExistente.movimientoGastado,
+            velocidad: local?.velocidad ?? acompExistente.velocidad,
+            movimientoGastado: local?.movimientoGastado ?? acompExistente.movimientoGastado,
             movimientoMaximoTemporal:
-              acompDTO.movimientoMaximoTemporal !== undefined
-                ? acompDTO.movimientoMaximoTemporal
+              local?.movimientoMaximoTemporal !== undefined
+                ? local.movimientoMaximoTemporal
                 : acompExistente.movimientoMaximoTemporal,
-            esInvocacion: acompDTO.esInvocacion ?? acompExistente.esInvocacion,
+            esInvocacion: local?.esInvocacion ?? acompExistente.esInvocacion,
             nivelConjuroInvocacion:
-              acompDTO.nivelConjuroInvocacion ?? acompExistente.nivelConjuroInvocacion,
-            subtipoInvocacion: acompDTO.subtipoInvocacion ?? acompExistente.subtipoInvocacion,
-            idPlantilla: acompDTO.idPlantilla ?? acompExistente.idPlantilla,
+              local?.nivelConjuroInvocacion ?? acompExistente.nivelConjuroInvocacion,
+            subtipoInvocacion: local?.subtipoInvocacion ?? acompExistente.subtipoInvocacion,
+            idPlantilla: local?.idPlantilla ?? acompExistente.idPlantilla,
           };
         });
 
         // Añadir acompañantes nuevos del DTO si no estaban en el DM
         const nuevosAcomps = (dto.acompanantes || [])
           .filter((a) => !idsProcesados.has(a.id))
-          .map((a) => ({
-            id: a.id,
-            nombre: a.nombre,
-            idPlantilla: a.idPlantilla || "",
-            vidaActual: a.vidaActual,
-            vidaMaxima: a.vidaMaxima,
-            vidaTemporal: a.vidaTemporal ?? 0,
-            ca: a.ca ?? 10,
-            condiciones: a.condiciones || [],
-            efectos: a.efectos || [],
-            iniciativa: a.iniciativa ?? 0,
-            idMiniaturaTS: a.idMiniaturaTS ?? null,
-            velocidad: a.velocidad || "30 pies",
-            movimientoGastado: a.movimientoGastado ?? 0,
-            movimientoMaximoTemporal: a.movimientoMaximoTemporal ?? null,
-            tipoTerreno: "normal" as const,
-            multiplicadorTerreno: 1,
-            ultimaPosicionTS: null,
-            ultimoBoardIdTS: null,
-            historialMovimiento: [],
-            esInvocacion: a.esInvocacion,
-            nivelConjuroInvocacion: a.nivelConjuroInvocacion,
-            subtipoInvocacion: a.subtipoInvocacion,
-          }));
+          .map((a) => {
+            const local = locales?.acompanantes?.find(ac => ac.id === a.id);
+            return {
+              id: a.id,
+              nombre: a.nombre,
+              idPlantilla: local?.idPlantilla || "",
+              vidaActual: a.vidaActual,
+              vidaMaxima: a.vidaMaxima,
+              vidaTemporal: a.vidaTemporal ?? 0,
+              ca: a.ca ?? 10,
+              condiciones: a.condiciones || [],
+              efectos: a.efectos || [],
+              iniciativa: a.iniciativa ?? 0,
+              idMiniaturaTS: a.idMiniaturaTS ?? null,
+              velocidad: local?.velocidad || "30 pies",
+              movimientoGastado: local?.movimientoGastado ?? 0,
+              movimientoMaximoTemporal: local?.movimientoMaximoTemporal ?? null,
+              tipoTerreno: "normal" as const,
+              multiplicadorTerreno: 1,
+              ultimaPosicionTS: null,
+              ultimoBoardIdTS: null,
+              historialMovimiento: [],
+              esInvocacion: local?.esInvocacion,
+              nivelConjuroInvocacion: local?.nivelConjuroInvocacion,
+              subtipoInvocacion: local?.subtipoInvocacion,
+            };
+          });
 
         acompSincronizados = [...actualizados, ...nuevosAcomps];
       }
@@ -319,21 +325,21 @@ export const crearSliceSync: StateCreator<
               nombreHechizo: dto.concentracion.nombreHechizo,
             }
           : null,
-        espaciosConjuroGastados: dto.conjuros?.espaciosGastados
-          ? origen === 'borrador' ? { ...dto.conjuros.espaciosGastados } : { ...pjExistente.espaciosConjuroGastados, ...dto.conjuros.espaciosGastados }
+        espaciosConjuroGastados: locales?.conjuros?.espaciosGastados
+          ? { ...locales.conjuros.espaciosGastados }
           : pjExistente.espaciosConjuroGastados,
         puntosConjuroGastados:
-          dto.conjuros?.puntosGastados !== undefined
-            ? dto.conjuros.puntosGastados
+          locales?.conjuros?.puntosGastados !== undefined
+            ? locales.conjuros.puntosGastados
             : pjExistente.puntosConjuroGastados,
         espaciosPactoGastados:
-          dto.conjuros?.pacto?.gastados !== undefined
-            ? dto.conjuros.pacto.gastados
+          locales?.conjuros?.pacto?.gastados !== undefined
+            ? locales.conjuros.pacto.gastados
             : pjExistente.espaciosPactoGastados,
-        movimientoGastado: dto.movimientoGastado ?? pjExistente.movimientoGastado,
+        movimientoGastado: locales?.movimientoGastado ?? pjExistente.movimientoGastado,
         movimientoMaximoTemporal:
-          dto.movimientoMaximoTemporal !== undefined
-            ? dto.movimientoMaximoTemporal
+          locales?.movimientoMaximoTemporal !== undefined
+            ? locales.movimientoMaximoTemporal
             : pjExistente.movimientoMaximoTemporal,
         acompanantes: acompSincronizados,
       };
@@ -371,10 +377,10 @@ export const crearSliceSync: StateCreator<
           pasivas: dto.pasivas || criatura.pasivas,
           condiciones: dto.condiciones,
           efectos: dto.efectos,
-          movimientoGastado: dto.movimientoGastado ?? criatura.movimientoGastado,
+          movimientoGastado: locales?.movimientoGastado ?? criatura.movimientoGastado,
           movimientoMaximoTemporal:
-            dto.movimientoMaximoTemporal !== undefined
-              ? dto.movimientoMaximoTemporal
+            locales?.movimientoMaximoTemporal !== undefined
+              ? locales.movimientoMaximoTemporal
               : criatura.movimientoMaximoTemporal,
         };
       }
@@ -389,6 +395,7 @@ export const crearSliceSync: StateCreator<
         );
 
         if (acompCoincidente) {
+          const local = locales?.acompanantes?.find(a => a.id === acompCoincidente.id);
           const tsModAcompColaDM = timestampsModificacionLocal[criatura.id];
           const edicionRecienteAcompColaDM = Boolean(
             origen === 'remoto' && tsModAcompColaDM &&
@@ -407,10 +414,10 @@ export const crearSliceSync: StateCreator<
             ca: acompCoincidente.ca ?? criatura.ca,
             condiciones: acompCoincidente.condiciones || [],
             efectos: acompCoincidente.efectos || [],
-            movimientoGastado: acompCoincidente.movimientoGastado ?? criatura.movimientoGastado,
+            movimientoGastado: local?.movimientoGastado ?? criatura.movimientoGastado,
             movimientoMaximoTemporal:
-              acompCoincidente.movimientoMaximoTemporal !== undefined
-                ? acompCoincidente.movimientoMaximoTemporal
+              local?.movimientoMaximoTemporal !== undefined
+                ? local.movimientoMaximoTemporal
                 : criatura.movimientoMaximoTemporal,
           };
         }
@@ -445,7 +452,7 @@ export const crearSliceSync: StateCreator<
             esAcompanante: true,
             idPersonajeDuenio: dto.id,
             idAcompanante: a.id,
-            velocidad: a.velocidad || "30 pies",
+            velocidad: locales?.acompanantes?.find(ac => ac.id === a.id)?.velocidad || "30 pies",
           });
         }
       });

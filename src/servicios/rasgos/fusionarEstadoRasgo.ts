@@ -11,7 +11,7 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
   const valorActual = seleccion.filter((valor) => !existente || !contiene(existente, valor) || contiene(nuevo, valor));
   return {
     ...nuevo,
-    valorActual: [...valorActual],
+    valorActual: valorActual.slice(0, nuevo.maxSelecciones),
     opciones: nuevo.opciones.map((opcion) => {
       const anterior = existente?.opciones.find((o) => o.id === opcion.id);
       return {
@@ -25,14 +25,24 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
 
 /** La plantilla aporta reglas; el personaje conserva exclusivamente su estado mutable. */
 export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPersonaje): RasgoPersonaje {
+  if (existente?.personalizado) return structuredClone(existente);
+  // Solo ajustar por progresión cuando el máximo anterior pertenece a la tabla declarada.
+  // Los contadores heredados arbitrarios mantienen su valor disponible, limitado al máximo actual.
+  const maximoAnteriorValido = nuevo.escaladoUsos?.tipo === "por_nivel"
+    && nuevo.escaladoUsos.tabla?.some(f => f.valor === existente?.usosMaximos);
+  const disponibles = existente?.usosRestantes !== undefined && maximoAnteriorValido && nuevo.usosMaximos !== undefined
+    ? nuevo.usosMaximos - Math.max(0, (existente?.usosMaximos ?? nuevo.usosMaximos) - existente.usosRestantes)
+    : existente?.usosRestantes;
   return {
     ...nuevo,
     selectores: nuevo.selectores?.map((s) => fusionarSelector(s, existente?.selectores?.find((a) => a.id === s.id))),
+    vinculoArma: nuevo.vinculoArma ? { ...nuevo.vinculoArma, idInstancia: existente?.vinculoArma?.idInstancia } : undefined,
     condicionAlActivar: nuevo.condicionAlActivar ?? existente?.condicionAlActivar,
     restaurarUsosAlActivar: nuevo.restaurarUsosAlActivar ?? existente?.restaurarUsosAlActivar,
-    usosRestantes: typeof existente?.usosRestantes === "number" && nuevo.usosMaximos !== undefined
-      ? Math.max(0, Math.min(existente.usosRestantes, nuevo.usosMaximos)) : nuevo.usosRestantes,
-    activo: existente?.activo ?? nuevo.activo ?? !nuevo.esActivable,
+    usosRestantes: typeof disponibles === "number" && nuevo.usosMaximos !== undefined
+      ? Math.max(0, Math.min(disponibles, nuevo.usosMaximos)) : nuevo.usosRestantes,
+    activo: Boolean(nuevo.esActivable) === Boolean(existente?.esActivable)
+      ? existente?.activo ?? nuevo.activo ?? !nuevo.esActivable : !nuevo.esActivable,
     dadosGuardados: existente?.dadosGuardados ? [...existente.dadosGuardados] : nuevo.dadosGuardados,
     notas: existente?.notas ?? nuevo.notas
   };

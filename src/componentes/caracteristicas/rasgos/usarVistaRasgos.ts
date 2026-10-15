@@ -1,3 +1,5 @@
+import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
   usarEstadoPersonajes,
@@ -16,14 +18,12 @@ import type {
 import {
   normalizar,
   calcularProgresionClases,
-  obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
   agruparRasgosJerarquicos,
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones
 } from "./utilidadesProgresionRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
-import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
 import { esRasgoPlaceholderSubclase } from "@/servicios/gestorClases";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
@@ -51,7 +51,7 @@ export function usarVistaRasgos() {
   const rasgoDetalleEfectivo = useMemo(() => {
     if (!rasgoSeleccionadoDetalle || !personajeActivo) return null;
     return (
-      (personajeActivo.rasgos || []).find((r) => r.id === rasgoSeleccionadoDetalle.id) ||
+      resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel).find((r) => r.id === rasgoSeleccionadoDetalle.id) ||
       rasgoSeleccionadoDetalle
     );
   }, [rasgoSeleccionadoDetalle, personajeActivo]);
@@ -92,8 +92,11 @@ export function usarVistaRasgos() {
     const faltanRasgos = canonicos.some((r) => !mapaActual.has(r.id));
     const selectoresDesactualizados = canonicos.some((rCan) => {
       const rAct = mapaActual.get(rCan.id);
-      if (!rAct || !rCan.selectores || !rAct.selectores) return false;
-      return rCan.selectores.some((sCan) => {
+      if (!rAct || rAct.personalizado || rAct.origen === "personalizado") return false;
+      if (rCan.formulaDados !== rAct.formulaDados
+        || JSON.stringify(rCan.tiradaCuracionManual) !== JSON.stringify(rAct.tiradaCuracionManual)
+        || (rCan.selectores?.length ?? 0) !== (rAct.selectores?.length ?? 0)) return true;
+      return rCan.selectores?.some((sCan) => {
         const sAct = rAct.selectores?.find((s) => s.id === sCan.id);
         return !sAct || sAct.maxSelecciones !== sCan.maxSelecciones;
       });
@@ -127,6 +130,8 @@ export function usarVistaRasgos() {
       dotes: true,
       personalizados: true
     };
+    for (const r of personajeActivo?.rasgos ?? []) if (r.selectores?.some(s => s.ubicacion === "seccion"))
+      colapsadas[`opciones_${r.id}`] = true;
     if (personajeActivo?.clases) {
       personajeActivo.clases.forEach((c, idx) => {
         colapsadas[`clase_${idx}_${normalizar(c.nombre)}`] = true;
@@ -165,17 +170,6 @@ export function usarVistaRasgos() {
         nivel: personajeActivo.nivel || 1
       }
     ];
-  }, [personajeActivo]);
-
-  const furiaEstaActiva = useMemo(() => {
-    if (!personajeActivo) return false;
-    const tieneRasgoFuriaActivo = (personajeActivo.rasgos || []).some(
-      (r) => (r.nombre.toLowerCase().trim() === "furia" || r.id.toLowerCase().trim() === "rasgo_cls_barbaro_furia") && r.activo
-    );
-    const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
-      (c) => esCondicionFuria(c)
-    );
-    return tieneRasgoFuriaActivo || tieneCondicionFuria;
   }, [personajeActivo]);
 
   const datosProgresionClases = useMemo(() => {
@@ -232,8 +226,8 @@ export function usarVistaRasgos() {
   }, [personajeActivo, dotesInvocacion, filtroAccion, consultaBusqueda]);
 
   const datosJerarquicos = useMemo<DatosJerarquicosRasgos>(() => {
-    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje);
-  }, [rasgosFiltrados, clasesPersonaje]);
+    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos);
+  }, [rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos]);
 
   const abrirModalCreacion = (origen: OrigenRasgo = "personalizado") => {
     setRasgoParaEditar(null);
@@ -242,7 +236,7 @@ export function usarVistaRasgos() {
   };
 
   const abrirModalEdicion = (rasgo: RasgoPersonaje) => {
-    setRasgoParaEditar(rasgo);
+    setRasgoParaEditar(personajeActivo?.rasgos.find(r => r.id === rasgo.id) ?? rasgo);
     setOrigenPredeterminadoModal(rasgo.origen);
     setModoVista("creador_homebrew");
   };
@@ -283,7 +277,6 @@ export function usarVistaRasgos() {
     alternarColapso,
     alternarTodas,
     estanTodasExpandidas,
-    furiaEstaActiva,
     datosProgresionClases,
     rasgosFiltrados,
     totalRasgosPj,
@@ -292,7 +285,7 @@ export function usarVistaRasgos() {
     abrirModalEdicion,
     manejarGuardarRasgoModal,
     ...accionesPersonajes,
-    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoToggleRasgo(r, furiaEstaActiva),
+    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoActivacionRasgo(personajeActivo, r),
     resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r),
     obtenerNivelEfectivoParaRasgo: (r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r)
   };

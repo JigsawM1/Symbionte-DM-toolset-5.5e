@@ -1,3 +1,4 @@
+import { CamposDefensas } from "./CamposDefensas";
 import type { TipoEfectoMecanico } from "@/tipos";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
@@ -98,6 +99,12 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
             </div>
 
             {/* Campos condicionales según el tipo de efecto */}
+            {nuevoTipoEfecto === "dado_extra_tirada" && <div className={estilos.gridDosColumnas}>
+              <label>Objetivo de la tirada<input className={estilos.inputControl} value={nuevoObjetivo}
+                placeholder="iniciativa o habilidad.sigilo" onChange={e => setNuevoObjetivo(e.target.value)} /></label>
+              <label>Dados adicionales<input className={estilos.inputControl} value={nuevoValor}
+                placeholder="dados_padre o 1d6" onChange={e => setNuevoValor(e.target.value)} /></label>
+            </div>}
             <CamposCombate
               nuevoTipoEfecto={nuevoTipoEfecto}
               nuevoObjetivo={nuevoObjetivo}
@@ -180,6 +187,7 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
 
 
 
+            <CamposDefensas tipo={nuevoTipoEfecto} objetivo={nuevoObjetivo} alCambiar={setNuevoObjetivo} />
             <CamposSalvaciones
               nuevoTipoEfecto={nuevoTipoEfecto}
               nuevoObjetivo={nuevoObjetivo}

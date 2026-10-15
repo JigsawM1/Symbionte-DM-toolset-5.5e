@@ -45,7 +45,7 @@ export const VistaJugadores: React.FC = () => {
   }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre]);
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
       {/* Barra Superior de Sub-pestañas y Rol */}
       <div className={estilos.barraNavegacionSuperior}>
         {/* Sub-pestañas: Ficha vs Acompañantes vs Mis Personajes */}

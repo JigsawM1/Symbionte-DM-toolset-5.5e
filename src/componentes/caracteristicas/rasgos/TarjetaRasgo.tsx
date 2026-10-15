@@ -27,6 +27,7 @@ import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspacios";
 import { ModalTiendaRecargaEspacio } from "./ModalTiendaRecargaEspacio";
 import { ChipsSelectoresYDadosRasgo } from "./ChipsSelectoresYDadosRasgo";
+import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
 
 interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
@@ -312,7 +313,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación regular */}
-          {formulaEfectiva && !rasgo.guardaDadosTirada && (
+          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracionManual && (
             <button
               type="button"
               className={estilos.botonTirarDados}
@@ -392,6 +393,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
+          <ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
           {/* Botón para expandir modal */}
           <button
             type="button"

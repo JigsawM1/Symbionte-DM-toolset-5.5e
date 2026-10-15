@@ -86,7 +86,7 @@ export const VistaAtaquesJugador: React.FC = () => {
 
   if (!personajeActivo) {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <div className={estilos.tarjetaVacia}>No hay un personaje activo seleccionado.</div>
       </div>
     );
@@ -100,7 +100,7 @@ export const VistaAtaquesJugador: React.FC = () => {
     hechizosObjetosFiltrados.length > 0;
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
       {/* Cabecera Principal con Selector y Filtros */}
       <CabeceraAtaquesJugador
         conteoTotal={conteoTotal}

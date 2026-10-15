@@ -71,6 +71,7 @@ En modo oscuro, TaleSpire puede proporcionar `--ts-background-color`, `--ts-fore
 - **Radios**: `--radio-sm/md/lg` = `2/4/8px`. Radios pequeños en controles y tarjetas; reservar los mayores para contenedores o modales.
 - **Sombras**: `--sombra-tarjeta`, `--sombra-elevada` y `--sombra-overlay` para profundidad estática. Evitar que el brillo compita con los datos.
 - **Desplazamiento**: barras estrechas y zonas de scroll internas; cabeceras y controles de combate deben seguir accesibles.
+- **Superficies de scroll en CEF**: usar `u-scroll-cef` de `src/estilos/utilidades.css` en el elemento que desplaza listas o paneles. Centraliza el fondo opaco; si hace falta otra superficie, definir `--fondo-scroll-cef` con un token opaco del tema. El layout y `overflow` permanecen en el CSS Module de la vista.
 
 ## 5. Patrones por Módulo
 

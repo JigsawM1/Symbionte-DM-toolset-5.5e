@@ -1,0 +1,198 @@
+.resumenDefensas {
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  background: var(--pj-fondo-tarjeta);
+  padding: 10px 12px;
+  margin: 8px 0;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+.resumenDefensas h3 {
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-subtitulo);
+  margin: 0 0 8px;
+}
+.resumenDefensas dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.resumenDefensas dt { color: var(--pj-texto-terciario); font-size: var(--pj-fuente-label); }
+.resumenDefensas dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+.seccionOpciones {
+  border-left: 3px solid var(--pj-borde-acento);
+}
+.cabeceraOpciones {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-bottom: 1px solid var(--pj-borde-sutil);
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--pj-fondo-cabecera-gradiente);
+  color: var(--pj-texto-primario);
+  font: inherit;
+  text-align: left;
+  text-transform: none;
+}
+.cabeceraOpciones[aria-expanded="false"] {
+  border-bottom: 0;
+  border-radius: var(--pj-radio-panel);
+}
+.tituloCabeceraOpciones {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.tituloCabeceraOpciones > svg { flex-shrink: 0; }
+.tituloCabeceraOpciones > span, .iconoOpciones { color: var(--pj-texto-acento); }
+.cuerpoSeccionOpciones { gap: 10px; padding: 10px; }
+.cajaOpciones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.etiquetaOpciones { color: var(--pj-texto-acento); font-size: var(--pj-fuente-subtitulo); }
+.herramientasOpciones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-panel);
+}
+.contadorOpciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-label);
+}
+.contadorOpciones > svg { flex-shrink: 0; color: var(--pj-texto-acento); }
+.contadorOpciones > strong { color: var(--pj-texto-primario); font-variant-numeric: tabular-nums; }
+.filtrosOpciones {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-hundido);
+}
+.filtroOpciones {
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-boton);
+  text-transform: none;
+}
+.filtroOpciones:hover { background: var(--pj-fondo-tarjeta-hover); color: var(--pj-texto-primario); }
+.filtroOpciones[aria-pressed="true"] {
+  border-color: var(--pj-borde-acento);
+  background: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento-brillante);
+}
+.buscadorOpciones { grid-column: 1 / -1; position: relative; min-width: 0; }
+.buscadorOpciones > svg {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pj-texto-terciario);
+  pointer-events: none;
+}
+.buscadorOpciones > input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px 7px 32px;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-primario);
+  font: inherit;
+  font-size: var(--pj-fuente-cuerpo);
+}
+.listaOpciones { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.opcion {
+  min-width: 0;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-tarjeta-elevada);
+}
+.opcion:hover { border-color: var(--pj-borde-acento); }
+.opcionAprendida { border-color: var(--pj-borde-acento); }
+.opcion > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 12px;
+  min-height: 42px;
+  box-sizing: border-box;
+  list-style: none;
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-subtitulo);
+  font-weight: 700;
+}
+.opcion > summary::-webkit-details-marker { display: none; }
+.opcion > summary:hover { background: var(--pj-fondo-tarjeta-hover); }
+.nombreOpcion { flex: 1; min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+.marcaAprendida {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: var(--pj-acento-exito-fondo);
+  color: var(--pj-texto-exito);
+}
+.chevronOpcion { flex-shrink: 0; color: var(--pj-texto-terciario); }
+.opcion[open] > summary { border-radius: var(--pj-radio-control) var(--pj-radio-control) 0 0; }
+.opcion[open] > summary .chevronOpcion { transform: rotate(90deg); color: var(--pj-texto-acento); }
+.cuerpoOpcion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--pj-borde-sutil);
+}
+.aprenderOpcion {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--pj-texto-acento);
+  font-size: var(--pj-fuente-boton);
+  cursor: pointer;
+}
+.aprenderOpcion > input { margin: 0; width: 15px; height: 15px; accent-color: var(--pj-borde-acento-fuerte); }
+.aprenderOpcion > input:disabled { cursor: not-allowed; }
+.descripcionOpcion {
+  margin: 0;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.55;
+  text-indent: 10px;
+  overflow-wrap: anywhere;
+}
+.opcionesVacias {
+  margin: 0;
+  padding: 14px 10px;
+  text-align: center;
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+.cabeceraOpciones:focus-visible { outline: 2px solid var(--pj-borde-acento-fuerte); outline-offset: -2px; }
+.cajaOpciones summary:focus-visible { outline: 2px solid var(--pj-borde-acento-fuerte); outline-offset: -2px; }
+@media (max-width: 460px) { .resumenDefensas dl { grid-template-columns: 1fr; } }

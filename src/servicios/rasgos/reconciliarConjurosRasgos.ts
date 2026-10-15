@@ -3,12 +3,16 @@ import { agregarValoresSelectorAListas, esSelectorDeConjuros, type ListasConjuro
 import { coincideHechizoId } from "../comparadorHechizos";
 import { obtenerConjurosSubclasePersonaje } from "../calculadorMagia";
 import { obtenerConjurosOtorgadosPorRasgos } from "./evaluadorConjurosRasgos";
+import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 
 function obtenerAportes(personaje: PersonajeJugador, rasgos: RasgoPersonaje[]): ListasConjurosSelector {
   let listas: ListasConjurosSelector = { siempre: [], preparados: [], conocidos: [], trucos: [] };
   const otorgados = obtenerConjurosOtorgadosPorRasgos({ ...personaje, rasgos });
   listas = agregarValoresSelectorAListas({ id: "otorgados", tipoSelector: "conjuro" }, otorgados, listas);
   for (const rasgo of rasgos) {
+    if (rasgo.activo === false || !esRasgoHabilitadoPorOpcion(rasgo, rasgos)
+      || obtenerNivelEfectivoParaRasgo(personaje, rasgo) < (rasgo.nivelRequerido ?? 1)) continue;
     for (const selector of rasgo.selectores || []) {
       if (esSelectorDeConjuros(selector)) {
         listas = agregarValoresSelectorAListas(selector, selector.valorActual || [], listas);
@@ -35,7 +39,9 @@ export function reconciliarConjurosRasgos(
   return {
     conjurosSiemprePreparadosIds: reconciliar(anterior.conjurosSiemprePreparadosIds || [], antes.siempre, despues.siempre, subclase.conjuros),
     conjurosPreparadosIds: reconciliar(anterior.conjurosPreparadosIds || [], antes.preparados, despues.preparados, subclase.conjuros),
-    conjurosConocidosIds: reconciliar(anterior.conjurosConocidosIds || [], antes.conocidos, despues.conocidos, subclase.conjuros),
-    trucosConocidosIds: reconciliar(anterior.trucosConocidosIds || [], antes.trucos, despues.trucos, subclase.trucos)
+    conjurosConocidosIds: reconciliar(anterior.conjurosConocidosIds || [], antes.conocidos, despues.conocidos,
+      [...subclase.conjuros, ...(anterior.aprendizajesConjurosIndependientes?.conjuros ?? [])]),
+    trucosConocidosIds: reconciliar(anterior.trucosConocidosIds || [], antes.trucos, despues.trucos,
+      [...subclase.trucos, ...(anterior.aprendizajesConjurosIndependientes?.trucos ?? [])])
   };
 }

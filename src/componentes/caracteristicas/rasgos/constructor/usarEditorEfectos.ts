@@ -26,6 +26,10 @@ export function usarEditorEfectos(efectos: EfectoMecanicoRasgo[], actualizarBorr
             setNuevoObjetivo("arma_fuerza");
             setNuevoAplicaA("arma_fuerza");
         }
+        else if (t === "dado_extra_tirada") {
+            setNuevoObjetivo("habilidad.sigilo");
+            setNuevoValor("dados_padre");
+        }
         else if (t === "dano_secundario") {
             setNuevoValor("1d6+mitad_nivel");
             setNuevoTipoDano("Radiante o Necrótico");
@@ -125,6 +129,9 @@ export function usarEditorEfectos(efectos: EfectoMecanicoRasgo[], actualizarBorr
             setNuevoObjetivo("multiplicador");
             setNuevoValor("2");
             setNuevaDescripcionEfecto("Capacidad de carga de tamaño superior (×2)");
+        }
+        else if (t === "resistencia_dano" || t === "inmunidad_dano" || t === "inmunidad_condicion") {
+            setNuevoObjetivo(""); setNuevoValor("true"); setNuevaDescripcionEfecto("");
         }
         else if (t === "modificador_tamano") {
             setNuevoObjetivo("tamano");

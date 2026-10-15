@@ -4,8 +4,12 @@ import {
   type RasgoPersonaje
 } from "@/tipos";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
-import { normalizar, resolverRasgoPadre } from "./utilidadesRasgos";
+import { normalizar, resolverRasgoRecurso } from "./utilidadesRasgos";
 import { esSelectorDeConjuros } from "@/utiles/selectoresConjuros";
+import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
+import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
+import { seleccionesValidas } from "./seleccionesRasgos";
+import { cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 
 /**
  * Obtiene la lista consolidada de nombres de conjuros siempre preparados otorgados directamente por rasgos
@@ -13,11 +17,11 @@ import { esSelectorDeConjuros } from "@/utiles/selectoresConjuros";
  */
 export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): string[] {
   const conjuros = new Set<string>();
-  const pjNivel = personaje.nivel || 1;
 
   for (const r of personaje.rasgos || []) {
     if (r.activo === false) continue;
-    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+    if (r.nivelRequerido && obtenerNivelEfectivoParaRasgo(personaje, r) < r.nivelRequerido) continue;
+    if (!esRasgoHabilitadoPorOpcion(r, personaje.rasgos)) continue;
 
     if (Array.isArray(r.conjurosOtorgados)) {
       for (const c of r.conjurosOtorgados) {
@@ -38,7 +42,8 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
         // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones, Maestría en conjuros)
         if (Array.isArray(sel.valorActual)) {
-          for (const opId of sel.valorActual) {
+          for (const opId of sel.tipoSelector === "invocacion" ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje) : sel.valorActual) {
+            if (personaje.rasgos.some(h => h.idSelectorOrigen === sel.id && h.ligadoA === r.id && h.requiereOpcion === opId)) continue;
             const baseId = opId.includes(":")
               ? opId.split(":")[0]
               : opId.includes("__")
@@ -89,13 +94,13 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
   const nombres = new Set<string>();
 
   // 1. Evaluar rasgos instanciados del personaje
-  const pjNivel = personaje.nivel || 1;
   const rasgos = personaje.rasgos || [];
   const condicionesNorm = (personaje.condicionesActivas || []).map(normalizar);
   const efectosNorm = (personaje.efectosActivos || []).map((e) => normalizar(e.nombre));
 
   for (const r of rasgos) {
-    if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
+    if (r.nivelRequerido && obtenerNivelEfectivoParaRasgo(personaje, r) < r.nivelRequerido) continue;
+    if (!esRasgoHabilitadoPorOpcion(r, rasgos)) continue;
 
     const esActivable = Boolean(r.esActivable || r.categoriaMecanica === "activable");
     const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
@@ -141,7 +146,8 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
         if (Array.isArray(sel.valorActual)) {
-          for (const opId of sel.valorActual) {
+          for (const opId of sel.tipoSelector === "invocacion" ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje) : sel.valorActual) {
+            if (rasgos.some(h => h.idSelectorOrigen === sel.id && h.ligadoA === r.id && h.requiereOpcion === opId)) continue;
             const baseId = opId.includes(":")
               ? opId.split(":")[0]
               : opId.includes("__")
@@ -158,7 +164,7 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
               }
               if (Array.isArray(opcion.efectos)) {
                 for (const efOp of opcion.efectos) {
-                  if (efOp.tipo === "conjuro_gratuito" && (efOp.objetivo || efOp.valor)) {
+                  if (efOp.tipo === "conjuro_gratuito" && (efOp.objetivo || efOp.valor) && cumpleCondicionEfecto(efOp.condicion, personaje)) {
                     const cNom = obtenerConjuroDeEfecto(efOp);
                     if (cNom && cNom !== "sin_espacio" && cNom !== "gratuito" && cNom !== "propio") {
                       nombres.add(cNom);
@@ -175,7 +181,7 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
     // D. Efectos mecánicos de tipo conjuro_gratuito directamente en el rasgo
     if (Array.isArray(r.efectos)) {
       for (const ef of r.efectos) {
-        if (ef.tipo === "conjuro_gratuito") {
+        if (ef.tipo === "conjuro_gratuito" && cumpleCondicionEfecto(ef.condicion, personaje)) {
           const conjuro = obtenerConjuroDeEfecto(ef);
           if (conjuro) nombres.add(conjuro);
         }
@@ -254,5 +260,5 @@ export function resolverIdRasgoObjetivoGasto(
   if (!targetTrait) return "";
   if (!targetTrait.gastarDePadre) return targetTrait.id;
 
-  return resolverRasgoPadre(targetTrait, rasgos)?.id ?? targetTrait.id;
+  return resolverRasgoRecurso(targetTrait, rasgos)?.id ?? targetTrait.id;
 }

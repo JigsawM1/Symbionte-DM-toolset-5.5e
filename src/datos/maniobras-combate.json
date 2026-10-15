@@ -1,0 +1,375 @@
+[
+  {
+    "id": "maniobra_ataque_amenazante",
+    "nombre": "Ataque amenazador",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar asustar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Sabiduría o tendrá el estado de asustado hasta el final de tu siguiente turno.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_con_arremetida",
+    "nombre": "Arremetida",
+    "descripcion": "Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de correr. Si te mueves al menos 5 pies en línea recta justo antes de acertar con un ataque cuerpo a cuerpo como parte de la acción de atacar en este turno, podrás sumar el dado de supremacía a la tirada de daño del ataque.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "accion_adicional",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_de_barrido",
+    "nombre": "Ataque de barrido",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque cuerpo a cuerpo usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar dañar a otra criatura. Elige otra criatura a 5 pies o menos del objetivo original y que esté a tu alcance. Si la tirada de ataque original hubiera acertado a la segunda criatura, esta sufrirá una cantidad de daño igual al resultado que saques en el dado de supremacía. El daño es del mismo tipo que inflija el ataque original.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre",
+    "heredarDadosPadre": true
+  },
+  {
+    "id": "maniobra_ataque_preciso",
+    "nombre": "Ataque preciso",
+    "descripcion": "Cuando falles con una tirada de ataque, puedes gastar un dado de supremacía, tirarlo y sumar el resultado a la tirada de ataque, lo que podría hacer que el ataque acierte.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre",
+    "heredarDadosPadre": true
+  },
+  {
+    "id": "maniobra_ataque_provocador",
+    "nombre": "Ataque provocador",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar provocar al objetivo para que te ataque. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Sabiduría o tendrá desventaja en sus tiradas de ataque contra cualquier objetivo que no seas tú hasta el final de tu siguiente turno.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_y_derribo",
+    "nombre": "Ataque y derribo",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía y sumarlo a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o tendrá el estado de derribado.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_y_desarme",
+    "nombre": "Ataque y desarme",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para intentar desarmar al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. El objetivo deberá superar una tirada de salvación de Fuerza o soltará un objeto de tu elección que esté sujetando, que caerá en su espacio.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_y_distraccion",
+    "nombre": "Ataque y distracción",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para distraer al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. La siguiente tirada de ataque contra el objetivo que realice un atacante que no seas tú tendrá ventaja si el ataque se lleva a cabo antes del principio de tu siguiente turno.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_y_empujon",
+    "nombre": "Ataque y empujón",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque sin armas, puedes gastar un dado de supremacía para intentar hacer retroceder al objetivo. Suma el dado de supremacía a la tirada de daño del ataque. Si el objetivo es Grande o más pequeño, deberá superar una tirada de salvación de Fuerza o será empujado hasta 15 pies en línea recta lejos de ti.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_ataque_y_maniobra",
+    "nombre": "Ataque y maniobra",
+    "descripcion": "Cuando aciertes a una criatura con una tirada de ataque, puedes gastar un dado de supremacía para que uno de tus compañeros maniobre para cambiar de posición. Suma el dado de supremacía a la tirada de daño del ataque y elige a una criatura voluntaria que pueda verte u oírte. La criatura podrá usar su reacción para moverse hasta la mitad de su velocidad sin provocar un ataque de oportunidad por parte del objetivo de tu ataque.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_cambio_de_posicion_ventajoso",
+    "nombre": "Cambio de posición ventajoso",
+    "descripcion": "Si en tu turno estás a 5 pies o menos de una criatura, puedes gastar un dado de supremacía y cambiar tu posición por la de ella, siempre que gastes al menos 5 pies de movimiento y que esa criatura acceda voluntariamente y no tenga el estado de incapacitada. Este movimiento no provoca ataques de oportunidad.\n\nTira el dado de supremacía. Hasta el principio de tu siguiente turno, tú o la otra criatura (a tu elección) ganan un bonificador a la CA igual al resultado.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre",
+    "heredarDadosPadre": true
+  },
+  {
+    "id": "maniobra_contraataque",
+    "nombre": "Contraataque",
+    "descripcion": "Cuando una criatura falle una tirada de ataque cuerpo a cuerpo contra ti, puedes llevar a cabo una reacción y gastar un dado de supremacía para realizar una tirada de ataque cuerpo a cuerpo con un arma o con un ataque sin armas contra esa criatura. Si aciertas, suma el dado de supremacía al daño del ataque.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "reaccion",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_emboscada",
+    "nombre": "Emboscada",
+    "descripcion": "Cuando hagas una prueba de Destreza (Sigilo) o una tirada de iniciativa, puedes gastar un dado de supremacía y sumarlo a la tirada, salvo que tengas el estado de incapacitado.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.sigilo",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "iniciativa",
+        "valor": "dados_padre"
+      }
+    ],
+    "autoDesactivarEnTirada": [
+      "habilidad.sigilo",
+      "iniciativa"
+    ],
+    "desactivarConCondiciones": [
+      "Incapacitado"
+    ]
+  },
+  {
+    "id": "maniobra_evaluacion_tactica",
+    "nombre": "Evaluación táctica",
+    "descripcion": "Cuando hagas una prueba de Inteligencia (Historia o Investigación) o de Sabiduría (Perspicacia), puedes gastar un dado de supremacía y sumarlo a la prueba de característica.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.historia",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.investigacion",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.perspicacia",
+        "valor": "dados_padre"
+      }
+    ],
+    "autoDesactivarEnTirada": [
+      "habilidad.historia",
+      "habilidad.investigacion",
+      "habilidad.perspicacia"
+    ]
+  },
+  {
+    "id": "maniobra_finta",
+    "nombre": "Finta",
+    "descripcion": "Como acción adicional, puedes gastar un dado de supremacía para realizar una finta eligiendo a una criatura a 5 pies o menos de ti como objetivo. Tendrás ventaja en tu siguiente tirada de ataque contra ese objetivo en este turno. Si el ataque acierta, suma el dado de supremacía a la tirada de daño del ataque.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "accion_adicional",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "autoDesactivarAlTirarDano": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_dano",
+        "objetivo": "todos_ataques",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "ventaja",
+        "objetivo": "ataques",
+        "valor": "ventaja"
+      }
+    ]
+  },
+  {
+    "id": "maniobra_juego_de_pies_evasivo",
+    "nombre": "Juego de pies evasivo",
+    "descripcion": "Como acción adicional, puedes gastar un dado de supremacía y llevar a cabo la acción de destrabarse. También tiras el dado y sumas el resultado a tu CA hasta el principio de tu siguiente turno.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "accion_adicional",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre",
+    "heredarDadosPadre": true
+  },
+  {
+    "id": "maniobra_orden_de_ataque",
+    "nombre": "Orden de ataque",
+    "descripcion": "Cuando lleves a cabo la acción de atacar en tu turno, puedes renunciar a uno de tus ataques para ordenar a uno de tus compañeros que ataque. Cuando lo hagas, elige una criatura voluntaria que pueda verte u oírte y gasta un dado de supremacía. Esa criatura podrá usar su reacción de inmediato para realizar un ataque con un arma o un ataque sin armas y sumar el dado de supremacía a la tirada de daño del ataque si acierta.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "especial",
+    "gastarDePadre": true
+  },
+  {
+    "id": "maniobra_parada",
+    "nombre": "Parada",
+    "descripcion": "Cuando otra criatura te dañe con una tirada de ataque cuerpo a cuerpo, puedes llevar a cabo una reacción y gastar un dado de supremacía para reducir el daño en una cantidad igual al resultado del dado de supremacía más tu modificador por Fuerza o Destreza (a tu elección).",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "reaccion",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre+max(fuerza,destreza)",
+    "heredarDadosPadre": true
+  },
+  {
+    "id": "maniobra_presencia_imponente",
+    "nombre": "Presencia imponente",
+    "descripcion": "Cuando hagas una prueba de Carisma (Interpretación, Intimidación o Persuasión), puedes gastar un dado de supremacía y sumarlo a la tirada.",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "activable",
+    "esActivable": true,
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "noGastarAlTirarDados": true,
+    "efectos": [
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.interpretacion",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.intimidacion",
+        "valor": "dados_padre"
+      },
+      {
+        "tipo": "dado_extra_tirada",
+        "objetivo": "habilidad.persuasion",
+        "valor": "dados_padre"
+      }
+    ],
+    "autoDesactivarEnTirada": [
+      "habilidad.interpretacion",
+      "habilidad.intimidacion",
+      "habilidad.persuasion"
+    ]
+  },
+  {
+    "id": "maniobra_reagrupar",
+    "nombre": "Reagrupar",
+    "descripcion": "Como acción adicional, puedes gastar un dado de supremacía para reforzar la determinación de un compañero. Elige a un aliado a 30 pies o menos de ti que pueda verte u oírte. La criatura obtendrá una cantidad de puntos de golpe temporales igual al resultado del dado de supremacía más la mitad de tu nivel de guerrero (redondeando hacia abajo).",
+    "nivelMinimo": 3,
+    "categoriaMecanica": "consumible",
+    "esActivable": false,
+    "tipoAccion": "accion_adicional",
+    "gastarDePadre": true,
+    "formulaDados": "dados_padre+mitad_nivel",
+    "heredarDadosPadre": true
+  }
+]

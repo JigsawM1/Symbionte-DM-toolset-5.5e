@@ -1,7 +1,8 @@
+import { buscarRasgoConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
+import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { resolverIdRasgoObjetivoGasto, calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
-import { coincideHechizoId } from './comparadorHechizos';
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
 /** Valida el estado vigente y devuelve la nueva ficha en una única operación síncrona. */
@@ -26,6 +27,8 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       personaje = { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1 };
       break;
     case 'arcanoMistico':
+      if (obtenerSelectoresArcanos(pj).length && !obtenerSelectoresArcanos(pj,true).some(s =>
+        s.nivelConjuro === gasto.nivel && s.valorActual.some(id => s.opciones.some(o => o.id === id)))) return insuficiente;
       if (pj.arcanoMisticoGastados.includes(String(gasto.nivel))) return insuficiente;
       personaje = { ...pj, arcanoMisticoGastados: [...pj.arcanoMisticoGastados, String(gasto.nivel)] };
       break;
@@ -37,10 +40,9 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       break;
     }
     case 'gratuitoInnato': {
-      const rasgo = pj.rasgos.find(r => r.tieneUsosLimitados && !r.esActivable &&
-        ((r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, gasto.hechizoId)) ||
-          (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, gasto.hechizoId)))));
+      const rasgo = buscarRasgoConjuroGratuito(pj, gasto.hechizoId);
       if (!rasgo) return insuficiente;
+      if (!rasgo.tieneUsosLimitados) break;
       const idRecurso = resolverIdRasgoObjetivoGasto(rasgo, pj.rasgos);
       const recursos = pj.rasgos.filter(r => r.id === idRecurso || (rasgo.gastarDePadre && r.id === rasgo.id));
       if (!recursos.length || recursos.some(r => (r.usosRestantes ?? calcularUsosMaximosRasgo(r, pj)) <= 0)) return insuficiente;

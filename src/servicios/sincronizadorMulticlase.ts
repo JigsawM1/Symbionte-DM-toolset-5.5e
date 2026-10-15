@@ -11,7 +11,7 @@ import {
   obtenerConjurosSubclasePersonaje
 } from "@/servicios/calculadorMagia";
 import { construirBuildClase } from "@/servicios/gestorClases";
-import { coincideHechizoId } from "@/servicios/comparadorHechizos";
+import { crearMatcherHechizos } from "@/servicios/comparadorHechizos";
 
 /**
  * Servicio puro de dominio para el cálculo, sincronización y mutación inmutable
@@ -55,31 +55,30 @@ export function sincronizarMagiaMulticlase(
   const siemprePrep = Array.from(new Set(resSubclase.conjuros || []));
   const viejosSiemprePrep = siemprePrepPrevios || [];
 
-  const eliminadosSubclase = viejosSiemprePrep.filter(
-    (viejo) => !siemprePrep.some((nuevo) => coincideHechizoId(viejo, nuevo))
-  );
+  const esSiemprePrep = crearMatcherHechizos(siemprePrep);
+  const eliminadosSubclase = viejosSiemprePrep.filter((viejo) => !esSiemprePrep(viejo));
 
-  const prepFinales = prepPrevios.filter(
-    (p) => !eliminadosSubclase.some((elim) => coincideHechizoId(p, elim))
-  );
+  const esEliminadoSubclase = crearMatcherHechizos(eliminadosSubclase);
+  const prepFinales = prepPrevios.filter((p) => !esEliminadoSubclase(p));
+  const esPrepFinal = crearMatcherHechizos(prepFinales);
   siemprePrep.forEach((nuevo) => {
-    if (!prepFinales.some((p) => coincideHechizoId(p, nuevo))) {
+    if (!esPrepFinal(nuevo)) {
       prepFinales.push(nuevo);
     }
   });
 
-  const conocFinales = conocPrevios.filter(
-    (c) => !eliminadosSubclase.some((elim) => coincideHechizoId(c, elim))
-  );
+  const conocFinales = conocPrevios.filter((c) => !esEliminadoSubclase(c));
+  const esConocFinal = crearMatcherHechizos(conocFinales);
   siemprePrep.forEach((nuevo) => {
-    if (!conocFinales.some((c) => coincideHechizoId(c, nuevo))) {
+    if (!esConocFinal(nuevo)) {
       conocFinales.push(nuevo);
     }
   });
 
   const trucosFinales = [...trucosPrevios];
+  const esTrucoFinal = crearMatcherHechizos(trucosFinales);
   (resSubclase.trucos || []).forEach((t) => {
-    if (!trucosFinales.some((tr) => coincideHechizoId(tr, t))) {
+    if (!esTrucoFinal(t)) {
       trucosFinales.push(t);
     }
   });

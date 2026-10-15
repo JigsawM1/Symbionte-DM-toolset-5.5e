@@ -1,3 +1,4 @@
+import { aplicarConfiguracionConjurosRasgos } from "@/servicios/rasgos/conjurosGratuitosRasgos";
 import { useShallow } from "zustand/react/shallow";
 import { useCallback, useMemo } from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
@@ -151,7 +152,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
       const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
 
-      const solicitudCompleta: SolicitudLanzamiento = {
+      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
@@ -159,7 +160,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         modificadorHabilidad,
         cdSalvacionPersonaje,
         ...solicitudIncompleta
-      };
+      });
       return validarLanzamiento(solicitudCompleta, contextoEfectivo);
     },
     [personaje, bonoAtaqueMagico, cdSalvacionPersonaje, contexto]
@@ -197,7 +198,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
       const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
 
-      const solicitudCompleta: SolicitudLanzamiento = {
+      const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
@@ -205,7 +206,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         modificadorHabilidad,
         cdSalvacionPersonaje,
         ...solicitudIncompleta
-      };
+      });
 
       // A. Validar precondiciones
       const resultadoValidacion = validarLanzamiento(solicitudCompleta, contextoEfectivo);

@@ -2,9 +2,12 @@ import React from "react";
 import type { SelectorRasgo } from "@/tipos";
 import { Check, Lock } from "lucide-react";
 import { SelectorDesplegable, TooltipUniversal, ControlPaginacion } from "@/componentes/comunes";
+import { SelectorOpcionesAcordeon } from "./SelectorOpcionesAcordeon";
 import { SelectorInvocacionesAcordeon } from "./SelectorInvocacionesAcordeon";
 import { SelectorDotesAcordeon } from "./SelectorDotesAcordeon";
 import estilos from "./VistaRasgosJugador.module.css";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { opcionesElegiblesConjuros } from "@/servicios/rasgos/seleccionesRasgos";
 
 interface SeccionSelectoresModalRasgoProps {
   selectores: SelectorRasgo[];
@@ -22,10 +25,16 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
 }) => {
   const [busquedas, setBusquedas] = React.useState<Record<string, string>>({});
   const [paginas, setPaginas] = React.useState<Record<string, number>>({});
+  const pj = usarAlmacenDM(s => s.personajes.find(p => p.id === s.idPersonajeActivo));
+  const selectoresElegibles = React.useMemo(() => selectores.map(sel => ({
+    ...sel, opciones: opcionesElegiblesConjuros(sel, pj)
+  })), [selectores, pj]);
 
   return (
     <div className={estilos.seccionSelectoresModal}>
-      {selectores.map((sel) => {
+      {selectoresElegibles.map((sel) => {
+        if (sel.ubicacion === "seccion" || sel.modo === "consulta") return <SelectorOpcionesAcordeon key={sel.id}
+          selector={sel} nivelPersonaje={nivelPersonaje} alActualizarSeleccion={alActualizarSeleccion} />;
         const seleccionados = sel.valorActual || [];
         const max = sel.maxSelecciones || 1;
         const esSelectorInvocaciones = sel.tipoSelector === "invocacion";

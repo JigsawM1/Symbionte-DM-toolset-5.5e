@@ -1,6 +1,122 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
-Este archivo registra reglas globales, errores encontrados, sus causas raíz y las soluciones aplicadas.
+## [2026-10-15] Integración de Tablas de Progresión Canónicas del Guerrero (PHB 2024 / D&D 5.5)
+
+- **Alcance y propósito**: Incorporación de los metadatos declarativos de tablas de escalado (`tablaProgresion`) en `src/datos/clases/guerrero.json` para los rasgos canónicos de la clase base, coincidentes con las referencias visuales oficiales provistas.
+- **Rasgos de Clase Base con Tabla de Progresión**:
+  - *Tomar aliento* (Nivel 1): 1 -> 2 usos; 4 -> 3 usos; 10 -> 4 usos. Pie: "Cada nivel reemplaza al anterior".
+  - *Maestría con armas* (Nivel 1): 1 -> 3 maestrías; 4 -> 4 maestrías; 10 -> 5 maestrías; 16 -> 6 maestrías. Pie: "Cada nivel reemplaza al anterior".
+  - *Acción súbita* (Nivel 2): 2 -> 1 vez / descanso; 17 -> 2 veces / descanso. Máximo uno por turno. Pie: "Cada nivel reemplaza al anterior".
+  - *Ataque adicional* (Nivel 5): 5 -> 2 ataques; 11 -> 3 ataques; 20 -> 4 ataques. Pie: "Cada nivel reemplaza al anterior".
+  - *Indómito* (Nivel 9): 9 -> 1 vez / descanso; 13 -> 2 veces / descanso; 17 -> 3 veces / descanso. Pie: "Cada nivel reemplaza al anterior".
+- **Rasgos de Subclases con Tabla de Progresión**:
+  - *Lanzamiento de conjuros* (Caballero Arcano, Nivel 3): 18 filas (niveles 3 a 20) con columnas 'Trucos' y 'Preparados'. Pie: "Cada nivel reemplaza al anterior".
+  - *Supremacía en combate* (Maestro del Combate, Nivel 3): 5 filas (3 -> 4d8 dados de superioridad, 7 -> 5d8, 10 -> 5d10, 15 -> 6d10, 18 -> 6d12). Pie: "Cada nivel reemplaza al anterior".
+  - *Poder psiónico* (Guerrero Psiónico, Nivel 3): 6 filas (3 -> 4d6, 5 -> 6d8, 9 -> 8d8, 11 -> 8d10, 13 -> 10d10, 17 -> 12d12). Pie: "Cada nivel reemplaza al anterior".
+- **Integridad y Verificación**:
+  - `src/servicios/guerreroMecanicasDND55.test.ts`: pruebas de regresión unitaria para las 5 tablas base y las 3 tablas de subclases.
+  - `pnpm test src/servicios/guerreroMecanicasDND55.test.ts`: 44/44 pruebas pasadas con salida 0.
+  - `pnpm run test:guerrero-ui`: 8 casos, 16 dimensiones responsive, 0 errores.
+  - `pnpm exec tsc --noEmit`: 0 errores de tipado bajo `strict: true`.
+  - `pnpm run lint`: 0 errores, 0 advertencias.
+
+---
+
+## [2026-10-14] Actualización canónica de descripciones del Guerrero desde diccionario_herramientas
+
+- **Alcance y propósito**: Sincronización quirúrgica de todas las descripciones en `src/datos/clases/guerrero.json` a partir de `dicionario_herramientas/guerrero descripciones.json` (PHB 2024 oficial en español).
+- **Estandarización de textos**:
+  - Medidas imperiales canónicas ("5 pies", "10 pies", "15 pies", "30 pies") reemplazando residuos de conversión híbrida ("1,5 m (5 pies)", "9 m (30 pies)").
+  - Párrafos formateados con espaciado uniforme `\n\n` en rasgos base (*Tomar aliento*, *Maestría con armas*, *Acción súbita*).
+  - Eliminación de enlaces markdown en desuso (`[dote](feats.html)` -> `dote`) en todas las iteraciones de *Mejora de característica* (nv 4, 6, 8, 12, 14, 16) y *Don épico* (nv 19).
+  - Caballero Arcano (*Lanzamiento de conjuros* y *Carga arcana*): redacción limpia sin referencias externas al capítulo del manual físico.
+  - Guerrero Psiónico (*Poder psiónico*, *Adepto telequinético*, *Bastión de fuerza*) y Maestro del Combate (*Opciones de maniobras*, *Conoce a tu enemigo*): actualización coordinada tanto en la descripción del rasgo contenedor como en las opciones individuales de sus selectores (*Campo protector*, *Golpe psiónico*, *Movimiento telequinético*, *Empujón telequinético*, maniobras de arremetida, barrido, empujón, cambio de posición, finta y reagrupar).
+- **Integridad mecánica preservada**: Se mantuvieron intactos todos los IDs, metadatos (`categoriaMecanica`, `escaladoUsos`, `ligadoA`, `formulaDados`), rasgos de extensión (nv 13 y 17) y rasgos auxiliares de activación/recarga de dados de supremacía y psiónicos.
+- **Validación**:
+  - `pnpm test`: 137 suites, 1917 pruebas pasadas con salida 0.
+  - `pnpm run test:guerrero-ui`: 6 casos, 16 dimensiones responsive, 0 errores.
+
+---
+## [2026-10-14] Integración de Optimizaciones Algorítmicas Transversales (optimizacion-bigO) en Rama de Brujo
+
+- Fusión completa de la rama `optimizacion-bigO` en `brujo-revision-probablemente-scope-creep-de-nuevo`.
+- **Compendio de Conjuros:** Perfil de lanzador precalculado con `construirPerfilLanzadorPersonaje` (-98,2% tiempo en compendio).
+- **Búsqueda Tolerante:** Memoización local $O(N)$ en `compararPorRelevanciaTitulo` (-89,4% de coste en ordenación) y ampliación de caché FIFO a 5.000 entradas.
+- **Dotes e Inventario:** Pre-normalización y extracción de `rasgoPadre` en `SelectorDotesAcordeon.tsx`, partición en un solo paso en `usarInventarioOrdenado.ts` y `useMemo` en monstruos de iniciativa.
+- **Sinergia:** Coexistencia limpia con los controles declarativos de recursos del Brujo PHB 2024 y la agrupación de pestañas compacta de `BarraSuperior.tsx`.
+
+---
+
+## [2026-10-14] Rendimiento de recursos y lanzamiento gratuito del Brujo
+
+- Corregido el coste de las evaluaciones sin cachés globales de personaje: resolverExtensionesRasgos copia profundamente únicamente los padres que reciben extensiones, una vez por proyección; los consumidores restantes leen los rasgos sin copiarlos. seleccionOpcionValida comprueba opciones puntuales y detiene las consultas anidadas al encontrar una opción elegible, conservando filtros, alias, requisitos y repetibilidad.
+- Chromium local, Contactar con el patrón en Brujo 9 con cinco invocaciones incluido Grimorio: coste acumulado de evaluación de efectos de 39,3 a 6,3 ms; CPU x4 de 207,1 a 17,4 ms (91,6 % menos). Tiempo desde la interacción hasta finalizar la llamada local de lanzamiento de 94,4 a 79,1 ms; CPU x4 de 484,8 a 259,1 ms. Incluye instrumentación y fallback local; no mide emisión nativa de TaleSpire. La tirada de 6d6 queda intacta por instrucción del usuario.
+- Seis regresiones nuevas sobre fusión sin mutar originales ni copiar catálogos ajenos, extensiones apagadas/futuras, filtros puntuales y cambios de contexto. Pasan 89 pruebas seleccionadas y pnpm run ci con salida 0: TypeScript, ESLint, 136 suites/1910 pruebas, auditoría de 159 archivos y build; permanece el aviso de chunks grandes.
+- pnpm run test:brujo-ui y pnpm run test:rasgos-ui con salida 0. Diez flujos del Brujo y cuatro dimensiones sin errores JavaScript ni desbordes. Nueva regresión con App fresca: contadores +/−, lanzamiento Gratis de Contactar, un único gasto, ausencia de actualizaciones en reposo y conservación del gasto y elecciones del libro al serializar y recargar. El caso se aísla de los formularios de otras fichas de prueba.
+- Evidencias locales en scratch/perfil-contactar-antes.json, perfil-contactar-resultados.json, ci-contadores-brujo.log, ui-contadores-brujo.log y ui-rasgos-contadores.log. Sin despliegue ni certificación en TaleSpire/CEF nativos. No se modificaron los botones, Pasos feéricos, agrupación de invocaciones ni las reglas del lanzamiento.
+
+---
+
+## [2026-10-14] Optimización transversal de rendimiento y mitigación de regresiones de catálogo
+
+- **Alcance y contexto**: Auditoría transversal e implementación de optimizaciones inspiradas en la solución del selector de conjuros del *Pacto del grimorio*. Se detectaron y mitigaron patrones de recorridos lineales repetidos sobre catálogos estáticos, comparaciones cuadráticas en ordenaciones tolerantes, filtros redundantes en cada render y recálculos de perfiles de clase.
+- **Magia y compendio (`calculadorMagia.ts`, `CompendioConjurosJugador.tsx`)**:
+  - Se desacopló la extracción del perfil del lanzador mediante `construirPerfilLanzadorPersonaje(pj)`.
+  - `puedePersonajeLanzarHechizo` admite opcionalmente este perfil precalculado, evitando re-extraer clases, subclases y ranuras en cada uno de los 391 conjuros del compendio.
+  - Medición empírica: el filtrado completo de los 391 conjuros pasó de 33,45 ms a 0,59 ms (reducción del 98,2%, conservando exactamente los 68 conjuros lanzables para el personaje de prueba).
+- **Búsqueda tolerante (`busquedaTolerante.ts`)**:
+  - `compararPorRelevanciaTitulo`: Se introdujo memoización de relevancia local $O(N)$ mediante `cacheRelevancia = new Map<T, number>()` por operación de ordenación, evitando recalcular `calcularRelevanciaExactaEInicio` decenas de veces por elemento en `sort()`.
+  - Medición empírica: la ordenación de 391 elementos pasó de 2,04 ms a 0,21 ms (ahorro del 89,4%).
+  - Caché de normalización de cadenas ampliada a 5.000 entradas con desalojo progresivo FIFO de 1.000 entradas para evitar picos de recolección de basura.
+- **Selector de Dotes (`SelectorDotesAcordeon.tsx`)**:
+  - Extracción de la resolución del rasgo padre (`rasgoPadre`) fuera del `.map()` de opciones de dote.
+  - Pre-normalización del campo `textoBusqueda` en `opcionesEvaluadas`.
+  - Medición empírica: el filtrado al escribir en el buscador pasó de 1,28 ms a 0,07 ms (94,5% de ahorro).
+- **Catálogo del DM (`BuscadorMonstruos.tsx`, `VinculadorPlantilla.tsx`)**:
+  - Inclusión de `useMemo` en el filtrado de los 520 monstruos sobre `baseDatosMonstruos` en ambos componentes de iniciativa, evitando el recorrido completo en cada re-render del panel del DM.
+- **Inventario (`usarInventarioOrdenado.ts`)**:
+  - Partición memoizada en un único recorrido $O(N)$ para `objetosEquipados`, `objetosNoEquipados`, `objetosMochilaBase`, `objetosBolsaContencionBase`, `objetosMonturaBase` y `objetosAlmacenBase`.
+  - Estabilización referencial que previene ejecuciones innecesarias de `clasificarMochilaPorTipo` y `ordenarInventarioPlano` ante cambios no relacionados en el estado del inventario.
+- **Sincronizadores de conjuros (`comparadorHechizos.ts`, `sincronizadorConjurosSubclase.ts`, `sincronizadorMulticlase.ts`)**:
+  - Exportación de `crearMatcherHechizos(lista)` con optimización `Set.has(id)` $O(1)$ previo a la resolución de alias.
+  - Deduplicación rápida en `deduplicarListaIds` mediante `Set<string>`.
+- **Verificación y certificación**:
+  - `pnpm run ci` completado con éxito (código de salida 0): TypeScript 0 errores, ESLint 0 advertencias, 135 suites / 1.904 pruebas pasadas, 159 archivos dentro del límite (< 500 líneas), build de Vite exitoso. Conservados cambios locales.
+
+## [2026-10-14] Rendimiento del selector de conjuros del grimorio
+
+- Corrección limitada al rendimiento: índice estático por ID en seleccionesRasgos.ts, caché de coincidencias compatibles por nombres/alias e identificación desconocida; opciones elegibles memorizadas en SeccionSelectoresModalRasgo según referencias de selectores y personaje. Se conservan contratos, formato de guardado, requisitos y elecciones. Botones, Pasos feéricos y agrupación de invocaciones quedan pendientes.
+- Comprobada equivalencia de la primera coincidencia para los 391 IDs actuales mediante el cargador Vite. Añadidas siete regresiones sobre IDs/nombres antiguos, alias, desconocidos, preparados, elecciones vigentes, clase y conocimiento. Las 63 pruebas seleccionadas pasan; pnpm run ci termina con salida 0, 135 suites/1904 pruebas, TypeScript, ESLint, auditoría de 159 archivos y build correctos.
+- Chromium local con App y ficha temporal de Brujo 9: coste acumulado del filtro al seleccionar truco pasa de 201,7 a 7,0 ms (96,5 % menos). Respuesta hasta repintar: 265 a 84 ms; con CPU ralentizada x4: 1293 a 217 ms y filtrado 1085,7 a 27,7 ms. Escribir en el buscador ya no recalcula la elegibilidad; cada elección efectiva produce una actualización del personaje y en reposo no se observaron actualizaciones. Los tiempos incluyen instrumentación y son mediciones locales, no certificación CEF.
+- pnpm run test:brujo-ui: salida 0, nueve flujos y cuatro dimensiones, sin errores JavaScript ni desbordes. pnpm run test:rasgos-ui: salida 0 al repetir secuencialmente tras una colisión EPERM de caché entre servidores Vite simultáneos. Selección/retirada, activación y guardado/recarga permanecen operativos. Se preservó por SHA-256 el cambio local existente en VistaRasgosJugador.module.css.
+- Evidencia: scratch/perfil-selector-hechizos-despues.log, pruebas-rendimiento-selector.log, brujo-ui-rendimiento-selector.log, rasgos-ui-rendimiento-selector.log y ci-rendimiento-selector.log. No se desplegó ni se verificó TaleSpire real. Permanece el aviso existente de chunks grandes.
+
+## [2026-10-13] Brujo y cuatro subclases PHB 2024: recorrido declarativo
+
+- Revisados Brujo 1–20, Archihadas, Celestial, Infernal, Gran Primigenio y las 28 invocaciones de invocaciones-sobrenaturales.json. Matriz previa y resultados por rasgo en INVENTARIO_BRUJO_PREVIO.md e IMPLEMENTACION_BRUJO.md. La fuente de criaturas invocadas se conserva. Se retomó la rama del Brujo desde 47befff y se preservó el cambio local de BarraSuperior.tsx, comprobado por SHA-256.
+- Opciones materializadas en rasgos efectivos con recursos y elecciones propios; validación común de requisitos, repetición y filtros. Arcanos independientes por nivel conectados al consumidor existente, sin reserva duplicada. Recuperación atómica de pacto con Astucia/Maestro, recarga de un uso con pacto y curación dirigida con gasto variable de dados.
+- Corregidos alcance de Lanza (30 pies por nivel de Brujo), Vigor (12 PG temporales), listas de subclase, resistencias reales, eventos propios de Resiliencia, referencia a trucos sin regalarlos y elección explícita de Mejora/Don. Vínculo de arma por instancia; aptitud declarada del Libro y arcanos al lanzar en multiclase. Se retiró el daño inseguro de Devorador a todas las armas cuerpo a cuerpo.
+- Persistencia conserva identidades de opciones, dependencia, selecciones, estado, gasto y vínculo. El aprendizaje independiente nuevo se registra para conservarlo al retirar aportaciones. No se amplió el protocolo de combate de sincronización con datos de rasgos.
+- Verificación final: pnpm run ci, salida 0; 135 suites y 1897 pruebas, incluidas 47 nuevas regresiones del recorrido del Brujo. TypeScript, ESLint, auditoría de 159 archivos y build correctos. pnpm run test:brujo-ui, salida 0: nueve flujos en App real, cuatro dimensiones (599/433 por 760/600), cero errores JavaScript y desbordes; capturas revisadas. pnpm run test:rasgos-ui y pnpm run test:sync-simulacion, salida 0; doce escenarios de transporte simulado. git diff --check correcto. Logs en scratch/ci-brujo.log, brujo-ui.log, rasgos-ui-brujo.log y sync-simulacion-brujo.log.
+- Limitaciones documentadas por rasgo: blancos, impacto, salvaciones, una vez por turno, sentidos, vínculos telepáticos, excepciones por lanzamiento y PG de aliados permanecen parciales o informativos. La curación dirigida elige PJ locales; distancia y visibilidad se confirman en mesa. La aptitud global de fichas multiclase y la procedencia histórica ambigua no se presentan como resueltas.
+- Validado en Chromium local y simulación; no se certificó TaleSpire real, CEF nativo ni una sesión entre equipos. No se desplegó. pnpm se ejecutó fuera del sandbox por EPERM; permanece el aviso existente de chunks grandes.
+
+## [2026-10-13] Limpieza del contrato de sincronización de combate
+
+- Retirados de DTOs, esquemas y recepción de red los campos que los emisores omitían: recursos mágicos, movimiento gastado/máximo temporal, plantillas, velocidades y detalles de invocación. Se conserva el contenido de combate realmente emitido y el protocolo v2 con FRAG, ACK, revisiones y validación de autoridad.
+- Separada la recuperación local con BorradorCombatePJ, proyectarBorradorCombatePJ y serialización propia. Los recursos y la configuración de acompañantes siguen disponibles al reaplicar borradores; el guardado conserva ahora esos datos, que antes se perdían al reutilizar el serializador de red. Los borradores compactos antiguos continúan siendo legibles.
+- La recepción remota ignora los campos retirados y conserva los recursos, movimiento y configuración locales. Se mantienen los cambios previos que excluyen definiciones, usos y elecciones de rasgos del tracker.
+- Verificación: 103 regresiones existentes seleccionadas y seis nuevas; pnpm run ci con salida 0, 134 suites/1850 pruebas, TypeScript, ESLint, auditoría de 158 archivos y build correctos. pnpm run test:sync-simulacion con salida 0 y 12 escenarios aprobados. Logs: scratch/ci-limpieza-sync.log y scratch/simulacion-limpieza-sync.log. Advertencia existente sobre chunks grandes.
+- Validación local y transporte simulado; no se certificó una sesión TaleSpire entre equipos ni se desplegó. pnpm se ejecutó fuera del sandbox tras reproducir EPERM.
+
+## [2026-10-13] Guerrero y subclases desde el constructor declarativo
+
+- Completadas cinco fases: Guerrero, Maestro del Combate, Campeón, Caballero Arcano y Guerrero Psiónico. Informe: IMPLEMENTACION_GUERRERO.md. Maniobras y opciones psiónicas separadas en cajas; su clasificación y ejecución individual permanecen pendientes por alcance explícito.
+- Constructor con tablas de progresión, descanso corto parcial, extensiones, condiciones de finalización/retirada, capacidad mágica y aptitud/componentes del lanzamiento gratuito. Tipos opcionales compartidos y ejecución general para rasgos personalizados; sin reglas nuevas por nombres de Guerrero.
+- Indómito conserva el bono si falla la emisión y finaliza después de una salvación emitida. Bastión aporta cobertura propia durante diez asaltos y finaliza por Incapacitado. Recursos y recargas auxiliares no duplican gasto. Resistencias/inmunidades se resumen a partir de datos declarativos, sin automatizar reducción de daño.
+- Auditoría final corrigió conservación de dotes de estilo independientes, capacidades mágicas y aprendizajes ajenos al cambiar de subclase/aplicar build, y gasto de recursos durante progresión. La ampliación inicial de sync con capacidadesRasgos se retiró por corrección del usuario: definiciones, usos y elecciones de rasgos no pertenecen al tracker. DTO, serialización, observación y recepción vuelven a su contrato de combate anterior; inventario completo en AUDITORIA_CAMBIOS_GUERRERO.md.
+- CI de cada fase correcto; cierre inicial: 133 suites y 1.843 pruebas; tras retirar la ampliación de sync: 133 suites y 1.844 pruebas, TypeScript/ESLint/auditoría de 158 archivos/build aprobados. test:guerrero-ui: seis flujos y dieciséis dimensiones, cero errores; test:rasgos-ui aprobado; test:sync-simulacion: doce escenarios aprobados. Logs en scratch; advertencia existente de chunks grandes.
+- Validaciones locales con Chromium y transporte simulado; no se certificaron clientes TaleSpire ni CEF nativo y no se desplegó.
 
 ## [2026-10-12] Integración de Rama cosa-syn-mejoras en Main: Autoridad Sync, Críticos d12 y Migración UI
 

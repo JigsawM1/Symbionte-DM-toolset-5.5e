@@ -5,7 +5,7 @@
  */
 
 const cacheNormalizacion = new Map<string, string>();
-const LIMITE_CACHE_NORMALIZACION = 1500;
+const LIMITE_CACHE_NORMALIZACION = 5000;
 
 /**
  * Normaliza una cadena de texto eliminando tildes, diéresis, mayúsculas y caracteres diacríticos.
@@ -28,7 +28,12 @@ export function normalizarParaBusqueda(texto: string, normalizarEnye: boolean = 
   }
 
   if (cacheNormalizacion.size >= LIMITE_CACHE_NORMALIZACION) {
-    cacheNormalizacion.clear();
+    let eliminados = 0;
+    for (const k of cacheNormalizacion.keys()) {
+      cacheNormalizacion.delete(k);
+      eliminados++;
+      if (eliminados >= 1000) break;
+    }
   }
   cacheNormalizacion.set(clave, resultado);
   return resultado;
@@ -186,14 +191,22 @@ export function compararPorRelevanciaTitulo<T>(
     return desempate || (() => 0);
   }
 
-  return (a: T, b: T) => {
-    const tituloA = obtenerTitulo(a);
-    const tituloB = obtenerTitulo(b);
-    const secA = obtenerSecundarios ? obtenerSecundarios(a) : undefined;
-    const secB = obtenerSecundarios ? obtenerSecundarios(b) : undefined;
+  const cacheRelevancia = new Map<T, number>();
 
-    const relA = calcularRelevanciaBusqueda(tituloA, consulta, secA);
-    const relB = calcularRelevanciaBusqueda(tituloB, consulta, secB);
+  const obtenerRelevancia = (item: T): number => {
+    let rel = cacheRelevancia.get(item);
+    if (rel === undefined) {
+      const titulo = obtenerTitulo(item);
+      const sec = obtenerSecundarios ? obtenerSecundarios(item) : undefined;
+      rel = calcularRelevanciaBusqueda(titulo, consulta, sec);
+      cacheRelevancia.set(item, rel);
+    }
+    return rel;
+  };
+
+  return (a: T, b: T) => {
+    const relA = obtenerRelevancia(a);
+    const relB = obtenerRelevancia(b);
 
     if (relA !== relB) {
       return relB - relA; // Mayor relevancia primero
@@ -203,6 +216,8 @@ export function compararPorRelevanciaTitulo<T>(
       return desempate(a, b);
     }
 
+    const tituloA = obtenerTitulo(a);
+    const tituloB = obtenerTitulo(b);
     return (tituloA || "").localeCompare(tituloB || "", "es");
   };
 }

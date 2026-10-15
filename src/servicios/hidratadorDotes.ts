@@ -8,6 +8,7 @@ import origenJson from "@/datos/dotes/origen.json";
 import generalesJson from "@/datos/dotes/generales.json";
 import epicasJson from "@/datos/dotes/epicas.json";
 import estiloCombateJson from "@/datos/dotes/estilo_combate.json";
+import { CATALOGO_MANIOBRAS_COMBATE } from "@/constantes/maniobrasCombate";
 
 // =======================================================
 // UTILIDADES PURAS DE BÚSQUEDA Y FILTRADO DE CONJUROS
@@ -102,6 +103,9 @@ export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
 
 // Opciones calculadas de conjuros en memoria
 const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
+  maniobras_combate: () => CATALOGO_MANIOBRAS_COMBATE,
+  dotes_elegibles: () => [...origenJson,...generalesJson,...epicasJson,...estiloCombateJson].map(d => EsquemaDotePersonaje.parse(d))
+    .map(d => ({ id:d.id,nombre:d.nombre,descripcion:d.descripcion,requisito:d.requisito,categoria:d.categoria })),
   trucos_clerigo: () => generarOpcionesConjuros("clérigo", 0),
   conjuros1_clerigo: () => generarOpcionesConjuros("clérigo", 1),
   trucos_druida: () => generarOpcionesConjuros("druida", 0),
@@ -109,6 +113,11 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   trucos_mago: () => generarOpcionesConjuros("mago", 0),
   conjuros1_mago: () => generarOpcionesConjuros("mago", 1),
   trucos_brujo: () => generarOpcionesConjuros("brujo", 0),
+  trucos_todas_clases: () => (HECHIZOS_JSON.filter(h => h.nivel === 0)).map(h => ({ id: h.id, nombre: h.nombre, descripcion: h.escuela })),
+  conjuros6_brujo: () => generarOpcionesConjuros("brujo", 6),
+  conjuros7_brujo: () => generarOpcionesConjuros("brujo", 7),
+  conjuros8_brujo: () => generarOpcionesConjuros("brujo", 8),
+  conjuros9_brujo: () => generarOpcionesConjuros("brujo", 9),
   conjuros1_accion_mago: () => generarOpcionesConjuros("mago", 1, true),
   conjuros2_accion_mago: () => generarOpcionesConjuros("mago", 2, true),
   conjuros3_mago: () => generarOpcionesConjuros("mago", 3),
@@ -118,8 +127,9 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros_ilusion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "ilusion"),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
-    (origenJson as unknown as DotePersonaje[])
+    origenJson.map(d => EsquemaDotePersonaje.parse(d))
       .map((d) => ({
+        ...d,
         id: d.id,
         nombre: d.nombre,
         descripcion: d.descripcion,

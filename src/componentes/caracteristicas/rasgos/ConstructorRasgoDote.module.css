@@ -562,3 +562,10 @@
   color: var(--pj-texto-exito);
 }
 
+
+/* Controles generales de progresión: conservar acceso y ajuste en CEF estrecho. */
+.panelConstructor fieldset { min-width: 0; border: 1px solid var(--pj-borde-sutil); padding: 10px; }
+.panelConstructor legend { color: var(--pj-texto-secundario); font-size: var(--pj-fuente-cuerpo); }
+.panelConstructor h3 { color: var(--pj-texto-primario); font-size: var(--pj-fuente-subtitulo); margin: 0 0 10px; }
+.panelConstructor fieldset button { min-height: 32px; }
+.panelConstructor textarea { max-width: 100%; }

@@ -1,5 +1,9 @@
 import React from "react";
+import { SeccionOpcionesRasgos } from "./SeccionOpcionesRasgos";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
+import { ResumenDefensasRasgos } from "./ResumenDefensasRasgos";
 import type { RasgoPersonaje } from "@/tipos";
+import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
 import { TarjetaRasgo } from "./TarjetaRasgo";
 import { ConstructorRasgoDote } from "./ConstructorRasgoDote";
 import { ModalDetalleRasgo } from "./ModalDetalleRasgo";
@@ -51,7 +55,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
   if (!personajeActivo) {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <div className={estilos.estadoVacio}>
           <User size={32} />
           <p>No hay ningún personaje activo seleccionado.</p>
@@ -63,7 +67,20 @@ export const VistaRasgosJugador: React.FC = () => {
   const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
   const hayFiltrosActivos = consultaBusqueda.trim() !== "" || filtroAccion !== "todos";
 
-  const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number) => {
+  const efectivos = resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel);
+  const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number): React.ReactNode => {
+    if (rasgo.selectores?.some(s => s.ubicacion === "seccion" && s.materializarRasgos)) {
+      const clave = `opciones_${rasgo.id}`;
+      return <SeccionOpcionesRasgos key={rasgo.id} rasgo={rasgo} nivel={obtenerNivelEfectivoParaRasgo(rasgo)}
+        colapsada={!!seccionesColapsadas[clave]} alternar={() => alternarColapso(clave)} renderizar={renderizarTarjetaRasgo}
+        hijos={efectivos.filter(r => r.idRasgoSelectorOrigen === rasgo.id)}
+        actualizar={(id, valores) => actualizarSeleccionRasgo(personajeActivo.id, rasgo.id, id, valores)} />;
+    }
+    if (rasgo.selectores?.some(s => s.ubicacion === "seccion")) return <div key={rasgo.id} className={estilos.seccionPrincipal}>
+      <SeccionSelectoresModalRasgo selectores={rasgo.selectores} nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgo)}
+        alActualizarSeleccion={(idSelector, valores) => actualizarSeleccionRasgo(personajeActivo.id, rasgo.id, idSelector, valores)} />
+      <button type="button" onClick={() => abrirModalEdicion(rasgo)}>Editar {rasgo.nombre}</button>
+    </div>;
     const bloqueo = obtenerBloqueoToggleRasgo(rasgo);
     const esDoteLigada =
       rasgo.id.startsWith("dote_invocacion_") ||
@@ -91,7 +108,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
   if (modoVista === "creador_homebrew") {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <ConstructorRasgoDote
           personaje={personajeActivo}
           rasgoInicial={rasgoParaEditar}
@@ -107,7 +124,7 @@ export const VistaRasgosJugador: React.FC = () => {
   }
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
       {/* 1. Cabecera Compacta */}
       <CabeceraRasgosJugador
         totalRasgosFiltrados={rasgosFiltrados.length}
@@ -125,6 +142,7 @@ export const VistaRasgosJugador: React.FC = () => {
         filtroAccion={filtroAccion}
       />
 
+      {modoVista === "mis_rasgos" && <ResumenDefensasRasgos personaje={personajeActivo} />}
       {/* 2. Filtros Desplegables */}
       {modoVista === "mis_rasgos" && mostrarFiltros && (
         <FiltrosAccionRasgos

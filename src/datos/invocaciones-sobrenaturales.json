@@ -3,7 +3,7 @@
     "id": "armadura_de_sombras",
     "nombre": "Armadura de sombras",
     "nivelMinimo": 1,
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *armadura de mago* sobre ti sin gastar un espacio de conjuro.",
@@ -16,7 +16,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Armadura de mago sobre ti mismo sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "mente_sobrenatural",
@@ -40,10 +41,10 @@
     "id": "pacto_de_la_cadena",
     "nombre": "Pacto de la cadena",
     "nivelMinimo": 1,
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
+    "descripcion": "Aprendes el conjuro *encontrar familiar* y puedes lanzarlo como acción de magia sin gastar un espacio de conjuro. Cuando lo lances, escoge entre una de las formas habituales para tu familiar o una de las siguientes formas especiales: diablillo, duende, esfinge de las maravillas, esqueleto, pseudodragón, quasit, renacuajo slaad o serpiente venenosa.\n\nAsimismo, cuando realizas la acción de atacar, puedes renunciar a uno de tus propios ataques para que el familiar realice un ataque propio con su reacción.",
     "conjuroGratuito": "encontrar familiar",
     "recuperacionConjuro": "ilimitado",
     "efectos": [
@@ -53,7 +54,8 @@
         "valor": "sin_espacio",
         "descripcion": "Lanza Encontrar familiar como acción de magia sin gastar espacios de conjuro con formas especiales"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "pacto_del_filo",
@@ -62,7 +64,7 @@
     "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
+    "descripcion": "Como acción adicional, puedes conjurar en tu mano un arma de pacto, un arma cuerpo a cuerpo sencilla o marcial de tu elección con la que estableces un vínculo. Como alternativa, puedes vincularte con un arma mágica que toques, pero no podrás hacerlo si otra criatura está sintonizada con ella o si otro brujo está vinculado con ella. Hasta que termine el vínculo, tendrás competencia con esa arma y podrás usarla como canalizador mágico.\n\nSiempre que ataques con el arma vinculada, puedes usar tu modificador por Carisma para las tiradas de ataque y de daño en lugar del modificador por Fuerza o Destreza. Además, puedes hacer que cause daño necrótico, psíquico o radiante en lugar de su tipo de daño normal.\n\nTu vínculo con el arma se rompe si vuelves a usar la acción adicional de este rasgo, si el arma está a más de 5 pies de ti durante 1 minuto o más o si mueres. Un arma conjurada desaparece cuando termina el vínculo.",
     "selectores": [
       {
         "id": "tipo_dano_pacto_del_filo",
@@ -92,19 +94,16 @@
             "descripcion": "Cambia el daño del arma a daño radiante"
           }
         ],
-        "valorActual": [
-          "propio"
-        ]
+        "valorActual": [],
+        "visualizacion": "normal"
       }
     ],
-    "efectos": [
-      {
-        "tipo": "personalizado",
-        "objetivo": "arma_pacto",
-        "valor": "carisma",
-        "descripcion": "Permite usar el modificador de Carisma para tiradas de ataque y daño con el arma vinculada del pacto"
-      }
-    ]
+    "efectos": [],
+    "vinculoArma": {
+      "caracteristica": "carisma",
+      "selectorTipoDano": "tipo_dano_pacto_del_filo",
+      "soloCuerpoACuerpoOMagica": true
+    }
   },
   {
     "id": "pacto_del_grimorio",
@@ -112,16 +111,41 @@
     "nivelMinimo": 1,
     "tipoAccion": "pasivo",
     "repetible": false,
-    "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Uniendo hebras de sombras, conjuras un libro en tu mano al terminar un descanso corto o largo. Este Libro de las sombras (tú eliges su aspecto) contiene magia sobrenatural a la que solo tú puedes acceder y que te proporciona los beneficios presentados a continuación. El libro desaparece si conjuras otro con este rasgo o si mueres.\n- **Trucos y rituales.** Cuando aparezca el libro, elige tres trucos y dos conjuros de nivel 1 que estén marcados como “ritual”. Los conjuros pueden ser de la lista de cualquier clase y deben ser conjuros que no tengas ya preparados. Mientras lleves el libro contigo, tendrás preparados los conjuros elegidos y funcionarán como conjuros de brujo para ti.\n- **Canalizador mágico.** Puedes usar el libro como canalizador mágico.",
-    "efectos": [
+    "categoriaMecanica": "activable",
+    "descripcion": "Uniendo hebras de sombras, conjuras un libro en tu mano al terminar un descanso corto o largo. Este Libro de las sombras (tú eliges su aspecto) contiene magia sobrenatural a la que solo tú puedes acceder y que te proporciona los beneficios presentados a continuación. El libro desaparece si conjuras otro con este rasgo o si mueres.\n\n- **Trucos y rituales.** Cuando aparezca el libro, elige tres trucos y dos conjuros de nivel 1 que estén marcados como “ritual”. Los conjuros pueden ser de la lista de cualquier clase y deben ser conjuros que no tengas ya preparados. Mientras lleves el libro contigo, tendrás preparados los conjuros elegidos y funcionarán como conjuros de brujo para ti.\n\n- **Canalizador mágico.** Puedes usar el libro como canalizador mágico.",
+    "efectos": [],
+    "selectores": [
       {
-        "tipo": "personalizado",
-        "objetivo": "libro_de_las_sombras",
-        "valor": "3_trucos_2_rituales",
-        "descripcion": "Libro de las sombras: canalizador mágico, 3 trucos y 2 conjuros rituales de nivel 1 de cualquier clase"
+        "id": "trucos_libro_sombras",
+        "tipo": "multiple",
+        "tipoSelector": "conjuro",
+        "etiqueta": "Trucos del Libro de las sombras",
+        "opciones": [],
+        "maxSelecciones": 3,
+        "valorActual": [],
+        "visualizacion": "lista",
+        "claveOpcionesDinamicas": "trucos_todas_clases",
+        "filtroConjuros": {
+          "excluirPreparados": true
+        }
+      },
+      {
+        "id": "rituales_libro_sombras",
+        "tipo": "multiple",
+        "tipoSelector": "conjuro",
+        "etiqueta": "Rituales del Libro de las sombras",
+        "opciones": [],
+        "maxSelecciones": 2,
+        "valorActual": [],
+        "visualizacion": "lista",
+        "claveOpcionesDinamicas": "rituales_nivel_1",
+        "filtroConjuros": {
+          "excluirPreparados": true
+        }
       }
-    ]
+    ],
+    "esActivable": true,
+    "claseConjurosOtorgados": "brujo"
   },
   {
     "id": "descarga_agonica",
@@ -140,10 +164,15 @@
         "etiqueta": "Truco elegido",
         "opciones": [],
         "maxSelecciones": 1,
-        "valorActual": [
-          "descarga_sobrenatural"
-        ],
-        "claveOpcionesDinamicas": "trucos_brujo"
+        "valorActual": [],
+        "claveOpcionesDinamicas": "trucos_todas_clases",
+        "destinoConjuros": "referencia",
+        "filtroConjuros": {
+          "requiereDano": true,
+          "soloConocidos": true,
+          "clase": "brujo"
+        },
+        "visualizacion": "normal"
       }
     ],
     "efectos": [
@@ -151,8 +180,8 @@
         "tipo": "bono_dano_conjuro",
         "objetivo": "agregar_modificador_habilidad",
         "valor": "carisma",
-        "aplicaA": "descarga_sobrenatural",
-        "descripcion": "Suma tu modificador por Carisma a las tiradas de daño del truco de brujo elegido"
+        "descripcion": "Suma tu modificador por Carisma a las tiradas de daño del truco de brujo elegido",
+        "selectorObjetivo": "truco_descarga_agonica"
       }
     ]
   },
@@ -173,10 +202,16 @@
         "etiqueta": "Truco elegido",
         "opciones": [],
         "maxSelecciones": 1,
-        "valorActual": [
-          "descarga_sobrenatural"
-        ],
-        "claveOpcionesDinamicas": "trucos_brujo"
+        "valorActual": [],
+        "claveOpcionesDinamicas": "trucos_todas_clases",
+        "destinoConjuros": "referencia",
+        "filtroConjuros": {
+          "requiereDano": true,
+          "requiereAtaque": true,
+          "soloConocidos": true,
+          "clase": "brujo"
+        },
+        "visualizacion": "normal"
       }
     ]
   },
@@ -188,7 +223,7 @@
     "tipoAccion": "pasivo",
     "repetible": true,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Elige uno de tus trucos de brujo que conozcas, cause daño y tenga un alcance de 10 pies o más. Cuando lances ese conjuro, su alcance aumenta una cantidad de pies igual a 10 veces tu nivel de brujo.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
+    "descripcion": "Elige uno de tus trucos de brujo que conozcas, cause daño y tenga un alcance de 10 pies o más. Cuando lances ese conjuro, su alcance aumenta una cantidad de pies igual a 30 veces tu nivel de brujo.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige un truco distinto que cumpla las condiciones.",
     "selectores": [
       {
         "id": "truco_lanza_sobrenatural",
@@ -197,10 +232,25 @@
         "etiqueta": "Truco elegido",
         "opciones": [],
         "maxSelecciones": 1,
-        "valorActual": [
-          "descarga_sobrenatural"
-        ],
-        "claveOpcionesDinamicas": "trucos_brujo"
+        "valorActual": [],
+        "claveOpcionesDinamicas": "trucos_todas_clases",
+        "destinoConjuros": "referencia",
+        "filtroConjuros": {
+          "requiereDano": true,
+          "alcanceMinimo": 10,
+          "soloConocidos": true,
+          "clase": "brujo"
+        },
+        "visualizacion": "normal"
+      }
+    ],
+    "efectos": [
+      {
+        "id": "lanza_alcance",
+        "tipo": "modificador_alcance_conjuro",
+        "objetivo": "conjuro",
+        "valor": "30*nivel_brujo",
+        "selectorObjetivo": "truco_lanza_sobrenatural"
       }
     ]
   },
@@ -212,14 +262,28 @@
     "tipoAccion": "pasivo",
     "repetible": true,
     "categoriaMecanica": "selector_informativo",
-    "descripcion": "Has obtenido conocimientos de un ente anciano del multiverso, lo que te permite obtener una dote de origen de tu elección.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige una dote de origen distinta."
+    "descripcion": "Has obtenido conocimientos de un ente anciano del multiverso, lo que te permite obtener una dote de origen de tu elección.\n\n**Repetible.** Puedes obtener esta invocación más de una vez. Cada vez que lo hagas, elige una dote de origen distinta.",
+    "selectores": [
+      {
+        "id": "dote_lecciones_primeros",
+        "tipo": "unico",
+        "tipoSelector": "dote",
+        "etiqueta": "Dote de origen",
+        "opciones": [],
+        "maxSelecciones": 1,
+        "valorActual": [],
+        "visualizacion": "normal",
+        "claveOpcionesDinamicas": "dotes_origen",
+        "categoriaDote": "origen"
+      }
+    ]
   },
   {
     "id": "mascara_de_los_mil_rostros",
     "nombre": "Máscara de los mil rostros",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *disfrazarse* sin gastar un espacio de conjuro.",
@@ -232,14 +296,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Disfrazarse a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "salto_sobrenatural",
     "nombre": "Salto sobrenatural",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *salto* sobre ti sin gastar un espacio de conjuro.",
@@ -252,14 +317,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Salto sobre ti mismo a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "vigor_infernal",
     "nombre": "Vigor infernal",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *falsa vida* sobre ti sin gastar un espacio de conjuro. Si lanzas el conjuro con este rasgo, no tiras el dado para los puntos de golpe temporales; en su lugar, obtienes automáticamente el número más alto en el dado.",
@@ -269,8 +335,8 @@
       {
         "tipo": "hp_temporal",
         "objetivo": "propio",
-        "valor": "12 + 5 * (nivel_espacio_pacto - 1)",
-        "descripcion": "Vigor infernal: Otorga 12 + 5 * (nivel de espacio del pacto - 1) PG temporales"
+        "valor": 12,
+        "descripcion": "Falsa vida de nivel 1: 12 PG temporales al lanzar con esta invocación."
       },
       {
         "tipo": "conjuro_gratuito",
@@ -278,14 +344,15 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Falsa vida sobre ti mismo a voluntad sin gastar espacios de conjuro (obtiene el valor máximo del dado)"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "visiones_brumosas",
     "nombre": "Visiones brumosas",
     "nivelMinimo": 2,
     "requisitoPrevio": "Brujo nivel 2+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *imagen silenciosa* sin gastar un espacio de conjuro.",
@@ -298,7 +365,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Imagen silenciosa a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "vista_del_diablo",
@@ -342,9 +410,9 @@
     "nombre": "Don de las profundidades",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
-    "categoriaMecanica": "pasivo_permanente",
+    "categoriaMecanica": "consumible",
     "descripcion": "Puedes respirar bajo el agua y obtienes una velocidad nadando igual a tu velocidad.\nTambién puedes lanzar *respirar bajo el agua* una vez sin gastar un espacio de conjuro. Recuperas la capacidad de lanzarlo de este modo tras finalizar un descanso largo.",
     "conjuroGratuito": "respirar bajo el agua",
     "recuperacionConjuro": "descanso_largo",
@@ -361,7 +429,11 @@
         "valor": "nadar",
         "descripcion": "Velocidad de nado igual a tu velocidad al caminar"
       }
-    ]
+    ],
+    "tieneUsosLimitados": true,
+    "usosMaximos": 1,
+    "recuperacion": "descanso_largo",
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "filo_sediento",
@@ -373,14 +445,7 @@
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Obtienes el rasgo Ataque adicional, pero solo para tu arma de pacto. Este rasgo te permite hacer dos ataques con esa arma en lugar de uno cuando lleves a cabo la acción de atacar en tu turno.",
-    "efectos": [
-      {
-        "tipo": "personalizado",
-        "objetivo": "ataque_adicional_arma_pacto",
-        "valor": 2,
-        "descripcion": "Ataque adicional: permite realizar 2 ataques con tu arma de pacto al atacar"
-      }
-    ]
+    "efectos": []
   },
   {
     "id": "inversion_del_amo_de_las_cadenas",
@@ -391,14 +456,14 @@
     "tipoAccion": "accion_adicional",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Cuando lanzas *encontrar familiar*, imbuyes al familiar invocado de una cierta cantidad de tu poder sobrenatural, lo que le otorga a la criatura los siguientes beneficios:\n- **Acuático o aéreo.** El familiar obtiene una velocidad nadando o una velocidad volando (a tu elección) de 40 pies.\n- **Ataque rápido.** Como acción adicional, puedes ordenar al familiar que realice la acción de atacar.\n- **Daño necrótico o radiante.** Siempre que el familiar haga daño contundente, cortante o perforante, puedes hacer que cause daño necrótico o radiante en su lugar.\n- **Tu CD de salvación.** Si el familiar obliga a una criatura a realizar una tirada de salvación, esta utiliza tu CD de salvación de conjuros.\n- **Resistencia.** Cuando el familiar recibe daño, puedes usar una reacción para otorgarle resistencia contra ese daño."
+    "descripcion": "Cuando lanzas *encontrar familiar*, imbuyes al familiar invocado de una cierta cantidad de tu poder sobrenatural, lo que le otorga a la criatura los siguientes beneficios:\n\n- **Acuático o aéreo.** El familiar obtiene una velocidad nadando o una velocidad volando (a tu elección) de 40 pies.\n\n- **Ataque rápido.** Como acción adicional, puedes ordenar al familiar que realice la acción de atacar.\n\n- **Daño necrótico o radiante.** Siempre que el familiar haga daño contundente, cortante o perforante, puedes hacer que cause daño necrótico o radiante en su lugar.\n\n- **Tu CD de salvación.** Si el familiar obliga a una criatura a realizar una tirada de salvación, esta utiliza tu CD de salvación de conjuros.\n\n- **Resistencia.** Cuando el familiar recibe daño, puedes usar una reacción para otorgarle resistencia contra ese daño."
   },
   {
     "id": "maestro_de_las_formas_innumerables",
     "nombre": "Maestro de las formas innumerables",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *alterar el propio aspecto* sin gastar un espacio de conjuro.",
@@ -411,7 +476,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Alterar el propio aspecto a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "mirada_de_las_dos_mentes",
@@ -428,7 +494,7 @@
     "nombre": "Paso ascendente",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *levitar* sobre ti sin gastar un espacio de conjuro.",
@@ -441,18 +507,18 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Levitar sobre ti mismo a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "uno_con_las_sombras",
     "nombre": "Uno con las sombras",
     "nivelMinimo": 5,
     "requisitoPrevio": "Brujo nivel 5+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Mientras estés en una zona de luz tenue u oscuridad, puedes lanzar *invisibilidad* sobre ti sin gastar un espacio de conjuro.",
-    "conjuroGratuito": "invisibilidad",
     "recuperacionConjuro": "ilimitado",
     "efectos": [
       {
@@ -469,7 +535,7 @@
     "nombre": "Susurros del sepulcro",
     "nivelMinimo": 7,
     "requisitoPrevio": "Brujo nivel 7+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *hablar con los muertos* sin gastar un espacio de conjuro.",
@@ -482,7 +548,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Hablar con los muertos a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "devorador_de_vida",
@@ -493,7 +560,7 @@
     "tipoAccion": "pasivo",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
-    "descripcion": "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes causarle 1d6 de daño necrótico, psíquico o radiante adicional (a tu elección) a esa criatura.",
+    "descripcion": "Una vez por turno, cuando aciertes a una criatura con tu arma de pacto, puedes causarle 1d6 de daño necrótico, psíquico o radiante adicional (a tu elección) a esa criatura. Además, al causar ese daño puedes gastar un Dado de Golpe para recuperar el resultado del dado más tu modificador por Constitución (mínimo 1 PG).",
     "selectores": [
       {
         "id": "tipo_dano_devorador_de_vida",
@@ -518,21 +585,12 @@
             "descripcion": "1d6 de daño radiante adicional"
           }
         ],
-        "valorActual": [
-          "necrotico"
-        ]
+        "valorActual": [],
+        "visualizacion": "normal"
       }
     ],
-    "efectos": [
-      {
-        "tipo": "dano_secundario",
-        "objetivo": "arma_cac",
-        "aplicaA": "arma_cac",
-        "valor": "1d6",
-        "tipoDano": "Necrótico",
-        "descripcion": "Devorador de vida: 1d6 de daño adicional (a elección) al acertar con arma cuerpo a cuerpo"
-      }
-    ]
+    "efectos": [],
+    "formulaDados": "1d6"
   },
   {
     "id": "don_de_los_protectores",
@@ -540,21 +598,21 @@
     "nivelMinimo": 9,
     "requisitoPrevio": "Brujo nivel 9+, invocación Pacto del grimorio\n",
     "requisitoInvocacion": "pacto_del_grimorio",
-    "tipoAccion": "reaccion",
+    "tipoAccion": "especial",
     "repetible": false,
     "categoriaMecanica": "consumible",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
     "usosRestantes": 1,
     "recuperacion": "descanso_largo",
-    "descripcion": "Aparece una nueva página en el Libro de las sombras cuando lo conjuras. Con tu permiso, una criatura puede usar una acción para escribir su nombre en esa página, que puede contener una cantidad de nombres igual a tu modificador por Carisma (mínimo un nombre).\nCuando los puntos de golpe de cualquier criatura cuyo nombre esté en la página se reduzcan a 0, pero no muera, en vez de eso pasará a tener 1 punto de golpe mágicamente. Cuando esta magia se active, ninguna criatura podrá beneficiarse de ella hasta que finalices un descanso largo.\nComo acción de magia, puedes borrar un nombre de la página tocándolo."
+    "descripcion": "Aparece una nueva página en el Libro de las sombras cuando lo conjuras. Con tu permiso, una criatura puede usar una acción para escribir su nombre en esa página, que puede contener una cantidad de nombres igual a tu modificador por Carisma (mínimo un nombre).\n\nCuando los puntos de golpe de cualquier criatura cuyo nombre esté en la página se reduzcan a 0, pero no muera, en vez de eso pasará a tener 1 punto de golpe mágicamente. Cuando esta magia se active, ninguna criatura podrá beneficiarse de ella hasta que finalices un descanso largo.\n\nComo acción de magia, puedes borrar un nombre de la página tocándolo."
   },
   {
     "id": "visiones_de_reinos_remotos",
     "nombre": "Visiones de reinos remotos",
     "nivelMinimo": 9,
     "requisitoPrevio": "Brujo nivel 9+\n",
-    "tipoAccion": "pasivo",
+    "tipoAccion": "accion",
     "repetible": false,
     "categoriaMecanica": "pasivo_permanente",
     "descripcion": "Puedes lanzar *ojo arcano* sin gastar un espacio de conjuro.",
@@ -567,7 +625,8 @@
         "valor": "sin_espacio",
         "descripcion": "Permite lanzar Ojo arcano a voluntad sin gastar espacios de conjuro"
       }
-    ]
+    ],
+    "aptitudConjuroGratuito": "carisma"
   },
   {
     "id": "hoja_devoradora",

@@ -2,7 +2,6 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--pj-fondo-base);
   color: var(--pj-texto-primario);
   font-family: var(--fuente-principal);
   padding: 12px;

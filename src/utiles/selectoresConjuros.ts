@@ -23,6 +23,7 @@ export function esSelectorDeTrucos(selector: SelectorMinimo): boolean {
  * Función pura y agnóstica de clase.
  */
 export function esSelectorDeConjuros(selector: SelectorMinimo): boolean {
+  if (selector.destinoConjuros === "referencia" || selector.destinoConjuros === "arcano_mistico") return false;
   if (!selector) return false;
   return selector.tipoSelector === "conjuro" || Boolean(selector.esConjuroGratuito);
 }

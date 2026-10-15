@@ -1,8 +1,10 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
+import { puedeElegirDoteEstilo } from "@/servicios/clases/dotesClase";
 import { construirDoteDeMejoraCaracteristica, construirDoteDeDonEpico, construirDoteDeEstiloCombate, obtenerNivelEfectivoParaRasgo } from "@/servicios/gestorClases";
 import { construirDoteDeVersatil } from "@/servicios/gestorEspecies";
-import { calcularBonoHPMaximoRasgos, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularBonoHPMaximoRasgos } from "@/servicios/rasgos/evaluadorVitalidadRasgos";
+import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 import { esSelectorDeConjuros, esSelectorSoloLibro, agregarValoresSelectorAListas, quitarValoresSelectorDeListas, type ListasConjurosSelector } from "@/utiles/selectoresConjuros";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -10,10 +12,22 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import type { TamanoPersonaje } from "@/tipos";
 import { normalizarTextoSeguro } from "./condicionesRasgosHelpers";
 import { generarId } from "@/utiles/generarId";
+import { seleccionOpcionValida } from "@/servicios/rasgos/seleccionesRasgos";
+import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
 actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
     mutarPersonaje(set, idPj, (pj) => {
+      const rasgoPedido = pj.rasgos.find(r => r.id === idRasgo);
+      const selectorPedido = rasgoPedido?.selectores?.find(s => s.id === idSelector);
+      const maxPedido = [...(selectorPedido?.escaladoMaxSelecciones ?? [])].sort((a, b) => b.nivelMinimo - a.nivelMinimo)
+        .find(e => rasgoPedido && obtenerNivelEfectivoParaRasgo(pj, rasgoPedido) >= e.nivelMinimo)?.valor ?? selectorPedido?.maxSelecciones ?? 1;
+      if (!selectorPedido || selectorPedido.modo === "consulta" || new Set(valorActual).size !== valorActual.length || valorActual.length > maxPedido
+        || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === id.split(/:|__/)[0])))) return pj;
+      if (selectorPedido.categoriaDote === "estilo_combate" && valorActual.some(id => !puedeElegirDoteEstilo(pj, idRasgo, id))) return pj;
+      if (selectorPedido.tipoSelector === "dote" && valorActual.some(id => !evaluarRequisitoDote(selectorPedido.opciones.find(o=>o.id===id)?.requisito,pj,pj.nivel).cumple)) return pj;
+      if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")
+        && valorActual.some(id => !seleccionOpcionValida(selectorPedido, id, valorActual, obtenerNivelEfectivoParaRasgo(pj, rasgoPedido!), pj))) return pj;
       let tamanoActualizado = pj.tamano;
       const esSelectorTamano =
         idSelector === "selector_tamano_especie" || idSelector.toLowerCase().includes("tamano");
@@ -116,7 +130,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const esSelectorDoteASI = idSelector.includes("dote_asi") || (esMejora && idSelector.toLowerCase().includes("dote"));
       const esSelectorDoteDon = idSelector.includes("dote_don") || (esDonEpico && idSelector.toLowerCase().includes("dote"));
       const esSelectorDoteOrigen = idSelector.includes("dote_origen") || (esVersatil && idSelector.toLowerCase().includes("dote"));
-      const esSelectorDoteEstilo = idSelector.includes("dote_estilo") || (esEstilo && idSelector.toLowerCase().includes("dote"));
+      const esSelectorDoteEstilo = selectorPedido.categoriaDote === "estilo_combate" || idSelector.includes("dote_estilo") || (esEstilo && idSelector.toLowerCase().includes("dote"));
 
       if (esSelectorDoteASI && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
         const idDoteElegida = valorActual[0];
@@ -188,6 +202,9 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
         }
       }
 
+      if ((esSelectorDoteEstilo || selectorPedido.requiereEleccionExplicita) && !valorActual.length) {
+        for (let i = rasgosActualizados.length - 1; i >= 0; i--) if (rasgosActualizados[i].origen === "dote" && rasgosActualizados[i].ligadoA === idRasgo) rasgosActualizados.splice(i, 1);
+      }
       // Sincronizar trucosConocidosIds del personaje
       let trucosConocidosActualizados = pj.trucosConocidosIds || [];
 

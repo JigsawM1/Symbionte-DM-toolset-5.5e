@@ -6,6 +6,7 @@ import {
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import {
   normalizar,
+  esRasgoHabilitadoPorOpcion,
   estaRevelacionCelestialActiva,
   obtenerBonoCompetenciaPersonaje,
   obtenerNivelClasePersonaje,
@@ -35,12 +36,14 @@ export interface ContextoAtaquePersonaje {
 /**
  * Comprueba si un efecto mecánico de daño aplica al contexto del ataque actual.
  */
-function aplicaEfectoAAtaque(
+export function aplicaEfectoAAtaque(
   aplicaA: string | undefined,
   objetivo: string,
   contexto: ContextoAtaquePersonaje
 ): boolean {
   const criterio = normalizar(aplicaA || objetivo || "");
+
+  if (criterio === "arma") return contexto.tipo === "arma" || contexto.tipo === "improvisada";
 
   if (criterio === "todos_ataques" || criterio === "todos" || criterio === "ataque") {
     return true;
@@ -514,37 +517,21 @@ export function personajeTieneMaestriaArma(
 export interface ConfiguracionPactoDelFilo {
   activo: boolean;
   tipoDano: "propio" | "necrotico" | "psiquico" | "radiante";
+  caracteristica?: Caracteristica;
 }
 
 /**
  * Obtiene el estado y configuración de la invocación Pacto del filo para el personaje.
  * Determina si está activo y el tipo de daño seleccionado ('propio', 'necrotico', 'psiquico', 'radiante').
  */
-export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador): ConfiguracionPactoDelFilo {
+export function obtenerConfiguracionPactoDelFilo(personaje: PersonajeJugador, idInstancia?: string): ConfiguracionPactoDelFilo {
   if (!personaje) return { activo: false, tipoDano: "propio" };
-
-  for (const r of personaje.rasgos || []) {
-    if (r.activo === false) continue;
-    if (Array.isArray(r.selectores)) {
-      for (const sel of r.selectores) {
-        for (const val of sel.valorActual || []) {
-          if (
-            typeof val === "string" &&
-            (val === "pacto_del_filo" || val.startsWith("pacto_del_filo:") || val.startsWith("pacto_del_filo__"))
-          ) {
-            const subtipo = val.includes(":") ? val.split(":")[1].toLowerCase() : "propio";
-            const tipoValido =
-              subtipo === "necrotico" || subtipo === "psiquico" || subtipo === "radiante"
-                ? subtipo
-                : "propio";
-            return { activo: true, tipoDano: tipoValido };
-          }
-        }
-      }
-    }
-    if (r.id === "pacto_del_filo" || normalizar(r.nombre) === "pacto del filo") {
-      return { activo: true, tipoDano: "propio" };
-    }
+  for (const r of personaje.rasgos || []) if (r.activo !== false && r.vinculoArma?.idInstancia
+    && esRasgoHabilitadoPorOpcion(r, personaje.rasgos)
+    && (!idInstancia || r.vinculoArma.idInstancia === idInstancia)) {
+    const tipo = r.selectores?.find(s => s.id === r.vinculoArma?.selectorTipoDano)?.valorActual[0];
+    return { activo:true, caracteristica:r.vinculoArma.caracteristica,
+      tipoDano: tipo === "necrotico" || tipo === "psiquico" || tipo === "radiante" ? tipo : "propio" };
   }
   return { activo: false, tipoDano: "propio" };
 }
@@ -582,23 +569,6 @@ export function aplicarModificadoresInvocacionesAHechizo(
 ): HechizoBase {
   if (!personaje || hechizo.nivel !== 0) {
     return hechizo;
-  }
-
-  // 1. Recolectar selecciones activas de invocaciones del personaje
-  const invocacionesActivas: string[] = [];
-  for (const r of personaje.rasgos || []) {
-    if (r.activo === false) continue;
-    if (Array.isArray(r.selectores)) {
-      for (const sel of r.selectores) {
-        if (Array.isArray(sel.valorActual)) {
-          for (const val of sel.valorActual) {
-            if (typeof val === "string" && val.trim()) {
-              invocacionesActivas.push(val.trim());
-            }
-          }
-        }
-      }
-    }
   }
 
   let modificado = false;
@@ -639,52 +609,19 @@ export function aplicarModificadoresInvocacionesAHechizo(
     );
   });
 
-  // Respaldo de compatibilidad directa para selecciones de invocaciones en mocks unitarios
-  const coincideInvocacionDirecta =
-    !tieneBonoHabilidadTruco &&
-    invocacionesActivas.some((inv) => {
-      if (!inv.startsWith("descarga_agonica")) return false;
-      if (inv.includes(":")) {
-        const trucoId = inv.split(":")[1];
-        return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
-      }
-      return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
-    });
-
-  if ((tieneBonoHabilidadTruco || coincideInvocacionDirecta) && !nuevoAgregarModificadorHabilidad) {
+  if (tieneBonoHabilidadTruco && !nuevoAgregarModificadorHabilidad) {
     nuevoAgregarModificadorHabilidad = true;
     modificado = true;
   }
-
-  // 3. Evaluar Lanza Sobrenatural: añade (nivelBrujo * 10) pies al alcance si es >= 10 pies
-  const tieneLanzaSobrenatural = invocacionesActivas.some((inv) => {
-    if (!inv.startsWith("lanza_sobrenatural")) return false;
-    if (inv.includes(":")) {
-      const trucoId = inv.split(":")[1];
-      return coincideHechizoId(trucoId, hechizo.id) || coincideHechizoId(trucoId, hechizo.nombre);
+  // El catálogo declara el alcance y el conjuro elegido; se evalúa la fórmula genérica.
+  const baseAlcance = nuevoAlcance?.match(/^(\d+)\s*(pies|ft)?$/i);
+  if (baseAlcance) {
+    let bono = 0;
+    for (const ef of efectosRasgosActivos) if (ef.tipo === "modificador_alcance_conjuro" && ef.aplicaA
+      && (coincideHechizoId(ef.aplicaA, hechizo.id) || coincideHechizoId(ef.aplicaA, hechizo.nombre))) {
+      bono += evaluarExpresionNumericaSegura(resolverFormulaDinamica(ef.valor, personaje));
     }
-    return coincideHechizoId("descarga_sobrenatural", hechizo.id) || coincideHechizoId("descarga_sobrenatural", hechizo.nombre);
-  });
-
-  if (tieneLanzaSobrenatural && nuevoAlcance) {
-    // Parsear alcance numérico (ej. "120 pies", "120 ft", "60 pies", "30")
-    const matchAlcance = nuevoAlcance.match(/^(\d+)\s*(pies|ft|m|metros)?$/i);
-    if (matchAlcance) {
-      const valorBase = parseInt(matchAlcance[1], 10);
-      const unidad = matchAlcance[2] || "pies";
-      if (valorBase >= 10) {
-        const nivelBrujo =
-          personaje.clases?.find(
-            (c) => normalizar(c.nombre) === "brujo"
-          )?.nivel ||
-          (normalizar(personaje.clase) === "brujo" ? personaje.nivel : 0) ||
-          1;
-
-        const bonoPies = nivelBrujo * 10;
-        nuevoAlcance = `${valorBase + bonoPies} ${unidad}`;
-        modificado = true;
-      }
-    }
+    if (bono) { nuevoAlcance = String(Number(baseAlcance[1]) + bono) + " pies"; modificado = true; }
   }
 
   if (!modificado) return hechizo;

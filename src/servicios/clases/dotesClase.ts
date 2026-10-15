@@ -1,6 +1,17 @@
-import type { RasgoPersonaje, SelectorRasgo } from "@/tipos";
+import type { RasgoPersonaje, SelectorRasgo, PersonajeJugador } from "@/tipos";
 import { TODAS_LAS_DOTES_CANONICAS_DND55 } from "@/constantes/dotesConstantes";
 import { normalizarTextoClase } from "./catalogoClases";
+
+/** Una elección independiente conserva su concesión; las dotes no repetibles no se duplican. */
+export function puedeElegirDoteEstilo(personaje: PersonajeJugador, idRasgo: string, idDote: string): boolean {
+  const dote = TODAS_LAS_DOTES_CANONICAS_DND55.find(d => d.id === idDote && d.categoria === "estilo_combate");
+  if (!dote) return false;
+  if (dote.repetible) return true;
+  return !personaje.rasgos.some(r => r.id !== idRasgo && r.ligadoA !== idRasgo && (
+    (r.origen === "dote" && normalizarTextoClase(r.nombre) === normalizarTextoClase(dote.nombre)) ||
+    r.selectores?.some(s => s.categoriaDote === "estilo_combate" && s.valorActual.includes(idDote))
+  ));
+}
 
 /**
  * Determina si el nombre de un rasgo corresponde a la mejora de característica de clase.

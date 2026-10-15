@@ -80,15 +80,16 @@ export function calcularAtaqueArmaEquipada(
   const esMonje = (personajeActivo.clase || "").toLowerCase().includes("monje");
   const modificadores = statsCalculadas.modificadores;
 
-  const configPactoFilo = obtenerConfiguracionPactoDelFilo(personajeActivo);
+  const configPactoFilo = obtenerConfiguracionPactoDelFilo(personajeActivo, armaInst.idInstancia);
 
   let caracDefecto: Caracteristica = "fuerza";
-  if (configPactoFilo.activo && !esDistancia) {
-    const modCar = modificadores.carisma || 0;
+  if (configPactoFilo.activo) {
+    const atributoVinculo = configPactoFilo.caracteristica ?? "carisma";
+    const modCar = modificadores[atributoVinculo] || 0;
     const modFue = modificadores.fuerza || 0;
     const modDes = modificadores.destreza || 0;
     if (modCar >= modFue && modCar >= modDes) {
-      caracDefecto = "carisma";
+      caracDefecto = atributoVinculo;
     } else if (esSutil) {
       caracDefecto = modDes > modFue ? "destreza" : "fuerza";
     }
@@ -121,7 +122,7 @@ export function calcularAtaqueArmaEquipada(
   const esMagicoReal = armaInst.esMagico || !!objetoCompendio?.esMagico || bonoMagico > 0;
   const subcategoriaArma = objetoCompendio?.subcategoria || inferidos.subcategoria;
   const esCompetenteArma =
-    (configPactoFilo.activo && !esDistancia) ||
+    configPactoFilo.activo ||
     esCompetenteConArma(
       armaInst.nombre,
       subcategoriaArma,
@@ -220,7 +221,7 @@ export function calcularAtaqueArmaEquipada(
   );
 
   let tipoDanoBase = objetoCompendio?.tipoDano || inferidos.tipoDano;
-  if (configPactoFilo.activo && !esDistancia && configPactoFilo.tipoDano !== "propio") {
+  if (configPactoFilo.activo && configPactoFilo.tipoDano !== "propio") {
     const mapaTipos: Record<string, string> = {
       necrotico: "Necrótico",
       psiquico: "Psíquico",

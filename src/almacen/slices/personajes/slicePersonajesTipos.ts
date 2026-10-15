@@ -183,6 +183,8 @@ export interface SubSliceRasgos {
   actualizarRasgoPersonaje: (idPj: string, idRasgo: string, cambios: Partial<RasgoPersonaje>) => void;
   eliminarRasgoPersonaje: (idPj: string, idRasgo: string) => void;
   gastarUsoRasgoPersonaje: (idPj: string, idRasgo: string, cantidad?: number) => void;
+  recargarUsoRasgoConPacto: (idPj: string, idRasgo: string) => void;
+  recargarUsoRasgoConPadre: (idPj: string, idRasgo: string) => void;
   recuperarUsoRasgoPersonaje: (idPj: string, idRasgo: string, cantidad?: number) => void;
   establecerUsosRestantesRasgoPersonaje: (idPj: string, idRasgo: string, usos: number) => void;
   sincronizarRasgosPersonaje: (idPj: string) => void;

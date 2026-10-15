@@ -1,3 +1,4 @@
+import { claveEstado } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { tieneMedioBonoHabilidades, aplicarAprendizDeMuchoAGradosHabilidades, calcularBonoHPMaximoRasgos, calcularUsosMaximosRasgo, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
@@ -8,6 +9,7 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideCondicionConRasgo } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
+import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
 alternarActivoRasgo: (idPj, idRasgo) => {
@@ -18,6 +20,14 @@ alternarActivoRasgo: (idPj, idRasgo) => {
       if (!targetTrait) return pj;
 
       const nuevoActivo = !targetTrait.activo;
+      if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return pj;
+      if (nuevoActivo && targetTrait.tieneUsosLimitados && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1)) return pj;
+      if (nuevoActivo && targetTrait.restaurarUsosAlActivar) {
+        const cfg = targetTrait.restaurarUsosAlActivar;
+        const objetivo = (pj.rasgos ?? []).find(r => r.id === cfg.idRasgoObjetivo || normalizar(r.nombre) === normalizar(cfg.idRasgoObjetivo));
+        if (!objetivo || (objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0) >= (objetivo.usosMaximos ?? 1)) return pj;
+      }
+      if (nuevoActivo && targetTrait.desactivarConCondiciones?.some(c => (pj.condicionesActivas ?? []).some(a => claveEstado(c) === claveEstado(a)))) return pj;
       if (nuevoActivo && targetTrait.ligadoA) {
         const padre = resolverRasgoPadre(targetTrait, pj.rasgos || []);
         const padreActivo = padre && (
@@ -164,6 +174,11 @@ alternarActivoRasgo: (idPj, idRasgo) => {
         return r;
       });
 
+      if (nuevoActivo && targetTrait.eliminarCondicionesAlActivar?.length) {
+        const retiradas = new Set(targetTrait.eliminarCondicionesAlActivar.map(claveEstado));
+        condicionesActualizadas = condicionesActualizadas.filter(c => !retiradas.has(claveEstado(c)));
+        efectosActualizados = efectosActualizados.filter(e => !retiradas.has(claveEstado(e.nombre)));
+      }
       const pjPrevio = {
         ...pj,
         rasgos: rasgosActualizados,

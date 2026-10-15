@@ -77,36 +77,36 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
       expect(contactar?.tipoAccion).toBe("especial");
     });
 
-    it("Nivel 11: Arcano místico es consumible y escala sus usos de 1 a 4 por nivel", () => {
+    it("Nivel 11: Arcano místico elige conjuros con una reserva externa independiente por nivel", () => {
       const buildNv11 = construirBuildClase("Brujo", 11);
       const arcano11 = buildNv11?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano11?.categoriaMecanica).toBe("consumible");
-      expect(arcano11?.usosMaximos).toBe(1);
+      expect(arcano11?.categoriaMecanica).toBe("selector_informativo");
+      expect(arcano11?.usosMaximos).toBeUndefined();
+      expect(arcano11?.selectores?.[0].nivelConjuro).toBe(6);
 
       const buildNv13 = construirBuildClase("Brujo", 13);
       const arcano13 = buildNv13?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano13?.usosMaximos).toBe(2);
+      expect(arcano13?.usosMaximos).toBeUndefined();
+      expect(arcano13?.selectores?.[0].nivelConjuro).toBe(6);
 
       const buildNv15 = construirBuildClase("Brujo", 15);
       const arcano15 = buildNv15?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano15?.usosMaximos).toBe(3);
+      expect(arcano15?.usosMaximos).toBeUndefined();
+      expect(arcano15?.selectores?.[0].nivelConjuro).toBe(6);
 
       const buildNv17 = construirBuildClase("Brujo", 17);
       const arcano17 = buildNv17?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano17?.usosMaximos).toBe(4);
+      expect(arcano17?.usosMaximos).toBeUndefined();
+      expect(arcano17?.selectores?.[0].nivelConjuro).toBe(6);
     });
 
-    it("Niveles 13, 15, 17: Arcano místico II, III y IV se fusionan como extensiones en Arcano místico", () => {
+    it("Niveles 13, 15, 17: Arcano místico II, III y IV conservan elecciones independientes de Arcano místico", () => {
       const buildNv20 = construirBuildClase("Brujo", 20);
       const arcanoPadre = buildNv20?.rasgos.find((r) => r.nombre === "Arcano místico");
       expect(arcanoPadre).toBeDefined();
-      // No deben existir tarjetas separadas de Arcano místico II, III o IV
-      const hijos = buildNv20?.rasgos.filter((r) => r.nombre.startsWith("Arcano místico "));
-      expect(hijos).toHaveLength(0);
-      // Las descripciones deben estar concatenadas en el padre
-      expect(arcanoPadre?.descripcion).toContain("Arcano místico II");
-      expect(arcanoPadre?.descripcion).toContain("Arcano místico III");
-      expect(arcanoPadre?.descripcion).toContain("Arcano místico IV");
+      const arcanos = buildNv20?.rasgos.filter(r => r.selectores?.some(s => s.destinoConjuros === "arcano_mistico"));
+      expect(arcanos).toHaveLength(4);
+      expect(arcanos?.map(r => r.selectores?.[0].nivelConjuro)).toEqual([6, 7, 8, 9]);
     });
 
     it("Nivel 19: Don épico es selector_informativo con dote épica", () => {
@@ -146,11 +146,12 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
       const pasos = build?.rasgos.find((r) => r.nombre === "Pasos feéricos");
       expect(pasos?.categoriaMecanica).toBe("consumible");
       expect(pasos?.formulaDados).toBe("1d10");
+      expect(pasos?.conjuroGratuito).toBe("Paso brumoso");
       expect(pasos?.escaladoUsos?.tipo).toBe("por_modificador");
       expect(pasos?.escaladoUsos?.modificador).toBe("carisma");
     });
 
-    it("Nivel 6: Escapada brumosa es consumible de reacción con 2d10 gastando de Pasos feéricos", () => {
+    it("Nivel 6: Escapada brumosa recupera 2d10 para Paso pavoroso con gasto del padre", () => {
       const build = construirBuildClase("Brujo", 6, "patron_de_los_archihadas");
       const pasos = build?.rasgos.find((r) => r.nombre === "Pasos feéricos");
       expect(pasos).toBeDefined();
@@ -192,7 +193,7 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
       const build = construirBuildClase("Brujo", 6, "patron_celestial");
       const alma = build?.rasgos.find((r) => r.nombre === "Alma radiante");
       expect(alma?.categoriaMecanica).toBe("pasivo_permanente");
-      const efRes = alma?.efectos?.find((e) => e.objetivo === "radiante");
+      const efRes = alma?.efectos?.find((e) => e.tipo === "resistencia_dano" && e.tipoDano === "Radiante");
       expect(efRes?.valor).toBe("resistencia");
     });
 
@@ -273,7 +274,7 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
 
       const escudo = build?.rasgos.find((r) => r.nombre === "Escudo de pensamientos");
       expect(escudo?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(escudo?.efectos?.find((e) => e.objetivo === "psiquico")?.valor).toBe("resistencia");
+      expect(escudo?.efectos?.find((e) => e.tipo === "resistencia_dano" && e.tipoDano === "Psíquico")?.valor).toBe("resistencia");
 
       const esclavo = build?.rasgos.find((r) => r.nombre === "Crear esclavo");
       expect(esclavo?.categoriaMecanica).toBe("pasivo_permanente");
@@ -295,7 +296,8 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
         expect(inv?.categoriaMecanica).toBe("selector_informativo");
         const sel = inv?.selectores?.[0];
         expect(sel, `Invocación ${id} debe tener un selector`).toBeDefined();
-        expect(sel?.claveOpcionesDinamicas).toBe("trucos_brujo");
+        expect(sel?.claveOpcionesDinamicas).toBe("trucos_todas_clases");
+        expect(sel?.filtroConjuros?.clase).toBe("brujo");
       }
     });
 

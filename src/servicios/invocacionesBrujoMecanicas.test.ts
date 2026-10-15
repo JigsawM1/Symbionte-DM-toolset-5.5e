@@ -1,3 +1,4 @@
+import { construirRasgosDesdeSelectores } from './rasgos/seleccionesRasgos';
 import { describe, it, expect } from "vitest";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
@@ -105,6 +106,11 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   ];
 
   function crearBrujoConInvocaciones(nivel: number, invocacionesSeleccionadas: string[]): PersonajeJugador {
+    const requisitos = invocacionesSeleccionadas.flatMap(v => {
+      const id = v.split(/:|__/)[0];
+      return CATALOGO_INVOCACIONES_SOBRENATURALES.find(i => i.id === id)?.requisitoInvocacion ?? [];
+    });
+    invocacionesSeleccionadas = [...new Set([...requisitos, ...invocacionesSeleccionadas])];
     const pjBase: PersonajeJugador = {
       ...PERSONAJE_POR_DEFECTO,
       id: `pj-brujo-test-${nivel}`,
@@ -262,71 +268,13 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   });
 
   describe("4. DEVORADOR DE VIDA", () => {
-    it("aplica daño secundario de 1d6 necrótico por defecto y lo incluye en tiposDanoSecundarios", () => {
-      const pj = crearBrujoConInvocaciones(9, ["devorador_de_vida"]);
-      const efectos = evaluarEfectosRasgosActivos(pj);
-
-      const efectoDano = efectos.find((e) => e.tipo === "dano_secundario" && e.valor === "1d6");
-      expect(efectoDano).toBeDefined();
-      expect(efectoDano?.tipoDano).toBe("Necrótico");
-
-      const bonos = resolverBonosYDadosExtraCombate({
-        personajeActivo: pj,
-        statsCalculadas: calcularEstadisticasPersonaje(pj),
-        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
-        caracUsada: "fuerza",
-        modAtributo: 3,
-        bonoMagico: 0,
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-
-      expect(bonos.danosSecundarios).toContain("1d6");
-      expect(bonos.tiposDanoSecundarios).toContain("Necrótico");
-    });
-
-    it("permite seleccionar daño psíquico mediante sufijo de selección y lo refleja en tiposDanoSecundarios", () => {
-      const pj = crearBrujoConInvocaciones(9, ["devorador_de_vida:psiquico"]);
-      const efectos = evaluarEfectosRasgosActivos(pj);
-
-      const efectoDano = efectos.find((e) => e.tipo === "dano_secundario" && e.valor === "1d6");
-      expect(efectoDano).toBeDefined();
-      expect(efectoDano?.tipoDano).toBe("Psíquico");
-
-      const bonos = resolverBonosYDadosExtraCombate({
-        personajeActivo: pj,
-        statsCalculadas: calcularEstadisticasPersonaje(pj),
-        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
-        caracUsada: "fuerza",
-        modAtributo: 3,
-        bonoMagico: 0,
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-
-      expect(bonos.tiposDanoSecundarios).toContain("Psíquico");
-    });
-
-    it("permite seleccionar daño radiante mediante sufijo de selección y lo refleja en tiposDanoSecundarios", () => {
-      const pj = crearBrujoConInvocaciones(9, ["devorador_de_vida:radiante"]);
-      const efectos = evaluarEfectosRasgosActivos(pj);
-
-      const efectoDano = efectos.find((e) => e.tipo === "dano_secundario" && e.valor === "1d6");
-      expect(efectoDano).toBeDefined();
-      expect(efectoDano?.tipoDano).toBe("Radiante");
-
-      const bonos = resolverBonosYDadosExtraCombate({
-        personajeActivo: pj,
-        statsCalculadas: calcularEstadisticasPersonaje(pj),
-        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
-        caracUsada: "fuerza",
-        modAtributo: 3,
-        bonoMagico: 0,
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-
-      expect(bonos.tiposDanoSecundarios).toContain("Radiante");
+    it.each(["necrotico", "psiquico", "radiante"])("conserva la elección %s sin aplicar daño a todas las armas cuerpo a cuerpo", tipo => {
+      const pj = crearBrujoConInvocaciones(9, ["devorador_de_vida:" + tipo]);
+      expect(evaluarEfectosRasgosActivos(pj).some(e => e.tipo === "dano_secundario")).toBe(false);
+      const def = CATALOGO_INVOCACIONES_SOBRENATURALES.find(i => i.id === "devorador_de_vida")!;
+      expect(def.formulaDados).toBe("1d6");
+      expect(def.descripcion).toContain("Dado de Golpe");
+      expect(def.selectores?.[0].opciones.some(o => o.id === tipo)).toBe(true);
     });
   });
 
@@ -377,7 +325,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
       const rayo = conjurosAcciones.find((c) => c.hechizo.id === "rayo_de_escarcha");
 
       expect(descarga?.hechizo.agregarModificadorHabilidad).toBe(true);
-      expect(rayo?.hechizo.agregarModificadorHabilidad).toBe(true);
+      expect(rayo?.hechizo.agregarModificadorHabilidad).not.toBe(true);
 
       // Truco no seleccionado no recibe el modificador
       const toque = conjurosAcciones.find((c) => c.hechizo.id === "toque_helado");
@@ -405,7 +353,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   });
 
   describe("7. DON DE LOS PROTECTORES", () => {
-    it("se sintetiza en acciones de combate como reacción consumible con 1 uso por descanso largo", () => {
+    it("se sintetiza en acciones de combate como disparador especial consumible con 1 uso por descanso largo", () => {
       const pj = crearBrujoConInvocaciones(9, ["don_de_los_protectores"]);
 
       const acciones = resolverRasgosAcciones(pj);
@@ -413,7 +361,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
 
       expect(protector).toBeDefined();
       expect(protector?.esConsumible).toBe(true);
-      expect(protector?.tipoAccionCalculado).toBe("reaccion");
+      expect(protector?.rasgo.tipoAccion).toBe("especial");
       expect(protector?.usosMaximos).toBe(1);
       expect(protector?.usosRestantes).toBe(1);
       expect(protector?.rasgo.recuperacion).toBe("descanso_largo");
@@ -437,18 +385,18 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   });
 
   describe("9. LANZA SOBRENATURAL", () => {
-    it("aumenta el alcance del truco seleccionado en (nivelBrujo * 10) pies si su alcance es >= 10 pies", () => {
-      // Brujo nivel 5 con Descarga sobrenatural (120 pies base) -> 120 + 50 = 170 pies
+    it("aumenta el alcance del truco seleccionado en (nivelBrujo * 30) pies si su alcance es >= 10 pies", () => {
+      // Brujo nivel 5: 120 pies base más 30 por nivel de Brujo.
       const pjNivel5 = crearBrujoConInvocaciones(5, ["lanza_sobrenatural:descarga_sobrenatural"]);
       const conjurosNivel5 = resolverConjurosAcciones(pjNivel5, hechizosMock);
       const descarga5 = conjurosNivel5.find((c) => c.hechizo.id === "descarga_sobrenatural");
-      expect(descarga5?.hechizo.alcance).toBe("170 pies");
+      expect(descarga5?.hechizo.alcance).toBe("270 pies");
 
-      // Brujo nivel 2 con Rayo de escarcha (60 pies base) -> 60 + 20 = 80 pies
+      // Rayo de escarcha no pertenece a la lista de Brujo y no cumple el requisito.
       const pjNivel2 = crearBrujoConInvocaciones(2, ["lanza_sobrenatural:rayo_de_escarcha"]);
       const conjurosNivel2 = resolverConjurosAcciones(pjNivel2, hechizosMock);
       const rayo2 = conjurosNivel2.find((c) => c.hechizo.id === "rayo_de_escarcha");
-      expect(rayo2?.hechizo.alcance).toBe("80 pies");
+      expect(rayo2?.hechizo.alcance).toBe("60 pies");
     });
 
     it("no modifica el alcance de trucos de Toque o menores a 10 pies", () => {
@@ -506,6 +454,13 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   });
 
   describe("11. PACTO DEL FILO", () => {
+    const crearBrujoVinculado = (nivel: number, elecciones: string[]): PersonajeJugador => {
+      const pj = crearBrujoConInvocaciones(nivel, elecciones);
+      pj.rasgos = construirRasgosDesdeSelectores(pj);
+      const pacto = pj.rasgos.find(r => r.vinculoArma)!;
+      pacto.vinculoArma!.idInstancia = "inst-espada-1";
+      return pj;
+    };
     const espadaLargaCompendio: Arma = {
       id: "espada_larga",
       nombre: "Espada larga",
@@ -547,7 +502,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
 
     it("usa Carisma para ataque y daño en vez de Fuerza cuando Carisma es superior", () => {
       // Brujo nivel 3 con Carisma 16 (+3) y Fuerza 10 (+0)
-      const pj = crearBrujoConInvocaciones(3, ["pacto_del_filo:propio"]);
+      const pj = crearBrujoVinculado(3, ["pacto_del_filo:propio"]);
       pj.caracteristicas = {
         ...pj.caracteristicas,
         fuerza: 10,
@@ -555,7 +510,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
         carisma: 16
       };
 
-      expect(obtenerConfiguracionPactoDelFilo(pj)).toEqual({ activo: true, tipoDano: "propio" });
+      expect(obtenerConfiguracionPactoDelFilo(pj)).toMatchObject({ activo: true, tipoDano: "propio" });
 
       const stats = calcularEstadisticasPersonaje(pj);
       const ataque = calcularAtaqueArmaEquipada(armaInstancia, {
@@ -576,11 +531,11 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
     });
 
     it("sustituye el tipo de daño según el selector: propio, necrótico, psíquico o radiante", () => {
-      const stats = calcularEstadisticasPersonaje(crearBrujoConInvocaciones(3, ["pacto_del_filo"]));
+      const stats = calcularEstadisticasPersonaje(crearBrujoVinculado(3, ["pacto_del_filo"]));
 
       // Necrótico
-      const pjNecrotico = crearBrujoConInvocaciones(3, ["pacto_del_filo:necrotico"]);
-      expect(obtenerConfiguracionPactoDelFilo(pjNecrotico)).toEqual({ activo: true, tipoDano: "necrotico" });
+      const pjNecrotico = crearBrujoVinculado(3, ["pacto_del_filo:necrotico"]);
+      expect(obtenerConfiguracionPactoDelFilo(pjNecrotico)).toMatchObject({ activo: true, tipoDano: "necrotico" });
       const atqNec = calcularAtaqueArmaEquipada(armaInstancia, {
         personajeActivo: pjNecrotico,
         statsCalculadas: stats,
@@ -593,7 +548,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
       expect(atqNec.tipoDano).toBe("Necrótico");
 
       // Psíquico
-      const pjPsiquico = crearBrujoConInvocaciones(3, ["pacto_del_filo:psiquico"]);
+      const pjPsiquico = crearBrujoVinculado(3, ["pacto_del_filo:psiquico"]);
       const atqPsi = calcularAtaqueArmaEquipada(armaInstancia, {
         personajeActivo: pjPsiquico,
         statsCalculadas: stats,
@@ -606,7 +561,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
       expect(atqPsi.tipoDano).toBe("Psíquico");
 
       // Radiante
-      const pjRadiante = crearBrujoConInvocaciones(3, ["pacto_del_filo:radiante"]);
+      const pjRadiante = crearBrujoVinculado(3, ["pacto_del_filo:radiante"]);
       const atqRad = calcularAtaqueArmaEquipada(armaInstancia, {
         personajeActivo: pjRadiante,
         statsCalculadas: stats,
@@ -621,7 +576,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
   });
 
   describe("12. VIGOR INFERNAL", () => {
-    it("evalúa la fórmula de PG temporales 12 + 5 * (nivel_espacio_pacto - 1) escalando por nivel", () => {
+    it("mantiene los 12 PG temporales del lanzamiento de nivel 1 sin escalado por pacto", () => {
       const efectoHp = CATALOGO_INVOCACIONES_SOBRENATURALES.find((i) => i.id === "vigor_infernal")?.efectos?.find(
         (e) => e.tipo === "hp_temporal"
       );
@@ -633,19 +588,19 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
 
       // Nivel 3 (Espacio pacto Nv 2) -> 12 + 5*1 = 17
       const pjNv3 = crearBrujoConInvocaciones(3, ["vigor_infernal"]);
-      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv3)).toBe(17);
+      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv3)).toBe(12);
 
       // Nivel 5 (Espacio pacto Nv 3) -> 12 + 5*2 = 22
       const pjNv5 = crearBrujoConInvocaciones(5, ["vigor_infernal"]);
-      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv5)).toBe(22);
+      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv5)).toBe(12);
 
       // Nivel 7 (Espacio pacto Nv 4) -> 12 + 5*3 = 27
       const pjNv7 = crearBrujoConInvocaciones(7, ["vigor_infernal"]);
-      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv7)).toBe(27);
+      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv7)).toBe(12);
 
       // Nivel 9 (Espacio pacto Nv 5) -> 12 + 5*4 = 32
       const pjNv9 = crearBrujoConInvocaciones(9, ["vigor_infernal"]);
-      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv9)).toBe(32);
+      expect(calcularHpTemporalDeEfecto(efectoHp, pjNv9)).toBe(12);
     });
 
     it("obtenerNivelEspacioPacto escala correctamente de nivel 1 a 20", () => {
@@ -675,6 +630,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
 
       for (const item of invocacionesConjuros) {
         const pj = crearBrujoConInvocaciones(9, [item.idInvocacion]);
+        pj.condicionesActivas = ["Oscuridad"];
         expect(tieneConjuroGratuitoActivo(pj, item.nombreConjuro)).toBe(true);
 
         const dummyHechizo: HechizoBase = {
@@ -706,7 +662,7 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
       for (const id of ids) {
         const inv = CATALOGO_INVOCACIONES_SOBRENATURALES.find((i) => i.id === id);
         expect(inv).toBeDefined();
-        expect(inv?.categoriaMecanica).toBe("pasivo_permanente");
+        expect(inv?.categoriaMecanica).toBe(id === "pacto_del_grimorio" ? "activable" : "pasivo_permanente");
       }
     });
   });

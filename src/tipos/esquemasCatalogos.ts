@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EsquemaMecanicasRasgo } from "./mecanicasRasgos";
 import {
   EsquemaCaracteristica,
   EsquemaTipoLanzador,
@@ -25,6 +26,7 @@ import { EsquemaConjuroInnatoEspecie } from "./especies";
 // =======================================================
 
 export const EsquemaPlantillaRasgoClaseJSON = z.object({
+  ...EsquemaMecanicasRasgo.shape,
   id: z.string().optional(),
   nivel: z.number().int().min(1).max(20),
   nombre: z.string().min(1),
@@ -238,6 +240,8 @@ export const EsquemaDefinicionEspecieJSON = z.object({
 // =======================================================
 
 export const EsquemaInvocacionSobrenaturalJSON = z.object({
+  ...EsquemaMecanicasRasgo.shape,
+  esActivable: z.boolean().optional(),
   id: z.string().min(1),
   nombre: z.string().min(1),
   descripcion: z.string(),

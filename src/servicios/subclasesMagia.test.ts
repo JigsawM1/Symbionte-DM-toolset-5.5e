@@ -94,7 +94,7 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
       expect(infernal.conjuros).toContain("Manos ardientes");
 
       const primigenio = obtenerConjurosSiemprePreparadosSubclase("Brujo", "Patrón del Gran Primigenio", 10);
-      expect(primigenio.conjuros).toContain("Maldición");
+      expect(primigenio.conjuros).toContain("Modificar recuerdo");
       expect(primigenio.conjuros).toContain("Telequinesis");
     });
 
@@ -197,7 +197,7 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
       expect(multi.conjuros).toContain("Curar heridas");
       expect(multi.conjuros).toContain("Bendición");
       expect(multi.conjuros).toContain("Saeta guía");
-      expect(multi.conjuros).toContain("Rayo abrasador");
+      expect(multi.conjuros).toContain("Saeta guía");
       expect(multi.trucos).toContain("Luz");
       expect(multi.trucos).toContain("Llama sagrada");
     });

@@ -600,7 +600,7 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
       expect(resNecrotico.tiposDanoSecundarios).not.toContain("Radiante");
     });
 
-    it("debe resolver Devorador de vida en Brujo como Necrótico por defecto y respetar sufijos o selectores", () => {
+    it("Devorador de vida no añade su dado a toda arma sin un contexto de arma de pacto y uso por turno", () => {
       const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Brujo", 9);
       const rasgoInv = pj.rasgos?.find((r) => r.selectores?.some((s) => s.id.includes("invocacion")));
       const sel = rasgoInv?.selectores?.find((s) => s.id.includes("invocacion"));
@@ -618,8 +618,8 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
         furiaEstaActiva: false,
         yaIncluyeFuriaEnEfectos: false
       });
-      expect(resDefault.danosSecundarios).toContain("1d6");
-      expect(resDefault.tiposDanoSecundarios).toContain("Necrótico");
+      expect(resDefault.danosSecundarios).not.toContain("1d6");
+      expect(resDefault.tiposDanoSecundarios).not.toContain("Necrótico");
 
       if (sel) {
         sel.valorActual = ["devorador_de_vida:psiquico"];
@@ -634,7 +634,7 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
         furiaEstaActiva: false,
         yaIncluyeFuriaEnEfectos: false
       });
-      expect(resPsiquico.tiposDanoSecundarios).toContain("Psíquico");
+      expect(resPsiquico.tiposDanoSecundarios).not.toContain("Psíquico");
     });
 
     it("debe sincronizar tipoDano en rasgo directo de Devorador de vida cuando se modifica su selector interactivo", () => {

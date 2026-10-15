@@ -126,7 +126,7 @@ export async function ejecutarTiradaDanoFisico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
   modo: boolean | "adicional" = false
-): Promise<void> {
+): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
     const esAdic = modo === "adicional";
@@ -168,9 +168,10 @@ export async function ejecutarTiradaDanoFisico(
     }
 
     const formulaCompuesta = formulasTaleSpire.join("/");
-    await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}`);
+    return await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}`);
   } catch (error) {
     logger.error("Error al tirar daño:", error);
+    return false;
   }
 }
 
@@ -178,7 +179,7 @@ export async function ejecutarTiradaCritico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
   modo: boolean | "adicional" = false
-): Promise<void> {
+): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
     const esAdic = modo === "adicional";
@@ -248,9 +249,10 @@ export async function ejecutarTiradaCritico(
     }
 
     const formulaFinal = formulasTaleSpire.join("/");
-    await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}`);
+    return await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}`);
   } catch (error) {
     logger.error("Error al tirar daño crítico:", error);
+    return false;
   }
 }
 

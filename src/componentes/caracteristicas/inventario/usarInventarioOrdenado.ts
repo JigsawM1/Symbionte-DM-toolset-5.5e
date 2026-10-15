@@ -160,22 +160,45 @@ export function usarInventarioOrdenado({
   const totalSintonizados = contarSintonizaciones(inventario);
   const objetosSintonizados = inventario.filter((o) => o.sintonizado);
 
-  // 3. Listas por compartimento
-  const objetosEquipados = inventario.filter((o) => o.equipado);
-  const objetosNoEquipados = inventario.filter((o) => !o.equipado);
+  // 3. Listas por compartimento memoizadas en un solo paso O(N)
+  const {
+    objetosEquipados,
+    objetosNoEquipados,
+    objetosMochilaBase,
+    objetosBolsaContencionBase,
+    objetosMonturaBase,
+    objetosAlmacenBase
+  } = useMemo(() => {
+    const equipados: ObjetoInventario[] = [];
+    const noEquipados: ObjetoInventario[] = [];
+    const mochila: ObjetoInventario[] = [];
+    const bolsa: ObjetoInventario[] = [];
+    const montura: ObjetoInventario[] = [];
+    const almacen: ObjetoInventario[] = [];
 
-  const objetosMochilaBase = objetosNoEquipados.filter(
-    (o) => !o.contenedor || o.contenedor === "mochila"
-  );
-  const objetosBolsaContencionBase = objetosNoEquipados.filter(
-    (o) => o.contenedor === "bolsa_contencion"
-  );
-  const objetosMonturaBase = objetosNoEquipados.filter(
-    (o) => o.contenedor === "montura"
-  );
-  const objetosAlmacenBase = objetosNoEquipados.filter(
-    (o) => o.contenedor === "almacen"
-  );
+    for (const o of inventario) {
+      if (o.equipado) {
+        equipados.push(o);
+      } else {
+        noEquipados.push(o);
+        const c = o.contenedor;
+        if (!c || c === "mochila") mochila.push(o);
+        else if (c === "bolsa_contencion") bolsa.push(o);
+        else if (c === "montura") montura.push(o);
+        else if (c === "almacen") almacen.push(o);
+        else mochila.push(o);
+      }
+    }
+
+    return {
+      objetosEquipados: equipados,
+      objetosNoEquipados: noEquipados,
+      objetosMochilaBase: mochila,
+      objetosBolsaContencionBase: bolsa,
+      objetosMonturaBase: montura,
+      objetosAlmacenBase: almacen
+    };
+  }, [inventario]);
 
   // 4. Filtrado tolerante memoizado
   const objetosMochilaFiltrados = useMemo(

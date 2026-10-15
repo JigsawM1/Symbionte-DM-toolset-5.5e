@@ -158,7 +158,7 @@ export function obtenerNivelEfectivoParaRasgo(
 
   // Si el personaje solo cuenta con una clase configurada, su nivel coincide con el general
   if (clasesPersonaje.length === 1) {
-    return clasesPersonaje[0].nivel || nivelGeneral;
+    return nivelGeneral;
   }
 
   const normFuente = normalizarTextoClase(rasgo.fuente || "");

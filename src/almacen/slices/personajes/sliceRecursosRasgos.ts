@@ -4,13 +4,41 @@ import { calcularUsosMaximosRasgo, calcularHpTemporalDeEfecto, obtenerEfectoHpTe
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import { resolverIdRasgoObjetivoGasto, coincideCondicionConRasgo } from "./condicionesRasgosHelpers";
+import { aplicarHpTemporalPorEvento } from "@/servicios/rasgos/eventosHpTemporal";
+import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases";
+import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
+import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 
-export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio">> = (set, get) => ({
+export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPacto" | "recargarUsoRasgoConPadre">> = (set, get) => ({
+recargarUsoRasgoConPadre: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, pj => {
+      const r = pj.rasgos.find(r => r.id === idRasgo);
+      if (!r?.recargarUsoConPadre || !r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) >= (r.usosMaximos ?? 1)
+        || !esRasgoHabilitadoPorOpcion(r, pj.rasgos) || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return pj;
+      const padre = resolverRasgoRecurso(r, pj.rasgos);
+      if (!padre?.tieneUsosLimitados || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < 1) return pj;
+      return { ...pj, rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: (x.usosRestantes ?? 0) + 1 }
+        : x === padre ? { ...x, usosRestantes: (x.usosRestantes ?? x.usosMaximos ?? 0) - 1 } : x) };
+    });
+  },
+recargarUsoRasgoConPacto: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, pj => {
+      const r = pj.rasgos.find(r => r.id === idRasgo);
+      if (!r?.recargarUsoConPacto || !r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) >= (r.usosMaximos ?? 1)
+        || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)
+        || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return pj;
+      return { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1,
+        rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: Math.min(x.usosMaximos ?? 1, (x.usosRestantes ?? 0) + 1) } : x) };
+    });
+  },
 gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
     const cant = Math.max(1, typeof cantidad === "number" && !isNaN(cantidad) ? cantidad : 1);
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
+      const recurso = (pj.rasgos ?? []).find(r => r.id === idObjetivoGasto);
+      if (!targetTrait || !recurso || (recurso.usosRestantes ?? recurso.usosMaximos ?? 0) < cant) return pj;
+      if (!esRasgoHabilitadoPorOpcion(targetTrait, pj.rasgos) || obtenerNivelEfectivoParaRasgo(pj, targetTrait) < (targetTrait.nivelRequerido ?? 1)) return pj;
       const tieneUsoPropioYPadre =
         Boolean(targetTrait && targetTrait.tieneUsosLimitados && targetTrait.gastarDePadre && idObjetivoGasto !== targetTrait.id);
 
@@ -47,7 +75,10 @@ gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
         }
         return r;
       });
-      return { ...pj, rasgos: rasgosActualizados };
+      const recuperados = targetTrait.recuperarPactoAlUsar === "maximo" ? pj.espaciosPactoMaximos
+        : targetTrait.recuperarPactoAlUsar === "mitad_maximo" ? Math.ceil(pj.espaciosPactoMaximos / 2) : 0;
+      return aplicarHpTemporalPorEvento({ ...pj, rasgos: rasgosActualizados,
+        espaciosPactoGastados: Math.max(0, pj.espaciosPactoGastados - recuperados) }, "uso", targetTrait.id);
     });
   },
 

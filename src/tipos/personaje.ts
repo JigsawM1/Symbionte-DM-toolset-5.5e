@@ -1,3 +1,7 @@
+import { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros } from "./capacidadesBase";
+import type { Caracteristica, TipoLanzador, ModeloConjuros } from "./capacidadesBase";
+export { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros };
+export type { Caracteristica, TipoLanzador, ModeloConjuros };
 import { z } from "zod";
 import { EsquemaRasgoPersonaje } from "./rasgos";
 
@@ -5,10 +9,7 @@ import { EsquemaRasgoPersonaje } from "./rasgos";
 // 1. CARACTERÍSTICAS Y CAPACIDADES BASE
 // ==========================================
 
-export const EsquemaCaracteristica = z.enum([
-  "fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"
-]);
-export type Caracteristica = z.infer<typeof EsquemaCaracteristica>;
+
 
 export const EsquemaCaracteristicas = z.object({
   fuerza: z.number().default(10),
@@ -198,24 +199,12 @@ export type ClasePersonaje = z.infer<typeof EsquemaClasePersonaje>;
 // 3. TIPOS Y ESQUEMAS DE MAGIA (D&D 5.5e)
 // ==========================================
 
-export const EsquemaTipoLanzador = z.enum([
-  "completo",
-  "medio",
-  "tercio",
-  "pacto",
-  "ninguno"
-]);
-export type TipoLanzador = z.infer<typeof EsquemaTipoLanzador>;
 
-export const EsquemaModeloConjuros = z.enum([
-  "conocidos",
-  "preparados",
-  "grimorio",
-  "ninguno"
-]);
-export type ModeloConjuros = z.infer<typeof EsquemaModeloConjuros>;
+
+
 
 export const EsquemaClaseLanzadora = z.object({
+  idRasgoOrigen: z.string().optional(),
   clase: z.string(),
   nivel: z.number().int().min(1).max(20),
   tipoLanzador: EsquemaTipoLanzador,
@@ -466,6 +455,7 @@ export const EsquemaPersonajeJugador = z.object({
   conjurosConocidosIds: z.array(z.string()).default([]),
   conjurosPreparadosIds: z.array(z.string()).default([]),
   conjurosSiemprePreparadosIds: z.array(z.string()).default([]),
+  aprendizajesConjurosIndependientes: z.object({ trucos: z.array(z.string()), conjuros: z.array(z.string()) }).optional(),
 
   // Recursos: Espacios de Conjuro
   espaciosConjuroMaximos: z.record(z.string(), z.number()).default({}),

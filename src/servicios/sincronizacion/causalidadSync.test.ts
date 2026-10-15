@@ -5,6 +5,7 @@ import { ts } from '@/utiles/TaleSpireAdapter';
 import { emitirMiPersonaje, inicializarObservadoresStoreSync, procesarMensajeSyncEntrante, reiniciarSincronizacion, reaplicarCambioPendienteSync } from '../sincronizacionSimbiote';
 import type { FragmentoCliente } from '@/tipos/talespire';
 import { proyectarEstadoCombatePJ } from './proyeccionEstadoCombate';
+import { EsquemaRasgoPersonaje } from '@/tipos';
 
 const dm: FragmentoCliente = { id: 'dm', player: { id: 'master', name: 'Master' } };
 const jugador: FragmentoCliente = { id: 'cliente-pj', player: { id: 'jugador', name: 'Jugador' } };
@@ -23,6 +24,18 @@ async function recibir(datos: unknown, fromClient = dm) { await procesarMensajeS
 const emisiones = () => vi.mocked(ts.sync.send).mock.calls.map(([texto]) => JSON.parse(texto));
 
 describe('Revisiones causales por entidad', () => {
+  it.each([false, true])('editar únicamente usos y metadatos de rasgos no emite sync de iniciativa (GM=%s)', async esGM => {
+    detener();
+    usarAlmacenDM.setState({ esGM });
+    detener = inicializarObservadoresStoreSync();
+    const propio = EsquemaRasgoPersonaje.parse({ id: 'propio', nombre: 'Reserva propia', origen: 'personalizado', personalizado: true,
+      tieneUsosLimitados: true, usosMaximos: 4, usosRestantes: 3, autoDesactivarAlTirarSalvacion: true });
+    usarAlmacenDM.setState(s => ({ personajes: s.personajes.map(p => p.id === 'a' ? { ...p, rasgos: [propio] } : p) }));
+    await vi.advanceTimersByTimeAsync(400);
+    usarAlmacenDM.setState(s => ({ personajes: s.personajes.map(p => p.id === 'a' ? { ...p, rasgos: [{ ...propio, usosRestantes: 2 }] } : p) }));
+    await vi.advanceTimersByTimeAsync(400);
+    expect(ts.sync.send).not.toHaveBeenCalled();
+  });
   it('envía dos personajes editados dentro del mismo debounce', async () => {
     usarAlmacenDM.getState().establecerHPActualPersonaje('a', 30);
     usarAlmacenDM.getState().establecerHPActualPersonaje('b', 20);

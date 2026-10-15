@@ -286,8 +286,10 @@ describe("Integridad de Catálogos D&D 5.5e (JSON Modular e Hidratación)", () =
   });
 
   describe("8. Catálogo de Efectos Predefinidos (JSON Modular)", () => {
-    it("carga exactamente los 37 efectos predefinidos (incluyendo Salvaguarda arcana y El tercer ojo)", () => {
-      expect(EFECTOS_PREDEFINIDOS).toHaveLength(37);
+    it("carga los 39 efectos predefinidos, incluidos Cobertura media y Salto psiónico", () => {
+      expect(EFECTOS_PREDEFINIDOS).toHaveLength(39);
+      expect(EFECTOS_PREDEFINIDOS.find(e => e.nombre === "Salto psiónico")).toMatchObject({ duracionEstandar: 1 });
+      expect(EFECTOS_PREDEFINIDOS.find(e => e.nombre === "Cobertura media")?.duracionEstandar).toBe(10);
     });
 
     it("los efectos enriquecidos tienen viñetas efectos[]", () => {

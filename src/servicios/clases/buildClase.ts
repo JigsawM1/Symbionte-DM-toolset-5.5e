@@ -26,7 +26,8 @@ export function construirBuildClase(
     ? obtenerConjurosSubclaseBuild(clase.nombre, subclase.nombre, nivelSeguro, varianteSubclase)
     : { conjuros: [], trucos: [] };
 
-  const configMagica = subclase?.configuracionMagica || clase.configuracionMagica;
+  const cfg = rasgos.find(r => r.configuracionMagica)?.configuracionMagica || subclase?.configuracionMagica || clase.configuracionMagica;
+  const configMagica = cfg && nivelSeguro >= cfg.nivelInicio ? cfg : undefined;
 
   return {
     clase,
@@ -133,37 +134,23 @@ export function aplicarBuildClaseAPersonaje(
   let nivelEspacioPacto = personaje.nivelEspacioPacto || 0;
 
   if (opciones.sobrescribirConfiguracionMagia) {
-    if (build.configuracionMagica) {
-      esLanzador = true;
-      clasesLanzadoras = [
-        {
-          clase: nuevoNombreClase,
-          nivel: nuevoNivel,
-          tipoLanzador: build.configuracionMagica.tipoLanzador,
-          habilidadConjuro: build.configuracionMagica.habilidadConjuro,
-          modeloConjuros: build.configuracionMagica.modeloConjuros,
-          listaConjuros: build.configuracionMagica.listaConjuros
-        }
-      ];
-      const recursos = calcularTodosRecursosMagicos(
-        clasesLanzadoras,
-        personaje.overrideEspaciosConjuro,
-        personaje.overridePuntosConjuro
-      );
-      espaciosConjuroMaximos = recursos.espaciosConjuroMaximos;
-      puntosConjuroMaximos = recursos.puntosConjuroMaximos;
-      nivelConjuroMaximo = recursos.nivelConjuroMaximo;
-      espaciosPactoMaximos = recursos.espaciosPactoMaximos;
-      nivelEspacioPacto = recursos.nivelEspacioPacto;
-    } else {
-      esLanzador = false;
-      clasesLanzadoras = [];
-      espaciosConjuroMaximos = {};
-      puntosConjuroMaximos = 0;
-      nivelConjuroMaximo = 0;
-      espaciosPactoMaximos = 0;
-      nivelEspacioPacto = 0;
-    }
+    // La build sustituye la capacidad de la clase editada; las otras concesiones conservan su origen.
+    clasesLanzadoras = clasesLanzadoras.filter(c => normalizarTextoClase(c.clase) !== normalizarTextoClase(personaje.clase)
+      && normalizarTextoClase(c.clase) !== normalizarTextoClase(nuevoNombreClase));
+    if (build.configuracionMagica) clasesLanzadoras.push({
+      clase: nuevoNombreClase, nivel: nuevoNivel,
+      tipoLanzador: build.configuracionMagica.tipoLanzador,
+      habilidadConjuro: build.configuracionMagica.habilidadConjuro,
+      modeloConjuros: build.configuracionMagica.modeloConjuros,
+      listaConjuros: build.configuracionMagica.listaConjuros
+    });
+    esLanzador = Boolean(clasesLanzadoras.length);
+    const recursos = calcularTodosRecursosMagicos(clasesLanzadoras, personaje.overrideEspaciosConjuro, personaje.overridePuntosConjuro);
+    espaciosConjuroMaximos = recursos.espaciosConjuroMaximos;
+    puntosConjuroMaximos = recursos.puntosConjuroMaximos;
+    nivelConjuroMaximo = recursos.nivelConjuroMaximo;
+    espaciosPactoMaximos = recursos.espaciosPactoMaximos;
+    nivelEspacioPacto = recursos.nivelEspacioPacto;
   }
 
   // 5. Instanciar personaje base intermedio

@@ -26,7 +26,7 @@ import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa";
 import { GestorReintentosSync } from "./sincronizacion/gestorReintentosSync";
-import { proyectarEstadoCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
+import { proyectarEstadoCombatePJ, proyectarBorradorCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
 import { BufferFragmentosSync, claveEstadoSync, empaquetarEstadoSync, type EstadoSync } from "./sincronizacion/transporteSync";
 
 export { proyectarEstadoCombatePJ };
@@ -49,7 +49,7 @@ const bufferChunks = new BufferChunksIniciativa();
 const gestorReintentos = new GestorReintentosSync(id => {
   const pendiente = pendientesPJ.get(id);
   const estado = usarAlmacenDM.getState();
-  if (pendiente) estado.guardarBorradorSync(id, proyectarEstadoCombatePJ(pendiente));
+  if (pendiente) estado.guardarBorradorSync(id, proyectarBorradorCombatePJ(pendiente));
   pendientesPJ.delete(id); emitidasPJ.delete(id);
   estado.confirmarACKPJ(id, Number.MAX_SAFE_INTEGER);
   estado.agregarNotificacion('No se confirmó tu cambio. Puedes recuperarlo desde los cambios pendientes.', 'advertencia');
@@ -390,7 +390,7 @@ function procesarAutorizado(mensaje: WireMensajeSync, evento: { strCrudo: string
         revisionesDM.set(mensaje.id, mensaje.rd ?? revisionesDM.get(mensaje.id) ?? 0);
         const pendiente = pendientesPJ.get(mensaje.id);
         if (mensaje.ok === false) {
-          if (pendiente) estado.guardarBorradorSync(mensaje.id, proyectarEstadoCombatePJ(pendiente));
+          if (pendiente) estado.guardarBorradorSync(mensaje.id, proyectarBorradorCombatePJ(pendiente));
           pendientesPJ.delete(mensaje.id);
           estado.confirmarACKPJ(mensaje.id, Number.MAX_SAFE_INTEGER);
           estado.agregarNotificacion('El DM cambió esta ficha. Tu edición se conserva en los cambios pendientes de sincronización.', 'advertencia');

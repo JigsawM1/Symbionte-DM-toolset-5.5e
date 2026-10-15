@@ -3,7 +3,7 @@ import { guardarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { deshidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 import { logger } from '@/utiles/logger';
-import { serializarEstadoCombatePJ } from '@/tipos/sync';
+import { serializarBorradorSync } from './borradoresSync';
 
 let colaEscrituras: Promise<boolean> = Promise.resolve(true);
 let generacionEscritura = 0;
@@ -61,7 +61,7 @@ export function construirBlobPersistencia(estado: Partial<EstadoDM>): Record<str
     sistema_magia:       estado.sistemaMagia || "espacios",
     asociaciones_fichas: estado.asociacionesFichas || {},
     personajes:          cachePersonajes,
-    borradores_sync: Object.fromEntries(Object.entries(estado.borradoresSync ?? {}).map(([id, dto]) => [id, serializarEstadoCombatePJ(dto)])),
+    borradores_sync: Object.fromEntries(Object.entries(estado.borradoresSync ?? {}).map(([id, dto]) => [id, serializarBorradorSync(dto)])),
     id_personaje_activo: estado.idPersonajeActivo || null,
     mostrar_porcentaje_vida: estado.mostrarPorcentajeVidaAJugadores !== undefined ? estado.mostrarPorcentajeVidaAJugadores : true,
   };

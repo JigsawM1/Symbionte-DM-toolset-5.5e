@@ -33,7 +33,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
   const invocacionesColapsada = !!seccionesColapsadas[grupo.claveColapsoInvocaciones];
   const canalizarColapsada = !!seccionesColapsadas[grupo.claveColapsoCanalizarDivinidad];
 
-  const selectorInvocaciones = grupo.rasgoInvocaciones?.selectores?.[0];
+  const selectorInvocaciones = grupo.rasgoInvocaciones?.selectores?.find(s => s.tipoSelector === "invocacion");
   const aprendidasInvocaciones = selectorInvocaciones?.valorActual || [];
   const maxInvocaciones = useMemo(() => {
     if (selectorInvocaciones?.escaladoMaxSelecciones && grupo.clase.nivel) {
@@ -52,7 +52,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
     <React.Fragment key={`grupo_clase_${grupo.clase.nombre}`}>
       {/* Rasgos de Clase Base */}
       {grupo.rasgosBase.length > 0 && (
-        <div className={estilos.seccionPrincipal}>
+        <div className={estilos.seccionPrincipal} data-seccion-rasgos="clase">
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoClase)}
@@ -106,7 +106,7 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
 
       {/* Rasgos de Subclase */}
       {grupo.rasgosSubclase.length > 0 && (
-        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubclase}`}>
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionSubclase}`} data-seccion-rasgos="subclase">
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoSubclase)}
@@ -131,9 +131,11 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
         </div>
       )}
 
+      {grupo.seccionesOpciones?.map(renderizarTarjetaRasgo)}
+
       {/* Invocaciones Sobrenaturales */}
       {grupo.rasgoInvocaciones && selectorInvocaciones && (
-        <div className={`${estilos.seccionPrincipal} ${estilos.seccionInvocaciones}`}>
+        <div className={`${estilos.seccionPrincipal} ${estilos.seccionInvocaciones}`} data-seccion-rasgos="invocaciones">
           <div
             className={estilos.cabeceraSeccionPrincipal}
             onClick={() => alternarColapso(grupo.claveColapsoInvocaciones)}
@@ -154,6 +156,8 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
             <div className={`${estilos.cuerpoSeccionPrincipal} ${estilos.cuerpoInvocaciones}`}>
               <SelectorInvocacionesAcordeon
                 selector={selectorInvocaciones}
+                rasgosAprendidos={grupo.rasgosInvocaciones}
+                renderizarTarjetaRasgo={renderizarTarjetaRasgo}
                 nivelPersonaje={grupo.clase.nivel}
                 alActualizarSeleccion={(idSelector, valores) => {
                   if (grupo.rasgoInvocaciones) {

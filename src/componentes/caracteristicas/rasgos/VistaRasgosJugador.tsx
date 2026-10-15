@@ -55,7 +55,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
   if (!personajeActivo) {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <div className={estilos.estadoVacio}>
           <User size={32} />
           <p>No hay ningún personaje activo seleccionado.</p>
@@ -108,7 +108,7 @@ export const VistaRasgosJugador: React.FC = () => {
 
   if (modoVista === "creador_homebrew") {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <ConstructorRasgoDote
           personaje={personajeActivo}
           rasgoInicial={rasgoParaEditar}
@@ -124,7 +124,7 @@ export const VistaRasgosJugador: React.FC = () => {
   }
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
       {/* 1. Cabecera Compacta */}
       <CabeceraRasgosJugador
         totalRasgosFiltrados={rasgosFiltrados.length}

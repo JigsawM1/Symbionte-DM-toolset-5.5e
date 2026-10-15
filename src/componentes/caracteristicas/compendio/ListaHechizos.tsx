@@ -133,7 +133,7 @@ export const ListaHechizos: React.FC = () => {
       </div>
 
       {/* Contenido Principal con lista densa */}
-      <div className={estilosClases.listaContenedor}>
+      <div className={`${estilosClases.listaContenedor} u-scroll-cef`}>
         {hechizosFiltrados.length === 0 ? (
           <div className={estilosClases.vacioTexto}>
             No se encontraron conjuros con los filtros aplicados.

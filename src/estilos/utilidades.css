@@ -218,6 +218,17 @@
   overflow-y: auto;
 }
 
+/* Superficie opaca del elemento que desplaza una lista en TaleSpire/CEF.
+   Validada en CEF 137 sin will-change. Para otro fondo opaco,
+   definir --fondo-scroll-cef en el panel. */
+.u-scroll-cef {
+  background-color: var(--fondo-scroll-cef, var(--color-fondo-panel));
+}
+
+:where([data-tema="jugador"]) .u-scroll-cef {
+  background-color: var(--fondo-scroll-cef, var(--pj-fondo-base));
+}
+
 .u-overflow-hidden {
   overflow: hidden;
 }

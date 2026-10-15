@@ -88,7 +88,7 @@ export const VistaInventarioJugador: React.FC = () => {
 
   if (!personajeActivo || !statsCalculadas) {
     return (
-      <div className={estilos.contenedorGeneral}>
+      <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
         <div className={estilos.tarjetaVacia}>
           No hay personaje seleccionado. Selecciona o crea uno en la pestaña de Características.
         </div>
@@ -97,7 +97,7 @@ export const VistaInventarioJugador: React.FC = () => {
   }
 
   return (
-    <div className={estilos.contenedorGeneral}>
+    <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
       {/* Panel táctico de Inventario */}
       <PanelInventarioPersonaje
         personaje={personajeActivo}

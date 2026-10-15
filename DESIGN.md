@@ -22,6 +22,7 @@ El compendio de jugador usa `CompendioConjurosJugador`; sus estilos se rigen por
 2. **Entorno TaleSpire (Off-Screen Rendering / CEF)**:
    - **Prohibición Total de Animaciones CSS**: Cero transiciones y cero keyframes (`transition: none !important; animation: none !important;`). Los estados visuales cambian inmediatamente; esta regla no garantiza una latencia total de 0 ms en Chromium Embedded Framework.
    - **Prohibición de Selectores Nativos**: Uso exclusivo de componentes controlados (`<SelectorDesplegable />` o `<SelectorSugerencias />`).
+   - **Superficies de scroll**: Usar `u-scroll-cef` de `src/estilos/utilidades.css` en el elemento que realmente desplaza listas o paneles. Centraliza el fondo opaco validado en CEF; para otra superficie, definir `--fondo-scroll-cef` con un token opaco del tema. Conservar el layout y `overflow` en el CSS Module de la vista.
 3. **Tipografía Nítida y Accesible**:
    - Tamaño mínimo absoluto de **11px** para evitar pérdida de nitidez en resoluciones escaladas de TaleSpire.
    - Verificar el contraste de los textos sobre sus fondos reales, incluidos estados activos y deshabilitados; la paleta por sí sola no garantiza accesibilidad.

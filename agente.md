@@ -1,5 +1,20 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-14] Actualización canónica de descripciones del Guerrero desde diccionario_herramientas
+
+- **Alcance y propósito**: Sincronización quirúrgica de todas las descripciones en `src/datos/clases/guerrero.json` a partir de `dicionario_herramientas/guerrero descripciones.json` (PHB 2024 oficial en español).
+- **Estandarización de textos**:
+  - Medidas imperiales canónicas ("5 pies", "10 pies", "15 pies", "30 pies") reemplazando residuos de conversión híbrida ("1,5 m (5 pies)", "9 m (30 pies)").
+  - Párrafos formateados con espaciado uniforme `\n\n` en rasgos base (*Tomar aliento*, *Maestría con armas*, *Acción súbita*).
+  - Eliminación de enlaces markdown en desuso (`[dote](feats.html)` -> `dote`) en todas las iteraciones de *Mejora de característica* (nv 4, 6, 8, 12, 14, 16) y *Don épico* (nv 19).
+  - Caballero Arcano (*Lanzamiento de conjuros* y *Carga arcana*): redacción limpia sin referencias externas al capítulo del manual físico.
+  - Guerrero Psiónico (*Poder psiónico*, *Adepto telequinético*, *Bastión de fuerza*) y Maestro del Combate (*Opciones de maniobras*, *Conoce a tu enemigo*): actualización coordinada tanto en la descripción del rasgo contenedor como en las opciones individuales de sus selectores (*Campo protector*, *Golpe psiónico*, *Movimiento telequinético*, *Empujón telequinético*, maniobras de arremetida, barrido, empujón, cambio de posición, finta y reagrupar).
+- **Integridad mecánica preservada**: Se mantuvieron intactos todos los IDs, metadatos (`categoriaMecanica`, `escaladoUsos`, `ligadoA`, `formulaDados`), rasgos de extensión (nv 13 y 17) y rasgos auxiliares de activación/recarga de dados de supremacía y psiónicos.
+- **Validación**:
+  - `pnpm test`: 137 suites, 1917 pruebas pasadas con salida 0.
+  - `pnpm run test:guerrero-ui`: 6 casos, 16 dimensiones responsive, 0 errores.
+
+---
 ## [2026-10-14] Integración de Optimizaciones Algorítmicas Transversales (optimizacion-bigO) en Rama de Brujo
 
 - Fusión completa de la rama `optimizacion-bigO` en `brujo-revision-probablemente-scope-creep-de-nuevo`.

@@ -40,8 +40,8 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
 
       const efectoDano = furia?.efectos?.find((e) => e.tipo === "bono_dano_fuerza");
       expect(efectoDano).toBeDefined();
-      expect(efectoDano?.valor).toBe("dano_furia");
-      expect(efectoDano?.condicion).toBe("furia_activa");
+      expect(efectoDano?.valor).toBe(2);
+      expect(efectoDano?.condicion).toBe("rasgo_activo:rasgo_cls_barbaro_furia");
 
       const ventajaPruebas = furia?.efectos?.find((e) => e.objetivo === "prueba.fuerza");
       expect(ventajaPruebas?.tipo).toBe("ventaja");
@@ -121,13 +121,13 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(temerario?.efectos?.[0].valor).toBe("ventaja");
     });
 
-    it("Conocimiento primigenio es pasivo permanente con habilidad_con_fuerza", () => {
+    it("Conocimiento primigenio ofrece una habilidad y la alternativa de Fuerza", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3);
       const conocimiento = rasgosNv3.find((r) => r.nombre === "Conocimiento primigenio");
-      expect(conocimiento?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(conocimiento?.categoriaMecanica).toBe("selector_informativo");
       expect(conocimiento?.efectos?.[0].tipo).toBe("habilidad_con_fuerza");
       expect(conocimiento?.efectos?.[0].valor).toBe("fuerza");
-      expect(conocimiento?.efectos?.[0].condicion).toBe("furia_activa");
+      expect(conocimiento?.efectos?.[0].condicion).toBe("rasgo_activo:rasgo_cls_barbaro_furia");
     });
   });
 

@@ -19,6 +19,7 @@ import {
   evaluarExpresionNumericaSegura
 } from "./evaluadorExpresionesRasgos";
 import { obtenerDadoInspiracionBardica } from "./evaluadorSalvacionesRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 
 /**
  * Contexto de un ataque físico o mágico para evaluar si aplican efectos de rasgos.
@@ -423,6 +424,7 @@ export function obtenerMaestriasArmasAprendidas(personaje: PersonajeJugador): Se
   }
 
   for (const rasgo of personaje.rasgos) {
+    if (rasgo.activo === false || obtenerNivelEfectivoParaRasgo(personaje, rasgo) < (rasgo.nivelRequerido ?? 1)) continue;
     if (!Array.isArray(rasgo.selectores) || rasgo.selectores.length === 0) continue;
 
     const nombreRasgo = normalizar(rasgo.nombre);

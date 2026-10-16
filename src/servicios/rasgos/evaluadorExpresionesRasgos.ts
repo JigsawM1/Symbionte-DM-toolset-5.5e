@@ -1,4 +1,4 @@
-import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
+import { normalizarCondicionesRasgos, claveEstado } from "./estadoCondicionesRasgos";
 import { resolverExtensionesRasgos } from "./extensionesRasgos";
 import { seleccionesValidas } from "./seleccionesRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
@@ -39,6 +39,11 @@ export function cumpleCondicionEfecto(
   if (!condicion || condicion === "siempre") return true;
 
   const condNorm = normalizar(condicion);
+  if (condNorm.startsWith("rasgo_activo:")) return estaRasgoActivo(personaje, condicion.slice("rasgo_activo:".length));
+  if (condNorm.startsWith("sin_condiciones:")) {
+    const excluidas = condNorm.slice("sin_condiciones:".length).split(",").map(claveEstado);
+    return !(personaje.condicionesActivas ?? []).some(c => excluidas.includes(claveEstado(c)));
+  }
   if (condNorm === "luz_tenue_u_oscuridad") return (personaje.condicionesActivas ?? []).some(c => ["luz tenue", "oscuridad"].includes(normalizar(c)));
   const estadoArmadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
@@ -86,8 +91,9 @@ export function cumpleCondicionEfecto(
  * Valida estado activo, dependencias ligadas (`ligadoA`) y condiciones de activación.
  */
 export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): EfectoMecanicoRasgo[] {
+  personaje = normalizarCondicionesRasgos(personaje);
   const efectosResultado: EfectoMecanicoRasgo[] = [];
-  const rasgos = resolverExtensionesRasgos(normalizarCondicionesRasgos(personaje).rasgos || [], personaje.nivel || 1);
+  const rasgos = resolverExtensionesRasgos(personaje.rasgos || [], personaje.nivel || 1);
 
   for (const rasgo of rasgos) {
     // Si el rasgo exige un nivel mínimo superior al nivel actual del personaje, omitirlo

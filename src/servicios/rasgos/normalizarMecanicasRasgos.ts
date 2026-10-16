@@ -5,6 +5,7 @@ import { normalizarMagiaRasgos } from "./magiaRasgos";
 import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
 import { construirRasgosDesdeSelectores, materializaSelector } from "./seleccionesRasgos";
 import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
+import { retirarConcentracionRestringida } from "./restriccionesRasgos";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
 export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador): PersonajeJugador {
@@ -51,5 +52,5 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     const ids = arcanos.flatMap(s => s.valorActual.map(id => `${s.nivelConjuro}:${id}`));
     if (JSON.stringify(ids) !== JSON.stringify(actual.arcanoMisticoIds)) actual = { ...actual, arcanoMisticoIds: ids };
   }
-  return normalizarMagiaRasgos(anterior, actual);
+  return retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, actual));
 }

@@ -1,5 +1,18 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-16] Bárbaro base PHB 2024: ejecución declarativa y verificación local
+
+- Actualizada únicamente la clase base de barbaro.json, niveles 1–20. Bloque de las cuatro subclases conservado literalmente frente a HEAD. Matriz por rasgo, archivos, fuentes y límites en IMPLEMENTACION_BARBARO.md.
+- Furia: resistencias estructuradas, escalado de daño por nivel de clase, bloqueo/finalización por armadura pesada, fin por Incapacitado antes de nivel 15 y por Inconsciente desde nivel 15, retirada de concentración y bloqueo de conjuros visible y previo al gasto. Se conserva el efecto de 100 rondas y el mantenimiento manual acordado.
+- Conocimiento primigenio: habilidad adicional elegida, competencia derivada y alternativa de Fuerza hasta el consumidor de tiradas; mayor bono predeterminado y cambio manual. Se conserva compatibilidad con el formato homebrew previo. Selector compartido y distribución responsive comprobada a 599/433 px.
+- Golpe brutal: renuncia declarativa a toda ventaja, incluso manual, rechazo con desventaja y desactivación solo tras daño aplicable emitido correctamente; conserva activación ante fallo o daño ajeno. El golpe sin armas mantiene su punto base al añadir dados. Impactos y efectos sobre blancos permanecen manuales.
+- Furia persistente: duración pasiva separada del consentimiento de recuperación en iniciativa; no consume si no restaura nada. Elecciones nuevas sin preselecciones y conservación de gasto/elecciones al reconstruir y recargar; retirada de opciones futuras declaradas al reducir nivel. Salto instintivo no cambia la acción adicional de Furia. Furia implacable y Poderío indómito siguen informativos por decisión del usuario.
+- CI final real con salida 0: TypeScript, ESLint, 142 suites/2016 pruebas, auditoría de 160 archivos y build. Añadidos 55 casos. pnpm run test:barbaro-ui: 7 flujos/12 dimensiones; test:guerrero-ui: 9 casos/16 dimensiones; test:brujo-ui: 12 flujos/4 dimensiones. Sin errores JavaScript y git diff --check correcto. Logs finales en scratch/ci-barbaro.log y scratch/ui-*-barbaro-final.log, con informe propio de Bárbaro.
+- Validación en Chromium local y adaptadores unitarios simulados. Inspector CEF real en localhost:9222 no disponible (conexión rechazada); no se certificó TaleSpire real, sesión multicliente ni se desplegó. pnpm ejecutado fuera del sandbox por EPERM; permanece el aviso previo de chunks grandes.
+
+---
+
+
 ## [2026-10-15] Integración de Brujo PHB 2024, Guerrero Declarativo y Optimizaciones Big-O en Main
 
 **Alcance de la Fusión en `main`:**

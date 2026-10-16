@@ -1,5 +1,6 @@
 import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
+import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
@@ -17,7 +18,6 @@ import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selector
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
-import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import {
   calcularBonoIniciativaRasgos,
@@ -287,9 +287,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     });
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
-  const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number) => {
-    if (!personajeActivo) return;
-    const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
+  const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number, caracteristica?: Caracteristica) => {
+    if (!personajeActivo || !statsCalculadas) return;
+    const tirada = resolverTiradaHabilidadRasgos(personajeActivo, hab, statsCalculadas.modificadores, statsCalculadas.habilidades[hab], caracteristica);
+    const caracAsociada = tirada.caracteristica;
     const evaluacion = evaluarEfectosCondicionesEnTirada({
       tipo: "caracteristica",
       caracteristica: caracAsociada,
@@ -299,7 +300,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       condicionesActivas: personajeActivo.condicionesActivas,
       personaje: personajeActivo
     });
-    const bonoFinal = bono + evaluacion.penalizadorD20;
+    const bonoFinal = (caracteristica ? tirada.bono : bono) + evaluacion.penalizadorD20;
     const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
     lanzarTiradaD20Personaje(
       `Prueba de ${nombre}`,
@@ -309,7 +310,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       motivos,
       `habilidad.${hab}`
     );
-  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
+  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarIniciativa = useCallback(async () => {
     if (!personajeActivo || !statsCalculadas) return;
@@ -591,6 +592,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
           {/* Habilidades y Competencias (Apartado B) */}
           <PanelHabilidadesPersonaje
+            key={personajeActivo.id}
             personaje={personajeActivo}
             statsCalculadas={statsCalculadas}
             alTirarHabilidad={manejarTirarHabilidad}

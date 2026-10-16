@@ -203,9 +203,9 @@ export function calcularAtaqueDesarmado(contexto: {
     esDanoFijoDesarmado = false;
   } else if (dadosExtra.length > 0) {
     const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
-      dadosExtra[0],
+      "1",
       modDanoDesarmadoFinal,
-      dadosExtra.slice(1),
+      dadosExtra,
       []
     );
     formulaDesarmado = formulaDano;

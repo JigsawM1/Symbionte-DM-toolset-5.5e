@@ -16,7 +16,8 @@
     "ci": "tsc --noEmit && eslint src --max-warnings=0 && vitest run && node scripts/verificar-limite-lineas.js && vite build",
     "transformar-hechizos": "tsx --tsconfig tsconfig.json src/editor_hechizos/transformar.ts",
     "test:guerrero-ui": "node scripts/probar-guerrero.mjs",
-    "test:brujo-ui": "node scripts/probar-brujo.mjs"
+    "test:brujo-ui": "node scripts/probar-brujo.mjs",
+    "test:barbaro-ui": "node scripts/probar-barbaro.mjs"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.13",

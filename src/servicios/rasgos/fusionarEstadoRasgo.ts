@@ -7,8 +7,12 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
     const base = valor.split(/:|__/)[0];
     return selector.opciones.some((o) => o.id === valor || o.id === base);
   };
-  // Solo se retiran opciones que el catálogo anterior reconocía y el nuevo eliminó.
-  const valorActual = seleccion.filter((valor) => !existente || !contiene(existente, valor) || contiene(nuevo, valor));
+  // También reconoce opciones futuras declaradas cuando el guardado anterior está deshidratado.
+  const valorActual = seleccion.filter((valor) => {
+    const base = valor.split(/:|__/)[0];
+    const futura = nuevo.opcionesDinamicas?.some(g => g.opciones.some(o => o.id === base));
+    return contiene(nuevo, valor) || (!futura && (!existente || !contiene(existente, valor)));
+  });
   return {
     ...nuevo,
     valorActual: valorActual.slice(0, nuevo.maxSelecciones),

@@ -1,6 +1,9 @@
-import React from "react";
-import type { PersonajeJugador, Habilidad, GradoCompetencia } from "@/tipos";
-import { HABILIDADES_LISTA, MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes";
+import React, { useMemo, useState } from "react";
+import { obtenerHabilidadesConFuerzaRasgos } from "@/servicios/rasgos/evaluadorSalvacionesRasgos";
+import type { PersonajeJugador, Habilidad, GradoCompetencia, Caracteristica } from "@/tipos";
+import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
+import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { HABILIDADES_LISTA } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { Swords, Shield, Languages, Wrench, AlertTriangle, Sparkles } from "lucide-react";
@@ -10,7 +13,7 @@ import estilos from "./HojaPersonaje.module.css";
 interface PanelHabilidadesPersonajeProps {
   personaje: PersonajeJugador;
   statsCalculadas: EstadisticasCalculadasPersonaje;
-  alTirarHabilidad: (hab: Habilidad, nombre: string, bono: number) => void;
+  alTirarHabilidad: (hab: Habilidad, nombre: string, bono: number, caracteristica?: Caracteristica) => void;
   alCiclarGradoHabilidad: (hab: Habilidad) => void;
   alAbrirSelectorCompetencias?: (categoria: CategoriaCompetencia) => void;
 }
@@ -60,6 +63,8 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
   alAbrirSelectorCompetencias
 }) => {
   const { habilidades } = statsCalculadas;
+  const [caracteristicasElegidas, elegirCaracteristica] = useState<Partial<Record<Habilidad, Caracteristica>>>({});
+  const habilidadesConFuerza = useMemo(() => obtenerHabilidadesConFuerzaRasgos(personaje), [personaje]);
   const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
   const desventajaSigiloArmadura = !!statsCalculadas.desventajaSigiloArmadura;
 
@@ -74,12 +79,13 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
             const hab = clave as Habilidad;
             const custom = personaje.personalizacionesHabilidades?.[hab];
             const nombreMostrar = custom?.nombrePersonalizado || nombre;
-            const bono = habilidades[hab] || 0;
+            const tirada = resolverTiradaHabilidadRasgos(personaje, hab, statsCalculadas.modificadores, habilidades[hab] || 0, caracteristicasElegidas[hab], habilidadesConFuerza);
+            const bono = tirada.bono;
             const bonoTexto = bono >= 0 ? `+${bono}` : `${bono}`;
             const grado = statsCalculadas.gradosHabilidadesEfectivos?.[hab] ||
               ((personaje.gradosHabilidades?.[hab] || "ninguna") as GradoCompetencia);
             const esCompetente = grado !== "ninguna";
-            const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab] || "destreza";
+            const caracAsociada = tirada.caracteristica;
             const abrevCarac = ABREVIATURA_CARACTERISTICA[caracAsociada] || "Des";
 
             // Evaluación integral de condiciones activas y rasgos para cada habilidad
@@ -110,7 +116,7 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
               <div
                 key={hab}
                 className={estilos.itemHabilidad}
-                onClick={() => alTirarHabilidad(hab, nombreMostrar, bono)}
+                onClick={() => alTirarHabilidad(hab, nombreMostrar, bono, caracAsociada)}
                 title={tooltipHab}
               >
                 <div className={estilos.infoHabilidadIzquierda}>
@@ -129,7 +135,12 @@ const PanelHabilidadesPersonajeComponent: React.FC<PanelHabilidadesPersonajeProp
                     <div className={obtenerClaseGrado(grado, estilos)} />
                   </button>
                   <span className={estilos.nombreHabilidad}>{nombreMostrar}</span>
-                  <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>
+                  {tirada.opciones.length ? <div className={estilos.selectorCaracteristicaHabilidad}
+                    onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+                    <SelectorDesplegable titulo={`Característica para ${nombreMostrar}`} valor={caracAsociada} tamano="mini"
+                      opciones={tirada.opciones.map(o => ({ valor: o.caracteristica, etiqueta: ABREVIATURA_CARACTERISTICA[o.caracteristica] }))}
+                      alCambiar={valor => elegirCaracteristica(previas => ({ ...previas, [hab]: valor }))} />
+                  </div> : <span className={estilos.caracAbrevHabilidad}>({abrevCarac})</span>}
                   {evalHab.tieneDesventaja && (
                     <span title={`Desventaja en ${nombreMostrar} por: ${motivosHab}`}>
                       <AlertTriangle size={10} color="var(--pj-texto-oro)" className={estilos.iconoInlineHabilidad} />

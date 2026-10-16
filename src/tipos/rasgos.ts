@@ -72,6 +72,8 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "modificador_capacidad_carga",
   "modificador_tamano",
   "restaurar_recurso",
+  "restriccion",
+  "renunciar_ventaja",
   "limite_des_armadura_media",
   "dado_extra_critico",
   "bono_habilidad",

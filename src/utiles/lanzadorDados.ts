@@ -548,8 +548,8 @@ export async function lanzarDadosTaleSpire(
   const establecerTipoTirada = state.establecerTipoTirada;
 
   // Regla oficial D&D 5.5e (2024): Anulación simétrica de fuentes de Ventaja y Desventaja
-  const tieneVentaja = tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja";
-  const tieneDesventaja = tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja";
+  const tieneVentaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja");
+  const tieneDesventaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja");
 
   let tipoTirada: "ventaja" | "desventaja" | "plano" = "plano";
   if (tieneVentaja && tieneDesventaja) {

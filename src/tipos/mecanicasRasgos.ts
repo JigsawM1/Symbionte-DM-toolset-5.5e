@@ -30,6 +30,7 @@ export const EsquemaMecanicasRasgo = z.object({
   }).optional(),
   autoDesactivarAlTirarSalvacion: z.boolean().optional(),
   desactivarConCondiciones: z.array(z.string()).optional(),
+  desactivarConArmaduraPesada: z.boolean().optional(),
   eliminarCondicionesAlActivar: z.array(z.string()).optional(),
   aptitudConjuroGratuito: EsquemaCaracteristica.optional(),
   ignorarComponentesConjuro: z.boolean().optional(),

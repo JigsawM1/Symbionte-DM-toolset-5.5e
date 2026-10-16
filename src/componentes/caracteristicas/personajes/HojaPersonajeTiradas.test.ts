@@ -56,6 +56,20 @@ describe("Tiradas de Hoja de Personaje - Convención TaleSpire y Combat Tracker"
     expect(formulaNormalizada).toBe("Prueba de FUE:1d20+3");
   });
 
+  it.each(["ventaja", "desventaja"] as const)("un modo plano explícito prevalece sobre %s manual", async tipoTirada => {
+    usarAlmacenDM.setState({ tipoTirada });
+    const disponible = vi.spyOn(ts, "estaDisponible", "get").mockReturnValue(true);
+    const depuracion = vi.spyOn(ts.debug, "log").mockImplementation(() => {});
+    const dados = vi.spyOn(ts.dice, "putDiceInTray").mockResolvedValue("tirada-plana");
+    const descriptores = vi.spyOn(ts.dice, "makeRollDescriptors").mockResolvedValue([{ name: "Prueba", roll: "1d20+3" }]);
+    try {
+      expect(await lanzarDadosTaleSpire("1d20+3", "Prueba", undefined, undefined, "plano")).toBe(true);
+      expect(dados.mock.calls[0][0]).toHaveLength(1);
+      expect(dados.mock.calls[0][0][0].roll).toBe("1d20+3");
+      expect(usarAlmacenDM.getState().tipoTirada).toBe("plano");
+    } finally { disponible.mockRestore(); depuracion.mockRestore(); dados.mockRestore(); descriptores.mockRestore(); }
+  });
+
   it("normaliza y sanitiza correctamente la fórmula de salvación con tilde", () => {
     const etiqueta = "Salvación de CON";
     const formula = `!${sanitizarEtiqueta(etiqueta)}:1d20+4`;

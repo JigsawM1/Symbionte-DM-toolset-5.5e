@@ -80,8 +80,8 @@
         {
           "tipo": "bono_dano_fuerza",
           "objetivo": "ataque_fuerza",
-          "valor": "dano_furia",
-          "condicion": "furia_activa",
+          "valor": 2,
+          "condicion": "rasgo_activo:rasgo_cls_barbaro_furia",
           "aplicaA": "arma_fuerza",
           "descripcion": "Daño de Furia (+2 nv 1-8, +3 nv 9-15, +4 nv 16-20)",
           "activo": true
@@ -90,7 +90,7 @@
           "tipo": "ventaja",
           "objetivo": "prueba.fuerza",
           "valor": "ventaja",
-          "condicion": "furia_activa",
+          "condicion": "rasgo_activo:rasgo_cls_barbaro_furia",
           "descripcion": "Ventaja en pruebas de Fuerza",
           "activo": true
         },
@@ -98,9 +98,42 @@
           "tipo": "ventaja",
           "objetivo": "salvacion.fuerza",
           "valor": "ventaja",
-          "condicion": "furia_activa",
+          "condicion": "rasgo_activo:rasgo_cls_barbaro_furia",
           "descripcion": "Ventaja en tiradas de salvación de Fuerza",
           "activo": true
+        },
+        {
+          "id": "furia_resistencia_contundente",
+          "tipo": "resistencia_dano",
+          "objetivo": "Contundente",
+          "tipoDano": "Contundente",
+          "valor": 1
+        },
+        {
+          "id": "furia_resistencia_perforante",
+          "tipo": "resistencia_dano",
+          "objetivo": "Perforante",
+          "tipoDano": "Perforante",
+          "valor": 1
+        },
+        {
+          "id": "furia_resistencia_cortante",
+          "tipo": "resistencia_dano",
+          "objetivo": "Cortante",
+          "tipoDano": "Cortante",
+          "valor": 1
+        },
+        {
+          "id": "furia_restriccion_conjuros",
+          "tipo": "restriccion",
+          "objetivo": "conjuros",
+          "valor": 1
+        },
+        {
+          "id": "furia_restriccion_concentracion",
+          "tipo": "restriccion",
+          "objetivo": "concentracion",
+          "valor": 1
         }
       ],
       "tablaProgresion": {
@@ -159,7 +192,37 @@
           }
         ],
         "notaPie": "Cada nivel reemplaza al anterior"
-      }
+      },
+      "desactivarConArmaduraPesada": true,
+      "desactivarConCondiciones": [
+        "Incapacitado",
+        "Aturdido",
+        "Paralizado",
+        "Petrificado",
+        "Inconsciente"
+      ],
+      "duracionEfectoAlActivar": 100,
+      "noGastarAlTirarDados": true,
+      "escaladoEfectos": [
+        {
+          "tipo": "bono_dano_fuerza",
+          "objetivo": "ataque_fuerza",
+          "escalones": [
+            {
+              "nivelMinimo": 1,
+              "valor": 2
+            },
+            {
+              "nivelMinimo": 9,
+              "valor": 3
+            },
+            {
+              "nivelMinimo": 16,
+              "valor": 4
+            }
+          ]
+        }
+      ]
     },
     {
       "nivel": 1,
@@ -234,10 +297,7 @@
             }
           ],
           "maxSelecciones": 2,
-          "valorActual": [
-            "cleave",
-            "graze"
-          ],
+          "valorActual": [],
           "visualizacion": "normal",
           "escaladoMaxSelecciones": [
             {
@@ -294,7 +354,7 @@
           "tipo": "ventaja",
           "objetivo": "salvacion.destreza",
           "valor": "ventaja",
-          "condicion": "siempre",
+          "condicion": "sin_condiciones:incapacitado,aturdido,paralizado,petrificado,inconsciente",
           "descripcion": "Sentido del peligro (Ventaja en tiradas de salvación de Destreza)",
           "activo": true
         }
@@ -304,7 +364,7 @@
       "nivel": 2,
       "nombre": "Ataque temerario",
       "descripcion": "Puedes dejar de lado toda preocupación por la defensa para atacar con mayor ferocidad. Cuando hagas tu primera tirada de ataque en tu turno, puedes decidir atacar de forma temeraria. Hacerlo te da ventaja en las tiradas de ataque que usen Fuerza hasta el comienzo de tu siguiente turno, pero las tiradas de ataque contra ti tienen ventaja durante ese tiempo.",
-      "tipoAccion": "pasivo",
+      "tipoAccion": "especial",
       "esActivable": true,
       "condicionAlActivar": "Ataque Temerario",
       "categoriaMecanica": "activable",
@@ -331,15 +391,100 @@
       "nombre": "Conocimiento primigenio",
       "descripcion": "Ganas competencia en otra habilidad de tu elección de la lista de habilidades disponible para los bárbaros a nivel 1.\n\nAdemás, mientras tu Furia esté activa, puedes canalizar el poder primigenio cuando intentes ciertas tareas; siempre que hagas una prueba de característica usando una de las siguientes habilidades, puedes hacerla como una prueba de Fuerza incluso si normalmente utiliza una característica diferente: *Acrobacias*, *Intimidación*, *Percepción*, *Sigilo* o *Supervivencia*. Cuando usas esta capacidad, tu Fuerza representa el poder primigenio fluyendo a través de ti, afinando tu agilidad, tu presencia y tus sentidos.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente",
+      "categoriaMecanica": "selector_informativo",
       "efectos": [
         {
           "tipo": "habilidad_con_fuerza",
           "objetivo": "acrobacias,intimidacion,percepcion,sigilo,supervivencia",
           "valor": "fuerza",
-          "condicion": "furia_activa",
-          "descripcion": "Conocimiento primigenio (Usa Fuerza en Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia si FUE es mayor)",
+          "condicion": "rasgo_activo:rasgo_cls_barbaro_furia",
+          "descripcion": "Puedes usar Fuerza en Acrobacias, Intimidación, Percepción, Sigilo o Supervivencia durante Furia.",
           "activo": true
+        }
+      ],
+      "selectores": [
+        {
+          "id": "habilidad_conocimiento_primigenio",
+          "tipo": "unico",
+          "tipoSelector": "general",
+          "etiqueta": "Habilidad adicional",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "visualizacion": "normal",
+          "opciones": [
+            {
+              "id": "atletismo",
+              "nombre": "Atletismo",
+              "descripcion": "Competencia en Atletismo",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.atletismo",
+                  "valor": "competente"
+                }
+              ]
+            },
+            {
+              "id": "intimidacion",
+              "nombre": "Intimidación",
+              "descripcion": "Competencia en Intimidación",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.intimidacion",
+                  "valor": "competente"
+                }
+              ]
+            },
+            {
+              "id": "naturaleza",
+              "nombre": "Naturaleza",
+              "descripcion": "Competencia en Naturaleza",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.naturaleza",
+                  "valor": "competente"
+                }
+              ]
+            },
+            {
+              "id": "percepcion",
+              "nombre": "Percepción",
+              "descripcion": "Competencia en Percepción",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.percepcion",
+                  "valor": "competente"
+                }
+              ]
+            },
+            {
+              "id": "supervivencia",
+              "nombre": "Supervivencia",
+              "descripcion": "Competencia en Supervivencia",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.supervivencia",
+                  "valor": "competente"
+                }
+              ]
+            },
+            {
+              "id": "trato_con_animales",
+              "nombre": "Trato con animales",
+              "descripcion": "Competencia en Trato con animales",
+              "efectos": [
+                {
+                  "tipo": "competencia",
+                  "objetivo": "habilidad.trato_con_animales",
+                  "valor": "competente"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -348,7 +493,20 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bárbaro.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_barbaro_nv4",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 5,
@@ -402,7 +560,7 @@
       "nivel": 7,
       "nombre": "Salto instintivo",
       "descripcion": "Como parte de la acción adicional que usas para entrar en tu Furia, puedes moverte hasta la mitad de tu velocidad.",
-      "tipoAccion": "especial",
+      "tipoAccion": "pasivo",
       "ligadoA": "rasgo_cls_barbaro_furia",
       "categoriaMecanica": "extension"
     },
@@ -411,7 +569,20 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_barbaro_nv8",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 9,
@@ -441,6 +612,13 @@
           "aplicaA": "arma_fuerza",
           "descripcion": "Golpe brutal (+1d10 al daño con armas de Fuerza)",
           "activo": true
+        },
+        {
+          "id": "golpe_brutal_renuncia",
+          "tipo": "renunciar_ventaja",
+          "objetivo": "ataque.fuerza",
+          "valor": 1,
+          "descripcion": "Golpe brutal (Renuncia a ventaja)"
         }
       ],
       "selectores": [
@@ -462,9 +640,7 @@
             }
           ],
           "maxSelecciones": 1,
-          "valorActual": [
-            "golpe_contundente"
-          ],
+          "valorActual": [],
           "visualizacion": "normal",
           "opcionesDinamicas": [
             {
@@ -494,7 +670,8 @@
             }
           ]
         }
-      ]
+      ],
+      "autoDesactivarAlTirarDano": true
     },
     {
       "nivel": 10,
@@ -516,7 +693,20 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_barbaro_nv12",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 13,
@@ -534,24 +724,25 @@
       "categoriaMecanica": "pasivo_permanente"
     },
     {
+      "id": "rasgo_cls_barbaro_furia_persistente_duracion",
+      "nivel": 15,
+      "nombre": "Duración de Furia persistente",
+      "descripcion": "Tu Furia dura 10 minutos sin necesidad de prolongarla ronda a ronda. Termina antes si estás inconsciente o te pones una armadura pesada.",
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "extension",
+      "ligadoA": "rasgo_cls_barbaro_furia",
+      "desactivarConCondiciones": [
+        "Inconsciente"
+      ]
+    },
+    {
       "nivel": 15,
       "nombre": "Furia persistente",
-      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.\n\nAdemás, tu Furia es tan feroz que ahora dura 10 minutos sin necesidad de que hagas nada para extenderla ronda a ronda. Tu Furia termina antes si tienes el estado de inconsciente (no solo el estado de incapacitado) o si te pones una armadura pesada.",
+      "descripcion": "Cuando tires iniciativa, puedes recuperar todos los usos gastados de Furia. Después de recuperar usos de Furia de esta manera, no podrás volver a hacerlo hasta que finalices un descanso largo.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
       "usosMaximos": 1,
-      "formulaUsos": "1",
       "recuperacion": "descanso_largo",
-      "escaladoUsos": {
-        "tipo": "por_nivel",
-        "tabla": [
-          {
-            "nivelMinimo": 15,
-            "valor": 1
-          }
-        ],
-        "minimo": 1
-      },
       "esActivable": true,
       "autoDesactivar": true,
       "dispararAlTirarIniciativa": true,
@@ -566,7 +757,20 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_barbaro_nv16",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 17,
@@ -589,7 +793,20 @@
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don de la ofensiva irresistible.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_don_epico_barbaro_nv19",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Don épico elegido",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 20,

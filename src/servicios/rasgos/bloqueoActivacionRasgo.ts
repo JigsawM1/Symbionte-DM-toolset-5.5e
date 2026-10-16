@@ -1,10 +1,11 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { resolverRasgoPadre, resolverRasgoRecurso, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
+import { resolverRasgoPadre, resolverRasgoRecurso, esRasgoHabilitadoPorOpcion, tieneArmaduraEquipada } from "./utilidadesRasgos";
 import { claveEstado } from "./estadoCondicionesRasgos";
 
 export function obtenerBloqueoActivacionRasgo(pj: PersonajeJugador | null, r: RasgoPersonaje): { bloqueado: boolean; motivo?: string } {
   if (!pj || r.activo || !r.esActivable) return { bloqueado: false };
   const fallo = (motivo: string) => ({ bloqueado: true, motivo });
+  if (r.desactivarConArmaduraPesada && tieneArmaduraEquipada(pj).esPesada) return fallo("La armadura pesada impide activar este rasgo.");
   if (r.tieneUsosLimitados && (r.usosRestantes ?? r.usosMaximos ?? 0) < (r.costeFijo ?? 1)) return fallo("No quedan usos disponibles.");
   if (r.desactivarConCondiciones?.some(c => pj.condicionesActivas.some(a => claveEstado(c) === claveEstado(a)))) return fallo("Una condición actual impide activar este rasgo.");
   if (!esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return fallo("La opción requerida no está seleccionada.");

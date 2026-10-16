@@ -11,6 +11,7 @@ import type { PersonajeJugador } from '@/tipos';
 import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { coincideHechizoId } from "./comparadorHechizos";
+import { tieneRestriccionRasgos } from "./rasgos/restriccionesRasgos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   sanitizarEtiqueta
@@ -101,6 +102,9 @@ export function validarLanzamiento(
   solicitud: SolicitudLanzamiento,
   contexto: ContextoMagicoPersonaje
 ): ResultadoValidacion {
+  if (contexto.personajeActual && tieneRestriccionRasgos(contexto.personajeActual, "conjuros")) {
+    return { permitido: false, motivo: "Un rasgo activo impide lanzar conjuros." };
+  }
   // 1. Regla D&D 5.5e: Bloqueo total por vestir armadura o escudo sin competencia
   if (contexto.penalizacionArmadura?.sinCompetencia) {
     const motivos: string[] = [];

@@ -250,6 +250,7 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
       if (!Array.isArray(pj.rasgos) || pj.rasgos.length === 0) return pj;
 
       let huboCambios = false;
+      const disparados = new Set<string>();
       const rasgosActualizados = pj.rasgos.map((r) => {
         if (!r.dispararAlTirarIniciativa) {
           return r;
@@ -263,7 +264,19 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
           return r;
         }
 
+        const cfg = r.restaurarUsosAlActivar;
+        if (cfg) {
+          const objetivo = pj.rasgos.find(t => normalizar(t.id) === normalizar(cfg.idRasgoObjetivo)
+            || normalizar(t.nombre) === normalizar(cfg.idRasgoObjetivo));
+          if (!objetivo) return r;
+          const actuales = objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0;
+          const maximo = objetivo.usosMaximos ?? actuales;
+          const destino = cfg.hastaCantidad ?? (cfg.cantidad === "maximo" ? maximo : actuales + (cfg.cantidad ?? 0));
+          if (actuales >= Math.min(maximo, destino) || (cfg.soloSiMenorOIgual !== undefined && actuales > cfg.soloSiMenorOIgual)) return r;
+        }
+
         huboCambios = true;
+        disparados.add(r.id);
 
         let usosRest = r.usosRestantes;
         if (r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
@@ -282,12 +295,7 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
       if (!huboCambios) return pj;
 
       // Aplicar restauraciones declarativas de recursos para los rasgos que se dispararon
-      const rasgosDisparados = pj.rasgos.filter((r) => {
-        if (!r.dispararAlTirarIniciativa) return false;
-        const estaHabilitado = r.esActivable ? r.activo : true;
-        const tieneUsos = !r.tieneUsosLimitados || (typeof r.usosRestantes === "number" && r.usosRestantes > 0);
-        return estaHabilitado && tieneUsos && r.restaurarUsosAlActivar;
-      });
+      const rasgosDisparados = pj.rasgos.filter(r => disparados.has(r.id) && r.restaurarUsosAlActivar);
 
       for (const rd of rasgosDisparados) {
         if (rd.restaurarUsosAlActivar) {

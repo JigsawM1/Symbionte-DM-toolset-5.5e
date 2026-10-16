@@ -148,6 +148,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
       id: "rasgo_cls_barbaro_golpe_brutal",
       nombre: "Golpe Brutal",
       descripcion: "Renuncia a la ventaja a cambio de 1d10 extra",
+      efectos: [{ tipo: "renunciar_ventaja", objetivo: "ataque.fuerza", valor: 1, descripcion: "Golpe Brutal (Renuncia a ventaja)" }],
       tipoAccion: "pasivo",
       esActivable: true,
       categoriaMecanica: "activable",
@@ -163,6 +164,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
 
     const pjConGolpeBrutal: PersonajeJugador = {
       ...basePj,
+      nivel: 9,
       condicionesActivas: ["Ataque Temerario"],
       rasgos: [...basePj.rasgos, rasgoGolpeBrutal]
     };
@@ -181,7 +183,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
 
     expect(formula).toBe("1d20+5");
     expect(etiqueta).toContain("Golpe Brutal (Renuncia a ventaja)");
-    expect(tipoTiradaForzado).toBeUndefined(); // Modo plano
+    expect(tipoTiradaForzado).toBe("plano"); // También impide la ventaja manual global
   });
 
   it("en una tirada normal sin condiciones, envía la tirada plana estándar", async () => {

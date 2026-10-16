@@ -474,7 +474,8 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     expect(mejoras?.map((m) => m.nivelRequerido)).toEqual([4, 8, 12, 16]);
     mejoras?.forEach((m) => {
       expect(m.categoriaMecanica).toBe("selector_informativo");
-      expect(m.selectores?.[0].valorActual).toEqual(["dote_mejora_caracteristica"]);
+      expect(m.selectores?.[0].valorActual).toEqual([]);
+      expect(m.selectores?.[0].requiereEleccionExplicita).toBe(true);
     });
   });
 

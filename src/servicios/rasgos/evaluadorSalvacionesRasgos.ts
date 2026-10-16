@@ -253,7 +253,7 @@ export function obtenerHabilidadesConFuerzaRasgos(personaje: PersonajeJugador): 
 
   for (const ef of efectos) {
     if (ef.tipo === "habilidad_con_fuerza") {
-      const lista = String(ef.valor || ef.objetivo)
+      const lista = String(normalizar(String(ef.valor)) === "fuerza" ? ef.objetivo : ef.valor || ef.objetivo)
         .split(/[,;\s]+/)
         .map((h) => normalizar(h))
         .filter(Boolean);

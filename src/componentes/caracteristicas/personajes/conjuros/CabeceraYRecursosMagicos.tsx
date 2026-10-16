@@ -60,8 +60,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
           <AlertTriangle size={18} color="var(--pj-texto-alerta)" className={estilos.iconoAlertaArmaduraShrink} />
           <div>
             <strong>Lanzamiento de Conjuros Bloqueado:</strong>
-            {" "}Vistes {penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.
-            {" "}Las reglas impiden lanzar conjuros y rituales bajo esta condición.
+            {" "}{motivoBloqueoArmadura || `Vistes ${penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.`}
           </div>
         </div>
       )}

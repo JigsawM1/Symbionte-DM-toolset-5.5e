@@ -101,6 +101,33 @@ try {
   await pagina.click('button[title^="Tirada de Salvación"]');
   await esperar(() => !window.rasgo("Indómito").activo);
   informe.casos.push("Indómito se consume y desactiva tras una salvación desde la hoja");
+  for (const width of [599, 433]) {
+    await pagina.setViewport({ width, height: 760 });
+    await pagina.evaluate(() => { window.sembrar(18, "Campeón"); window.recargarFicha(); window.ir("caracteristicas"); });
+    await pagina.waitForSelector('[class*="tarjetaMetricaInteractiva"]');
+    const iniciativa = await pagina.evaluateHandle(() => [...document.querySelectorAll('[class*="tarjetaMetricaInteractiva"]')]
+      .find(el => el.textContent.includes("Iniciativa")));
+    let desde = tiradas.length;
+    await iniciativa.asElement().scrollIntoView(); await iniciativa.asElement().click(); await iniciativa.dispose();
+    await pagina.waitForFunction(() => window.estado().colaIniciativa.length > 0);
+    assert(tiradas.slice(desde).some(t => t.includes("Iniciativa") && t.includes("Tipo original: ventaja")),
+      `Iniciativa del Campeón sin ventaja en ${width}px: ${tiradas.slice(desde)}`);
+    const atletismo = await pagina.$('[title^="Prueba de Atletismo"]');
+    assert.match(await atletismo.evaluate(el => el.title), /VENTAJA/);
+    desde = tiradas.length;
+    await atletismo.scrollIntoView(); await atletismo.click();
+    assert(tiradas.slice(desde).some(t => t.includes("Atletismo") && t.includes("Tipo original: ventaja")),
+      `Atletismo del Campeón sin ventaja en ${width}px: ${tiradas.slice(desde)}`);
+    const acrobacias = await pagina.$('[title^="Prueba de Acrobacias"]');
+    assert.doesNotMatch(await acrobacias.evaluate(el => el.title), /VENTAJA/);
+    desde = tiradas.length;
+    const muerte = await pagina.$('button[title^="Haz clic para tirar Salvación de Muerte"]');
+    await muerte.scrollIntoView(); await muerte.click();
+    assert(tiradas.slice(desde).some(t => t.includes("Muerte") && t.includes("Tipo original: ventaja")),
+      `Salvación de muerte del Campeón sin ventaja en ${width}px: ${tiradas.slice(desde)}`);
+  }
+  informe.casos.push("Campeón: iniciativa, Atletismo y salvación de muerte con ventaja desde la ficha en 599/433px");
+  await pagina.setViewport({ width: 599, height: 760 });
   await pagina.evaluate(() => window.sembrar(18, "Maestro del Combate"));
   await pagina.waitForSelector('section[aria-label="Maniobras de combate"]');
   await comprobarOrdenOpciones();
@@ -257,9 +284,16 @@ try {
   await activarCampo("Recargar un uso gastando el recurso padre");
   const campoTiradas = await pagina.evaluateHandle(() => [...document.querySelectorAll('label')].find(l => l.textContent.includes('Desactivar tras estas tiradas'))?.querySelector('input'));
   await campoTiradas.asElement().type("iniciativa,habilidad.sigilo"); await campoTiradas.dispose();
+  await pulsarTexto("Añadir Efecto Mecánico");
+  await pulsarTexto("Dados Extra de Daño");
+  await pulsarTexto("Ventaja en Tiradas d20");
+  await pulsarTexto("Tiradas de Salvación de Fuerza");
+  await pulsarTexto("Tiradas de Salvación contra la Muerte");
+  await pulsarTexto("Confirmar Efecto");
   await pagina.click('button[title="Guardar rasgo en este personaje"]');
   await esperar(() => window.rasgo("Recurso del constructor")?.recargarUsoConPadre);
   assert.deepEqual(await pagina.evaluate(() => window.rasgo("Recurso del constructor").autoDesactivarEnTirada), ["iniciativa", "habilidad.sigilo"]);
+  assert(await pagina.evaluate(() => window.rasgo("Recurso del constructor").efectos.some(e => e.tipo === "ventaja" && e.objetivo === "salvacion.muerte")));
   informe.casos.push("Rasgo nuevo del builder: tablas funcionales, guardado y reapertura");
   assert.deepEqual(informe.errores, []);
   fs.writeFileSync("scratch/informe-guerrero-ui.json", JSON.stringify(informe, null, 2));

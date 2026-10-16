@@ -276,7 +276,8 @@ export function evaluarEfectosCondicionesEnTirada(
 
     const resRasgos = evaluarVentajasDeRasgosEnTirada(contexto.personaje, {
       tipoTirada: contexto.tipo,
-      subtipo
+      subtipo,
+      habilidad: contexto.habilidad
     });
 
     if (resRasgos.tieneVentaja) {

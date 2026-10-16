@@ -15,6 +15,7 @@ import { consumirRecursoConjuro } from "./consumidorRecursosConjuros";
 import { aplicarConfiguracionConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "./procesadorDescansos";
+import { evaluarEfectosCondicionesEnTirada } from "./procesadorCondiciones";
 
 const obtener = (nivel: number, nombre: string, subclase?: string) => obtenerRasgosClaseYSubclase("Guerrero", nivel, subclase).find(r => r.nombre === nombre)!;
 describe("Guerrero Psiónico", () => {
@@ -121,11 +122,21 @@ describe("Caballero Arcano", () => {
   });
 });
 describe("Campeón", () => {
+  it("Superviviente concede ventaja contra muerte desde el catálogo construido", () => {
+    const personaje = { ...PERSONAJE_POR_DEFECTO, clase: "Guerrero", subclase: "Campeón", nivel: 18,
+      clases: [{ nombre: "Guerrero", subclase: "Campeón", nivel: 18 }], rasgos: obtenerRasgosClaseYSubclase("Guerrero", 18, "Campeón") };
+    expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "salvacion", subtipo: "muerte" }).tieneVentaja).toBe(true);
+    expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "salvacion", subtipo: "constitucion" }).tieneVentaja).toBe(false);
+    expect(evaluarVentajasDeRasgosEnTirada({ ...personaje, nivel: 17, clases: [{ ...personaje.clases[0], nivel: 17 }] },
+      { tipoTirada: "salvacion", subtipo: "muerte" }).tieneVentaja).toBe(false);
+  });
   it("otorga ventajas solo a iniciativa y Atletismo", () => {
     const personaje = { ...PERSONAJE_POR_DEFECTO, nivel: 3, rasgos: [obtener(3, "Atleta sobresaliente", "Campeón")] };
     expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "iniciativa" }).tieneVentaja).toBe(true);
     expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "caracteristica", subtipo: "atletismo" }).tieneVentaja).toBe(true);
     expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "caracteristica", subtipo: "acrobacias" }).tieneVentaja).toBe(false);
+    expect(evaluarEfectosCondicionesEnTirada({ personaje, tipo: "caracteristica", caracteristica: "fuerza", habilidad: "atletismo" }).modoEfectivo).toBe("ventaja");
+    expect(evaluarEfectosCondicionesEnTirada({ personaje, tipo: "caracteristica", caracteristica: "fuerza" }).modoEfectivo).toBe("plano");
   });
   it("concede dos estilos independientes, impide duplicados y conserva una dote ajena", () => {
     const base = { ...PERSONAJE_POR_DEFECTO, clase: "Guerrero", subclase: "Campeón", nivel: 7, clases: [{ nombre: "Guerrero", subclase: "Campeón", nivel: 7 }] };

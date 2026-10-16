@@ -770,7 +770,7 @@
           "efectos": [
             {
               "tipo": "ventaja",
-              "objetivo": "salvacion.salvacion_muerte",
+              "objetivo": "salvacion.muerte",
               "valor": "true"
             }
           ]

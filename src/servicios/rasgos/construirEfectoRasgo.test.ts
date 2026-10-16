@@ -3,6 +3,9 @@ import { construirEfectoRasgo, type BorradorEfectoRasgo } from "./construirEfect
 import { obtenerBonoAtaqueExtra } from "./evaluadorCombateRasgos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { RasgoPersonaje } from "@/tipos";
+import { crearBorradorRasgo, construirRasgoDesdeBorrador } from "./borradorRasgo";
+import { evaluarVentajasDeRasgosEnTirada } from "./evaluadorSalvacionesRasgos";
+import { hidratarPersonaje, deshidratarPersonaje } from "../serializadorPersonaje";
 
 const datos: BorradorEfectoRasgo = {
   nuevoTipoEfecto: "bono_ataque", nuevoObjetivo: "todos_ataques", nuevoValor: "2", nuevoTipoDano: "",
@@ -11,6 +14,21 @@ const datos: BorradorEfectoRasgo = {
 };
 
 describe("Contrato entre construcción de efectos y evaluadores", () => {
+  it.each(["iniciativa", "salvacion.muerte", "salvacion.salvacion_muerte", "atletismo"])(
+    "conserva la ventaja de %s al construir, guardar y recargar un rasgo personalizado", objetivo => {
+      const borrador = crearBorradorRasgo();
+      borrador.nombre = "Ventaja personalizada";
+      borrador.efectos = [construirEfectoRasgo({ ...datos, nuevoTipoEfecto: "ventaja", nuevoObjetivo: objetivo,
+        nuevoValor: "true", nuevaDescripcionEfecto: "", nuevoAplicaA: "" }, "ventaja")];
+      const rasgo = { ...construirRasgoDesdeBorrador(borrador), id: "ventaja-personalizada" };
+      const personaje = hidratarPersonaje(JSON.parse(JSON.stringify(deshidratarPersonaje({ ...PERSONAJE_POR_DEFECTO, rasgos: [rasgo] }))));
+      const consulta = objetivo === "iniciativa" ? { tipoTirada: "iniciativa" as const }
+        : objetivo === "atletismo" ? { tipoTirada: "caracteristica" as const, subtipo: "fuerza", habilidad: "atletismo" as const }
+        : { tipoTirada: "salvacion" as const, subtipo: "muerte" };
+      expect(evaluarVentajasDeRasgosEnTirada(personaje, consulta).tieneVentaja).toBe(true);
+      expect(evaluarVentajasDeRasgosEnTirada(personaje, { tipoTirada: "salvacion", subtipo: "destreza" }).tieneVentaja).toBe(false);
+    });
+
   it("produce el mismo bono con un rasgo oficial y uno personalizado", () => {
     const efecto = construirEfectoRasgo(datos, "efecto");
     const rasgo: RasgoPersonaje = { id: "rasgo", nombre: "Bono", descripcion: "", origen: "clase", fuente: "Catálogo",

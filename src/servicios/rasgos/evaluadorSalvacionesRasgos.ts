@@ -90,6 +90,7 @@ export interface ConsultaVentajaRasgo {
   tipoTirada?: "salvacion" | "iniciativa" | "ataque" | "caracteristica";
   tipo?: "salvacion" | "iniciativa" | "ataque" | "caracteristica" | string;
   subtipo?: string; // ej. "destreza", "fuerza", "atletismo"
+  habilidad?: Habilidad;
 }
 
 export function evaluarVentajasDeRasgosEnTirada(
@@ -102,6 +103,7 @@ export function evaluarVentajasDeRasgosEnTirada(
   let tieneDesventaja = false;
 
   const subtipoNorm = normalizar(consulta.subtipo || "");
+  const habilidadNorm = normalizar(consulta.habilidad || "");
   const tipoTirada = normalizar(consulta.tipoTirada || consulta.tipo || "");
 
   for (const ef of efectos) {
@@ -121,7 +123,7 @@ export function evaluarVentajasDeRasgosEnTirada(
           obj === subtipoNorm ||
           obj === "salvacion.todas" ||
           obj === "todas" ||
-          (esMuerte && (obj === "salvacion.muerte" || obj === "salvacion_muerte" || obj === "muerte" || obj === "salvaciones_muerte")) ||
+          (esMuerte && (obj === "salvacion.muerte" || obj === "salvacion.salvacion_muerte" || obj === "salvacion_muerte" || obj === "muerte" || obj === "salvaciones_muerte")) ||
           (esMental && (obj === "salvaciones_mentales" || obj === "salvacion.mental" || obj === "salvacion.mentales" || obj === "mentales")) ||
           (esFisica && (obj === "salvaciones_fisicas" || obj === "salvacion.fisica" || obj === "salvacion.fisicas" || obj === "fisicas"))
         );
@@ -178,6 +180,7 @@ export function evaluarVentajasDeRasgosEnTirada(
           objNorm === `prueba_${subtipoNorm}` ||
           objNorm === `caracteristica.${subtipoNorm}` ||
           objNorm === subtipoNorm ||
+          (habilidadNorm !== "" && (objNorm === habilidadNorm || objNorm === `habilidad.${habilidadNorm}` || objNorm === `prueba.${habilidadNorm}` || objNorm === `prueba_${habilidadNorm}`)) ||
           (objNorm === "prueba.fuerza" && subtipoNorm === "fuerza")
         ) {
           tieneVentaja = true;

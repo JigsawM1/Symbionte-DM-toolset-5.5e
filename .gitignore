@@ -63,3 +63,4 @@ respaldo.yaml
 !/scripts/probar-guerrero.mjs
 !/scripts/probar-brujo.mjs
 !/scripts/probar-barbaro.mjs
+!/scripts/probar-subclases-barbaro.mjs

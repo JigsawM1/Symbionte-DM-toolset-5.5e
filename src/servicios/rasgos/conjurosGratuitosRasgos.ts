@@ -5,6 +5,7 @@ import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import type { SolicitudLanzamiento } from "../servicioLanzamientoConjuros";
 import { obtenerModificadorAptitudMagica } from "../calculadorMagia";
 import { cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
+import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 
 export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string): RasgoPersonaje | undefined {
   return (pj.rasgos ?? []).find(r => !r.esActivable && r.activo !== false
@@ -19,6 +20,13 @@ export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string
 /** Una concesión explícita conserva su aptitud aunque otra clase sea el lanzador principal. */
 export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefined, solicitud: SolicitudLanzamiento): SolicitudLanzamiento {
   if (!pj || solicitud.modo === "objetoMagico") return solicitud;
+  if (solicitud.modo === "ritual" && solicitud.idRasgoOrigen) {
+    const origen = obtenerConcesionRitual(pj, solicitud.idRasgoOrigen, solicitud.hechizo.id);
+    if (!origen?.aptitudConjurosRituales) return solicitud;
+    const mod = obtenerModificadorAptitudMagica(pj, origen.aptitudConjurosRituales);
+    const bc = Math.floor((Math.max(1, pj.nivel) - 1) / 4) + 2;
+    return { ...solicitud, modificadorHabilidad: mod, bonoAtaqueMagico: bc + mod, cdSalvacionPersonaje: 8 + bc + mod };
+  }
   const r = solicitud.modo === "gratuitoInnato"
     ? buscarRasgoConjuroGratuito(pj, solicitud.hechizo.id) ?? buscarRasgoConjuroGratuito(pj, solicitud.hechizo.nombre) : undefined;
   const coincide = (id: string) => coincideHechizoId(id, solicitud.hechizo.id) || coincideHechizoId(id, solicitud.hechizo.nombre);

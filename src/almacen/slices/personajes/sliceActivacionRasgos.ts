@@ -10,10 +10,16 @@ import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideC
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
+import { prepararEleccionesActivacion, activarOpcionales } from "@/servicios/rasgos/activacionDeclarativa";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
-alternarActivoRasgo: (idPj, idRasgo) => {
-    mutarPersonaje(set, idPj, (pj) => {
+alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
+    mutarPersonaje(set, idPj, (original) => {
+      const objetivo = original.rasgos.find(r => r.id === idRasgo);
+      if (!objetivo) return original;
+      if (!objetivo.activo && obtenerBloqueoActivacionRasgo(original, objetivo).bloqueado) return original;
+      const pj = prepararEleccionesActivacion(original, objetivo, decisiones);
+      if (!pj) return original;
       let condicionesActualizadas = [...(pj.condicionesActivas || [])];
 
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
@@ -88,6 +94,7 @@ alternarActivoRasgo: (idPj, idRasgo) => {
             if (!yaTieneEfecto) {
               const rondaActual = get().rondaActual || 1;
               const nuevoEfecto = {
+                idRasgoOrigen: targetTrait.id,
                 id: generarId(nombreLimpioEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
                 nombre: nombreLimpioEfecto,
                 expiraRonda: rondaActual + duracionRondas,
@@ -150,7 +157,7 @@ alternarActivoRasgo: (idPj, idRasgo) => {
 
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && !esDiferidoAIniciativa && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+          if (nuevoActivo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
           const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
@@ -179,12 +186,12 @@ alternarActivoRasgo: (idPj, idRasgo) => {
         condicionesActualizadas = condicionesActualizadas.filter(c => !retiradas.has(claveEstado(c)));
         efectosActualizados = efectosActualizados.filter(e => !retiradas.has(claveEstado(e.nombre)));
       }
-      const pjPrevio = {
+      const pjPrevio = activarOpcionales({
         ...pj,
         rasgos: rasgosActualizados,
         condicionesActivas: condicionesActualizadas,
         efectosActivos: efectosActualizados
-      };
+      }, idRasgo, nuevoActivo ? decisiones : undefined, get().rondaActual || 1);
       const tieneAprendiz = tieneMedioBonoHabilidades(pjPrevio);
       const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
         pj.gradosHabilidades,

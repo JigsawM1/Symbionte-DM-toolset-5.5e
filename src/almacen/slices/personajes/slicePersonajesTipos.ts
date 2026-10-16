@@ -188,7 +188,7 @@ export interface SubSliceRasgos {
   recuperarUsoRasgoPersonaje: (idPj: string, idRasgo: string, cantidad?: number) => void;
   establecerUsosRestantesRasgoPersonaje: (idPj: string, idRasgo: string, usos: number) => void;
   sincronizarRasgosPersonaje: (idPj: string) => void;
-  alternarActivoRasgo: (idPj: string, idRasgo: string) => void;
+  alternarActivoRasgo: (idPj: string, idRasgo: string, decisiones?: import("@/servicios/rasgos/activacionDeclarativa").EleccionesActivacionRasgo) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
   dispararRasgosIniciativaPersonaje: (idPj: string) => void;
   guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;

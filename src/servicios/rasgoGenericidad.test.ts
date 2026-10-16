@@ -7,6 +7,7 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
 import { resolverIdRasgoObjetivoGasto } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerEspeciePorId, aplicarEspecieAPersonaje } from "@/servicios/gestorEspecies";
+import { resolverEscaladosRasgo } from "./clases/escaladosRasgos";
 
 describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
   describe("Regla 3: Auditoría Estática Anti-Bifurcaciones por Nombre en Servicios", () => {
@@ -113,14 +114,19 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
     });
 
     it("desbloquea opciones dinámicas y escala maxSelecciones en selectores por nivel", () => {
-      // Golpe brutal a nv 9 (1 selección, opciones base) vs nv 13 (opciones dinámicas añadidas) vs nv 17 (2 selecciones)
+      // Fixture independiente de las decisiones de presentación de un catálogo concreto.
+      const base = EsquemaRasgoPersonaje.parse({
+        id: "rasgo_prueba", nombre: "Elección escalable", descripcion: "Prueba", origen: "personalizado", fuente: "Prueba", tipoAccion: "pasivo",
+        selectores: [{ id: "opciones", tipo: "unico", tipoSelector: "general", etiqueta: "Opciones", valorActual: [], maxSelecciones: 1,
+          opciones: [{ id: "a", nombre: "A" }, { id: "b", nombre: "B" }],
+          opcionesDinamicas: [{ nivelMinimo: 13, opciones: [{ id: "c", nombre: "C" }, { id: "d", nombre: "D" }] }],
+          escaladoMaxSelecciones: [{ nivelMinimo: 9, valor: 1 }, { nivelMinimo: 17, valor: 2 }] }]
+      });
+      const selectorNv9 = resolverEscaladosRasgo({}, 9, [], base.selectores ?? []).selectores[0];
+      const selectorNv13 = resolverEscaladosRasgo({}, 13, [], base.selectores ?? []).selectores[0];
+      const selectorNv17 = resolverEscaladosRasgo({}, 17, [], base.selectores ?? []).selectores[0];
       const barbaroNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9);
-      const barbaroNv13 = obtenerRasgosClaseYSubclase("Bárbaro", 13);
       const barbaroNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17);
-
-      const selectorNv9 = barbaroNv9.find((r) => r.id.includes("golpe_brutal"))?.selectores?.[0];
-      const selectorNv13 = barbaroNv13.find((r) => r.id.includes("golpe_brutal"))?.selectores?.[0];
-      const selectorNv17 = barbaroNv17.find((r) => r.id.includes("golpe_brutal"))?.selectores?.[0];
 
       expect(selectorNv9?.maxSelecciones).toBe(1);
       expect(selectorNv9?.opciones.length).toBe(2);

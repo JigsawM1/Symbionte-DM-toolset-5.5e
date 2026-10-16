@@ -1,5 +1,28 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-16] Bárbaro: limpieza de tarjetas y diálogos de rasgos
+
+- Retirados los bloques duplicados de rituales de tarjetas compactas y cabecera de magia. Conjuros en la lista habitual y botones de ritual en el detalle, también para rasgos sin reserva ni dados. CD de salvación compacta con explicación en tooltip.
+- Diálogos compartidos con cabecera/cierre, cuerpo desplazable u-scroll-cef opaco y acciones visibles; opciones explícitas con beneficio consultable y capacidades opcionales con coste/usos. Curación con contador +/−, entrada numérica, reserva y fórmula, conservando los destinos propio/manual y el gasto tras emisión.
+- Preservada la retirada local previa del selector informativo de Golpe brutal. Regresiones adaptadas a las reglas accesibles y escalados vigentes; fixture independiente para el contrato de opciones dinámicas. No se restauró el selector para satisfacer pruebas antiguas.
+- Verificación: pnpm run ci, salida 0, 144 suites/2068 pruebas, TypeScript/ESLint, 162 archivos auditados y build correctos. test:barbaro-ui: 14 flujos/32 combinaciones; test:brujo-ui: 12/4; test:guerrero-ui: 9/16; sin errores JS. Escape/cancelación/cierre sin gasto, borrador opcional descartado, contador y edición de dados, rituales desde el detalle y bloqueo durante Furia. Capturas y límites a 599/433 px, alturas 760/600 revisados. Logs scratch/ci-barbaro-ux.log y scratch/ui-*-ux.log; permanece aviso previo de chunks grandes.
+- Inspector TaleSpire CEF 137 disponible, pero rechaza crear una página temporal aislada. Sin navegación del simbionte instalado ni modificación de personajes reales. Esta revisión queda validada en Chromium local, sin certificación CEF ni despliegue. Detalles en IMPLEMENTACION_SUBCLASES_BARBARO.md.
+
+---
+
+## [2026-10-16] Bárbaro PHB 2024: cuatro subclases declarativas
+
+- Implementadas Berserker, Corazón Salvaje, Árbol del Mundo y Fanático siguiendo dicionario_herramientas/clases/barbaro.md. Rasgos de clase base idénticos a HEAD y corrección previa de armadura pesada conservada. Matriz por rasgo, recursos, categorías, automatización, archivos y límites en IMPLEMENTACION_SUBCLASES_BARBARO.md.
+- Contratos compartidos y consumidores para elecciones transaccionales de activación, cambios de selector tras descanso largo, referencias de recursos independientes del estado padre, reservas por activación real, requisitos múltiples, consumo tras salvación emitida, caducidad a 0 PG y procedencia local de efectos. No se amplía el transporte de combate.
+- Frenesí y Furia divina: daño aplicable y apagado tras emisión correcta; este último admite Destreza y separa daño radiante/necrótico del daño físico, también en crítico. Furia ciega se fusiona y retira/bloquea Hechizado y Asustado. Oso y Halcón aportan defensas/movilidad; elecciones animales antes del gasto y fijadas durante Furia.
+- Vitalidad concede PG temporales propios solo al entrar en Furia; gasto de un uso o reconstrucción no repite el evento. Viaje lejano y Enfoque recuperan reserva por nueva Furia. Presencias se recargan opcionalmente gastando Furia sin exigir su activación. Forma divina opcional conserva duración propia después de Furia y acaba a 0 PG.
+- Guerrero de los dioses permite varios d12 y aplica curación propia mediante los consumidores de resultados. Reproducida y corregida la doble curación por eventos nativos simultáneos con el mismo ID; comprobación con adaptador simulado. El fallback exclusivo por chat carece de correlación del resultado y requiere aplicación manual. Se conserva la curación manual previa de Brujo.
+- Los tres rituales tienen procedencia y Sabiduría, sin conceder espacios ni lanzamientos normales por esa vía. Se conservan aprendizajes independientes. Revisados los conjuros y las maestrías Empujar/Derribar sin necesitar modificar sus entradas. Efectos sobre otras criaturas, primer impacto/turno propio, alcance y desplazamientos quedan manuales según lo acordado.
+- CI final: pnpm run ci, salida 0; 144 suites y 2068 pruebas, TypeScript, ESLint, auditoría de 162 archivos y build correctos. pnpm run test:barbaro-ui: 12 flujos/32 dimensiones y 0 errores; test:guerrero-ui: 9/16/0; test:brujo-ui: 12/4/0. Capturas y estilos calculados revisados a 599/433 px y alturas 760/600. git diff --check correcto. Logs finales scratch/ci-subclases-barbaro.log y scratch/ui-*-subclases-barbaro.log; informe scratch/informe-barbaro-ui.json.
+- Verificación en Chromium local y adaptadores unitarios simulados. Inspector CEF localhost:9222 no disponible (conexión rechazada); no se certifica TaleSpire real ni se desplegó. La prueba final aislada de Bárbaro pasa tras un timeout de arranque al lanzar varios navegadores simultáneamente. Permanece el aviso previo de chunks grandes.
+
+---
+
 ## [2026-10-16] Furia: clasificación de armadura pesada desde el inventario
 
 - Reproducido el fallo con Armadura de Bandas del catálogo: la comprobación de rasgos dependía del nombre y omitía su clasificación. Se consulta prioritariamente subcategoria, que el importador obtiene de equipment_categories (heavy-armor); se conservan referencias oficiales y bonoDestreza como compatibilidad para instancias sin esa clasificación.

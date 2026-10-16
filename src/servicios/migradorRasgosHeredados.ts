@@ -90,7 +90,7 @@ export function migrarMetadatosRasgos(rasgos: RasgoPersonaje[]): RasgoPersonaje[
     const nombre = textoSeguro(rasgo.nombre);
     const id = textoSeguro(rasgo.id);
     let ligadoA = rasgo.ligadoA;
-    if (ligadoA === undefined) {
+    if (ligadoA === undefined && !rasgo.activarConRasgo && !rasgo.idRasgoRecurso) {
       const padreCanonico = /furia divina|furia_divina|frenesi|furia de los dioses|furia_de_los_dioses/.test(`${nombre} ${id}`)
         ? "furia"
         : /golpe brutal|golpe_brutal/.test(`${nombre} ${id}`) ? "ataque temerario" : undefined;

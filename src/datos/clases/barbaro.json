@@ -621,56 +621,6 @@
           "descripcion": "Golpe brutal (Renuncia a ventaja)"
         }
       ],
-      "selectores": [
-        {
-          "id": "efecto_golpe_brutal",
-          "tipoSelector": "general",
-          "tipo": "unico",
-          "etiqueta": "Efecto de Golpe Brutal",
-          "opciones": [
-            {
-              "id": "golpe_contundente",
-              "nombre": "Golpe contundente",
-              "descripcion": "El objetivo es empujado 15 pies en línea recta lejos de ti. Puedes moverte hasta la mitad de tu velocidad hacia él sin provocar ataques de oportunidad."
-            },
-            {
-              "id": "golpe_inmovilizador",
-              "nombre": "Golpe inmovilizador",
-              "descripcion": "La velocidad del objetivo se reduce en 15 pies hasta el comienzo de tu siguiente turno."
-            }
-          ],
-          "maxSelecciones": 1,
-          "valorActual": [],
-          "visualizacion": "normal",
-          "opcionesDinamicas": [
-            {
-              "nivelMinimo": 13,
-              "opciones": [
-                {
-                  "id": "golpe_desestabilizador",
-                  "nombre": "Golpe desestabilizador (Nv. 13)",
-                  "descripcion": "El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno."
-                },
-                {
-                  "id": "golpe_desgarrador",
-                  "nombre": "Golpe desgarrador (Nv. 13)",
-                  "descripcion": "Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador."
-                }
-              ]
-            }
-          ],
-          "escaladoMaxSelecciones": [
-            {
-              "nivelMinimo": 9,
-              "valor": 1
-            },
-            {
-              "nivelMinimo": 17,
-              "valor": 2
-            }
-          ]
-        }
-      ],
       "autoDesactivarAlTirarDano": true
     },
     {
@@ -854,7 +804,7 @@
           "formulaDados": "2d6",
           "escaladoFormulaDados": [
             {
-              "nivelMinimo": 1,
+              "nivelMinimo": 3,
               "valor": "2d6"
             },
             {
@@ -874,13 +824,17 @@
           "efectos": [
             {
               "tipo": "dado_extra_dano",
-              "objetivo": "arma_fuerza",
+              "objetivo": "ataque_fuerza",
               "valor": "2d6",
-              "condicion": "furia_y_temerario_activos",
-              "aplicaA": "arma_fuerza",
-              "descripcion": "Frenesí",
-              "activo": true
+              "activo": true,
+              "aplicaA": "arma_o_desarmado_fuerza",
+              "condicion": "rasgo_activo:rasgo_cls_barbaro_furia"
             }
+          ],
+          "id": "rasgo_sub_senda_del_berserker_frenesi",
+          "requiereRasgosActivos": [
+            "rasgo_cls_barbaro_furia",
+            "rasgo_cls_barbaro_ataque_temerario"
           ]
         },
         {
@@ -889,24 +843,26 @@
           "descripcion": "Tienes *inmunidad* a los estados de *hechizado* y *asustado* mientras tu Furia esté activa. Si estás hechizado o asustado cuando entras en Furia, el estado termina en ti.",
           "tipoAccion": "pasivo",
           "subclase": "Senda del Berserker",
-          "categoriaMecanica": "pasivo_permanente",
+          "categoriaMecanica": "extension",
           "efectos": [
             {
               "tipo": "inmunidad_condicion",
-              "objetivo": "hechizado",
+              "objetivo": "Hechizado",
               "valor": "inmune",
-              "condicion": "furia_activa",
-              "descripcion": "Inmunidad a estar hechizado durante Furia",
               "activo": true
             },
             {
               "tipo": "inmunidad_condicion",
-              "objetivo": "asustado",
+              "objetivo": "Asustado",
               "valor": "inmune",
-              "condicion": "furia_activa",
-              "descripcion": "Inmunidad a estar asustado durante Furia",
               "activo": true
             }
+          ],
+          "id": "rasgo_sub_senda_del_berserker_furia_ciega",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "eliminarCondicionesAlActivar": [
+            "Hechizado",
+            "Asustado"
           ]
         },
         {
@@ -915,7 +871,8 @@
           "descripcion": "Cuando recibes daño de una criatura que está a 5 pies o menos de ti, puedes usar tu reacción para hacer un ataque cuerpo a cuerpo contra esa criatura, usando un arma o un ataque sin armas.",
           "tipoAccion": "reaccion",
           "subclase": "Senda del Berserker",
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_berserker_represalia"
         },
         {
           "nivel": 14,
@@ -925,20 +882,12 @@
           "subclase": "Senda del Berserker",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_largo",
-          "escaladoUsos": {
-            "tipo": "por_nivel",
-            "tabla": [
-              {
-                "nivelMinimo": 14,
-                "valor": 1
-              }
-            ],
-            "minimo": 1
-          },
-          "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "id": "rasgo_sub_senda_del_berserker_presencia_intimidante",
+          "salvacionObjetivo": { "caracteristica": "sabiduria", "aptitud": "fuerza" },
+          "idRasgoRecurso": "rasgo_cls_barbaro_furia",
+          "recargarUsoConPadre": true
         }
       ]
     },
@@ -956,20 +905,22 @@
           "descripcion": "Puedes lanzar los conjuros *Sentidos de la bestia* y *Hablar con los animales*, pero solo como rituales. La Sabiduría es tu aptitud mágica para lanzarlos.",
           "tipoAccion": "pasivo",
           "subclase": "Senda del Corazón Salvaje",
-          "conjurosOtorgados": [
-            "Sentidos de la bestia",
-            "Hablar con los animales"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_corazon_salvaje_hablante_de_los_animales",
+          "conjurosRituales": [
+            "h_sentidos-de-la-bestia",
+            "h_hablar-con-los-animales"
           ],
-          "categoriaMecanica": "pasivo_permanente"
+          "aptitudConjurosRituales": "sabiduria"
         },
         {
           "nivel": 3,
           "nombre": "Furia de las tierras salvajes",
           "descripcion": "Tu Furia recurre al poder primigenio de los animales. Siempre que actives tu Furia, obtienes una de las siguientes opciones a tu elección.\n\n***Oso.*** Mientras tu Furia esté activa, tienes resistencia a todos los tipos de daño excepto fuerza, necrótico, psíquico y radiante.\n\n***Águila.*** Cuando actives tu Furia, puedes llevar a cabo las acciones de destrabarse y correr como parte de esa acción adicional. Mientras tu Furia esté activa, puedes gastar una acción adicional para llevar a cabo ambas acciones.\n\n***Lobo.*** Mientras tu Furia esté activa, tus aliados tienen ventaja en las tiradas de ataque contra cualquier enemigo tuyo a 5 pies o menos de ti.",
-          "tipoAccion": "especial",
+          "tipoAccion": "pasivo",
           "subclase": "Senda del Corazón Salvaje",
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "selector_informativo",
+          "categoriaMecanica": "extension",
           "selectores": [
             {
               "id": "furia_tierras_salvajes_opcion",
@@ -980,7 +931,72 @@
                 {
                   "id": "oso",
                   "nombre": "Oso",
-                  "descripcion": "Resistencia a todo daño excepto fuerza, necrótico, psíquico y radiante durante Furia"
+                  "descripcion": "Resistencia a todo daño excepto fuerza, necrótico, psíquico y radiante durante Furia",
+                  "efectos": [
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Ácido",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Ácido"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Frío",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Frío"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Fuego",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Fuego"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Relámpago",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Relámpago"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Veneno",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Veneno"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Trueno",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Trueno"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Contundente",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Contundente"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Perforante",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Perforante"
+                    },
+                    {
+                      "tipo": "resistencia_dano",
+                      "objetivo": "Cortante",
+                      "valor": "resistencia",
+                      "activo": true,
+                      "tipoDano": "Cortante"
+                    }
+                  ]
                 },
                 {
                   "id": "aguila",
@@ -994,12 +1010,12 @@
                 }
               ],
               "maxSelecciones": 1,
-              "valorActual": [
-                "oso"
-              ],
-              "visualizacion": "normal"
+              "valorActual": [],
+              "visualizacion": "normal",
+              "momentoEleccion": "activacion"
             }
-          ]
+          ],
+          "id": "rasgo_sub_senda_del_corazon_salvaje_furia_de_las_tierras_salvajes"
         },
         {
           "nivel": 6,
@@ -1059,12 +1075,12 @@
                 }
               ],
               "maxSelecciones": 1,
-              "valorActual": [
-                "buho"
-              ],
-              "visualizacion": "normal"
+              "valorActual": [],
+              "visualizacion": "normal",
+              "momentoEleccion": "descanso_largo"
             }
-          ]
+          ],
+          "id": "rasgo_sub_senda_del_corazon_salvaje_aspecto_de_las_tierras_salvajes"
         },
         {
           "nivel": 10,
@@ -1072,10 +1088,12 @@
           "descripcion": "Puedes lanzar el conjuro *Comunión con la naturaleza*, pero solo como ritual. La Sabiduría es tu aptitud mágica para lanzarlo.",
           "tipoAccion": "pasivo",
           "subclase": "Senda del Corazón Salvaje",
-          "conjurosOtorgados": [
-            "Comunión con la naturaleza"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_corazon_salvaje_hablante_de_la_naturaleza",
+          "conjurosRituales": [
+            "h_comunion-con-la-naturaleza"
           ],
-          "categoriaMecanica": "pasivo_permanente"
+          "aptitudConjurosRituales": "sabiduria"
         },
         {
           "nivel": 14,
@@ -1084,7 +1102,7 @@
           "tipoAccion": "pasivo",
           "subclase": "Senda del Corazón Salvaje",
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "selector_informativo",
+          "categoriaMecanica": "extension",
           "selectores": [
             {
               "id": "poder_tierras_salvajes_opcion",
@@ -1095,7 +1113,16 @@
                 {
                   "id": "halcon",
                   "nombre": "Halcón",
-                  "descripcion": "Velocidad volando igual a tu velocidad si no llevas armadura durante Furia"
+                  "descripcion": "Velocidad volando igual a tu velocidad si no llevas armadura durante Furia",
+                  "efectos": [
+                    {
+                      "tipo": "movimiento_especial",
+                      "objetivo": "velocidad.volar",
+                      "valor": "velocidad_caminar",
+                      "activo": true,
+                      "condicion": "sin_armadura"
+                    }
+                  ]
                 },
                 {
                   "id": "leon",
@@ -1109,12 +1136,12 @@
                 }
               ],
               "maxSelecciones": 1,
-              "valorActual": [
-                "halcon"
-              ],
-              "visualizacion": "normal"
+              "valorActual": [],
+              "visualizacion": "normal",
+              "momentoEleccion": "activacion"
             }
-          ]
+          ],
+          "id": "rasgo_sub_senda_del_corazon_salvaje_poder_de_las_tierras_salvajes"
         }
       ],
       "progresionConjuros": [
@@ -1151,7 +1178,7 @@
           "formulaDados": "2d6",
           "escaladoFormulaDados": [
             {
-              "nivelMinimo": 1,
+              "nivelMinimo": 3,
               "valor": "2d6"
             },
             {
@@ -1163,7 +1190,18 @@
               "valor": "4d6"
             }
           ],
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_arbol_del_mundo_vitalidad_del_arbol",
+          "hpTemporalAlActivarRasgo": "rasgo_cls_barbaro_furia",
+          "noGastarAlTirarDados": true,
+          "efectos": [
+            {
+              "tipo": "hp_temporal",
+              "objetivo": "propio",
+              "valor": "nivel_barbaro",
+              "activo": true
+            }
+          ]
         },
         {
           "nivel": 6,
@@ -1172,7 +1210,9 @@
           "tipoAccion": "reaccion",
           "subclase": "Senda del Árbol del Mundo",
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_arbol_del_mundo_ramas_del_arbol",
+          "salvacionObjetivo": { "caracteristica": "fuerza", "aptitud": "fuerza" }
         },
         {
           "nivel": 10,
@@ -1180,7 +1220,8 @@
           "descripcion": "Durante tu turno, tu alcance es 10 pies mayor con cualquier arma cuerpo a cuerpo que tenga la propiedad pesada o versátil, ya que los zarcillos del Árbol del Mundo se extienden desde ti. Cuando aciertas con tal arma en tu turno, puedes activar la propiedad de maestría Empujar o Derribar además de una propiedad de maestría diferente que estés usando con esa arma.",
           "tipoAccion": "pasivo",
           "subclase": "Senda del Árbol del Mundo",
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "pasivo_permanente",
+          "id": "rasgo_sub_senda_del_arbol_del_mundo_raices_golpeadoras"
         },
         {
           "nivel": 14,
@@ -1189,8 +1230,23 @@
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Árbol del Mundo",
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "esActivable": true,
-          "categoriaMecanica": "activable"
+          "esActivable": false,
+          "categoriaMecanica": "selector_informativo",
+          "id": "rasgo_sub_senda_del_arbol_del_mundo_viaje_por_el_arbol"
+        },
+        {
+          "id": "rasgo_sub_senda_del_arbol_del_mundo_viaje_lejano",
+          "nivel": 14,
+          "nombre": "Viaje por el Árbol: viaje lejano",
+          "subclase": "Senda del Árbol del Mundo",
+          "descripcion": "Una vez por Furia, aumenta el teletransporte de Viaje por el Árbol a 150 pies y lleva hasta seis criaturas voluntarias a 10 pies o menos de ti. Cada acompañante llega a un espacio sin ocupar a 10 pies o menos del destino. Los desplazamientos se aplican manualmente.",
+          "tipoAccion": "accion_adicional",
+          "categoriaMecanica": "consumible",
+          "ligadoA": "rasgo_cls_barbaro_furia",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "otro",
+          "recuperarUsosAlActivarRasgo": "rasgo_cls_barbaro_furia"
         }
       ]
     },
@@ -1258,12 +1314,39 @@
           "efectos": [
             {
               "tipo": "dano_secundario",
-              "objetivo": "arma_fuerza",
-              "valor": "1d6+mitad_nivel",
-              "tipoDano": "Radiante o Necrótico",
-              "aplicaA": "arma_fuerza",
-              "descripcion": "Furia divina (1d6 + mitad nivel bárbaro Radiante o Necrótico)",
-              "activo": true
+              "objetivo": "arma_o_desarmado",
+              "valor": "1d6+1",
+              "activo": true,
+              "aplicaA": "arma_o_desarmado",
+              "tipoDano": "Radiante",
+              "condicion": "rasgo_activo:rasgo_cls_barbaro_furia"
+            }
+          ],
+          "id": "rasgo_sub_senda_del_fanatico_furia_divina",
+          "autoDesactivarAlTirarDano": true,
+          "idSelectorTipoDano": "furia_divina_tipo_dano",
+          "selectores": [
+            {
+              "id": "furia_divina_tipo_dano",
+              "tipo": "unico",
+              "tipoSelector": "general",
+              "etiqueta": "Tipo de daño divino",
+              "opciones": [
+                {
+                  "id": "radiante",
+                  "nombre": "Radiante",
+                  "descripcion": "Daño radiante."
+                },
+                {
+                  "id": "necrotico",
+                  "nombre": "Necrótico",
+                  "descripcion": "Daño necrótico."
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [],
+              "visualizacion": "normal",
+              "momentoEleccion": "activacion"
             }
           ]
         },
@@ -1274,7 +1357,6 @@
           "tipoAccion": "accion_adicional",
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
-          "formulaUsos": "(niv) => (niv >= 17 ? 7 : niv >= 12 ? 6 : niv >= 6 ? 5 : 4)",
           "recuperacion": "descanso_largo",
           "formulaDados": "1d12",
           "escaladoUsos": {
@@ -1300,7 +1382,13 @@
             "minimo": 4
           },
           "esActivable": false,
-          "categoriaMecanica": "curacion"
+          "categoriaMecanica": "curacion",
+          "id": "rasgo_sub_senda_del_fanatico_guerrero_de_los_dioses",
+          "usosMaximos": 4,
+          "tiradaCuracion": {
+            "maxDados": "7",
+            "destino": "propio"
+          }
         },
         {
           "nivel": 6,
@@ -1310,15 +1398,41 @@
           "subclase": "Senda del Fanático",
           "esActivable": true,
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "activable",
+          "categoriaMecanica": "consumible",
           "efectos": [
             {
               "tipo": "bono_salvacion",
               "objetivo": "todas",
-              "valor": "dano_furia",
-              "condicion": "furia_activa",
-              "descripcion": "Enfoque fanático (Bono a salvación igual al daño de furia)",
-              "activo": true
+              "valor": 2,
+              "activo": true,
+              "condicion": "rasgo_activo:rasgo_cls_barbaro_furia"
+            }
+          ],
+          "id": "rasgo_sub_senda_del_fanatico_enfoque_fanatico",
+          "tieneUsosLimitados": true,
+          "usosMaximos": 1,
+          "recuperacion": "otro",
+          "recuperarUsosAlActivarRasgo": "rasgo_cls_barbaro_furia",
+          "gastarUsoAlEmitirSalvacion": true,
+          "autoDesactivarAlTirarSalvacion": true,
+          "escaladoEfectos": [
+            {
+              "tipo": "bono_salvacion",
+              "objetivo": "todas",
+              "escalones": [
+                {
+                  "nivelMinimo": 6,
+                  "valor": 2
+                },
+                {
+                  "nivelMinimo": 9,
+                  "valor": 3
+                },
+                {
+                  "nivelMinimo": 16,
+                  "valor": 4
+                }
+              ]
             }
           ]
         },
@@ -1330,20 +1444,11 @@
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_largo",
-          "escaladoUsos": {
-            "tipo": "por_nivel",
-            "tabla": [
-              {
-                "nivelMinimo": 10,
-                "valor": 1
-              }
-            ],
-            "minimo": 1
-          },
-          "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "id": "rasgo_sub_senda_del_fanatico_presencia_fervorosa",
+          "idRasgoRecurso": "rasgo_cls_barbaro_furia",
+          "recargarUsoConPadre": true
         },
         {
           "nivel": 14,
@@ -1353,22 +1458,60 @@
           "subclase": "Senda del Fanático",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_largo",
-          "escaladoUsos": {
-            "tipo": "por_nivel",
-            "tabla": [
-              {
-                "nivelMinimo": 14,
-                "valor": 1
-              }
-            ],
-            "minimo": 1
-          },
           "esActivable": true,
-          "ligadoA": "rasgo_cls_barbaro_furia",
           "condicionAlActivar": "Furia de los Dioses (Rage of the Gods)",
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "id": "rasgo_sub_senda_del_fanatico_furia_de_los_dioses",
+          "activarConRasgo": "rasgo_cls_barbaro_furia",
+          "desactivarSinHp": true,
+          "duracionEfectoAlActivar": 10,
+          "efectos": [
+            {
+              "tipo": "movimiento_especial",
+              "objetivo": "velocidad.volar",
+              "valor": "velocidad_caminar",
+              "activo": true
+            },
+            {
+              "tipo": "resistencia_dano",
+              "objetivo": "Necrótico",
+              "valor": "resistencia",
+              "activo": true,
+              "tipoDano": "Necrótico"
+            },
+            {
+              "tipo": "resistencia_dano",
+              "objetivo": "Psíquico",
+              "valor": "resistencia",
+              "activo": true,
+              "tipoDano": "Psíquico"
+            },
+            {
+              "tipo": "resistencia_dano",
+              "objetivo": "Radiante",
+              "valor": "resistencia",
+              "activo": true,
+              "tipoDano": "Radiante"
+            }
+          ]
+        },
+        {
+          "id": "rasgo_sub_senda_del_fanatico_revivificacion",
+          "nivel": 14,
+          "nombre": "Revivificación",
+          "subclase": "Senda del Fanático",
+          "descripcion": "Mientras Furia de los dioses esté activa, cuando una criatura a 30 pies o menos fuera a llegar a 0 PG, usa tu reacción y gasta una Furia para cambiar sus PG a tu nivel de Bárbaro. Aplica manualmente los PG al destinatario.",
+          "tipoAccion": "reaccion",
+          "categoriaMecanica": "consumible",
+          "esActivable": true,
+          "autoDesactivar": true,
+          "gastarDePadre": true,
+          "idRasgoRecurso": "rasgo_cls_barbaro_furia",
+          "requiereRasgosActivos": [
+            "rasgo_sub_senda_del_fanatico_furia_de_los_dioses"
+          ],
+          "recuperacion": "ninguno"
         }
       ]
     }

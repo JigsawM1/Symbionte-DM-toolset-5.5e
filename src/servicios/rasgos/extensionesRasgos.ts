@@ -25,6 +25,7 @@ export function fusionarExtensionRasgo(
     if (r.recargaDescansoCorto !== undefined) padre.recargaDescansoCorto = r.recargaDescansoCorto;
     if (r.desactivarConCondiciones !== undefined) padre.desactivarConCondiciones = [...r.desactivarConCondiciones];
     if (r.desactivarConArmaduraPesada !== undefined) padre.desactivarConArmaduraPesada = r.desactivarConArmaduraPesada;
+    if (r.eliminarCondicionesAlActivar) padre.eliminarCondicionesAlActivar = [...new Set([...(padre.eliminarCondicionesAlActivar ?? []), ...r.eliminarCondicionesAlActivar])];
     if (r.tipoAccion && r.tipoAccion !== "pasivo") padre.tipoAccion = r.tipoAccion;
     if (Array.isArray(r.efectos) && r.efectos.length > 0) {
       padre.efectos = [...(padre.efectos || []), ...JSON.parse(JSON.stringify(r.efectos))];

@@ -83,7 +83,7 @@ describe("Servicio Gestor de Clases y Subclases D&D 5.5e (2024)", () => {
 
     // Bárbaro nivel 6 con Senda del Berserker
     const rasgosNv6 = obtenerRasgosClaseYSubclase("Bárbaro", 6, "Senda del Berserker");
-    expect(rasgosNv6.some((r) => r.nombre === "Furia ciega")).toBe(true);
+    expect(rasgosNv6.find(r => r.nombre === "Furia")?.eliminarCondicionesAlActivar).toEqual(["Hechizado", "Asustado"]);
   });
 
   it("debe retornar los conjuros siempre preparados de subclases según el nivel", () => {

@@ -284,7 +284,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       const estado = usarAlmacenDM.getState();
       const actual = estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === idRasgo);
       if (actual?.activo) estado.alternarActivoRasgo(personajeActivo.id, idRasgo);
-    });
+    }, idRasgo => usarAlmacenDM.getState().gastarUsoRasgoPersonaje(personajeActivo.id, idRasgo));
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number, caracteristica?: Caracteristica) => {

@@ -185,32 +185,17 @@ export function calcularAtaqueDesarmado(contexto: {
       : "Contundente";
   let modDanoDesarmadoFinal = modDanoTotal;
 
-  if (hayDanoSec) {
-    const formulaSec = danosSecundarios[0];
-    const matchSec = formulaSec.match(/^(\d+d\d+)(.*)$/i);
-    const dadoPrincipalSec = matchSec ? matchSec[1] : "1d6";
-    const extraNumSec = matchSec && matchSec[2] ? parseInt(matchSec[2], 10) || 0 : 0;
-
-    modDanoDesarmadoFinal = modDanoTotal + extraNumSec;
-    const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
-      dadoPrincipalSec,
-      modDanoDesarmadoFinal,
-      dadosExtra,
-      danosSecundarios.slice(1)
-    );
-    formulaDesarmado = formulaDano;
-    dadoBaseDesarmado = dadoDanoTotalBase;
-    esDanoFijoDesarmado = false;
-  } else if (dadosExtra.length > 0) {
+  if (hayDanoSec || dadosExtra.length > 0) {
     const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
       "1",
       modDanoDesarmadoFinal,
       dadosExtra,
-      []
+      danosSecundarios
     );
     formulaDesarmado = formulaDano;
     dadoBaseDesarmado = dadoDanoTotalBase;
     esDanoFijoDesarmado = false;
+    if (!dadosExtra.length) formulaDesarmado = [String(Math.max(1, 1 + modDanoTotal)), ...danosSecundarios].join("/");
   } else {
     const danoFijo = Math.max(1, 1 + modDanoTotal);
     formulaDesarmado = `${danoFijo}`;

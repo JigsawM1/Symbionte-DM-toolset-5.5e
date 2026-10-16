@@ -47,8 +47,10 @@ describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
     if (nivel >= 9) {
       const gb = rasgo(pj, "Golpe brutal");
       expect(gb.formulaDados).toBe(nivel >= 17 ? "2d10" : "1d10");
-      expect(gb.selectores?.[0].opciones).toHaveLength(nivel >= 13 ? 4 : 2);
-      expect(gb.selectores?.[0].maxSelecciones).toBe(nivel >= 17 ? 2 : 1);
+      expect(gb.selectores).toEqual([]);
+      expect(gb.descripcion).toContain("Golpe contundente");
+      expect(gb.descripcion.includes("Golpe desestabilizador")).toBe(nivel >= 13);
+      expect(gb.descripcion.includes("dos efectos diferentes")).toBe(nivel >= 17);
     }
   });
 
@@ -166,7 +168,7 @@ describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
   it("conserva elecciones, estado y gasto al reconstruir y guardar", () => {
     let pj = personaje(17); furia(pj).usosRestantes = 2; furia(pj).activo = true;
     rasgo(pj, "Maestría con armas").selectores![0].valorActual = ["push", "cleave"];
-    rasgo(pj, "Golpe brutal").selectores![0].valorActual = ["golpe_desgarrador", "golpe_contundente"];
+    rasgo(pj, "Golpe brutal").activo = true;
     pj = hidratarPersonaje(JSON.parse(JSON.stringify(deshidratarPersonaje(pj))));
     pj.rasgos = sincronizarRasgosAutomaticos(pj);
     expect(furia(pj).usosRestantes).toBe(2);
@@ -175,7 +177,8 @@ describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
     expect(new Set(furia(pj).efectos?.map(e => JSON.stringify(e))).size).toBe(furia(pj).efectos?.length);
     pj.nivel = 9; pj.clases[0].nivel = 9; pj.rasgos = sincronizarRasgosAutomaticos(pj);
     expect(furia(pj).usosRestantes).toBe(0);
-    expect(rasgo(pj, "Golpe brutal").selectores![0].valorActual).toEqual(["golpe_contundente"]);
+    expect(rasgo(pj, "Golpe brutal").selectores).toEqual([]);
+    expect(rasgo(pj, "Golpe brutal").descripcion).not.toContain("Golpe desestabilizador");
     expect(rasgo(pj, "Golpe brutal").formulaDados).toBe("1d10");
   });
 
@@ -189,12 +192,12 @@ describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
     expect(calcularEstadisticasPersonaje(pj).bonoCompetencia).toBe(6);
   });
 
-  it("retira elecciones futuras al cargar una ficha deshidratada con nivel reducido", () => {
+  it("retira mejoras futuras al cargar una ficha deshidratada con nivel reducido", () => {
     const pj = personaje(17);
-    rasgo(pj, "Golpe brutal").selectores![0].valorActual = ["golpe_desgarrador", "golpe_contundente"];
     const guardado = deshidratarPersonaje(pj); guardado.nivel = 9; guardado.clases[0].nivel = 9;
     const recargado = hidratarPersonaje(guardado);
-    expect(rasgo(recargado, "Golpe brutal").selectores![0].valorActual).toEqual(["golpe_contundente"]);
+    expect(rasgo(recargado, "Golpe brutal").descripcion).not.toContain("Golpe desestabilizador");
+    expect(rasgo(recargado, "Golpe brutal").formulaDados).toBe("1d10");
   });
 
   it("aplica y retira la habilidad adicional sin borrar competencias independientes", () => {

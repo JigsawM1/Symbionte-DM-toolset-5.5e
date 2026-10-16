@@ -15,6 +15,7 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
   });
   return {
     ...nuevo,
+    cambioDisponible: existente?.cambioDisponible ?? nuevo.cambioDisponible,
     valorActual: valorActual.slice(0, nuevo.maxSelecciones),
     opciones: nuevo.opciones.map((opcion) => {
       const anterior = existente?.opciones.find((o) => o.id === opcion.id);

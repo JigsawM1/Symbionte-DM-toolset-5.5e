@@ -43,6 +43,8 @@ export function aplicaEfectoAAtaque(
   contexto: ContextoAtaquePersonaje
 ): boolean {
   const criterio = normalizar(aplicaA || objetivo || "");
+  if (criterio === "arma_o_desarmado_fuerza") return contexto.caracteristica === "fuerza" && ["arma", "improvisada", "desarmado"].includes(contexto.tipo);
+  if (criterio === "arma_o_desarmado") return contexto.tipo === "arma" || contexto.tipo === "improvisada" || contexto.tipo === "desarmado";
 
   if (criterio === "arma") return contexto.tipo === "arma" || contexto.tipo === "improvisada";
 

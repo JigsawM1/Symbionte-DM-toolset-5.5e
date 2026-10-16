@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { createServer } from "vite";
 import puppeteer from "puppeteer-core";
+import { probarSubclasesBarbaro } from "./probar-subclases-barbaro.mjs";
 
 const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React from 'react'; import {createRoot} from 'react-dom/client';
@@ -13,6 +14,8 @@ import {calcularEstadisticasPersonaje} from '/src/almacen/selectores/usarEstadoP
 import {deshidratarPersonaje,hidratarPersonaje} from '/src/servicios/serializadorPersonaje.ts';
 import {OBJETOS_INICIALES} from '/src/utiles/datosIniciales.ts';
 import {crearObjetoInventarioDesdeCompendio} from '/src/servicios/calculadorInventario.ts';
+import {obtenerVelocidadesEfectivas,obtenerSentidosEfectivos} from '/src/servicios/rasgos/evaluadorMovilidadRasgos.ts';
+import {ejecutarDescansoLargo} from '/src/servicios/procesadorDescansos.ts';
 usarAlmacenDM.setState({esGM:false,pestañaActiva:'rasgos',cargandoDatos:false,datosInicialesCargados:false,
   cargarDatosPersistidos:async()=>{},establecerEsGM:()=>{},personajes:[],idPersonajeActivo:'',colaIniciativa:[]});
 window.estado=()=>usarAlmacenDM.getState();
@@ -20,12 +23,15 @@ window.pj=()=>window.estado().personajes.find(p=>p.id===window.estado().idPerson
 window.rasgo=n=>window.pj().rasgos.find(r=>r.nombre===n);
 window.ir=v=>usarAlmacenDM.setState({pestañaActiva:v});
 window.stats=()=>calcularEstadisticasPersonaje(window.pj());
+window.velocidades=()=>obtenerVelocidadesEfectivas(window.pj());
+window.sentidos=()=>obtenerSentidosEfectivos(window.pj());
+window.descansar=()=>window.estado().actualizarPersonaje(window.pj().id,ejecutarDescansoLargo(window.pj()).personajeActualizado);
 window.recargar=()=>usarAlmacenDM.setState({personajes:[hidratarPersonaje(JSON.parse(JSON.stringify(deshidratarPersonaje(window.pj()))))]});
 window.armadura=()=>window.estado().agregarObjetoInventario(window.pj().id,crearObjetoInventarioDesdeCompendio(OBJETOS_INICIALES.find(o=>o.nombre==='Armadura de Bandas')));
-window.sembrar=(nivel=17)=>{
+window.sembrar=(nivel=17,subclase='')=>{
   usarAlmacenDM.setState({personajes:[],colaIniciativa:[],rondaActual:1,tipoTirada:'plano'});
-  const id=window.estado().crearPersonaje({...structuredClone(PERSONAJE_POR_DEFECTO),nombre:'Bárbaro de prueba',especie:'',clase:'Bárbaro',subclase:'',nivel,
-    clases:[{nombre:'Bárbaro',subclase:'',nivel}],rasgos:obtenerRasgosClaseYSubclase('Bárbaro',nivel),
+  const id=window.estado().crearPersonaje({...structuredClone(PERSONAJE_POR_DEFECTO),nombre:'Bárbaro de prueba',especie:'',clase:'Bárbaro',subclase,nivel,
+    clases:[{nombre:'Bárbaro',subclase,nivel}],rasgos:obtenerRasgosClaseYSubclase('Bárbaro',nivel,subclase),
     caracteristicas:{fuerza:18,destreza:20,constitucion:16,inteligencia:10,sabiduria:12,carisma:10}});
   usarAlmacenDM.setState({esGM:false,pestañaActiva:'rasgos',idPersonajeActivo:id});return id;
 };
@@ -186,10 +192,13 @@ try {
   assert.equal(tiradas.length,desde);
   assert(await pagina.evaluate(()=>document.body.textContent.includes('Un rasgo activo impide lanzar conjuros.')));
   informe.casos.push("Magia: bloqueo visible durante Furia y ausencia de emisión desde la ficha");
+  await probarSubclasesBarbaro({pagina,informe,toggle,pulsar,click,cerrarModal,tiradas});
   assert.deepEqual(informe.errores,[]);
   fs.writeFileSync('scratch/informe-barbaro-ui.json',JSON.stringify(informe,null,2));
   console.log(JSON.stringify({casos:informe.casos.length,dimensiones:informe.dimensiones.length,errores:informe.errores.length}));
 } catch(error) {
+  const paginas = await navegador?.pages();
+  await paginas?.at(-1)?.screenshot({path:'scratch/barbaro-ui-fallo.png'});
   fs.writeFileSync('scratch/informe-barbaro-ui.json',JSON.stringify({...informe,fallo:String(error)},null,2));
   throw error;
 } finally {await navegador?.close();await servidor.close();}

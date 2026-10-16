@@ -21,7 +21,9 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
     const expirado = ronda !== undefined && r.condicionAlActivar && (pj.efectosActivos ?? []).some(e =>
       claveEstado(e.nombre) === claveEstado(r.condicionAlActivar!) && e.expiraRonda !== undefined && e.expiraRonda <= ronda);
     const armaduraImpide = r.desactivarConArmaduraPesada && tieneArmaduraEquipada(pj).esPesada;
-    if (!impedido && !expirado && !armaduraImpide) return r;
+    const sinHp = r.desactivarSinHp && pj.hpActual <= 0;
+    const faltaRequisito = r.requiereRasgosActivos?.some(id => !pj.rasgos.some(a => a.id === id && a.activo));
+    if (!impedido && !expirado && !armaduraImpide && !sinHp && !faltaRequisito) return r;
     cambio = true;
     if (r.condicionAlActivar) retirar.add(claveEstado(r.condicionAlActivar));
     return { ...r, activo: false };
@@ -31,9 +33,10 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
   for (let paso = 0; paso < rasgos.length && apagados.size; paso++) {
     let nuevos = false;
     rasgos = rasgos.map(r => {
-      if (!r.esActivable || !r.activo || !r.ligadoA) return r;
+      if (!r.esActivable || !r.activo) return r;
       const padre = resolverRasgoPadre(r, rasgos);
-      if (!padre || !apagados.has(padre.id)) return r;
+      const requisitoApagado = r.requiereRasgosActivos?.some(id => apagados.has(id));
+      if (!requisitoApagado && (!padre || !apagados.has(padre.id))) return r;
       apagados.add(r.id); nuevos = true;
       if (r.condicionAlActivar) retirar.add(claveEstado(r.condicionAlActivar));
       return { ...r, activo: false };

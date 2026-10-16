@@ -113,4 +113,22 @@ describe("Bárbaro base: restricciones y emisiones reales del consumidor", () =>
     pj.rasgos.find(r => r.nombre === "Golpe brutal")!.ligadoA = "rasgo_cls_barbaro_furia";
     expect(normalizarCondicionesRasgos(pj).rasgos.find(r => r.nombre === "Golpe brutal")!.activo).toBe(false);
   });
+
+  it("Furia divina conserva el daño desarmado físico y su grupo necrótico también en crítico", async () => {
+    const pj = preparar(14);
+    pj.subclase = "Senda del Fanático"; pj.clases[0].subclase = pj.subclase;
+    pj.rasgos = obtenerRasgosClaseYSubclase("Bárbaro", 14, pj.subclase);
+    pj.caracteristicas.fuerza = 18;
+    for (const r of pj.rasgos) if (["Furia", "Furia divina"].includes(r.nombre)) {
+      r.activo = true;
+      if (r.nombre === "Furia divina") r.selectores![0].valorActual = ["necrotico"];
+    }
+    const a = ataque(pj);
+    expect(a.dadoDano).toBe("8/1d6+7"); expect(a.tipoDano).toBe("Contundente / Necrótico");
+    vi.mocked(lanzarDadosTaleSpire).mockResolvedValue(true);
+    await ejecutarTiradaDanoFisico(a, pj);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toMatch(/1d1\+7\/.*Necr[oó]tico.*:1d6\+7/);
+    await ejecutarTiradaCritico(a, pj);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toMatch(/1d1\+7\/.*Necr[oó]tico.*:2d6\+7/);
+  });
 });

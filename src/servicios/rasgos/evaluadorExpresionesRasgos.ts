@@ -152,7 +152,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
         for (const sel of rasgo.selectores) {
           const idLower = sel.id.toLowerCase();
           const etiqLower = (sel.etiqueta || "").toLowerCase();
-          const esSelectorTipoDano =
+          const esSelectorTipoDano = rasgo.idSelectorTipoDano ? sel.id === rasgo.idSelectorTipoDano :
             idLower.includes("tipo_dano") ||
             idLower.includes("damage_type") ||
             etiqLower.includes("tipo de daño") ||

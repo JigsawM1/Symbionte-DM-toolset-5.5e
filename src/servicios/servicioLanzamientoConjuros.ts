@@ -12,6 +12,7 @@ import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { tieneRestriccionRasgos } from "./rasgos/restriccionesRasgos";
+import { obtenerConcesionRitual } from "./rasgos/conjurosRitualesRasgos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   sanitizarEtiqueta
@@ -34,6 +35,7 @@ export type ModoLanzamiento =
   | "ataqueMagico";
 
 export interface SolicitudLanzamiento {
+  idRasgoOrigen?: string;
   modo: ModoLanzamiento;
   hechizo: HechizoBase;
   nivelLanzamiento?: number;
@@ -105,6 +107,9 @@ export function validarLanzamiento(
   if (contexto.personajeActual && tieneRestriccionRasgos(contexto.personajeActual, "conjuros")) {
     return { permitido: false, motivo: "Un rasgo activo impide lanzar conjuros." };
   }
+  if (solicitud.idRasgoOrigen && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
+    || !obtenerConcesionRitual(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo.id)))
+    return { permitido: false, motivo: "Esta concesión solo permite sus rituales adquiridos." };
   // 1. Regla D&D 5.5e: Bloqueo total por vestir armadura o escudo sin competencia
   if (contexto.penalizacionArmadura?.sinCompetencia) {
     const motivos: string[] = [];

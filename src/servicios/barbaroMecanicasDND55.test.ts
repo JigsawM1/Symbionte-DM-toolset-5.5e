@@ -169,14 +169,15 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
 
   // ── NIVELES 9 A 14 ──
   describe("Niveles 9 a 14: Golpe brutal y Furia implacable", () => {
-    it("Golpe brutal es activable con dado 1d10 y selector interactivo a nivel 9", () => {
+    it("Golpe brutal es activable con dado 1d10 y efectos consultables a nivel 9", () => {
       const rasgosNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9);
       const golpeBrutal = rasgosNv9.find((r) => r.nombre === "Golpe brutal");
 
       expect(golpeBrutal?.categoriaMecanica).toBe("activable");
       expect(golpeBrutal?.formulaDados).toBe("1d10");
-      expect(golpeBrutal?.selectores?.[0].maxSelecciones).toBe(1);
-      expect(golpeBrutal?.selectores?.[0].opciones.length).toBe(2);
+      expect(golpeBrutal?.selectores).toEqual([]);
+      expect(golpeBrutal?.descripcion).toContain("Golpe contundente");
+      expect(golpeBrutal?.descripcion).toContain("Golpe inmovilizador");
     });
 
     it("Furia implacable es extensión y se fusiona limpiamente en Furia a nivel 11 sin contadores residuales", () => {
@@ -189,13 +190,13 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(tarjetaHuérfana).toBeUndefined();
     });
 
-    it("Golpe brutal mejorado se fusiona a nivel 13 incorporando nuevas opciones dinámicas", () => {
+    it("Golpe brutal mejorado se fusiona a nivel 13 incorporando las reglas de sus efectos", () => {
       const rasgosNv13 = obtenerRasgosClaseYSubclase("Bárbaro", 13);
       const golpeBrutalNv13 = rasgosNv13.find((r) => r.nombre === "Golpe brutal");
 
-      expect(golpeBrutalNv13?.selectores?.[0].opciones.length).toBe(4);
-      expect(golpeBrutalNv13?.selectores?.[0].opciones.some((o) => o.id === "golpe_desestabilizador")).toBe(true);
-      expect(golpeBrutalNv13?.selectores?.[0].opciones.some((o) => o.id === "golpe_desgarrador")).toBe(true);
+      expect(golpeBrutalNv13?.selectores).toEqual([]);
+      expect(golpeBrutalNv13?.descripcion).toContain("Golpe desestabilizador");
+      expect(golpeBrutalNv13?.descripcion).toContain("Golpe desgarrador");
     });
   });
 
@@ -213,13 +214,13 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(persistente?.restaurarUsosAlActivar?.cantidad).toBe("maximo");
     });
 
-    it("Golpe brutal mejorado (II) escala a 2d10 y 2 selecciones a nivel 17", () => {
+    it("Golpe brutal mejorado (II) escala a 2d10 y permite dos efectos manuales a nivel 17", () => {
       const rasgosNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17);
       const golpeBrutalNv17 = rasgosNv17.find((r) => r.nombre === "Golpe brutal");
 
       expect(golpeBrutalNv17?.formulaDados).toBe("2d10");
-      expect(golpeBrutalNv17?.selectores?.[0].maxSelecciones).toBe(2);
-      expect(golpeBrutalNv17?.selectores?.[0].tipo).toBe("multiple");
+      expect(golpeBrutalNv17?.selectores).toEqual([]);
+      expect(golpeBrutalNv17?.descripcion).toContain("dos efectos diferentes");
     });
 
     it("Poderío indómito es pasivo permanente y Don épico es selector informativo", () => {
@@ -267,13 +268,13 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       expect(frenesiNv16?.formulaDados).toBe("4d6");
     });
 
-    it("Furia ciega es pasivo permanente con inmunidad a hechizado y asustado", () => {
+    it("Furia ciega se fusiona con Furia y concede inmunidad a hechizado y asustado", () => {
       const rasgosNv6 = obtenerRasgosClaseYSubclase("Bárbaro", 6, "Senda del Berserker");
-      const furiaCiega = rasgosNv6.find((r) => r.nombre === "Furia ciega");
+      const furiaCiega = rasgosNv6.find((r) => r.nombre === "Furia");
 
-      expect(furiaCiega?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "hechizado" && e.tipo === "inmunidad_condicion")).toBe(true);
-      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "asustado" && e.tipo === "inmunidad_condicion")).toBe(true);
+      expect(rasgosNv6.some(r => r.nombre === "Furia ciega")).toBe(false);
+      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "Hechizado" && e.tipo === "inmunidad_condicion")).toBe(true);
+      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "Asustado" && e.tipo === "inmunidad_condicion")).toBe(true);
     });
 
     it("Represalia es reacción pasiva y Presencia intimidante es consumible ligado a Furia", () => {
@@ -287,7 +288,8 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       expect(presencia?.categoriaMecanica).toBe("consumible");
       expect(presencia?.usosMaximos).toBe(1);
       expect(presencia?.recuperacion).toBe("descanso_largo");
-      expect(presencia?.ligadoA).toBe("rasgo_cls_barbaro_furia");
+      expect(presencia?.ligadoA).toBeUndefined();
+      expect(presencia?.idRasgoRecurso).toBe("rasgo_cls_barbaro_furia");
     });
   });
 
@@ -299,27 +301,27 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       const hablanteNaturaleza = rasgosNv10.find((r) => r.nombre === "Hablante de la naturaleza");
 
       expect(hablanteAnimales?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(hablanteAnimales?.conjurosOtorgados).toContain("Sentidos de la bestia");
-      expect(hablanteAnimales?.conjurosOtorgados).toContain("Hablar con los animales");
+      expect(hablanteAnimales?.conjurosRituales).toContain("h_sentidos-de-la-bestia");
+      expect(hablanteAnimales?.conjurosRituales).toContain("h_hablar-con-los-animales");
 
       expect(hablanteNaturaleza?.categoriaMecanica).toBe("pasivo_permanente");
-      expect(hablanteNaturaleza?.conjurosOtorgados).toContain("Comunión con la naturaleza");
+      expect(hablanteNaturaleza?.conjurosRituales).toContain("h_comunion-con-la-naturaleza");
     });
 
     it("Furia de las tierras salvajes, Aspecto y Poder son selectores informativos interactivos", () => {
       const rasgosNv14 = obtenerRasgosClaseYSubclase("Bárbaro", 14, "Senda del Corazón Salvaje");
-      const furiaTierras = rasgosNv14.find((r) => r.nombre === "Furia de las tierras salvajes");
+      const furiaTierras = rasgosNv14.find((r) => r.nombre === "Furia");
       const aspecto = rasgosNv14.find((r) => r.nombre === "Aspecto de las tierras salvajes");
-      const poder = rasgosNv14.find((r) => r.nombre === "Poder de las tierras salvajes");
+      const poder = rasgosNv14.find((r) => r.nombre === "Furia");
 
-      expect(furiaTierras?.categoriaMecanica).toBe("selector_informativo");
+      expect(furiaTierras?.selectores?.find(s => s.id === "furia_tierras_salvajes_opcion")?.momentoEleccion).toBe("activacion");
       expect(furiaTierras?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["oso", "aguila", "lobo"]);
 
       expect(aspecto?.categoriaMecanica).toBe("selector_informativo");
       expect(aspecto?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["buho", "pantera", "salmon"]);
 
-      expect(poder?.categoriaMecanica).toBe("selector_informativo");
-      expect(poder?.selectores?.[0].opciones.map((o) => o.id)).toEqual(["halcon", "leon", "carnero"]);
+      expect(poder?.selectores?.find(s => s.id === "poder_tierras_salvajes_opcion")?.momentoEleccion).toBe("activacion");
+      expect(poder?.selectores?.find(s => s.id === "poder_tierras_salvajes_opcion")?.opciones.map((o) => o.id)).toEqual(["halcon", "leon", "carnero"]);
     });
   });
 
@@ -349,8 +351,8 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
 
       expect(raices?.categoriaMecanica).toBe("pasivo_permanente");
 
-      expect(viaje?.categoriaMecanica).toBe("activable");
-      expect(viaje?.esActivable).toBe(true);
+      expect(viaje?.categoriaMecanica).toBe("selector_informativo");
+      expect(viaje?.esActivable).toBe(false);
       expect(viaje?.tipoAccion).toBe("accion_adicional");
     });
   });
@@ -365,7 +367,8 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       expect(furiaDivina?.esActivable).toBe(true);
       expect(furiaDivina?.formulaDados).toBe("1d6+1");
       expect(furiaDivina?.efectos?.[0].tipo).toBe("dano_secundario");
-      expect(furiaDivina?.efectos?.[0].tipoDano).toBe("Radiante o Necrótico");
+      expect(furiaDivina?.idSelectorTipoDano).toBe("furia_divina_tipo_dano");
+      expect(furiaDivina?.selectores?.[0].valorActual).toEqual([]);
     });
 
     it("Guerrero de los dioses es curación con reserva de dados d12 (4 a 7 dados)", () => {
@@ -392,7 +395,7 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       const presencia = rasgosNv14.find((r) => r.nombre === "Presencia fervorosa");
       const furiaDioses = rasgosNv14.find((r) => r.nombre === "Furia de los dioses");
 
-      expect(enfoque?.categoriaMecanica).toBe("activable");
+      expect(enfoque?.categoriaMecanica).toBe("consumible");
       expect(enfoque?.efectos?.[0].tipo).toBe("bono_salvacion");
 
       expect(presencia?.categoriaMecanica).toBe("consumible");

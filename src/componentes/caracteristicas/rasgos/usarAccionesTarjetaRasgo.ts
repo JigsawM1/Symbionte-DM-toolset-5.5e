@@ -37,6 +37,7 @@ interface RetornoAccionesTarjetaRasgo {
   valorHpTemporalCalculado: number;
   manejarTirarDados: (e: React.MouseEvent) => Promise<void>;
   manejarAplicarHpTemporal: (e: React.MouseEvent) => void;
+  manejarTirarDadosGuardados: (e: React.MouseEvent) => void;
 }
 
 export function usarAccionesTarjetaRasgo({
@@ -94,9 +95,9 @@ export function usarAccionesTarjetaRasgo({
   const esInspiracionBardica = normNombre.includes("inspiracion bardica");
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
-  const esCuracion = rasgo.categoriaMecanica === "curacion" || normNombre.includes("guerrero de los dioses");
-  const esCuracionAuto = esCuracion && !rasgo.tiradaCuracionManual && !esManosCurativas && !esPreservarVida;
-  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion;
+  const esCuracion = rasgo.categoriaMecanica === "curacion";
+  const esCuracionAuto = esCuracion && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !esManosCurativas && !esPreservarVida;
+  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion && !rasgo.hpTemporalAlUsarRasgo && !rasgo.hpTemporalAlActivarRasgo;
   const gastaUsoAlTirar =
     !rasgo.noGastarAlTirarDados &&
     (esCuracionAuto ||
@@ -209,6 +210,17 @@ export function usarAccionesTarjetaRasgo({
     }
   };
 
+  const manejarTirarDadosGuardados = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!idPersonaje) return;
+    const match = (formulaEfectiva || rasgo.formulaDados || "2d20").match(/^(\d+)d(\d+)$/i);
+    const cantidad = match ? parseInt(match[1], 10) : 2;
+    const caras = match ? parseInt(match[2], 10) : 20;
+    const dados = Array.from({ length: cantidad }, () => Math.floor(Math.random() * caras) + 1);
+    usarAlmacenDM.getState().guardarDadosRasgo(idPersonaje, rasgo.id, dados);
+    agregarNotificacion(`¡${rasgo.nombre}! Tirada de presagio generada: ${dados.join(", ")}`, "exito");
+  };
+
   return {
     usosRestantes,
     usosMaximos,
@@ -222,6 +234,7 @@ export function usarAccionesTarjetaRasgo({
     esHpTemporalPropio,
     valorHpTemporalCalculado,
     manejarTirarDados,
-    manejarAplicarHpTemporal
+    manejarAplicarHpTemporal,
+    manejarTirarDadosGuardados
   };
 }

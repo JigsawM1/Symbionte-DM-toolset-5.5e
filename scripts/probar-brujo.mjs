@@ -214,11 +214,11 @@ const botonLanzar=async()=>pagina.evaluateHandle(()=>[...document.querySelectorA
 const vidaAntes=await pagina.evaluate(()=>window.estado().personajes.map(p=>[p.id,p.hpActual,p.hpTemporal]));
 const hpSinCambios=async()=>assert.deepEqual(await pagina.evaluate(()=>window.estado().personajes.map(p=>[p.id,p.hpActual,p.hpTemporal])),vidaAntes);
 await abrirLuz();assert.equal(await pagina.$('dialog button[title="Destinatario de la curación"]'),null);
-assert.match(await pagina.$eval('dialog label',e=>e.textContent),/máximo 3/);
+assert.match(await pagina.$eval('dialog',e=>e.textContent),/Hasta 3 dados por tirada/);
 await elegirDados(3);let lanzar=await botonLanzar();assert(lanzar.asElement());await lanzar.asElement().click();
 await esperar(()=>window.rasgo('Luz sanadora').usosRestantes===1);
 assert.match(await pagina.evaluate(()=>window.tiradas[0][0].roll),/3d6/);await pagina.evaluate(()=>window.resultadoDados(12));await hpSinCambios();
-await abrirLuz();assert.match(await pagina.$eval('dialog label',e=>e.textContent),/máximo 1/);
+await abrirLuz();assert.match(await pagina.$eval('dialog',e=>e.textContent),/Hasta 1 dado por tirada/);
 lanzar=await botonLanzar();await lanzar.asElement().click();await esperar(()=>window.rasgo('Luz sanadora').usosRestantes===0);
 assert.match(await pagina.evaluate(()=>window.tiradas[1][0].roll),/1d6/);await pagina.evaluate(()=>window.resultadoDados(6));await hpSinCambios();
 assert.equal(await pagina.$eval('article button[title="Elegir cuántos dados de curación gastar"]',b=>b.disabled),true);

@@ -1,5 +1,15 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-16] Furia: clasificación de armadura pesada desde el inventario
+
+- Reproducido el fallo con Armadura de Bandas del catálogo: la comprobación de rasgos dependía del nombre y omitía su clasificación. Se consulta prioritariamente subcategoria, que el importador obtiene de equipment_categories (heavy-armor); se conservan referencias oficiales y bonoDestreza como compatibilidad para instancias sin esa clasificación.
+- Comprobadas las cuatro armaduras pesadas del catálogo mediante creación de instancia y equipamiento real del almacén: bloqueo sin gastar usos, finalización al equipar y retirada del efecto de Furia. También armaduras renombradas y protecciones ligeras/medianas.
+- test:barbaro-ui sustituye las placas sintéticas equipadas por una Armadura de Bandas del catálogo y pulsa Equipar/Desequipar en Inventario. Verifica bloqueo visible, gasto conservado y reactivación al desequipar a 599/433 px y alturas 760/600. Resultado: 8 flujos, 16 combinaciones dimensionales y 0 errores JavaScript; capturas revisadas.
+- Regresiones dirigidas: 104 pruebas aprobadas. pnpm run ci: salida 0, 142 suites y 2023 pruebas; TypeScript, ESLint, auditoría y build correctos. Logs en scratch/test-furia-armadura-antes.log (reproducción), scratch/test-furia-armadura.log, scratch/ui-furia-armadura.log y scratch/ci-furia-armadura.log.
+- Validación local en Chromium. Inspector CEF en 127.0.0.1:9222 no disponible (conexión rechazada); no se certifica TaleSpire real ni se desplegó. Permanece el aviso previo de chunks grandes.
+
+---
+
 ## [2026-10-16] Bárbaro base PHB 2024: ejecución declarativa y verificación local
 
 - Actualizada únicamente la clase base de barbaro.json, niveles 1–20. Bloque de las cuatro subclases conservado literalmente frente a HEAD. Matriz por rasgo, archivos, fuentes y límites en IMPLEMENTACION_BARBARO.md.

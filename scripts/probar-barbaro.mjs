@@ -11,7 +11,8 @@ import {PERSONAJE_POR_DEFECTO} from '/src/constantes/personajeConstantes.ts';
 import {obtenerRasgosClaseYSubclase} from '/src/servicios/gestorClases.ts';
 import {calcularEstadisticasPersonaje} from '/src/almacen/selectores/usarEstadoPersonajes.ts';
 import {deshidratarPersonaje,hidratarPersonaje} from '/src/servicios/serializadorPersonaje.ts';
-import {EsquemaObjetoInventario} from '/src/tipos/personaje.ts';
+import {OBJETOS_INICIALES} from '/src/utiles/datosIniciales.ts';
+import {crearObjetoInventarioDesdeCompendio} from '/src/servicios/calculadorInventario.ts';
 usarAlmacenDM.setState({esGM:false,pestañaActiva:'rasgos',cargandoDatos:false,datosInicialesCargados:false,
   cargarDatosPersistidos:async()=>{},establecerEsGM:()=>{},personajes:[],idPersonajeActivo:'',colaIniciativa:[]});
 window.estado=()=>usarAlmacenDM.getState();
@@ -20,7 +21,7 @@ window.rasgo=n=>window.pj().rasgos.find(r=>r.nombre===n);
 window.ir=v=>usarAlmacenDM.setState({pestañaActiva:v});
 window.stats=()=>calcularEstadisticasPersonaje(window.pj());
 window.recargar=()=>usarAlmacenDM.setState({personajes:[hidratarPersonaje(JSON.parse(JSON.stringify(deshidratarPersonaje(window.pj()))))]});
-window.armadura=()=>window.estado().actualizarPersonaje(window.pj().id,{inventario:[EsquemaObjetoInventario.parse({idInstancia:'placas',idObjeto:'placas',nombre:'Armadura de placas',categoria:'armaduras',equipado:true})]});
+window.armadura=()=>window.estado().agregarObjetoInventario(window.pj().id,crearObjetoInventarioDesdeCompendio(OBJETOS_INICIALES.find(o=>o.nombre==='Armadura de Bandas')));
 window.sembrar=(nivel=17)=>{
   usarAlmacenDM.setState({personajes:[],colaIniciativa:[],rondaActual:1,tipoTirada:'plano'});
   const id=window.estado().crearPersonaje({...structuredClone(PERSONAJE_POR_DEFECTO),nombre:'Bárbaro de prueba',especie:'',clase:'Bárbaro',subclase:'',nivel,
@@ -150,8 +151,32 @@ try {
   await pagina.evaluate(()=>window.sembrar(15)); await toggle('Furia');
   await pagina.evaluate(()=>window.estado().aplicarCondicionPersonaje(window.pj().id,'Incapacitado'));
   assert(await pagina.evaluate(()=>window.rasgo('Furia').activo));
-  await pagina.evaluate(()=>window.armadura()); await esperar(()=>!window.rasgo('Furia').activo);
-  informe.casos.push("Finalización por estados antes/después de nivel 15 y por armadura pesada");
+  informe.casos.push("Finalización por estados antes/después de nivel 15");
+  for (const width of [599,433]) for (const height of [760,600]) {
+    await pagina.setViewport({width,height});
+    await pagina.evaluate(()=>{window.sembrar(15);window.armadura();});
+    await toggle('Furia');
+    await pagina.evaluate(()=>window.ir('inventario'));
+    await click('button[title="Equipar objeto"]');
+    await esperar(()=>!window.rasgo('Furia').activo);
+    assert.equal(await pagina.evaluate(()=>window.rasgo('Furia').usosRestantes),4);
+    assert.equal(await pagina.evaluate(()=>window.pj().efectosActivos.some(e=>e.nombre==='Furia')),false);
+    await pagina.screenshot({path:`scratch/barbaro-armadura-equipada-${width}x${height}.png`});
+    await pagina.evaluate(()=>window.ir('rasgos'));
+    const bloqueo=await pagina.waitForSelector('button[title="La armadura pesada impide activar este rasgo."]');
+    assert(await bloqueo.evaluate(b=>b.disabled));
+    await bloqueo.scrollIntoView(); await bloqueo.click();
+    assert.equal(await pagina.evaluate(()=>window.rasgo('Furia').activo),false);
+    assert.equal(await pagina.evaluate(()=>window.rasgo('Furia').usosRestantes),4);
+    await pagina.screenshot({path:`scratch/barbaro-furia-bloqueada-${width}x${height}.png`});
+    await pagina.evaluate(()=>window.ir('inventario'));
+    await click('button[title="Desequipar objeto"]');
+    await pagina.evaluate(()=>window.ir('rasgos'));
+    await toggle('Furia');
+    await esperar(()=>window.rasgo('Furia').activo && window.rasgo('Furia').usosRestantes===3);
+    informe.dimensiones.push({vista:'equipar-armadura-y-bloquear-furia',width,height});
+  }
+  informe.casos.push("Armadura de Bandas del catálogo: equipar/desequipar desde Inventario, finalización y bloqueo sin gasto desde Rasgos");
   await pagina.evaluate(()=>window.sembrar(9)); await toggle('Furia');
   await pagina.evaluate(()=>window.ir('caracteristicas'));
   const magia = await pagina.waitForFunction(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Conjuros y Magia')));

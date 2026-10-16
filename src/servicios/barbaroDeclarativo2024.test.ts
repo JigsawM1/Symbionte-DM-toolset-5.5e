@@ -16,6 +16,9 @@ import { evaluarVentajasDeRasgosEnTirada, obtenerCompetenciasExtraRasgos } from 
 import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
 import { resolverTiradaHabilidadRasgos } from "./rasgos/tiradaHabilidadRasgos";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "./procesadorDescansos";
+import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
+import { crearObjetoInventarioDesdeCompendio } from "./calculadorInventario";
+import { tieneArmaduraEquipada } from "./rasgos/utilidadesRasgos";
 
 function personaje(nivel = 9): PersonajeJugador {
   return { ...structuredClone(PERSONAJE_POR_DEFECTO), id: "prueba-barbaro", especie: "", clase: "Bárbaro", nivel,
@@ -24,7 +27,6 @@ function personaje(nivel = 9): PersonajeJugador {
 }
 const rasgo = (pj: PersonajeJugador, nombre: string) => pj.rasgos.find(r => r.nombre === nombre)!;
 const furia = (pj: PersonajeJugador) => rasgo(pj, "Furia");
-const pesada = EsquemaObjetoInventario.parse({ idInstancia: "placas", idObjeto: "placas", nombre: "Armadura de placas", categoria: "armaduras", equipado: true });
 
 describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
   beforeEach(() => usarAlmacenDM.setState({ personajes: [], colaIniciativa: [], rondaActual: 1 }));
@@ -57,22 +59,54 @@ describe("Bárbaro base: recorrido declarativo PHB 2024", () => {
     expect(pj.rasgos.filter(r => r.origen === "dote")).toHaveLength(0);
   });
 
-  it("bloquea la armadura pesada sin gastar y finaliza al equiparla", () => {
+  it.each(["Armadura de Placas", "Cota de Mallas", "Cota de Anillas", "Armadura de Bandas"])("bloquea Furia sin gastar y la finaliza al equipar %s del catálogo", nombre => {
+    const base = OBJETOS_INICIALES.find(o => o.nombre === nombre)!;
+    expect(base).toBeDefined();
+    expect(base.subcategoria).toBe("Pesada");
+    const pesada = crearObjetoInventarioDesdeCompendio(base);
     const pj = personaje();
     const id = usarAlmacenDM.getState().crearPersonaje(pj);
     const leer = () => usarAlmacenDM.getState().personajes.find(p => p.id === id)!;
     const estado = usarAlmacenDM.getState();
-    estado.actualizarPersonaje(id, { inventario: [pesada] });
+    estado.agregarObjetoInventario(id, pesada);
+    estado.alternarEquipadoObjeto(id, pesada.idInstancia);
     expect(obtenerBloqueoActivacionRasgo(leer(), furia(leer())).bloqueado).toBe(true);
     estado.alternarActivoRasgo(id, furia(leer()).id);
+    expect(furia(leer()).activo).toBe(false);
     expect(furia(leer()).usosRestantes).toBe(4);
-    estado.actualizarPersonaje(id, { inventario: [] });
+    estado.alternarEquipadoObjeto(id, pesada.idInstancia);
     estado.alternarActivoRasgo(id, furia(leer()).id);
     expect(furia(leer()).usosRestantes).toBe(3);
     expect(obtenerResumenDefensasRasgos(leer()).resistencias).toEqual(["Contundente", "Cortante", "Perforante"]);
-    estado.actualizarPersonaje(id, { inventario: [pesada] });
+    estado.alternarEquipadoObjeto(id, pesada.idInstancia);
     expect(furia(leer()).activo).toBe(false);
+    expect(furia(leer()).usosRestantes).toBe(3);
+    expect(leer().efectosActivos.some(e => e.nombre === "Furia")).toBe(false);
+    expect(leer().condicionesActivas).not.toContain("Furia");
     expect(evaluarEfectosRasgosActivos(leer()).some(e => e.tipo === "resistencia_dano")).toBe(false);
+  });
+
+  it.each([
+    ["Protección del centinela", "Armadura Pesada", undefined, "Pesada"],
+    ["Protección del centinela", "", "Sin Bono", "Pesada"],
+    ["Semiplacas del centinela", "Mediana", "Máximo 2", "Mediana"],
+    ["Protección del explorador", "Ligera", "Completo", "Ligera"]
+  ])("respeta la clasificación del inventario para %s (%s, %s)", (nombre, subcategoria, bonoDestreza, tipo) => {
+    const objeto = EsquemaObjetoInventario.parse({ idInstancia: "proteccion", idObjeto: "proteccion", nombre, subcategoria, bonoDestreza, categoria: "armaduras" });
+    const id = usarAlmacenDM.getState().crearPersonaje(personaje(15));
+    const estado = usarAlmacenDM.getState();
+    const leer = () => usarAlmacenDM.getState().personajes.find(p => p.id === id)!;
+    estado.agregarObjetoInventario(id, objeto);
+    estado.alternarActivoRasgo(id, furia(leer()).id);
+    expect(furia(leer()).activo).toBe(true);
+    estado.alternarEquipadoObjeto(id, objeto.idInstancia);
+    expect(tieneArmaduraEquipada(leer()).tipo).toBe(tipo);
+    expect(furia(leer()).activo).toBe(tipo !== "Pesada");
+    if (tipo === "Pesada") {
+      estado.alternarActivoRasgo(id, furia(leer()).id);
+      expect(furia(leer()).activo).toBe(false);
+    }
+    expect(furia(leer()).usosRestantes).toBe(4);
   });
 
   it.each(["Incapacitado", "Aturdido", "Paralizado", "Petrificado", "Inconsciente"])("apaga Furia antes de nivel 15 por %s", condicion => {

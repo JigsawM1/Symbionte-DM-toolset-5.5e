@@ -1,0 +1,54 @@
+name: Sincronizar Wiki de GitHub
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'docs/wiki/**'
+  schedule:
+    # Programado para ejecutarse cada domingo a las 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sincronizar-wiki:
+    name: Sincronizar docs/wiki con la Wiki de GitHub
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Clonar Repositorio Principal
+        uses: actions/checkout@v4
+
+      - name: Sincronizar Archivos con la Wiki de GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "Clonando el repositorio wiki de GitHub..."
+          WIKI_REPO="https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.wiki.git"
+
+          if ! git clone "$WIKI_REPO" wiki_temp; then
+            echo "Error: No se pudo clonar la wiki. Verifica que la Wiki de GitHub esté habilitada en las opciones del repositorio."
+            exit 1
+          fi
+
+          echo "Copiando archivos de docs/wiki/ hacia la Wiki..."
+          cp -r docs/wiki/* wiki_temp/
+
+          cd wiki_temp
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "docs(wiki): sincronización automática de la wiki desde docs/wiki"
+            git push origin HEAD
+            echo "Wiki actualizada exitosamente."
+          else
+            echo "No hay cambios pendientes de actualización en la wiki."
+          fi

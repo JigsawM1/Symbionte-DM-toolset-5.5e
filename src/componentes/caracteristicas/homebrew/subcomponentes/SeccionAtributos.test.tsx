@@ -14,12 +14,10 @@ describe("SeccionAtributos - Componente de Atributos Básicos y Tiradas de Salva
       carisma: 1
     },
     salvaciones: {
-      fuerza: "+5",
-      destreza: "+4",
-      constitucion: "",
-      inteligencia: "-1",
-      sabiduria: "+6",
-      carisma: ""
+      fuerza: 5,
+      destreza: 4,
+      inteligencia: -1,
+      sabiduria: 6
     }
   };
 
@@ -109,7 +107,7 @@ describe("SeccionAtributos - Componente de Atributos Básicos y Tiradas de Salva
     );
 
     expect(html).toContain('placeholder="—"');
-    expect(html).toContain('value="+5"');
+    expect(html).toContain('value="5"');
     expect(html).toContain('value="-1"');
   });
 

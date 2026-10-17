@@ -32,21 +32,69 @@ export function descomponerSeleccion(valor: string): { base: string; instancia: 
 
 export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: PersonajeJugador): OpcionSelector[] {
   if (!selector.filtroConjuros) return selector.opciones;
-  return selector.opciones.filter(op => opcionConjuroElegible(op, selector, pj));
+
+  // Precalculamos matchers/listas compartidos una sola vez para la iteración completa de opciones,
+  // evitando crear un array temporal `[...preparados, ...siemprePreparados, ...trucos]`
+  // y re-escaneos O(N) por cada hechizo candidato.
+  const contexto = pj ? {
+    matcherConocidosOPreparados: (filtro: SelectorRasgo["filtroConjuros"]) => {
+      if (!filtro?.excluirPreparados) return undefined;
+      const ids = [
+        ...(pj.conjurosPreparadosIds ?? []),
+        ...(pj.conjurosSiemprePreparadosIds ?? []),
+        ...(pj.trucosConocidosIds ?? [])
+      ];
+      if (ids.length === 0) return () => false;
+      return (hechizoId: string) => ids.some(id => coincideHechizoId(id, hechizoId));
+    },
+    matcherTrucosConocidos: (filtro: SelectorRasgo["filtroConjuros"]) => {
+      if (!filtro?.soloConocidos) return undefined;
+      const trucos = pj.trucosConocidosIds ?? [];
+      if (trucos.length === 0) return () => false;
+      return (hechizoId: string) => trucos.some(id => coincideHechizoId(id, hechizoId));
+    }
+  } : undefined;
+
+  const fnConocidosOPreparados = contexto?.matcherConocidosOPreparados(selector.filtroConjuros);
+  const fnTrucosConocidos = contexto?.matcherTrucosConocidos(selector.filtroConjuros);
+
+  return selector.opciones.filter(op => opcionConjuroElegible(op, selector, pj, fnConocidosOPreparados, fnTrucosConocidos));
 }
 
 /** Comprueba una opción sin recorrer el resto del catálogo del selector. */
-function opcionConjuroElegible(op: OpcionSelector, selector: SelectorRasgo, pj?: PersonajeJugador): boolean {
+function opcionConjuroElegible(
+  op: OpcionSelector,
+  selector: SelectorRasgo,
+  pj?: PersonajeJugador,
+  fnConocidosOPreparados?: (hechizoId: string) => boolean,
+  fnTrucosConocidos?: (hechizoId: string) => boolean
+): boolean {
   const filtro = selector.filtroConjuros;
   if (!filtro) return true;
   const h = obtenerHechizoCatalogo(op.id);
   if (!h) return false;
-  if (filtro.excluirPreparados && !selector.valorActual.some(id=>coincideHechizoId(id,h.id))
-    && [...(pj?.conjurosPreparadosIds ?? []),...(pj?.conjurosSiemprePreparadosIds ?? []),...(pj?.trucosConocidosIds ?? [])].some(id=>coincideHechizoId(id,h.id))) return false;
+
+  if (filtro.excluirPreparados) {
+    const yaElegidoEnSelector = selector.valorActual.some(id => coincideHechizoId(id, h.id));
+    if (!yaElegidoEnSelector) {
+      const estaConocidoOPreparado = fnConocidosOPreparados
+        ? fnConocidosOPreparados(h.id)
+        : [...(pj?.conjurosPreparadosIds ?? []), ...(pj?.conjurosSiemprePreparadosIds ?? []), ...(pj?.trucosConocidosIds ?? [])].some(id => coincideHechizoId(id, h.id));
+      if (estaConocidoOPreparado) return false;
+    }
+  }
+
   if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !pj?.rasgos.some(r =>
     r.activo !== false && r.claseConjurosOtorgados === filtro.clase && r.selectores?.some(s => s.tipoSelector === "conjuro"
-      && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id,h.id))))) return false;
-  if (filtro.soloConocidos && (!pj || !(pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id)))) return false;
+      && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id, h.id))))) return false;
+
+  if (filtro.soloConocidos) {
+    const estaEnTrucos = fnTrucosConocidos
+      ? fnTrucosConocidos(h.id)
+      : pj && (pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id));
+    if (!estaEnTrucos) return false;
+  }
+
   if (filtro.requiereDano && !h.dadosDaño) return false;
   if (filtro.requiereAtaque && !h.requiereAtaque) return false;
   if (filtro.alcanceMinimo && (parseInt(h.alcance, 10) || 0) < filtro.alcanceMinimo) return false;

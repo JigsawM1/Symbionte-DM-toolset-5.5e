@@ -4,9 +4,11 @@ import {
   coincidenNombresTaleSpire,
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
+  obtenerPasivasCriatura,
 } from "./resolutorCriaturas";
 import { crearIndiceMonstruos } from "./indiceMonstruos";
-import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
+import type { MonstruoBase, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import type { PersonajeJugador } from "@/tipos/personaje";
 
 describe("resolutorCriaturas - normalizarNombreTaleSpire", () => {
   it("debe convertir a minúsculas y recortar espacios en blanco", () => {
@@ -88,6 +90,13 @@ describe("resolutorCriaturas - resolverPlantillaPorCriatura", () => {
     expect(res?.id).toBe("id-lobo-artico");
   });
 
+  it("debe encontrar por coincidencia parcial de prefijo ignorando diacríticos/tildes", () => {
+    // "Lobo Artico Extra 5" sin tilde debe resolver a "Lobo Ártico" y no a "Lobo"
+    const res = resolverPlantillaPorCriatura("mini-3", "Lobo Artico Extra 5", {}, indice);
+    expect(res).toBeDefined();
+    expect(res?.id).toBe("id-lobo-artico");
+  });
+
   it("debe devolver undefined si no encuentra ninguna coincidencia", () => {
     const res = resolverPlantillaPorCriatura("mini-x", "Dragón Rojo", {}, indice);
     expect(res).toBeUndefined();
@@ -156,6 +165,57 @@ describe("resolutorCriaturas - coincidenNombresTaleSpire", () => {
     expect(coincidenNombresTaleSpire("", "")).toBe(false);
     expect(coincidenNombresTaleSpire(".", ".")).toBe(false);
     expect(coincidenNombresTaleSpire("Orco", "Elfo")).toBe(false);
+  });
+});
+
+describe("indiceMonstruos y obtenerPasivasCriatura - memoización y referencias", () => {
+  it("debe devolver la misma referencia de índice al invocar crearIndiceMonstruos con el mismo catálogo (WeakMap)", () => {
+    const catalogo = [
+      { id: "m-1", nombre: "Gólem de Hierro", vidaMaxima: 210 }
+    ] as unknown as MonstruoBase[];
+
+    const idx1 = crearIndiceMonstruos(catalogo);
+    const idx2 = crearIndiceMonstruos(catalogo);
+    expect(idx1).toBe(idx2);
+
+    const resueltoSinTilde = resolverPlantillaPorCriatura("c-1", "Golem de Hierro 2", {}, idx1);
+    expect(resueltoSinTilde?.id).toBe("m-1");
+  });
+
+  it("debe preservar la referencia de pasivas neutras y pasivas por personaje", () => {
+    const criaturaGenerica = {
+      id: "c_jugador_1",
+      nombre: "Aventurero",
+      esMonstruo: false
+    } as unknown as CriaturaIniciativa;
+
+    const p1 = obtenerPasivasCriatura(criaturaGenerica, []);
+    const p2 = obtenerPasivasCriatura(criaturaGenerica, []);
+    expect(p1).toBe(p2);
+
+    const pjMock = {
+      id: "pj-1",
+      nombre: "Aragorn",
+      nivel: 5,
+      caracteristicas: {
+        fuerza: 16,
+        destreza: 14,
+        constitucion: 14,
+        inteligencia: 12,
+        sabiduria: 16,
+        carisma: 14
+      }
+    } as unknown as PersonajeJugador;
+
+    const criaturaAragorn = {
+      id: "mini-aragorn",
+      nombre: "Aragorn (PJ)",
+      esMonstruo: false
+    } as unknown as CriaturaIniciativa;
+
+    const pasivasA = obtenerPasivasCriatura(criaturaAragorn, [pjMock]);
+    const pasivasB = obtenerPasivasCriatura(criaturaAragorn, [pjMock]);
+    expect(pasivasA).toBe(pasivasB);
   });
 });
 

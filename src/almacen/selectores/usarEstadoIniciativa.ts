@@ -36,6 +36,8 @@ export function usarAccionesIniciativa() {
       avanzarRonda:                      s.avanzarRonda,
       retrocederRonda:                   s.retrocederRonda,
       agregarCriaturaAIniciativa:        s.agregarCriaturaAIniciativa,
+      agregarPersonajeAIniciativa:       s.agregarPersonajeAIniciativa,
+      alternarRolCriatura:               s.alternarRolCriatura,
       quitarCriaturaDeIniciativa:        s.quitarCriaturaDeIniciativa,
       modificarVidaCriaturaIniciativa:   s.modificarVidaCriaturaIniciativa,
       modificarVidaMaximaCriaturaIniciativa: s.modificarVidaMaximaCriaturaIniciativa,

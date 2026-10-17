@@ -56,6 +56,9 @@ function limpiarSuscripcionNativa(sub: unknown): void {
 
 class TaleSpireAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
+  private promesaMinisJugadores: Promise<Set<string>> | null = null;
+  private cacheMinisJugadores: { datos: Set<string>; expiraEn: number } | null = null;
+  private readonly TTL_CACHE_MINIS_JUGADORES_MS = 2500;
   private canalBroadcastSync?: BroadcastChannel;
   private colaEnvioSync: Array<{ mensaje: string; target: string; resolver: (exito: boolean) => void }> = [];
   private procesandoColaSync = false;
@@ -312,6 +315,93 @@ class TaleSpireAdapter {
         return await window.TS.creatures.getMoreInfo(creatureFragmentOrIds);
       }
       return [];
+    },
+
+    /**
+     * Consulta todas las miniaturas que pertenecen a jugadores registrados en la campaña o tablero.
+     * Emplea paralelización IPC, deduplicación de promesas en vuelo y caché de corto plazo.
+     */
+    obtenerMiniaturasDeJugadores: async (): Promise<Set<string>> => {
+      const ahora = Date.now();
+      if (this.cacheMinisJugadores && ahora < this.cacheMinisJugadores.expiraEn) {
+        return new Set(this.cacheMinisJugadores.datos);
+      }
+
+      if (this.promesaMinisJugadores) {
+        const compartido = await this.promesaMinisJugadores;
+        return new Set(compartido);
+      }
+
+      this.promesaMinisJugadores = (async () => {
+        const idsMiniaturas = new Set<string>();
+        try {
+          const [jugadoresCampania, jugadoresTablero] = await Promise.all([
+            this.players.getPlayersInThisCampaign(),
+            this.players.getPlayersInThisBoard()
+          ]);
+          const idsJugadoresUnicos = new Set<string>();
+          for (const j of [...jugadoresCampania, ...jugadoresTablero]) {
+            if (j?.id) idsJugadoresUnicos.add(j.id);
+          }
+
+          if (idsJugadoresUnicos.size > 0) {
+            const listasMinis = await Promise.all(
+              Array.from(idsJugadoresUnicos).map((idJugador) =>
+                this.creatures.getCreaturesOwnedByPlayer(idJugador)
+              )
+            );
+            for (const minis of listasMinis) {
+              for (const m of minis) {
+                if (m?.id) idsMiniaturas.add(m.id);
+              }
+            }
+          }
+          this.cacheMinisJugadores = {
+            datos: idsMiniaturas,
+            expiraEn: Date.now() + this.TTL_CACHE_MINIS_JUGADORES_MS
+          };
+        } catch (e) {
+          logger.warn("[TS Adapter] Error al obtener miniaturas asignadas a jugadores:", e);
+        }
+        return idsMiniaturas;
+      })();
+
+      try {
+        const res = await this.promesaMinisJugadores;
+        return new Set(res);
+      } finally {
+        this.promesaMinisJugadores = null;
+      }
+    },
+
+    /**
+     * Detecta qué miniaturas pertenecen a jugadores inspeccionando en paralelo tanto sus propietarios (ownerIds)
+     * como las asignaciones de jugadores activos en la campaña de TaleSpire.
+     */
+    detectarMiniaturasJugadores: async (idsMiniaturas: string[]): Promise<Set<string>> => {
+      const resultado = new Set<string>();
+      if (!idsMiniaturas || idsMiniaturas.length === 0) return resultado;
+
+      try {
+        const [infos, minisJugadores] = await Promise.all([
+          this.creatures.getMoreInfo(idsMiniaturas),
+          this.creatures.obtenerMiniaturasDeJugadores()
+        ]);
+
+        for (const info of infos) {
+          if (info?.id && Array.isArray(info.ownerIds) && info.ownerIds.length > 0) {
+            resultado.add(info.id);
+          }
+        }
+
+        for (const id of minisJugadores) {
+          resultado.add(id);
+        }
+      } catch (e) {
+        logger.warn("[TS Adapter] Error al detectar miniaturas de jugadores:", e);
+      }
+
+      return resultado;
     }
   };
 
@@ -659,6 +749,34 @@ class TaleSpireAdapter {
       }
 
       return null;
+    },
+
+    /**
+     * Obtiene el listado de jugadores registrados en la campaña actual de TaleSpire.
+     */
+    getPlayersInThisCampaign: async (): Promise<FragmentoJugador[]> => {
+      if (window.TS?.players && typeof window.TS.players.getPlayersInThisCampaign === "function") {
+        try {
+          return await window.TS.players.getPlayersInThisCampaign();
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en players.getPlayersInThisCampaign:", e);
+        }
+      }
+      return [];
+    },
+
+    /**
+     * Obtiene el listado de jugadores presentes en el tablero activo de TaleSpire.
+     */
+    getPlayersInThisBoard: async (): Promise<FragmentoJugador[]> => {
+      if (window.TS?.players && typeof window.TS.players.getPlayersInThisBoard === "function") {
+        try {
+          return await window.TS.players.getPlayersInThisBoard();
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en players.getPlayersInThisBoard:", e);
+        }
+      }
+      return [];
     }
   };
 

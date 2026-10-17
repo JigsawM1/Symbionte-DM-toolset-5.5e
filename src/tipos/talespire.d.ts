@@ -268,6 +268,8 @@ export interface TaleSpireAPI {
     whoAmI?: () => Promise<FragmentoJugador>;
     isMe?: (playerFragmentOrId: FragmentoOId) => Promise<boolean>;
     getMoreInfo?: (playerFragmentsOrIds: FragmentoOId[]) => Promise<InfoJugador[]>;
+    getPlayersInThisCampaign?: () => Promise<FragmentoJugador[]>;
+    getPlayersInThisBoard?: () => Promise<FragmentoJugador[]>;
   };
   clients?: {
     whoAmI?: () => Promise<FragmentoCliente>;

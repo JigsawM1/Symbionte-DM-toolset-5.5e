@@ -369,6 +369,9 @@ export const crearSliceSync: StateCreator<
 
         return {
           ...criatura,
+          esMonstruo: false,
+          idPlantillaAsociada: undefined,
+          idPersonajeDuenio: dto.id,
           iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
           vidaActual: edicionRecienteColaDM ? criatura.vidaActual : dto.hpActual,
           vidaMaxima: edicionRecienteColaDM ? criatura.vidaMaxima : dto.hpMaximo,

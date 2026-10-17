@@ -1,0 +1,191 @@
+.campoBusqueda {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-borde-brutal);
+  border-radius: var(--dm-radio-control, 2px);
+  padding: 3px 8px;
+  background-color: var(--color-fondo-tarjeta);
+  height: 30px;
+  width: 180px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.campoBusqueda:focus-within {
+  border-color: var(--color-borde-cian);
+}
+
+.iconoUsuario {
+  color: var(--color-borde-cian);
+  flex-shrink: 0;
+}
+
+.inputBrutal {
+  border: none;
+  background: none;
+  font-size: var(--dm-fuente-minima, 12px);
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  color: var(--color-texto-principal);
+}
+
+.inputBrutal:focus {
+  outline: none;
+}
+
+.botonLimpiarBusqueda {
+  border: none;
+  background: none;
+  color: var(--color-texto-secundario);
+  font-size: var(--dm-fuente-minima, 11px);
+  cursor: pointer;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.botonLimpiarBusqueda:hover {
+  color: var(--dm-texto-peligro, var(--color-peligro));
+}
+
+.botonAñadir {
+  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.35);
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
+  color: var(--color-borde-cian);
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--dm-radio-control, 2px);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.botonAñadir:hover {
+  background: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
+  border-color: var(--color-borde-cian);
+  color: var(--dm-texto-principal, #ffffff);
+}
+
+.sugerenciasContenedor {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  left: auto;
+  width: 100%;
+  min-width: 250px;
+  max-width: 320px;
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-cian);
+  border-radius: var(--dm-radio-panel, 3px);
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.sugerenciaItem {
+  padding: 6px 8px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-borde-brutal);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+}
+
+.sugerenciaItem:hover,
+.sugerenciaItemActiva {
+  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
+}
+
+.sugerenciaItemEnCombate {
+  opacity: 0.7;
+}
+
+.sugerenciaDetalles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sugerenciaNombreFila {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.sugerenciaNombre {
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: bold;
+  color: var(--color-texto-principal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sugerenciaSub {
+  font-size: var(--dm-fuente-minima, 10px);
+  color: var(--color-texto-secundario);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagEnCombate {
+  font-size: 8px;
+  padding: 1px 4px;
+  background-color: rgba(0, 200, 150, 0.15);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.tagGenerico {
+  font-size: 8px;
+  padding: 1px 4px;
+  background-color: rgba(255, 200, 0, 0.15);
+  border: 1px solid rgba(255, 200, 0, 0.4);
+  color: #ffc800;
+  border-radius: 2px;
+}
+
+.sugerenciaStats {
+  font-size: 10px;
+  color: var(--color-borde-cian);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.sugerenciaVacia {
+  padding: 8px;
+  font-size: 11px;
+  color: var(--color-texto-secundario);
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  :global([data-tema="dm"]) .campoBusqueda {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+}
+

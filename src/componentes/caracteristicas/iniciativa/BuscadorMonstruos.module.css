@@ -3,15 +3,24 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   border: 1px solid var(--color-borde-brutal);
-  padding: 3px 6px;
+  border-radius: var(--dm-radio-control, 2px);
+  padding: 3px 8px;
   background-color: var(--color-fondo-tarjeta);
   height: 30px;
+  width: 180px;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.campoBusqueda:focus-within {
+  border-color: var(--color-borde-cian);
 }
 
 .iconoCalavera {
   color: var(--dm-texto-peligro, var(--color-peligro));
+  flex-shrink: 0;
 }
 
 .inputBrutal {
@@ -19,7 +28,9 @@
   background: none;
   font-size: var(--dm-fuente-minima, 12px);
   padding: 0;
-  width: 160px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
   color: var(--color-texto-principal);
 }
 
@@ -36,6 +47,8 @@
   padding: 0 4px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .botonLimpiarBusqueda:hover {
@@ -46,11 +59,14 @@
   position: absolute;
   top: 32px;
   left: 0;
-  width: 240px;
+  width: 100%;
+  min-width: 250px;
+  max-width: 320px;
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-neon);
+  border-radius: var(--dm-radio-panel, 3px);
   z-index: 9999;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   max-height: 260px;
   overflow-y: auto;
 }
@@ -117,6 +133,12 @@
 }
 
 @media (max-width: 620px) {
+  :global([data-tema="dm"]) .campoBusqueda {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
   :global([data-tema="dm"]) .inputBrutal {
     flex: 1;
     width: 100%;

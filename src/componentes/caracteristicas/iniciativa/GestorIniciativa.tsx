@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { CriaturaIniciativa, HechizoBase } from "@/almacen/usarAlmacenDM";
 import {
   usarEstadoIniciativa,
@@ -47,6 +47,7 @@ interface ItemCriaturaIniciativaProps {
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
   onEstablecerIniciativa: (id: string, nuevaInic: number) => void;
   onEstablecerVidaMaxima?: (id: string, nuevaMax: number) => void;
+  onAlternarRol: (id: string) => void;
   refTarjetaActiva: (nodo: HTMLDivElement | null) => void;
 }
 
@@ -71,6 +72,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   obtenerPercepcionPasiva,
   onEstablecerIniciativa,
   onEstablecerVidaMaxima,
+  onAlternarRol,
   refTarjetaActiva
 }) => {
   const manejarEliminar = useCallback(() => onEliminar(criatura.id), [onEliminar, criatura.id]);
@@ -86,6 +88,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   const manejarEstablecerIniciativa = useCallback((nuevaInic: number) => onEstablecerIniciativa(criatura.id, nuevaInic), [onEstablecerIniciativa, criatura.id]);
   const manejarEstablecerVidaMaxima = useCallback((nuevaMax: number) => onEstablecerVidaMaxima?.(criatura.id, nuevaMax), [onEstablecerVidaMaxima, criatura.id]);
   const manejarLanzarAtaqueRapido = useCallback((accNom: string, accBono: string, accDados: string, accTipo: string) => onLanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo), [onLanzarAtaqueRapido, criatura.nombre]);
+  const manejarAlternarRol = useCallback(() => onAlternarRol(criatura.id), [onAlternarRol, criatura.id]);
 
   return (
     <div
@@ -113,6 +116,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
         obtenerPercepcionPasiva={obtenerPercepcionPasiva}
         onEstablecerIniciativa={manejarEstablecerIniciativa}
         onEstablecerVidaMaxima={onEstablecerVidaMaxima ? manejarEstablecerVidaMaxima : undefined}
+        onAlternarRol={manejarAlternarRol}
       />
     </div>
   );
@@ -135,6 +139,7 @@ export const GestorIniciativa: React.FC = () => {
     importarIniciativaTaleSpire,
     establecerIniciativaCriatura,
     modificarVidaMaximaCriaturaIniciativa,
+    alternarRolCriatura,
   } = usarAccionesIniciativa();
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
 
@@ -202,6 +207,10 @@ export const GestorIniciativa: React.FC = () => {
       }
     }
 
+    if (!criatura.esMonstruo && !criatura.idPlantillaAsociada) {
+      return null;
+    }
+
     return resolverPlantillaPorCriatura(
       criatura.id,
       criatura.nombre,
@@ -210,28 +219,26 @@ export const GestorIniciativa: React.FC = () => {
     ) || null;
   };
 
-  // Cómputo de Percepción Pasiva (Lectura directa O(1) ya que los datos están saneados en la base de datos)
-  const obtenerPercepcionPasiva = (plantilla: MonstruoBase | null): number => {
+  // Cómputo de Percepción Pasiva (Lectura directa O(1) con referencia estable para React.memo)
+  const obtenerPercepcionPasiva = useCallback((plantilla: MonstruoBase | null): number => {
     if (!plantilla) return 10;
-
     if (plantilla.sentidos && typeof plantilla.sentidos === "object" && "percepcionPasiva" in plantilla.sentidos) {
       return (plantilla.sentidos as { percepcionPasiva?: number }).percepcionPasiva ?? 10;
     }
-
     return 10;
-  };
+  }, []);
 
   // Lanzar Ataques y Habilidades en TaleSpire 3D
-  const lanzarAtaqueRapido = (criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
+  const lanzarAtaqueRapido = useCallback((criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
     const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño, criaturaNombre);
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
-  };
+  }, []);
 
-  const lanzarTiradaD20Interactiva = (criaturaNombre: string, etiqueta: string, bonificador: number) => {
+  const lanzarTiradaD20Interactiva = useCallback((criaturaNombre: string, etiqueta: string, bonificador: number) => {
     const etiquetaCompleta = `${sanitizarEtiqueta(criaturaNombre)} - ${sanitizarEtiqueta(etiqueta)}`;
     const formulaDados = `!${etiquetaCompleta}:1d20${bonificador >= 0 ? "+" : ""}${bonificador}`;
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
-  };
+  }, []);
 
   // Callbacks estables para manipulación de criaturas (PERF-01)
   const alEliminarCriatura = useCallback((id: string) => {
@@ -289,10 +296,10 @@ export const GestorIniciativa: React.FC = () => {
     );
   }, []);
 
-  const alLanzarAtaqueRapidoCriatura = useCallback((criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
-    const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño, criaturaNombre);
-    lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
-  }, []);
+  const idsSeleccionadosTS = useMemo(
+    () => new Set((criaturasSeleccionadas || []).map((s) => s.id)),
+    [criaturasSeleccionadas]
+  );
 
   const criaturaSeleccionadaDetalle = colaIniciativa.find((c) => c.id === idCriaturaDetalle);
   
@@ -346,7 +353,7 @@ export const GestorIniciativa: React.FC = () => {
             <div className={estilosClases.listaTarjetasIniciativa} ref={refContenedorScroll}>
               {colaIniciativa.map((criatura, indice) => {
                 const esTurnoActivo = indice === indiceTurnoActivo;
-                const estaSeleccionadaEnTS = (criaturasSeleccionadas || []).some((s) => s.id === criatura.id);
+                const estaSeleccionadaEnTS = idsSeleccionadosTS.has(criatura.id);
                 const plantilla = obtenerPlantillaAsociada(criatura);
                 return (
                   <ItemCriaturaIniciativa
@@ -367,10 +374,11 @@ export const GestorIniciativa: React.FC = () => {
                     onAñadirEfecto={alAñadirEfectoCriatura}
                     onQuitarEfecto={alQuitarEfectoCriatura}
                     onLanzarIniciativa={alLanzarIniciativaCriatura}
-                    onLanzarAtaqueRapido={alLanzarAtaqueRapidoCriatura}
+                    onLanzarAtaqueRapido={lanzarAtaqueRapido}
                     obtenerPercepcionPasiva={obtenerPercepcionPasiva}
                     onEstablecerIniciativa={alEstablecerIniciativaCriatura}
                     onEstablecerVidaMaxima={alEstablecerVidaMaximaCriatura}
+                    onAlternarRol={alternarRolCriatura}
                     refTarjetaActiva={refTarjetaActiva}
                   />
                 );

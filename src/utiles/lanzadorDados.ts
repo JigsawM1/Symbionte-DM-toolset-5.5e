@@ -193,7 +193,12 @@ export function aplicarResultadoIniciativaEnEstado(
 
     if (coincideAcomp || coincideId || coincideNombre) {
       encontrada = true;
-      return { ...c, iniciativa: totalIniciativa };
+      const esDeJugador = Boolean(infoIniciativa.idPersonaje || coincideAcomp || !c.esMonstruo);
+      return {
+        ...c,
+        iniciativa: totalIniciativa,
+        ...(esDeJugador ? { esMonstruo: false, idPlantillaAsociada: undefined } : {})
+      };
     }
     return c;
   });

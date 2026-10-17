@@ -1,4 +1,87 @@
-# agente.md — Aprendizaje Autónomo del Simbionte DM
+﻿# agente.md — Aprendizaje Autónomo del Simbionte DM
+
+
+## [2026-10-17] Corrección de Asimetría Visual y Adaptabilidad Responsiva en Buscadores de Iniciativa
+
+**Problema Reportado ("aquí el CSS quedó raro"):**
+- En la barra de control de iniciativa (BarraControl.tsx), en resoluciones estrechas de TaleSpire (CEF <= 620px), los inputs de búsqueda de monstruos (BuscadorMonstruos) y de jugadores (SelectorJugadorRapido) presentaban una marcada asimetría visual:
+  1. SelectorJugadorRapido poseía un ancho rígido (width: 170px) con un placeholder excesivamente largo ("Añadir Jugador / Ficha...") que empujaba el botón + al extremo derecho, generando un hueco desproporcionado de espacio muerto.
+  2. Debido al encapsulamiento de clases hash de CSS Modules de Vite, la regla @media (max-width: 620px) en BarraControl.module.css (.inputBrutal { width: 100%; }) no se propagaba a los subcomponentes aislados, provocando que los inputs no fuesen fluidos.
+  3. Los desplegables de sugerencias (sugerenciasContenedor) se desbordaban por la derecha en pantallas estrechas al estar posicionados con left: 0 rígido en el selector de la derecha.
+  4. El botón + carecía de delimitación visual y feedback táctil (era transparente con texto apagado flotando sin contexto).
+
+**Causas Raíz Detectadas:**
+1. Aislamiento de selectores CSS Modules tras la modularización de BuscadorMonstruos y SelectorJugadorRapido.
+2. Asimetría dimensional entre componentes (width: 160px vs width: 170px) y falta de lex: 1; min-width: 0; en los inputs.
+3. Posicionamiento absoluto sin anclaje inteligente (left: 0 en el componente del cuadrante derecho).
+
+**Solución Arquitectónica Quirúrgica:**
+1. **Fluidización y Simetría (SelectorJugadorRapido.module.css, BuscadorMonstruos.module.css):**
+   - Ambos .campoBusqueda adoptan dimensiones idénticas de base (width: 180px, height: 30px, padding: 3px 8px, gap: 6px, ox-sizing: border-box, order-radius: var(--dm-radio-control, 2px)).
+   - Incorporación de :focus-within { border-color: var(--color-borde-cian); } para feedback de foco unificado.
+   - Ambos .inputBrutal configurados con lex: 1; min-width: 0; width: 100%;, eliminando espacios muertos y haciendo el layout perfectamente elástico.
+2. **Botón Táctil Brutalista Cyberpunk (SelectorJugadorRapido.module.css):**
+   - .botonAñadir rediseñado a 20x20px con fondo cian translúcido (gba(var(--dm-rgb-cian, 0, 245, 212), 0.1)), borde cian sutil y hover reactivo, convirtiéndolo en un botón de acción claro e integrado.
+3. **Anclaje Inteligente de Menús Flotantes:**
+   - En SelectorJugadorRapido.module.css, sugerenciasContenedor se ancla a la derecha (ight: 0; left: auto; max-width: 320px;), garantizando que se despliegue hacia el centro de la pantalla sin desbordar el borde del viewport de TaleSpire.
+   - En BuscadorMonstruos.module.css, sugerenciasContenedor se ancla a la izquierda (left: 0; right: auto;).
+4. **Sintaxis y Placeholder Unificado:**
+   - En SelectorJugadorRapido.tsx, placeholder cambiado a "Añadir jugador...", logrando balance perfecto con "Buscar monstruo...".
+   - En BuscadorMonstruos.tsx, sustitución del caracter unicode plano "x" por el icono vectorial accesible <X size={11} /> de lucide-react.
+5. **Limpieza en BarraControl.module.css:**
+   - Eliminación de selectores huérfanos (.campoBusqueda, .inputBrutal, .botonAñadir, .iconoUsuario).
+
+**Certificación del Pipeline CI:**
+- **TypeScript:** pnpm exec tsc --noEmit completado con 0 errores bajo strict: true.
+- **ESLint:** pnpm run lint con 0 errores y 0 advertencias.
+- **Vitest:** 140 suites ejecutadas, **1.964 / 1.964 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 160 archivos auditados vía pnpm run verificar:lineas, 0 componentes > 500 líneas.
+- **Build de Producción:** pnpm exec vite build completado exitosamente en 10.29s.
+
+---
+## [2026-10-17] Detección Nativa de Miniaturas de Jugador (TaleSpire API) e Invocación de Hojas de Personajes en Iniciativa
+
+**Problema Solucionado:**
+- Las miniaturas de los personajes de jugadores (PJs) en TaleSpire eran clasificadas erróneamente como monstruos (`esMonstruo: true`) al sincronizar la cola de combate, asignándoles plantillas o stats incorrectos.
+- El control "Añadir Jugador Rápido" en `BarraControl.tsx` era un input de texto plano sin conexión a las hojas de personaje reales almacenadas en la aplicación (`state.personajes`).
+
+**Causas Raíz Detectadas:**
+1. No se consultaba la posesión de miniaturas por parte de los jugadores en la API de TaleSpire (`ownerIds` en `creatureInfo` ni `ts.creatures.getCreaturesOwnedByPlayer`).
+2. `sincronizacionIniciativa.ts` no distinguía si una miniatura entrante pertenecía a un jugador, asignándole heurísticas de monstruo por defecto.
+3. `resolverPersonajePorCriatura` y `obtenerPasivasCriatura` en `resolutorCriaturas.ts` contenían la guardia temprana `if (criatura.esMonstruo) return undefined;`, impidiendo que una miniatura mal clasificada se autorreparase al vincularse con un PJ real.
+4. Fallback de nombres parciales en `resolverPlantillaPorCriatura` no normalizaba diacríticos/tildes en la comparación de prefijos, provocando fallos de coincidencia cuando había tildes dispares.
+
+**Decisiones de Diseño y Solución Arquitectónica:**
+1. **Contrato y Adaptador TaleSpire (`talespire.d.ts`, `TaleSpireAdapter.ts`):**
+   - Incorporación a los tipos y adaptador de `getPlayersInThisCampaign` y `getPlayersInThisBoard`.
+   - Implementación de `obtenerMiniaturasDeJugadores: () => Promise<Set<string>>` y `detectarMiniaturasJugadores: (ids: string[]) => Promise<Set<string>>` en `ts.creatures`, cruzando los propietarios reportados por `getMoreInfo` y las miniaturas poseídas por los jugadores activos.
+2. **Servicio de Resolución y Autorreparación (`resolutorCriaturas.ts`, `sincronizacionIniciativa.ts`):**
+   - Creación de `resolverPersonajeAsociado`: resolución tolerante por ID de personaje, ID de miniatura de TaleSpire, ID de dueño y coincidencia de nombres normalizados (limpiando sufijos como `(PJ)` o `(Guerrero)`).
+   - Eliminación del bloqueo `if (criatura.esMonstruo)` en `resolverPersonajePorCriatura` y `obtenerPasivasCriatura`, permitiendo la autorreparación instantánea de pasivas y estadísticas.
+   - Normalización con `sinDiacriticos` en el fallback de prefijo de plantillas de monstruos.
+   - En `sincronizarConEstadoLocal`, si una miniatura pertenece a un jugador (`idsMiniaturasJugadores`), se fuerza `esMonstruo: false`, se bloquea la adopción de plantillas de monstruos y se calculan las pasivas y la CA real mediante `calcularEstadisticasPersonaje`.
+3. **Flujo de Iniciativa y Acciones de Estado (`sliceIniciativa.ts`, `usarEstadoIniciativa.ts`):**
+   - Nuevas acciones: `agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => void` (inserta o actualiza la ficha con CA real, pasivas de combate y `esMonstruo: false`) y `alternarRolCriatura: (idCriatura: string) => void` (conmutador táctico manual PJ/MON).
+   - Sincronización proactiva: `importarIniciativaTaleSpire`, `actualizarColaIniciativaDesdeTaleSpire`, `autoLanzarIniciativaMonstruos` y `agregarCriaturasSeleccionadasAIniciativa` consultan y respetan la detección de propietarios.
+4. **Renovación de UI (`SelectorJugadorRapido.tsx`, `BarraControl.tsx`, `TarjetaCriaturaIniciativa.tsx`):**
+   - Creación de `SelectorJugadorRapido.tsx` y su módulo CSS, sustituyendo el input plano por un selector desplegable accesible con búsqueda sobre `state.personajes`, mostrando clase, nivel, HP y badge "EN COMBATE", además de admitir la creación de jugador rápido genérico cuando sea necesario.
+   - Insignia táctica interactiva `MON`/`PJ` en la cabecera de `TarjetaCriaturaIniciativa.tsx` que permite alternar el rol manualmente en cualquier momento sin perder la ficha.
+
+**Optimizaciones de Rendimiento, IPC y Accesibilidad (Fase 2):**
+1. **Paralelización IPC y Caché TTL (`TaleSpireAdapter.ts`):** Consultas paralelas con `Promise.all` para `getPlayersInThisCampaign`, `getPlayersInThisBoard`, `getCreaturesOwnedByPlayer` y `getMoreInfo`, sumado a deduplicación de promesas en vuelo (`promesaMinisJugadores`) y caché con TTL de `2.500 ms`.
+2. **Memoización `WeakMap` e Indexación Sin Diacríticos (`indiceMonstruos.ts`, `resolutorCriaturas.ts`):** `crearIndiceMonstruos` cacheado en $O(1)$ por referencia de catálogo con `WeakMap`; pre-cálculo de `porNombreSinTildes` y `entradasPrefijo` evitando transformaciones `.normalize("NFD")` en bucles calientes; caché de `completoSinTildes` y `baseSinTildes` en `normalizarNombreTaleSpire`.
+3. **Estabilización de `React.memo` (`GestorIniciativa.tsx`, `resolutorCriaturas.ts`):** `obtenerPercepcionPasiva` y lanzadores estabilizados con `useCallback`, `idsSeleccionadosTS` precalculado en `Set<string>` $O(1)$, y `obtenerPasivasCriatura` memoizado por personaje mediante `WeakMap` y constante congelada `PASIVAS_NEUTRAS_PJ`.
+4. **UX y Accesibilidad en `SelectorJugadorRapido.tsx`:** Estado en combate precalculado en $O(1)$ (`idsPersonajesEnCombate`), prevención de pérdida de foco en clic con `onMouseDown preventDefault`, navegación por teclado (`ArrowDown`, `ArrowUp`, `Enter`, `Escape`), atributos ARIA (`combobox`, `listbox`, `option`) e icono vectorial `<X size={12} />`.
+5. **Reaprovechamiento de `ownerIds` en Selección (`usarConexionTaleSpire.ts`, `sliceIniciativa.ts`):** Conservación de `esDeJugador` en `CriaturaSeleccionadaTS` a partir de `getMoreInfo`, evitando llamadas IPC extra al añadir criaturas seleccionadas a la iniciativa.
+
+**Certificación del Pipeline de CI:**
+- **TypeScript:** `pnpm exec tsc --noEmit` con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 140 suites ejecutadas, **1.964 / 1.964 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 160 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 11.79s.
+
+---
 
 ## [2026-10-15] Integración de Brujo PHB 2024, Guerrero Declarativo y Optimizaciones Big-O en Main
 

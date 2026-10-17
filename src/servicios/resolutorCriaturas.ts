@@ -21,26 +21,47 @@ export function esNombreVacioODot(nombre: string): boolean {
   return limpio === "" || limpio === "." || limpio.replace(/[.\s]/g, "") === "";
 }
 
-const cacheNormalizacionTS = new Map<string, { completo: string; base: string }>();
+export interface NombreNormalizadoTS {
+  completo: string;
+  base: string;
+  completoSinTildes: string;
+  baseSinTildes: string;
+}
+
+const cacheNormalizacionTS = new Map<string, NombreNormalizadoTS>();
 const LIMITE_CACHE_TS = 500;
 
+function quitarDiacriticos(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 /**
- * Normaliza un nombre proveniente de TaleSpire convirtiéndolo a minúsculas
- * y quitando sufijos numéricos (#123, 2, A, etc) para obtener el nombre base.
- * Emplea caché en memoria para evitar ejecuciones repetitivas de regex.
+ * Normaliza un nombre proveniente de TaleSpire convirtiéndolo a minúsculas,
+ * quitando sufijos numéricos (#123, 2, A, etc) y precalculando variantes sin diacríticos.
+ * Emplea caché en memoria para evitar ejecuciones repetitivas de regex y NFD.
  */
-export function normalizarNombreTaleSpire(nombre: string): { completo: string; base: string } {
+export function normalizarNombreTaleSpire(nombre: string): NombreNormalizadoTS {
   const clave = nombre || "";
   const enCache = cacheNormalizacionTS.get(clave);
   if (enCache) return enCache;
 
+  // Limpiar etiquetas entre paréntesis o corchetes como (PJ), [PJ], (Guerrero), etc.
+  const sinEtiquetas = clave.toLowerCase().trim().replace(/\s*[\(\[][^)\]]*[\)\]]/g, "").trim();
   const completo = clave.toLowerCase().trim();
-  const base = completo
+
+  // Quitar sufijos numéricos o de instancia (#123, 2, A, etc)
+  const base = (sinEtiquetas || completo)
     .replace(/\s+\d+$/g, "")
     .replace(/\s+#[a-zA-Z0-9]+$/g, "")
     .replace(/\s+[a-zA-Z]$/g, "")
     .trim();
-  const res = { completo, base };
+
+  const res: NombreNormalizadoTS = {
+    completo,
+    base,
+    completoSinTildes: quitarDiacriticos(completo),
+    baseSinTildes: quitarDiacriticos(base)
+  };
 
   if (cacheNormalizacionTS.size >= LIMITE_CACHE_TS) {
     cacheNormalizacionTS.clear();
@@ -65,7 +86,11 @@ export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: str
     normA.completo === normB.completo ||
     normA.base === normB.base ||
     normA.completo === normB.base ||
-    normA.base === normB.completo
+    normA.base === normB.completo ||
+    normA.completoSinTildes === normB.completoSinTildes ||
+    normA.baseSinTildes === normB.baseSinTildes ||
+    normA.completoSinTildes === normB.baseSinTildes ||
+    normA.baseSinTildes === normB.completoSinTildes
   );
 }
 
@@ -91,7 +116,7 @@ export function resolverPlantillaPorCriatura(
     return undefined;
   }
 
-  const { completo, base } = normalizarNombreTaleSpire(nombre);
+  const { completo, base, completoSinTildes, baseSinTildes } = normalizarNombreTaleSpire(nombre);
 
   // 2. Buscar por asociación persistente por nombre
   const idPorNombreCompleto = asociaciones[`nombre_base:${completo}`];
@@ -106,20 +131,46 @@ export function resolverPlantillaPorCriatura(
     if (plantilla) return plantilla;
   }
 
-  // 3. Fallback: Buscar coincidencia exacta por nombre completo o nombre base
-  const plantillaExacta = indice.porNombre.get(completo) || indice.porNombre.get(base);
+  // 3. Fallback O(1): Buscar coincidencia exacta por nombre completo o nombre base (con o sin diacríticos)
+  const plantillaExacta =
+    indice.porNombre.get(completo) ||
+    indice.porNombre.get(base) ||
+    indice.porNombreSinTildes?.get(completoSinTildes) ||
+    indice.porNombreSinTildes?.get(baseSinTildes);
   if (plantillaExacta) return plantillaExacta;
 
-  // 4. Fallback parcial: Buscar coincidencia parcial de prefijo más larga (secuencial O(N))
+  // 4. Fallback parcial: Buscar coincidencia parcial de prefijo más larga usando entradas pre-normalizadas
   let plantillaGanadora: MonstruoBase | undefined = undefined;
   let longitudMaxima = 0;
 
-  for (const m of indice.listaCompleta) {
-    const nombrePlantilla = m.nombre.toLowerCase().trim();
-    if (completo.startsWith(nombrePlantilla) || base.startsWith(nombrePlantilla)) {
-      if (nombrePlantilla.length > longitudMaxima) {
-        longitudMaxima = nombrePlantilla.length;
-        plantillaGanadora = m;
+  if (indice.entradasPrefijo && indice.entradasPrefijo.length > 0) {
+    for (const entrada of indice.entradasPrefijo) {
+      if (
+        completo.startsWith(entrada.nombreLower) ||
+        base.startsWith(entrada.nombreLower) ||
+        completoSinTildes.startsWith(entrada.nombreSinTildes) ||
+        baseSinTildes.startsWith(entrada.nombreSinTildes)
+      ) {
+        if (entrada.longitud > longitudMaxima) {
+          longitudMaxima = entrada.longitud;
+          plantillaGanadora = entrada.monstruo;
+        }
+      }
+    }
+  } else {
+    for (const m of indice.listaCompleta) {
+      const nombrePlantilla = m.nombre.toLowerCase().trim();
+      const pSinTildes = quitarDiacriticos(nombrePlantilla);
+      if (
+        completo.startsWith(nombrePlantilla) ||
+        base.startsWith(nombrePlantilla) ||
+        completoSinTildes.startsWith(pSinTildes) ||
+        baseSinTildes.startsWith(pSinTildes)
+      ) {
+        if (nombrePlantilla.length > longitudMaxima) {
+          longitudMaxima = nombrePlantilla.length;
+          plantillaGanadora = m;
+        }
       }
     }
   }
@@ -159,50 +210,92 @@ export function calcularVidaInicial(
 }
 
 /**
+ * Busca de forma tolerante el PersonajeJugador asociado a una miniatura o criatura,
+ * comparando por ID directo, ID de miniatura en TaleSpire, ID de dueño o coincidencia de nombres normalizados.
+ */
+export function resolverPersonajeAsociado(
+  idCriatura: string,
+  nombreCriatura: string,
+  personajes: PersonajeJugador[],
+  idPersonajeDuenio?: string
+): PersonajeJugador | undefined {
+  if (!personajes || personajes.length === 0) return undefined;
+
+  const idLimpio = idCriatura ? idCriatura.toLowerCase() : "";
+
+  return personajes.find((pj) => {
+    // 1. Coincidencia por ID de personaje
+    if (pj.id === idCriatura || (pj.id && idLimpio && pj.id.toLowerCase() === idLimpio)) {
+      return true;
+    }
+
+    // 2. Coincidencia por ID de miniatura TaleSpire asignada en la ficha
+    if (pj.idMiniaturaTS && (pj.idMiniaturaTS === idCriatura || pj.idMiniaturaTS.toLowerCase() === idLimpio)) {
+      return true;
+    }
+
+    // 3. Coincidencia por dueño explícito
+    if (idPersonajeDuenio && pj.id === idPersonajeDuenio) {
+      return true;
+    }
+
+    // 4. Coincidencia por nombre normalizado tolerante (sin diacríticos ni sufijos de instancia/rol)
+    return coincidenNombresTaleSpire(pj.nombre, nombreCriatura);
+  });
+}
+
+/**
  * Localiza el PersonajeJugador asociado a una CriaturaIniciativa (por ID directo, ID de miniatura TS,
  * ID de dueño o coincidencia de nombres normalizados).
+ * Nota: No bloquea por criatura.esMonstruo para posibilitar la autorreparación de miniaturas de PJ mal catalogadas.
  */
 export function resolverPersonajePorCriatura(
   criatura: CriaturaIniciativa,
   personajes: PersonajeJugador[]
 ): PersonajeJugador | undefined {
-  if (criatura.esMonstruo) return undefined;
-
-  return personajes.find(
-    (pj) =>
-      pj.id === criatura.id ||
-      (criatura.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio) ||
-      (pj.idMiniaturaTS && pj.idMiniaturaTS === criatura.id) ||
-      coincidenNombresTaleSpire(pj.nombre, criatura.nombre)
+  return resolverPersonajeAsociado(
+    criatura.id,
+    criatura.nombre,
+    personajes,
+    criatura.idPersonajeDuenio
   );
 }
 
+const PASIVAS_NEUTRAS_PJ: PasivasCombatePJ = Object.freeze({
+  percepcion: 10,
+  investigacion: 10,
+  perspicacia: 10,
+});
+
+const cachePasivasPorPersonaje = new WeakMap<PersonajeJugador, PasivasCombatePJ>();
+
 /**
  * Obtiene las puntuaciones pasivas de combate (percepción, investigación y perspicacia)
- * correspondientes a una criatura de jugador.
+ * correspondientes a una criatura de jugador, preservando estabilidad referencial.
  */
 export function obtenerPasivasCriatura(
   criatura: CriaturaIniciativa,
   personajes: PersonajeJugador[]
 ): PasivasCombatePJ | null {
-  if (criatura.esMonstruo) {
-    return null;
-  }
   if (criatura.pasivas) {
     return criatura.pasivas;
   }
   const pj = resolverPersonajePorCriatura(criatura, personajes);
   if (pj) {
+    const enCache = cachePasivasPorPersonaje.get(pj);
+    if (enCache) return enCache;
+
     const stats = calcularEstadisticasPersonaje(pj);
-    return {
+    const calculadas: PasivasCombatePJ = {
       percepcion: stats.pasivas?.percepcion ?? 10,
       investigacion: stats.pasivas?.investigacion ?? 10,
       perspicacia: stats.pasivas?.perspicacia ?? 10,
     };
+    cachePasivasPorPersonaje.set(pj, calculadas);
+    return calculadas;
   }
-  return {
-    percepcion: 10,
-    investigacion: 10,
-    perspicacia: 10,
-  };
+  if (criatura.esMonstruo) {
+    return null;
+  }
+  return PASIVAS_NEUTRAS_PJ;
 }

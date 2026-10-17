@@ -14,16 +14,20 @@ El modo Master se selecciona cuando `esGM` es verdadero. `src/App.tsx` muestra `
 - Modificar vida actual y vida temporal.
 - Aplicar y quitar condiciones y efectos con duración.
 - Ejecutar salvaciones en área con CD y mitigación.
+- Consultar de forma inmediata las métricas pasivas de los jugadores (Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva) mediante insignias tácticas en las tarjetas de la cola.
 
-## Sincronización con TaleSpire
+## Sincronización en Tiempo Real (`TS.sync`)
 
-`src/utiles/TaleSpireAdapter.ts` obtiene `initiative.getQueue`, se suscribe a `onInitiativeEvent`, obtiene criaturas seleccionadas y consulta información extendida con `creatures.getMoreInfo`.
+`sincronizacionSimbiote.ts` y `TaleSpireAdapter.ts` gestionan la sincronización bidireccional en tiempo real entre el Master y los Jugadores a través del canal de red nativo `TS.sync`:
 
-`src/servicios/sincronizacionIniciativa.ts` reconcilia la cola física con el estado local. Las asociaciones de fichas y las plantillas permanecen en el slice de iniciativa.
+- Protocolo compacto Wire v2 con fragmentación automática de paquetes (`DM_CHUNK` / `< 380 bytes`) para cumplir con el límite estricto de la API de TaleSpire (< 500 caracteres).
+- Cola FIFO con throttling e intervalos seguros (180 ms) y retroceso exponencial ante errores `rateLimited` de TaleSpire.
+- El Master ejerce la autoridad del estado de combate, mientras los Jugadores transmiten la salud, condiciones, efectos y acompañantes de su héroe activo.
+- Mecanismo de confirmación de entrega (ACK) y reintentos para asegurar que no se pierdan actualizaciones en partidas con latencia.
 
 ## Tarjetas de criatura
 
-`TarjetaCriaturaIniciativa.tsx` muestra nombre, iniciativa, vida, vida temporal, clase de armadura, velocidad, percepción pasiva, condiciones y efectos.
+`TarjetaCriaturaIniciativa.tsx` muestra nombre, iniciativa, vida, vida temporal, clase de armadura, velocidad, insignias pasivas de jugadores (Percepción, Investigación, Perspicacia), condiciones y efectos.
 
 Cuando existe una plantilla asociada, `PanelFichaDnD.tsx` y la tarjeta pueden mostrar estadísticas, acciones rápidas y otros datos de la ficha. `VinculadorPlantilla.tsx` permite elegir la plantilla del compendio para una criatura.
 
@@ -59,7 +63,7 @@ Los formularios de criatura y hechizo utilizan los tipos de `src/tipos`; los esq
 - `CalculadoraViaje`.
 - `CalculadoraSalto`.
 - `ConversorDivisas`.
-- `ConsolaCriticosPifias`.
+- `ConsolaCriticosPifias`: Consola de críticos y pifias d12 con 72 efectos canónicos diferenciados para ataques cuerpo a cuerpo, a distancia y mágicos, con tirada virtual, envío a TaleSpire y narrativa/mecánica separadas.
 - `ReglasBasicas`.
 
 `Pendientes.tsx` gestiona tareas de sesión con alta, finalización y borrado. `NotasDM.tsx` guarda las notas de la sesión en el estado persistible.

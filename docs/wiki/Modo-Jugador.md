@@ -46,15 +46,29 @@ El sistema calcula:
 - Recursos de lanzadores multiclase.
 - Opciones de lanzamiento a nivel superior.
 - Conjuros de subclase siempre preparados.
-- Arcanos Místicos de brujo.
+- Arcanos Místicos de brujo y Libro de conjuros para Mago.
+
+En el caso del Mago (`modeloConjuros === "grimorio"`), el compendio adapta sus subpestañas a **"Conocido"**, **"Libro de conjuros"**, **"Disponibles"** y **"Otros"**, permitiendo preparar conjuros desde el libro mediante el icono de estrella. En las acciones de combate y paneles de rasgos únicamente se muestran los conjuros activamente preparados o de subclase.
 
 Un conjuro puede ocultarse de la lista visible, prepararse, desprepararse y lanzarse con el recurso correspondiente. `servicioLanzamientoConjuros.ts` valida la solicitud y prepara la fórmula antes de enviarla a la API de dados.
+
+## Acompañantes y Sidekicks
+
+`SeccionAcompanantesPersonaje.tsx` gestiona acompañantes, monturas, mascotas e invocaciones escalables (como *Corcel sobrenatural*, *Espíritu feérico*, *Espíritu celestial*, etc.).
+
+El módulo incluye:
+
+- Velocidad base, movimiento gastado, movimiento restante y acción de Carrera (Dash).
+- Selector táctico de terrenos: Normal (1x), Difícil (2x) y Extremo (3x) para cálculo de consumo de pies por casilla.
+- Ajuste manual rápido de movimiento (+/- 5 pies), deshacer movimiento y restablecimiento de turno.
+- Vinculación de miniaturas 3D de TaleSpire y sincronización de posición en tiempo real.
+- Invocaciones escalables dinámicas que recalculan CA, Puntos de Golpe, tiradas de ataque y daño según el nivel del conjuro gastado y los atributos del lanzador.
 
 ## Inventario y munición
 
 `PanelInventarioPersonaje.tsx` permite añadir objetos del compendio o personalizados, cambiar cantidades, equipar, sintonizar, editar notas y mover objetos entre contenedores.
 
-`calculadorInventario.ts` calcula capacidad, peso de objetos, peso de monedas, sintonizaciones y sobrecarga. Los contenedores incluyen mochila, bolsa de contención, montura y almacén.
+`calculadorInventario.ts` calcula capacidad, peso de objetos, peso de monedas, sintonizaciones y sobrecarga. Los contenedores incluyen mochila (suma a la carga del personaje), bolsa de contención (0 lb efectivas sobre el personaje), montura/carreta (0 lb sobre el personaje) y almacén (0 lb sobre el personaje). Se incluye búsqueda tolerante instantánea (`busquedaTolerante.ts`) y modos de ordenación táctica (por tipo/secciones, pila LIFO, peso, nombre y valor).
 
 `gestorMunicion.ts` relaciona armas y tipos de munición, determina compatibilidad, detecta contenedores físicos y calcula su contenido. El inventario puede desempaquetar paquetes y consumir munición desde su almacenamiento.
 

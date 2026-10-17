@@ -18,11 +18,11 @@ El rol se obtiene desde TaleSpire mediante `ts.clients.esGM()` y se actualiza cu
 
 ### Master
 
-El Master dispone de `GestorIniciativa`, `TablasDM`, `Pendientes`, `Compendio`, `NotasDM`, `CreadorHomebrew` y `ConfiguracionDM`. El gestor trabaja con criaturas, plantillas, condiciones, efectos, encuentros y la cola de iniciativa.
+El Master dispone de `GestorIniciativa`, `TablasDM` (con calculadoras, reglas y consola de críticos y pifias d12), `Pendientes`, `Compendio`, `NotasDM`, `CreadorHomebrew` y `ConfiguracionDM`. El gestor trabaja con criaturas, plantillas, condiciones, efectos con duración, salvaciones en área, pasivas visibles de jugadores (Percepción, Investigación, Perspicacia) y la cola de iniciativa sincronizada en tiempo real mediante `TS.sync`.
 
 ### Jugador
 
-El jugador dispone de `VistaJugadores`, `VistaAtaquesJugador`, `Compendio`, `VistaRasgosJugador`, `VistaInventarioJugador`, `TablasDM`, `NotasDM`, `CreadorHomebrew` y `ConfiguracionDM`. La hoja de personaje se compone de atributos, habilidades, vitalidad, magia, inventario, rasgos e iniciativa.
+El jugador dispone de `VistaJugadores`, `VistaAtaquesJugador`, `Compendio`, `VistaRasgosJugador`, `VistaInventarioJugador`, subpestaña de **Acompañantes / Sidekicks**, `TablasDM`, `NotasDM`, `CreadorHomebrew` y `ConfiguracionDM`. La hoja de personaje se compone de atributos, habilidades, vitalidad, magia (con subpestañas especializadas para Mago, Brujo y preparadores), inventario con contenedores (Mochila, Bolsa de Contención, Montura, Almacén), rasgos, acompañantes e iniciativa.
 
 ## Desarrollo rápido
 

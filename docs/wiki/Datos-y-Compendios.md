@@ -16,15 +16,21 @@ Los datos iniciales se sanean antes de entrar en `sliceHomebrew.ts`, de modo que
 
 ## Constantes de reglas
 
-`src/constantes/` contiene los catálogos que no se cargan directamente desde un JSON:
+`src/datos/` contiene los catálogos JSON modulares que se hidratan mediante `cargadorCatalogos.ts`:
 
-- `clasesDND55.ts`: clases, subclases, progresión, selectores y efectos mecánicos.
-- `rasgosDND55.ts`: dotes y rasgos canónicos.
+- `src/datos/clases/`: 12 archivos JSON de clases y subclases PHB 2024 (Guerrero, Brujo, Mago, Bárbaro, Clérigo, Druida, Monje, Paladín, Explorador, Pícaro, Hechicero, Bardo).
+- `src/datos/especies/`: 10 archivos JSON de especies y subespecies PHB 2024.
+- `src/datos/dotes/`: Dotes de Origen, Generales y Épicas.
+- `src/datos/invocaciones/invocaciones.2024-es.json`: Plantillas de criaturas de invocación escalables (*Corcel sobrenatural*, *Espíritu feérico*, *Espíritu celestial*, etc.).
+- `src/datos/invocaciones-sobrenaturales.json`: Invocaciones sobrenaturales del Brujo PHB 2024.
+
+`src/constantes/` provee los barrels de exportación e hidratación:
+
+- `clasesDND55.ts`: reexportación e hidratación de clases y subclases.
+- `dotesConstantes.ts`: dotes hidratadas.
 - `equipoConstantes.ts`: equipo y reglas auxiliares de competencia.
 - `objetoConstantes.ts`: normalización y categorías de objetos.
-- `subclasesConjurosConstantes.ts`: conjuros asociados a subclases.
 - `competenciasConstantes.ts`: grupos de armas, armaduras, idiomas y herramientas.
-- `homebrewConstantes.ts`: valores y categorías del creador Homebrew.
 - `personajeConstantes.ts`: personaje inicial y valores por defecto.
 
 `src/utiles/tablasCriticos.ts` y `src/utiles/datosIniciales.ts` proporcionan tablas, condiciones y efectos predefinidos usados por las vistas.

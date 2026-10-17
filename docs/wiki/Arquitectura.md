@@ -50,13 +50,16 @@ Los selectores de `src/almacen/selectores/` exponen fachadas con `useShallow`:
 - `usarEstadoHomebrew.ts` expone monstruos, hechizos y objetos personalizados.
 - `usarEstadoConfiguracion.ts` expone pestaña, campaña, rol y preferencias.
 - `usarEstadoUtiles.ts` expone notas, pendientes y encuentros.
+- `usarEstadoAcompanantes.ts` expone y gestiona acompañantes, monturas e invocaciones.
 
 ### Almacén Zustand
 
-`src/almacen/usarAlmacenDM.ts` combina cuatro slices:
+`src/almacen/usarAlmacenDM.ts` combina los slices de la aplicación:
 
 - `sliceIniciativa.ts`: cola, ronda, turno activo, selección TaleSpire, criaturas, condiciones, efectos, plantillas y salvaciones en área.
 - `slicePersonajes.ts`: personajes, vitalidad, descansos, salvaciones de muerte, cansancio, magia, inventario, monedas y rasgos.
+- `sliceAcompanantes.ts`: acompañantes, movilidad, terrenos tácticos, invocaciones escalables y posiciones en TaleSpire.
+- `sliceSync.ts`: estado de red, autoridad del DM, id de cliente, revisiones y borradores pendientes de sincronización.
 - `sliceHomebrew.ts`: bases de datos de monstruos, hechizos y objetos, con operaciones de alta, edición y borrado.
 - `sliceConfiguracion.ts`: pestaña activa, preferencias, pendientes, notas, encuentros, notificaciones, campaña y rol.
 
@@ -77,10 +80,13 @@ La carga y escritura usan `window.TS.localStorage.global` a través del adaptado
 Ejemplos:
 
 - `sincronizacionIniciativa.ts` filtra efectos expirados y reconcilia el estado local.
+- `sincronizacionSimbiote.ts` orquesta el flujo de sincronización bidireccional mediante `TS.sync` con submódulos dedicados (`bufferChunksIniciativa.ts`, `gestorReintentosSync.ts`, `proyeccionEstadoCombate.ts`, `autoridadSync.ts`).
 - `procesadorCondiciones.ts` aplica condiciones y evalúa su impacto en ataques, características, salvaciones e iniciativa.
-- `gestorClases.ts` construye builds de clase y subclase.
+- `gestorClases.ts` construye builds de clase y subclase de forma declarativa.
+- `factoriaInvocaciones.ts` proyecta criaturas de invocación escalables en tiempo real sin mutar los catálogos estáticos.
 - `calculadorMagia.ts` calcula lanzador, espacios, puntos, pacto y opciones de lanzamiento.
 - `gestorMunicion.ts` resuelve compatibilidad de munición y contenedores.
+- `busquedaTolerante.ts` proporciona búsquedas y deduplicaciones eficientes con normalización y caché LRU $O(1)$.
 
 ## Puente de eventos
 

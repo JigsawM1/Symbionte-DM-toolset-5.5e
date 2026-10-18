@@ -1,5 +1,22 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-18] Integración de Bárbaro PHB 2024 y Cuatro Subclases Declarativas en Main
+
+**Alcance de la Fusión en `main`:**
+- Integración completa de la rama `barbaro-cosas-no-se-si-scope-creep` en `main`.
+- **Bárbaro Base PHB 2024 (`src/datos/clases/barbaro.json`):** Estandarización declarativa de niveles 1 a 20 con Furia, Defensa sin armadura, Sentido del peligro, Ataque temerario, Golpe brutal, etc.
+- **Cuatro Subclases Declarativas:** *Berserker*, *Corazón Salvaje*, *Árbol del Mundo* y *Fanático*, con activación transaccional, curación multidados (*Guerrero de los dioses* con d12), rituales asociados y mitigación de duplicados de tiradas en TaleSpire.
+- **Ergonomía de Interfaz:** Diálogos modales con scroll CEF opaco, contadores `+` / `-` y limpieza de tarjetas de rasgos.
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 147 suites ejecutadas, **2.095 / 2.095 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 162 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 8.29s (2.082 módulos).
+
+---
+
 ## [2026-10-16] Bárbaro: limpieza de tarjetas y diálogos de rasgos
 
 - Retirados los bloques duplicados de rituales de tarjetas compactas y cabecera de magia. Conjuros en la lista habitual y botones de ritual en el detalle, también para rasgos sin reserva ni dados. CD de salvación compacta con explicación en tooltip.

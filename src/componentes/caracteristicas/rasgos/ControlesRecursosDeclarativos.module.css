@@ -1,5 +1,18 @@
-.dialogo { width: min(420px, calc(100vw - 32px)); margin: auto; box-sizing: border-box; max-height: calc(100vh - 40px); overflow-y: auto; border: 1px solid var(--pj-borde-acento); border-radius: var(--pj-radio-control); padding: 16px; background: var(--pj-fondo-tarjeta); color: var(--pj-texto-primario); }
-.dialogo::backdrop { background: rgb(0 0 0 / 65%); }
-.dialogo label { display: block; margin: 12px 0 6px; }
-.acciones { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
-.botonCompacto { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 32px; min-height: 32px; padding: 4px 8px; flex: 0 0 auto; font-size: var(--pj-fuente-boton); white-space: nowrap; }
+.botonCompacto { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 32px; min-height: 32px; padding: 4px 8px; flex: 0 0 auto; font-size: var(--pj-fuente-boton); white-space: nowrap; color: var(--pj-texto-secundario); background: var(--pj-fondo-panel); border: 1px solid var(--pj-borde-medio); border-radius: var(--pj-radio-control); }
+.botonCompacto:hover:not(:disabled) { color: var(--pj-texto-acento); border-color: var(--pj-borde-acento); }
+.botonCompacto:disabled { opacity: .45; cursor: default; }
+.cd { display: inline-flex; align-items: center; min-height: 26px; padding: 3px 7px; box-sizing: border-box; font-size: var(--pj-fuente-badge); color: var(--pj-texto-cian-claro); background: var(--pj-acento-cian-fondo); border: 1px solid var(--pj-borde-cian-tenue); border-radius: var(--pj-radio-control); white-space: nowrap; }
+.formulario { display: flex; flex-direction: column; min-height: 0; margin: 0; }
+.cantidadCabecera { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; justify-content: space-between; font-size: var(--pj-fuente-cuerpo); }
+.cantidadCabecera label { font-weight: 600; }
+.cantidadCabecera span { color: var(--pj-texto-terciario); font-size: var(--pj-fuente-badge); }
+.cantidad { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 12px; padding: 16px 12px; background: var(--pj-fondo-hundido); border: 1px solid var(--pj-borde-sutil); border-radius: var(--pj-radio-control); }
+.cantidad button { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; color: var(--pj-texto-secundario); background: var(--pj-fondo-tarjeta); border: 1px solid var(--pj-borde-medio); }
+.cantidad button:hover:not(:disabled) { border-color: var(--pj-borde-acento-fuerte); color: var(--pj-texto-acento); }
+.cantidad input { width: 64px; min-height: 36px; box-sizing: border-box; text-align: center; font-size: var(--pj-fuente-numero-lg); }
+.caras { font-size: var(--pj-fuente-numero-lg); color: var(--pj-texto-acento); margin-left: -4px; }
+.limite { margin: 8px 0 0; color: var(--pj-texto-terciario); font-size: var(--pj-fuente-micro); text-align: center; }
+.rituales { display: grid; gap: 10px; width: 100%; }
+.rituales p { margin: 0 0 8px; color: var(--pj-texto-terciario); font-size: var(--pj-fuente-cuerpo); }
+.botonesRituales { display: flex; flex-wrap: wrap; gap: 6px; }
+.botonesRituales button { text-transform: none; white-space: normal; text-align: left; }

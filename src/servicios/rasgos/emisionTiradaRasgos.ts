@@ -2,12 +2,16 @@ import type { PersonajeJugador, AtaquePersonajeCalculado } from "@/tipos";
 import { evaluarEfectosRasgosActivos, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { aplicaEfectoAAtaque, type ContextoAtaquePersonaje } from "./evaluadorCombateRasgos";
 import { resolverExtensionesRasgos } from "./extensionesRasgos";
+import { evaluarEfectosCondicionesEnTirada } from "../procesadorCondiciones";
 
 const pendientes = new Set<string>();
 
 /** Una tirada de daño ajena al ámbito del efecto conserva su activación pendiente. */
 export function emitirTiradaDanoConRasgos(personaje: PersonajeJugador, ataque: AtaquePersonajeCalculado,
-  emitir: () => Promise<boolean>, desactivar: (id: string) => void): Promise<boolean> {
+  emitir: () => Promise<boolean>, desactivar: (id: string) => void, tipoTiradaManual?: "plano" | "ventaja" | "desventaja"): Promise<boolean> {
+  const renuncia = evaluarEfectosRasgosActivos(personaje).some(e => e.tipo === "renunciar_ventaja" && e.objetivo === `ataque.${ataque.caracteristicaUsada}` && Number(e.valor) > 0);
+  if (renuncia && (tipoTiradaManual === "desventaja" || evaluarEfectosCondicionesEnTirada({ tipo: "ataque", caracteristica: ataque.caracteristicaUsada,
+    condicionesActivas: personaje.condicionesActivas, personaje }).tieneDesventaja)) return Promise.resolve(false);
   const contexto: ContextoAtaquePersonaje = {
     tipo: ataque.tipo === "Desarmado" ? "desarmado" : ataque.tipo === "Conjuro" ? "conjuro" : "arma",
     caracteristica: ataque.caracteristicaUsada, esDistancia: !!ataque.esDistancia, esCuerpoACuerpo: !ataque.esDistancia,

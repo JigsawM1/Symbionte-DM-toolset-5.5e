@@ -9,7 +9,7 @@
  */
 
 import type { Caracteristica, Habilidad, PersonajeJugador } from "@/tipos";
-import { evaluarVentajasDeRasgosEnTirada, estaAtaqueTemerarioActivo } from "@/servicios/evaluadorEfectosRasgos";
+import { evaluarVentajasDeRasgosEnTirada, estaAtaqueTemerarioActivo, evaluarEfectosRasgosActivos } from "@/servicios/evaluadorEfectosRasgos";
 import { esClaseBarbaro } from "@/constantes";
 
 export const NIVEL_MAXIMO_CANSANCIO = 6;
@@ -406,6 +406,14 @@ export function evaluarEfectosCondicionesEnTirada(
     }
   }
 
+  if (contexto.tipo === "ataque" && contexto.personaje && !motivosDesventaja.length) {
+    const renuncia = evaluarEfectosRasgosActivos(contexto.personaje).find(e =>
+      e.tipo === "renunciar_ventaja" && e.objetivo === `ataque.${contexto.caracteristica}` && Number(e.valor) > 0);
+    if (renuncia) {
+      motivosVentaja.length = 0;
+      motivosModificadores.push(renuncia.descripcion || "Renuncia a ventaja");
+    }
+  }
   const tieneDesventaja = motivosDesventaja.length > 0;
   const tieneVentaja = motivosVentaja.length > 0;
 

@@ -307,6 +307,7 @@ export const EsquemaObjetoInventario = z.object({
 export type ObjetoInventario = z.infer<typeof EsquemaObjetoInventario>;
 
 export const EsquemaEfectoActivo = z.object({
+  idRasgoOrigen: z.string().optional(),
   id: z.string(),
   nombre: z.string(),
   expiraRonda: z.number().int().optional(),

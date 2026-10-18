@@ -18,6 +18,7 @@ import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
+import { tieneRestriccionRasgos } from "@/servicios/rasgos/restriccionesRasgos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -113,6 +114,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
 
   // 2. Estado general de bloqueo por armadura
   const estaBloqueadoPorArmadura = Boolean(penalizacionArmadura?.sinCompetencia);
+  const estaBloqueadoPorRasgo = useMemo(() => Boolean(personaje && tieneRestriccionRasgos(personaje, "conjuros")), [personaje]);
   const motivoBloqueoArmadura = estaBloqueadoPorArmadura
     ? `No puedes lanzar conjuros mientras vistas ${[
         penalizacionArmadura?.armaduraNoCompetente,
@@ -268,8 +270,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   );
 
   return {
-    puedeLanzar: !estaBloqueadoPorArmadura,
-    motivoBloqueo: motivoBloqueoArmadura,
+    puedeLanzar: !estaBloqueadoPorArmadura && !estaBloqueadoPorRasgo,
+    motivoBloqueo: estaBloqueadoPorRasgo ? "Un rasgo activo impide lanzar conjuros." : motivoBloqueoArmadura,
     validar,
     lanzar
   };

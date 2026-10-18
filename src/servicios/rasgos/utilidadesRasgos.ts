@@ -24,6 +24,7 @@ export function resolverRasgoPadre(
 
 /** Recorre relaciones explícitas hasta la reserva; los contenedores no duplican recursos. */
 export function resolverRasgoRecurso(rasgo: RasgoPersonaje, rasgos: RasgoPersonaje[], tipo: "usos" | "dados" = "usos"): RasgoPersonaje | undefined {
+  if (rasgo.idRasgoRecurso) return rasgos.find(r => r.id === rasgo.idRasgoRecurso);
   const visitados = new Set([rasgo.id]);
   let padre = resolverRasgoPadre(rasgo, rasgos);
   while (padre && !visitados.has(padre.id)) {
@@ -279,10 +280,15 @@ export function tieneArmaduraEquipada(personaje: PersonajeJugador): {
 
   const nombreNorm = normalizar(armaduraObj.nombre);
   const ref = ARMADURAS_OFICIALES[nombreNorm];
-  const esPesada = ref ? ref.tipo === "Pesada" : nombreNorm.includes("placas") || nombreNorm.includes("pesada");
-  const tipo = ref ? ref.tipo : (esPesada ? "Pesada" : "Mediana");
+  const subcategoria = normalizar(armaduraObj.subcategoria);
+  // equipment_categories se convierte en subcategoria al importar el catálogo.
+  const tipo = subcategoria.includes("pesada") ? "Pesada" :
+    subcategoria.includes("media") ? "Mediana" :
+    subcategoria.includes("ligera") ? "Ligera" :
+    ref?.tipo ?? (armaduraObj.bonoDestreza === "Sin Bono" ? "Pesada" :
+      armaduraObj.bonoDestreza === "Completo" ? "Ligera" : "Mediana");
 
-  return { tieneArmadura: true, esPesada, tipo, nombre: armaduraObj.nombre };
+  return { tieneArmadura: true, esPesada: tipo === "Pesada", tipo, nombre: armaduraObj.nombre };
 }
 
 /**

@@ -20,6 +20,8 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
     mutarPersonaje(set, idPj, (pj) => {
       const rasgoPedido = pj.rasgos.find(r => r.id === idRasgo);
       const selectorPedido = rasgoPedido?.selectores?.find(s => s.id === idSelector);
+      if (selectorPedido?.momentoEleccion === "activacion") return pj;
+      if (selectorPedido?.momentoEleccion === "descanso_largo" && selectorPedido.valorActual.length && !selectorPedido.cambioDisponible) return pj;
       const maxPedido = [...(selectorPedido?.escaladoMaxSelecciones ?? [])].sort((a, b) => b.nivelMinimo - a.nivelMinimo)
         .find(e => rasgoPedido && obtenerNivelEfectivoParaRasgo(pj, rasgoPedido) >= e.nivelMinimo)?.valor ?? selectorPedido?.maxSelecciones ?? 1;
       if (!selectorPedido || selectorPedido.modo === "consulta" || new Set(valorActual).size !== valorActual.length || valorActual.length > maxPedido
@@ -58,6 +60,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
 
           const selectoresActualizados = r.selectores.map((s) => {
             if (s.id !== idSelector) return s;
+            if (s.momentoEleccion === "descanso_largo") return { ...s, valorActual, cambioDisponible: false };
             let maxSel = s.maxSelecciones;
             if (s.escaladoMaxSelecciones?.length) {
               const nivelRasgo = obtenerNivelEfectivoParaRasgo(pj, r);

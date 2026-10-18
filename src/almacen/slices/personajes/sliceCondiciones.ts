@@ -11,6 +11,8 @@ import {
 } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
+import { evaluarEfectosRasgosActivos } from "@/servicios/rasgos/evaluadorExpresionesRasgos";
+import { claveEstado } from "@/servicios/rasgos/estadoCondicionesRasgos";
 
 function esCondicionDerribado(texto: string): boolean {
   const tNorm = (texto || "").toLowerCase().trim();
@@ -84,6 +86,8 @@ export const crearSubSliceCondiciones: StateCreator<
   SubSliceCondiciones
 > = (set, get) => ({
   aplicarCondicionPersonaje: (id, condicion) => {
+    const objetivo = get().personajes.find(p => p.id === id);
+    if (objetivo && evaluarEfectosRasgosActivos(objetivo).some(e => e.tipo === "inmunidad_condicion" && claveEstado(e.objetivo) === claveEstado(condicion))) return;
     let pjObjetivo: PersonajeJugador | null = null;
     let condicionesFinales: string[] = [];
     mutarPersonaje(set, id, (pj) => {

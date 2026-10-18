@@ -36,7 +36,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   tieneUsosLimitados: z.boolean().optional(),
   usosMaximos: z.number().int().optional(),
   formulaUsos: z.string().nullable().optional(),
-  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "ninguno"]).optional(),
+  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "otro", "ninguno"]).optional(),
   formulaDados: z.string().optional(),
 
   // Escalados genéricos declarativos
@@ -100,7 +100,7 @@ export const EsquemaPlantillaRasgoEspecieJSON = z.object({
   tieneUsosLimitados: z.boolean().optional(),
   usosMaximos: z.number().int().optional(),
   formulaUsos: z.string().nullable().optional(),
-  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "ninguno"]).optional(),
+  recuperacion: z.enum(["descanso_corto", "descanso_largo", "descanso_dinamico", "manual", "otro", "ninguno"]).optional(),
   formulaDados: z.string().optional(),
 
   // Escalados genéricos declarativos

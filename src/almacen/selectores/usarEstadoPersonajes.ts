@@ -365,12 +365,7 @@ export function calcularEstadisticasPersonaje(
 
       const modExtra = custom?.modificadorExtra || 0;
       // Conocimiento primigenio / Habilidad con Fuerza: si está configurado en rasgos o con Furia activa
-      const usaFuerzaPorRasgo =
-        habsConFuerzaRasgos.has(hab) ||
-        (pj &&
-          estaFuriaActiva(pj) &&
-          ["acrobacias", "intimidacion", "percepcion", "sigilo", "supervivencia"].includes(hab) &&
-          (pj.rasgos || []).some((r) => r.activo !== false && normalizar(r.nombre).includes("conocimiento primigenio")));
+      const usaFuerzaPorRasgo = habsConFuerzaRasgos.has(hab);
 
       const modEfectivo = usaFuerzaPorRasgo && modificadores.fuerza > modBase ? modificadores.fuerza : modBase;
       habilidades[hab] = modEfectivo + bonoHabilidad + modExtra;

@@ -273,7 +273,8 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
 
       const rasgosBarbaroNv19 = obtenerRasgosClaseYSubclase("Bárbaro", 19);
       const donBarbaro = rasgosBarbaroNv19.find((r) => r.nombre === "Don épico");
-      expect(donBarbaro?.selectores?.[0].valorActual).toEqual(["dote_don_ataque_imparable"]);
+      expect(donBarbaro?.selectores?.[0].valorActual).toEqual([]);
+      expect(donBarbaro?.selectores?.[0].requiereEleccionExplicita).toBe(true);
     });
 
     it("sincronizarRasgosAutomaticos inyecta la dote de don épico ligada en la sección de dotes", () => {

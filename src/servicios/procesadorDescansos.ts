@@ -322,6 +322,10 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
   const rasgosActualizadosLargo = (personaje.rasgos || []).map((rasgo) => {
     let rModificado = { ...rasgo };
     let huboCambio = false;
+    if (rasgo.selectores?.some(s => s.momentoEleccion === "descanso_largo")) {
+      rModificado.selectores = rasgo.selectores.map(s => s.momentoEleccion === "descanso_largo" ? { ...s, cambioDisponible: true } : s);
+      huboCambio = true;
+    }
 
     if (
       rasgo.tieneUsosLimitados &&

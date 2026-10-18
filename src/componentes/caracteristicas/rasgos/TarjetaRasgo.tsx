@@ -28,6 +28,7 @@ import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspaci
 import { ModalTiendaRecargaEspacio } from "./ModalTiendaRecargaEspacio";
 import { ChipsSelectoresYDadosRasgo } from "./ChipsSelectoresYDadosRasgo";
 import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
+import { useActivacionDeclarativa } from "./usarActivacionDeclarativa";
 
 interface TarjetaRasgoProps {
   rasgo: RasgoPersonaje;
@@ -64,6 +65,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   esOculto = false,
   alAlternarOcultar
 }) => {
+  const activacion = useActivacionDeclarativa(rasgo, idPersonaje, alAlternarActivo);
   const {
     usosRestantes,
     usosMaximos,
@@ -76,7 +78,8 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     esHpTemporalPropio,
     valorHpTemporalCalculado,
     manejarTirarDados,
-    manejarAplicarHpTemporal
+    manejarAplicarHpTemporal,
+    manejarTirarDadosGuardados
   } = usarAccionesTarjetaRasgo({
     rasgo,
     nombrePersonaje,
@@ -131,24 +134,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     const mult = rasgo.multiplicadorRecargaEspacio ?? 2;
     agregarNotificacion(
       `¡${rasgo.nombre}! Has gastado un espacio de nivel ${nivelEspacio} y restablecido +${nivelEspacio * mult} PG temporales.`,
-      "exito"
-    );
-  };
-
-  const manejarTirarDadosGuardados = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!idPersonaje) return;
-    const formula = formulaEfectiva || rasgo.formulaDados || "2d20";
-    const match = formula.match(/^(\d+)d(\d+)$/i);
-    const cant = match ? parseInt(match[1], 10) : 2;
-    const caras = match ? parseInt(match[2], 10) : 20;
-    const nuevosDados: number[] = [];
-    for (let i = 0; i < cant; i++) {
-      nuevosDados.push(Math.floor(Math.random() * caras) + 1);
-    }
-    usarAlmacenDM.getState().guardarDadosRasgo(idPersonaje, rasgo.id, nuevosDados);
-    usarAlmacenDM.getState().agregarNotificacion(
-      `¡${rasgo.nombre}! Tirada de presagio generada: ${nuevosDados.join(", ")}`,
       "exito"
     );
   };
@@ -208,7 +193,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 if (deshabilitadoToggle) return;
-                alAlternarActivo();
+                activacion.alternar();
               }}
               disabled={deshabilitadoToggle}
               title={
@@ -313,7 +298,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación regular */}
-          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracionManual && (
+          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && (
             <button
               type="button"
               className={estilos.botonTirarDados}
@@ -393,7 +378,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
-          <ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
+          {activacion.modal}<ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
           {/* Botón para expandir modal */}
           <button
             type="button"

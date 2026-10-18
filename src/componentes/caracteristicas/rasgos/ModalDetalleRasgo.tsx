@@ -1,6 +1,7 @@
 import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import React from "react";
 import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
+import { useActivacionDeclarativa } from "./usarActivacionDeclarativa";
 import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
 import {
   X,
@@ -87,6 +88,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   usosPadre,
   formulaDadosEfectiva
 }) => {
+  const activacion = useActivacionDeclarativa(rasgo, idPersonaje, alAlternarActivo);
   const [mostrarTienda, setMostrarTienda] = React.useState(false);
   const personajeActivoAlmacen = usarAlmacenDM(
     React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
@@ -188,7 +190,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                   className={`${estilos.botonToggleRasgo} ${
                     rasgo.activo ? estilos.botonToggleRasgoActivo : estilos.botonToggleRasgoInactivo
                   } ${deshabilitadoToggle ? estilos.botonToggleRasgoDeshabilitado : ""}`}
-                  onClick={deshabilitadoToggle ? undefined : alAlternarActivo}
+                  onClick={deshabilitadoToggle ? undefined : activacion.alternar}
                   disabled={deshabilitadoToggle}
                   title={
                     deshabilitadoToggle
@@ -241,7 +243,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         </div>
 
         {/* Zona de Recursos y Tiradas */}
-        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva) && (
+        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo) && (
           <div className={estilos.barraRecursosModal}>
             {(tieneUsosPropios || tieneUsosPadre) && alGastarUso && alRecuperarUso && (
               <div className={estilos.controlUsosModal}>
@@ -300,7 +302,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {formulaEfectiva && !rasgo.tiradaCuracionManual && (
+            {formulaEfectiva && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}
@@ -329,7 +331,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </button>
             )}
 
-            <ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
+            {activacion.modal}<ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} vista="detalle" />
             {rasgo.recuperarEspacios && (
               <button
                 type="button"

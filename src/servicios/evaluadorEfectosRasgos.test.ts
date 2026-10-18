@@ -398,12 +398,13 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     expect(ventajasAtaque.tieneVentaja).toBe(true);
     expect(ventajasAtaque.razones[0]).toContain("Ataque temerario");
 
-    // 4. Golpe Brutal está presente a nivel 9, ligado a Ataque Temerario y con selector de golpes
+    // 4. Golpe brutal conserva la dependencia y las reglas manuales sin selector redundante.
     const golpeBrutal = pjNiv9.rasgos.find((r) => r.nombre === "Golpe brutal");
     expect(golpeBrutal).toBeDefined();
     expect(golpeBrutal?.ligadoA).toBe("rasgo_cls_barbaro_ataque_temerario");
     expect(golpeBrutal?.selectores).toBeDefined();
-    expect(golpeBrutal?.selectores?.[0].opciones.length).toBeGreaterThanOrEqual(2);
+    expect(golpeBrutal?.selectores).toEqual([]);
+    expect(golpeBrutal?.descripcion).toContain("Golpe contundente");
 
     // 5. Sentido del Peligro otorga ventaja automática en salvaciones de Destreza
     const ventajasSalDestreza = evaluarVentajasDeRasgosEnTirada(pjNiv9, {
@@ -452,21 +453,20 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     const buildNiv13 = construirBuildClase("Bárbaro", 13);
     const golpeBrutal13 = buildNiv13?.rasgos.find((r) => r.nombre === "Golpe brutal");
     expect(golpeBrutal13).toBeDefined();
-    const opciones13 = golpeBrutal13?.selectores?.[0].opciones || [];
-    expect(opciones13.length).toBe(4);
-    expect(opciones13.some((o) => o.id === "golpe_desestabilizador")).toBe(true);
-    expect(opciones13.some((o) => o.id === "golpe_desgarrador")).toBe(true);
+    expect(golpeBrutal13?.selectores).toEqual([]);
+    expect(golpeBrutal13?.descripcion).toContain("Golpe desestabilizador");
+    expect(golpeBrutal13?.descripcion).toContain("Golpe desgarrador");
 
     // No debe haber tarjeta duplicada 'Golpe brutal mejorado' suelta
     expect(buildNiv13?.rasgos.some((r) => r.nombre === "Golpe brutal mejorado")).toBe(false);
 
-    // Bárbaro nivel 17: formulaDados '2d10', 2 selecciones simultáneas
+    // Bárbaro nivel 17: 2d10 y dos efectos bajo control del jugador.
     const buildNiv17 = construirBuildClase("Bárbaro", 17);
     const golpeBrutal17 = buildNiv17?.rasgos.find((r) => r.nombre === "Golpe brutal");
     expect(golpeBrutal17).toBeDefined();
     expect(golpeBrutal17?.formulaDados).toBe("2d10");
-    expect(golpeBrutal17?.selectores?.[0].maxSelecciones).toBe(2);
-    expect(golpeBrutal17?.selectores?.[0].tipo).toBe("multiple");
+    expect(golpeBrutal17?.selectores).toEqual([]);
+    expect(golpeBrutal17?.descripcion).toContain("dos efectos diferentes");
 
     // Mejora de Característica por nivel con selector interactivo
     const mejoras = buildNiv17?.rasgos.filter((r) => r.nombre === "Mejora de característica");
@@ -474,7 +474,8 @@ describe("Evaluador de Efectos Mecánicos de Rasgos y Sistema de Builds", () => 
     expect(mejoras?.map((m) => m.nivelRequerido)).toEqual([4, 8, 12, 16]);
     mejoras?.forEach((m) => {
       expect(m.categoriaMecanica).toBe("selector_informativo");
-      expect(m.selectores?.[0].valorActual).toEqual(["dote_mejora_caracteristica"]);
+      expect(m.selectores?.[0].valorActual).toEqual([]);
+      expect(m.selectores?.[0].requiereEleccionExplicita).toBe(true);
     });
   });
 

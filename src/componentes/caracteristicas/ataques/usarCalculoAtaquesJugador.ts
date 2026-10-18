@@ -81,7 +81,7 @@ export function usarCalculoAtaquesJugador() {
   } = usarAccionesPersonajes();
 
   const { objetosHomebrew, baseDatosHechizos } = usarEstadoHomebrew();
-  const { sistemaMagia } = usarEstadoConfiguracion();
+  const { sistemaMagia, tipoTirada } = usarEstadoConfiguracion();
 
   // Filtro activo persistente
   const [filtro, setFiltro] = usarEstadoPersistido<FiltroAccion>("ts_acciones_filtro", "todas");
@@ -219,13 +219,14 @@ export function usarCalculoAtaquesJugador() {
   const manejarTirarAtaque = useCallback(async (ataque: AtaquePersonajeCalculado) => {
     await ejecutarTiradaAtaqueFisico({
       ataque,
+      tipoTiradaManual: tipoTirada,
       personajeActivo,
       statsCalculadas,
       baseDatosObjetos,
       modificarCantidadObjeto,
       agregarNotificacion
     });
-  }, [personajeActivo, statsCalculadas, baseDatosObjetos, modificarCantidadObjeto, agregarNotificacion]);
+  }, [personajeActivo, statsCalculadas, baseDatosObjetos, modificarCantidadObjeto, agregarNotificacion, tipoTirada]);
 
   const emitirDanoConRasgos = useCallback(async (ataque: AtaquePersonajeCalculado, emitir: () => Promise<boolean>) => {
     if (!personajeActivo) return;
@@ -233,8 +234,8 @@ export function usarCalculoAtaquesJugador() {
       const estado = usarAlmacenDM.getState();
       if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
         estado.alternarActivoRasgo(personajeActivo.id, id);
-    });
-  }, [personajeActivo]);
+    }, tipoTirada);
+  }, [personajeActivo, tipoTirada]);
 
   const manejarTirarDano = useCallback(async (ataque: AtaquePersonajeCalculado, modo: boolean | "adicional" = false) => {
     await emitirDanoConRasgos(ataque, () => ejecutarTiradaDanoFisico(ataque, personajeActivo, modo));

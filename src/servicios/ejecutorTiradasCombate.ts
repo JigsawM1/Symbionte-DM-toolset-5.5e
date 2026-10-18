@@ -12,8 +12,10 @@ import { esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 import { obtenerDadosExtraCriticoArma } from "@/servicios/evaluadorEfectosRasgos";
 import { logger } from "@/utiles/logger";
+import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 
 export interface ContextoTiradaAtaqueFisico {
+  tipoTiradaManual?: "plano" | "ventaja" | "desventaja";
   ataque: AtaquePersonajeCalculado;
   personajeActivo: PersonajeJugador | null;
   statsCalculadas: EstadisticasCalculadasPersonaje | null;
@@ -47,13 +49,12 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     const bonoFinal = ataque.bonoAtaque + evaluacionCondiciones.penalizadorD20;
     const bonoStr = bonoFinal >= 0 ? `+${bonoFinal}` : `${bonoFinal}`;
 
-    if (ataque.caracteristicaUsada === "fuerza") {
-      const rasgoGolpeBrutal = (personajeActivo?.rasgos || []).find(
-        (r) => r.id.includes("golpe_brutal") && r.activo
-      );
-      if (rasgoGolpeBrutal && evaluacionCondiciones.modoEfectivo === "ventaja") {
-        evaluacionCondiciones.modoEfectivo = "plano";
-        evaluacionCondiciones.motivosModificadores.push("Golpe Brutal (Renuncia a ventaja)");
+    const renuncia = personajeActivo && evaluarEfectosRasgosActivos(personajeActivo).find(e =>
+      e.tipo === "renunciar_ventaja" && e.objetivo === `ataque.${ataque.caracteristicaUsada}` && Number(e.valor) > 0);
+    if (renuncia) {
+      if (evaluacionCondiciones.tieneDesventaja || ctx.tipoTiradaManual === "desventaja") {
+        agregarNotificacion("No puedes renunciar a ventaja en un ataque que tenga desventaja. Desactiva el rasgo para lanzar ese ataque.", "advertencia");
+        return;
       }
     }
 
@@ -106,7 +107,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     }
 
     const tipoTiradaForzado =
-      evaluacionCondiciones.modoEfectivo !== "plano"
+      renuncia ? "plano" : evaluacionCondiciones.modoEfectivo !== "plano"
         ? evaluacionCondiciones.modoEfectivo
         : undefined;
 

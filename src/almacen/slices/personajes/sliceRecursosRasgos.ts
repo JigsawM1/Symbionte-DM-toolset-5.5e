@@ -38,6 +38,8 @@ gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
       const idObjetivoGasto = resolverIdRasgoObjetivoGasto(targetTrait, pj.rasgos || []);
       const recurso = (pj.rasgos ?? []).find(r => r.id === idObjetivoGasto);
       if (!targetTrait || !recurso || (recurso.usosRestantes ?? recurso.usosMaximos ?? 0) < cant) return pj;
+      if (targetTrait.requiereRasgosActivos?.some(id => !pj.rasgos.some(r => r.id === id && r.activo))) return pj;
+      if (targetTrait.ligadoA && !pj.rasgos.some(r => (r.id === targetTrait.ligadoA || r.nombre === targetTrait.ligadoA) && r.activo)) return pj;
       if (!esRasgoHabilitadoPorOpcion(targetTrait, pj.rasgos) || obtenerNivelEfectivoParaRasgo(pj, targetTrait) < (targetTrait.nivelRequerido ?? 1)) return pj;
       const tieneUsoPropioYPadre =
         Boolean(targetTrait && targetTrait.tieneUsosLimitados && targetTrait.gastarDePadre && idObjetivoGasto !== targetTrait.id);

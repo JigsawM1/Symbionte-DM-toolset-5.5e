@@ -33,6 +33,10 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
   return (
     <div className={estilos.seccionSelectoresModal}>
       {selectoresElegibles.map((sel) => {
+        if (sel.momentoEleccion === "activacion" || (sel.momentoEleccion === "descanso_largo" && sel.valorActual.length > 0 && !sel.cambioDisponible)) return <div key={sel.id} className={estilos.tarjetaSelectorModal}>
+          <strong>{sel.etiqueta}</strong><p>{sel.valorActual.map(id => sel.opciones.find(o => o.id === id)?.nombre ?? id).join(", ") || "Sin elección"}</p>
+          <p>{sel.momentoEleccion === "activacion" ? "Se elige al activar el rasgo." : "Puedes cambiar esta elección al finalizar un descanso largo."}</p>
+        </div>;
         if (sel.ubicacion === "seccion" || sel.modo === "consulta") return <SelectorOpcionesAcordeon key={sel.id}
           selector={sel} nivelPersonaje={nivelPersonaje} alActualizarSeleccion={alActualizarSeleccion} />;
         const seleccionados = sel.valorActual || [];

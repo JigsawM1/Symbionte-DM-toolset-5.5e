@@ -548,8 +548,8 @@ export async function lanzarDadosTaleSpire(
   const establecerTipoTirada = state.establecerTipoTirada;
 
   // Regla oficial D&D 5.5e (2024): Anulación simétrica de fuentes de Ventaja y Desventaja
-  const tieneVentaja = tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja";
-  const tieneDesventaja = tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja";
+  const tieneVentaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja");
+  const tieneDesventaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja");
 
   let tipoTirada: "ventaja" | "desventaja" | "plano" = "plano";
   if (tieneVentaja && tieneDesventaja) {
@@ -946,6 +946,8 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   // Caso 3: Tirada de curación de rasgo 3D (ej. Guerrero de los Dioses)
   const infoCuracionRasgo = tiradasCuracionRasgoActivas[rollId];
   if (!infoTirada && infoCuracionRasgo) {
+    // Reclamar el resultado antes del await impide aplicar eventos duplicados concurrentes.
+    delete tiradasCuracionRasgoActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de curación de rasgo para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -957,7 +959,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error al evaluar resultado 3D de curación de rasgo:", error);
       }
     }
-    delete tiradasCuracionRasgoActivas[rollId];
     return false;
   }
 

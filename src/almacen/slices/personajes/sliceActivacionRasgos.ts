@@ -10,10 +10,16 @@ import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideC
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
+import { prepararEleccionesActivacion, activarOpcionales } from "@/servicios/rasgos/activacionDeclarativa";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
-alternarActivoRasgo: (idPj, idRasgo) => {
-    mutarPersonaje(set, idPj, (pj) => {
+alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
+    mutarPersonaje(set, idPj, (original) => {
+      const objetivo = original.rasgos.find(r => r.id === idRasgo);
+      if (!objetivo) return original;
+      if (!objetivo.activo && obtenerBloqueoActivacionRasgo(original, objetivo).bloqueado) return original;
+      const pj = prepararEleccionesActivacion(original, objetivo, decisiones);
+      if (!pj) return original;
       let condicionesActualizadas = [...(pj.condicionesActivas || [])];
 
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
@@ -88,6 +94,7 @@ alternarActivoRasgo: (idPj, idRasgo) => {
             if (!yaTieneEfecto) {
               const rondaActual = get().rondaActual || 1;
               const nuevoEfecto = {
+                idRasgoOrigen: targetTrait.id,
                 id: generarId(nombreLimpioEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
                 nombre: nombreLimpioEfecto,
                 expiraRonda: rondaActual + duracionRondas,
@@ -150,7 +157,7 @@ alternarActivoRasgo: (idPj, idRasgo) => {
 
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && !esDiferidoAIniciativa && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+          if (nuevoActivo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
           const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
@@ -179,12 +186,12 @@ alternarActivoRasgo: (idPj, idRasgo) => {
         condicionesActualizadas = condicionesActualizadas.filter(c => !retiradas.has(claveEstado(c)));
         efectosActualizados = efectosActualizados.filter(e => !retiradas.has(claveEstado(e.nombre)));
       }
-      const pjPrevio = {
+      const pjPrevio = activarOpcionales({
         ...pj,
         rasgos: rasgosActualizados,
         condicionesActivas: condicionesActualizadas,
         efectosActivos: efectosActualizados
-      };
+      }, idRasgo, nuevoActivo ? decisiones : undefined, get().rondaActual || 1);
       const tieneAprendiz = tieneMedioBonoHabilidades(pjPrevio);
       const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
         pj.gradosHabilidades,
@@ -250,6 +257,7 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
       if (!Array.isArray(pj.rasgos) || pj.rasgos.length === 0) return pj;
 
       let huboCambios = false;
+      const disparados = new Set<string>();
       const rasgosActualizados = pj.rasgos.map((r) => {
         if (!r.dispararAlTirarIniciativa) {
           return r;
@@ -263,7 +271,19 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
           return r;
         }
 
+        const cfg = r.restaurarUsosAlActivar;
+        if (cfg) {
+          const objetivo = pj.rasgos.find(t => normalizar(t.id) === normalizar(cfg.idRasgoObjetivo)
+            || normalizar(t.nombre) === normalizar(cfg.idRasgoObjetivo));
+          if (!objetivo) return r;
+          const actuales = objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0;
+          const maximo = objetivo.usosMaximos ?? actuales;
+          const destino = cfg.hastaCantidad ?? (cfg.cantidad === "maximo" ? maximo : actuales + (cfg.cantidad ?? 0));
+          if (actuales >= Math.min(maximo, destino) || (cfg.soloSiMenorOIgual !== undefined && actuales > cfg.soloSiMenorOIgual)) return r;
+        }
+
         huboCambios = true;
+        disparados.add(r.id);
 
         let usosRest = r.usosRestantes;
         if (r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
@@ -282,12 +302,7 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
       if (!huboCambios) return pj;
 
       // Aplicar restauraciones declarativas de recursos para los rasgos que se dispararon
-      const rasgosDisparados = pj.rasgos.filter((r) => {
-        if (!r.dispararAlTirarIniciativa) return false;
-        const estaHabilitado = r.esActivable ? r.activo : true;
-        const tieneUsos = !r.tieneUsosLimitados || (typeof r.usosRestantes === "number" && r.usosRestantes > 0);
-        return estaHabilitado && tieneUsos && r.restaurarUsosAlActivar;
-      });
+      const rasgosDisparados = pj.rasgos.filter(r => disparados.has(r.id) && r.restaurarUsosAlActivar);
 
       for (const rd of rasgosDisparados) {
         if (rd.restaurarUsosAlActivar) {

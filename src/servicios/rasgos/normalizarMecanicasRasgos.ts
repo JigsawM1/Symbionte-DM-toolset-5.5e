@@ -2,9 +2,11 @@ import type { PersonajeJugador } from "@/tipos";
 import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { normalizarMagiaRasgos } from "./magiaRasgos";
-import { normalizarCondicionesRasgos } from "./estadoCondicionesRasgos";
+import { normalizarCondicionesRasgos, claveEstado } from "./estadoCondicionesRasgos";
 import { construirRasgosDesdeSelectores, materializaSelector } from "./seleccionesRasgos";
 import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
+import { retirarConcentracionRestringida } from "./restriccionesRasgos";
+import { aplicarEventosActivacion } from "./activacionDeclarativa";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
 export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador): PersonajeJugador {
@@ -36,6 +38,10 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     return actualizado;
   });
   let actual = normalizarCondicionesRasgos(cambio ? { ...pj, rasgos } : pj);
+  const retirados = (actual.efectosActivos ?? []).filter(e => e.idRasgoOrigen && !actual.rasgos.some(r => r.id === e.idRasgoOrigen));
+  if (retirados.length) actual = { ...actual,
+    efectosActivos: actual.efectosActivos.filter(e => !retirados.includes(e)),
+    condicionesActivas: actual.condicionesActivas.filter(c => !retirados.some(e => claveEstado(e.nombre) === claveEstado(c))) };
   const mismaBuild = !anterior || (anterior.clase === actual.clase && anterior.subclase === actual.subclase
     && anterior.nivel === actual.nivel && JSON.stringify(anterior.clases) === JSON.stringify(actual.clases));
   if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(materializaSelector))) {
@@ -51,5 +57,5 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     const ids = arcanos.flatMap(s => s.valorActual.map(id => `${s.nivelConjuro}:${id}`));
     if (JSON.stringify(ids) !== JSON.stringify(actual.arcanoMisticoIds)) actual = { ...actual, arcanoMisticoIds: ids };
   }
-  return normalizarMagiaRasgos(anterior, actual);
+  return retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual)));
 }

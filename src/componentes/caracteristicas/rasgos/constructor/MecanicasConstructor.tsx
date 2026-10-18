@@ -10,6 +10,7 @@ export function MecanicasConstructor({ borrador: b, actualizarBorrador: cambiar 
 }) {
   const toggles = [
     ["autoDesactivarAlTirarSalvacion", "Desactivar tras la siguiente salvación"],
+    ["desactivarConArmaduraPesada", "Impedir y finalizar con armadura pesada"],
     ["autoDesactivarAlTirarDano", "Desactivar tras emitir daño"],
     ["recargarUsoConPadre", "Recargar un uso gastando el recurso padre"],
     ["noGastarAlTirarDados", "Tirar dados sin gastar usos"],

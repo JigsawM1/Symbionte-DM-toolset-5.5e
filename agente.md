@@ -1,5 +1,23 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-18] Integración de Optimización de Filtrado de Conjuros en Selectores de Rasgos
+
+**Alcance de la Fusión en `main`:**
+- Integración completa de la rama `bolt/optimize-spell-selection-filter-14528120672200365924` en `main`.
+- **Optimización de Selectores (`src/servicios/rasgos/seleccionesRasgos.ts`):** En `opcionesElegiblesConjuros`, se precalculan los predicados de coincidencia (`fnConocidosOPreparados` y `fnTrucosConocidos`) fuera del bucle de filtrado `.filter()`.
+- **Eliminación de Presión de GC (*Garbage Collection*):** Se evita la creación reiterada de arrays temporales (`[...pj.conjurosPreparadosIds, ...]`) por cada hechizo candidato del catálogo (hasta $O(M)$ asignaciones redundantes eliminadas).
+- **Compatibilidad y Tipado Estricto:** Se mantiene firma retrocompatible mediante parámetros opcionales con tipado estricto `(hechizoId: string) => boolean` sin introducir tipos débiles ni `any`.
+- **Gestión de Bitácora:** Documentación y memoria técnica preservadas centralmente en `agente.md` conforme a las reglas del repositorio.
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 147 suites ejecutadas, **2.098 / 2.098 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 162 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.83s (2.084 módulos).
+
+---
+
 ## [2026-10-18] Integración de Reconocimiento y Vinculación Rápida de Fichas de Jugador en Main
 
 **Alcance de la Fusión en `main`:**

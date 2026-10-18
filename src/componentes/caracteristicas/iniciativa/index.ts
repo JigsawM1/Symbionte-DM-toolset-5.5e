@@ -7,3 +7,4 @@ export { TarjetaCriaturaIniciativa } from "./TarjetaCriaturaIniciativa";
 export { PanelFichaDnD } from "./PanelFichaDnD";
 export { VinculadorPlantilla } from "./VinculadorPlantilla";
 export { procesarTextoFicha } from "./procesadorTexto";
+export { SelectorJugadorRapido } from "./SelectorJugadorRapido";

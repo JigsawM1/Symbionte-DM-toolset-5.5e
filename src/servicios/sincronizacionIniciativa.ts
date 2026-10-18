@@ -10,8 +10,13 @@ import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, AcompanantePersonaje } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
-import { resolverPlantillaPorCriatura, calcularVidaInicial, normalizarNombreTaleSpire } from "./resolutorCriaturas";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import {
+  resolverPlantillaPorCriatura,
+  calcularVidaInicial,
+  resolverPersonajeAsociado,
+  coincidenNombresTaleSpire
+} from "./resolutorCriaturas";
 import {
   esIdInvocacionEscalable,
   obtenerPlantillaInvocacionPorId,
@@ -37,6 +42,7 @@ export interface OpcionesSincronizacion {
   indiceTurnoActivo: number;
   rondaActual: number;
   personajes?: PersonajeJugador[];
+  idsMiniaturasJugadores?: Set<string> | string[];
 }
 
 /**
@@ -72,8 +78,13 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     metodoVidaMonstruo,
     indiceTurnoActivo,
     rondaActual,
-    personajes = []
+    personajes = [],
+    idsMiniaturasJugadores
   } = opciones;
+
+  const setMinisJugadores = idsMiniaturasJugadores instanceof Set
+    ? idsMiniaturasJugadores
+    : new Set(idsMiniaturasJugadores || []);
 
   const colaTSItems = colaTS.items || [];
   
@@ -92,14 +103,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     // Simplificado usando Nullish Coalescing (??)
     const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0);
 
-    // Comprobar si esta miniatura corresponde a un Personaje Jugador
-    const nombreNorm = cTS.name ? cTS.name.trim().toLowerCase() : "";
-    const baseNombreTS = cTS.name ? normalizarNombreTaleSpire(cTS.name).base : "";
-    const pjAsociado = personajes.find(
-      (pj) =>
-        (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) ||
-        (pj.nombre && pj.nombre.trim().toLowerCase() === nombreNorm) ||
-        (pj.nombre && baseNombreTS && normalizarNombreTaleSpire(pj.nombre).base === baseNombreTS)
+    // Comprobar si esta miniatura corresponde a un Personaje Jugador conocido
+    const pjAsociado = resolverPersonajeAsociado(
+      cTS.id,
+      cTS.name,
+      personajes,
+      existente?.idPersonajeDuenio
     );
 
     if (pjAsociado) {
@@ -170,12 +179,9 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     for (const pj of personajes) {
       if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
       for (const acomp of pj.acompanantes) {
-        const nombreAcompNorm = acomp.nombre ? acomp.nombre.trim().toLowerCase() : "";
-        const baseNombreAcomp = acomp.nombre ? normalizarNombreTaleSpire(acomp.nombre).base : "";
         if (
           (acomp.idMiniaturaTS && acomp.idMiniaturaTS === cTS.id) ||
-          (nombreAcompNorm && nombreAcompNorm === nombreNorm) ||
-          (baseNombreAcomp && baseNombreTS && baseNombreAcomp === baseNombreTS)
+          (cTS.name && coincidenNombresTaleSpire(acomp.nombre, cTS.name))
         ) {
           acompAsociado = acomp;
           pjDuenioAcomp = pj;
@@ -246,6 +252,44 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       } as CriaturaIniciativa;
     }
 
+    // 3. Comprobar si es una miniatura de jugador según TaleSpire o el estado local
+    const miniaturaDeJugadorNativa = setMinisJugadores.has(cTS.id) || (Boolean(cTS.id) && setMinisJugadores.has(cTS.id.toLowerCase()));
+    const esIdJugadorSintetico = cTS.id.startsWith("c_jugador") || cTS.id.startsWith("pj-") || cTS.id.startsWith("pj_");
+    const esJugadorLocalPrevio = Boolean(existente && (!existente.esMonstruo || existente.idPersonajeDuenio));
+
+    if (miniaturaDeJugadorNativa || esIdJugadorSintetico || esJugadorLocalPrevio) {
+      if (existente) {
+        return {
+          ...existente,
+          iniciativa: iniciativaFisica,
+          esMonstruo: false,
+          idPlantillaAsociada: undefined
+        };
+      }
+
+      return {
+        id: cTS.id,
+        nombre: cTS.name,
+        iniciativa: iniciativaFisica,
+        vidaMaxima: cTSConPropiedades.maxHp || 10,
+        vidaActual: cTSConPropiedades.hp !== undefined ? cTSConPropiedades.hp : (cTSConPropiedades.maxHp || 10),
+        ca: 10,
+        condiciones: [],
+        efectos: [],
+        bonificadorIniciativa: 0,
+        esMonstruo: false,
+        velocidad: "30 pies",
+        vidaTemporal: 0,
+        idPlantillaAsociada: undefined,
+        pasivas: {
+          percepcion: 10,
+          investigacion: 10,
+          perspicacia: 10
+        }
+      } as CriaturaIniciativa;
+    }
+
+    // 4. Si definitivamente no es jugador ni acompañante, es un Monstruo
     const plantillaMonstruo = resolverPlantillaPorCriatura(
       cTS.id,
       cTS.name,
@@ -280,8 +324,9 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       vidaActual: vidaActCalculada,
       ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
       condiciones: [],
+      efectos: [],
       bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
-      esMonstruo: !cTS.id.startsWith("c_jugador") && !pjAsociado,
+      esMonstruo: true,
       velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
       vidaTemporal: 0,
       idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined

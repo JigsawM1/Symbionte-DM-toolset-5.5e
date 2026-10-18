@@ -32,6 +32,7 @@ interface TarjetaCriaturaIniciativaProps {
   onEstablecerVidaMaxima?: (nuevaVidaMaxima: number) => void;
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
+  onAlternarRol?: () => void;
   rondaActual?: number;
 }
 
@@ -72,7 +73,8 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onEstablecerIniciativa,
   onEstablecerVidaMaxima,
   onLanzarAtaqueRapido,
-  obtenerPercepcionPasiva
+  obtenerPercepcionPasiva,
+  onAlternarRol
 }) => {
   const pasivasEfectivas = pasivasJugador || criatura.pasivas || null;
   const [hpInput, setHpInput] = useState("");
@@ -122,11 +124,16 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
       data-seleccionada-ts={estaSeleccionadaEnTS}
       data-muerto={estaMuerto}
     >
-      {/* Barra de Color Estática Lateral */}
+      {/* Barra de Color Lateral interactiva para conmutar rol */}
       <div
         className={estilosClases.barraLateralRol}
         data-es-monstruo={criatura.esMonstruo}
-        title={criatura.esMonstruo ? "Monstruo / Enemigo" : "Jugador / Aliado"}
+        onClick={onAlternarRol}
+        title={
+          criatura.esMonstruo
+            ? "Monstruo / Enemigo (Clic para cambiar a Jugador)"
+            : "Jugador / Aliado (Clic para cambiar a Monstruo)"
+        }
       />
 
       {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
@@ -189,6 +196,16 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               )}
               {esTurnoActivo && <span className={estilosClases.tagTurnoActivo}>ACTIVO</span>}
               {estaSeleccionadaEnTS && <span className={estilosClases.tagSeleccionTS}>SEL</span>}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAlternarRol?.();
+                }}
+                className={criatura.esMonstruo ? estilosClases.tagRolMonstruo : estilosClases.tagRolJugador}
+                title={criatura.esMonstruo ? "Monstruo / Enemigo (clic para cambiar a Jugador)" : "Jugador / Aliado (clic para cambiar a Monstruo)"}
+              >
+                {criatura.esMonstruo ? "MON" : "PJ"}
+              </span>
             </span>
             <span className={estilosClases.subtituloCriatura}>
               CA: <strong className={estilosClases.valorMetaCianFuente}>{criatura.ca}</strong> | Inic: <strong className={estilosClases.valorMetaAmarilloFuente}>{(criatura.bonificadorIniciativa ?? 0) >= 0 ? `+${criatura.bonificadorIniciativa ?? 0}` : criatura.bonificadorIniciativa}</strong> <br /> Vel: {formatearVelocidad(criatura.velocidad)}

@@ -10,9 +10,12 @@ import {
   normalizarNombreTaleSpire,
   coincidenNombresTaleSpire,
   resolverPlantillaPorCriatura,
+  resolverPersonajeAsociado,
+  resolverPersonajePorCriatura,
   calcularVidaInicial,
   esNombreVacioODot
 } from '@/servicios/resolutorCriaturas';
+import { calcularEstadisticasPersonaje } from '@/almacen/selectores/usarEstadoPersonajes';
 import { crearIndiceMonstruos } from '@/servicios/indiceMonstruos';
 import {
   sincronizarConEstadoLocal,
@@ -108,6 +111,7 @@ export interface CriaturaSeleccionadaTS {
   name: string;
   maxHp?: number;
   hp?: number;
+  esDeJugador?: boolean;
 }
 
 export interface CriaturaNativaTS {
@@ -132,8 +136,10 @@ export interface SliceIniciativa {
   retrocederTurno: () => void;
   establecerTipoTirada: (tipo: "desventaja" | "plano" | "ventaja") => void;
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null) => void;
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => void;
   importarIniciativaTaleSpire: () => Promise<void>;
+  agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => void;
+  alternarRolCriatura: (idCriatura: string) => void;
   agregarCriaturaAIniciativa: (
     nombre: string,
     iniciativa: number,
@@ -233,7 +239,7 @@ export const crearSliceIniciativa: StateCreator<
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null) => set((state) => {
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => set((state) => {
     if (!colaTS) return {};
 
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
@@ -245,7 +251,8 @@ export const crearSliceIniciativa: StateCreator<
       metodoVidaMonstruo: state.metodoVidaMonstruo,
       indiceTurnoActivo: state.indiceTurnoActivo,
       rondaActual: state.rondaActual,
-      personajes: state.personajes
+      personajes: state.personajes,
+      idsMiniaturasJugadores
     });
 
     if (resultado.rondaActual > state.rondaActual) {
@@ -262,7 +269,12 @@ export const crearSliceIniciativa: StateCreator<
       try {
         logger.info("[Combat Tracker] Importando cola de iniciativa nativa desde TaleSpire...");
         const queue = await ts.initiative.getQueue();
-        get().actualizarColaIniciativaDesdeTaleSpire(queue);
+        const ids = (queue?.items || []).map((item) => item.id);
+        let minisJugadores: Set<string> | undefined = undefined;
+        if (ids.length > 0) {
+          minisJugadores = await ts.creatures.detectarMiniaturasJugadores(ids);
+        }
+        get().actualizarColaIniciativaDesdeTaleSpire(queue, minisJugadores);
       } catch (error) {
         logger.error("[Combat Tracker] Error al importar iniciativa nativa:", error);
       }
@@ -270,6 +282,101 @@ export const crearSliceIniciativa: StateCreator<
       logger.warn("[Combat Tracker] API de iniciativa nativa de TaleSpire no disponible.");
     }
   },
+
+  agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => set((state) => {
+    const statsPj = calcularEstadisticasPersonaje(personaje);
+    const idObjetivo = personaje.idMiniaturaTS || personaje.id;
+
+    const indiceExistente = state.colaIniciativa.findIndex(
+      (c) =>
+        c.id === idObjetivo ||
+        c.id === personaje.id ||
+        (personaje.idMiniaturaTS && c.id === personaje.idMiniaturaTS) ||
+        (c.idPersonajeDuenio && c.idPersonajeDuenio === personaje.id) ||
+        coincidenNombresTaleSpire(c.nombre, personaje.nombre)
+    );
+
+    const entradaJugador: CriaturaIniciativa = {
+      id: idObjetivo,
+      nombre: personaje.nombre,
+      iniciativa: indiceExistente >= 0 ? state.colaIniciativa[indiceExistente].iniciativa : 0,
+      vidaMaxima: personaje.hpMaximo || 10,
+      vidaActual: personaje.hpActual !== undefined ? personaje.hpActual : (personaje.hpMaximo || 10),
+      vidaTemporal: personaje.hpTemporal || 0,
+      ca: statsPj.claseArmadura.total,
+      condiciones: personaje.condicionesActivas ? [...personaje.condicionesActivas] : [],
+      efectos: personaje.efectosActivos ? [...personaje.efectosActivos] : [],
+      bonificadorIniciativa: statsPj.modificadores.destreza,
+      esMonstruo: false,
+      velocidad: `${personaje.velocidad || "30 pies"}`,
+      movimientoGastado: personaje.movimientoGastado || 0,
+      movimientoMaximoTemporal: personaje.movimientoMaximoTemporal,
+      idPersonajeDuenio: personaje.id,
+      idPlantillaAsociada: undefined,
+      pasivas: {
+        percepcion: statsPj.pasivas?.percepcion ?? 10,
+        investigacion: statsPj.pasivas?.investigacion ?? 10,
+        perspicacia: statsPj.pasivas?.perspicacia ?? 10,
+      }
+    };
+
+    if (indiceExistente >= 0) {
+      const nuevaCola = [...state.colaIniciativa];
+      nuevaCola[indiceExistente] = {
+        ...nuevaCola[indiceExistente],
+        ...entradaJugador,
+        iniciativa: nuevaCola[indiceExistente].iniciativa
+      };
+      return { colaIniciativa: nuevaCola };
+    }
+
+    return { colaIniciativa: [...state.colaIniciativa, entradaJugador] };
+  }),
+
+  alternarRolCriatura: (idCriatura: string) => set((state) => {
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (c.id !== idCriatura) return c;
+      const nuevoEsMonstruo = !c.esMonstruo;
+
+      if (!nuevoEsMonstruo) {
+        const pj = resolverPersonajePorCriatura(c, state.personajes);
+        if (pj) {
+          const stats = calcularEstadisticasPersonaje(pj);
+          return {
+            ...c,
+            esMonstruo: false,
+            idPlantillaAsociada: undefined,
+            idPersonajeDuenio: pj.id,
+            ca: stats.claseArmadura.total,
+            bonificadorIniciativa: stats.modificadores.destreza,
+            pasivas: {
+              percepcion: stats.pasivas?.percepcion ?? 10,
+              investigacion: stats.pasivas?.investigacion ?? 10,
+              perspicacia: stats.pasivas?.perspicacia ?? 10,
+            }
+          };
+        }
+        return {
+          ...c,
+          esMonstruo: false,
+          idPlantillaAsociada: undefined,
+          pasivas: c.pasivas || { percepcion: 10, investigacion: 10, perspicacia: 10 }
+        };
+      }
+
+      const indice = crearIndiceMonstruos(state.baseDatosMonstruos);
+      const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indice);
+      return {
+        ...c,
+        esMonstruo: true,
+        idPlantillaAsociada: plantilla ? plantilla.id : undefined,
+        ca: plantilla ? plantilla.ca : c.ca,
+        bonificadorIniciativa: plantilla ? plantilla.iniciativaBonificador : c.bonificadorIniciativa,
+        pasivas: undefined
+      };
+    });
+    return { colaIniciativa: nuevaCola };
+  }),
 
   agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada) => set((state) => {
     const idCriatura = generarId('c_local');
@@ -1060,15 +1167,13 @@ export const crearSliceIniciativa: StateCreator<
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
     const nuevaCola = state.colaIniciativa.map((c) => {
       // Discriminación estricta: el auto roll NUNCA se aplica a jugadores
+      const pj = resolverPersonajeAsociado(c.id, c.nombre, state.personajes, c.idPersonajeDuenio);
       const esJugador =
         !c.esMonstruo ||
+        Boolean(pj) ||
         c.id.startsWith("c_jugador") ||
-        state.personajes.some((pj) => {
-          if (pj.id === c.id || (pj.idMiniaturaTS && pj.idMiniaturaTS === c.id)) return true;
-          const nomC = normalizarNombreTaleSpire(c.nombre).base;
-          const nomPj = normalizarNombreTaleSpire(pj.nombre).base;
-          return Boolean(nomC && nomPj && nomC === nomPj);
-        });
+        c.id.startsWith("pj-") ||
+        c.id.startsWith("pj_");
 
       if (!esJugador && c.esMonstruo) {
         let bonoInic = c.bonificadorIniciativa || 0;
@@ -1085,7 +1190,12 @@ export const crearSliceIniciativa: StateCreator<
 
       // Si es jugador pero estaba marcado erróneamente con esMonstruo, normalizar la bandera sin alterar iniciativa
       if (esJugador && c.esMonstruo) {
-        return { ...c, esMonstruo: false };
+        return {
+          ...c,
+          esMonstruo: false,
+          idPlantillaAsociada: undefined,
+          idPersonajeDuenio: pj?.id || c.idPersonajeDuenio
+        };
       }
 
       return c;
@@ -1249,21 +1359,16 @@ export const crearSliceIniciativa: StateCreator<
 
     const nuevasCriaturas: CriaturaIniciativa[] = [];
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
+    const idsEnCola = new Set(state.colaIniciativa.map((c) => c.id));
 
     state.criaturasSeleccionadas.forEach((cTS) => {
-      if (state.colaIniciativa.some((c) => c.id === cTS.id)) return;
+      if (idsEnCola.has(cTS.id)) return;
 
-      // Comprobar si esta miniatura corresponde a un Personaje Jugador
-      const baseNombreTS = cTS.name ? normalizarNombreTaleSpire(cTS.name).base : "";
-      const pjAsociado = state.personajes.find(
-        (pj) =>
-          pj.id === cTS.id ||
-          (pj.idMiniaturaTS && pj.idMiniaturaTS === cTS.id) ||
-          (pj.nombre && pj.nombre.trim().toLowerCase() === cTS.name?.trim().toLowerCase()) ||
-          (pj.nombre && baseNombreTS && normalizarNombreTaleSpire(pj.nombre).base === baseNombreTS)
-      );
+      // Comprobar si esta miniatura corresponde a un Personaje Jugador local
+      const pjAsociado = resolverPersonajeAsociado(cTS.id, cTS.name, state.personajes);
 
       if (pjAsociado) {
+        const statsPj = calcularEstadisticasPersonaje(pjAsociado);
         // Para jugadores: NUNCA se aplica auto-roll de iniciativa
         nuevasCriaturas.push({
           id: cTS.id,
@@ -1271,14 +1376,45 @@ export const crearSliceIniciativa: StateCreator<
           iniciativa: 0,
           vidaMaxima: pjAsociado.hpMaximo || 10,
           vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
-          ca: pjAsociado.ca || 10,
-          condiciones: pjAsociado.condicionesActivas || [],
-          efectos: pjAsociado.efectosActivos || [],
-          bonificadorIniciativa: pjAsociado.iniciativaBono || 0,
+          ca: statsPj.claseArmadura.total,
+          condiciones: pjAsociado.condicionesActivas ? [...pjAsociado.condicionesActivas] : [],
+          efectos: pjAsociado.efectosActivos ? [...pjAsociado.efectosActivos] : [],
+          bonificadorIniciativa: statsPj.modificadores.destreza,
           esMonstruo: false,
           velocidad: `${pjAsociado.velocidad || "30 pies"}`,
           vidaTemporal: pjAsociado.hpTemporal || 0,
-          idPlantillaAsociada: undefined
+          idPersonajeDuenio: pjAsociado.id,
+          idPlantillaAsociada: undefined,
+          pasivas: {
+            percepcion: statsPj.pasivas?.percepcion ?? 10,
+            investigacion: statsPj.pasivas?.investigacion ?? 10,
+            perspicacia: statsPj.pasivas?.perspicacia ?? 10,
+          }
+        });
+        return;
+      }
+
+      // Si TaleSpire reportó ownerIds para esta miniatura, es de un jugador aunque aún no tenga hoja local
+      if (cTS.esDeJugador) {
+        nuevasCriaturas.push({
+          id: cTS.id,
+          nombre: cTS.name,
+          iniciativa: 0,
+          vidaMaxima: cTS.maxHp || 10,
+          vidaActual: cTS.hp !== undefined ? cTS.hp : (cTS.maxHp || 10),
+          ca: 10,
+          condiciones: [],
+          efectos: [],
+          bonificadorIniciativa: 0,
+          esMonstruo: false,
+          velocidad: "30 pies",
+          vidaTemporal: 0,
+          idPlantillaAsociada: undefined,
+          pasivas: {
+            percepcion: 10,
+            investigacion: 10,
+            perspicacia: 10,
+          }
         });
         return;
       }

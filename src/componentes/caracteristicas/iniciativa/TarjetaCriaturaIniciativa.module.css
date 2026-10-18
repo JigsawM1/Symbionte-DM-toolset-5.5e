@@ -42,6 +42,7 @@
   border-top-left-radius: var(--dm-radio-panel, 4px);
   border-bottom-left-radius: var(--dm-radio-panel, 4px);
   background-color: var(--color-borde-cian);
+  cursor: pointer;
 }
 
 .barraLateralRol[data-es-monstruo="true"] {
@@ -216,6 +217,34 @@
   font-weight: 800;
   font-family: var(--fuente-codigo);
   letter-spacing: 0.02em;
+}
+
+.tagRolJugador {
+  font-size: var(--dm-fuente-minima, 9.5px);
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
+  border: 1px solid var(--color-borde-cian);
+  color: var(--color-borde-cian);
+  padding: 1px 4px;
+  border-radius: var(--dm-radio-control, 2px);
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.tagRolMonstruo {
+  font-size: var(--dm-fuente-minima, 9.5px);
+  background-color: rgba(123, 44, 191, 0.2);
+  border: 1px solid var(--dm-arcano, #7b2cbf);
+  color: #c77dff;
+  padding: 1px 4px;
+  border-radius: var(--dm-radio-control, 2px);
+  text-transform: uppercase;
+  font-weight: 800;
+  font-family: var(--fuente-codigo);
+  letter-spacing: 0.02em;
+  cursor: pointer;
 }
 
 .subtituloCriatura {

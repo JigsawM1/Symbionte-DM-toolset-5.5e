@@ -107,7 +107,8 @@ export function usarConexionTaleSpire() {
               id: c.id,
               name: c.name,
               hp: c.hp?.value,
-              maxHp: c.hp?.max
+              maxHp: c.hp?.max,
+              esDeJugador: Array.isArray(c.ownerIds) && c.ownerIds.length > 0
             }));
             actualizarSeleccionCriaturas(seleccionadas.length > 0 ? seleccionadas : ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
 
@@ -154,15 +155,33 @@ export function usarConexionTaleSpire() {
           subPuente();
         };
 
+        // Función auxiliar para procesar cola de iniciativa con detección nativa de propietarios (ownerIds)
+        const procesarColaConDeteccion = async (cola: import("@/tipos/talespire").ColaIniciativaTS | null) => {
+          if (!cola) {
+            actualizarColaIniciativaDesdeTaleSpire(null);
+            return;
+          }
+          const ids = (cola.items || []).map((i) => i.id);
+          let minisJugadores: Set<string> | undefined = undefined;
+          if (ids.length > 0) {
+            try {
+              minisJugadores = await ts.creatures.detectarMiniaturasJugadores(ids);
+            } catch (e) {
+              logger.warn("[usarConexionTaleSpire] Error detectando miniaturas de jugadores:", e);
+            }
+          }
+          actualizarColaIniciativaDesdeTaleSpire(cola, minisJugadores);
+        };
+
         // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
         desuscribirIniciativa = puenteTaleSpire.on("iniciativaActualizada", (payload) => {
           if (activo) {
             if (payload && payload.queue) {
-              actualizarColaIniciativaDesdeTaleSpire(payload.queue);
+              void procesarColaConDeteccion(payload.queue);
             } else {
               ts.initiative.getQueue()
                 .then((colaTS) => {
-                  actualizarColaIniciativaDesdeTaleSpire(colaTS);
+                  void procesarColaConDeteccion(colaTS);
                 })
                 .catch((e: unknown) => {
                   logger.warn("[TaleSpire Simbionte] Error al leer la cola física tras evento:", e);
@@ -492,7 +511,7 @@ export function usarConexionTaleSpire() {
           ts.initiative.getQueue()
             .then((colaInicial) => {
               if (activo) {
-                actualizarColaIniciativaDesdeTaleSpire(colaInicial);
+                void procesarColaConDeteccion(colaInicial);
               }
             })
             .catch((e: unknown) => {

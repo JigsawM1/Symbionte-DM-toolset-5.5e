@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   usarEstadoIniciativa,
   usarAccionesIniciativa,
@@ -9,13 +9,12 @@ import {
   BuscadorMonstruos,
   MenuEncuentros,
   SelectorCondiciones,
+  SelectorJugadorRapido,
 } from "@/componentes/caracteristicas/iniciativa";
 import {
-  Plus,
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
-  User
 } from "lucide-react";
 import estilosClases from "./BarraControl.module.css";
 import { logger } from "@/utiles/logger";
@@ -27,33 +26,10 @@ export const BarraControl: React.FC = () => {
     retrocederTurno,
     avanzarRonda,
     retrocederRonda,
-    agregarCriaturaAIniciativa,
     autoLanzarIniciativaMonstruos,
   } = usarAccionesIniciativa();
   const { tipoTirada } = usarEstadoConfiguracion();
   const { establecerTipoTirada } = usarAccionesConfiguracion();
-
-  const [nombreJugadorRapido, setNombreJugadorRapido] = useState("");
-
-  // Añadir un jugador de forma rápida a la iniciativa
-  const manejarAñadirJugadorRapido = () => {
-    if (!nombreJugadorRapido.trim()) return;
-
-    // Los jugadores no reciben auto roll: inician en 0 hasta su propia tirada de iniciativa
-    const totalInic = 0;
-
-    agregarCriaturaAIniciativa(
-      nombreJugadorRapido.trim(),
-      totalInic,
-      30, // HP estándar rápido
-      15, // CA estándar rápida
-      false, // no es monstruo (es jugador)
-      "30 pies",
-      0
-    );
-
-    setNombreJugadorRapido("");
-  };
 
   // Auto Roll para TODOS los monstruos de la iniciativa que tengan vida actual > 0
   const manejarAutoRollIniciativaMonstruos = () => {
@@ -72,21 +48,8 @@ export const BarraControl: React.FC = () => {
         {/* Subcomponente Buscador de Monstruos */}
         <BuscadorMonstruos />
 
-        {/* Añadir Jugador Rápido */}
-        <div className={estilosClases.campoBusqueda}>
-          <User size={13} className={estilosClases.iconoUsuario} />
-          <input
-            type="text"
-            value={nombreJugadorRapido}
-            onChange={(e) => setNombreJugadorRapido(e.target.value)}
-            placeholder="Añadir Jugador Rápido..."
-            className={estilosClases.inputBrutal}
-            onKeyDown={(e) => e.key === "Enter" && manejarAñadirJugadorRapido()}
-          />
-          <button onClick={manejarAñadirJugadorRapido} className={estilosClases.botonAñadir} title="Añadir jugador">
-            <Plus size={13} />
-          </button>
-        </div>
+        {/* Invocador / Buscador de Jugadores y Hojas de Personaje */}
+        <SelectorJugadorRapido />
       </div>
 
       {/* 2. Guardar y Cargar Encuentros */}

@@ -1,5 +1,23 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-18] Integración de Reconocimiento y Vinculación Rápida de Fichas de Jugador en Main
+
+**Alcance de la Fusión en `main`:**
+- Integración completa de la rama `reconocimiento-de-fichas-como-jugador` en `main`.
+- **Selector Rápido de Jugadores (`SelectorJugadorRapido.tsx` y `.module.css`):** Subcomponente táctico en `BarraControl.tsx` para buscar y asociar fichas de jugadores directamente a la cola de combate o a miniaturas existentes en TaleSpire.
+- **Auto-reconocimiento y Resolución Táctica (`resolutorCriaturas.ts`, `sliceIniciativa.ts`):** Normalización de nombres de criaturas y miniaturas para autovincular la ficha del héroe y actualizar dinámicamente sus pasivas (`PP`, `INV`, `PERS`), CA e iniciativa.
+- **Adaptador de TaleSpire (`TaleSpireAdapter.ts`):** Extensión de utilidades de clientes e inventario para consulta de miniaturas propias y asociadas.
+- **Diseño Responsive:** Corrección de la simetría visual y fluidos al 100% en pantallas estrechas ($\le 620\text{px}$ / CEF).
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 147 suites ejecutadas, **2.098 / 2.098 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 162 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.66s (2.084 módulos).
+
+---
+
 ## [2026-10-18] Integración de Bárbaro PHB 2024 y Cuatro Subclases Declarativas en Main
 
 **Alcance de la Fusión en `main`:**

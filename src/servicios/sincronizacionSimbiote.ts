@@ -28,6 +28,7 @@ import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa"
 import { GestorReintentosSync } from "./sincronizacion/gestorReintentosSync";
 import { proyectarEstadoCombatePJ, proyectarBorradorCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
 import { BufferFragmentosSync, claveEstadoSync, empaquetarEstadoSync, type EstadoSync } from "./sincronizacion/transporteSync";
+import { gestionarNotificacionVersionIncompatible, reiniciarNotificadorVersion } from "./sincronizacion/notificadorVersionSync";
 
 export { proyectarEstadoCombatePJ };
 
@@ -160,6 +161,7 @@ export function reiniciarSincronizacion(): void {
   bufferChunks.limpiar();
   revisionesAplicadas.clear();
   mensajesProcesadosRecientes.clear();
+  reiniciarNotificadorVersion();
   ts.sync.purgarColaSync();
 }
 
@@ -298,9 +300,7 @@ export function procesarMensajeSyncEntrante(evento: {
 }): void | Promise<void> {
   const parseo = EsquemaWireMensajeSync.safeParse(evento.datos);
   if (!parseo.success) {
-    if (typeof evento.datos === 'object' && evento.datos !== null && 'v' in evento.datos && evento.datos.v !== 2) {
-      usarAlmacenDM.getState().agregarNotificacion('La sincronización requiere que todos actualicen a la misma versión.', 'advertencia');
-    }
+    gestionarNotificacionVersionIncompatible(evento.datos, evento.fromClient);
     return;
   }
   const generacion = generacionSync;

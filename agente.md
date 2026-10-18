@@ -1,5 +1,38 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-18] Mitigación del Bombardeo de Notificaciones por Versiones Incompatibles en Sincronización
+
+**Problema Reportado ("si alguien tiene una versión desactualizada a todos se les bombardea"):**
+- En `procesarMensajeSyncEntrante` (`src/servicios/sincronizacionSimbiote.ts`), cada vez que un paquete no superaba la validación de `EsquemaWireMensajeSync` debido a una discrepancia de versión (`v !== 2`), se disparaba inmediatamente `usarAlmacenDM.getState().agregarNotificacion('La sincronización requiere que todos actualicen a la misma versión.', 'advertencia')`.
+- **Causas Raíz Detectadas:**
+  1. **Ausencia de Control de Frecuencia (*Throttling / Cooldown*):** Al emitir un cliente desactualizado ráfagas de paquetes (`REQ` con retroceso exponencial, fragmentos `FRAG` de hasta 10 partes por ficha, cambios de posición o tiradas), el receptor invocaba `agregarNotificacion` por cada paquete individual, apilando decenas de toasts simultáneos en pantalla.
+  2. **Indiscriminación de Roles y Destinatarios:** TaleSpire difunde los mensajes por `TS.sync` a toda la sala (*broadcast*). Si un jugador estaba desactualizado (`v: 1`), todos los demás jugadores al día (`v: 2`) recibían la advertencia a pesar de que no podían resolverlo ni les correspondía gestionarlo.
+  3. **Ambigüedad del Mensaje:** La advertencia genérica no informaba quién tenía la versión incompatible ni si el desactualizado era el propio usuario local o un tercero.
+
+**Solución Arquitectónica Implementada:**
+1. **Constante Canónica de Protocolo (`src/tipos/sync.ts`):** Exportación de `VERSION_PROTOCOLO_SYNC = 2` como fuente única de verdad para el esquema y las comparaciones de red.
+2. **Módulo Desacoplado `notificadorVersionSync.ts` (`src/servicios/sincronizacion/notificadorVersionSync.ts`):**
+   - **Ventana de Enfriamiento (`COOLDOWN_NOTIFICACION_VERSION_MS = 60_000`):** Registro de alertas emitidas en `notificacionesVersionEmitidas = new Map<string, number>()`. Las ráfagas consecutivas dentro de los 60s son suprimidas tras la primera notificación.
+   - **Caso `vRemota > VERSION_PROTOCOLO_SYNC` (Cliente local desactualizado):** Se notifica de inmediato al usuario local (*"Tu versión del Simbionte está desactualizada. Por favor actualiza a la última versión para poder sincronizar."*).
+   - **Caso `vRemota < VERSION_PROTOCOLO_SYNC` (Remitente remoto desactualizado):**
+     - **Jugadores (`!esGM`):** Silencio total (cero toasts). Se evita la distracción y la falsa sensación de error en usuarios que están al día.
+     - **Director de Juego (`esGM`):** Se le notifica de forma limpia identificando al jugador responsable si se dispone de `fromClient.player.name` (*"El jugador \"[Nombre]\" tiene una versión desactualizada del Simbionte y no puede sincronizar."*).
+3. **Integración Quirúrgica en `sincronizacionSimbiote.ts`:**
+   - Delegación en `procesarMensajeSyncEntrante` hacia `gestionarNotificacionVersionIncompatible(evento.datos, evento.fromClient)`.
+   - Limpieza del mapa de enfriamientos en `reiniciarSincronizacion()` mediante `reiniciarNotificadorVersion()`.
+4. **Cobertura de Pruebas Unitarias:**
+   - Creación de `src/servicios/sincronizacion/notificadorVersionSync.test.ts` (10 casos de prueba).
+   - Prueba de integración en `src/servicios/sincronizacionSimbiote.test.ts`.
+
+**Certificación del Pipeline de CI (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 148 suites ejecutadas, **2.109 / 2.109 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 162 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 9.21s (2.085 módulos).
+
+---
+
 ## [2026-10-18] Integración de Optimización de Filtrado de Conjuros en Selectores de Rasgos
 
 **Alcance de la Fusión en `main`:**

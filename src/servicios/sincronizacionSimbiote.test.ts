@@ -235,6 +235,39 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     const parseInvalido = EsquemaWireMensajeSync.safeParse(msgInvalido);
     expect(parseInvalido.success).toBe(false);
   });
+
+  it("procesarMensajeSyncEntrante con versión desactualizada no notifica a un jugador pero sí al DM con el nombre del remitente", () => {
+    const notificaciones: string[] = [];
+    usarAlmacenDM.setState({
+      esGM: false,
+      agregarNotificacion: (msg: string) => { notificaciones.push(msg); },
+    });
+
+    const remitente = {
+      id: "cli-1",
+      player: { id: "p-1", name: "Valeros" },
+    };
+
+    // Caso jugador: silencio
+    procesarMensajeSyncEntrante({
+      datos: { v: 1, s: "viejo", t: "REQ" },
+      strCrudo: '{"v":1}',
+      fromClient: remitente,
+    });
+    expect(notificaciones).toHaveLength(0);
+
+    // Caso DM: notifica una sola vez con nombre aunque lleguen múltiples paquetes
+    usarAlmacenDM.setState({ esGM: true });
+    for (let i = 0; i < 5; i++) {
+      procesarMensajeSyncEntrante({
+        datos: { v: 1, s: "viejo", t: "REQ" },
+        strCrudo: '{"v":1}',
+        fromClient: remitente,
+      });
+    }
+    expect(notificaciones).toHaveLength(1);
+    expect(notificaciones[0]).toBe('El jugador "Valeros" tiene una versión desactualizada del Simbionte y no puede sincronizar.');
+  });
 });
 
 describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {

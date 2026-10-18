@@ -235,9 +235,11 @@ const EsquemaWireChunkIniciativa = z.object({
   ts: z.number().optional(),
 });
 
+export const VERSION_PROTOCOLO_SYNC = 2;
+
 export const EsquemaWireMensajeSync = z.discriminatedUnion("t", [
   z.object({
-    v: z.literal(2),
+    v: z.literal(VERSION_PROTOCOLO_SYNC),
     s: z.string().min(1).max(64),
     t: z.literal("FRAG"),
     k: z.enum(["DM", "PJ"]),

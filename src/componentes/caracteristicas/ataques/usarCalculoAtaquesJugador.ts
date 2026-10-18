@@ -189,8 +189,7 @@ export function usarCalculoAtaquesJugador() {
   // 5. Rasgos tácticos de combate (acciones, adicionales, reacciones, consumibles, activables)
   const listaRasgosCombate = useMemo<RasgoAccionCombate[]>(() => {
     if (!personajeActivo) return [];
-    const rasgosSincronizados = sincronizarRasgosAutomaticos(personajeActivo);
-    return resolverRasgosAcciones({ ...personajeActivo, rasgos: rasgosSincronizados });
+    return resolverRasgosAcciones(personajeActivo);
   }, [personajeActivo]);
 
   // Auto-sincronizar rasgos en el almacén si faltan rasgos canónicos en el personaje activo

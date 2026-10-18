@@ -73,31 +73,43 @@ export function expandirSetHechizos(ids: string[] = []): Set<string> {
 }
 
 /**
+ * Cache débil para evitar re-computar transformaciones de texto (normalización NFD, slugs y alias)
+ * en cada llamada a crearClavesLookupHechizos.
+ */
+const cacheClavesLookup = new WeakMap<HechizoBase, string[]>();
+
+/**
  * Precalcula todas las variantes de búsqueda de cada hechizo en el catálogo
  * (ID, nombre, sin tildes, slugs y alias) para consultas ultra-rápidas O(1).
  */
 export function crearClavesLookupHechizos(baseDatos: HechizoBase[]): Map<string, string[]> {
   const mapa = new Map<string, string[]>();
-  for (const h of baseDatos) {
-    const claves: string[] = [h.id];
-    const norm = (h.nombre || "").toLowerCase().trim();
-    claves.push(norm);
-    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (sinTildes !== norm) claves.push(sinTildes);
-    const slug = generarIdSlug("h", h.nombre || "");
-    claves.push(slug);
-    const slugGuionesBajos = slug.replace(/-/g, "_");
-    if (slugGuionesBajos !== slug) claves.push(slugGuionesBajos);
+  for (let i = 0; i < baseDatos.length; i++) {
+    const h = baseDatos[i];
+    let claves = cacheClavesLookup.get(h);
+    if (!claves) {
+      claves = [h.id];
+      const norm = (h.nombre || "").toLowerCase().trim();
+      claves.push(norm);
+      const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (sinTildes !== norm) claves.push(sinTildes);
+      const slug = generarIdSlug("h", h.nombre || "");
+      claves.push(slug);
+      const slugGuionesBajos = slug.replace(/-/g, "_");
+      if (slugGuionesBajos !== slug) claves.push(slugGuionesBajos);
 
-    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
-    for (const al of alias) {
-      claves.push(al);
-      const alNorm = al.toLowerCase().trim();
-      if (alNorm !== al) claves.push(alNorm);
-      const alSlug = generarIdSlug("h", al);
-      claves.push(alSlug);
-      const alSlugGuionesBajos = alSlug.replace(/-/g, "_");
-      if (alSlugGuionesBajos !== alSlug) claves.push(alSlugGuionesBajos);
+      const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+      for (let j = 0; j < alias.length; j++) {
+        const al = alias[j];
+        claves.push(al);
+        const alNorm = al.toLowerCase().trim();
+        if (alNorm !== al) claves.push(alNorm);
+        const alSlug = generarIdSlug("h", al);
+        claves.push(alSlug);
+        const alSlugGuionesBajos = alSlug.replace(/-/g, "_");
+        if (alSlugGuionesBajos !== alSlug) claves.push(alSlugGuionesBajos);
+      }
+      cacheClavesLookup.set(h, claves);
     }
     mapa.set(h.id, claves);
   }

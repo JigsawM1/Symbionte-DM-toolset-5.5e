@@ -75,13 +75,68 @@ export function deduplicarListaIds(lista: string[]): string[] {
 
 /**
  * Crea un verificador de pertenencia optimizado para listas de IDs de conjuros.
- * Comprueba primero por Set exacto O(1) antes de recurrir a comparaciones tolerantes.
+ * Pre-expande todas las variantes (IDs, nombres normalizados, sin tildes, slugs y alias)
+ * en un Set hash para permitir consultas O(1) ultra-rápidas sin re-escaneos O(N).
  */
 export function crearMatcherHechizos(lista: readonly string[] | string[]): (id: string) => boolean {
-  const exactos = new Set(lista);
+  if (!lista || lista.length === 0) return () => false;
+
+  const set = new Set<string>();
+
+  const limpiarPrefijo = (s: string): string => {
+    if (s.startsWith("h_") || s.startsWith("h-")) return s.substring(2);
+    return s;
+  };
+
+  const agregarVariantes = (raw: string) => {
+    if (!raw) return;
+    set.add(raw);
+    const norm = raw.toLowerCase().trim();
+    set.add(norm);
+    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    set.add(sinTildes);
+
+    const limpio = limpiarPrefijo(sinTildes);
+    set.add(limpio);
+
+    const slug = generarIdSlug("h", limpio);
+    set.add(slug);
+    const slugGuionesBajos = slug.replace(/-/g, "_");
+    if (slugGuionesBajos !== slug) set.add(slugGuionesBajos);
+
+    const alias = MAPA_ALIAS_HECHIZOS[limpio] || MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+    for (const al of alias) {
+      if (!al) continue;
+      set.add(al);
+      const alNorm = al.toLowerCase().trim();
+      set.add(alNorm);
+      const alSinTildes = alNorm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      set.add(alSinTildes);
+      const alLimpio = limpiarPrefijo(alSinTildes);
+      set.add(alLimpio);
+      const alSlug = generarIdSlug("h", alLimpio);
+      set.add(alSlug);
+      const alSlugGuionesBajos = alSlug.replace(/-/g, "_");
+      if (alSlugGuionesBajos !== alSlug) set.add(alSlugGuionesBajos);
+    }
+  };
+
+  for (const item of lista) {
+    agregarVariantes(item);
+  }
+
   return (id: string): boolean => {
     if (!id) return false;
-    if (exactos.has(id)) return true;
-    return lista.some((existente) => coincideHechizoId(existente, id));
+    if (set.has(id)) return true;
+    const norm = id.toLowerCase().trim();
+    if (set.has(norm)) return true;
+    const sinTildes = norm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (set.has(sinTildes)) return true;
+    const limpio = limpiarPrefijo(sinTildes);
+    if (set.has(limpio)) return true;
+    const slug = generarIdSlug("h", limpio);
+    if (set.has(slug)) return true;
+    const slugBajo = slug.replace(/-/g, "_");
+    return set.has(slugBajo);
   };
 }

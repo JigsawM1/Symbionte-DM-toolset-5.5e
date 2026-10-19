@@ -1,6 +1,6 @@
 import type { PersonajeJugador, SelectorRasgo, OpcionSelector, RasgoPersonaje } from "@/tipos";
 import HECHIZOS from "@/utiles/compendios/all.json";
-import { coincideHechizoId } from "../comparadorHechizos";
+import { coincideHechizoId, crearMatcherHechizos } from "../comparadorHechizos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { fusionarEstadoRasgo } from "./fusionarEstadoRasgo";
@@ -30,35 +30,40 @@ export function descomponerSeleccion(valor: string): { base: string; instancia: 
   return { base: instancia.split("__")[0], instancia, argumento };
 }
 
+export interface ContextoElegibilidadConjuros {
+  fnConocidosOPreparados?: (hechizoId: string) => boolean;
+  fnTrucosConocidos?: (hechizoId: string) => boolean;
+}
+
+/** Pre-instancia los matchers O(1) una sola vez fuera de los bucles de filtrado. */
+export function crearContextoElegibilidadConjuros(pj?: PersonajeJugador): ContextoElegibilidadConjuros | undefined {
+  if (!pj) return undefined;
+
+  const idsPreparadosOConocidos = [
+    ...(pj.conjurosPreparadosIds ?? []),
+    ...(pj.conjurosSiemprePreparadosIds ?? []),
+    ...(pj.trucosConocidosIds ?? [])
+  ];
+
+  const fnConocidosOPreparados = idsPreparadosOConocidos.length > 0
+    ? crearMatcherHechizos(idsPreparadosOConocidos)
+    : () => false;
+
+  const trucos = pj.trucosConocidosIds ?? [];
+  const fnTrucosConocidos = trucos.length > 0
+    ? crearMatcherHechizos(trucos)
+    : () => false;
+
+  return { fnConocidosOPreparados, fnTrucosConocidos };
+}
+
 export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: PersonajeJugador): OpcionSelector[] {
   if (!selector.filtroConjuros) return selector.opciones;
 
-  // Precalculamos matchers/listas compartidos una sola vez para la iteración completa de opciones,
-  // evitando crear un array temporal `[...preparados, ...siemprePreparados, ...trucos]`
-  // y re-escaneos O(N) por cada hechizo candidato.
-  const contexto = pj ? {
-    matcherConocidosOPreparados: (filtro: SelectorRasgo["filtroConjuros"]) => {
-      if (!filtro?.excluirPreparados) return undefined;
-      const ids = [
-        ...(pj.conjurosPreparadosIds ?? []),
-        ...(pj.conjurosSiemprePreparadosIds ?? []),
-        ...(pj.trucosConocidosIds ?? [])
-      ];
-      if (ids.length === 0) return () => false;
-      return (hechizoId: string) => ids.some(id => coincideHechizoId(id, hechizoId));
-    },
-    matcherTrucosConocidos: (filtro: SelectorRasgo["filtroConjuros"]) => {
-      if (!filtro?.soloConocidos) return undefined;
-      const trucos = pj.trucosConocidosIds ?? [];
-      if (trucos.length === 0) return () => false;
-      return (hechizoId: string) => trucos.some(id => coincideHechizoId(id, hechizoId));
-    }
-  } : undefined;
-
-  const fnConocidosOPreparados = contexto?.matcherConocidosOPreparados(selector.filtroConjuros);
-  const fnTrucosConocidos = contexto?.matcherTrucosConocidos(selector.filtroConjuros);
-
-  return selector.opciones.filter(op => opcionConjuroElegible(op, selector, pj, fnConocidosOPreparados, fnTrucosConocidos));
+  const ctx = pj ? crearContextoElegibilidadConjuros(pj) : undefined;
+  return selector.opciones.filter(op =>
+    opcionConjuroElegible(op, selector, pj, ctx?.fnConocidosOPreparados, ctx?.fnTrucosConocidos)
+  );
 }
 
 /** Comprueba una opción sin recorrer el resto del catálogo del selector. */
@@ -77,10 +82,8 @@ function opcionConjuroElegible(
   if (filtro.excluirPreparados) {
     const yaElegidoEnSelector = selector.valorActual.some(id => coincideHechizoId(id, h.id));
     if (!yaElegidoEnSelector) {
-      const estaConocidoOPreparado = fnConocidosOPreparados
-        ? fnConocidosOPreparados(h.id)
-        : [...(pj?.conjurosPreparadosIds ?? []), ...(pj?.conjurosSiemprePreparadosIds ?? []), ...(pj?.trucosConocidosIds ?? [])].some(id => coincideHechizoId(id, h.id));
-      if (estaConocidoOPreparado) return false;
+      const matcher = fnConocidosOPreparados ?? (pj ? crearContextoElegibilidadConjuros(pj)?.fnConocidosOPreparados : undefined);
+      if (matcher && matcher(h.id)) return false;
     }
   }
 
@@ -89,10 +92,8 @@ function opcionConjuroElegible(
       && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id, h.id))))) return false;
 
   if (filtro.soloConocidos) {
-    const estaEnTrucos = fnTrucosConocidos
-      ? fnTrucosConocidos(h.id)
-      : pj && (pj.trucosConocidosIds ?? []).some(id => coincideHechizoId(id, h.id));
-    if (!estaEnTrucos) return false;
+    const matcher = fnTrucosConocidos ?? (pj ? crearContextoElegibilidadConjuros(pj)?.fnTrucosConocidos : undefined);
+    if (matcher && !matcher(h.id)) return false;
   }
 
   if (filtro.requiereDano && !h.dadosDaño) return false;

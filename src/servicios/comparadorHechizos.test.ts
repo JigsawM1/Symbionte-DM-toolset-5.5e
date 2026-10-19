@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { coincideHechizoId, deduplicarListaIds } from "./comparadorHechizos";
+import { coincideHechizoId, deduplicarListaIds, crearMatcherHechizos } from "./comparadorHechizos";
 
 describe("comparadorHechizos", () => {
   describe("coincideHechizoId", () => {
@@ -58,6 +58,30 @@ describe("comparadorHechizos", () => {
       const entrada = ["h-detectar-magia", "h_detectar-magia", "Detectar magia"];
       const resultado = deduplicarListaIds(entrada);
       expect(resultado).toEqual(["h-detectar-magia"]);
+    });
+  });
+
+  describe("crearMatcherHechizos", () => {
+    it("debe devolver false para un array vacío o id nulo", () => {
+      const matcherVacio = crearMatcherHechizos([]);
+      expect(matcherVacio("Bendición")).toBe(false);
+      expect(matcherVacio("")).toBe(false);
+    });
+
+    it("debe emparejar id exacto, slug, prefijos y mayúsculas/minúsculas", () => {
+      const matcher = crearMatcherHechizos(["h_bendicion", "Escudo"]);
+      expect(matcher("h_bendicion")).toBe(true);
+      expect(matcher("Bendición")).toBe(true);
+      expect(matcher("bendicion")).toBe(true);
+      expect(matcher("escudo")).toBe(true);
+      expect(matcher("ESCUDO")).toBe(true);
+      expect(matcher(" Bola de fuego ")).toBe(false);
+    });
+
+    it("debe emparejar sinónimos y alias pre-expandidos", () => {
+      const matcher = crearMatcherHechizos(["Susurros disonantes"]);
+      expect(matcher("Susurros discordantes")).toBe(true);
+      expect(matcher("dissonant whispers")).toBe(true);
     });
   });
 });

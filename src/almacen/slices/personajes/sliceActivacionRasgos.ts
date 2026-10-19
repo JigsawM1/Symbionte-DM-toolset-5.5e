@@ -202,6 +202,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const pjActualizado = state.personajes.find((p) => p.id === idPj);
       if (pjActualizado) {
         const nombreNorm = (pjActualizado.nombre || "").trim().toLowerCase();
+        let huboCambios = false;
         const nuevaCola = state.colaIniciativa.map((c) => {
           const coincide = c.id === pjActualizado.id ||
             (pjActualizado.idMiniaturaTS && c.id === pjActualizado.idMiniaturaTS) ||
@@ -218,9 +219,19 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
             return !nombresEfectos.has(cNorm) && !nombresEfectos.has(cBase);
           });
 
+          const condsCambiaron = (c.condiciones || []).length !== condicionesSinDuplicados.length ||
+            (c.condiciones || []).some((val, idx) => val !== condicionesSinDuplicados[idx]);
+          const efectosCambiaron = (c.efectos || []).length !== efectosPj.length ||
+            (c.efectos || []).some((val, idx) => val.id !== efectosPj[idx]?.id);
+
+          if (!condsCambiaron && !efectosCambiaron) return c;
+
+          huboCambios = true;
           return { ...c, condiciones: condicionesSinDuplicados, efectos: efectosPj };
         });
-        set({ colaIniciativa: nuevaCola });
+        if (huboCambios) {
+          set({ colaIniciativa: nuevaCola });
+        }
       }
     }
   },

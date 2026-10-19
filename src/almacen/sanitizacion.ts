@@ -1341,6 +1341,7 @@ export function sanearCriaturaIniciativa(raw: unknown): CriaturaIniciativa | nul
   if (!raw || typeof raw !== "object") return null;
   const parsed = EsquemaCriaturaIniciativa.safeParse(raw);
   if (parsed.success) return parsed.data as CriaturaIniciativa;
+  logger.warn("[sanearCriaturaIniciativa] Datos de criatura de iniciativa inválidos descartados:", parsed.error.issues);
   return null;
 }
 
@@ -1348,6 +1349,7 @@ export function sanearElementoPendiente(raw: unknown): ElementoPendiente | null 
   if (!raw || typeof raw !== "object") return null;
   const parsed = EsquemaElementoPendiente.safeParse(raw);
   if (parsed.success) return parsed.data;
+  logger.warn("[sanearElementoPendiente] Elemento pendiente inválido descartado:", parsed.error.issues);
   return null;
 }
 
@@ -1367,6 +1369,7 @@ export function sanearEncuentroGuardado(raw: unknown): EncuentroGuardado | null 
 
   const parsed = EsquemaEncuentroGuardado.safeParse(rawNormalizado);
   if (parsed.success) return parsed.data as EncuentroGuardado;
+  logger.warn("[sanearEncuentroGuardado] Encuentro guardado inválido descartado:", parsed.error.issues);
   return null;
 }
 

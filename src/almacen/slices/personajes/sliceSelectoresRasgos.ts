@@ -238,13 +238,19 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       }
 
       // Sincronizar reactivamente estado activo, trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
-      for (const r of rasgosActualizados) {
+      for (let i = 0; i < rasgosActualizados.length; i++) {
+        let r = rasgosActualizados[i];
         if (r.requiereOpcion && r.ligadoA) {
           const estaHabilitado = esRasgoHabilitadoPorOpcion(r, rasgosActualizados);
+          let nuevoActivo = r.activo;
           if (!estaHabilitado) {
-            r.activo = false;
+            nuevoActivo = false;
           } else if (!r.esActivable) {
-            r.activo = true;
+            nuevoActivo = true;
+          }
+          if (nuevoActivo !== r.activo) {
+            r = { ...r, activo: nuevoActivo };
+            rasgosActualizados[i] = r;
           }
           if (Array.isArray(r.selectores)) {
             for (const s of r.selectores) {
@@ -353,6 +359,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const pjActualizado = state.personajes.find((p) => p.id === idPj);
       if (pjActualizado) {
         const nombreNorm = (pjActualizado.nombre || "").trim().toLowerCase();
+        let huboCambios = false;
         const nuevaCola = state.colaIniciativa.map((c) => {
           const coincide =
             c.id === pjActualizado.id ||
@@ -373,9 +380,19 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
             return true;
           });
 
+          const condsCambiaron = (c.condiciones || []).length !== condicionesSinDuplicados.length ||
+            (c.condiciones || []).some((val, idx) => val !== condicionesSinDuplicados[idx]);
+          const efectosCambiaron = (c.efectos || []).length !== efectosPj.length ||
+            (c.efectos || []).some((val, idx) => val.id !== efectosPj[idx]?.id);
+
+          if (!condsCambiaron && !efectosCambiaron) return c;
+
+          huboCambios = true;
           return { ...c, condiciones: condicionesSinDuplicados, efectos: efectosPj };
         });
-        set({ colaIniciativa: nuevaCola });
+        if (huboCambios) {
+          set({ colaIniciativa: nuevaCola });
+        }
       }
     }
   }

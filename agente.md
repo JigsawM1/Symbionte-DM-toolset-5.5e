@@ -1,5 +1,39 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-19] Auditoría e Implementación de la Fase 2: Arquitectura de Estado Global (Zustand), Persistencia, Recursos y Selectores
+
+- **Contexto y Alcance**:
+  - Auditoría integral y resolución de hallazgos sobre los módulos de estado global y persistencia: `src/almacen/usarAlmacenDM.ts`, `src/almacen/persistencia.ts`, `src/almacen/cargaPersistida.ts`, `src/almacen/sanitizacion.ts`, `src/almacen/borradoresSync.ts`, `src/almacen/selectores/*`, `src/almacen/slices/*` (especialmente `sliceRecursosRasgos.ts`, `sliceActivacionRasgos.ts`, `sliceSelectoresRasgos.ts`, `sliceConfiguracion.ts` y `condicionesRasgosHelpers.ts`) y `src/hooks/usarEstadoPersistido.ts`.
+- **Hallazgos Principales y Correcciones Arquitectónicas Aplicadas**:
+  1. **[F2-01] Evaluación Defensiva Canónica de Recursos en `sliceRecursosRasgos.ts`**:
+     - *Problema*: En `recuperarUsoRasgoPersonaje`, se evaluaba `const restantes = r.usosRestantes ?? 0;` en 3 ramas de recuperación. Cuando un rasgo con usos limitados estaba intacto (`usosRestantes: undefined`, ej. `usosMaximos: 4`), recibir una recarga de 1 uso degradaba el recurso a `1` en lugar de conservar los `4` usos disponibles.
+     - *Solución*: Sustitución por `const restantes = r.usosRestantes ?? maxUsos;` en todas las ramas de recuperación, garantizando que un recurso intacto nunca se inicialice en 0 al recuperar.
+  2. **[F2-02] Gasto y Activación Atómica de Rasgos en `condicionesRasgosHelpers.ts`**:
+     - *Problema*: `activarRasgosPorCondicionOEfecto` comprobaba `typeof r.usosRestantes === "number"`, omitiendo el descuento inicial cuando un rasgo intacto (`usosRestantes: undefined`) se activaba reactivamente por una condición o efecto táctico.
+     - *Solución*: Evaluación defensiva `actuales = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1)`, descontando `Math.max(0, actuales - (r.costeFijo ?? 1))` cuando el rasgo tiene usos limitados y preservando la sincronización de la condición táctica.
+  3. **[F2-03] Inmutabilidad Estricta y Poda de Re-renders en `sliceSelectoresRasgos.ts` y `sliceActivacionRasgos.ts`**:
+     - *Problema*: En `actualizarSeleccionRasgo`, el bucle de sincronización de rasgos hijos mutaba directamente `r.activo = ...` sobre objetos referenciados desde el estado anterior `pj.rasgos`, rompiendo la inmutabilidad de Zustand. Además, ambos slices emitían `set({ colaIniciativa: nuevaCola })` incluso cuando las condiciones y efectos de la criatura no habían cambiado.
+     - *Solución*: Clonación inmutable `rasgosActualizados[i] = { ...r, activo: nuevoActivo }` previa a cualquier asignación, y detección de cambios (`huboCambios`) antes de actualizar la cola de iniciativa.
+  4. **[F2-04] Consumo Canónico de Espacios de Conjuro en `sliceRecursosRasgos.ts`**:
+     - *Problema*: `recargarRasgoConEspacio` invocaba `gastarEspacioConjuro` sin verificar si el personaje realmente disponía de espacios de conjuro del nivel solicitado, permitiendo recargar PG temporales (ej. Bastión Arcano) gratis con niveles de conjuro no disponibles.
+     - *Solución*: Verificación atómica previa mediante `const consumo = get().consumirRecursoConjuro(idPj, { tipo: "espacio", nivel: nivelEspacio }); if (!consumo.permitido) return;`.
+  5. **[F2-06] Optimización de `usarEstadoPersistido.ts` y Aislamiento de Encuentros**:
+     - *Problema*: `usarEstadoPersistido` incluía `valorInicial` en las dependencias del `useEffect` de persistencia, provocando escrituras redundantes a `localStorage` en cada render cuando se pasaban objetos o funciones inline. Además, `guardarEncuentroActual` y `cargarEncuentro` en `sliceConfiguracion.ts` compartían referencias mutables con la cola de combate activa.
+     - *Solución*: Almacenamiento de `valorInicial` en `useRef` dejando las dependencias en `[clave, estado]`, y utilización de `structuredClone` en la cola de iniciativa al guardar/cargar encuentros y en `PERSONAJE_POR_DEFECTO` al restablecer datos de fábrica.
+  6. **[F2-07] Manejo Proactivo de Errores y Logging Estructurado (Regla 7)**:
+     - *Problema*: `establecerMostrarPorcentajeVidaAJugadores` accedía a `localStorage` sin `try/catch`; `importarBaseDatosJSONCompleta` y `restablecerDatosDeFabrica` silenciaban el registro de excepciones; `sanearCriaturaIniciativa`, `sanearElementoPendiente` y `sanearEncuentroGuardado` descartaban datos inválidos sin trazabilidad.
+     - *Solución*: Envoltura con `try/catch` y registro estructurado con `logger.error` y `logger.warn` de todos los descartes y excepciones.
+- **Estrategia de Pruebas Unitarias**:
+  - Creación de `src/almacen/auditoriaFase2.test.ts` con cobertura de preservación de recursos intactos, rechazo de recargas sin espacios de conjuro, y aislamiento referencial de encuentros guardados.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 152 suites ejecutadas, **2.190 / 2.190 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 173 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.84s (2.103 módulos).
+
+---
+
 ## [2026-10-19] Auditoría e Implementación de la Fase 1: Núcleo de Red, Puente TaleSpire y Sincronización P2P
 
 - **Contexto y Alcance**:

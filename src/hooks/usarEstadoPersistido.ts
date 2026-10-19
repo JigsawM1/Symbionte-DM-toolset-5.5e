@@ -26,6 +26,8 @@ export function usarEstadoPersistido<T>(
   });
 
   const clavePrevia = useRef(clave);
+  const valorInicialRef = useRef(valorInicial);
+  valorInicialRef.current = valorInicial;
 
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
@@ -39,7 +41,8 @@ export function usarEstadoPersistido<T>(
         if (guardado !== null) {
           setEstado(JSON.parse(guardado) as T);
         } else {
-          const valorDefecto = typeof valorInicial === "function" ? (valorInicial as () => T)() : valorInicial;
+          const valorActual = valorInicialRef.current;
+          const valorDefecto = typeof valorActual === "function" ? (valorActual as () => T)() : valorActual;
           setEstado(valorDefecto);
         }
       } catch (err) {
@@ -53,7 +56,7 @@ export function usarEstadoPersistido<T>(
     } catch (err) {
       logger.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
     }
-  }, [clave, estado, valorInicial]);
+  }, [clave, estado]);
 
   return [estado, setEstado];
 }

@@ -562,6 +562,7 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
         const pjConHp = {
           ...pj,
           hpTemporal: 6,
+          espaciosConjuroMaximos: { ...(pj.espaciosConjuroMaximos || {}), "3": 2 },
           espaciosConjuroGastados: { "3": 0 }
         };
 

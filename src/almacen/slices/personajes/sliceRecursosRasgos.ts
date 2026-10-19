@@ -107,7 +107,7 @@ recuperarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
         if (tieneUsoPropioYPadre) {
           if (r.id === targetTrait?.id) {
             const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
-            const restantes = r.usosRestantes ?? 0;
+            const restantes = r.usosRestantes ?? maxUsos;
             return {
               ...r,
               usosMaximos: maxUsos,
@@ -116,7 +116,7 @@ recuperarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
           }
           if (r.id === idObjetivoGasto && r.tieneUsosLimitados) {
             const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
-            const restantes = r.usosRestantes ?? 0;
+            const restantes = r.usosRestantes ?? maxUsos;
             return {
               ...r,
               usosMaximos: maxUsos,
@@ -127,7 +127,7 @@ recuperarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
           const maxUsos = r.formulaEscalado
             ? calcularUsosMaximosRasgo(r, pj)
             : (r.usosMaximos ?? 1);
-          const restantes = r.usosRestantes ?? 0;
+          const restantes = r.usosRestantes ?? maxUsos;
           return {
             ...r,
             usosMaximos: maxUsos,
@@ -196,7 +196,8 @@ recargarRasgoConEspacio: (idPj, idRasgo, nivelEspacio) => {
     const rasgo = (pj.rasgos || []).find((r) => r.id === idRasgo);
     if (!rasgo) return;
 
-    get().gastarEspacioConjuro(idPj, nivelEspacio);
+    const consumo = get().consumirRecursoConjuro(idPj, { tipo: "espacio", nivel: nivelEspacio });
+    if (!consumo.permitido) return;
 
     const mult = rasgo.multiplicadorRecargaEspacio ?? 2;
     const pgRecuperados = nivelEspacio * mult;

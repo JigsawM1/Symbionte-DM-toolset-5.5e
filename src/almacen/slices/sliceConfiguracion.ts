@@ -129,7 +129,11 @@ export const crearSliceConfiguracion: StateCreator<
   },
   establecerMostrarPorcentajeVidaAJugadores: (permitir: boolean) => {
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem("ts_mostrar_porcentaje_vida", String(permitir));
+      try {
+        localStorage.setItem("ts_mostrar_porcentaje_vida", String(permitir));
+      } catch (e) {
+        logger.warn("[Configuracion] Error al guardar ts_mostrar_porcentaje_vida en localStorage:", e);
+      }
     }
     set({ mostrarPorcentajeVidaAJugadores: permitir });
   },
@@ -175,7 +179,7 @@ export const crearSliceConfiguracion: StateCreator<
     const nuevoEncuentro: EncuentroGuardado = {
       nombre: nombre.trim(),
       ronda: state.rondaActual,
-      cola: state.colaIniciativa,
+      cola: structuredClone(state.colaIniciativa),
       fecha: new Date().toLocaleString("es-ES")
     };
     const encuentrosLimpios = state.encuentrosGuardados.filter(
@@ -190,7 +194,7 @@ export const crearSliceConfiguracion: StateCreator<
     const state = get();
     const encuentro = state.encuentrosGuardados.find((e) => e.nombre.toLowerCase() === nombre.toLowerCase());
     if (!encuentro) return false;
-    set({ colaIniciativa: encuentro.cola, rondaActual: encuentro.ronda, indiceTurnoActivo: 0 });
+    set({ colaIniciativa: structuredClone(encuentro.cola), rondaActual: encuentro.ronda, indiceTurnoActivo: 0 });
     return true;
   },
 
@@ -312,6 +316,7 @@ export const crearSliceConfiguracion: StateCreator<
 
     return modificado;
     } catch (error) {
+      logger.error("[Configuracion] Error al importar base de datos JSON completa:", error);
       get().agregarNotificacion(error instanceof Error ? error.message : "Importación inválida", "error");
       return false;
     }
@@ -338,13 +343,14 @@ export const crearSliceConfiguracion: StateCreator<
         ],
         notasDM: "Escribe aquí las notas de tu sesión...",
         encuentrosGuardados: [],
-        personajes: [PERSONAJE_POR_DEFECTO],
+        personajes: [structuredClone(PERSONAJE_POR_DEFECTO)],
         borradoresSync: {}, sistemaMagia: "espacios",
         idPersonajeActivo: PERSONAJE_POR_DEFECTO.id,
         mostrarPorcentajeVidaAJugadores: true,
         cargandoDatos: false, datosInicialesCargados: true, errorCargaDatos: null, blobRecuperacion: null
       });
     }).catch((error: unknown) => {
+      logger.error("[Configuracion] Error al restablecer datos de fábrica:", error);
       set({ cargandoDatos: false, datosInicialesCargados: false, errorCargaDatos: error instanceof Error ? error.message : 'No se pudo restablecer el almacenamiento' });
     });
 

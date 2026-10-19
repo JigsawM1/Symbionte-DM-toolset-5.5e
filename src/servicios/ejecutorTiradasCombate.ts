@@ -24,6 +24,8 @@ export interface ContextoTiradaAtaqueFisico {
   agregarNotificacion: (mensaje: string, tipo?: "info" | "exito" | "advertencia" | "error") => void;
 }
 
+const ataquesEnCurso = new Set<string>();
+
 export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico): Promise<boolean> {
   const {
     ataque,
@@ -33,6 +35,10 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     modificarCantidadObjeto,
     agregarNotificacion
   } = ctx;
+
+  const claveAtaque = `${personajeActivo?.id ?? "anon"}:${ataque.id}`;
+  if (ataquesEnCurso.has(claveAtaque)) return false;
+  ataquesEnCurso.add(claveAtaque);
 
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
@@ -75,15 +81,28 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
       etiqueta = `${nombrePj} - Ataque con ${ataque.nombre} (Desventaja)${sufijoMotivo}`;
     }
 
-    if (ataque.requiereMunicion) {
-      if (!ataque.puedeDisparar) {
-        const aviso =
-          ataque.motivoBloqueo ||
-          `Advertencia: No tienes ${ataque.municionNombre || "munición"} lista en tu equipo para disparar con ${ataque.nombre}.`;
-        agregarNotificacion(aviso, "advertencia");
-      }
+    if (ataque.requiereMunicion && !ataque.puedeDisparar) {
+      const aviso =
+        ataque.motivoBloqueo ||
+        `Advertencia: No tienes ${ataque.municionNombre || "munición"} lista en tu equipo para disparar con ${ataque.nombre}.`;
+      agregarNotificacion(aviso, "advertencia");
+    }
 
-      const inv = personajeActivo?.inventario || [];
+    const tipoTiradaForzado =
+      renuncia ? "plano" : evaluacionCondiciones.modoEfectivo !== "plano"
+        ? evaluacionCondiciones.modoEfectivo
+        : undefined;
+
+    const emitida = await lanzarDadosTaleSpire(
+      formula,
+      etiqueta,
+      undefined,
+      undefined,
+      tipoTiradaForzado
+    );
+
+    if (emitida !== false && ataque.requiereMunicion && personajeActivo) {
+      const inv = personajeActivo.inventario || [];
       const municion = inv.find(
         (it) =>
           (it.contenedor || "mochila") === "mochila" &&
@@ -91,7 +110,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
           esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos)
       );
 
-      if (municion && personajeActivo) {
+      if (municion) {
         modificarCantidadObjeto(personajeActivo.id, municion.idInstancia, -1);
         const restante = municion.cantidad - 1;
         const detalle =
@@ -106,21 +125,12 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
       }
     }
 
-    const tipoTiradaForzado =
-      renuncia ? "plano" : evaluacionCondiciones.modoEfectivo !== "plano"
-        ? evaluacionCondiciones.modoEfectivo
-        : undefined;
-
-    return await lanzarDadosTaleSpire(
-      formula,
-      etiqueta,
-      undefined,
-      undefined,
-      tipoTiradaForzado
-    );
+    return emitida !== false;
   } catch (error) {
     logger.error("Error al tirar ataque:", error);
     return false;
+  } finally {
+    ataquesEnCurso.delete(claveAtaque);
   }
 }
 
@@ -266,6 +276,8 @@ export interface ContextoUsoConsumible {
   agregarNotificacion: (mensaje: string, tipo?: "info" | "exito" | "advertencia" | "error") => void;
 }
 
+const consumiblesEnCurso = new Set<string>();
+
 export async function ejecutarUsoConsumible(ctx: ContextoUsoConsumible): Promise<void> {
   const {
     consumible,
@@ -275,15 +287,24 @@ export async function ejecutarUsoConsumible(ctx: ContextoUsoConsumible): Promise
     agregarNotificacion
   } = ctx;
 
-  if (!personajeActivo) return;
+  if (!personajeActivo || consumible.cantidad <= 0) return;
 
+  const claveBloqueo = `${personajeActivo.id}:${consumible.idInstancia}`;
+  if (consumiblesEnCurso.has(claveBloqueo)) return;
+
+  const itemActual = personajeActivo.inventario?.find((it) => it.idInstancia === consumible.idInstancia);
+  if (itemActual && itemActual.cantidad <= 0) return;
+
+  consumiblesEnCurso.add(claveBloqueo);
   try {
+    const stockActual = itemActual ? itemActual.cantidad : consumible.cantidad;
     if (consumible.esCurativo && consumible.formulaCuracion) {
       const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
       const formula = consumible.formulaCuracion;
       const etiqueta = `${nombrePj}: Curación con ${consumible.nombre}`;
 
-      await lanzarDadosTaleSpire(formula, etiqueta);
+      const emitida = await lanzarDadosTaleSpire(formula, etiqueta);
+      if (emitida === false) return;
 
       const resultadoEstimado = evaluarFormulaDados(formula);
       if (resultadoEstimado > 0) {
@@ -292,17 +313,19 @@ export async function ejecutarUsoConsumible(ctx: ContextoUsoConsumible): Promise
 
       modificarCantidadObjeto(personajeActivo.id, consumible.idInstancia, -1);
       agregarNotificacion(
-        `Has usado ${consumible.nombre} y recuperado ${resultadoEstimado} PG (aprox). Quedan ${consumible.cantidad - 1}.`,
+        `Has usado ${consumible.nombre} y recuperado ${resultadoEstimado} PG (aprox). Quedan ${Math.max(0, stockActual - 1)}.`,
         "exito"
       );
     } else {
       modificarCantidadObjeto(personajeActivo.id, consumible.idInstancia, -1);
       agregarNotificacion(
-        `Has usado ${consumible.nombre}. Quedan ${consumible.cantidad - 1}.`,
+        `Has usado ${consumible.nombre}. Quedan ${Math.max(0, stockActual - 1)}.`,
         "info"
       );
     }
   } catch (error) {
     logger.error("Error al usar consumible:", error);
+  } finally {
+    consumiblesEnCurso.delete(claveBloqueo);
   }
 }

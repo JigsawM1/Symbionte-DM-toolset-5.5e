@@ -1,9 +1,10 @@
-import { EsquemaWireMensajeSync, type WireMensajeSync, type WireEstadoIniciativaDM, type WireEstadoCombatePJ } from '@/tipos/sync';
+import { EsquemaWireMensajeSync, VERSION_PROTOCOLO_SYNC, type WireMensajeSync, type WireEstadoIniciativaDM, type WireEstadoCombatePJ } from '@/tipos/sync';
+import { logger } from '@/utiles/logger';
 
 export const LIMITE_PAQUETE_SYNC = 380; // Unidades UTF-16, incluyendo el sobre JSON.
 export const EXPIRACION_FRAGMENTOS_MS = 3500;
 export type FragmentoSync = Extract<WireMensajeSync, { t: 'FRAG' }>;
-export type EstadoSync = { v: 2; s?: string; t: 'DM'; d: WireEstadoIniciativaDM } | { v: 2; s?: string; t: 'PJ'; d: WireEstadoCombatePJ };
+export type EstadoSync = { v: typeof VERSION_PROTOCOLO_SYNC; s?: string; t: 'DM'; d: WireEstadoIniciativaDM } | { v: typeof VERSION_PROTOCOLO_SYNC; s?: string; t: 'PJ'; d: WireEstadoCombatePJ };
 
 export function claveEstadoSync(tipo: 'DM' | 'PJ', id: string): string {
   return `${tipo}:${id}`;
@@ -15,7 +16,7 @@ export function empaquetarEstadoSync(mensaje: EstadoSync): string[] {
   if (texto.length <= LIMITE_PAQUETE_SYNC) return [texto];
   const ts = mensaje.d.ts;
   if (!ts || !Number.isSafeInteger(ts)) throw new Error('La emisión fragmentada necesita una revisión válida');
-  const base = { v: 2 as const, s: mensaje.s, t: 'FRAG' as const, k: mensaje.t,
+  const base = { v: VERSION_PROTOCOLO_SYNC as typeof VERSION_PROTOCOLO_SYNC, s: mensaje.s, t: 'FRAG' as const, k: mensaje.t,
     id: mensaje.t === 'PJ' ? mensaje.d.id : 'DM', ts };
   const partes: string[] = [];
   let posicion = 0;
@@ -91,7 +92,9 @@ export class BufferFragmentosSync {
           return { tipo: 'completo', mensaje };
         }
       }
-    } catch { /* La transmisión completa también necesita JSON y esquema válidos. */ }
+    } catch (error) {
+      logger.warn('[TransporteSync] Fragmentos reensamblados no superaron validación JSON/Zod:', error);
+    }
     this.alExpirar(k, id);
     return { tipo: 'invalido' };
   }

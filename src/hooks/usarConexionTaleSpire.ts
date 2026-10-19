@@ -230,7 +230,8 @@ export function usarConexionTaleSpire() {
             let datos: unknown = null;
             try {
               datos = JSON.parse(payload.str);
-            } catch {
+            } catch (err) {
+              logger.debug("[usarConexionTaleSpire] Error parseando JSON en subNativaSync:", err);
               datos = null;
             }
             if (datos) {
@@ -262,18 +263,37 @@ export function usarConexionTaleSpire() {
           subPuenteEstadoSimbionte();
         };
 
+        const movimientosRecientes = new Map<string, number>();
+        const VENTANA_DEDUP_MOVIMIENTO_MS = 100;
+
         // Suscribirse a cambios de estado de criatura (movimiento físico de miniaturas en TaleSpire)
         const procesarEventoMovimiento = async (evento: import("@/tipos/talespire").EventoCriaturaTS) => {
           if (!activo || !evento) return;
 
           if (evento.kind === "creatureLocationChanged") {
+            const idStr = typeof evento.id === "string" ? evento.id : (evento.id as { id?: string })?.id || "";
+            if (!idStr || !evento.position) return;
+
+            // Deduplicación de eventos concurrentes generados simultáneamente por el puente CEF y la API nativa
+            const claveMovimiento = `${idStr.toLowerCase()}:${evento.position.x.toFixed(3)}:${evento.position.y.toFixed(3)}:${evento.position.z.toFixed(3)}`;
+            const ahora = Date.now();
+            const prevMov = movimientosRecientes.get(claveMovimiento);
+            if (prevMov !== undefined && ahora - prevMov < VENTANA_DEDUP_MOVIMIENTO_MS) {
+              return;
+            }
+            movimientosRecientes.set(claveMovimiento, ahora);
+            if (movimientosRecientes.size > 50) {
+              for (const [k, tsVal] of movimientosRecientes) {
+                if (ahora - tsVal > VENTANA_DEDUP_MOVIMIENTO_MS * 2) {
+                  movimientosRecientes.delete(k);
+                }
+              }
+            }
+
             logger.info("[TaleSpire Simbionte] Movimiento de criatura detectado:", evento.id, evento.position);
 
             const estado = usarAlmacenDM.getState();
             const personajes = estado.personajes;
-
-            const idStr = typeof evento.id === "string" ? evento.id : (evento.id as { id?: string })?.id || "";
-            if (!idStr) return;
 
             // 1. Coincidencia por idMiniaturaTS (case-insensitive)
             let personajeVinculado = personajes.find(
@@ -319,17 +339,23 @@ export function usarConexionTaleSpire() {
               }
             }
 
-            if (personajeVinculado) {
-              let numberPerTile = 5;
-              try {
-                const unidades = await ts.units.getDistanceUnitsForThisCampaign();
-                if (unidades && typeof unidades.numberPerTile === "number") {
-                  numberPerTile = unidades.numberPerTile;
-                }
-              } catch {
-                numberPerTile = 5;
-              }
+            if (!personajeVinculado && !acompananteVinculado) {
+              logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ ni acompañante:", idStr);
+              return;
+            }
 
+            let numberPerTile = 5;
+            try {
+              const unidades = await ts.units.getDistanceUnitsForThisCampaign();
+              if (unidades && typeof unidades.numberPerTile === "number") {
+                numberPerTile = unidades.numberPerTile;
+              }
+            } catch (errUnidades) {
+              logger.debug("[usarConexionTaleSpire] Fallback a 5 ft en units:", errUnidades);
+              numberPerTile = 5;
+            }
+
+            if (personajeVinculado) {
               estado.registrarMovimientoTSPersonaje(
                 personajeVinculado.id,
                 evento.position,
@@ -343,16 +369,6 @@ export function usarConexionTaleSpire() {
                 }
               );
             } else if (acompananteVinculado) {
-              let numberPerTile = 5;
-              try {
-                const unidades = await ts.units.getDistanceUnitsForThisCampaign();
-                if (unidades && typeof unidades.numberPerTile === "number") {
-                  numberPerTile = unidades.numberPerTile;
-                }
-              } catch {
-                numberPerTile = 5;
-              }
-
               estado.registrarMovimientoTSAcompanante(
                 acompananteVinculado.personajeId,
                 acompananteVinculado.acompId,
@@ -366,8 +382,6 @@ export function usarConexionTaleSpire() {
                   umbralRuidoPies: 0.05
                 }
               );
-            } else {
-              logger.debug("[TaleSpire Simbionte] Movimiento ignorado: la criatura no coincide con ningún PJ ni acompañante:", idStr);
             }
           }
         };

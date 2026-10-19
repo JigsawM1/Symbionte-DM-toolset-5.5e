@@ -17,7 +17,6 @@ const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([
   "src/componentes/caracteristicas/personajes/ModalEditarPersonaje.tsx", // Modal heredado de edición general
   "src/componentes/caracteristicas/inventario/TarjetaObjetoInventario.tsx", // Componente de tarjeta de objeto heredado
   "src/componentes/caracteristicas/personajes/GestorPersonajes.tsx", // Vista contenedora general de personajes
-  "src/componentes/caracteristicas/personajes/HojaPersonaje.tsx", // Orquestador principal heredado de la ficha de personaje
   "src/componentes/caracteristicas/personajes/acompanantes/SeccionAcompanantesPersonaje.tsx", // Módulo de acompañantes pendiente de modularización
 ]);
 

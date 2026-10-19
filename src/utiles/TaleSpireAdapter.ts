@@ -59,6 +59,9 @@ class TaleSpireAdapter {
   private promesaMinisJugadores: Promise<Set<string>> | null = null;
   private cacheMinisJugadores: { datos: Set<string>; expiraEn: number } | null = null;
   private readonly TTL_CACHE_MINIS_JUGADORES_MS = 2500;
+  private promesaUnidadesDistancia: Promise<UnidadDistanciaTS> | null = null;
+  private cacheUnidadesDistancia: { datos: UnidadDistanciaTS; expiraEn: number } | null = null;
+  private readonly TTL_CACHE_UNIDADES_MS = 10000;
   private canalBroadcastSync?: BroadcastChannel;
   private colaEnvioSync: Array<{ mensaje: string; target: string; resolver: (exito: boolean) => void }> = [];
   private procesandoColaSync = false;
@@ -533,20 +536,50 @@ class TaleSpireAdapter {
   units = {
     /**
      * Obtiene las unidades de distancia configuradas para la campaña actual en TaleSpire.
+     * Implementa caché en memoria con TTL de 10s y deduplicación de promesas concurrentes.
      * Retorna fallback de 5 pies (ft) por casilla si no está en TaleSpire.
      */
     getDistanceUnitsForThisCampaign: async (): Promise<UnidadDistanciaTS> => {
-      if (window.TS?.units && typeof window.TS.units.getDistanceUnitsForThisCampaign === "function") {
-        try {
-          const unidades = await window.TS.units.getDistanceUnitsForThisCampaign();
-          if (unidades && typeof unidades.numberPerTile === "number") {
-            return unidades;
-          }
-        } catch (e) {
-          logger.warn("[TS Adapter] Error al obtener unidades de distancia de TaleSpire:", e);
-        }
+      const ahora = Date.now();
+      if (this.cacheUnidadesDistancia && ahora < this.cacheUnidadesDistancia.expiraEn) {
+        return this.cacheUnidadesDistancia.datos;
       }
-      return { name: "ft", numberPerTile: 5 };
+
+      if (this.promesaUnidadesDistancia) {
+        return await this.promesaUnidadesDistancia;
+      }
+
+      this.promesaUnidadesDistancia = (async () => {
+        let unidadesFinal: UnidadDistanciaTS = { name: "ft", numberPerTile: 5 };
+        if (window.TS?.units && typeof window.TS.units.getDistanceUnitsForThisCampaign === "function") {
+          try {
+            const unidades = await window.TS.units.getDistanceUnitsForThisCampaign();
+            if (unidades && typeof unidades.numberPerTile === "number") {
+              unidadesFinal = unidades;
+            }
+          } catch (e) {
+            logger.warn("[TS Adapter] Error al obtener unidades de distancia de TaleSpire:", e);
+          }
+        }
+        this.cacheUnidadesDistancia = {
+          datos: unidadesFinal,
+          expiraEn: Date.now() + this.TTL_CACHE_UNIDADES_MS,
+        };
+        return unidadesFinal;
+      })();
+
+      try {
+        return await this.promesaUnidadesDistancia;
+      } finally {
+        this.promesaUnidadesDistancia = null;
+      }
+    },
+
+    /**
+     * Retorna de forma síncrona el valor en caché de numberPerTile o 5 por defecto.
+     */
+    obtenerNumberPerTileCache: (): number => {
+      return this.cacheUnidadesDistancia?.datos?.numberPerTile ?? 5;
     }
   };
 

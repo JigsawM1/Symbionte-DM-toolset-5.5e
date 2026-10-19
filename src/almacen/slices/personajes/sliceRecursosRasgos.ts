@@ -28,7 +28,7 @@ recargarUsoRasgoConPadre: (idPj, idRasgo) => {
       const padre = resolverRasgoRecurso(r, pj.rasgos);
       const coste = r.costeRecargaPadre ?? 1;
       if (!padre?.tieneUsosLimitados || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < coste) return pj;
-      return { ...pj, rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: (x.usosRestantes ?? 0) + 1 }
+      return { ...pj, rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: Math.min(x.usosMaximos ?? 1, (x.usosRestantes ?? x.usosMaximos ?? 0) + 1) }
         : x === padre ? { ...x, usosRestantes: (x.usosRestantes ?? x.usosMaximos ?? 0) - coste } : x) };
     });
   },
@@ -39,7 +39,7 @@ recargarUsoRasgoConPacto: (idPj, idRasgo) => {
         || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)
         || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return pj;
       return { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1,
-        rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: Math.min(x.usosMaximos ?? 1, (x.usosRestantes ?? 0) + 1) } : x) };
+        rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: Math.min(x.usosMaximos ?? 1, (x.usosRestantes ?? x.usosMaximos ?? 0) + 1) } : x) };
     });
   },
 gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {

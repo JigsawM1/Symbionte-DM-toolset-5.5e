@@ -22,9 +22,8 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tarjeta" }: {
   rasgo: RasgoPersonaje; idPersonaje?: string; vista?: "tarjeta" | "detalle";
 }) {
-  const personajes = usarAlmacenDM(s => s.personajes);
+  const pj = usarAlmacenDM(s => s.personajes.find(p => p.id === idPersonaje));
   const { objetosHomebrew } = usarEstadoHomebrew();
-  const pj = personajes.find(p => p.id === idPersonaje);
   const [mostrar, setMostrar] = useState(false);
   const [dados, setDados] = useState(1);
   const [enCurso, setEnCurso] = useState(false);
@@ -40,7 +39,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
   const padre = resolverRasgoRecurso(rasgo, pj.rasgos);
   const maxDados = curacion ? Math.min(restantes, Math.max(1, evaluarExpresionNumericaSegura(
     resolverFormulaDinamica(curacion.maxDados, pj, rasgo.fuente)))) : 1;
-  const estadisticas = rasgo.salvacionObjetivo ? calcularEstadisticasPersonaje(pj) : undefined;
+  const estadisticas = rasgo.salvacionObjetivo ? calcularEstadisticasPersonaje(pj, objetosHomebrew) : undefined;
   const cd = rasgo.salvacionObjetivo && estadisticas
     ? 8 + estadisticas.bonoCompetencia + estadisticas.modificadores[rasgo.salvacionObjetivo.aptitud] : undefined;
   const lanzar = async () => {

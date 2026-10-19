@@ -549,6 +549,16 @@ export async function lanzarDadosTaleSpire(
 
   // 1. Obtener tipo de tirada (ventaja, desventaja, plano) del Zustand o forzado
   const state = usarAlmacenDM.getState();
+  if (metaDadoGolpe) {
+    const pj = state.personajes.find((p) => p.id === metaDadoGolpe.personajeId);
+    const enVuelo = Object.values(tiradasDadoGolpeActivas).filter(
+      (t) => t.personajeId === metaDadoGolpe.personajeId
+    ).length;
+    if (!pj || pj.dadosGolpeRestantes - enVuelo <= 0) {
+      logger.warn(`[Lanzador Dados] Tirada de Dado de Golpe bloqueada: sin dados disponibles (${enVuelo} en vuelo).`);
+      return false;
+    }
+  }
   const tipoTiradaGlobal = state.tipoTirada;
   const establecerTipoTirada = state.establecerTipoTirada;
 
@@ -916,6 +926,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
   if (!infoTirada && infoIniciativaPlana) {
+    delete tiradasIniciativaActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado de iniciativa plana para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -927,12 +938,12 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error al evaluar iniciativa plana:", error);
       }
     }
-    delete tiradasIniciativaActivas[rollId];
     return false; // Permitir que TaleSpire muestre su tarjeta nativa de chat
   }
 
   // Caso 2: Tirada de salvación de muerte plana nativa (esperando a que los dados 3D caigan)
   if (!infoTirada && infoSalvacionMuertePlana) {
+    delete tiradasSalvacionMuerteActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de salvación contra la muerte para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -944,7 +955,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error al evaluar resultado 3D de salvación de muerte:", error);
       }
     }
-    delete tiradasSalvacionMuerteActivas[rollId];
     return false;
   }
 
@@ -970,6 +980,7 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   // Caso 4: Tirada de HP temporal de rasgo 3D (ej. Manto de inspiración)
   const infoHpTemporalRasgo = tiradasHpTemporalRasgoActivas[rollId];
   if (!infoTirada && infoHpTemporalRasgo) {
+    delete tiradasHpTemporalRasgoActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de HP temporal de rasgo para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -982,13 +993,13 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error al evaluar resultado 3D de HP temporal de rasgo:", error);
       }
     }
-    delete tiradasHpTemporalRasgoActivas[rollId];
     return false;
   }
 
   // Caso 5: Tirada de Dado de Golpe 3D (descuenta el dado y notifica el resultado sin curar HP)
   const infoDadoGolpe = tiradasDadoGolpeActivas[rollId];
   if (!infoTirada && infoDadoGolpe) {
+    delete tiradasDadoGolpeActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de dado de golpe para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -1003,7 +1014,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error al evaluar resultado 3D de dado de golpe:", error);
       }
     }
-    delete tiradasDadoGolpeActivas[rollId];
     return false;
   }
 
@@ -1011,10 +1021,16 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     return false;
   }
   
+  // Reclamación atómica antes de cualquier await para impedir doble procesamiento de rollId
+  delete tiradasEspecialesActivas[rollId];
+  const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
+  if (infoIniciativaEspecial) delete tiradasIniciativaActivas[rollId];
+  const infoMuerteEspecial = tiradasSalvacionMuerteActivas[rollId];
+  if (infoMuerteEspecial) delete tiradasSalvacionMuerteActivas[rollId];
+
   logger.debug(`[Lanzador Dados] Interceptada tirada especial ${rollId} de tipo ${infoTirada.tipo}`);
   
   if (!resultsGroups || resultsGroups.length === 0) {
-    delete tiradasEspecialesActivas[rollId];
     return false;
   }
   
@@ -1056,7 +1072,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
         logger.error("[Lanzador Dados] Error enviando fallback directo a sendDiceResult:", eEnvio);
         await ts.chat.send(`[${infoTirada.etiquetaOriginal}] Tirada completada.`);
       }
-      delete tiradasEspecialesActivas[rollId];
       return false;
     }
     
@@ -1134,22 +1149,17 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     }
     
     // Si esta tirada especial también era para iniciativa, actualizamos la criatura
-    const infoIniciativaEspecial = tiradasIniciativaActivas[rollId];
     if (infoIniciativaEspecial) {
       logger.debug(`[Lanzador Dados] Iniciativa especial obtenida: ${totalElegido}`);
       aplicarResultadoIniciativaEnEstado(infoIniciativaEspecial, totalFinal);
-      delete tiradasIniciativaActivas[rollId];
     }
 
     // Si esta tirada especial también era para salvación contra la muerte, actualizamos el personaje
-    const infoMuerteEspecial = tiradasSalvacionMuerteActivas[rollId];
     if (infoMuerteEspecial) {
       logger.debug(`[Lanzador Dados] Salvación de muerte especial 3D obtenida: ${totalElegido} para el personaje ${infoMuerteEspecial.personajeId}`);
       aplicarResultadoSalvacionMuerteEnEstado(infoMuerteEspecial.personajeId, totalElegido);
-      delete tiradasSalvacionMuerteActivas[rollId];
     }
     
-    delete tiradasEspecialesActivas[rollId];
     return true;
   } catch (error) {
     logger.error("[Lanzador Dados] Error al procesar tirada especial:", error);
@@ -1159,7 +1169,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
     } catch (chatError) {
       logger.debug("[Lanzador Dados] No se pudo enviar el mensaje de error por chat a TaleSpire:", chatError);
     }
-    delete tiradasEspecialesActivas[rollId];
     return false;
   }
 }

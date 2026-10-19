@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import type { HechizoBase } from "@/tipos";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import {
@@ -62,6 +62,7 @@ export function usarLanzamientoTarjetaConjuro({
   alLanzarGratis
 }: ParametrosLanzamientoTarjeta) {
   const esTruco = hechizo.nivel === 0;
+  const enCursoRef = useRef(false);
 
   const opcionesLanzamiento = useMemo(() => {
     return obtenerOpcionesLanzamientoConjuro({
@@ -99,9 +100,9 @@ export function usarLanzamientoTarjetaConjuro({
   }, [opcionesLanzamiento, nivelUpcast]);
 
   const manejarLanzamientoRapido = async () => {
+    if (bloqueadoPorArmadura || enCursoRef.current) return;
+    enCursoRef.current = true;
     try {
-      if (bloqueadoPorArmadura) return;
-
       if (alLanzar) {
         await alLanzar(esTruco ? "truco" : "espacio", nivelUpcast);
         return;
@@ -135,7 +136,8 @@ export function usarLanzamientoTarjetaConjuro({
         etiquetaLog = resultadoEspacio.etiquetaLog;
       }
 
-      await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      if (emitida === false) return;
 
       if (!esTruco) {
         gastarRecursoLanzamientoConjuro({
@@ -158,13 +160,15 @@ export function usarLanzamientoTarjetaConjuro({
       }
     } catch (err) {
       logger.error("[TarjetaConjuroCompacta] Error al lanzar conjuro:", err);
+    } finally {
+      enCursoRef.current = false;
     }
   };
 
   const manejarLanzamientoRitual = async () => {
+    if (bloqueadoPorArmadura || enCursoRef.current) return;
+    enCursoRef.current = true;
     try {
-      if (bloqueadoPorArmadura) return;
-
       if (alLanzar) {
         await alLanzar("ritual", nivelUpcast);
         return;
@@ -177,19 +181,23 @@ export function usarLanzamientoTarjetaConjuro({
         : `!Lanzar Ritual:${sanitizarEtiqueta(hechizo.nombre)} (+10 min)`;
       const etiquetaLog = `${nombrePj} - ${hechizo.nombre} (RITUAL - 10 min)`;
 
-      await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      if (emitida === false) return;
 
       if (hechizo.concentracion && alEstablecerConcentracion) {
         alEstablecerConcentracion(hechizo.id, hechizo.nombre);
       }
     } catch (err) {
       logger.error("[TarjetaConjuroCompacta] Error al lanzar ritual:", err);
+    } finally {
+      enCursoRef.current = false;
     }
   };
 
   const manejarLanzamientoGratis = async () => {
+    if (bloqueadoPorArmadura || enCursoRef.current) return;
+    enCursoRef.current = true;
     try {
-      if (bloqueadoPorArmadura) return;
       if (alLanzarGratis) {
         await alLanzarGratis();
         return;
@@ -206,13 +214,16 @@ export function usarLanzamientoTarjetaConjuro({
         : `!Lanzar Gratis:${sanitizarEtiqueta(hechizo.nombre)} (1/DL)`;
       const etiquetaLog = `${nombrePj} - ${hechizo.nombre} (GRATUITO INNATO 1/DL)`;
 
-      await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
+      if (emitida === false) return;
 
       if (hechizo.concentracion && alEstablecerConcentracion) {
         alEstablecerConcentracion(hechizo.id, hechizo.nombre);
       }
     } catch (err) {
       logger.error("[TarjetaConjuroCompacta] Error al lanzar conjuro gratuito:", err);
+    } finally {
+      enCursoRef.current = false;
     }
   };
 

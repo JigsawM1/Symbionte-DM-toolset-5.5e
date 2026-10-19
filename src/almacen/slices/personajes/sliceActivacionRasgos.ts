@@ -140,46 +140,34 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         const rNom = r.nombre.toLowerCase().trim();
 
         // Apagar en cascada
-        if (idsHijosADesactivar.has(r.id)) {
-          return { ...r, activo: false };
-        }
+        if (idsHijosADesactivar.has(r.id)) return { ...r, activo: false };
 
         // Restauración configurable
         if (nuevoActivo && restauracion && (r.id === restauracion.idRasgoObjetivo || rNom === restauracion.idRasgoObjetivo.toLowerCase().trim())) {
           const max = typeof r.usosMaximos === "number" ? r.usosMaximos : (r.usosRestantes ?? 1);
-          let cantidadRestaurar: number;
-          if (typeof restauracion.hastaCantidad === "number") {
-            cantidadRestaurar = Math.min(max, Math.max(r.usosRestantes || 0, restauracion.hastaCantidad));
-          } else if (restauracion.cantidad === "maximo") {
-            cantidadRestaurar = max;
-          } else {
-            cantidadRestaurar = Math.min(max, (r.usosRestantes || 0) + (restauracion.cantidad || 0));
-          }
+          const actuales = r.usosRestantes ?? r.usosMaximos ?? 0;
+          const cantidadRestaurar = typeof restauracion.hastaCantidad === "number"
+            ? Math.min(max, Math.max(actuales, restauracion.hastaCantidad))
+            : restauracion.cantidad === "maximo" ? max : Math.min(max, actuales + (restauracion.cantidad || 0));
           return { ...r, usosRestantes: cantidadRestaurar };
         }
 
         if (pagoAlternativo && r.id === pagoAlternativo.recurso.id) return { ...r, usosRestantes: (r.usosRestantes ?? r.usosMaximos ?? 0) - pagoAlternativo.coste };
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && !pagoAlternativo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && !r.gastarUsoTrasTirada && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
-            usosRest = Math.max(0, r.usosRestantes - 1);
+          if (nuevoActivo && !pagoAlternativo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && !r.gastarUsoTrasTirada && r.tieneUsosLimitados) {
+            const actuales = r.usosRestantes ?? r.usosMaximos ?? 0;
+            usosRest = Math.max(0, actuales - (r.costeFijo ?? 1));
           }
           const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
-          return {
-            ...r,
-            activo: debeAutoDesactivar ? false : nuevoActivo,
-            usosRestantes: usosRest
-          };
+          return { ...r, activo: debeAutoDesactivar ? false : nuevoActivo, usosRestantes: usosRest };
         }
 
-        // Si este elemento es el rasgo padre del activado, descontar 1 uso al activar
+        // Si este elemento es el rasgo padre del activado, descontar usos al activar
         if (nuevoActivo && targetTrait.gastarDePadre && idObjetivoGasto && r.id === idObjetivoGasto && r.tieneUsosLimitados) {
           const maxUsos = r.formulaEscalado ? calcularUsosMaximosRasgo(r, pj) : (r.usosMaximos ?? 1);
           const restantes = r.usosRestantes ?? maxUsos;
-          return {
-            ...r,
-            usosRestantes: Math.max(0, restantes - coste)
-          };
+          return { ...r, usosRestantes: Math.max(0, restantes - coste) };
         }
 
         return r;
@@ -191,37 +179,22 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         efectosActualizados = efectosActualizados.filter(e => !retiradas.has(claveEstado(e.nombre)));
       }
       const pjPrevio = activarOpcionales({
-        ...pj,
-        rasgos: rasgosActualizados,
-        condicionesActivas: condicionesActualizadas,
-        efectosActivos: efectosActualizados
+        ...pj, rasgos: rasgosActualizados, condicionesActivas: condicionesActualizadas, efectosActivos: efectosActualizados
       }, idRasgo, nuevoActivo ? decisiones : undefined, get().rondaActual || 1);
-      const tieneAprendiz = tieneMedioBonoHabilidades(pjPrevio);
-      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
-        pj.gradosHabilidades,
-        tieneAprendiz
-      );
+      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(pj.gradosHabilidades, tieneMedioBonoHabilidades(pjPrevio));
 
       const tieneEfectoHP = (targetTrait.efectos || []).some((e) => e.tipo === "modificador_hp_maximo");
       let hpMaximo = pj.hpMaximo;
       let hpActual = pj.hpActual;
       let hpMaximoBase = pj.hpMaximoBase;
       if (tieneEfectoHP) {
-        const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
-        const bonoNuevo = calcularBonoHPMaximoRasgos(pjPrevio);
-        const deltaBono = bonoNuevo - bonoPrevio;
+        const deltaBono = calcularBonoHPMaximoRasgos(pjPrevio) - calcularBonoHPMaximoRasgos(pj);
         hpMaximoBase = Math.max(1, (pj.hpMaximoBase || pj.hpMaximo || 10) + deltaBono);
         hpMaximo = Math.max(1, (pj.hpMaximo || 1) + deltaBono);
         hpActual = Math.min(hpActual + (deltaBono > 0 ? deltaBono : 0), hpMaximo);
       }
 
-      return {
-        ...pjPrevio,
-        hpMaximoBase,
-        hpMaximo,
-        hpActual,
-        gradosHabilidades: gradosActualizados
-      };
+      return { ...pjPrevio, hpMaximoBase, hpMaximo, hpActual, gradosHabilidades: gradosActualizados };
     });
 
     const state = get();
@@ -230,23 +203,19 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       if (pjActualizado) {
         const nombreNorm = (pjActualizado.nombre || "").trim().toLowerCase();
         const nuevaCola = state.colaIniciativa.map((c) => {
-          const coincide =
-            c.id === pjActualizado.id ||
+          const coincide = c.id === pjActualizado.id ||
             (pjActualizado.idMiniaturaTS && c.id === pjActualizado.idMiniaturaTS) ||
             (nombreNorm && c.nombre.trim().toLowerCase() === nombreNorm);
           if (!coincide) return c;
 
           const efectosPj = pjActualizado.efectosActivos || [];
           const nombresEfectos = new Set(efectosPj.map((e) => e.nombre.toLowerCase().trim()));
-          const tieneEfectoConcentracion = efectosPj.some(
-            (ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra")
-          );
+          const tieneEfectoConcentracion = efectosPj.some((ef) => ef.concentracion || ef.nombre.toLowerCase().startsWith("concentra"));
           const condicionesSinDuplicados = (pjActualizado.condicionesActivas || []).filter((cond) => {
             const cNorm = cond.toLowerCase().trim();
             const cBase = cond.split(" (")[0].toLowerCase().trim();
             if (tieneEfectoConcentracion && cNorm.includes("concentra")) return false;
-            if (nombresEfectos.has(cNorm) || nombresEfectos.has(cBase)) return false;
-            return true;
+            return !nombresEfectos.has(cNorm) && !nombresEfectos.has(cBase);
           });
 
           return { ...c, condiciones: condicionesSinDuplicados, efectos: efectosPj };
@@ -256,24 +225,19 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
     }
   },
 
-dispararRasgosIniciativaPersonaje: (idPj: string) => {
+  dispararRasgosIniciativaPersonaje: (idPj: string) => {
     mutarPersonaje(set, idPj, (pj) => {
       if (!Array.isArray(pj.rasgos) || pj.rasgos.length === 0) return pj;
 
       let huboCambios = false;
       const disparados = new Set<string>();
       const rasgosActualizados = pj.rasgos.map((r) => {
-        if (!r.dispararAlTirarIniciativa) {
-          return r;
-        }
+        if (!r.dispararAlTirarIniciativa) return r;
 
-        // Si es activable, solo se dispara si está actualmente activo
         const estaHabilitado = r.esActivable ? r.activo : true;
-        const tieneUsos = !r.tieneUsosLimitados || (typeof r.usosRestantes === "number" && r.usosRestantes > 0);
-
-        if (!estaHabilitado || !tieneUsos) {
-          return r;
-        }
+        const restantes = r.usosRestantes ?? r.usosMaximos ?? 0;
+        const tieneUsos = !r.tieneUsosLimitados || restantes >= (r.costeFijo ?? 1);
+        if (!estaHabilitado || !tieneUsos) return r;
 
         const cfg = r.restaurarUsosAlActivar;
         if (cfg) {
@@ -289,67 +253,43 @@ dispararRasgosIniciativaPersonaje: (idPj: string) => {
         huboCambios = true;
         disparados.add(r.id);
 
-        let usosRest = r.usosRestantes;
-        if (r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
-          usosRest = Math.max(0, r.usosRestantes - 1);
-        }
-
+        const usosRest = r.tieneUsosLimitados ? Math.max(0, restantes - (r.costeFijo ?? 1)) : r.usosRestantes;
         const debeAutoDesactivar = Boolean(r.autoDesactivar || r.esActivable);
 
-        return {
-          ...r,
-          activo: debeAutoDesactivar ? false : r.activo,
-          usosRestantes: usosRest
-        };
+        return { ...r, activo: debeAutoDesactivar ? false : r.activo, usosRestantes: usosRest };
       });
 
       if (!huboCambios) return pj;
 
       // Aplicar restauraciones declarativas de recursos para los rasgos que se dispararon
       const rasgosDisparados = pj.rasgos.filter(r => disparados.has(r.id) && r.restaurarUsosAlActivar);
-
       for (const rd of rasgosDisparados) {
-        if (rd.restaurarUsosAlActivar) {
-          const cfg = rd.restaurarUsosAlActivar;
-          if (cfg.siNoDisparado) {
-            const siNoNorm = cfg.siNoDisparado.toLowerCase().trim();
-            const otroDisparado = rasgosDisparados.some(
-              (x) => x.id.toLowerCase().trim() === siNoNorm || x.nombre.toLowerCase().trim() === siNoNorm
-            );
-            if (otroDisparado) {
-              continue;
-            }
-          }
+        const cfg = rd.restaurarUsosAlActivar;
+        if (!cfg) continue;
+        if (cfg.siNoDisparado) {
+          const siNoNorm = cfg.siNoDisparado.toLowerCase().trim();
+          const otroDisparado = rasgosDisparados.some(
+            (x) => x.id.toLowerCase().trim() === siNoNorm || x.nombre.toLowerCase().trim() === siNoNorm
+          );
+          if (otroDisparado) continue;
+        }
 
-          const targetId = cfg.idRasgoObjetivo.toLowerCase().trim();
-          for (let i = 0; i < rasgosActualizados.length; i++) {
-            const tr = rasgosActualizados[i];
-            if (tr.id.toLowerCase().trim() === targetId || tr.nombre.toLowerCase().trim() === targetId) {
-              if (typeof cfg.soloSiMenorOIgual === "number" && (tr.usosRestantes || 0) > cfg.soloSiMenorOIgual) {
-                continue;
-              }
-              const max = typeof tr.usosMaximos === "number" ? tr.usosMaximos : (tr.usosRestantes ?? 1);
-              let cantRestaurar: number;
-              if (typeof cfg.hastaCantidad === "number") {
-                cantRestaurar = Math.min(max, Math.max(tr.usosRestantes || 0, cfg.hastaCantidad));
-              } else if (cfg.cantidad === "maximo") {
-                cantRestaurar = max;
-              } else {
-                cantRestaurar = Math.min(max, (tr.usosRestantes || 0) + (cfg.cantidad || 0));
-              }
-              rasgosActualizados[i] = {
-                ...tr,
-                usosRestantes: cantRestaurar
-              };
-            }
+        const targetId = cfg.idRasgoObjetivo.toLowerCase().trim();
+        for (let i = 0; i < rasgosActualizados.length; i++) {
+          const tr = rasgosActualizados[i];
+          if (tr.id.toLowerCase().trim() === targetId || tr.nombre.toLowerCase().trim() === targetId) {
+            const actualesTr = tr.usosRestantes ?? tr.usosMaximos ?? 0;
+            if (typeof cfg.soloSiMenorOIgual === "number" && actualesTr > cfg.soloSiMenorOIgual) continue;
+            const max = typeof tr.usosMaximos === "number" ? tr.usosMaximos : (tr.usosRestantes ?? 1);
+            const cantRestaurar = typeof cfg.hastaCantidad === "number"
+              ? Math.min(max, Math.max(actualesTr, cfg.hastaCantidad))
+              : cfg.cantidad === "maximo" ? max : Math.min(max, actualesTr + (cfg.cantidad || 0));
+            rasgosActualizados[i] = { ...tr, usosRestantes: cantRestaurar };
           }
         }
       }
 
-      return {
-        ...pj,
-        rasgos: rasgosActualizados
-      };
+      return { ...pj, rasgos: rasgosActualizados };
     });
   }
 });

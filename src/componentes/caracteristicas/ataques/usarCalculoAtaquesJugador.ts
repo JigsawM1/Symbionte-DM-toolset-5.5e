@@ -37,6 +37,7 @@ import {
 } from "@/servicios/calculadorAccionesCombate";
 import { verificarHechizoDeSubclase } from "@/servicios/logicaPertenenciaConjuros";
 import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
+import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
 import {
   obtenerBloqueoToggleRasgo,
   resolverRecursosPadre,
@@ -414,7 +415,10 @@ export function usarCalculoAtaquesJugador() {
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
-    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => obtenerBloqueoToggleRasgo(r, furiaEstaActiva),
+    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => {
+      const bloqueoFuria = obtenerBloqueoToggleRasgo(r, furiaEstaActiva);
+      return bloqueoFuria.bloqueado ? bloqueoFuria : obtenerBloqueoActivacionRasgo(personajeActivo, r);
+    },
     resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r),
     obtenerNivelEfectivoParaRasgo: (r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r),
     manejarCambiarCaracteristicaArma,

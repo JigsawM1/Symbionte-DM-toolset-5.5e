@@ -239,6 +239,24 @@ class PuenteTaleSpireClass {
     };
 
     // sync.onSyncMessage → syncMessageReceived { str, fromClient } (con extracción robusta multiformato)
+    const parsearJsonSeguro = (cadena: string, contexto: string): unknown => {
+      try {
+        return JSON.parse(cadena);
+      } catch (err) {
+        logger.debug(`[Puente TaleSpire] JSON no válido en ${contexto}:`, err);
+        return null;
+      }
+    };
+
+    const serializarJsonSeguro = (obj: unknown, contexto: string): string => {
+      try {
+        return JSON.stringify(obj);
+      } catch (err) {
+        logger.debug(`[Puente TaleSpire] Error serializando a JSON en ${contexto}:`, err);
+        return "";
+      }
+    };
+
     const procesarMensajeSyncExtraccion = (evento: unknown, clienteParam?: unknown) => {
       logger.debug("[Puente TaleSpire] Mensaje sync recibido en puente:", evento, clienteParam);
 
@@ -250,11 +268,7 @@ class PuenteTaleSpireClass {
       // 1. Si el primer argumento es un string JSON o plano
       if (typeof evento === "string") {
         str = evento;
-        try {
-          datos = JSON.parse(str);
-        } catch {
-          datos = null;
-        }
+        datos = parsearJsonSeguro(str, "evento como string");
       } else if (evento && typeof evento === "object") {
         const ev = evento as Record<string, unknown>;
 
@@ -264,21 +278,13 @@ class PuenteTaleSpireClass {
           if (ev.fromClient && typeof ev.fromClient === "object") {
             fromClient = ev.fromClient as FragmentoCliente;
           }
-          try {
-            datos = JSON.parse(str);
-          } catch {
-            datos = null;
-          }
+          datos = parsearJsonSeguro(str, "ev.str");
         }
         // 3. Wrapper de evento { kind: "syncMessageReceived", payload: ... }
         else if (ev.kind === "syncMessageReceived" && ev.payload) {
           if (typeof ev.payload === "string") {
             str = ev.payload;
-            try {
-              datos = JSON.parse(str);
-            } catch {
-              datos = null;
-            }
+            datos = parsearJsonSeguro(str, "ev.payload string");
           } else if (typeof ev.payload === "object") {
             const p = ev.payload as Record<string, unknown>;
             if (typeof p.str === "string") {
@@ -286,39 +292,23 @@ class PuenteTaleSpireClass {
               if (p.fromClient && typeof p.fromClient === "object") {
                 fromClient = p.fromClient as FragmentoCliente;
               }
-              try {
-                datos = JSON.parse(str);
-              } catch {
-                datos = null;
-              }
+              datos = parsearJsonSeguro(str, "p.str en ev.payload");
             } else {
               datos = p;
-              try {
-                str = JSON.stringify(p);
-              } catch {
-                str = "";
-              }
+              str = serializarJsonSeguro(p, "p objeto en ev.payload");
             }
           }
         }
         // 4. Payload deserializado directamente con estructura { t, v }
         else if ("t" in ev && "v" in ev) {
           datos = ev;
-          try {
-            str = JSON.stringify(ev);
-          } catch {
-            str = "";
-          }
+          str = serializarJsonSeguro(ev, "ev con estructura { t, v }");
         }
       }
 
       // Si tenemos datos como objeto que aún no se parsearon pero tenemos str
       if (!datos && str) {
-        try {
-          datos = JSON.parse(str);
-        } catch (e) {
-          logger.warn("[Puente TaleSpire] Error parseando JSON en mensajeSync:", e);
-        }
+        datos = parsearJsonSeguro(str, "fallback final con str");
       }
 
       if (datos) {

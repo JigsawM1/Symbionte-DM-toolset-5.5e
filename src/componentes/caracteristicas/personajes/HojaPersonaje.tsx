@@ -1,499 +1,82 @@
-import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
-import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
-import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  usarPersonajeActivo,
-  usarAccionesPersonajes,
-  calcularEstadisticasPersonaje
-} from "@/almacen/selectores/usarEstadoPersonajes";
-import {
-  usarTipoTirada,
-  usarSistemaMagia,
-  usarPestanaActiva
-} from "@/almacen/selectores/usarEstadoConfiguracion";
-import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
-import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
-import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
-import { ts } from "@/utiles/TaleSpireAdapter";
-import { logger } from "@/utiles/logger";
-import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
-import {
-  calcularBonoIniciativaRasgos,
-  evaluarVentajasDeRasgosEnTirada
-} from "@/servicios/evaluadorEfectosRasgos";
-import type { Caracteristica, Habilidad } from "@/tipos";
-
+import React from "react";
 import { CabeceraPersonaje } from "./CabeceraPersonaje";
-import { BarraTacticaPersonaje, ModoTirada } from "./BarraTacticaPersonaje";
+import { BarraTacticaPersonaje } from "./BarraTacticaPersonaje";
 import { MetricasRapidasPersonaje } from "./MetricasRapidasPersonaje";
 import { PanelVitalidadPersonaje } from "./PanelVitalidadPersonaje";
 import { PanelAtributosPersonaje } from "./PanelAtributosPersonaje";
 import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
 import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
 import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
-import { ModalSelectorCompetencias, type CategoriaCompetencia } from "./ModalSelectorCompetencias";
+import { ModalSelectorCompetencias } from "./ModalSelectorCompetencias";
 import { ModalResumenDescanso } from "./ModalResumenDescanso";
-import type { AccionDescanso } from "@/servicios/procesadorDescansos";
 import { BotonSubPestana } from "./BotonSubPestana";
-import { usarEstadoPersistido } from "@/hooks";
+import { usarHojaPersonaje } from "./usarHojaPersonaje";
 import { Swords, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
-
-type SubPestanaHoja = "general" | "conjuros";
 
 interface HojaPersonajeProps {
   alAbrirConfiguracion?: () => void;
 }
 
 export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguracion }) => {
-  const personajeActivo = usarPersonajeActivo();
-  const tipoTirada = usarTipoTirada();
-  const sistemaMagia = usarSistemaMagia();
-  const pestañaActiva = usarPestanaActiva();
-  const { baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
   const {
+    personajeActivo,
+    statsCalculadas,
+    sistemaMagia,
+    baseDatosHechizos,
+    rondaActual,
+    modoTirada,
+    modalEdicionAbierto,
+    setModalEdicionAbierto,
+    modalCompetencias,
+    setModalCompetencias,
+    modalDescanso,
+    setModalDescanso,
+    subPestanaActiva,
+    setSubPestanaActiva,
+    totalConjurosYTrucos,
     actualizarPersonaje,
-    modificarHPPersonaje,
-    establecerHPActualPersonaje,
-    modificarHPMaximoEfectivoPersonaje,
-    modificarHPTemporalPersonaje,
-    establecerDadosGolpeRestantesPersonaje,
-    ejecutarDescansoPersonaje,
     alternarInspiracionPersonaje,
-    establecerSalvacionesMuertePersonaje,
-    reiniciarSalvacionesMuertePersonaje,
-    modificarCansancioPersonaje,
-    modificarCaracteristicaBasePersonaje,
-    alternarSalvacionPersonaje,
-    ciclarGradoHabilidadPersonaje,
     aplicarCondicionPersonaje,
     quitarCondicionPersonaje,
-    vincularMiniaturaTSPersonaje,
-    establecerPosicionInicialTSPersonaje,
-
-    // Acciones de magia
-    gastarEspacioConjuro,
-    recuperarEspacioConjuro,
-    recuperarTodosEspaciosConjuro,
-    gastarPuntosConjuro,
-    recuperarPuntosConjuro,
-    recuperarTodosPuntosConjuro,
-    gastarEspacioPacto,
-    recuperarEspaciosPacto,
-    establecerConcentracion,
-    romperConcentracion,
-    quitarTrucoConocido,
-    alternarConjuroPreparado,
-    desprepararConjuroPersonaje,
     quitarEfectoPersonaje,
-    dispararRasgosIniciativaPersonaje
-  } = usarAccionesPersonajes();
-
-  const { establecerTipoTirada } = usarAccionesIniciativa();
-  const { rondaActual } = usarEstadoIniciativa();
-
-  const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
-  const [modalCompetencias, setModalCompetencias] = useState<CategoriaCompetencia | null>(null);
-  const [modalDescanso, setModalDescanso] = useState<{
-    abierto: boolean;
-    tipo: "corto" | "largo";
-    acciones: AccionDescanso[];
-  }>({
-    abierto: false,
-    tipo: "corto",
-    acciones: []
-  });
-  const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
-    "ts_hoja_subpestana",
-    "general"
-  );
-
-  // Precargar posición inicial de TaleSpire si el personaje tiene miniatura vinculada pero no posición base
-  useEffect(() => {
-    if (!personajeActivo?.idMiniaturaTS || personajeActivo.ultimaPosicionTS) return;
-
-    ts.creatures
-      .getMoreInfo([personajeActivo.idMiniaturaTS])
-      .then((infos) => {
-        if (infos && infos.length > 0 && infos[0]?.position) {
-          logger.info(
-            `[HojaPersonaje] Posición física inicial detectada para '${personajeActivo.nombre}':`,
-            infos[0].position
-          );
-          establecerPosicionInicialTSPersonaje(
-            personajeActivo.id,
-            infos[0].position,
-            infos[0].boardId
-          );
-        }
-      })
-      .catch((err) => {
-        logger.debug("[HojaPersonaje] Error al precargar posición de miniatura:", err);
-      });
-  }, [
-    personajeActivo?.id,
-    personajeActivo?.idMiniaturaTS,
-    personajeActivo?.ultimaPosicionTS,
-    personajeActivo?.nombre,
-    establecerPosicionInicialTSPersonaje
-  ]);
-
-  // Sincronización explícita si se pulsa la pestaña dedicada "conjuros"
-  useEffect(() => {
-    if (pestañaActiva === "conjuros") {
-      setSubPestanaActiva("conjuros");
-    }
-  }, [pestañaActiva, setSubPestanaActiva]);
-
-  const manejarAbrirEdicion = useCallback(() => {
-    if (alAbrirConfiguracion) {
-      alAbrirConfiguracion();
-    } else {
-      setModalEdicionAbierto(true);
-    }
-  }, [alAbrirConfiguracion]);
-
-  // 1. Calcular estadísticas derivadas memoizadas con O(1)
-  const statsCalculadas = useMemo(
-    () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew) : null),
-    [personajeActivo, objetosHomebrew]
-  );
-
-  // 2. Mapeo reactivo del modo de tirada desde el estado global de Zustand
-  const modoTirada: ModoTirada = useMemo(
-    () => (tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano"),
-    [tipoTirada]
-  );
-
-  const manejarCambioModoTirada = useCallback((modo: ModoTirada) => {
-    const tipoGlobal = modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano";
-    establecerTipoTirada(tipoGlobal);
-  }, [establecerTipoTirada]);
-
-  const manejarDescansoCorto = useCallback(() => {
-    if (!personajeActivo) return;
-    const res = ejecutarDescansoPersonaje(personajeActivo.id, "corto", 0);
-    setModalDescanso({
-      abierto: true,
-      tipo: "corto",
-      acciones: res?.acciones || []
-    });
-  }, [personajeActivo, ejecutarDescansoPersonaje]);
-
-  const manejarDescansoLargo = useCallback(() => {
-    if (!personajeActivo) return;
-    const res = ejecutarDescansoPersonaje(personajeActivo.id, "largo");
-    setModalDescanso({
-      abierto: true,
-      tipo: "largo",
-      acciones: res?.acciones || []
-    });
-  }, [personajeActivo, ejecutarDescansoPersonaje]);
-
-  // 3. Lanzadores de Dados 3D a TaleSpire (Homologados con el Combat Tracker del DM)
-  const lanzarTiradaD20Personaje = useCallback(async (
-    etiqueta: string,
-    bono: number,
-    metaIniciativa?: MetadataIniciativa,
-    tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
-    sufijoMotivo?: string,
-    objetivoRasgo?: string
-  ) => {
-    if (!personajeActivo) return false;
-    try {
-      const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
-      const formulaDados = `!${sanitizarEtiqueta(etiqueta)}:1d20${bono >= 0 ? "+" : ""}${bono}${objetivoRasgo ? dadosAdicionalesTirada(personajeActivo, objetivoRasgo) : ""}`;
-      
-      const tieneVentManual = tipoTirada === "ventaja";
-      const tieneDisvManual = tipoTirada === "desventaja";
-      const tieneVentCond = tipoTiradaCondicion === "ventaja";
-      const tieneDisvCond = tipoTiradaCondicion === "desventaja";
-      
-      const seAnulan = (tieneVentManual && tieneDisvCond) || (tieneDisvManual && tieneVentCond);
-
-      let sufijoLog = "";
-      if (seAnulan) {
-        sufijoLog = " (Ventaja y Desventaja se anulan -> Tirada Plana)";
-      } else if (sufijoMotivo && tipoTirada === "plano") {
-        sufijoLog = ` (${sufijoMotivo})`;
-      }
-
-      const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
-      
-      const emitir = () => lanzarDadosTaleSpire(
-        formulaDados,
-        etiquetaLog,
-        metaIniciativa,
-        undefined,
-        tipoTiradaCondicion
-      );
-      return await emitirTiradaConRasgos(personajeActivo, objetivoRasgo ?? "d20", emitir, (id, consumir) => {
-        const estado = usarAlmacenDM.getState();
-        if (consumir) estado.operarRecursoRasgoPersonaje(personajeActivo.id, { tipo: "finalizarPreparacion", idRasgo: id });
-        else if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
-          estado.alternarActivoRasgo(personajeActivo.id, id);
-      });
-    } catch (err) {
-      logger.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
-      return false;
-    }
-  }, [personajeActivo, tipoTirada]);
-
-  const penalizacionSinComp = !!statsCalculadas?.penalizacionArmadura?.sinCompetencia;
-  const desventajaSigiloArmadura = !!statsCalculadas?.desventajaSigiloArmadura;
-
-  const manejarTirarCaracteristica = useCallback((carac: Caracteristica, etiqueta: string, bono: number) => {
-    if (!personajeActivo) return;
-    const evaluacion = evaluarEfectosCondicionesEnTirada({
-      tipo: "caracteristica",
-      caracteristica: carac,
-      penalizacionArmadura: penalizacionSinComp,
-      desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas,
-      personaje: personajeActivo
-    });
-    const bonoFinal = bono + evaluacion.penalizadorD20;
-    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
-    lanzarTiradaD20Personaje(
-      `Prueba de ${etiqueta}`,
-      bonoFinal,
-      undefined,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      motivos
-    );
-  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
-
-  const manejarTirarSalvacion = useCallback(async (carac: Caracteristica, etiqueta: string, bono: number) => {
-    if (!personajeActivo) return;
-    const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
-    const evaluacion = evaluarEfectosCondicionesEnTirada({
-      tipo: "salvacion",
-      caracteristica: carac,
-      penalizacionArmadura: penalizacionSinComp,
-      desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas,
-      personaje: personajeActivo
-    });
-    const bonoFinal = bono + evaluacion.penalizadorD20;
-    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
-    await emitirSalvacionConRasgos(personajeActivo, () => lanzarTiradaD20Personaje(
-      `Salvación de ${etiquetaLimpia}`, bonoFinal, undefined,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined, motivos
-    ), idRasgo => {
-      const estado = usarAlmacenDM.getState();
-      const actual = estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === idRasgo);
-      if (actual?.activo) estado.alternarActivoRasgo(personajeActivo.id, idRasgo);
-    }, idRasgo => usarAlmacenDM.getState().gastarUsoRasgoPersonaje(personajeActivo.id, idRasgo));
-  }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
-
-  const manejarTirarHabilidad = useCallback((hab: Habilidad, nombre: string, bono: number, caracteristica?: Caracteristica) => {
-    if (!personajeActivo || !statsCalculadas) return;
-    const tirada = resolverTiradaHabilidadRasgos(personajeActivo, hab, statsCalculadas.modificadores, statsCalculadas.habilidades[hab], caracteristica);
-    const caracAsociada = tirada.caracteristica;
-    const evaluacion = evaluarEfectosCondicionesEnTirada({
-      tipo: "caracteristica",
-      caracteristica: caracAsociada,
-      habilidad: hab,
-      penalizacionArmadura: penalizacionSinComp,
-      desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas,
-      personaje: personajeActivo
-    });
-    const bonoFinal = (caracteristica ? tirada.bono : bono) + evaluacion.penalizadorD20;
-    const motivos = [...evaluacion.motivosDesventaja, ...evaluacion.motivosVentaja, ...evaluacion.motivosModificadores].join(", ");
-    lanzarTiradaD20Personaje(
-      `Prueba de ${nombre}`,
-      bonoFinal,
-      undefined,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      motivos,
-      `habilidad.${hab}`
-    );
-  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
-
-  const manejarTirarIniciativa = useCallback(async () => {
-    if (!personajeActivo || !statsCalculadas) return;
-    const evaluacion = evaluarEfectosCondicionesEnTirada({
-      tipo: "iniciativa",
-      caracteristica: "destreza",
-      penalizacionArmadura: penalizacionSinComp,
-      desventajaSigiloArmadura,
-      condicionesActivas: personajeActivo.condicionesActivas,
-      personaje: personajeActivo
-    });
-    const bonoBase =
-      statsCalculadas.modificadores.destreza +
-      (personajeActivo.iniciativaBono || 0) +
-      calcularBonoIniciativaRasgos(personajeActivo);
-    const bonoFinal = bonoBase + evaluacion.penalizadorD20;
-    const metaInic: MetadataIniciativa = {
-      tipo: "iniciativa",
-      criaturaId: personajeActivo.idMiniaturaTS || personajeActivo.id,
-      nombrePersonaje: personajeActivo.nombre,
-      idMiniaturaTS: personajeActivo.idMiniaturaTS,
-      idPersonaje: personajeActivo.id
-    };
-    const emitida = await lanzarTiradaD20Personaje(
-      "Iniciativa",
-      bonoFinal,
-      metaInic,
-      evaluacion.modoEfectivo !== "plano" ? evaluacion.modoEfectivo : undefined,
-      undefined, "iniciativa"
-    );
-
-    // Procesar rasgos declarativos automáticos al tirar iniciativa (ej. Furia persistente)
-    if (emitida) dispararRasgosIniciativaPersonaje(personajeActivo.id);
-  }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje, dispararRasgosIniciativaPersonaje]);
-
-  const manejarTirarSalvacionMuerte3D = useCallback(async () => {
-    if (!personajeActivo) return;
-    const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
-    const resVentaja = evaluarVentajasDeRasgosEnTirada(personajeActivo, {
-      tipoTirada: "salvacion",
-      subtipo: "muerte"
-    });
-    const modoForzado = resVentaja.tieneVentaja && !resVentaja.tieneDesventaja
-      ? "ventaja"
-      : resVentaja.tieneDesventaja && !resVentaja.tieneVentaja
-        ? "desventaja"
-        : undefined;
-
-    await emitirTiradaConRasgos(personajeActivo, "salvacion.muerte", () => lanzarDadosTaleSpire(
-      "!Salvacion Muerte:1d20",
-      `${nombrePj} - Salvación Muerte`,
-      undefined,
-      {
-        tipo: "salvacionMuerte",
-        personajeId: personajeActivo.id
-      },
-      modoForzado
-    ), (id, consumir) => {
-      if (consumir) usarAlmacenDM.getState().operarRecursoRasgoPersonaje(personajeActivo.id, { tipo: "finalizarPreparacion", idRasgo: id });
-      else usarAlmacenDM.getState().alternarActivoRasgo(personajeActivo.id, id);
-    });
-  }, [personajeActivo]);
-
-  const manejarTirarDadoGolpe = useCallback(async () => {
-    if (!personajeActivo || personajeActivo.dadosGolpeRestantes <= 0) return;
-    const tipoDado = personajeActivo.tipoDadoGolpe || "d8";
-    const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
-    await lanzarDadosTaleSpire(
-      `!Dado de Golpe:1${tipoDado}`,
-      `${nombrePj} - Dado de Golpe (${tipoDado})`,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      { tipo: "dadoGolpe", personajeId: personajeActivo.id, nombrePersonaje: nombrePj, tipoDado }
-    );
-  }, [personajeActivo]);
-
-  const pjId = personajeActivo?.id;
-
-  // Handlers estables para Vitalidad
-  const alModificarHP = useCallback((delta: number) => {
-    if (pjId) modificarHPPersonaje(pjId, delta);
-  }, [pjId, modificarHPPersonaje]);
-
-  const alEstablecerHPActual = useCallback((valor: number) => {
-    if (pjId) establecerHPActualPersonaje(pjId, valor);
-  }, [pjId, establecerHPActualPersonaje]);
-
-  const alModificarHPMaximoEfectivo = useCallback((valor: number) => {
-    if (pjId) modificarHPMaximoEfectivoPersonaje(pjId, valor);
-  }, [pjId, modificarHPMaximoEfectivoPersonaje]);
-
-  const alModificarHPTemporal = useCallback((valor: number) => {
-    if (pjId) modificarHPTemporalPersonaje(pjId, valor);
-  }, [pjId, modificarHPTemporalPersonaje]);
-
-  const alEstablecerDadosGolpeRestantes = useCallback((val: number) => {
-    if (pjId) establecerDadosGolpeRestantesPersonaje(pjId, val);
-  }, [pjId, establecerDadosGolpeRestantesPersonaje]);
-
-  const alEstablecerSalvacionMuerte = useCallback((tipo: "exitos" | "fallos", valor: number) => {
-    if (pjId) establecerSalvacionesMuertePersonaje(pjId, tipo, valor);
-  }, [pjId, establecerSalvacionesMuertePersonaje]);
-
-  const alReiniciarSalvacionesMuerte = useCallback(() => {
-    if (pjId) reiniciarSalvacionesMuertePersonaje(pjId);
-  }, [pjId, reiniciarSalvacionesMuertePersonaje]);
-
-  const alModificarCansancio = useCallback((delta: number) => {
-    if (pjId) modificarCansancioPersonaje(pjId, delta);
-  }, [pjId, modificarCansancioPersonaje]);
-
-  // Handlers estables para Atributos y Habilidades
-  const alAlternarSalvacion = useCallback((carac: Caracteristica) => {
-    if (pjId) alternarSalvacionPersonaje(pjId, carac);
-  }, [pjId, alternarSalvacionPersonaje]);
-
-  const alModificarCaracteristicaBase = useCallback((carac: Caracteristica, valor: number) => {
-    if (pjId) modificarCaracteristicaBasePersonaje(pjId, carac, valor);
-  }, [pjId, modificarCaracteristicaBasePersonaje]);
-
-  const alCiclarGradoHabilidad = useCallback((hab: Habilidad) => {
-    if (pjId) ciclarGradoHabilidadPersonaje(pjId, hab);
-  }, [pjId, ciclarGradoHabilidadPersonaje]);
-
-  // Handlers estables para Magia
-  const alGastarEspacio = useCallback((niv: number) => {
-    if (pjId) gastarEspacioConjuro(pjId, niv);
-  }, [pjId, gastarEspacioConjuro]);
-
-  const alRecuperarEspacio = useCallback((niv: number) => {
-    if (pjId) recuperarEspacioConjuro(pjId, niv);
-  }, [pjId, recuperarEspacioConjuro]);
-
-  const alRecuperarTodosEspacios = useCallback(() => {
-    if (pjId) recuperarTodosEspaciosConjuro(pjId);
-  }, [pjId, recuperarTodosEspaciosConjuro]);
-
-  const alGastarPuntos = useCallback((cant: number) => {
-    if (pjId) gastarPuntosConjuro(pjId, cant);
-  }, [pjId, gastarPuntosConjuro]);
-
-  const alRecuperarPuntos = useCallback((cant: number) => {
-    if (pjId) recuperarPuntosConjuro(pjId, cant);
-  }, [pjId, recuperarPuntosConjuro]);
-
-  const alRecuperarTodosPuntos = useCallback(() => {
-    if (pjId) recuperarTodosPuntosConjuro(pjId);
-  }, [pjId, recuperarTodosPuntosConjuro]);
-
-  const alGastarEspacioPacto = useCallback(() => {
-    if (pjId) gastarEspacioPacto(pjId);
-  }, [pjId, gastarEspacioPacto]);
-
-  const alRecuperarEspaciosPacto = useCallback(() => {
-    if (pjId) recuperarEspaciosPacto(pjId);
-  }, [pjId, recuperarEspaciosPacto]);
-
-  const alEstablecerConcentracion = useCallback((hId: string, nom: string) => {
-    if (pjId) establecerConcentracion(pjId, hId, nom);
-  }, [pjId, establecerConcentracion]);
-
-  const alRomperConcentracion = useCallback(() => {
-    if (pjId) romperConcentracion(pjId);
-  }, [pjId, romperConcentracion]);
-
-  const alQuitarTruco = useCallback((hId: string) => {
-    if (pjId) quitarTrucoConocido(pjId, hId);
-  }, [pjId, quitarTrucoConocido]);
-
-  const alQuitarConjuro = useCallback((hId: string) => {
-    if (pjId) desprepararConjuroPersonaje(pjId, hId);
-  }, [pjId, desprepararConjuroPersonaje]);
-
-  const alAlternarPreparado = useCallback((hId: string) => {
-    if (pjId) alternarConjuroPreparado(pjId, hId);
-  }, [pjId, alternarConjuroPreparado]);
-
-  const totalConjurosYTrucos =
-    (personajeActivo?.trucosConocidosIds?.length || 0) +
-    (personajeActivo?.conjurosConocidosIds?.length || 0);
+    romperConcentracion,
+    vincularMiniaturaTSPersonaje,
+    manejarAbrirEdicion,
+    manejarCambioModoTirada,
+    manejarDescansoCorto,
+    manejarDescansoLargo,
+    manejarTirarCaracteristica,
+    manejarTirarSalvacion,
+    manejarTirarHabilidad,
+    manejarTirarIniciativa,
+    manejarTirarSalvacionMuerte3D,
+    manejarTirarDadoGolpe,
+    alModificarHP,
+    alEstablecerHPActual,
+    alModificarHPMaximoEfectivo,
+    alModificarHPTemporal,
+    alEstablecerDadosGolpeRestantes,
+    alEstablecerSalvacionMuerte,
+    alReiniciarSalvacionesMuerte,
+    alModificarCansancio,
+    alAlternarSalvacion,
+    alModificarCaracteristicaBase,
+    alCiclarGradoHabilidad,
+    alGastarEspacio,
+    alRecuperarEspacio,
+    alRecuperarTodosEspacios,
+    alGastarPuntos,
+    alRecuperarPuntos,
+    alRecuperarTodosPuntos,
+    alGastarEspacioPacto,
+    alRecuperarEspaciosPacto,
+    alEstablecerConcentracion,
+    alRomperConcentracion,
+    alQuitarTruco,
+    alQuitarConjuro,
+    alAlternarPreparado
+  } = usarHojaPersonaje(alAbrirConfiguracion);
 
   if (!personajeActivo || !statsCalculadas) {
     return (

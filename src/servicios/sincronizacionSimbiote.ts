@@ -15,6 +15,7 @@ import {
   type EstadoIniciativaDM,
   type WireEstadoIniciativaDM,
   EsquemaWireMensajeSync,
+  VERSION_PROTOCOLO_SYNC,
   serializarEstadoCombatePJ,
   deserializarEstadoCombatePJ,
   serializarIniciativaDM,
@@ -80,7 +81,7 @@ function nuevaRevision(): number {
 }
 
 function enviarSolicitud(): void {
-  void ts.sync.send(JSON.stringify({ v: 2, s: sesionLocal, t: 'REQ' }), 'board');
+  void ts.sync.send(JSON.stringify({ v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'REQ' }), 'board');
 }
 
 function purgarEstado(tipo: 'DM' | 'PJ', id = 'DM'): void {
@@ -90,7 +91,10 @@ function purgarEstado(tipo: 'DM' | 'PJ', id = 'DM'): void {
       return (m.t === 'FRAG' && m.k === tipo && m.id === id)
         || (m.t === tipo && (m.t === 'DM' || m.d.id === id))
         || (tipo === 'DM' && m.t === 'DM_CHUNK');
-    } catch { return false; }
+    } catch (err) {
+      logger.debug("[Sync] Paquete inválido descartado al purgar cola:", err);
+      return false;
+    }
   });
 }
 
@@ -99,7 +103,7 @@ function enviarPaquetes(paquetes: string[]): Promise<boolean> {
 }
 
 function confirmarRecepcionPJ(id: string, revision: number, ok = true): void {
-  void ts.sync.send(JSON.stringify({ v: 2, s: sesionLocal, t: 'ACK', id, ts: revision, ok, rd: revisionesDM.get(id) ?? 0 }), 'board');
+  void ts.sync.send(JSON.stringify({ v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'ACK', id, ts: revision, ok, rd: revisionesDM.get(id) ?? 0 }), 'board');
 }
 
 function aplicarEstadoRecibido(mensaje: EstadoSync, origen = ""): void {
@@ -215,7 +219,7 @@ export function emitirEstadoComoGM(): void {
 
     const wire = serializarIniciativaDM(datosDM);
     wire.rv = Object.fromEntries(revisionesDM);
-    const mensaje: EstadoSync = { v: 2, s: sesionLocal, t: 'DM', d: wire };
+    const mensaje: EstadoSync = { v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'DM', d: wire };
     void enviarPaquetes(empaquetarEstadoSync(mensaje));
   }, RETARDO_DEBOUNCE_GM_MS);
 }
@@ -244,7 +248,7 @@ export function emitirMiPersonaje(personajeId?: string): void {
       dto.ts = nuevaRevision();
       const wire = serializarEstadoCombatePJ(dto, true);
       wire.b = revisionesDM.get(pj.id) ?? 0;
-      const paquetes = empaquetarEstadoSync({ v: 2, s: sesionLocal, t: 'PJ', d: wire });
+      const paquetes = empaquetarEstadoSync({ v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'PJ', d: wire });
       emitidasPJ.set(pj.id, { personaje: pendiente, revision: dto.ts });
       gestorReintentos.registrarEmisionPJ(pj.id, dto.ts, () => enviarPaquetes(paquetes));
     });
@@ -374,7 +378,7 @@ function procesarAutorizado(mensaje: WireMensajeSync, evento: { strCrudo: string
             c: chunksCompletos.flatMap((ch) => ch.c),
             ts: primerChunk.ts,
           };
-          const completo = EsquemaWireMensajeSync.safeParse({ v: 2, s: mensaje.s, t: 'DM', d: wireCompleto });
+          const completo = EsquemaWireMensajeSync.safeParse({ v: VERSION_PROTOCOLO_SYNC, s: mensaje.s, t: 'DM', d: wireCompleto });
           if (completo.success && completo.data.t === 'DM') aplicarEstadoRecibido(completo.data, origen);
         }
       }

@@ -53,6 +53,11 @@ export const VistaRasgosJugador: React.FC = () => {
     obtenerNivelEfectivoParaRasgo
   } = usarVistaRasgos();
 
+  const efectivos = React.useMemo(
+    () => (personajeActivo ? resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel) : []),
+    [personajeActivo]
+  );
+
   if (!personajeActivo) {
     return (
       <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
@@ -67,7 +72,6 @@ export const VistaRasgosJugador: React.FC = () => {
   const nombrePj = personajeActivo.nombre?.trim() || "Personaje";
   const hayFiltrosActivos = consultaBusqueda.trim() !== "" || filtroAccion !== "todos";
 
-  const efectivos = resolverExtensionesRasgos(personajeActivo.rasgos, personajeActivo.nivel);
   const renderizarTarjetaRasgo = (rasgo: RasgoPersonaje, idx: number): React.ReactNode => {
     if (rasgo.selectores?.some(s => s.ubicacion === "seccion" && s.materializarRasgos)) {
       const clave = `opciones_${rasgo.id}`;

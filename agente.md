@@ -1,5 +1,62 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-19] Auditoría e Implementación de la Fase 1: Núcleo de Red, Puente TaleSpire y Sincronización P2P
+
+- **Contexto y Alcance**:
+  - Auditoría integral y resolución de vulnerabilidades sobre los módulos de transporte y puente CEF: `src/tipos/sync.ts`, `src/utiles/TaleSpireAdapter.ts`, `src/servicios/puenteTaleSpire.ts`, `src/hooks/usarConexionTaleSpire.ts`, `src/servicios/sincronizacionSimbiote.ts`, `src/servicios/sincronizacion/transporteSync.ts` y `src/servicios/sincronizacion/autoridadSync.ts`.
+- **Hallazgos Principales y Correcciones Arquitectónicas**:
+  1. **[H-01] Prevención de Doble Movimiento y Caché IPC en `usarConexionTaleSpire.ts` y `TaleSpireAdapter.ts`**:
+     - *Problema*: La doble suscripción a `estadoCriatura` (EventBus global y listener nativo) junto con llamadas asíncronas no cacheadas `await ts.units.getDistanceUnitsForThisCampaign()` en cada evento `creatureLocationChanged` provocaba condiciones de carrera que podían duplicar el cálculo de `movimientoGastado` y saturar el canal IPC al arrastrar miniaturas.
+     - *Solución*: Incorporación de caché en memoria con TTL de 10s y deduplicación de promesas concurrentes en `units.getDistanceUnitsForThisCampaign()`, y deduplicación de eventos de movimiento en `usarConexionTaleSpire.ts` mediante ventana corta (100ms) por clave de posición `${idStr.toLowerCase()}:${x}:${y}:${z}` unificando la obtención de `numberPerTile`.
+  2. **[H-02] Robustez de Autoridad y Normalización Case-Insensitive en `autoridadSync.ts`**:
+     - *Problema*: Promesas rechazadas de IPC (`getMoreInfo`, `getCreaturesOwnedByPlayer`) quedaban retenidas durante 1000ms en los mapas de caché, y la comparación de IDs de miniaturas era sensible a mayúsculas/minúsculas (`Set.has`), pudiendo rechazar emisiones legítimas con UUIDs en distinta capitalización.
+     - *Solución*: Desalojo inmediato de la caché ante rechazo (`.catch()`), purga periódica de entradas vencidas al superar 64 elementos, y normalización canónica a `.toLowerCase()` de todos los identificadores de miniatura.
+  3. **[H-03] Manejo Proactivo de Errores en Parseo JSON y Reensamblado (Regla 7)**:
+     - *Problema*: Bloques `catch` vacíos o silenciados sin trazabilidad en `puenteTaleSpire.ts` (6 puntos en `procesarMensajeSyncExtraccion`), `transporteSync.ts` (reensamblado de fragmentos) y `usarConexionTaleSpire.ts` (`subNativaSync`).
+     - *Solución*: Centralización en `parsearJsonSeguro` y `serializarJsonSeguro` con `logger.debug` contextual en `puenteTaleSpire.ts`, y registro con `logger.warn` y `logger.debug` en `transporteSync.ts` y `usarConexionTaleSpire.ts`.
+  4. **[H-04] Estandarización Canónica de `VERSION_PROTOCOLO_SYNC`**:
+     - *Problema*: Literales numéricos mágicos `v: 2` dispersos en variantes de `EsquemaWireMensajeSync`, `transporteSync.ts`, `dividirEnChunksIniciativa` y `sincronizacionSimbiote.ts`, junto con una condición residual `&& true` en `serializarEstadoCombatePJ`.
+     - *Solución*: Sustitución global por la constante canónica exportada `VERSION_PROTOCOLO_SYNC` y limpieza de código muerto.
+- **Estrategia de Pruebas Unitarias**:
+  - Incorporación de pruebas en `autoridadSync.test.ts` para verificar la normalización de UUIDs en mayúsculas (`MINI-PROPIA`) y el desalojo inmediato de caché ante fallos de IPC.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 151 suites ejecutadas, **2.186 / 2.186 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 173 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.66s (2.103 módulos).
+
+---
+
+## [2026-10-19] Auditoría de Arquitectura, Seguridad y Rendimiento del Modo Jugador (`!esGM`)
+
+- **Contexto y Alcance**:
+  - Auditoría integral bajo 5 dimensiones críticas (Seguridad/P2P `TS.sync`, Mecánicas Canónicas D&D 5.5, Rendimiento en CEF, Robustez/Logs y Calidad/CI) sobre los módulos de la experiencia de Jugador (`VistaJugadores.tsx`, `HojaPersonaje.tsx`, `VistaAtaquesJugador.tsx`, `VistaRasgosJugador.tsx`, `IniciativaJugador.tsx`, `ControlesRecursosDeclarativos.tsx`, `usarLanzamientoTarjetaConjuro.ts`, `consumidorRecursosConjuros.ts`, `ejecutorTiradasCombate.ts`, `lanzadorDados.ts`, `procesadorAtaques.ts`, `resolutorMiniaturasJugador.ts`, `notificadorVersionSync.ts`, `autoridadSync.ts`, `sincronizacionSimbiote.ts`, `sliceActivacionRasgos.ts` y `sliceRecursosRasgos.ts`).
+- **Hallazgos Principales y Correcciones Quirúrgicas Aplicadas**:
+  1. **[H-01] Desacoplamiento Presentación/Controlador en `HojaPersonaje.tsx` (Dimensión 5 - Calidad y CI)**:
+     - *Problema*: `HojaPersonaje.tsx` tenía 666 líneas (excediendo el límite máximo de 500 líneas y requiriendo exención en `ARCHIVOS_HEREDADOS_PENDIENTES` de `scripts/verificar-limite-lineas.js`), acoplando efectos IPC de TaleSpire, evaluación de condiciones en tiradas D20 y 22 adaptadores de estado con el árbol JSX.
+     - *Solución*: Extracción de la lógica de negocio y controladores al custom hook `src/componentes/caracteristicas/personajes/usarHojaPersonaje.ts` (272 líneas), reduciendo `HojaPersonaje.tsx` a 207 líneas declarativas y eliminando su exención heredada en `scripts/verificar-limite-lineas.js`.
+  2. **[H-02] Reclamación Atómica (`Claim-before-Await`) y Control de Dados de Golpe en Vuelo en `lanzadorDados.ts` (Dimensión 2 y 4)**:
+     - *Problema*: En `procesarResultadosDadosTaleSpire`, los Casos 1 (`tiradasIniciativaActivas`), 2 (`tiradasSalvacionMuerteActivas`), 4 (`tiradasHpTemporalRasgoActivas`), 5 (`tiradasDadoGolpeActivas`) y `tiradasEspecialesActivas` eliminaban `registro[rollId]` *después* de invocar `await ts.dice.evaluateDiceResultsGroup(...)`, exponiendo a doble descuento de Dado de Golpe, doble salvación de muerte o doble publicación en chat ante eventos `rollResults` duplicados. Además, mientras un Dado de Golpe 3D rodaba en la bandeja, `dadosGolpeRestantes` aún no se había descontado, permitiendo emitir más tiradas de las disponibles mediante clics rápidos.
+     - *Solución*: Reclamación síncrona (`delete registro[rollId]`) previa a cualquier `await` en todos los casos de `procesarResultadosDadosTaleSpire`, y validación en `lanzarDadosTaleSpire` de `pj.dadosGolpeRestantes - enVuelo <= 0` contabilizando las entradas activas en `tiradasDadoGolpeActivas`.
+  3. **[H-03] Consumo Atómico Pos-Emisión de Munición y Consumibles en `ejecutorTiradasCombate.ts` (Dimensión 2)**:
+     - *Problema*: `ejecutarTiradaAtaqueFisico` descontaba munición antes de confirmar la emisión 3D e incluso cuando `!ataque.puedeDisparar`. Por su parte, `ejecutarUsoConsumible` carecía de cerrojo en vuelo durante `await lanzarDadosTaleSpire`, permitiendo doble curación con una sola poción ante doble clic rápido.
+     - *Solución*: Posposición del descuento de munición hasta verificar `emitida && ataque.puedeDisparar`, e incorporación del cerrojo `consumiblesEnCurso` (`Set<string>`) con liberación garantizada en `finally` y validación de stock fresco.
+  4. **[H-04] Invariante Canónica `usosRestantes ?? usosMaximos ?? 0` en Activación de Rasgos e Iniciativa (Dimensión 2)**:
+     - *Problema*: En `sliceActivacionRasgos.ts`, `alternarActivoRasgo` y `dispararRasgosIniciativaPersonaje` comprobaban `typeof r.usosRestantes === "number"`, omitiendo el descuento inicial o impidiendo disparar en iniciativa rasgos intactos (`usosRestantes: undefined`), e ignorando `r.costeFijo ?? 1`. En `sliceRecursosRasgos.ts`, `recargarUsoRasgoConPadre` y `recargarUsoRasgoConPacto` evaluaban `(x.usosRestantes ?? 0) + 1`.
+     - *Solución*: Unificación de `const actuales = r.usosRestantes ?? r.usosMaximos ?? 0` y `r.costeFijo ?? 1` en ambos slices.
+  5. **[H-05] Homologación de Reglas de Bloqueo y Extensiones de Rasgos en `VistaAtaquesJugador` (Dimensión 2)**:
+     - *Problema*: `usarCalculoAtaquesJugador.ts` solo validaba el requisito de Furia en `obtenerBloqueoToggleRasgo`, omitiendo `obtenerBloqueoActivacionRasgo` (armadura pesada, condiciones incapacitantes, 0 PG, falta de usos). Además, `VistaAtaquesJugador.tsx` abría `ModalDetalleRasgo` sin proyectar `resolverExtensionesRasgos`.
+     - *Solución*: Delegación combinada en `obtenerBloqueoActivacionRasgo(personajeActivo, r)` y proyección con `resolverExtensionesRasgos(personajeActivo.rasgos || [], personajeActivo.nivel)` en `rasgoDetalleEfectivo`.
+  6. **[H-06] Optimización de Renderizado en CEF y Cálculo de CD con Homebrew (Dimensión 3)**:
+     - *Problema*: `VistaRasgosJugador.tsx` ejecutaba `resolverExtensionesRasgos` sin `useMemo` en cada render; `ControlesRecursosDeclarativos.tsx` suscribía cada tarjeta a todo el array `s.personajes` y omitía `objetosHomebrew` al calcular la CD de salvación con `calcularEstadisticasPersonaje(pj)`; `IniciativaJugador.tsx` podía dividir por cero si `vidaMaxima` era `0`.
+     - *Solución*: Memoización con `React.useMemo`, selector granular `s.personajes.find(p => p.id === idPersonaje)`, paso de `objetosHomebrew` a `calcularEstadisticasPersonaje` y guarda `Math.max(1, item.vidaMaxima ?? 100)`.
+  7. **[H-07] Cerrojo en Tarjeta de Conjuro, Logging en Sync y Poda de Caché de Versiones (Dimensión 1, 2 y 4)**:
+     - *Problema*: `usarLanzamientoTarjetaConjuro.ts` carecía de cerrojo `enCursoRef` y no verificaba el booleano de `lanzarDadosTaleSpire` en rutas de fallback; `autoridadSync.ts` y `sincronizacionSimbiote.ts` tenían bloques `catch` sin `logger.debug`; `notificadorVersionSync.ts` no podaba claves expiradas en sesiones extensas.
+     - *Solución*: Incorporación de `enCursoRef` con bloque `finally`, logging estructurado con `logger.debug` en `autoridadSync.ts` y `sincronizacionSimbiote.ts`, y poda preventiva en `notificadorVersionSync.ts`.
+
+---
+
 ## [2026-10-19] Integración de Tablas de Progresión Canónicas del Hechicero (PHB 2024 / D&D 5.5)
 
 - **Contexto y Alcance**:

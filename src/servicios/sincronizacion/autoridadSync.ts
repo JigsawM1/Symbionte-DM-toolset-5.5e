@@ -1,4 +1,5 @@
 import { ts } from '@/utiles/TaleSpireAdapter';
+import { logger } from '@/utiles/logger';
 import type { FragmentoCliente, InfoCliente } from '@/tipos/talespire';
 import type { WireMensajeSync, WireEstadoCombatePJ } from '@/tipos/sync';
 
@@ -8,17 +9,37 @@ let generacion = 0;
 export function invalidarAutoridadSync(): void { generacion++; clientes.clear(); propiedades.clear(); }
 
 async function obtenerCliente(id: string): Promise<InfoCliente | undefined> {
+  const ahora = Date.now();
   const actual = clientes.get(id);
-  if (actual && actual.hasta > Date.now()) return actual.valor;
-  const valor = ts.clients.getMoreInfo([id]).then(infos => infos.find(c => c.id === id));
-  clientes.set(id, { hasta: Date.now() + 1000, valor });
+  if (actual && actual.hasta > ahora) return actual.valor;
+  if (clientes.size >= 64) {
+    for (const [k, v] of clientes) if (v.hasta <= ahora) clientes.delete(k);
+  }
+  const valor = ts.clients
+    .getMoreInfo([id])
+    .then(infos => infos.find(c => c.id === id))
+    .catch(err => {
+      clientes.delete(id);
+      throw err;
+    });
+  clientes.set(id, { hasta: ahora + 1000, valor });
   return valor;
 }
 async function minisPropias(playerId: string): Promise<Set<string>> {
+  const ahora = Date.now();
   const actual = propiedades.get(playerId);
-  if (actual && actual.hasta > Date.now()) return actual.valor;
-  const valor = ts.creatures.getCreaturesOwnedByPlayer(playerId).then(minis => new Set(minis.map(m => m.id)));
-  propiedades.set(playerId, { hasta: Date.now() + 1000, valor });
+  if (actual && actual.hasta > ahora) return actual.valor;
+  if (propiedades.size >= 64) {
+    for (const [k, v] of propiedades) if (v.hasta <= ahora) propiedades.delete(k);
+  }
+  const valor = ts.creatures
+    .getCreaturesOwnedByPlayer(playerId)
+    .then(minis => new Set(minis.map(m => m.id.toLowerCase())))
+    .catch(err => {
+      propiedades.delete(playerId);
+      throw err;
+    });
+  propiedades.set(playerId, { hasta: ahora + 1000, valor });
   return valor;
 }
 export async function puedeEmitirPJ(mini: string | null | undefined): Promise<boolean> {
@@ -26,8 +47,11 @@ export async function puedeEmitirPJ(mini: string | null | undefined): Promise<bo
   const inicio = generacion;
   try {
     const player = await ts.clients.obtenerPlayerId();
-    return !!player && (await minisPropias(player)).has(mini) && inicio === generacion;
-  } catch { return false; }
+    return !!player && (await minisPropias(player)).has(mini.toLowerCase()) && inicio === generacion;
+  } catch (err) {
+    logger.debug('[Sync] Error verificando propiedad de miniatura para emitir PJ:', err);
+    return false;
+  }
 }
 export async function autorizarPersonaje(wire: WireEstadoCombatePJ, remitente: FragmentoCliente): Promise<boolean> {
   const inicio = generacion;
@@ -35,8 +59,11 @@ export async function autorizarPersonaje(wire: WireEstadoCombatePJ, remitente: F
     const cliente = await obtenerCliente(remitente.id);
     if (!cliente || cliente.player.id !== remitente.player.id || cliente.clientMode === 'spectator' || !wire.m) return false;
     const propias = await minisPropias(cliente.player.id);
-    return inicio === generacion && propias.has(wire.m) && (wire.ac ?? []).every(a => !!a.m && propias.has(a.m));
-  } catch { return false; }
+    return inicio === generacion && propias.has(wire.m.toLowerCase()) && (wire.ac ?? []).every(a => !!a.m && propias.has(a.m.toLowerCase()));
+  } catch (err) {
+    logger.debug('[Sync] Error autorizando personaje remoto:', err);
+    return false;
+  }
 }
 /** Solo metadatos nativos y consultas a TaleSpire otorgan autoridad; nunca el JSON del emisor. */
 export async function autorizarMensaje(mensaje: WireMensajeSync, remitente?: FragmentoCliente): Promise<boolean> {
@@ -48,5 +75,8 @@ export async function autorizarMensaje(mensaje: WireMensajeSync, remitente?: Fra
     if (mensaje.t === 'DM' || mensaje.t === 'DM_CHUNK' || mensaje.t === 'ACK' || (mensaje.t === 'FRAG' && mensaje.k === 'DM')) return cliente.clientMode === 'gm';
     if (mensaje.t === 'PJ') return autorizarPersonaje(mensaje.d, remitente);
     return cliente.clientMode !== 'spectator';
-  } catch { return false; }
+  } catch (err) {
+    logger.debug('[Sync] Error autorizando mensaje entrante:', err);
+    return false;
+  }
 }

@@ -36,6 +36,13 @@ export function gestionarNotificacionVersionIncompatible(
   if (typeof versionRemota !== "number" || versionRemota === VERSION_PROTOCOLO_SYNC) return;
 
   const ahora = Date.now();
+  if (notificacionesVersionEmitidas.size > 100) {
+    for (const [clave, tsEmitido] of notificacionesVersionEmitidas) {
+      if (ahora - tsEmitido > COOLDOWN_NOTIFICACION_VERSION_MS) {
+        notificacionesVersionEmitidas.delete(clave);
+      }
+    }
+  }
   const esGM = esGMCustom ?? usarAlmacenDM.getState().esGM;
 
   // Caso 1: El cliente local está desactualizado (un cliente remoto usa una versión superior)

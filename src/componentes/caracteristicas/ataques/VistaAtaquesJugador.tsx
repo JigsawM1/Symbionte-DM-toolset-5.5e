@@ -11,6 +11,7 @@ import { SeccionRasgosAtaque } from "./SeccionRasgosAtaque";
 import { SeccionConsumiblesAtaque } from "./SeccionConsumiblesAtaque";
 import { SeccionHechizosObjetosMagicos } from "./SeccionHechizosObjetosMagicos";
 import { ModalDetalleRasgo } from "@/componentes/caracteristicas/rasgos/ModalDetalleRasgo";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 export const VistaAtaquesJugador: React.FC = () => {
@@ -78,8 +79,9 @@ export const VistaAtaquesJugador: React.FC = () => {
 
   const rasgoDetalleEfectivo = React.useMemo(() => {
     if (!rasgoDetalle || !personajeActivo) return null;
+    const rasgosEfectivos = resolverExtensionesRasgos(personajeActivo.rasgos || [], personajeActivo.nivel);
     return (
-      (personajeActivo.rasgos || []).find((r) => r.id === rasgoDetalle.id) ||
+      rasgosEfectivos.find((r) => r.id === rasgoDetalle.id) ||
       rasgoDetalle
     );
   }, [rasgoDetalle, personajeActivo]);

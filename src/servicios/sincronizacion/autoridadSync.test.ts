@@ -58,4 +58,16 @@ describe('Autoridad nativa de sincronización', () => {
     resolver([{ id: jugador.id, clientMode: 'player', player: jugador.player }]);
     expect(await resultado).toBe(false);
   });
+  it('acepta miniaturas propias con diferencias de mayúsculas/minúsculas en el UUID', async () => {
+    const mensaje = { v: 2 as const, s: 'sesion', t: 'PJ' as const, d: { id: 'pj', m: 'MINI-PROPIA', n: 'Pj', i: 0, va: 10, vm: 10 } };
+    expect(await autorizarMensaje(mensaje, jugador)).toBe(true);
+  });
+  it('desaloja del caché las promesas rechazadas permitiendo reintentar', async () => {
+    vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockRejectedValueOnce(new Error('Fallo IPC'));
+    const mensaje = { v: 2 as const, s: 'sesion', t: 'PJ' as const, d: { id: 'pj', m: 'mini-propia', n: 'Pj', i: 0, va: 10, vm: 10 } };
+    expect(await autorizarMensaje(mensaje, jugador)).toBe(false);
+    // Tras el fallo, la siguiente llamada debe consultar nuevamente y resolverse exitosamente
+    vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockResolvedValue([{ id: 'mini-propia' }]);
+    expect(await autorizarMensaje(mensaje, jugador)).toBe(true);
+  });
 });

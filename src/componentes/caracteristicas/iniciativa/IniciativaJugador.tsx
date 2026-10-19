@@ -43,7 +43,7 @@ export const IniciativaJugador: React.FC = () => {
             {colaIniciativa.map((item, index) => {
               const esTurnoActual = index === indiceTurnoActivo;
               const hpActual = item.vidaActual ?? item.vidaMaxima ?? 100;
-              const hpMaximo = item.vidaMaxima ?? 100;
+              const hpMaximo = Math.max(1, item.vidaMaxima ?? 100);
               const porcentaje = Math.max(0, Math.min(100, Math.round((hpActual / hpMaximo) * 100)));
               const estadoSalud: "saludable" | "herido" | "critico" = porcentaje > 50 ? "saludable" : porcentaje > 25 ? "herido" : "critico";
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";

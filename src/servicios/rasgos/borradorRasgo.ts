@@ -1,6 +1,10 @@
 import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { RasgoPersonaje, OrigenRasgo, TipoAccionRasgo, RecuperacionRasgo, EfectoMecanicoRasgo, SelectorRasgo } from "@/tipos";
 import { EsquemaCamposConstructor, type CamposConstructor } from "./camposConstructor";
+// Los identificadores incompletos son válidos mientras se edita; se validan al guardar.
+const EsquemaCamposPrevisualizacion = EsquemaCamposConstructor.omit({
+    conversionEspacios: true, recuperacionOpcionalDescanso: true, activacionAlternativa: true, costeActivacionPorSelector: true, lanzamientoConRecurso: true, usoGratuitoCondicionado: true
+});
 export interface BorradorRasgo extends CamposConstructor {
     nombre: string;
     descripcion: string;
@@ -98,7 +102,10 @@ export function construirRasgoDesdeBorrador(borrador: BorradorRasgo, rasgoInicia
     } = borrador;
     return {
         ...rasgoInicial,
-        ...EsquemaCamposConstructor.parse(borrador),
+        ...EsquemaCamposPrevisualizacion.parse(borrador),
+        conversionEspacios: borrador.conversionEspacios,
+        recuperacionOpcionalDescanso: borrador.recuperacionOpcionalDescanso,
+        activacionAlternativa: borrador.activacionAlternativa,
         desactivarConCondiciones: borrador.desactivarConCondiciones?.map(c => c.trim()).filter(Boolean),
         autoDesactivarEnTirada: borrador.autoDesactivarEnTirada?.map(c => c.trim().toLowerCase()).filter(Boolean),
         eliminarCondicionesAlActivar: borrador.eliminarCondicionesAlActivar?.map(c => c.trim()).filter(Boolean),

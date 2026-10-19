@@ -1,3 +1,4 @@
+import { obtenerModificadoresConjuroRasgos } from "./rasgos/modificadoresConjuroRasgos";
 /**
  * procesadorCondiciones.ts
  * -----------------------
@@ -214,6 +215,7 @@ export interface ContextoTiradaCondiciones {
   caracteristica?: Caracteristica;
   habilidad?: Habilidad;
   esAtaqueMagico?: boolean;
+  claseConjuro?: string;
   penalizacionArmadura?: boolean;
   desventajaSigiloArmadura?: boolean;
   condicionesActivas?: readonly string[];
@@ -364,13 +366,6 @@ export function evaluarEfectosCondicionesEnTirada(
       }
     }
 
-    // Hechicería Innata (Innate Sorcery): Ventaja en tiradas de ataque de conjuro
-    if (cond.startsWith("hechicería innata") || cond.startsWith("hechiceria innata") || cond.startsWith("innate sorcery")) {
-      if (contexto.tipo === "ataque" && contexto.esAtaqueMagico) {
-        motivosVentaja.push("Hechicería Innata (Ataque Mágico)");
-      }
-    }
-
     // Cansado / Agotamiento (Exhaustion D&D 2024): -2 * nivel a todas las tiradas de d20
     if (cond.startsWith("cansado") || cond.startsWith("exhausted") || cond.startsWith("agotamiento")) {
       const match = cond.match(/\d+/);
@@ -380,6 +375,9 @@ export function evaluarEfectosCondicionesEnTirada(
       motivosModificadores.push(`Cansancio Niv. ${nivel} (${penalizacion})`);
     }
   }
+
+  if (contexto.personaje && contexto.esAtaqueMagico && obtenerModificadoresConjuroRasgos(contexto.personaje, contexto.claseConjuro).ventaja)
+    motivosVentaja.push("Rasgos: ataque de conjuro");
 
   // Comprobación de respaldo: Ventaja directa por Ataque Temerario si está activo en el personaje
   if (

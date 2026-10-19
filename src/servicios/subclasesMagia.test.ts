@@ -135,7 +135,7 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
   describe("5. Hechicero", () => {
     it("Hechicería Aberrante y Mecanismo de Relojería", () => {
       const aberrante = obtenerConjurosSiemprePreparadosSubclase("Hechicero", "Hechicería Aberrante", 5);
-      expect(aberrante.trucos).toContain("Astilla mental");
+      expect(aberrante.trucos).toContain("Fragmento Mental");
       expect(aberrante.conjuros).toContain("Hambre de Hadar");
 
       const relojeria = obtenerConjurosSiemprePreparadosSubclase("Hechicero", "Hechicería del Mecanismo de Relojería", 5);

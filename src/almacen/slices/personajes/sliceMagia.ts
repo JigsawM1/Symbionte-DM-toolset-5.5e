@@ -256,19 +256,9 @@ export const crearSubSliceMagia: StateCreator<
   },
 
   gastarEspacioConjuro: (id, nivel) => {
-    const nivelClave = String(nivel);
-    mutarPersonaje(set, id, (pj) => {
-      const max = pj.espaciosConjuroMaximos?.[nivelClave] || 0;
-      const gastados = pj.espaciosConjuroGastados?.[nivelClave] || 0;
-      if (gastados >= max) return pj;
-
-      return {
-        ...pj,
-        espaciosConjuroGastados: {
-          ...pj.espaciosConjuroGastados,
-          [nivelClave]: gastados + 1
-        }
-      };
+    mutarPersonaje(set, id, pj => {
+      const resultado = consumirRecursoConjuro(pj, { tipo: "espacio", nivel });
+      return resultado.permitido ? resultado.personaje : pj;
     });
   },
 
@@ -347,6 +337,9 @@ export const crearSubSliceMagia: StateCreator<
 
   modificarPuntosHechiceria: (id, delta) => {
     mutarPersonaje(set, id, (pj) => {
+      const recurso = pj.rasgos.find(r => r.recursoLegado === "puntos_hechiceria");
+      if (recurso) return { ...pj, rasgos: pj.rasgos.map(r => r === recurso ? { ...r,
+        usosRestantes: Math.max(0, Math.min(r.usosMaximos ?? 0, (r.usosRestantes ?? r.usosMaximos ?? 0) + delta)) } : r) };
       const max = pj.puntosHechiceriaMaximos || 0;
       const actual = pj.puntosHechiceriaActuales ?? max;
       const nuevo = Math.max(0, Math.min(max, actual + delta));

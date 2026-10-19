@@ -1,0 +1,142 @@
+[
+  {
+    "id": "metamagia_conjuro_acelerado",
+    "nombre": "Conjuro Acelerado",
+    "descripcion": "Cuando lanzas un conjuro que tenga un tiempo de lanzamiento de una acción, puedes gastar 2 puntos de hechicería para cambiar el tiempo de lanzamiento a una Acción Adicional para este lanzamiento. No puedes modificar un conjuro de esta forma si ya has lanzado un conjuro de nivel 1 o superior en el turno actual, ni puedes lanzar un conjuro de nivel 1 o superior en este turno tras modificar un conjuro de esta manera.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 2,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_buscador",
+    "nombre": "Conjuro Buscador",
+    "descripcion": "Si realizas una tirada de ataque para un conjuro y fallas, puedes gastar 1 punto de hechicería para volver a tirar el d20, y deberás usar la nueva tirada.\n\nPuedes usar Conjuro Buscador incluso si ya has usado una opción diferente de Metamagia durante el lanzamiento del conjuro.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_cuidadoso",
+    "nombre": "Conjuro Cuidadoso",
+    "descripcion": "Cuando lanzas un conjuro que obliga a otras criaturas a realizar una tirada de salvación, puedes proteger a algunas de esas criaturas de la fuerza completa del conjuro. Para ello, gasta 1 punto de hechicería y elige hasta una cantidad de criaturas igual a tu modificador por Carisma (mínimo una criatura). Una criatura elegida supera automáticamente su tirada de salvación contra el conjuro y no recibe daño alguno si normalmente recibiría la mitad del daño al superarla.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_distante",
+    "nombre": "Conjuro Distante",
+    "descripcion": "Cuando lanzas un conjuro que tenga un alcance de al menos 5 pies, puedes gastar 1 punto de hechicería para duplicar el alcance del conjuro. O bien, cuando lanzas un conjuro que tenga un alcance de Toque, puedes gastar 1 punto de hechicería para hacer que su alcance sea de 30 pies.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_extendido",
+    "nombre": "Conjuro Extendido",
+    "descripcion": "Cuando lanzas un conjuro que tenga una duración de 1 minuto o más, puedes gastar 1 punto de hechicería para duplicar su duración, hasta un máximo de 24 horas.\n\nSi el conjuro afectado requiere Concentración, tienes Ventaja en cualquier tirada de salvación que hagas para mantener esa Concentración.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_gemelo",
+    "nombre": "Conjuro Gemelo",
+    "descripcion": "Cuando lanzas un conjuro, como *Hechizar Persona*, que pueda ser lanzado usando un espacio de conjuro de nivel superior para afectar a una criatura adicional, puedes gastar 1 punto de hechicería para aumentar el nivel efectivo del conjuro en 1.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_intensificado",
+    "nombre": "Conjuro Intensificado",
+    "descripcion": "Cuando lanzas un conjuro que obliga a una criatura a realizar una tirada de salvación, puedes gastar 2 puntos de hechicería para otorgar a uno de los objetivos del conjuro Desventaja en las tiradas de salvación contra el conjuro.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 2,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_potenciado",
+    "nombre": "Conjuro Potenciado",
+    "descripcion": "Cuando tiras el daño de un conjuro, puedes gastar 1 punto de hechicería para volver a tirar una cantidad de dados de daño de hasta tu modificador por Carisma (mínimo uno), y deberás usar las nuevas tiradas.\n\nPuedes usar Conjuro Potenciado incluso si ya has usado una opción diferente de Metamagia durante el lanzamiento del conjuro.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_sutil",
+    "nombre": "Conjuro Sutil",
+    "descripcion": "Cuando lanzas un conjuro, puedes gastar 1 punto de hechicería para lanzarlo sin componentes Verbales, Somáticos ni Materiales, salvo por aquellos componentes materiales que sean consumidos por el conjuro o que tengan un coste especificado en él.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  },
+  {
+    "id": "metamagia_conjuro_transmutado",
+    "nombre": "Conjuro Transmutado",
+    "descripcion": "Cuando lanzas un conjuro que inflige un tipo de daño de la siguiente lista, puedes gastar 1 punto de hechicería para cambiar ese tipo de daño a uno de los otros tipos listados: Ácido, Frío, Fuego, Relámpago, Veneno, Trueno.",
+    "categoriaMecanica": "consumible",
+    "tipoAccion": "especial",
+    "gastarDePadre": true,
+    "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
+    "costeFijo": 1,
+    "usoGratuitoCondicionado": {
+      "idRasgoActivo": "rasgo_cls_hechicero_hechiceria_innata",
+      "nivelMinimo": 20
+    }
+  }
+]

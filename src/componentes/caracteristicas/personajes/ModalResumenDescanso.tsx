@@ -1,3 +1,4 @@
+import { RecuperacionOpcionalDescanso } from "../rasgos/RecuperacionOpcionalDescanso";
 import React, { useEffect, useRef } from "react";
 import type { AccionDescanso, TipoAccionDescanso } from "@/servicios/procesadorDescansos";
 import {
@@ -17,6 +18,7 @@ import estilos from "./ModalResumenDescanso.module.css";
 
 interface ModalResumenDescansoProps {
   abierto: boolean;
+  idPersonaje?: string;
   tipoDescanso: "corto" | "largo";
   acciones: AccionDescanso[];
   nombrePersonaje: string;
@@ -46,6 +48,7 @@ const obtenerIconoAccion = (tipo: TipoAccionDescanso) => {
 
 export const ModalResumenDescanso: React.FC<ModalResumenDescansoProps> = ({
   abierto,
+  idPersonaje,
   tipoDescanso,
   acciones,
   nombrePersonaje,
@@ -110,7 +113,8 @@ export const ModalResumenDescanso: React.FC<ModalResumenDescansoProps> = ({
         </div>
 
         {/* Cuerpo con lista de efectos y recuperaciones */}
-        <div className={estilos.cuerpo}>
+        <div className={`u-scroll-cef ${estilos.cuerpo}`}>
+          {!esLargo && idPersonaje && <RecuperacionOpcionalDescanso idPersonaje={idPersonaje} />}
           {acciones.length > 0 ? (
             <div className={estilos.listaAcciones}>
               {acciones.map((accion, idx) => (

@@ -156,7 +156,7 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
       recuperacion: op.recuperacion ?? "ninguno", personalizado: false, activo: !op.esActivable,
       ligadoA: op.categoriaMecanica === "extension" && op.ligadoA ? `${padre.id}_${op.ligadoA}` : padre.id,
       requiereOpcion: op.categoriaMecanica === "extension" ? undefined : valor,
-      formulaDados: escalados.formulaDados, efectos: escalados.efectos,
+      formulaDados: escalados.formulaDados, efectos: escalados.efectos, conjurosOtorgados: escalados.conjurosOtorgados,
       selectores: escalados.selectores, notas: ""
     };
     hijo = fusionarEstadoRasgo(hijo, estados.get(hijo.id));

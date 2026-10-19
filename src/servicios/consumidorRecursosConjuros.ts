@@ -1,3 +1,4 @@
+import { obtenerConcesionConRecurso } from "./rasgos/lanzamientoRecursoRasgos";
 import { buscarRasgoConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { resolverIdRasgoObjetivoGasto, calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
@@ -10,9 +11,21 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
   const insuficiente = { permitido: false as const, motivo: 'No quedan recursos suficientes para lanzar este conjuro.' };
   let personaje = pj;
   switch (gasto.tipo) {
+    case 'recursoRasgo': {
+      const cfg = obtenerConcesionConRecurso(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel);
+      const disponibles = cfg?.recurso.usosRestantes ?? cfg?.recurso.usosMaximos ?? 0;
+      if (!cfg || disponibles < cfg.coste) return insuficiente;
+      personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste } : r) };
+      break;
+    }
     case 'ninguno': break;
     case 'espacio': {
       const clave = String(gasto.nivel);
+      const adicionales = pj.espaciosConjuroAdicionales?.[clave] ?? 0;
+      if (adicionales > 0) {
+        personaje = { ...pj, espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales, [clave]: adicionales - 1 } };
+        break;
+      }
       const usados = pj.espaciosConjuroGastados[clave] ?? 0;
       if ((pj.espaciosConjuroMaximos[clave] ?? 0) <= usados) return insuficiente;
       personaje = { ...pj, espaciosConjuroGastados: { ...pj.espaciosConjuroGastados, [clave]: usados + 1 } };

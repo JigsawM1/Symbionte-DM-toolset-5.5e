@@ -13,8 +13,19 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   let cambio = false;
   const rasgos = (pj.rasgos ?? []).map(r => {
     // El catálogo ya utiliza el mismo resolutor durante su construcción por nivel.
-    if (!r.personalizado && r.origen !== "personalizado") return r;
-    if (!r.escaladoUsos && !r.escaladoFormulaDados && !r.escaladoRecuperacion && !r.escaladoEfectos
+    if (!r.personalizado && r.origen !== "personalizado") {
+      // El builder de catálogo no recibe características: estos máximos necesitan la ficha real.
+      if (!r.tieneUsosLimitados || r.escaladoUsos?.tipo !== "por_modificador" || !r.escaladoUsos.modificador) return r;
+      const stat = r.escaladoUsos.modificador as keyof PersonajeJugador["caracteristicas"];
+      const maximo = Math.max(r.escaladoUsos.minimo, Math.floor(((pj.overridesFijos?.[stat] ?? pj.caracteristicas?.[stat] ?? 10) - 10) / 2));
+      if (maximo === r.usosMaximos) return r;
+      const anteriorMaximo = r.usosMaximos ?? maximo;
+      const disponibles = r.usosRestantes ?? anteriorMaximo;
+      cambio = true;
+      return { ...r, usosMaximos: maximo, usosRestantes: maximo >= anteriorMaximo
+        ? Math.max(0, maximo - Math.max(0, anteriorMaximo - disponibles)) : Math.min(maximo, disponibles) };
+    }
+    if (!r.escaladoUsos && !r.escaladoFormulaDados && !r.escaladoRecuperacion && !r.escaladoEfectos && !r.escaladoConjurosOtorgados
       && !r.selectores?.some(s => s.escaladoMaxSelecciones || s.opcionesDinamicas)) return r;
     const selectoresBase = (r.selectores ?? []).map(s => {
       const dinamicas = new Set(s.opcionesDinamicas?.flatMap(g => g.opciones.map(o => o.id)) ?? []);
@@ -26,7 +37,7 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
       const stat = r.escaladoUsos.modificador as keyof PersonajeJugador["caracteristicas"];
       maximo = Math.max(r.escaladoUsos.minimo, Math.floor(((pj.overridesFijos?.[stat] ?? pj.caracteristicas?.[stat] ?? 10) - 10) / 2));
     }
-    const actualizado = { ...r, formulaDados: escalados.formulaDados,
+    const actualizado = { ...r, formulaDados: escalados.formulaDados, conjurosOtorgados: escalados.conjurosOtorgados,
       recuperacion: (escalados.recuperacion ?? r.recuperacion) as typeof r.recuperacion, efectos: escalados.efectos,
       usosMaximos: r.tieneUsosLimitados ? maximo : r.usosMaximos,
       usosRestantes: r.tieneUsosLimitados && maximo !== undefined
@@ -57,5 +68,8 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     const ids = arcanos.flatMap(s => s.valorActual.map(id => `${s.nivelConjuro}:${id}`));
     if (JSON.stringify(ids) !== JSON.stringify(actual.arcanoMisticoIds)) actual = { ...actual, arcanoMisticoIds: ids };
   }
+  const legado = actual.rasgos.find(r => r.recursoLegado === "puntos_hechiceria");
+  if (legado) actual = { ...actual, puntosHechiceriaMaximos: legado.usosMaximos ?? 0,
+    puntosHechiceriaActuales: legado.usosRestantes ?? legado.usosMaximos ?? 0 };
   return retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual)));
 }

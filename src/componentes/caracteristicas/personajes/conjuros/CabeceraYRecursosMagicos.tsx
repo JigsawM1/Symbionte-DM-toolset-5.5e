@@ -1,3 +1,4 @@
+import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
 import { Zap, BookOpen, AlertTriangle } from "lucide-react";
 import { TarjetasMetricasMagia } from "../TarjetasMetricasMagia";
@@ -44,7 +45,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   alAbrirFichaHechizo,
   alLanzarArcano
 }) => {
-  const tieneEspaciosEstandar = Object.values(personaje.espaciosConjuroMaximos || {}).some(
+  const tieneEspaciosEstandar = Object.values(obtenerMaximosEspaciosEfectivos(personaje)).some(
     (v) => (v || 0) > 0
   );
   const tienePuntosEstandar = (personaje.puntosConjuroMaximos || 0) > 0;
@@ -151,7 +152,7 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
             />
           ) : (
             <TrackerEspaciosConjuro
-              espaciosMaximos={personaje.espaciosConjuroMaximos || {}}
+              espaciosMaximos={obtenerMaximosEspaciosEfectivos(personaje)}
               espaciosGastados={personaje.espaciosConjuroGastados || {}}
               alGastarEspacio={alGastarEspacio}
               alRecuperarEspacio={alRecuperarEspacio}

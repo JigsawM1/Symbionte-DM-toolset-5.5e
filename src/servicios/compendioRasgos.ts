@@ -199,7 +199,22 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
   }
 
   // 3. Fusionar respetando el estado de usos restantes previo si ya existía el rasgo
-  const mapaExistentes = new Map(rasgosExistentes.map((r) => [r.id, r]));
+  const mapaExistentes = new Map<string, RasgoPersonaje>();
+  for (const r of rasgosExistentes) {
+    const previo = mapaExistentes.get(r.id);
+    // Los duplicados informativos no pueden borrar el estado de una reserva.
+    if (!previo || (!previo.tieneUsosLimitados && r.tieneUsosLimitados)) mapaExistentes.set(r.id, r);
+  }
+  // Compatibilidad con la reserva antigua, solo si no existe un contador válido del rasgo.
+  for (const conversion of canonicosNuevosUnicos.filter(r => r.conversionEspacios)) {
+    const id = conversion.idRasgoRecurso;
+    const reserva = canonicosNuevosUnicos.find(r => r.id === id);
+    const previa = id ? mapaExistentes.get(id) : undefined;
+    if (reserva?.recursoLegado === "puntos_hechiceria" && id && (!previa?.tieneUsosLimitados || !previa.usosMaximos)
+      && personaje.puntosHechiceriaMaximos > 0) mapaExistentes.set(id, { ...reserva,
+        usosMaximos: personaje.puntosHechiceriaMaximos,
+        usosRestantes: Math.max(0, Math.min(personaje.puntosHechiceriaMaximos, personaje.puntosHechiceriaActuales)) });
+  }
 
   const dotesAsiGeneradas: RasgoPersonaje[] = [];
 

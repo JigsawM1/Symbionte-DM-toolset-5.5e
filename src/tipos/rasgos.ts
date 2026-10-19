@@ -56,6 +56,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "bono_dano_ataque",
   "bono_ataque",
   "bono_dano_conjuro",
+  "modificador_cd_conjuro",
   "modificador_alcance_conjuro",
   "bono_salvacion",
   "inmunidad_condicion",
@@ -83,6 +84,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
 export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
 
 export const EsquemaEfectoMecanicoRasgo = z.object({
+  claseConjuro: z.string().optional(),
   selectorObjetivo: z.string().optional(),
   id: z.string().optional(),
   tipo: EsquemaTipoEfectoMecanico,
@@ -108,6 +110,7 @@ export const EsquemaRecursoGastado = z.enum(["espacio_pacto", "uso_rasgo", "ning
 export type RecursoGastado = z.infer<typeof EsquemaRecursoGastado>;
 
 export const EsquemaOpcionSelector = z.object({
+  costeFijo: z.number().int().positive().optional(),
   ...EsquemaMecanicasRasgo.shape,
   esActivable: z.boolean().optional(),
   id: z.string(),
@@ -335,6 +338,7 @@ export interface PlantillaRasgoClase extends MecanicasRasgo {
   efectos?: EfectoMecanicoRasgo[];
   selectores?: SelectorRasgo[];
   tablaProgresion?: TablaEscaladoRasgo;
+  tablasProgresion?: TablaEscaladoRasgo[];
   recuperarEspacios?: ConfiguracionRecuperarEspacios;
   dadosGuardados?: number[];
   guardaDadosTirada?: boolean;
@@ -472,6 +476,7 @@ export const EsquemaRasgoPersonaje = z.object({
   efectos: z.array(EsquemaEfectoMecanicoRasgo).default([]).optional(),
   selectores: z.array(EsquemaSelectorRasgo).default([]).optional(),
   tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+  tablasProgresion: z.array(EsquemaTablaEscaladoRasgo).optional(),
   recuperarEspacios: EsquemaConfiguracionRecuperarEspacios.optional(),
   dadosGuardados: z.array(z.number()).default([]).optional(),
   guardaDadosTirada: z.boolean().default(false).optional(),

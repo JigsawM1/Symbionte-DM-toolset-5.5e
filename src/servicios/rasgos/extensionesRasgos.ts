@@ -16,7 +16,10 @@ export function fusionarExtensionRasgo(
       ? `${claseNombre} (${subclaseNombreItem} - Niveles ${nivelesPrevios.join(", ")})`
       : `${claseNombre} (Niveles ${nivelesPrevios.join(", ")})`;
     padre.descripcion += `\n\n***${r.nombre} (Nv. ${r.nivel}).*** ${r.descripcion}`;
+    if (r.conjurosOtorgados) padre.conjurosOtorgados = [...new Set([...(padre.conjurosOtorgados ?? []), ...r.conjurosOtorgados])];
+    if (r.tablaAleatoria) padre.tablaAleatoria = { ...padre.tablaAleatoria, ...r.tablaAleatoria };
     if (r.formulaDados) padre.formulaDados = r.formulaDados;
+    if (r.activacionAlternativa) padre.activacionAlternativa = { ...r.activacionAlternativa };
     if (r.recuperarPactoAlUsar) padre.recuperarPactoAlUsar = r.recuperarPactoAlUsar;
     if (r.guardaDadosTirada) padre.guardaDadosTirada = true;
     if (r.recargaConEspacio) padre.recargaConEspacio = true;

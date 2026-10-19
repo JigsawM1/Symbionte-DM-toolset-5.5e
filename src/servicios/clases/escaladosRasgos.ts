@@ -60,6 +60,8 @@ export function evaluarFormulaUsos(formula: string | null | undefined, nivel: nu
  */
 export function resolverEscaladosRasgo(
   r: {
+    conjurosOtorgados?: string[];
+    escaladoConjurosOtorgados?: Array<{ nivelMinimo: number; conjuros: string[] }>;
     formulaDados?: string;
     recuperacion?: string;
     sincronizarEfectosConFormula?: boolean;
@@ -82,6 +84,7 @@ export function resolverEscaladosRasgo(
   efectosBase: EfectoMecanicoRasgo[],
   selectoresBase: SelectorRasgo[]
 ): {
+  conjurosOtorgados: string[];
   formulaDados: string | undefined;
   usosEscalados: number | undefined;
   recuperacion: string | undefined;
@@ -193,5 +196,9 @@ export function resolverEscaladosRasgo(
     }
   }
 
-  return { formulaDados, usosEscalados, recuperacion, efectos, selectores };
+  // Retira primero los aportes de la tabla para que bajar de nivel también sea reversible.
+  const declarados = new Set(r.escaladoConjurosOtorgados?.flatMap(f => f.conjuros) ?? []);
+  const conjurosOtorgados = [...new Set([...(r.conjurosOtorgados ?? []).filter(id => !declarados.has(id)),
+    ...(r.escaladoConjurosOtorgados ?? []).filter(f => f.nivelMinimo <= nivel).flatMap(f => f.conjuros)])];
+  return { formulaDados, usosEscalados, recuperacion, efectos, selectores, conjurosOtorgados };
 }

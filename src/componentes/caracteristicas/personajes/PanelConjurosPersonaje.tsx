@@ -1,7 +1,9 @@
+import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { useShallow } from "zustand/react/shallow";
 import React, { useState, useEffect } from "react";
 import type { HechizoBase } from "@/tipos";
 import {
+  calcularCDConjuros,
   obtenerConjurosSubclasePersonaje,
   requiereSincronizacionSubclase
 } from "@/servicios/calculadorMagia";
@@ -59,15 +61,18 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
     }
   }, [personaje, sincronizarConjurosSubclase]);
 
+  const [claseElegida, cambiarClaseLanzamiento] = useState("");
+  const claseLanzamiento = personaje.clasesLanzadoras.some(c => c.clase === claseElegida)
+    ? claseElegida : personaje.clasesLanzadoras[0]?.clase;
   const {
     etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico,
     requierePreparacion, esLanzadorPacto, nivelEspacioPacto,
     nivelesArcanoDisponibles, esHechizoDeSubclase, obtenerOrigenConjuro, estaPreparado,
     maximos, conteoEfectivo, conjurosPorNivel, trucosConocidos
-  } = usarMagiaPersonaje(personaje, baseDatosHechizos, modificadores, bonoCompetencia);
+  } = usarMagiaPersonaje(personaje, baseDatosHechizos, modificadores, bonoCompetencia, claseLanzamiento);
 
   const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
-    personaje, penalizacionArmadura, bonoAtaqueMagico, sistemaMagia
+    personaje, penalizacionArmadura, bonoAtaqueMagico, sistemaMagia, claseLanzamiento, cdSalvacionPersonaje: calcularCDConjuros(bonoCompetencia, modHabilidad)
   });
 
   const estaBloqueadoPorArmadura = !puedeLanzar;
@@ -99,6 +104,9 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   return (
     <div className={estilos.contenedor}>
+      {personaje.clasesLanzadoras.length > 1 && <label>Lanzar como
+        <SelectorDesplegable titulo="Clase de lanzamiento" valor={claseLanzamiento ?? ""} opciones={personaje.clasesLanzadoras.map(c => ({ valor: c.clase, etiqueta: c.clase }))} alCambiar={cambiarClaseLanzamiento} />
+      </label>}
       {/* Cabecera y Recursos Mágicos */}
       <CabeceraYRecursosMagicos
         personaje={personaje}

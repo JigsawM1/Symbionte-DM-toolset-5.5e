@@ -1,9 +1,15 @@
+import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
+import { ReservaDadosRasgo } from "./ReservaDadosRasgo";
+import { TablaAleatoriaRasgo } from "./TablaAleatoriaRasgo";
+import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases";
+import { ConversionEspaciosRasgo } from "./ConversionEspaciosRasgo";
 import { useState, useRef, useEffect } from "react";
 import type { RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { CampoNumerico, FormularioNumerico, SelectorDesplegable } from "@/componentes/comunes";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "@/servicios/evaluadorEfectosRasgos";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
+import { logger } from "@/utiles/logger";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import modalEstilos from "./DialogoRasgo.module.css";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
@@ -30,6 +36,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
   const curacion = rasgo.tiradaCuracion ?? (rasgo.tiradaCuracionManual ? { ...rasgo.tiradaCuracionManual, destino: "manual" } : undefined);
   const caras = rasgo.formulaDados?.match(/^1d(\d+)$/)?.[1] ?? "6";
   const restantes = rasgo.usosRestantes ?? rasgo.usosMaximos ?? 0;
+  const costeRecarga = rasgo.costeRecargaPadre ?? 1;
   const padre = resolverRasgoRecurso(rasgo, pj.rasgos);
   const maxDados = curacion ? Math.min(restantes, Math.max(1, evaluarExpresionNumericaSegura(
     resolverFormulaDinamica(curacion.maxDados, pj, rasgo.fuente)))) : 1;
@@ -51,18 +58,39 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
         cantidad => usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj.id, rasgo.id, cantidad));
       if (emitida) { setMostrar(false); }
       else setError("No se pudo lanzar la tirada. Los dados siguen disponibles.");
-    } catch {
+    } catch (err) {
+      logger.error("[ControlesRecursosDeclarativos] Error al emitir curación con dados:", err);
       setError("No se pudo lanzar la tirada. Los dados siguen disponibles.");
     } finally { bloqueado.current = false; setEnCurso(false); }
   };
+  const gratis = rasgo.usoGratuitoCondicionado;
+  const usarOpcion = (evento: React.MouseEvent, gratuito = false) => {
+    if (evento.detail > 1 || bloqueado.current) return;
+    bloqueado.current = true;
+    try {
+      if (usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "usarOpcion", idRasgo: rasgo.id, gratis: gratuito }))
+        usarAlmacenDM.getState().agregarNotificacion(`${rasgo.nombre}: ${gratuito ? "uso gratuito. Recuerda el límite de una opción gratis por turno propio" : "gasto aplicado. Resuelve la modificación manualmente"}.`, "info");
+    } finally { queueMicrotask(() => { bloqueado.current = false; }); }
+  };
   return <>
+    {vista === "detalle" && rasgo.varianteSinConcentracion && <ConjurosConRecursoRasgo personaje={pj} rasgo={rasgo} />}
+    {rasgo.reservaDados && <ReservaDadosRasgo personaje={pj} rasgo={rasgo} />}
+    {rasgo.tablaAleatoria && <TablaAleatoriaRasgo personaje={pj} rasgo={rasgo} />}
+    {gratis && <div className={estilos.botonesRituales}>
+      <button type="button" className={estilos.botonCompacto} disabled={!padre || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < (rasgo.costeFijo ?? 1)}
+        onClick={usarOpcion}>Usar · {rasgo.costeFijo ?? 1} puntos</button>
+      {obtenerNivelEfectivoParaRasgo(pj, rasgo) >= gratis.nivelMinimo && <button type="button" className={estilos.botonCompacto}
+        disabled={!pj.rasgos.some(r => r.id === gratis.idRasgoActivo && r.activo)}
+        onClick={e => usarOpcion(e, true)}>Usar gratis este turno</button>}
+    </div>}
+    <ConversionEspaciosRasgo rasgo={rasgo} idPersonaje={idPersonaje} />
     {rasgo.salvacionObjetivo && <span className={estilos.cd}
       title={`Salvación de ${rasgo.salvacionObjetivo.caracteristica}: CD ${cd}. Aplicación al objetivo manual.`}>
       CD {cd} · {rasgo.salvacionObjetivo.caracteristica.slice(0, 3).toUpperCase()}</span>}
     {vista === "detalle" && rasgo.conjurosRituales?.length ? <ConjurosRitualesRasgo personaje={pj} idRasgo={rasgo.id} /> : null}
     {rasgo.recargarUsoConPadre && <button type="button" className={estilos.botonCompacto}
-      disabled={restantes >= (rasgo.usosMaximos ?? 1) || !padre || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < 1}
-      title={`Recargar uso gastando 1 uso de ${padre?.nombre ?? "la reserva padre"}`} aria-label={`Recargar ${rasgo.nombre} con el recurso padre`}
+      disabled={restantes >= (rasgo.usosMaximos ?? 1) || !padre || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < costeRecarga}
+      title={`Recargar uso gastando ${costeRecarga} ${costeRecarga === 1 ? "uso" : "usos"} de ${padre?.nombre ?? "la reserva padre"}`} aria-label={`Recargar ${rasgo.nombre} con el recurso padre`}
       onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().recargarUsoRasgoConPadre(pj.id, rasgo.id); }}>
       <RotateCcw size={13} aria-hidden="true" />Recargar</button>}
     {rasgo.vinculoArma && <SelectorDesplegable valor={rasgo.vinculoArma.idInstancia ?? ""} titulo="Arma vinculada" placeholder="Vincular un arma"

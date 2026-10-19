@@ -1,3 +1,4 @@
+import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificadoresConjuroRasgos";
 import { useMemo, useCallback } from "react";
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { PersonajeJugador, HechizoBase, Caracteristica, ModeloConjuros } from "@/tipos";
@@ -60,18 +61,19 @@ export function usarMagiaPersonaje(
   personaje: PersonajeJugador | null | undefined,
   baseDatosHechizos: HechizoBase[],
   modificadores?: Record<Caracteristica, number>,
-  bonoCompetencia: number = 2
+  bonoCompetencia: number = 2,
+  claseLanzamiento?: string
 ): EstadoMagiaPersonaje {
   // 1. Habilidad mágica principal
   const habilidadMagica: Caracteristica = useMemo(() => {
     if (personaje?.clasesLanzadoras && personaje.clasesLanzadoras.length > 0) {
-      return personaje.clasesLanzadoras[0].habilidadConjuro as Caracteristica;
+      return (personaje.clasesLanzadoras.find(c => c.clase === claseLanzamiento) ?? personaje.clasesLanzadoras[0]).habilidadConjuro as Caracteristica;
     }
     return "inteligencia";
-  }, [personaje?.clasesLanzadoras]);
+  }, [personaje?.clasesLanzadoras, claseLanzamiento]);
 
   const modHabilidad = modificadores ? (modificadores[habilidadMagica] ?? 0) : 0;
-  const cdConjuros = calcularCDConjuros(bonoCompetencia, modHabilidad);
+  const cdConjuros = calcularCDConjuros(bonoCompetencia, modHabilidad) + (personaje ? obtenerModificadoresConjuroRasgos(personaje, claseLanzamiento || personaje.clasesLanzadoras[0]?.clase).bonoCD : 0);
   const bonoAtaqueMagico = calcularBonoAtaqueConjuro(bonoCompetencia, modHabilidad);
 
   const etiquetaHabilidad = useMemo(() => {

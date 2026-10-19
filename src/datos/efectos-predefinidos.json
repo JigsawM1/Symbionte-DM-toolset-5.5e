@@ -319,5 +319,20 @@
     "descripcion": "Velocidad de vuelo igual al doble de tu velocidad de caminar durante un asalto.",
     "duracionEstandar": 1,
     "aliases": ["salto psionico"]
+  },
+  {
+    "nombre": "Revelación de la carne",
+    "descripcion": "Alteraciones elegidas al activar. Velocidades calculadas por el rasgo; respiración, flotación, visión y movimiento especial se aplican manualmente.",
+    "duracionEstandar": 100
+  },
+  {
+    "nombre": "Trance del orden",
+    "descripcion": "Los ataques contra ti no se benefician de ventaja. Trata un resultado de 9 o menos en una prueba d20 como 10; aplicación manual.",
+    "duracionEstandar": 10
+  },
+  {
+    "nombre": "Alas de dragón",
+    "descripcion": "Velocidad de vuelo de 60 pies mientras permanece activo el rasgo vinculado.",
+    "duracionEstandar": 600
   }
 ]

@@ -243,7 +243,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         </div>
 
         {/* Zona de Recursos y Tiradas */}
-        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo) && (
+        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo || rasgo.conversionEspacios || rasgo.lanzamientoConRecurso || rasgo.reservaDados || rasgo.tablaAleatoria || rasgo.varianteSinConcentracion || rasgo.usoGratuitoCondicionado) && (
           <div className={estilos.barraRecursosModal}>
             {(tieneUsosPropios || tieneUsosPadre) && alGastarUso && alRecuperarUso && (
               <div className={estilos.controlUsosModal}>
@@ -359,6 +359,15 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
           {rasgo.tablaProgresion && (
             <TablaProgresionRasgo tabla={rasgo.tablaProgresion} nivelPersonaje={nivelPersonaje} />
           )}
+
+          {Array.isArray(rasgo.tablasProgresion) &&
+            rasgo.tablasProgresion.map((tablaAdicional, idx) => (
+              <TablaProgresionRasgo
+                key={idx}
+                tabla={tablaAdicional}
+                nivelPersonaje={nivelPersonaje}
+              />
+            ))}
 
           {/* Selectores de opciones interactivas */}
           {Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0 && (

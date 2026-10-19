@@ -35,7 +35,7 @@ agent.md
 agente.md
 Documentacion API v0.1.md
 
-/.codegraph
+/graphify-out/
 /dicionario_herramientas
 skills-lock.json
 /cambio_build
@@ -63,4 +63,5 @@ respaldo.yaml
 !/scripts/probar-guerrero.mjs
 !/scripts/probar-brujo.mjs
 !/scripts/probar-barbaro.mjs
+!/scripts/probar-hechicero.mjs
 !/scripts/probar-subclases-barbaro.mjs

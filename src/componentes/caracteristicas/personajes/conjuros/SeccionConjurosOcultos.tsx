@@ -1,3 +1,4 @@
+import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
@@ -171,7 +172,7 @@ export const SeccionConjurosOcultos: React.FC<SeccionConjurosOcultosProps> = ({
                     nivelEspacioPacto={nivelEspacioPacto}
                     espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
                     espaciosPactoGastados={personaje.espaciosPactoGastados || 0}
-                    espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
+                    espaciosConjuroMaximos={obtenerMaximosEspaciosEfectivos(personaje)}
                     nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
                     sistemaMagia={sistemaMagia}
                   />

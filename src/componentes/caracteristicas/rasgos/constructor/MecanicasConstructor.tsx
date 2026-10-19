@@ -9,6 +9,7 @@ export function MecanicasConstructor({ borrador: b, actualizarBorrador: cambiar 
   borrador: BorradorRasgo; actualizarBorrador: ActualizarBorradorRasgo;
 }) {
   const toggles = [
+    ["finalizarAlDescansar", "Finalizar el efecto al completar un descanso"],
     ["autoDesactivarAlTirarSalvacion", "Desactivar tras la siguiente salvación"],
     ["desactivarConArmaduraPesada", "Impedir y finalizar con armadura pesada"],
     ["autoDesactivarAlTirarDano", "Desactivar tras emitir daño"],

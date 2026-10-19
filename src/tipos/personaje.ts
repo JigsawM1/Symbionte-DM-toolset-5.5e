@@ -477,6 +477,7 @@ export const EsquemaPersonajeJugador = z.object({
   arcanoMisticoGastados: z.array(z.string()).default([]),
   puntosHechiceriaMaximos: z.number().int().min(0).default(0),
   puntosHechiceriaActuales: z.number().int().min(0).default(0),
+  espaciosConjuroAdicionales: z.record(z.string(), z.number().int().min(0)).default({}),
 
   // Overrides Manuales
   overrideEspaciosConjuro: z.record(z.string(), z.number()).nullable().default(null),

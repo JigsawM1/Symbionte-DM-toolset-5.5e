@@ -8,17 +8,28 @@ import { aplicarHpTemporalPorEvento } from "@/servicios/rasgos/eventosHpTemporal
 import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
+import { operarRecursoRasgo } from "@/servicios/rasgos/conversionRecursosRasgos";
 
-export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPacto" | "recargarUsoRasgoConPadre">> = (set, get) => ({
+export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "operarRecursoRasgoPersonaje" | "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPacto" | "recargarUsoRasgoConPadre">> = (set, get) => ({
+operarRecursoRasgoPersonaje: (idPj, op) => {
+    let aplicado = false;
+    mutarPersonaje(set, idPj, pj => {
+      const nuevo = operarRecursoRasgo(pj, op);
+      aplicado = Boolean(nuevo);
+      return nuevo ?? pj;
+    });
+    return aplicado;
+  },
 recargarUsoRasgoConPadre: (idPj, idRasgo) => {
     mutarPersonaje(set, idPj, pj => {
       const r = pj.rasgos.find(r => r.id === idRasgo);
       if (!r?.recargarUsoConPadre || !r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) >= (r.usosMaximos ?? 1)
         || !esRasgoHabilitadoPorOpcion(r, pj.rasgos) || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return pj;
       const padre = resolverRasgoRecurso(r, pj.rasgos);
-      if (!padre?.tieneUsosLimitados || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < 1) return pj;
+      const coste = r.costeRecargaPadre ?? 1;
+      if (!padre?.tieneUsosLimitados || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < coste) return pj;
       return { ...pj, rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: (x.usosRestantes ?? 0) + 1 }
-        : x === padre ? { ...x, usosRestantes: (x.usosRestantes ?? x.usosMaximos ?? 0) - 1 } : x) };
+        : x === padre ? { ...x, usosRestantes: (x.usosRestantes ?? x.usosMaximos ?? 0) - coste } : x) };
     });
   },
 recargarUsoRasgoConPacto: (idPj, idRasgo) => {

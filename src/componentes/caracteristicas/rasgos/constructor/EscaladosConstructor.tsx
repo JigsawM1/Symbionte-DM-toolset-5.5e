@@ -19,6 +19,10 @@ export function EscaladosConstructor({ borrador: b, actualizarBorrador: cambiar 
     </label>
     <TablaEscaladoEditor etiqueta="Dados por nivel" filas={b.escaladoFormulaDados ?? []}
       alCambiar={v => cambiar("escaladoFormulaDados", v.length ? v : undefined)} />
+    <TablaEscaladoEditor etiqueta="Conjuros otorgados por nivel (IDs separados por comas)"
+      filas={(b.escaladoConjurosOtorgados ?? []).map(f => ({ nivelMinimo: f.nivelMinimo, valor: f.conjuros.join(", ") }))}
+      alCambiar={v => cambiar("escaladoConjurosOtorgados", v.length ? v.map(f => ({ nivelMinimo: f.nivelMinimo,
+        conjuros: f.valor.split(",").map(id => id.trim()).filter(Boolean) })) : undefined)} />
     <SelectorDesplegable valor={b.escaladoUsos?.tipo ?? "por_nivel"} opciones={[
       { valor: "por_nivel", etiqueta: "Usos por nivel" }, { valor: "por_modificador", etiqueta: "Usos por modificador" }
     ]} alCambiar={tipo => cambiar("escaladoUsos", { ...b.escaladoUsos, tipo, minimo: b.escaladoUsos?.minimo ?? 1 })} />

@@ -1,3 +1,4 @@
+import { DialogoConversionEspacios } from "./DialogoConversionEspacios";
 import React, { useState, useMemo } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { Sparkles, RotateCcw, X, Plus, Minus, AlertCircle, Layers, Flame } from "lucide-react";
@@ -12,7 +13,7 @@ export interface ModalTiendaRecuperacionEspaciosProps {
   alConfirmar: (espaciosARecuperar: Record<number, number>, puntosConjuro?: number) => void;
 }
 
-export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps> = ({
+const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps> = ({
   personaje,
   rasgo,
   alCerrar,
@@ -403,3 +404,9 @@ export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEs
     </div>
   );
 };
+
+/** El mismo punto de entrada distingue recuperación y creación mediante metadatos. */
+export const ModalTiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps> = props =>
+  props.rasgo.conversionEspacios
+    ? <DialogoConversionEspacios personaje={props.personaje} rasgo={props.rasgo} alCerrar={props.alCerrar} />
+    : <TiendaRecuperacionEspacios {...props} />;

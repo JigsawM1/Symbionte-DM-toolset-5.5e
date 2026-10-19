@@ -16,3 +16,7 @@
 .rituales p { margin: 0 0 8px; color: var(--pj-texto-terciario); font-size: var(--pj-fuente-cuerpo); }
 .botonesRituales { display: flex; flex-wrap: wrap; gap: 6px; }
 .botonesRituales button { text-transform: none; white-space: normal; text-align: left; }
+.resumenReserva { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.resumenReserva > div { display: flex; flex-direction: column; gap: 6px; padding: 12px; border: 1px solid var(--pj-borde-sutil); border-radius: var(--pj-radio-control); background: var(--pj-fondo-panel); }
+.resumenReserva span { font-size: var(--pj-fuente-badge); color: var(--pj-texto-terciario); }
+.resumenReserva strong { font-size: var(--pj-fuente-numero-lg); color: var(--pj-texto-acento); }

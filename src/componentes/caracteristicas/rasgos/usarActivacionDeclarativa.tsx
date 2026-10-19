@@ -1,3 +1,4 @@
+import { obtenerPagoActivacionAlternativa } from "@/servicios/rasgos/conversionRecursosRasgos";
 import { useState, useRef, useEffect } from "react";
 import type { RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
@@ -13,24 +14,30 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
   const [decisiones, setDecisiones] = useState<EleccionesActivacionRasgo>({ selectores: {}, opcionales: [] });
   const [error, setError] = useState("");
   const dialogo = useRef<HTMLDialogElement>(null);
+  const confirmando = useRef(false);
   const selectores = (rasgo.selectores ?? []).filter(s => s.momentoEleccion === "activacion");
   const opcionales = pj?.rasgos.filter(r => r.activarConRasgo === rasgo.id) ?? [];
   useEffect(() => { if (abierto) dialogo.current?.showModal(); }, [abierto]);
+  const pagoAlternativo = pj ? obtenerPagoActivacionAlternativa(pj, rasgo) : undefined;
   const alternar = () => {
-    if (rasgo.activo || (!selectores.length && !opcionales.length) || !pj) { alternarOriginal?.(); return; }
+    if (rasgo.activo || (!selectores.length && !opcionales.length && !pagoAlternativo) || !pj) { alternarOriginal?.(); return; }
+    confirmando.current = false;
     setDecisiones({ selectores: {}, opcionales: [] }); setError(""); setAbierto(true);
   };
   const confirmar = () => {
-    if (!pj) return;
+    if (!pj || confirmando.current) return;
+    confirmando.current = true;
     usarAlmacenDM.getState().alternarActivoRasgo(pj.id, rasgo.id, decisiones);
     const activo = usarAlmacenDM.getState().personajes.find(p => p.id === pj.id)?.rasgos.find(r => r.id === rasgo.id)?.activo;
-    if (activo) setAbierto(false); else setError("No se pudo activar. Revisa las elecciones, requisitos y usos disponibles.");
+    if (activo) setAbierto(false); else { confirmando.current = false; setError("No se pudo activar. Revisa las elecciones, requisitos y usos disponibles."); }
   };
   const modal = abierto && <dialog ref={dialogo} className={modalEstilos.dialogo} aria-label={`Activar ${rasgo.nombre}`}
     onCancel={() => setAbierto(false)} onClick={e => e.stopPropagation()}>
     <header className={modalEstilos.cabecera}><Zap size={18} aria-hidden="true" /><h3>Activar {rasgo.nombre}</h3>
       <button type="button" className={modalEstilos.cerrar} aria-label="Cerrar activación" onClick={() => setAbierto(false)}><X size={18} /></button></header>
     <div className={`u-scroll-cef ${modalEstilos.cuerpo}`}>
+      {pagoAlternativo && <p>Sin usos disponibles. Esta activación gastará {pagoAlternativo.coste} puntos de {pagoAlternativo.recurso.nombre}.</p>}
+      {rasgo.costeActivacionPorSelector && <p aria-live="polite">Coste: {(decisiones.selectores[rasgo.costeActivacionPorSelector.idSelector]?.length ?? 0) * rasgo.costeActivacionPorSelector.costePorOpcion} puntos de la reserva.</p>}
       {selectores.length > 0 && <p className={modalEstilos.introduccion}>Elige las opciones para esta activación.</p>}
       {selectores.map(s => <fieldset className={estilos.grupo} key={s.id}><legend>{s.etiqueta}</legend>
         <div className={estilos.opciones}>{s.opciones.map(o => <button type="button" key={o.id}

@@ -1,4 +1,4 @@
-import { emitirTiradaDanoConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { emitirTiradaDanoConRasgos, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import {
@@ -217,7 +217,7 @@ export function usarCalculoAtaquesJugador() {
 
   // Manejadores de tiradas delegados a servicios puros
   const manejarTirarAtaque = useCallback(async (ataque: AtaquePersonajeCalculado) => {
-    await ejecutarTiradaAtaqueFisico({
+    const emitir = () => ejecutarTiradaAtaqueFisico({
       ataque,
       tipoTiradaManual: tipoTirada,
       personajeActivo,
@@ -226,6 +226,11 @@ export function usarCalculoAtaquesJugador() {
       modificarCantidadObjeto,
       agregarNotificacion
     });
+    if (personajeActivo) await emitirTiradaConRasgos(personajeActivo, "ataque", emitir, (id, consumir) => {
+      const estado = usarAlmacenDM.getState();
+      if (consumir) estado.operarRecursoRasgoPersonaje(personajeActivo.id, { tipo: "finalizarPreparacion", idRasgo: id });
+      else estado.alternarActivoRasgo(personajeActivo.id, id);
+    }); else await emitir();
   }, [personajeActivo, statsCalculadas, baseDatosObjetos, modificarCantidadObjeto, agregarNotificacion, tipoTirada]);
 
   const emitirDanoConRasgos = useCallback(async (ataque: AtaquePersonajeCalculado, emitir: () => Promise<boolean>) => {

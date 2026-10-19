@@ -1,3 +1,7 @@
+import { obtenerVarianteConjuro, obtenerOpcionesRecursoConjuro } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
+import { elegirVarianteConjuro, elegirOpcionLanzamiento } from "@/componentes/caracteristicas/rasgos/elegirVarianteConjuro";
+import { emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import { aplicarConfiguracionConjurosRasgos } from "@/servicios/rasgos/conjurosGratuitosRasgos";
 import { useShallow } from "zustand/react/shallow";
 import { useCallback, useMemo } from "react";
@@ -22,6 +26,7 @@ import { tieneRestriccionRasgos } from "@/servicios/rasgos/restriccionesRasgos";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
+  claseLanzamiento?: string;
   penalizacionArmadura?: PenalizacionArmadura | null;
   bonoAtaqueMagico?: number;
   cdSalvacionPersonaje?: number;
@@ -36,10 +41,12 @@ export interface ControlLanzadorConjuros {
   lanzar: (solicitud: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }) => Promise<boolean>;
 }
 
+const lanzamientosEnCurso = new Set<string>();
+
 function contextoVigente(contexto: ContextoMagicoPersonaje, personaje?: PersonajeJugador | null): ContextoMagicoPersonaje {
   const actual = personaje ? usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id) ?? personaje : undefined;
   if (!actual) return contexto;
-  return { ...contexto, personajeActual: actual, espaciosConjuroMaximos: actual.espaciosConjuroMaximos,
+  return { ...contexto, personajeActual: actual, espaciosConjuroMaximos: obtenerMaximosEspaciosEfectivos(actual),
     espaciosConjuroGastados: actual.espaciosConjuroGastados, puntosConjuroDisponibles: actual.puntosConjuroMaximos - actual.puntosConjuroGastados,
     espaciosPactoGastados: actual.espaciosPactoGastados, espaciosPactoMaximos: actual.espaciosPactoMaximos,
     nivelEspacioPacto: actual.nivelEspacioPacto, arcanoMisticoGastados: actual.arcanoMisticoGastados };
@@ -127,6 +134,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   // 3. Validador reactivo
   const validar = useCallback(
     (solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }): ResultadoValidacion => {
+      if (personaje && lanzamientosEnCurso.has(personaje.id)) return { permitido: false, motivo: "Ya hay un lanzamiento en curso." };
       let contextoEfectivo = contextoVigente(contexto, personaje);
       if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
         const objEnInventario = (personaje?.inventario || []).find(
@@ -152,9 +160,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           })
         : 0;
 
-      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
+      const clase = solicitudIncompleta.claseLanzamiento ?? opciones.claseLanzamiento;
+      const aptitud = personaje?.clasesLanzadoras.find(c => c.clase === clase)?.habilidadConjuro;
+      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje, aptitud ?? undefined) : 0;
 
       const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
+        claseLanzamiento: opciones.claseLanzamiento,
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
@@ -165,7 +176,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       });
       return validarLanzamiento(solicitudCompleta, contextoEfectivo);
     },
-    [personaje, bonoAtaqueMagico, cdSalvacionPersonaje, contexto]
+    [personaje, bonoAtaqueMagico, cdSalvacionPersonaje, contexto, opciones.claseLanzamiento]
   );
 
   // 4. Ejecutor central de lanzamiento
@@ -173,6 +184,35 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     async (
       solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }
     ): Promise<boolean> => {
+      if (personaje && lanzamientosEnCurso.has(personaje.id)) return false;
+      const actual = personaje && usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
+      const alternativas = actual && solicitudIncompleta.modo === "espacio" ? obtenerOpcionesRecursoConjuro(actual,
+        solicitudIncompleta.hechizo, solicitudIncompleta.claseLanzamiento ?? opciones.claseLanzamiento) : [];
+      if (actual && alternativas.length) {
+        const normal = validarLanzamiento({ ...solicitudIncompleta, modo: "espacio" }, contextoVigente(contexto, personaje));
+        const eleccion = await elegirOpcionLanzamiento(actual.id, { nombre: solicitudIncompleta.hechizo.nombre,
+          etiqueta: `Lanzamiento de ${solicitudIncompleta.hechizo.nombre}`, descripcion: "Elige cómo pagar este lanzamiento. Solo se gastará el recurso elegido.",
+          opciones: [{ id: "normal", texto: contexto.sistemaMagia === "puntos" ? "Con puntos de conjuro" : "Con espacio de conjuro",
+            detalle: `Nivel ${solicitudIncompleta.nivelLanzamiento ?? solicitudIncompleta.hechizo.nivel}${normal.motivo ? ` · ${normal.motivo}` : ""}`, deshabilitado: !normal.permitido },
+          ...alternativas.map(a => {
+            const disponibles = a.recurso.usosRestantes ?? a.recurso.usosMaximos ?? 0;
+            return { id: a.rasgo.id, texto: `Con ${a.coste} ${a.coste === 1 ? "punto" : "puntos"} de ${a.recurso.nombre}`,
+              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} puntos disponibles.`,
+              deshabilitado: disponibles < a.coste };
+          })] });
+        if (eleccion === undefined) return false;
+        const elegida = alternativas.find(a => a.rasgo.id === eleccion);
+        if (eleccion !== "normal" && !elegida) return false;
+        if (elegida) solicitudIncompleta = { ...solicitudIncompleta, modo: "recursoRasgo", idRasgoOrigen: elegida.rasgo.id,
+          nivelLanzamiento: solicitudIncompleta.hechizo.nivel, claseLanzamiento: elegida.clase ?? solicitudIncompleta.claseLanzamiento };
+      }
+      const vigenteTrasEleccion = personaje && usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
+      if (vigenteTrasEleccion && solicitudIncompleta.modo !== "objetoMagico" && solicitudIncompleta.sinConcentracion === undefined
+        && obtenerVarianteConjuro(vigenteTrasEleccion, solicitudIncompleta.hechizo)) {
+        const variante = await elegirVarianteConjuro(vigenteTrasEleccion.id, solicitudIncompleta.hechizo.nombre);
+        if (variante === undefined) return false;
+        solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: variante };
+      }
       let contextoEfectivo = contextoVigente(contexto, personaje);
       if (solicitudIncompleta.modo === "objetoMagico" && solicitudIncompleta.objetoInstanciaId) {
         const objEnInventario = (personaje?.inventario || []).find(
@@ -198,9 +238,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           })
         : 0;
 
-      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje) : 0;
+      const clase = solicitudIncompleta.claseLanzamiento ?? opciones.claseLanzamiento;
+      const aptitud = personaje?.clasesLanzadoras.find(c => c.clase === clase)?.habilidadConjuro;
+      const modificadorHabilidad = personaje ? obtenerModificadorAptitudMagica(personaje, aptitud ?? undefined) : 0;
 
       const solicitudCompleta: SolicitudLanzamiento = aplicarConfiguracionConjurosRasgos(contextoEfectivo.personajeActual, {
+        claseLanzamiento: opciones.claseLanzamiento,
         nombrePersonaje: personaje?.nombre || "Personaje",
         nivelPersonaje: personaje?.nivel || 1,
         bonoAtaqueMagico,
@@ -210,8 +253,9 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         ...solicitudIncompleta
       });
 
-      // A. Validar precondiciones
-      const resultadoValidacion = validarLanzamiento(solicitudCompleta, contextoEfectivo);
+      // A. Preparar estrategia una sola vez y validar precondiciones
+      const preparado = prepararLanzamiento(solicitudCompleta, contextoEfectivo);
+      const resultadoValidacion = validarLanzamiento(solicitudCompleta, contextoEfectivo, preparado);
       if (!resultadoValidacion.permitido) {
         if (resultadoValidacion.motivo) {
           agregarNotificacion(resultadoValidacion.motivo, "advertencia");
@@ -219,36 +263,26 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         return false;
       }
 
+      if (personaje) lanzamientosEnCurso.add(personaje.id);
       try {
-        // B. Preparar fórmula y gasto con la estrategia correspondiente
-        const preparado = prepararLanzamiento(solicitudCompleta, contextoEfectivo);
-
-        // C. Ejecutar deducción garantizada de recursos en Zustand si el personaje existe
+        const emitir = () => lanzarDadosTaleSpire(preparado.formula.formulaTaleSpire,
+          preparado.formula.etiquetaLog, undefined, undefined, preparado.tipoTirada);
+        const vigente = contextoEfectivo.personajeActual;
+        const emitido = vigente && /\bd20|\b1d20/.test(preparado.formula.formulaTaleSpire)
+          ? await emitirTiradaConRasgos(vigente, "ataque", emitir, (id, consumir) => {
+              const estado = usarAlmacenDM.getState();
+              if (consumir) estado.operarRecursoRasgoPersonaje(vigente.id, { tipo: "finalizarPreparacion", idRasgo: id });
+              else estado.alternarActivoRasgo(vigente.id, id);
+            }) : await emitir();
+        if (!emitido) return false;
         if (personaje) {
           const consumo = consumirRecursoConjuro(personaje.id, preparado.gasto);
           if (!consumo.permitido) {
-            agregarNotificacion(consumo.motivo ?? 'No se pudo consumir el recurso.', 'advertencia');
+            agregarNotificacion(consumo.motivo ?? "Los recursos cambiaron durante el lanzamiento.", "advertencia");
             return false;
           }
-
-          // D. Activar concentración si el conjuro lo requiere
-          if (preparado.activarConcentracion && solicitudCompleta.hechizo.id) {
-            establecerConcentracion(
-              personaje.id,
-              solicitudCompleta.hechizo.id,
-              solicitudCompleta.hechizo.nombre
-            );
-          }
-        }
-
-        // E. Enviar tirada física / chat a TaleSpire de forma segura y no bloqueante
-        try {
-          await lanzarDadosTaleSpire(
-            preparado.formula.formulaTaleSpire,
-            preparado.formula.etiquetaLog
-          );
-        } catch (errTaleSpire) {
-          logger.error("[usarLanzadorConjuros] Error al enviar tirada a TaleSpire:", errTaleSpire);
+          if (preparado.activarConcentracion && solicitudCompleta.hechizo.id)
+            establecerConcentracion(personaje.id, solicitudCompleta.hechizo.id, solicitudCompleta.hechizo.nombre);
         }
 
         return true;
@@ -256,10 +290,13 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         logger.error("[usarLanzadorConjuros] Error al ejecutar lanzamiento:", err);
         agregarNotificacion("Error al procesar el lanzamiento del conjuro.", "error");
         return false;
+      } finally {
+        if (personaje) lanzamientosEnCurso.delete(personaje.id);
       }
     },
     [
       personaje,
+      opciones.claseLanzamiento,
       bonoAtaqueMagico,
       cdSalvacionPersonaje,
       contexto,

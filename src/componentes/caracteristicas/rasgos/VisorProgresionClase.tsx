@@ -126,6 +126,15 @@ export const VisorProgresionClase: React.FC<VisorProgresionClaseProps> = ({
                         />
                       </div>
                     )}
+                    {Array.isArray(item.tablasProgresion) &&
+                      item.tablasProgresion.map((tablaAdicional, idx) => (
+                        <div key={idx} className={estilos.contenedorTablaProgresion} onClick={(e) => e.stopPropagation()}>
+                          <TablaProgresionRasgo
+                            tabla={tablaAdicional}
+                            nivelPersonaje={bloqueClase.clase.nivel}
+                          />
+                        </div>
+                      ))}
                   </div>
                 </React.Fragment>
               );

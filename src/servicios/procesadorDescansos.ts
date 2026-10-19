@@ -1,3 +1,4 @@
+import { finalizarRasgosAlDescansar } from "./rasgos/estadoCondicionesRasgos";
 import type { PersonajeJugador } from "@/tipos";
 import { aplicarHpTemporalPorEvento } from "./rasgos/eventosHpTemporal";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
@@ -197,12 +198,12 @@ export function ejecutarDescansoCorto(
     dadosGolpeRestantes: dadosRestantesNuevos,
     salvacionesMuerte: { exitos: 0, fallos: 0 },
     espaciosPactoGastados: espaciosPactoGastadosNuevos,
-    rasgos: rasgosActualizadosCorto,
+    rasgos: rasgosActualizadosCorto.map(r => r.recuperacionOpcionalDescanso ? { ...r, recuperacionDescansoDisponible: true } : r),
     inspiracion: inspiracionNuevaCorto,
     cansancio: cansancioNuevoCorto
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(personajeActualizado, "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado), "descanso"), acciones };
 }
 
 // ==========================================
@@ -388,6 +389,7 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
 
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
+    espaciosConjuroAdicionales: {},
     hpActual: personaje.hpMaximo,
     hpTemporal: 0,
     dadosGolpeRestantes: dadosNuevos,
@@ -400,9 +402,9 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     concentracionActiva: null,
     condicionesActivas: condicionesLimpias,
     inventario: inventarioActualizado,
-    rasgos: rasgosActualizadosLargo,
+    rasgos: rasgosActualizadosLargo.map(r => ({ ...r, ...(r.reservaDados ? { dadosReserva: 0 } : {}), ...(r.gastarUsoTrasTirada ? { activo: false } : {}), ...(r.recuperacionOpcionalDescanso ? { recuperacionDescansoDisponible: false } : {}) })),
     inspiracion: inspiracionNueva
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(personajeActualizado, "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado), "descanso"), acciones };
 }

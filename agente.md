@@ -1,5 +1,86 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-19] Integración de Tablas de Progresión Canónicas del Hechicero (PHB 2024 / D&D 5.5)
+
+- **Contexto y Alcance**:
+  - Incorporación de las tablas declarativas de progresión (`tablaProgresion` y `tablasProgresion`) en `src/datos/clases/hechicero.json` para embellecer los rasgos base y de subclases conforme a las referencias visuales oficiales proporcionadas:
+    1. *Crear espacios de conjuro* (Nivel 2): tabla de 3 columnas (`"Nivel del espacio de conjuro"`, `"Coste"`, `"Nivel mínimo de hechicero"`) con 5 escalones de conversión.
+    2. *Metamagia* (Nivel 2): tabla de progresión completa niveles 2 a 20 con columnas `"Nivel"` y `"Descripción"`, y nota al pie `"Cada nivel reemplaza al anterior"`.
+    3. *Conjuros dracónicos* (Nivel 3, Hechicería Dracónica): limpieza de la descripción eliminando tablas markdown crudas e integración de `tablaProgresion` de 2 columnas (`"Nivel de hechicero"`, `"Conjuros"`) para los niveles 3, 5, 7 y 9.
+    4. *Conjuros psiónicos* (Nivel 3, Hechicería Aberrante): limpieza de la descripción e integración de `tablaProgresion` de 2 columnas (`"Nivel de hechicero"`, `"Conjuros"`) para los niveles 3, 5, 7 y 9.
+    5. *Conjuros mecánicos* (Nivel 3, Hechicería del Mecanismo de Relojería): estandarización de nombre y descripción, integración de `tablaProgresion` con los conjuros (niveles 3, 5, 7, 9) y soporte de tabla complementaria `tablasProgresion` para *Manifestaciones del orden* (`"1d6"`, `"Manifestación"`).
+- **Decisiones Arquitectónicas y SOLID**:
+  - **Extensibilidad de Esquemas (`src/tipos/rasgos.ts`, `src/tipos/esquemasCatalogos.ts`):** Añadido `tablasProgresion: z.array(EsquemaTablaEscaladoRasgo).optional()` en `EsquemaRasgoPersonaje`, `PlantillaRasgoClase`, `EsquemaPlantillaRasgoClaseJSON` y `EsquemaPlantillaRasgoSubclaseJSON` para permitir que rasgos complejos contengan múltiples tablas sin romper retrocompatibilidad ni tipado estricto (`strict: true`).
+  - **Propagación en Constructor y Visualizadores (`constructorRasgosClase.ts`, `utilidadesProgresionRasgos.ts`, `ModalDetalleRasgo.tsx`, `VisorProgresionClase.tsx`):** Propagación reactiva de `tablasProgresion` para que tanto el modal de detalle del rasgo como el visor de progresión de clase rendericen limpiamente todas las tablas estructuradas con el componente reutilizable `TablaProgresionRasgo`.
+- **Estrategia de Pruebas Unitarias**:
+  - Creación de `src/servicios/hechiceroMecanicasDND55.test.ts` con cobertura específica de la estructura exacta de columnas, filas, notas al pie y validación contra `EsquemaRasgoPersonaje` para los 5 rasgos involucrados.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 151 suites ejecutadas, **2.184 / 2.184 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 172 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 11.29s (2.102 módulos).
+
+---
+
+## [2026-10-19] Auditoría Técnica y Refactorización Canónica del Hechicero (PHB 2024 / D&D 5.5)
+
+- **Contexto y Alcance**:
+  - Auditoría técnica rigurosa de 6 dimensiones (Seguridad, Arquitectura SOLID, Rendimiento/Big-O, Robustez, Estándares y Pruebas) sobre la integración canónica de la clase Hechicero, sus 4 subclases (*Mecanismo de Relojería*, *Magia Salvaje*, *Aberrante*, *Dracónica*) y el sistema de Metamagia.
+  - Implementación de correcciones quirúrgicas en servicios, slices de Zustand, componentes de interfaz y suites de prueba.
+- **Hallazgos Principales y Correcciones Arquitectónicas**:
+  1. **Falibilidad en la Evaluación de Recursos Nulos (`usosRestantes === undefined`)**:
+     - *Problema*: Diversos servicios y componentes evaluaban `r.usosRestantes ?? 0`, asumiendo erróneamente 0 cuando el recurso no había sido desgastado (`undefined`), impidiendo el uso de rasgos como *Mareas de caos*, *Bastión de la ley*, *Hechicería psiónica* o la compra de dados de protección.
+     - *Solución*: Estandarización del patrón de fallback defensivo `usosRestantes ?? usosMaximos ?? 0` en `consumidorRecursosConjuros.ts`, `operacionesAvanzadasRasgos.ts`, `conversionRecursosRasgos.ts`, `normalizarMecanicasRasgos.ts`, `sliceMagia.ts`, `DialogoConversionEspacios.tsx`, `ReservaDadosRasgo.tsx`, `TablaAleatoriaRasgo.tsx` y `ControlesRecursosDeclarativos.tsx`.
+     - *Prevención*: En rasgos y recursos del simbionte, `usosRestantes: undefined` representa un recurso al 100% de capacidad antes del primer consumo; nunca debe tratarse como vacío sin consultar `usosMaximos`.
+  2. **Sobrecarga de Validación Zod en Bucles de Copia (`copiarMecanicasRasgo`)**:
+     - *Problema*: La clonación recurrente de mecánicas mediante validación completa del esquema Zod (`EsquemaMecanicasRasgo.parse()`) en bucles calientes agregaba latencia y sobrecarga de CPU innecesaria en operaciones de sincronización y renderizado.
+     - *Solución*: Optimización mediante `WeakMap<object, MecanicasRasgo>` como caché de referencias inmutables y delegación en `structuredClone()` nativo, conservando tipado estricto sin reejecutar `superRefine` en objetos previamente validados.
+  3. **Doble Resolución de Lanzamiento Preparado (`servicioLanzamientoConjuros.ts` y `usarLanzadorConjuros.ts`)**:
+     - *Problema*: En cada pulsación de lanzamiento se invocaba `resolverLanzamientoPreparado` tanto dentro de `usarLanzadorConjuros` como internamente en `validarLanzamiento`, duplicando cálculos de CD, características y modificadores.
+     - *Solución*: Parámetro opcional `preparadoPrecalculado?: LanzamientoPreparado` en `validarLanzamiento`, permitiendo reutilizar la instancia ya computada.
+  4. **Fuga y Asincronía en Modales Dinámicos (`elegirVarianteConjuro.tsx`)**:
+     - *Problema*: La invocación de `createRoot` sobre contenedores temporales carecía de protección de captura de excepciones y limpieza garantizada de promesas en vuelo ante errores de renderizado.
+     - *Solución*: Envoltura en `try/catch` con `logger.error` estructurado y aseguramiento en `finally` de `pendientes.delete(idPersonaje)`.
+  5. **Manejo Proactivo de Errores en UI y Constructores**:
+     - *Problema*: Bloques de captura que silenciaban excepciones o sólo emitían cadenas vacías en `TablaAleatoriaRasgo.tsx`, `ControlesRecursosDeclarativos.tsx` y `CapacidadesAvanzadasConstructor.tsx`.
+     - *Solución*: Registro estructurado con `logger.error` y `logger.warn` conservando la retroalimentación visual al usuario sin romper el flujo de renderizado.
+  6. **Deduplicación de Importaciones en Estado (`sliceMagia.ts`)**:
+     - *Problema*: Importación duplicada de `consumirRecursoConjuro` y cálculo frágil de delta en `modificarPuntosHechiceria`.
+     - *Solución*: Limpieza de imports redundantes y cálculo protegido `(r.usosRestantes ?? r.usosMaximos ?? 0) + delta`.
+- **Estrategia de Pruebas**:
+  - Incorporación de casos de prueba unitarios en `src/servicios/hechiceroSubclases.test.ts` para verificar específicamente el comportamiento de recursos con `usosRestantes === undefined` en *Hechicería psiónica* (`h_susurros-discordantes`), *Mareas de caos* y *Bastión de la ley*.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 150 suites ejecutadas, **2.179 / 2.179 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 172 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 8.35s (2.086 módulos).
+
+---
+
+## [2026-10-18] Sincronización Canónica de Descripciones del Hechicero (PHB 2024 / D&D 5.5)
+
+- **Alcance y propósito**: Sincronización de todas las descripciones en `src/datos/clases/hechicero.json` a partir del catálogo oficial en español `c:\Users\zamor\Downloads\hechicero descripciones.json`, conservando una copia en `dicionario_herramientas/hechicero descripciones.json`.
+- **Estandarización de textos y formato**:
+  - Distancias canónicas imperiales en pies ("5 pies", "30 pies", "60 pies", "120 pies") reemplazando formulaciones híbridas ("1,5 m (5 pies)", "9 m (30 pies)", "18 m (60 pies)", "36 m (120 pies)").
+  - Eliminación de enlaces markdown en desuso (`[dote](feats.html)` -> `dote`) en todas las apariciones de *Mejora de característica* (niveles 4, 8, 12, 16) y *Don épico* (nivel 19).
+  - Párrafos formateados con espaciado uniforme `\n\n` en rasgos base (*Hechicería innata*, *Fuente de magia*, *Metamagia*, *Hechicería encarnada*) y subclases.
+  - *Lanzamiento de conjuros*: Depuración de referencias a números de capítulo y tablas del manual impreso.
+  - *Fuente de magia*: Integración del texto actualizado ("Tienes tantos como tu nivel de hechicero...") manteniendo la tabla markdown de referencia de *Crear espacios de conjuro*.
+  - Subclases actualizadas: *Hechicería Aberrante* (*Habla telepática*, *Revelación de la carne*, *Implosión deformadora*), *Hechicería del Mecanismo de Relojería* (*Restaurar equilibrio*, *Bastión de la ley*, *Trance del orden*, *Cabalgata de relojería*), *Hechicería Dracónica* (*Resiliencia dracónica*, *Afinidad elemental*, *Alas de dragón*, *Compañero dragón*) y *Hechicería de Magia Salvaje* (*Mareas de caos*).
+- **Integridad estructural y mecánica**:
+  - Modificación quirúrgica limitada a los campos `descripcion` (24 rasgos actualizados: 12 base + 12 subclases).
+  - Preservación íntegra de `configuracionMagica` (`modeloConjuros: "preparados"`), `escaladoUsos`, `recuperacion`, IDs y metadatos de reglas.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 148 suites ejecutadas, **2.109 / 2.109 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 162 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.72s (2.085 módulos).
+
+---
+
 ## [2026-10-18] Mitigación del Bombardeo de Notificaciones por Versiones Incompatibles en Sincronización
 
 **Problema Reportado ("si alguien tiene una versión desactualizada a todos se les bombardea"):**

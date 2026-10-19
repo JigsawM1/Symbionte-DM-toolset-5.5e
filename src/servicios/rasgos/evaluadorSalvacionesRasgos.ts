@@ -110,6 +110,11 @@ export function evaluarVentajasDeRasgosEnTirada(
     const objNorm = normalizar(ef.objetivo);
     const esVentaja = ef.tipo === "ventaja" || (ef.tipo as string) === "ventaja_tirada";
 
+    if (objNorm === "d20" && ["ataque", "salvacion", "salvacion_muerte", "caracteristica", "iniciativa"].includes(tipoTirada)) {
+      if (esVentaja) tieneVentaja = true;
+      if (ef.tipo === "desventaja") tieneDesventaja = true;
+      razones.push(ef.descripcion || "Modificador de la siguiente prueba d20");
+    }
     // 1. Tiradas de Salvación
     if (tipoTirada === "salvacion" || tipoTirada === "salvacion_muerte") {
       const esMuerte = subtipoNorm === "muerte" || tipoTirada === "salvacion_muerte" || subtipoNorm === "salvacion.muerte";

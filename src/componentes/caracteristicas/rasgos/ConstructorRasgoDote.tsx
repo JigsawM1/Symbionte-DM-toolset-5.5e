@@ -1,3 +1,5 @@
+import { CapacidadesAvanzadasConstructor } from "./constructor/CapacidadesAvanzadasConstructor";
+import { ConversionRecursosConstructor } from "./constructor/ConversionRecursosConstructor";
 import type React from "react";
 import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import { usarConstructorRasgo } from "./constructor/usarConstructorRasgo";
@@ -46,7 +48,9 @@ export const ConstructorRasgoDote: React.FC<ConstructorRasgoDoteProps> = (props)
     <EfectosConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <SelectoresConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <EscaladosConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
+    <CapacidadesAvanzadasConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <MecanicasConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
+    <ConversionRecursosConstructor borrador={constructor.borrador} actualizarBorrador={constructor.actualizarBorrador} />
     <PrevisualizacionConstructor
       personaje={props.personaje}
       rasgoPrevisualizado={constructor.rasgoPrevisualizado}

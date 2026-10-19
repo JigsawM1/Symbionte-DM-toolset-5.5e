@@ -1,3 +1,4 @@
+import { obtenerOpcionesDinamicas } from "@/servicios/hidratadorDotes";
 import { obtenerOpcionesDotesEstiloCombate } from "@/servicios/clases/dotesClase";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
@@ -55,6 +56,13 @@ export function SelectoresConstructor({ borrador, actualizarBorrador }: Props) {
                   </span>
                 </div>
                 <div>
+                  <label>Momento de elección<SelectorDesplegable valor={sel.momentoEleccion ?? ""}
+                    opciones={[{valor:"",etiqueta:"Libre"},{valor:"activacion",etiqueta:"Al activar"},{valor:"descanso_largo",etiqueta:"Tras descanso largo"}]}
+                    alCambiar={v => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, momentoEleccion: v === "activacion" || v === "descanso_largo" ? v : undefined } : s))} /></label>
+                  <label>Catálogo de opciones<input className={estilos.inputControl} placeholder="Ejemplo: metamagia" value={sel.claveOpcionesDinamicas ?? ""}
+                    onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s, claveOpcionesDinamicas: e.target.value || undefined } : s))} /></label>
+                  <button type="button" disabled={!sel.claveOpcionesDinamicas} onClick={() => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id
+                    ? { ...s, opciones: structuredClone(obtenerOpcionesDinamicas(s.claveOpcionesDinamicas!)) } : s))}>Cargar catálogo</button>
                   <label>Otorga una dote de Estilo de combate <input type="checkbox" checked={sel.categoriaDote === "estilo_combate"}
                     onChange={e => actualizarBorrador("selectores", prev => prev.map(s => s.id === sel.id ? { ...s,
                       tipoSelector: e.target.checked ? "dote" : "general", categoriaDote: e.target.checked ? "estilo_combate" : undefined,

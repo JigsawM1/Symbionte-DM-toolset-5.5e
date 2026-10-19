@@ -1,3 +1,4 @@
+import { obtenerPagoActivacionAlternativa } from "@/servicios/rasgos/conversionRecursosRasgos";
 import { claveEstado } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
@@ -10,7 +11,7 @@ import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideC
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
-import { prepararEleccionesActivacion, activarOpcionales } from "@/servicios/rasgos/activacionDeclarativa";
+import { prepararEleccionesActivacion, activarOpcionales, costeActivacionRasgo } from "@/servicios/rasgos/activacionDeclarativa";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
 alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
@@ -23,17 +24,19 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       let condicionesActualizadas = [...(pj.condicionesActivas || [])];
 
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
-      if (!targetTrait) return pj;
+      if (!targetTrait) return original;
 
       const nuevoActivo = !targetTrait.activo;
-      if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return pj;
-      if (nuevoActivo && targetTrait.tieneUsosLimitados && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1)) return pj;
+      const coste = costeActivacionRasgo(targetTrait);
+      const pagoAlternativo = nuevoActivo ? obtenerPagoActivacionAlternativa(pj, targetTrait) : undefined;
+      if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return original;
+      if (nuevoActivo && targetTrait.tieneUsosLimitados && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1) && !pagoAlternativo) return original;
       if (nuevoActivo && targetTrait.restaurarUsosAlActivar) {
         const cfg = targetTrait.restaurarUsosAlActivar;
         const objetivo = (pj.rasgos ?? []).find(r => r.id === cfg.idRasgoObjetivo || normalizar(r.nombre) === normalizar(cfg.idRasgoObjetivo));
-        if (!objetivo || (objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0) >= (objetivo.usosMaximos ?? 1)) return pj;
+        if (!objetivo || (objetivo.usosRestantes ?? objetivo.usosMaximos ?? 0) >= (objetivo.usosMaximos ?? 1)) return original;
       }
-      if (nuevoActivo && targetTrait.desactivarConCondiciones?.some(c => (pj.condicionesActivas ?? []).some(a => claveEstado(c) === claveEstado(a)))) return pj;
+      if (nuevoActivo && targetTrait.desactivarConCondiciones?.some(c => (pj.condicionesActivas ?? []).some(a => claveEstado(c) === claveEstado(a)))) return original;
       if (nuevoActivo && targetTrait.ligadoA) {
         const padre = resolverRasgoPadre(targetTrait, pj.rasgos || []);
         const padreActivo = padre && (
@@ -42,16 +45,16 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
           (pj.efectosActivos || []).some((e) => coincideCondicionConRasgo(e.nombre, padre))
         );
         if (!padreActivo) {
-          return pj; // Bloqueado: rasgo padre requerido no está activo
+          return original; // Bloqueado: rasgo padre requerido no está activo
         }
       }
 
       if (nuevoActivo && targetTrait.requiereOpcion && !esRasgoHabilitadoPorOpcion(targetTrait, pj.rasgos || [])) {
-        return pj; // Bloqueado: opción requerida en rasgo padre no está seleccionada
+        return original; // Bloqueado: opción requerida en rasgo padre no está seleccionada
       }
 
       if (nuevoActivo && targetTrait.requiereSinMovimiento && (pj.movimientoGastado || 0) > 0) {
-        return pj; // Bloqueado: requiere no haberse movido durante este turno
+        return original; // Bloqueado: requiere no haberse movido durante este turno
       }
 
       // Si el rasgo gasta usos del padre al activarse, comprobar si el padre tiene usos disponibles
@@ -61,8 +64,8 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         if (rasgoPadre && rasgoPadre.tieneUsosLimitados) {
           const maxUsos = rasgoPadre.usosMaximos ?? 1;
           const restantes = rasgoPadre.usosRestantes ?? maxUsos;
-          if (restantes <= 0) {
-            return pj; // Bloqueado: sin usos del recurso padre disponible
+          if (restantes < coste) {
+            return original; // Bloqueado: sin usos del recurso padre disponible
           }
         }
       }
@@ -155,9 +158,10 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
           return { ...r, usosRestantes: cantidadRestaurar };
         }
 
+        if (pagoAlternativo && r.id === pagoAlternativo.recurso.id) return { ...r, usosRestantes: (r.usosRestantes ?? r.usosMaximos ?? 0) - pagoAlternativo.coste };
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
+          if (nuevoActivo && !pagoAlternativo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && !r.gastarUsoTrasTirada && r.tieneUsosLimitados && typeof r.usosRestantes === "number") {
             usosRest = Math.max(0, r.usosRestantes - 1);
           }
           const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
@@ -174,7 +178,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
           const restantes = r.usosRestantes ?? maxUsos;
           return {
             ...r,
-            usosRestantes: Math.max(0, restantes - 1)
+            usosRestantes: Math.max(0, restantes - coste)
           };
         }
 

@@ -1,3 +1,5 @@
+import metamagiaJson from "@/datos/metamagia.json";
+import { EsquemaOpcionSelector } from "@/tipos/rasgos";
 import type { DotePersonaje, OpcionSelector } from "@/tipos/rasgos";
 import { EsquemaDotePersonaje } from "@/tipos/rasgos";
 import { validarColeccionJSON } from "./cargadorCatalogos";
@@ -103,6 +105,7 @@ export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
 
 // Opciones calculadas de conjuros en memoria
 const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
+  metamagia: () => metamagiaJson.map(op => EsquemaOpcionSelector.parse(op)),
   maniobras_combate: () => CATALOGO_MANIOBRAS_COMBATE,
   dotes_elegibles: () => [...origenJson,...generalesJson,...epicasJson,...estiloCombateJson].map(d => EsquemaDotePersonaje.parse(d))
     .map(d => ({ id:d.id,nombre:d.nombre,descripcion:d.descripcion,requisito:d.requisito,categoria:d.categoria })),

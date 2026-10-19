@@ -1,3 +1,8 @@
+import { obtenerConcesionConRecurso, obtenerVarianteConjuro } from "./rasgos/lanzamientoRecursoRasgos";
+import { normalizar } from "./rasgos/utilidadesRasgos";
+import { obtenerMaximosEspaciosEfectivos } from "./rasgos/conversionRecursosRasgos";
+import { resolverClaseLanzamiento, obtenerModificadoresConjuroRasgos } from "./rasgos/modificadoresConjuroRasgos";
+import { evaluarEfectosCondicionesEnTirada } from "./procesadorCondiciones";
 /**
  * Servicio Centralizado de Lanzamiento de Conjuros (D&D 5.5e 2024)
  * Patrón Facade + Strategy
@@ -32,9 +37,12 @@ export type ModoLanzamiento =
   | "objetoMagico"
   | "arcanoMistico"
   | "gratuitoInnato"
-  | "ataqueMagico";
+  | "ataqueMagico"
+  | "recursoRasgo";
 
 export interface SolicitudLanzamiento {
+  sinConcentracion?: boolean;
+  claseLanzamiento?: string;
   idRasgoOrigen?: string;
   modo: ModoLanzamiento;
   hechizo: HechizoBase;
@@ -82,6 +90,7 @@ export interface FormulaConstruida {
 }
 
 export type InstruccionGasto =
+  | { tipo: "recursoRasgo"; idRasgo: string; hechizo: HechizoBase; nivel: number }
   | { tipo: "ninguno" }
   | { tipo: "espacio"; nivel: number }
   | { tipo: "puntos"; cantidad: number; nivel: number }
@@ -91,6 +100,9 @@ export type InstruccionGasto =
   | { tipo: "gratuitoInnato"; hechizoId: string };
 
 export interface LanzamientoPreparado {
+  cdSalvacion?: number;
+  claseLanzamiento?: string;
+  tipoTirada?: "ventaja" | "desventaja" | "plano";
   formula: FormulaConstruida;
   gasto: InstruccionGasto;
   activarConcentracion: boolean;
@@ -102,12 +114,25 @@ export interface LanzamientoPreparado {
  */
 export function validarLanzamiento(
   solicitud: SolicitudLanzamiento,
-  contexto: ContextoMagicoPersonaje
+  contexto: ContextoMagicoPersonaje,
+  preparadoPrecalculado?: LanzamientoPreparado
 ): ResultadoValidacion {
+  if (contexto.personajeActual && solicitud.claseLanzamiento && solicitud.modo !== "objetoMagico" && solicitud.modo !== "gratuitoInnato"
+    && !contexto.personajeActual.clasesLanzadoras.some(c => normalizar(c.clase) === normalizar(solicitud.claseLanzamiento)))
+    return { permitido: false, motivo: "La clase de lanzamiento seleccionada no está disponible." };
   if (contexto.personajeActual && tieneRestriccionRasgos(contexto.personajeActual, "conjuros")) {
     return { permitido: false, motivo: "Un rasgo activo impide lanzar conjuros." };
   }
-  if (solicitud.idRasgoOrigen && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
+  if (solicitud.sinConcentracion && (!contexto.personajeActual || !obtenerVarianteConjuro(contexto.personajeActual, solicitud.hechizo)))
+    return { permitido: false, motivo: "Esta variante de lanzamiento no está disponible." };
+  if (solicitud.modo === "recursoRasgo" && (!contexto.personajeActual || !obtenerConcesionConRecurso(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo, solicitud.nivelLanzamiento)))
+    return { permitido: false, motivo: "El conjuro no pertenece a esta concesión o el nivel no es válido." };
+  if (solicitud.modo === "recursoRasgo" && contexto.personajeActual && solicitud.claseLanzamiento) {
+    const origen = obtenerConcesionConRecurso(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo, solicitud.nivelLanzamiento);
+    if (origen?.clase && normalizar(origen.clase) !== normalizar(solicitud.claseLanzamiento))
+      return { permitido: false, motivo: "La procedencia del conjuro la determina su concesión." };
+  }
+  if (solicitud.idRasgoOrigen && solicitud.modo !== "recursoRasgo" && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
     || !obtenerConcesionRitual(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo.id)))
     return { permitido: false, motivo: "Esta concesión solo permite sus rituales adquiridos." };
   // 1. Regla D&D 5.5e: Bloqueo total por vestir armadura o escudo sin competencia
@@ -166,7 +191,8 @@ export function validarLanzamiento(
   }
 
   if (contexto.personajeActual) {
-    const resultado = consumirRecursoConjuro(contexto.personajeActual, prepararLanzamiento(solicitud, contexto).gasto);
+    const gasto = preparadoPrecalculado?.gasto ?? prepararLanzamiento(solicitud, contexto).gasto;
+    const resultado = consumirRecursoConjuro(contexto.personajeActual, gasto);
     if (!resultado.permitido) return resultado;
   }
   return { permitido: true };
@@ -348,6 +374,13 @@ export function prepararLanzamiento(
   solicitud: SolicitudLanzamiento,
   contexto: ContextoMagicoPersonaje
 ): LanzamientoPreparado {
+  const pj = contexto.personajeActual;
+  if (pj) contexto = { ...contexto, espaciosConjuroMaximos: obtenerMaximosEspaciosEfectivos(pj) };
+  const claseConcedida = pj && solicitud.modo === "recursoRasgo"
+    ? obtenerConcesionConRecurso(pj, solicitud.idRasgoOrigen, solicitud.hechizo, solicitud.nivelLanzamiento)?.clase : undefined;
+  const clase = pj && (!solicitud.idRasgoOrigen || solicitud.modo === "recursoRasgo") && solicitud.modo !== "objetoMagico" && solicitud.modo !== "gratuitoInnato"
+    ? resolverClaseLanzamiento(pj, solicitud.hechizo, claseConcedida ?? solicitud.claseLanzamiento) : undefined;
+  const modificadoresRasgo = pj ? obtenerModificadoresConjuroRasgos(pj, clase) : { bonoCD: 0, ventaja: false };
   const nombrePersonaje = solicitud.nombrePersonaje || "Personaje";
   const nivelPersonaje = solicitud.nivelPersonaje || 1;
   const bonoAtaqueMagico = solicitud.bonoAtaqueMagico || 0;
@@ -418,6 +451,11 @@ export function prepararLanzamiento(
       break;
     }
 
+    case "recursoRasgo": {
+      formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      gasto = { tipo: "recursoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };
+      break;
+    }
     case "gratuitoInnato": {
       formula = construirFormulaEspacio(
         solicitud.hechizo,
@@ -504,12 +542,27 @@ export function prepararLanzamiento(
     }
   }
 
+  const cdSalvacion = solicitud.cdSalvacionPersonaje === undefined ? undefined : solicitud.cdSalvacionPersonaje + modificadoresRasgo.bonoCD;
+  if (modificadoresRasgo.bonoCD && cdSalvacion !== undefined && solicitud.hechizo.ataqueCd === "CD") {
+    formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · CD ${cdSalvacion}`,
+      formulaTaleSpire: formula.formulaTaleSpire.replace(/^!([^:]+):/, `!$1 (CD ${cdSalvacion}):`) };
+  }
+
   // Activar concentración si el hechizo lo requiere (aplica a todos los modos con concentración)
-  const activarConcentracion = Boolean(solicitud.hechizo.concentracion);
+  const activarConcentracion = Boolean(solicitud.hechizo.concentracion) && !solicitud.sinConcentracion;
+  if (solicitud.sinConcentracion) formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · Sin concentración · 1 minuto` };
 
   return {
     formula,
     gasto,
+    claseLanzamiento: clase,
+    cdSalvacion,
+    tipoTirada: pj && /(?:^|[:/])(?:[^:/]*:)?1d20/.test(formula.formulaTaleSpire)
+      ? (() => {
+          const evaluacion = evaluarEfectosCondicionesEnTirada({ tipo: "ataque", personaje: pj,
+            condicionesActivas: pj.condicionesActivas, esAtaqueMagico: true, claseConjuro: clase });
+          return evaluacion.tieneVentaja || evaluacion.tieneDesventaja ? evaluacion.modoEfectivo : undefined;
+        })() : undefined,
     activarConcentracion
   };
 }

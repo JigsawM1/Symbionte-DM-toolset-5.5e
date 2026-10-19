@@ -36,14 +36,18 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
       && s.destinoConjuros !== "referencia" && s.destinoConjuros !== "libro"
       && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && s.valorActual.some(coincide))))
     .map(r => r.claseConjurosOtorgados!.toLocaleLowerCase("es")));
-  const clase = clases.size === 1 ? [...clases][0] : undefined;
+  const claseElegida = solicitud.modo !== "arcanoMistico" && solicitud.modo !== "gratuitoInnato"
+    ? solicitud.claseLanzamiento?.toLocaleLowerCase("es") : undefined;
+  const clase = claseElegida ?? (clases.size === 1 ? [...clases][0] : undefined);
   const aptitud = r?.aptitudConjuroGratuito ?? (clase
     ? pj.clasesLanzadoras.find(c => c.clase.toLocaleLowerCase("es") === clase)?.habilidadConjuro
       ?? obtenerClasePorNombre(clase)?.configuracionMagica?.habilidadConjuro : undefined);
-  if (!r && !aptitud) return solicitud;
+  const variante = pj.rasgos.find(r => r.ignorarMaterialesConjuro && r.activo !== false
+    && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && r.conjuroGratuito && coincide(r.conjuroGratuito));
+  if (!r && !aptitud && !variante) return solicitud;
   const modificador = aptitud ? obtenerModificadorAptitudMagica(pj, aptitud) : solicitud.modificadorHabilidad ?? 0;
   const competencia = Math.floor((Math.max(1, pj.nivel) - 1) / 4) + 2;
-  const hechizo: HechizoBase = r?.ignorarComponentesConjuro ? { ...solicitud.hechizo, componentesSeleccionados: { verbal: false, somatico: false, material: false }, materiales: "" } : solicitud.hechizo;
+  const hechizo: HechizoBase = r?.ignorarComponentesConjuro ? { ...solicitud.hechizo, componentesSeleccionados: { verbal: false, somatico: false, material: false }, materiales: "" } : variante ? { ...solicitud.hechizo, componentesSeleccionados: { ...solicitud.hechizo.componentesSeleccionados, material: false }, materiales: "" } : solicitud.hechizo;
   return { ...solicitud, hechizo, ...(aptitud ? {
     modificadorHabilidad: modificador, bonoAtaqueMagico: competencia + modificador, cdSalvacionPersonaje: 8 + competencia + modificador
   } : {}) };

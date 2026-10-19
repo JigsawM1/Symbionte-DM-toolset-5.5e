@@ -33,15 +33,15 @@ export function dadosAdicionalesTirada(personaje: PersonajeJugador, objetivo: st
 
 /** La finalización solo ocurre tras una emisión correcta. Un personaje tiene una emisión pendiente. */
 export async function emitirTiradaConRasgos(
-  personaje: PersonajeJugador, objetivo: string, emitir: () => Promise<boolean>, desactivar: (id: string) => void
+  personaje: PersonajeJugador, objetivo: string, emitir: () => Promise<boolean>, desactivar: (id: string, consumirPreparacion?: boolean) => void
 ): Promise<boolean> {
   if (pendientes.has(personaje.id)) return false;
   pendientes.add(personaje.id);
   try {
     const emitida = await emitir();
     if (emitida) for (const r of personaje.rasgos) {
-      if (r.activo && (r.autoDesactivarEnTirada?.includes(objetivo)
-        || (objetivo === "dano" && r.autoDesactivarAlTirarDano))) desactivar(r.id);
+      if (r.activo && ((r.gastarUsoTrasTirada && objetivo !== "dano" && !objetivo.startsWith("rasgo.")) || r.autoDesactivarEnTirada?.includes(objetivo)
+        || (objetivo === "dano" && r.autoDesactivarAlTirarDano))) desactivar(r.id, r.gastarUsoTrasTirada);
     }
     return emitida;
   } finally { pendientes.delete(personaje.id); }

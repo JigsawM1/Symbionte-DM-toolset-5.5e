@@ -1,3 +1,4 @@
+import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
@@ -57,7 +58,7 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
           esLanzadorPacto={esLanzadorPacto}
           nivelEspacioPacto={nivelEspacioPacto}
           espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
-          espaciosConjuroMaximos={personaje.espaciosConjuroMaximos || {}}
+          espaciosConjuroMaximos={obtenerMaximosEspaciosEfectivos(personaje)}
           nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
           sistemaMagia={sistemaMagia}
           bloqueadoPorArmadura={estaBloqueadoPorArmadura}

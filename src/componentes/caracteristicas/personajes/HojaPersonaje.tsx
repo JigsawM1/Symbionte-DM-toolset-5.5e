@@ -229,11 +229,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         undefined,
         tipoTiradaCondicion
       );
-      return objetivoRasgo ? await emitirTiradaConRasgos(personajeActivo, objetivoRasgo, emitir, id => {
+      return await emitirTiradaConRasgos(personajeActivo, objetivoRasgo ?? "d20", emitir, (id, consumir) => {
         const estado = usarAlmacenDM.getState();
-        if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
+        if (consumir) estado.operarRecursoRasgoPersonaje(personajeActivo.id, { tipo: "finalizarPreparacion", idRasgo: id });
+        else if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === id)?.activo)
           estado.alternarActivoRasgo(personajeActivo.id, id);
-      }) : await emitir();
+      });
     } catch (err) {
       logger.error("[HojaPersonaje] Error al enviar tirada 3D:", err);
       return false;
@@ -359,7 +360,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         ? "desventaja"
         : undefined;
 
-    await lanzarDadosTaleSpire(
+    await emitirTiradaConRasgos(personajeActivo, "salvacion.muerte", () => lanzarDadosTaleSpire(
       "!Salvacion Muerte:1d20",
       `${nombrePj} - Salvación Muerte`,
       undefined,
@@ -368,7 +369,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         personajeId: personajeActivo.id
       },
       modoForzado
-    );
+    ), (id, consumir) => {
+      if (consumir) usarAlmacenDM.getState().operarRecursoRasgoPersonaje(personajeActivo.id, { tipo: "finalizarPreparacion", idRasgo: id });
+      else usarAlmacenDM.getState().alternarActivoRasgo(personajeActivo.id, id);
+    });
   }, [personajeActivo]);
 
   const manejarTirarDadoGolpe = useCallback(async () => {
@@ -653,7 +657,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       )}
 
       {/* Modal Resumen de Descanso */}
-      <ModalResumenDescanso abierto={modalDescanso.abierto} tipoDescanso={modalDescanso.tipo} acciones={modalDescanso.acciones} nombrePersonaje={personajeActivo.nombre} alCerrar={() => setModalDescanso((prev) => ({ ...prev, abierto: false }))} />
+      <ModalResumenDescanso idPersonaje={personajeActivo.id} abierto={modalDescanso.abierto} tipoDescanso={modalDescanso.tipo} acciones={modalDescanso.acciones} nombrePersonaje={personajeActivo.nombre} alCerrar={() => setModalDescanso((prev) => ({ ...prev, abierto: false }))} />
     </main>
   );
 };

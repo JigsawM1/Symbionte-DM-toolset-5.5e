@@ -30,3 +30,8 @@
 .dialogo button:focus-visible, .dialogo input:focus-visible { outline: 2px solid var(--pj-borde-acento-fuerte); outline-offset: 2px; }
 .dialogo button:disabled { opacity: .45; cursor: default; }
 .error { margin: 12px 0 0; color: var(--pj-texto-alerta); font-size: var(--pj-fuente-cuerpo); line-height: 1.5; }
+.opcionesLanzamiento { display: grid; gap: 10px; }
+.opcionesLanzamiento button { display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 13px 14px; text-align: left; color: var(--pj-texto-primario); background: var(--pj-fondo-panel); border: 1px solid var(--pj-borde-medio); line-height: 1.45; }
+.opcionesLanzamiento button:hover:not(:disabled) { background: var(--pj-fondo-tarjeta-hover); border-color: var(--pj-borde-acento-fuerte); }
+.opcionesLanzamiento strong { font-size: var(--pj-fuente-cuerpo); }
+.opcionesLanzamiento span { font-size: var(--pj-fuente-badge); color: var(--pj-texto-terciario); }

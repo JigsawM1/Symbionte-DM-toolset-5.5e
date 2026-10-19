@@ -11,6 +11,17 @@ export function claveEstado(texto: string): string {
   return efecto ? normalizar(efecto.nombre).split(" (")[0] : base;
 }
 
+/** Los efectos breves pueden declarar su finalización al completar cualquier descanso. */
+export function finalizarRasgosAlDescansar(pj: PersonajeJugador): PersonajeJugador {
+  const rasgos = pj.rasgos.filter(r => r.finalizarAlDescansar);
+  if (!rasgos.length) return pj;
+  const ids = new Set(rasgos.map(r => r.id));
+  const condiciones = new Set(rasgos.flatMap(r => r.condicionAlActivar ? [claveEstado(r.condicionAlActivar)] : []));
+  return { ...pj, rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
+    efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "") && !condiciones.has(claveEstado(e.nombre))),
+    condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c))) };
+}
+
 /** Finaliza estados por duración o condiciones declaradas, sin reglas por nombre del rasgo. */
 export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number): PersonajeJugador {
   const retirar = new Set<string>();

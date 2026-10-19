@@ -349,6 +349,7 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   arcanoMisticoGastados: [],
   puntosHechiceriaMaximos: 0,
   puntosHechiceriaActuales: 0,
+  espaciosConjuroAdicionales: {},
   overrideEspaciosConjuro: null,
   overridePuntosConjuro: null,
 

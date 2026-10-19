@@ -89,6 +89,8 @@
 }
 
 .cuerpo {
+  --fondo-scroll-cef: var(--pj-fondo-modal-cuerpo);
+  background: var(--pj-fondo-modal-cuerpo);
   padding: 16px 18px;
   display: flex;
   flex-direction: column;

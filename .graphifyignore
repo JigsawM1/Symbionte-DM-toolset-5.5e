@@ -1,0 +1,17 @@
+# Dependencias, compilados y resultados generados.
+node_modules/
+dist/
+dist-ssr/
+mod-io-build/
+graphify-out/
+.git/
+.agents/
+.codex/
+scratch/
+informes/
+*.zip
+*.log
+pnpm-lock.yaml
+
+# Bitácora histórica: consultar por búsqueda cuando sea necesario.
+agente.md

@@ -2,6 +2,12 @@ import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import { z } from "zod";
 
 export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
+  escaladoConjurosOtorgados: true,
+  costeRecargaPadre: true, costeActivacionPorSelector: true, lanzamientoConRecurso: true,
+  ignorarMaterialesConjuro: true, varianteSinConcentracion: true, reservaDados: true,
+  usoGratuitoCondicionado: true, gastarUsoTrasTirada: true, tablaAleatoria: true,
+  conversionEspacios: true, recuperacionOpcionalDescanso: true, activacionAlternativa: true,
+  finalizarAlDescansar: true,
   idRasgoRecurso: true, requiereRasgosActivos: true, activarConRasgo: true,
   recuperarUsosAlActivarRasgo: true, gastarUsoAlEmitirSalvacion: true,
   desactivarSinHp: true, tiradaCuracion: true, idSelectorTipoDano: true, salvacionObjetivo: true, conjurosRituales: true, aptitudConjurosRituales: true,

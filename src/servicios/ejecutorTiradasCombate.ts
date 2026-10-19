@@ -24,7 +24,7 @@ export interface ContextoTiradaAtaqueFisico {
   agregarNotificacion: (mensaje: string, tipo?: "info" | "exito" | "advertencia" | "error") => void;
 }
 
-export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico): Promise<void> {
+export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico): Promise<boolean> {
   const {
     ataque,
     personajeActivo,
@@ -54,7 +54,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     if (renuncia) {
       if (evaluacionCondiciones.tieneDesventaja || ctx.tipoTiradaManual === "desventaja") {
         agregarNotificacion("No puedes renunciar a ventaja en un ataque que tenga desventaja. Desactiva el rasgo para lanzar ese ataque.", "advertencia");
-        return;
+        return false;
       }
     }
 
@@ -111,7 +111,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
         ? evaluacionCondiciones.modoEfectivo
         : undefined;
 
-    await lanzarDadosTaleSpire(
+    return await lanzarDadosTaleSpire(
       formula,
       etiqueta,
       undefined,
@@ -120,6 +120,7 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     );
   } catch (error) {
     logger.error("Error al tirar ataque:", error);
+    return false;
   }
 }
 

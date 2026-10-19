@@ -179,6 +179,7 @@ export interface SubSliceInventario {
 }
 
 export interface SubSliceRasgos {
+  operarRecursoRasgoPersonaje: (idPj: string, operacion: import("@/servicios/rasgos/conversionRecursosRasgos").OperacionRecursoRasgo) => boolean;
   agregarRasgoPersonaje: (idPj: string, rasgo: RasgoPersonaje) => void;
   actualizarRasgoPersonaje: (idPj: string, idRasgo: string, cambios: Partial<RasgoPersonaje>) => void;
   eliminarRasgoPersonaje: (idPj: string, idRasgo: string) => void;

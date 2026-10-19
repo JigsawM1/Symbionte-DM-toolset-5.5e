@@ -1,0 +1,12 @@
+.cuerpo { display: flex; flex-direction: column; gap: 14px; }
+.cuerpo label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cuerpo input { box-sizing: border-box; width: 100%; min-width: 0; padding: 9px; border: 1px solid var(--pj-borde-medio); border-radius: 6px; background: var(--pj-fondo-panel); color: var(--pj-texto-primario); }
+.modos { display: flex; flex-wrap: wrap; gap: 8px; }
+.modos button { flex: 1; padding: 8px; }
+.modos button[aria-pressed="true"] { border-color: var(--pj-texto-acento); color: var(--pj-texto-acento); }
+
+.formulario { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.boton, .modos button, .recuperacion button { padding: 8px 10px; color: var(--pj-texto-secundario); background: var(--pj-fondo-panel); border: 1px solid var(--pj-borde-medio); border-radius: var(--pj-radio-control); font: inherit; cursor: pointer; }
+.recuperacion { padding: 12px; border: 1px solid var(--pj-borde-acento); border-radius: var(--pj-radio-panel); background: var(--pj-fondo-panel); }
+.recuperacion h3 { margin: 0; font-size: var(--pj-fuente-cuerpo); }
+.recuperacion input { max-width: 90px; margin-right: 8px; }

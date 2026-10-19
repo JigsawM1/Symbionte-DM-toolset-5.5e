@@ -58,3 +58,9 @@ export function aplicarEventosActivacion(anterior: PersonajeJugador | undefined,
   for (const id of activados) actual = aplicarHpTemporalPorEvento(actual, "activacion", id);
   return actual;
 }
+
+/** El coste depende solo de decisiones validadas, nunca de nombres de rasgos. */
+export function costeActivacionRasgo(r: RasgoPersonaje): number {
+  const cfg = r.costeActivacionPorSelector;
+  return cfg ? Math.max(1, r.selectores?.find(s => s.id === cfg.idSelector)?.valorActual.length ?? 0) * cfg.costePorOpcion : r.costeFijo ?? 1;
+}

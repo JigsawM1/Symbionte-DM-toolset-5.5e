@@ -33,13 +33,16 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
   if (existente?.personalizado) return structuredClone(existente);
   // Solo ajustar por progresión cuando el máximo anterior pertenece a la tabla declarada.
   // Los contadores heredados arbitrarios mantienen su valor disponible, limitado al máximo actual.
-  const maximoAnteriorValido = nuevo.escaladoUsos?.tipo === "por_nivel"
-    && nuevo.escaladoUsos.tabla?.some(f => f.valor === existente?.usosMaximos);
+  const maximoAnteriorValido = (nuevo.escaladoUsos?.tipo === "por_modificador" && (nuevo.usosMaximos ?? 0) > (existente?.usosMaximos ?? 0)) || (nuevo.escaladoUsos?.tipo === "por_nivel"
+    && nuevo.escaladoUsos.tabla?.some(f => f.valor === existente?.usosMaximos));
   const disponibles = existente?.usosRestantes !== undefined && maximoAnteriorValido && nuevo.usosMaximos !== undefined
     ? nuevo.usosMaximos - Math.max(0, (existente?.usosMaximos ?? nuevo.usosMaximos) - existente.usosRestantes)
     : existente?.usosRestantes;
   return {
     ...nuevo,
+    dadosReserva: existente?.dadosReserva,
+    resultadoTabla: existente?.resultadoTabla,
+    recuperacionDescansoDisponible: existente?.recuperacionDescansoDisponible,
     selectores: nuevo.selectores?.map((s) => fusionarSelector(s, existente?.selectores?.find((a) => a.id === s.id))),
     vinculoArma: nuevo.vinculoArma ? { ...nuevo.vinculoArma, idInstancia: existente?.vinculoArma?.idInstancia } : undefined,
     condicionAlActivar: nuevo.condicionAlActivar ?? existente?.condicionAlActivar,

@@ -49,9 +49,52 @@ export function tokenizarBusqueda(consulta: string): string[] {
 }
 
 /**
+ * Estructura precalculada para evitar re-tokenizar y re-normalizar la consulta en cada elemento del bucle.
+ */
+interface InfoConsulta {
+  consultaNorm: string;
+  tokens: string[];
+  tokensSinEnye: string[];
+  numTokens: number;
+}
+
+const cacheConsultas = new Map<string, InfoConsulta | null>();
+const LIMITE_CACHE_CONSULTAS = 1000;
+
+function obtenerInfoConsulta(consulta: string): InfoConsulta | null {
+  if (!consulta || !consulta.trim()) return null;
+  let info = cacheConsultas.get(consulta);
+  if (info !== undefined) return info;
+
+  const tokens = tokenizarBusqueda(consulta);
+  if (tokens.length === 0) {
+    if (cacheConsultas.size >= LIMITE_CACHE_CONSULTAS) cacheConsultas.clear();
+    cacheConsultas.set(consulta, null);
+    return null;
+  }
+
+  const consultaNorm = normalizarParaBusqueda(consulta);
+  const tokensSinEnye = tokens.map((t) => (t.includes("ñ") ? t.replace(/ñ/g, "n") : t));
+
+  info = {
+    consultaNorm,
+    tokens,
+    tokensSinEnye,
+    numTokens: tokens.length
+  };
+
+  if (cacheConsultas.size >= LIMITE_CACHE_CONSULTAS) cacheConsultas.clear();
+  cacheConsultas.set(consulta, info);
+  return info;
+}
+
+/**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
- * Optimizado perezosamente: examina campos cortos (nombre, categoría) antes de analizar textos masivos.
+ * Optimización de rendimiento Bolt ⚡:
+ * - Reutiliza la consulta tokenizada y normalizada precalculada.
+ * - Evita asignación de objetos/arrays adicionales durante el filtrado.
+ * - Utiliza máscaras de bits para rastreo de tokens pendientes (hasta 30 palabras clave).
  * 
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
@@ -64,35 +107,96 @@ export function coincideBusquedaTolerante(
   if (!consulta || !consulta.trim()) return true;
   if (!objetivos) return false;
 
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return true;
+  const infoConsulta = obtenerInfoConsulta(consulta);
+  if (!infoConsulta) return true;
 
-  const listaObjetivos = (Array.isArray(objetivos) ? objetivos : [objetivos])
-    .filter((t): t is string => typeof t === "string" && t.length > 0);
+  const { tokens, tokensSinEnye, numTokens } = infoConsulta;
 
-  if (listaObjetivos.length === 0) return false;
-
-  // Ordenar perezosamente: campos más cortos primero para descartar o confirmar sin tocar descripciones largas
-  const objetivosOrdenados = listaObjetivos.length > 1
-    ? [...listaObjetivos].sort((a, b) => a.length - b.length)
-    : listaObjetivos;
-
-  const tokensPendientes = new Set(tokens);
-
-  for (const obj of objetivosOrdenados) {
-    const objNorm = normalizarParaBusqueda(obj);
+  // Optimización si objetivos es un único string
+  if (typeof objetivos === "string") {
+    if (objetivos.length === 0) return false;
+    const objNorm = normalizarParaBusqueda(objetivos);
     const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
-    for (const token of Array.from(tokensPendientes)) {
-      const tokenSinEnye = token.includes("ñ") ? token.replace(/ñ/g, "n") : token;
-      if (objNorm.includes(token) || objNormSinEnye.includes(tokenSinEnye)) {
-        tokensPendientes.delete(token);
+    for (let i = 0; i < numTokens; i++) {
+      if (!objNorm.includes(tokens[i]) && !objNormSinEnye.includes(tokensSinEnye[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Verificación rápida si la lista tiene al menos un texto válido
+  let tieneObjetivosValidos = false;
+  for (let i = 0; i < objetivos.length; i++) {
+    const item = objetivos[i];
+    if (item && typeof item === "string" && item.length > 0) {
+      tieneObjetivosValidos = true;
+      break;
+    }
+  }
+  if (!tieneObjetivosValidos) return false;
+
+  // Atajo para consultas de un solo token (la gran mayoría de búsquedas)
+  if (numTokens === 1) {
+    const tok = tokens[0];
+    const tokSinEnye = tokensSinEnye[0];
+    for (let i = 0; i < objetivos.length; i++) {
+      const item = objetivos[i];
+      if (!item) continue;
+      const objNorm = normalizarParaBusqueda(item);
+      const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+      if (objNorm.includes(tok) || objNormSinEnye.includes(tokSinEnye)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Búsqueda multitoken de alto rendimiento con bitmask (evita asignaciones `Set` o `Array.from`)
+  if (numTokens <= 30) {
+    let tokensPendientesMask = (1 << numTokens) - 1;
+
+    for (let i = 0; i < objetivos.length; i++) {
+      const item = objetivos[i];
+      if (!item) continue;
+
+      const objNorm = normalizarParaBusqueda(item);
+      const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+
+      for (let t = 0; t < numTokens; t++) {
+        if ((tokensPendientesMask & (1 << t)) !== 0) {
+          if (objNorm.includes(tokens[t]) || objNormSinEnye.includes(tokensSinEnye[t])) {
+            tokensPendientesMask &= ~(1 << t);
+          }
+        }
+      }
+
+      if (tokensPendientesMask === 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Fallback para consultas atípicas con más de 30 tokens
+  const pendientes = new Set<number>();
+  for (let t = 0; t < numTokens; t++) pendientes.add(t);
+
+  for (let i = 0; i < objetivos.length; i++) {
+    const item = objetivos[i];
+    if (!item) continue;
+
+    const objNorm = normalizarParaBusqueda(item);
+    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+
+    for (const t of Array.from(pendientes)) {
+      if (objNorm.includes(tokens[t]) || objNormSinEnye.includes(tokensSinEnye[t])) {
+        pendientes.delete(t);
       }
     }
 
-    if (tokensPendientes.size === 0) {
-      return true;
-    }
+    if (pendientes.size === 0) return true;
   }
 
   return false;
@@ -148,10 +252,10 @@ export function calcularRelevanciaBusqueda(
   secundarios?: (string | undefined | null)[]
 ): number {
   if (!consulta || !consulta.trim()) return 0;
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return 0;
+  const infoConsulta = obtenerInfoConsulta(consulta);
+  if (!infoConsulta) return 0;
 
-  const consultaNorm = normalizarParaBusqueda(consulta);
+  const { consultaNorm, tokens, tokensSinEnye, numTokens } = infoConsulta;
   const tituloNorm = normalizarParaBusqueda(titulo || "");
 
   if (tituloNorm) {
@@ -159,12 +263,16 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tokensEnTitulo = tokens.filter((t) =>
-      tituloNorm.includes(t) || tituloNorm.replace(/ñ/g, "n").includes(t.replace(/ñ/g, "n"))
-    );
+    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
+    let tokensEnTitulo = 0;
+    for (let i = 0; i < numTokens; i++) {
+      if (tituloNorm.includes(tokens[i]) || tituloNormSinEnye.includes(tokensSinEnye[i])) {
+        tokensEnTitulo++;
+      }
+    }
 
-    if (tokensEnTitulo.length === tokens.length) return 400;
-    if (tokensEnTitulo.length > 0) return 300;
+    if (tokensEnTitulo === numTokens) return 400;
+    if (tokensEnTitulo > 0) return 300;
   }
 
   // Comprobar coincidencia en campos secundarios si se proporcionan

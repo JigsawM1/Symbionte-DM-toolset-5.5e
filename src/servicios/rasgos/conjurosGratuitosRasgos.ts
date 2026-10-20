@@ -4,17 +4,30 @@ import { obtenerNivelEfectivoParaRasgo, obtenerClasePorNombre } from "../clases/
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import type { SolicitudLanzamiento } from "../servicioLanzamientoConjuros";
 import { obtenerModificadorAptitudMagica } from "../calculadorMagia";
-import { cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
+import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
+import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 
 export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string): RasgoPersonaje | undefined {
-  return (pj.rasgos ?? []).find(r => !r.esActivable && r.activo !== false
-    && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r, pj.rasgos)
-    && (!r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) > 0) && (
-      (r.tieneUsosLimitados && (r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, hechizo)))
-      || (r.conjuroGratuito && coincideHechizoId(r.conjuroGratuito, hechizo))
-      || r.efectos?.some(e => e.tipo === "conjuro_gratuito" && e.activo !== false && coincideHechizoId(e.objetivo, hechizo) && cumpleCondicionEfecto(e.condicion, pj))
-      || (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, hechizo)))));
+  return (pj.rasgos ?? []).find(r => {
+    if (r.esActivable || r.activo === false) return false;
+    if (obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return false;
+    if (!esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return false;
+    const coincide =
+      (r.tieneUsosLimitados && (r.conjurosOtorgados ?? []).some(id => coincideHechizoId(id, hechizo))) ||
+      (r.conjuroGratuito && coincideHechizoId(r.conjuroGratuito, hechizo)) ||
+      r.efectos?.some(e => e.tipo === "conjuro_gratuito" && e.activo !== false && coincideHechizoId(e.objetivo, hechizo) && cumpleCondicionEfecto(e.condicion, pj)) ||
+      (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, hechizo)));
+    if (!coincide) return false;
+
+    const idRecurso = resolverIdRasgoObjetivoGasto(r, pj.rasgos);
+    const rasgoRecurso = pj.rasgos.find(x => x.id === idRecurso) ?? r;
+    if (rasgoRecurso.tieneUsosLimitados) {
+      const disponibles = rasgoRecurso.usosRestantes ?? rasgoRecurso.usosMaximos ?? calcularUsosMaximosRasgo(rasgoRecurso, pj);
+      if (disponibles <= 0) return false;
+    }
+    return true;
+  });
 }
 
 /** Una concesión explícita conserva su aptitud aunque otra clase sea el lanzador principal. */

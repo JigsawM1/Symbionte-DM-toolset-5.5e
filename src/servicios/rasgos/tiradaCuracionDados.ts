@@ -7,7 +7,7 @@ const pendientes = new Set<string>();
 export async function emitirCuracionConDados(pj: PersonajeJugador, rasgo: RasgoPersonaje, dados: number,
   emitir: (formula: string, propio: boolean) => Promise<boolean>, consumir: (cantidad: number) => void): Promise<boolean> {
   const cfg = rasgo.tiradaCuracion ?? rasgo.tiradaCuracionManual;
-  const caras = rasgo.formulaDados?.match(/^1d(\d+)$/)?.[1];
+  const caras = rasgo.formulaDados?.match(/^(?:\d+)?d(\d+)$/i)?.[1];
   const restantes = rasgo.usosRestantes ?? rasgo.usosMaximos ?? 0;
   const maximo = cfg ? evaluarExpresionNumericaSegura(resolverFormulaDinamica(cfg.maxDados, pj, rasgo.fuente, rasgo)) : 0;
   if (!cfg || !caras || !Number.isInteger(dados) || dados < 1 || dados > restantes || dados > maximo || pendientes.has(pj.id)) return false;

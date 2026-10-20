@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
-import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, FlaskConical, Target, GripVertical, Shield } from "lucide-react";
+import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, GripVertical } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { esObjetoEquipable } from "@/servicios/procesadorEquipamiento";
@@ -10,11 +10,7 @@ import {
   calcularAlmacenamientoMunicion,
   calcularContenidoContenedorMunicion
 } from "@/servicios/gestorMunicion";
-import {
-  obtenerInfoMaestria,
-  obtenerInfoPropiedadArma,
-  obtenerInfoPropiedadArmadura
-} from "@/servicios/resolutorPropiedades";
+import { BadgesFilaSuperiorObjeto } from "./subcomponentes/BadgesFilaSuperiorObjeto";
 import { logger } from "@/utiles/logger";
 import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
@@ -213,149 +209,19 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
             >
               {objeto.nombre}
             </span>
-            {bonoMagico !== undefined && bonoMagico > 0 && (
-              <TooltipUniversal
-                titulo="Bonificador Mágico"
-                contenido={`Otorga +${bonoMagico} a las tiradas de ataque y daño (o a la CA).`}
-                posicion="arriba"
-              >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeBonoMagico}`}>
-                  +{bonoMagico}
-                </span>
-              </TooltipUniversal>
-            )}
-            {esVeneno && (
-              <TooltipUniversal
-                titulo="Veneno Aplicado"
-                contenido="Objeto impregnado con sustancia venenosa que añade efectos especiales o daño por veneno."
-                posicion="arriba"
-              >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeVeneno}`}>
-                  <FlaskConical size={9} className={estilos.iconoBadgeInline} />
-                  Veneno
-                </span>
-              </TooltipUniversal>
-            )}
-            {maestria && (() => {
-              const infoM = obtenerInfoMaestria(maestria);
-              return (
-                <TooltipUniversal
-                  titulo={infoM.titulo}
-                  contenido={infoM.descripcion}
-                  posicion="arriba"
-                >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
-                    {maestria}
-                  </span>
-                </TooltipUniversal>
-              );
-            })()}
-            {armaObj?.propiedades && armaObj.propiedades.map((p) => {
-              const infoP = obtenerInfoPropiedadArma(p);
-              return (
-                <TooltipUniversal
-                  key={p}
-                  titulo={infoP.titulo}
-                  contenido={infoP.descripcion}
-                  posicion="arriba"
-                >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
-                    {p}
-                  </span>
-                </TooltipUniversal>
-              );
-            })}
-            {esEscudo && (
-              <TooltipUniversal
-                titulo="Bonificador de Escudo"
-                contenido={`Otorga +${caEscudoEfectiva} a la Clase de Armadura mientras esté equipado.`}
-                posicion="arriba"
-              >
-                <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
-                  <Shield size={9} className={estilos.iconoBadgeInline} />
-                  +{caEscudoEfectiva} CA
-                </span>
-              </TooltipUniversal>
-            )}
-            {(armaduraObj?.desventajaSigilo || escudoObj?.desventajaSigilo || objeto.desventajaSigilo) && (() => {
-              const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
-              return (
-                <TooltipUniversal
-                  titulo={infoSigilo.titulo}
-                  contenido={infoSigilo.descripcion}
-                  posicion="arriba"
-                >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
-                    Sigilo (Desv.)
-                  </span>
-                </TooltipUniversal>
-              );
-            })()}
-            {(armaduraObj?.requisitoFuerza || objeto.requisitoFuerza) && (() => {
-              const reqFue = armaduraObj?.requisitoFuerza || objeto.requisitoFuerza;
-              const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", reqFue);
-              return (
-                <TooltipUniversal
-                  titulo={infoFue.titulo}
-                  contenido={infoFue.descripcion}
-                  posicion="arriba"
-                >
-                  <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
-                    FUE {reqFue}
-                  </span>
-                </TooltipUniversal>
-              );
-            })()}
-
-            {/* Badges de Munición y Almacenamiento con Límite de Capacidad */}
-            {infoAlmacenamientoMunicion && (
-              infoAlmacenamientoMunicion.tieneContenedor ? (
-                <>
-                  <span
-                    className={`${estilos.badgeMeta} ${estilos.badgeMunicionGuardada}`}
-                    title={`${infoAlmacenamientoMunicion.almacenadasEnContenedor} de ${infoAlmacenamientoMunicion.totalMunicion} proyectiles guardados en ${infoAlmacenamientoMunicion.nombreContenedor}`}
-                  >
-                    <Target size={9} className={estilos.iconoBadgeInline} />
-                    {infoAlmacenamientoMunicion.almacenadasEnContenedor}/{infoAlmacenamientoMunicion.capacidadTotal} en {infoAlmacenamientoMunicion.nombreContenedor}
-                  </span>
-                  {infoAlmacenamientoMunicion.sueltasEnMochila > 0 && (
-                    <span
-                      className={`${estilos.badgeMeta} ${estilos.badgeMunicionExceso}`}
-                      title={`${infoAlmacenamientoMunicion.sueltasEnMochila} proyectiles exceden la capacidad de tu ${infoAlmacenamientoMunicion.nombreContenedor} y van sueltos en la mochila`}
-                    >
-                      +{infoAlmacenamientoMunicion.sueltasEnMochila} en mochila
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span
-                  className={`${estilos.badgeMeta} ${estilos.badgeMunicionSuelta}`}
-                  title={`Transportas esta munición suelta en la mochila. Recomendado: ${infoAlmacenamientoMunicion.nombreContenedor}`}
-                >
-                  Sueltas en mochila
-                </span>
-              )
-            )}
-
-            {/* Badge para el Contenedor Físico (ej. Carcaj, Caja de Virotes, Bolsa de Balas) */}
-            {infoContenedorFisico && (
-              <span
-                className={`${estilos.badgeMeta} ${
-                  infoContenedorFisico.totalAlmacenado > 0
-                    ? estilos.badgeContenedorConContenido
-                    : estilos.badgeMunicionSuelta
-                }`}
-                title={
-                  infoContenedorFisico.totalAlmacenado > 0
-                    ? `Alberga ${infoContenedorFisico.totalAlmacenado} de su capacidad máxima de ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil}`
-                    : `Capacidad para ${infoContenedorFisico.capacidadTotal} ${infoContenedorFisico.tipoProyectil} (Actualmente vacío)`
-                }
-              >
-                <Target size={9} className={estilos.iconoBadgeInline} />
-                {infoContenedorFisico.totalAlmacenado}/{infoContenedorFisico.capacidadTotal} {infoContenedorFisico.tipoProyectil}
-                {infoContenedorFisico.estaLleno && " (Lleno)"}
-              </span>
-            )}
+            <BadgesFilaSuperiorObjeto
+              bonoMagico={bonoMagico}
+              esVeneno={esVeneno}
+              maestria={maestria}
+              armaObj={armaObj}
+              esEscudo={esEscudo}
+              caEscudoEfectiva={caEscudoEfectiva}
+              armaduraObj={armaduraObj}
+              escudoObj={escudoObj}
+              objeto={objeto}
+              infoAlmacenamientoMunicion={infoAlmacenamientoMunicion}
+              infoContenedorFisico={infoContenedorFisico}
+            />
           </div>
 
           <div className={estilos.filaAccionesDerecha}>

@@ -1,5 +1,80 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-19] Auditoría e Implementación de la Fase 4: Interfaz de Usuario, Componentes de Ficha (Jugador y DM), Límites de Líneas, Rendimiento en CEF (TaleSpire) y Ciclo de Vida de Modales/Listeners
+
+- **Contexto y Alcance**:
+  - Auditoría exhaustiva y refactorización arquitectónica de la capa de presentación y componentes de ficha (Modo Jugador y Modo DM) en el entorno embebido CEF de TaleSpire.
+  - Liquidación total de la deuda técnica de archivos superiores a 500 líneas (`ARCHIVOS_HEREDADOS_PENDIENTES = new Set([])`), corrección de bugs canónicos de escalado de usos vs dados por Bono de Competencia (PHB 2024), optimización de suscripciones Zustand en formularios Homebrew, ciclo de vida defensivo en modales/temporizadores CEF y atomicidad en consumo de Arcano Místico.
+- **Hallazgos Principales y Correcciones Arquitectónicas Aplicadas**:
+  1. **[F4-01] Escalado Canónico D&D 5.5 de Usos vs Dados por Bono de Competencia (`usarAccionesTarjetaRasgo.ts`, `usarConstructorRasgo.ts`, `utilidadesProgresionRasgos.ts`)**:
+     - *Problema*: La comprobación `rasgo.formulaEscalado === "bono_competencia"` evaluaba tanto si el rasgo escalaba sus usos máximos con PB como si escalaba sus dados de daño (ej. `PB d4` en Aliento de Dragón o Manos Curativas de Aasimar). Si un rasgo tenía fórmula de dados y escalado de dados por PB, sus usos máximos eran erróneamente sobreescritos por el PB.
+     - *Solución*: Discriminación explícita `const escalaPorBonoCompetencia = rasgo.formulaUsos === "bono_competencia" || (rasgo.formulaEscalado === "bono_competencia" && !rasgo.formulaDados);`. Además, se optimizó `utilidadesProgresionRasgos.ts` para clonar profundamente con `structuredClone` de forma inmutable, preservando los recursos intactos (`usosRestantes: undefined`).
+  2. **[F4-02] Modularización Arquitectónica de Componentes Monolíticos y Liquidación de Deuda de Líneas**:
+     - *Problema*: Existían 5 componentes clave que superaban con holgura el límite estricto de 500 líneas (`scripts/verificar-limite-lineas.js`), acumulando deuda técnica en `ARCHIVOS_HEREDADOS_PENDIENTES`.
+     - *Solución*:
+       - `SeccionAcompanantesPersonaje.tsx` (1.116 -> **497 líneas**): Extraídos `ItemAcompanante.tsx` (351 líneas), `PopoverVelocidadAcompanante.tsx` (214 líneas), `ModalEstadisticasAcompanante.tsx` (59 líneas) y `CabeceraBuscadorAcompanantes.tsx` (108 líneas).
+       - `ModalAgregarObjeto.tsx` (720 -> **450 líneas**): Extraídos `subcomponentes/SelectorContenedorDestino.tsx` (82 líneas) y `subcomponentes/VistaPreviaObjetoCompendio.tsx` (186 líneas).
+       - `ModalEditarPersonaje.tsx` (652 -> **233 líneas**): Extraídos los 4 subcomponentes de pestañas (`PestanaIdentidadEdicion.tsx` [165 líneas], `PestanaAtributosEdicion.tsx` [70 líneas], `PestanaCompetenciasEdicion.tsx` [127 líneas] y `PestanaSentidosEdicion.tsx` [113 líneas]).
+       - `TarjetaObjetoInventario.tsx` (578 -> **443 líneas**): Extraído `subcomponentes/BadgesFilaSuperiorObjeto.tsx` (164 líneas).
+       - `GestorPersonajes.tsx` (510 -> **395 líneas**): Extraído `subcomponentes/ModalesJSONGestorPersonajes.tsx` (162 líneas).
+       - `ARCHIVOS_HEREDADOS_PENDIENTES`: Reducido a `new Set([])` vacío en `scripts/verificar-limite-lineas.js`.
+  3. **[F4-03] Poda de Re-renders y Suscripciones Granulares a Zustand en Hooks Homebrew**:
+     - *Problema*: `usarFormularioHechizo.ts`, `usarFormularioCriatura.ts` y `usarFormularioObjeto.ts` ejecutaban `usarAlmacenDM()` sin selector de estado, provocando re-renders masivos e innecesarios de los modales y editores de creación ante cualquier cambio en la iniciativa, tiradas de dados o fichas de otros jugadores en TaleSpire.
+     - *Solución*: Reemplazo por selectores de acciones atómicas `usarAccionesHomebrew()` y `usarAccionesConfiguracion()`.
+  4. **[F4-04] Ciclo de Vida Defensivo en Modales `<dialog>` y Limpieza de Temporizadores en CEF**:
+     - *Problema*: `DialogoVarianteConjuro.tsx` ejecutaba `dialog.showModal()` sin sincronización con el evento nativo `onClose` del modal del navegador/CEF, provocando desajustes de estado y excepciones si el usuario pulsaba Escape. Asimismo, `ConfiguracionDM.tsx`, `SeccionVinculacionMiniaturaTS.tsx` y `GestorPersonajes.tsx` lanzaban `setTimeout` para toasts o feedback sin almacenar la referencia ni limpiarla al desmontarse el componente.
+     - *Solución*: Enlace defensivo `onClose` y apertura/cierre sincronizado en `DialogoVarianteConjuro.tsx`; almacenamiento de IDs de temporizador en `useRef` con cleanup estricto en `useEffect` en `ConfiguracionDM.tsx`, `SeccionVinculacionMiniaturaTS.tsx` y `GestorPersonajes.tsx`.
+  5. **[F4-05] Atomicidad en Consumo de Arcano Místico (`SeccionArcanoMistico.tsx`)**:
+     - *Problema*: Al pulsar para lanzar un conjuro de Arcano Místico, se ejecutaba `gastarUsoRasgoPersonaje` de forma optimista antes de confirmar el lanzamiento en TaleSpire. Si el jugador cancelaba la tirada o fallaba la comunicación con la bandeja 3D, el recurso de nivel 6-9 quedaba gastado permanentemente.
+     - *Solución*: Invocación asíncrona de `lanzarDadosTaleSpire` y consumo condicional atómico `if (res?.exito) gastarUsoRasgoPersonaje(...)`.
+- **Estrategia de Pruebas Unitarias**:
+  - Creación de `src/componentes/auditoriaFase4.test.ts` con 6 pruebas unitarias cubriendo la discriminación de escalado de usos vs dados, dinamismo con `formulaUsos: "bono_competencia"`, inmutabilidad estricta con `structuredClone`, preservación de recursos intactos en Arcano Místico y verificación de exportación de todos los nuevos subcomponentes React.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Límites de Líneas:** 185 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas y 0 heredados en backlog.
+  - **Vitest:** 154 suites ejecutadas, **2.207 / 2.207 pruebas aprobadas** (100% de éxito).
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.45s (2.115 módulos transformados).
+
+---
+
+## [2026-10-19] Auditoría e Implementación de la Fase 3: Reglas Canónicas D&D 5.5 / PHB 2024, Cálculo de Combate, Clases, Magia, Descansos y Lanzador de Dados
+
+- **Contexto y Alcance**:
+  - Auditoría integral y resolución de hallazgos sobre las reglas canónicas de D&D 5.5 / PHB 2024 en servicios puros y utilidades: descansos (`procesadorDescansos.ts`), escalado y fusión de rasgos (`gestorEspecies.ts`, `compendioRasgos.ts`, `borradorRasgo.ts`, `fusionarEstadoRasgo.ts`, `seleccionesRasgos.ts`), consumo de magia y recursos ligados (`consumidorRecursosConjuros.ts`, `conjurosGratuitosRasgos.ts`, `servicioLanzamientoConjuros.ts`), bandeja 3D y tiradas especiales (`lanzadorDados.ts`), cálculo de combate y evaluadores (`ejecutorTiradasCombate.ts`, `evaluadorCombateRasgos.ts`, `evaluadorExpresionesRasgos.ts`, `tiradaCuracionDados.ts`), multiclase y progresión (`sincronizadorMulticlase.ts`, `buildClase.ts`), optimización Zod y selectores (`compatibilidadInventario.ts`, `hidratadorDotes.ts`, `selectoresConjuros.ts`).
+- **Hallazgos Principales y Correcciones Arquitectónicas Aplicadas**:
+  1. **[F3-01] Integridad Canónica de Descansos y Recursos (`procesadorDescansos.ts`)**:
+     - *Problema*: En descansos cortos y largos, la evaluación `r.usosRestantes ?? 0` trataba `undefined` (recurso intacto al 100%) como agotado. Además, `ejecutarDescansoLargo` solo verificaba cadenas snake_case (`descanso_largo`, `descanso_corto`), omitiendo camelCase (`descansoLargo`, `descansoCorto`), y fallaba con `TypeError` si `salvacionesMuerte` era indefinido.
+     - *Solución*: Evaluación defensiva `r.usosRestantes ?? maxUsos`, soporte universal de recuperación en descanso largo reconociendo tanto camelCase como snake_case, y acceso opcional seguro a `salvacionesMuerte?.exitos`.
+  2. **[F3-02] Escalado y Fusión de Rasgos (`gestorEspecies.ts`, `compendioRasgos.ts`, `borradorRasgo.ts`, `fusionarEstadoRasgo.ts`, `seleccionesRasgos.ts`)**:
+     - *Problema*: `seleccionesRasgos.ts` omitía aplicar `escalados.usosEscalados` y `recuperacion`; `fusionarEstadoRasgo.ts` limitaba `maximoAnteriorValido` perdiendo usos al subir de nivel con fórmulas; `gestorEspecies.ts` pisaba los usos de Manos Curativas de Aasimar por PB en lugar de escalar la fórmula de dados (`PB d4`) y vaciaba `conjurosOtorgados`; `compendioRasgos.ts` causaba `NaN` en hechicería; `borradorRasgo.ts` perdía metadatos de activación y gasto de padre.
+     - *Solución*: Cálculo canónico de dados y usos escalados en especies y selectores, preservación de usos ganados al subir nivel en `fusionarEstadoRasgo`, y retención íntegra de metadatos en borradores de rasgos.
+  3. **[F3-03] Consumo Defensivo de Magia y Recursos Ligados (`consumidorRecursosConjuros.ts`, `conjurosGratuitosRasgos.ts`, `servicioLanzamientoConjuros.ts`)**:
+     - *Problema*: `recursoRasgo` evaluaba `calcularUsosMaximosRasgo` con `pj` incorrecto; `gratuitoInnato` no resolvía `idRecurso` vía `resolverIdRasgoObjetivoGasto` ni permitía gastar de padre; `validarLanzamiento` (`objetoMagico`) fallaba si `contexto.cargasObjetoActuales` era `undefined`.
+     - *Solución*: Resolución dinámica de ID de gasto mediante `resolverIdRasgoObjetivoGasto`, descuento atómico en padre/hijo, y resolución de respaldo de cargas de objetos mágicos desde el inventario.
+  4. **[F3-04] Intercepción 3D de Curación, HP Temporal y Dados de Golpe en `lanzadorDados.ts`**:
+     - *Problema*: Los manejadores 3D de curación de rasgo, HP temporal y dados de golpe condicionaban la ejecución con `if (!infoTirada && info...)`. Si el selector global de la UI tenía activa ventaja/desventaja, `infoTirada` existía y la condición evaluaba a `false`, bloqueando la aplicación del resultado 3D y dejando tiradas huérfanas en memoria por 10 minutos.
+     - *Solución*: Eliminación del bloqueo `!infoTirada`, aplicación inmediata del resultado 3D y purga atómica de `tiradasEspecialesActivas[rollId]`.
+  5. **[F3-05] Mecánicas de Combate y Evaluadores de Rasgos (`ejecutorTiradasCombate.ts`, `evaluadorCombateRasgos.ts`, `evaluadorExpresionesRasgos.ts`, `tiradaCuracionDados.ts`)**:
+     - *Problema*: En `ejecutarTiradaCritico`, la duplicación secuencial con bucle causaba colisiones en fórmulas compuestas (`"2d6+2d6"`); `aplicaEfectoAConjuro` retornaba `true` por defecto ante cualquier tipo de daño o escuela no coincidentes; `evaluarAtaqueDesarmadoEspecial` asignaba `ef.objetivo` sin validar características; `cumpleCondicionEfecto` carecía de `con_armadura` y `con_escudo` y retornaba `true` ante cualquier condición no reconocida; `tiradaCuracionDados.ts` exigía estrictamente `^1d(\\d+)$`.
+     - *Solución*: Duplicación atómica en una sola pasada con regex global `subBase.replace(/(\\d+)d(\\d+)/gi, ...)`, retorno de `false` estricto en discriminación de daño/escuela de conjuros, validación canónica de `Caracteristica`, soporte de `con_armadura`/`con_escudo` y condiciones contextuales de descanso en `cumpleCondicionEfecto`, y regex flexible `/^(?:\\d+)?d(\\d+)$/i` en curación.
+  6. **[F3-06] Multiclase, Dados de Golpe Canónicos y Protección de Conjuros (`sincronizadorMulticlase.ts`, `buildClase.ts`)**:
+     - *Problema*: Al subir de nivel en multiclase, `dadosGolpeRestantes` se limitaba con `Math.min(prev.dadosGolpeRestantes, nivelTotal)`, descartando el nuevo dado de golpe ganado; al reclasificar subclase se borraban conjuros otorgados por rasgos o dotes; `buildClase.ts` reiniciaba dados de golpe gastados al sobrescribir dado de golpe.
+     - *Solución*: Función pura `calcularDadosGolpeAlCambiarNivel` que suma los dados ganados preservando los gastados, paso de `obtenerConjurosOtorgadosPorRasgos(prev)` a `sincronizarMagiaMulticlase` para protegerlos, y deducción defensiva de dados gastados en `buildClase.ts`.
+  7. **[F3-07] Optimización Zod y Robustez de Selectores (`compatibilidadInventario.ts`, `hidratadorDotes.ts`, `selectoresConjuros.ts`)**:
+     - *Problema*: `sonObjetosApilables` ejecutaba `EsquemaObjetoInventario.parse(objeto)` en bucles calientes; `hidratadorDotes.ts` re-parseaba JSON crudos con Zod en `dotes_elegibles` y `dotes_origen`; `esSelectorDeConjuros` leía `selector.destinoConjuros` antes de comprobar si `selector` era nulo.
+     - *Solución*: Memorización de normalización con `WeakMap` en inventario, reutilización directa de colecciones tipadas `TODAS_LAS_DOTES_CANONICAS_DND55` y `DOTES_ORIGEN_DND55`, y posicionamiento del guard `if (!selector) return false;` al inicio de `esSelectorDeConjuros`.
+- **Estrategia de Pruebas Unitarias**:
+  - Creación de `src/servicios/auditoriaFase3.test.ts` con 11 pruebas unitarias cubriendo todos los hallazgos de la Fase 3.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Vitest:** 153 suites ejecutadas, **2.201 / 2.201 pruebas aprobadas** (100% de éxito).
+  - **Límites de Líneas:** 173 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 7.39s (2.103 módulos).
+
+---
+
 ## [2026-10-19] Auditoría e Implementación de la Fase 2: Arquitectura de Estado Global (Zustand), Persistencia, Recursos y Selectores
 
 - **Contexto y Alcance**:

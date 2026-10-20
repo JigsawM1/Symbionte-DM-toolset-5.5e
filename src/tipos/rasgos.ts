@@ -383,6 +383,7 @@ export interface PlantillaRasgoEspecie {
   condicionAlActivar?: string;
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
+  escaladoConjurosOtorgados?: Array<{ nivelMinimo: number; conjuros: string[] }>;
   categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
   formulaEscalado?: string;
   efectos?: EfectoMecanicoRasgo[];
@@ -470,6 +471,7 @@ export const EsquemaRasgoPersonaje = z.object({
   ]).optional(),
   costeFijo: z.number().int().min(1).optional(),
   formulaEscalado: z.string().optional(),
+  formulaUsos: z.string().nullable().optional(),
   recursoGastado: EsquemaRecursoGastado.default("uso_rasgo").optional(),
 
   // Mecánicas estructuradas

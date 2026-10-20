@@ -10,15 +10,8 @@ const raizProyecto = path.resolve(__dirname, "..");
 const LIMITE_MAXIMO_LINEAS = 500; // Falla CI si se excede
 const LIMITE_ADVERTENCIA_LINEAS = 300; // Sugerencia de refactorización
 
-// Archivos heredados pendientes de modularización en fases posteriores de mantenimiento
-const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([
-  "src/componentes/caracteristicas/rasgos/SelectorInvocacionesAcordeon.tsx", // Selector masivo de invocaciones de brujo heredado
-  "src/componentes/caracteristicas/inventario/ModalAgregarObjeto.tsx", // Modal heredado de gestión de inventario
-  "src/componentes/caracteristicas/personajes/ModalEditarPersonaje.tsx", // Modal heredado de edición general
-  "src/componentes/caracteristicas/inventario/TarjetaObjetoInventario.tsx", // Componente de tarjeta de objeto heredado
-  "src/componentes/caracteristicas/personajes/GestorPersonajes.tsx", // Vista contenedora general de personajes
-  "src/componentes/caracteristicas/personajes/acompanantes/SeccionAcompanantesPersonaje.tsx", // Módulo de acompañantes pendiente de modularización
-]);
+// Archivos heredados pendientes de modularización (0 pendientes tras finalizar la Fase 4)
+const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([]);
 
 // Directorios prioritarios a auditar (Modo Jugador y componentes principales)
 const DIRECTORIOS_AUDITADOS = [

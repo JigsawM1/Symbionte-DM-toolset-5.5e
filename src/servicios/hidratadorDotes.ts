@@ -107,8 +107,14 @@ export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
 const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   metamagia: () => metamagiaJson.map(op => EsquemaOpcionSelector.parse(op)),
   maniobras_combate: () => CATALOGO_MANIOBRAS_COMBATE,
-  dotes_elegibles: () => [...origenJson,...generalesJson,...epicasJson,...estiloCombateJson].map(d => EsquemaDotePersonaje.parse(d))
-    .map(d => ({ id:d.id,nombre:d.nombre,descripcion:d.descripcion,requisito:d.requisito,categoria:d.categoria })),
+  dotes_elegibles: () =>
+    TODAS_LAS_DOTES_CANONICAS_DND55.map((d) => ({
+      id: d.id,
+      nombre: d.nombre,
+      descripcion: d.descripcion,
+      requisito: d.requisito,
+      categoria: d.categoria
+    })),
   trucos_clerigo: () => generarOpcionesConjuros("clérigo", 0),
   conjuros1_clerigo: () => generarOpcionesConjuros("clérigo", 1),
   trucos_druida: () => generarOpcionesConjuros("druida", 0),
@@ -130,16 +136,14 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   conjuros_ilusion_1_2_mago: () => generarOpcionesConjuros("mago", [1, 2], false, "ilusion"),
   rituales_nivel_1: () => generarOpcionesRituales(1),
   dotes_origen: () =>
-    origenJson.map(d => EsquemaDotePersonaje.parse(d))
-      .map((d) => ({
-        ...d,
-        id: d.id,
-        nombre: d.nombre,
-        descripcion: d.descripcion,
-        requisito: d.requisito || "Dote de origen",
-        categoria: d.categoria || "origen"
-      }))
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
+    DOTES_ORIGEN_DND55.map((d) => ({
+      ...d,
+      id: d.id,
+      nombre: d.nombre,
+      descripcion: d.descripcion,
+      requisito: d.requisito || "Dote de origen",
+      categoria: d.categoria || "origen"
+    })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))
 };
 
 // Cache en memoria para no recalcular en cada acceso

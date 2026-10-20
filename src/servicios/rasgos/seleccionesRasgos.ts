@@ -1,4 +1,4 @@
-import type { PersonajeJugador, SelectorRasgo, OpcionSelector, RasgoPersonaje } from "@/tipos";
+import type { PersonajeJugador, SelectorRasgo, OpcionSelector, RasgoPersonaje, RecuperacionRasgo } from "@/tipos";
 import HECHIZOS from "@/utiles/compendios/all.json";
 import { coincideHechizoId } from "../comparadorHechizos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
@@ -148,12 +148,13 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
     const selectores = structuredClone(op.selectores ?? []);
     if (argumento && selectores[0]) selectores[0].valorActual = [argumento];
     const escalados = resolverEscaladosRasgo(op, nivel, op.efectos ?? [], selectores);
+    const usosMax = escalados.usosEscalados ?? op.usosMaximos;
     let hijo: RasgoPersonaje = {
       ...op, id: `${padre.id}_${valor}`, idSelectorOrigen: selector.id, idRasgoSelectorOrigen: padre.id,
       nombre: op.nombre, descripcion: op.descripcion, origen: selector.tipoSelector === "dote" ? "dote" : padre.origen,
       fuente: padre.fuente, subclase: padre.subclase, tipoAccion: op.tipoAccion ?? "pasivo", nivelRequerido: op.nivelMinimo ?? padre.nivelRequerido,
-      tieneUsosLimitados: !!op.tieneUsosLimitados, usosMaximos: op.usosMaximos, usosRestantes: op.usosMaximos,
-      recuperacion: op.recuperacion ?? "ninguno", personalizado: false, activo: !op.esActivable,
+      tieneUsosLimitados: !!op.tieneUsosLimitados, usosMaximos: usosMax, usosRestantes: usosMax,
+      recuperacion: (escalados.recuperacion || op.recuperacion || "ninguno") as RecuperacionRasgo, personalizado: false, activo: !op.esActivable,
       ligadoA: op.categoriaMecanica === "extension" && op.ligadoA ? `${padre.id}_${op.ligadoA}` : padre.id,
       requiereOpcion: op.categoriaMecanica === "extension" ? undefined : valor,
       formulaDados: escalados.formulaDados, efectos: escalados.efectos, conjurosOtorgados: escalados.conjurosOtorgados,

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
@@ -31,6 +31,15 @@ export const ConfiguracionDM: React.FC = () => {
   const [modalExport, setModalExport] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const refTimerImportacion = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refTimerCopiado = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refTimerImportacion.current) clearTimeout(refTimerImportacion.current);
+      if (refTimerCopiado.current) clearTimeout(refTimerCopiado.current);
+    };
+  }, []);
 
 
   const monstruosHomebrew = baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
@@ -67,7 +76,8 @@ export const ConfiguracionDM: React.FC = () => {
         if (resultado) {
           setEstadoImportacion("exito");
           setMensajeError("");
-          setTimeout(() => setEstadoImportacion("inactivo"), 4000);
+          if (refTimerImportacion.current) clearTimeout(refTimerImportacion.current);
+          refTimerImportacion.current = setTimeout(() => setEstadoImportacion("inactivo"), 4000);
         } else {
           setEstadoImportacion("error");
           setMensajeError("El archivo JSON no tiene una estructura compatible con el Simbionte.");
@@ -123,7 +133,8 @@ export const ConfiguracionDM: React.FC = () => {
 
     if (exitoCopiado) {
       setCopiado(true);
-      setTimeout(() => setCopiado(false), 3000);
+      if (refTimerCopiado.current) clearTimeout(refTimerCopiado.current);
+      refTimerCopiado.current = setTimeout(() => setCopiado(false), 3000);
     }
 
     if (!exitoCopiado && !exitoDescarga) {
@@ -137,7 +148,8 @@ export const ConfiguracionDM: React.FC = () => {
     const exito = await copiarAlPortapapeles(modalExport);
     if (exito) {
       setCopiado(true);
-      setTimeout(() => setCopiado(false), 3000);
+      if (refTimerCopiado.current) clearTimeout(refTimerCopiado.current);
+      refTimerCopiado.current = setTimeout(() => setCopiado(false), 3000);
     }
   };
 

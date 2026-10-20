@@ -131,7 +131,7 @@ export function ejecutarDescansoCorto(
     const maxUsos = rasgo.formulaEscalado
       ? calcularUsosMaximosRasgo(rasgo, personaje)
       : (rasgo.usosMaximos ?? 1);
-    const restantesActuales = rasgo.usosRestantes ?? 0;
+    const restantesActuales = rasgo.usosRestantes ?? maxUsos;
 
     // Recarga dinámica parcial (ej. recarga 1 uso en descanso corto)
     if (rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0) {
@@ -272,7 +272,8 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
   }
 
   // 5. Reiniciar salvaciones contra la muerte
-  if (personaje.salvacionesMuerte.exitos > 0 || personaje.salvacionesMuerte.fallos > 0) {
+  const reinicioMuerte = (personaje.salvacionesMuerte?.exitos || 0) > 0 || (personaje.salvacionesMuerte?.fallos || 0) > 0;
+  if (reinicioMuerte) {
     acciones.push({
       tipo: "salvacionesMuerte",
       descripcion: "Salvaciones contra la muerte reiniciadas a 0."
@@ -328,17 +329,19 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
       huboCambio = true;
     }
 
-    if (
-      rasgo.tieneUsosLimitados &&
-      (rasgo.recuperacion === "descanso_corto" ||
-       rasgo.recuperacion === "descanso_largo" ||
-       rasgo.recuperacion === "descanso_dinamico" ||
-       Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0))
-    ) {
+    const esRecuperacionLargo =
+      rasgo.recuperacion === "descanso_largo" ||
+      rasgo.recuperacion === "descanso_corto" ||
+      rasgo.recuperacion === "descanso_dinamico" ||
+      Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0);
+
+    const tieneUsos = rasgo.tieneUsosLimitados || rasgo.usosMaximos !== undefined;
+
+    if (tieneUsos && esRecuperacionLargo) {
       const maxUsos = rasgo.formulaEscalado
         ? calcularUsosMaximosRasgo(rasgo, personaje)
         : (rasgo.usosMaximos ?? 1);
-      const restantesActuales = rasgo.usosRestantes ?? 0;
+      const restantesActuales = rasgo.usosRestantes ?? maxUsos;
       if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
         rModificado = { ...rModificado, usosMaximos: maxUsos, usosRestantes: maxUsos };
         huboCambio = true;

@@ -155,11 +155,18 @@ export function validarLanzamiento(
   switch (solicitud.modo) {
     case "objetoMagico": {
       const coste = solicitud.costeCargasObjeto ?? 0;
-      const disponibles = contexto.cargasObjetoActuales ?? 0;
-      if (coste > 0 && disponibles < coste) {
+      let disponibles = contexto.cargasObjetoActuales;
+      if (disponibles === undefined && contexto.personajeActual && solicitud.objetoInstanciaId) {
+        const obj = (contexto.personajeActual.inventario || []).find(o => o.idInstancia === solicitud.objetoInstanciaId);
+        if (obj) {
+          disponibles = obj.cargasActuales ?? obj.cargasMaximas ?? 0;
+        }
+      }
+      const disponiblesNum = disponibles ?? 0;
+      if (coste > 0 && disponiblesNum < coste) {
         return {
           permitido: false,
-          motivo: `Cargas insuficientes en ${solicitud.objetoNombre || "el objeto"} (requiere ${coste}, tienes ${disponibles}).`
+          motivo: `Cargas insuficientes en ${solicitud.objetoNombre || "el objeto"} (requiere ${coste}, tienes ${disponiblesNum}).`
         };
       }
       break;

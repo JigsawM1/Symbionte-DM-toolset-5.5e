@@ -270,7 +270,7 @@ function aplicaEfectoAConjuro(
 ): boolean {
   if (!contexto) return true;
   const criterio = normalizar(aplicaA || objetivo || "");
-  if (!criterio || criterio === "todos_conjuros" || criterio === "todos" || criterio === "conjuros") {
+  if (!criterio || criterio === "todos_conjuros" || criterio === "todos" || criterio === "conjuros" || criterio === "general") {
     return true;
   }
   if (criterio === "trucos") {
@@ -285,7 +285,7 @@ function aplicaEfectoAConjuro(
   if (contexto.escuela && normalizar(contexto.escuela) === criterio) {
     return true;
   }
-  return true;
+  return false;
 }
 
 /**
@@ -403,7 +403,11 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
   }
 
   const nombreAtaque = ef.descripcion || "Golpe sin Armas Especial";
-  const caracSugerida = (ef.objetivo as Caracteristica) || (dadoDano === "1d4" ? "fuerza" : "destreza");
+  const esCaracteristicaValida = (c?: string): c is Caracteristica =>
+    Boolean(c && ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].includes(normalizar(c)));
+  const caracSugerida: Caracteristica = esCaracteristicaValida(ef.objetivo)
+    ? (normalizar(ef.objetivo) as Caracteristica)
+    : (dadoDano === "1d4" ? "fuerza" : "destreza");
   const propiedades = caracSugerida === "fuerza" ? [nombreAtaque] : [nombreAtaque, "Sutil"];
 
   return {

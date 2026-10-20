@@ -960,9 +960,10 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
 
   // Caso 3: Tirada de curación de rasgo 3D (ej. Guerrero de los Dioses)
   const infoCuracionRasgo = tiradasCuracionRasgoActivas[rollId];
-  if (!infoTirada && infoCuracionRasgo) {
+  if (infoCuracionRasgo) {
     // Reclamar el resultado antes del await impide aplicar eventos duplicados concurrentes.
     delete tiradasCuracionRasgoActivas[rollId];
+    if (infoTirada) delete tiradasEspecialesActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de curación de rasgo para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -979,8 +980,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
 
   // Caso 4: Tirada de HP temporal de rasgo 3D (ej. Manto de inspiración)
   const infoHpTemporalRasgo = tiradasHpTemporalRasgoActivas[rollId];
-  if (!infoTirada && infoHpTemporalRasgo) {
+  if (infoHpTemporalRasgo) {
     delete tiradasHpTemporalRasgoActivas[rollId];
+    if (infoTirada) delete tiradasEspecialesActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de HP temporal de rasgo para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {
@@ -998,8 +1000,9 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
 
   // Caso 5: Tirada de Dado de Golpe 3D (descuenta el dado y notifica el resultado sin curar HP)
   const infoDadoGolpe = tiradasDadoGolpeActivas[rollId];
-  if (!infoTirada && infoDadoGolpe) {
+  if (infoDadoGolpe) {
     delete tiradasDadoGolpeActivas[rollId];
+    if (infoTirada) delete tiradasEspecialesActivas[rollId];
     logger.debug(`[Lanzador Dados] Procesando resultado 3D de dado de golpe para rollId: ${rollId}`);
     if (resultsGroups.length > 0) {
       try {

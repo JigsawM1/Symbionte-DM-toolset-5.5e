@@ -33,8 +33,10 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
   if (existente?.personalizado) return structuredClone(existente);
   // Solo ajustar por progresión cuando el máximo anterior pertenece a la tabla declarada.
   // Los contadores heredados arbitrarios mantienen su valor disponible, limitado al máximo actual.
-  const maximoAnteriorValido = (nuevo.escaladoUsos?.tipo === "por_modificador" && (nuevo.usosMaximos ?? 0) > (existente?.usosMaximos ?? 0)) || (nuevo.escaladoUsos?.tipo === "por_nivel"
-    && nuevo.escaladoUsos.tabla?.some(f => f.valor === existente?.usosMaximos));
+  const maximoAnteriorValido =
+    (nuevo.escaladoUsos?.tipo === "por_modificador" && (nuevo.usosMaximos ?? 0) > (existente?.usosMaximos ?? 0)) ||
+    (nuevo.escaladoUsos?.tipo === "por_nivel" && nuevo.escaladoUsos.tabla?.some(f => f.valor === existente?.usosMaximos)) ||
+    (Boolean(nuevo.escaladoUsos?.formula || nuevo.formulaEscalado) && (nuevo.usosMaximos ?? 0) > (existente?.usosMaximos ?? 0));
   const disponibles = existente?.usosRestantes !== undefined && maximoAnteriorValido && nuevo.usosMaximos !== undefined
     ? nuevo.usosMaximos - Math.max(0, (existente?.usosMaximos ?? nuevo.usosMaximos) - existente.usosRestantes)
     : existente?.usosRestantes;

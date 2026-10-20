@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarAccionesHomebrew, usarAccionesConfiguracion } from "@/almacen/selectores";
 import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
 import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "@/almacen/sanitizacion";
 import {
@@ -72,7 +72,8 @@ const quickActionInicial: AccionRapida = {
 };
 
 export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew, agregarNotificacion } = usarAlmacenDM();
+  const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew } = usarAccionesHomebrew();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
 
   const [monstruoForm, setMonstruoForm] = useState<Omit<MonstruoBase, "id" | "vidaActual">>(estadoInicialCriatura);
   const [subPestanaCriatura, setSubPestanaCriatura] = useState<"general" | "atributos" | "pericias" | "defensas" | "listas">("general");

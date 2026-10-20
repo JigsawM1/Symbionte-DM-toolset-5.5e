@@ -104,11 +104,13 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
     }
 
     try {
-      await lanzarDadosTaleSpire(formula, `${nombrePj} - Arcano Místico Nv.${nivel} (${hechizo.nombre})`);
+      const emitida = await lanzarDadosTaleSpire(formula, `${nombrePj} - Arcano Místico Nv.${nivel} (${hechizo.nombre})`);
+      if (emitida) {
+        alGastarArcano(nivel);
+      }
     } catch (err) {
       logger.error("[SeccionArcanoMistico] Error al enviar tirada a TaleSpire:", err);
     }
-    alGastarArcano(nivel);
   };
 
   return (

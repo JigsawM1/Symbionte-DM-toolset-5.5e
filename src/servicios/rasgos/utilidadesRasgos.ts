@@ -29,7 +29,7 @@ export function resolverRasgoRecurso(rasgo: RasgoPersonaje, rasgos: RasgoPersona
   let padre = resolverRasgoPadre(rasgo, rasgos);
   while (padre && !visitados.has(padre.id)) {
     visitados.add(padre.id);
-    if (tipo === "usos" ? padre.tieneUsosLimitados : padre.formulaDados && !padre.formulaDados.includes("dados_padre")) return padre;
+    if (tipo === "usos" ? (padre.tieneUsosLimitados || padre.usosMaximos !== undefined) : padre.formulaDados && !padre.formulaDados.includes("dados_padre")) return padre;
     padre = resolverRasgoPadre(padre, rasgos);
   }
   return undefined;

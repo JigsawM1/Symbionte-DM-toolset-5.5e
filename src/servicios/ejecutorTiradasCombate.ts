@@ -224,23 +224,18 @@ export async function ejecutarTiradaCritico(
       const partesDados = subBase.match(/(\d+)d(\d+)/gi);
 
       if (partesDados && partesDados.length > 0) {
-        let formulaDadosDuplicados = subBase;
         let dadosExtraCriticoDisponibles = (i === 0 && personajeActivo)
           ? obtenerDadosExtraCriticoArma(personajeActivo, tipoEspecifico || ataque.tipoDano || "")
           : 0;
 
-        for (const p of partesDados) {
-          const m = p.match(/(\d+)d(\d+)/i);
-          if (m) {
-            let cant = parseInt(m[1], 10) * 2;
-            if (dadosExtraCriticoDisponibles > 0) {
-              cant += dadosExtraCriticoDisponibles;
-              dadosExtraCriticoDisponibles = 0;
-            }
-            const caras = m[2];
-            formulaDadosDuplicados = formulaDadosDuplicados.replace(p, `${cant}d${caras}`);
+        const formulaDadosDuplicados = subBase.replace(/(\d+)d(\d+)/gi, (_match, cantStr, caras) => {
+          let cant = parseInt(cantStr, 10) * 2;
+          if (dadosExtraCriticoDisponibles > 0) {
+            cant += dadosExtraCriticoDisponibles;
+            dadosExtraCriticoDisponibles = 0;
           }
-        }
+          return `${cant}d${caras}`;
+        });
 
         if (i === 0 && mod !== 0) {
           const signo = mod >= 0 ? `+${mod}` : `${mod}`;

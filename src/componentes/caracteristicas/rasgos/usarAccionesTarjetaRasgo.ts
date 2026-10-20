@@ -63,7 +63,9 @@ export function usarAccionesTarjetaRasgo({
 
   const nivelEfectivoPersonaje = personajeActivoAlmacen?.nivel ?? nivelPersonaje ?? 1;
   const bonoCompetenciaCalculado = Math.floor((Math.max(1, nivelEfectivoPersonaje) - 1) / 4) + 2;
-  const escalaPorBonoCompetencia = rasgo.formulaEscalado === "bono_competencia";
+  const escalaPorBonoCompetencia =
+    rasgo.formulaUsos === "bono_competencia" ||
+    (rasgo.formulaEscalado === "bono_competencia" && !rasgo.formulaDados);
 
   const usosMaximos = esRecursoEspacioPacto
     ? espaciosPactoMaximos

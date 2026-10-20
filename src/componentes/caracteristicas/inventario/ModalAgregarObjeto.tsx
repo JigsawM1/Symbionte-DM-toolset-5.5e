@@ -2,20 +2,16 @@ import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useMemo, useEffect } from "react";
 import type { ObjetoJuego, ObjetoInventario, Arma, Armadura, Escudo, TipoContenedor } from "@/tipos";
-import { DICCIONARIO_CATEGORIAS_EQUIPO, type CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
-import { FileText, X, Plus, Sparkles, Package, Backpack, Box, Shield } from "lucide-react";
+import type { CategoriaEquipo } from "@/constantes/categoriasEquipoConstantes";
+import { FileText, X, Plus } from "lucide-react";
 import { SelectorSugerencias, OpcionSugerencia } from "@/componentes/comunes/SelectorSugerencias";
-import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import {
   crearObjetoInventarioDesdeCompendio,
   crearObjetoInventarioCustom
 } from "@/servicios/calculadorInventario";
-import {
-  obtenerInfoMaestria,
-  obtenerInfoPropiedadArma,
-  obtenerInfoPropiedadArmadura
-} from "@/servicios/resolutorPropiedades";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
+import { SelectorContenedorDestino } from "./subcomponentes/SelectorContenedorDestino";
+import { VistaPreviaObjetoCompendio } from "./subcomponentes/VistaPreviaObjetoCompendio";
 import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
 
 export type TabModalAgregar = "compendio" | "otrasPosesiones";
@@ -42,38 +38,6 @@ const CATEGORIAS_FILTRO: { id: FiltroTipo; etiqueta: string }[] = [
   { id: "paquetes-equipo", etiqueta: "Paquetes" },
   { id: "objetos-magicos", etiqueta: "Mágicos" },
   { id: "equipo-aventurero", etiqueta: "Varios" }
-];
-
-const OPCIONES_CONTENEDOR_DESTINO: {
-  clave: TipoContenedor;
-  nombre: string;
-  subtitulo: string;
-  color: string;
-}[] = [
-  {
-    clave: "mochila",
-    nombre: "Mochila",
-    subtitulo: "Carga directa",
-    color: "var(--pj-texto-oro)"
-  },
-  {
-    clave: "bolsa_contencion",
-    nombre: "Bolsa Contención",
-    subtitulo: "0 lb carga",
-    color: "var(--pj-texto-magia)"
-  },
-  {
-    clave: "montura",
-    nombre: "Montura",
-    subtitulo: "0 lb carga",
-    color: "var(--pj-texto-cian)"
-  },
-  {
-    clave: "almacen",
-    nombre: "Almacén",
-    subtitulo: "0 lb carga",
-    color: "var(--pj-texto-terciario)"
-  }
 ];
 
 export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
@@ -372,218 +336,16 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
               </div>
 
               {/* Selector de Contenedor de Destino */}
-              <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Guardar en:</label>
-                <div className={estilos.cuadriculaSelectoresDestino}>
-                  {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
-                    const activo = contenedorDestino === opc.clave;
-                    return (
-                      <button
-                        key={opc.clave}
-                        type="button"
-                        className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                        data-caja={opc.clave}
-                        onClick={() => setContenedorDestino(opc.clave)}
-                      >
-                        <div className={estilos.iconoSelectorDestino}>
-                          {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
-                          {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
-                          {opc.clave === "montura" && <Box size={13} color={opc.color} />}
-                          {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
-                        </div>
-                        <div className={estilos.infoSelectorDestino}>
-                          <span className={estilos.nombreSelectorDestino}>
-                            {opc.nombre}
-                          </span>
-                          <span className={estilos.subtituloSelectorDestino}>
-                            {opc.subtitulo}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <SelectorContenedorDestino
+                contenedorSeleccionado={contenedorDestino}
+                alSeleccionarContenedor={setContenedorDestino}
+              />
 
               {/* Vista Previa del Objeto Seleccionado */}
-              {objetoSeleccionado ? (
-                <div className={estilos.cajaPreviewObjeto}>
-                  <div className={estilos.cabeceraPreviewObjeto}>
-                    <span className={estilos.nombrePreviewObjeto}>
-                      {objetoSeleccionado.nombre}
-                    </span>
-                    <span className={`${estilos.badgeMeta} ${estilos.rarezaComun}`}>
-                      {DICCIONARIO_CATEGORIAS_EQUIPO[objetoSeleccionado.categoria]?.etiqueta || objetoSeleccionado.categoria}
-                    </span>
-                  </div>
-
-                  <div className={estilos.filaMetadatosPreview}>
-                    <span>
-                      Peso: <strong className={estilos.textoBlancoResaltado}>{objetoSeleccionado.pesoLb || 0} lb</strong>
-                      {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                        <span className={estilos.textoPesoUnitario}>
-                          ({objetoSeleccionado.pesoUnitario || Math.round(((objetoSeleccionado.pesoLb || 0) / objetoSeleccionado.quantity) * 1000) / 1000} lb c/u)
-                        </span>
-                      )}
-                    </span>
-                    <span>Valor: <strong className={estilos.textoValorPO}>{objetoSeleccionado.valorPO || 0} PO</strong></span>
-                    {objetoSeleccionado.quantity && objetoSeleccionado.quantity > 1 && (
-                      <span className={estilos.avisoLoteCantidad}>
-                        Viene en lote de {objetoSeleccionado.quantity} uds (Se añadirán: {objetoSeleccionado.quantity * (cantidadCompendio || 1)})
-                      </span>
-                    )}
-                    {objetoSeleccionado.sintonizacionRequerida && (
-                      <span className={estilos.avisoSintonizacionReq}>
-                        <Sparkles size={11} />
-                        Requiere Sintonización
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Badges de Estadísticas y Propiedades de Arma / Armadura / Escudo */}
-                  {objetoSeleccionado.categoria === "armas" && (() => {
-                    const armaObj = objetoSeleccionado as Arma;
-                    return (
-                      <div className={estilos.filaBadgesPreview}>
-                        {armaObj.tipoAtaque && (
-                          <span className={`${estilos.badgeMeta} ${estilos.badgeArmaAtaque}`}>
-                            {armaObj.tipoAtaque}
-                          </span>
-                        )}
-                        {armaObj.dadoDano && (
-                          <span className={`${estilos.badgeMeta} ${estilos.badgeDanoArma}`}>
-                            {armaObj.dadoDano} {armaObj.tipoDano}
-                          </span>
-                        )}
-                        {armaObj.danoVersatil && (
-                          <TooltipUniversal
-                            titulo="Daño Versátil"
-                            contenido={`Inflige ${armaObj.danoVersatil} de daño al empuñarse con dos manos.`}
-                            posicion="arriba"
-                          >
-                            <span className={`${estilos.badgeMeta} ${estilos.badgeVersatil}`}>
-                              Versátil ({armaObj.danoVersatil})
-                            </span>
-                          </TooltipUniversal>
-                        )}
-                        {armaObj.maestria && (() => {
-                          const infoM = obtenerInfoMaestria(armaObj.maestria);
-                          return (
-                            <TooltipUniversal
-                              titulo={infoM.titulo}
-                              contenido={infoM.descripcion}
-                              posicion="arriba"
-                            >
-                              <span className={`${estilos.badgeMeta} ${estilos.badgeMaestria}`}>
-                                Maestría: {armaObj.maestria}
-                              </span>
-                            </TooltipUniversal>
-                          );
-                        })()}
-                        {armaObj.propiedades?.map((p) => {
-                          const infoP = obtenerInfoPropiedadArma(p);
-                          return (
-                            <TooltipUniversal
-                              key={p}
-                              titulo={infoP.titulo}
-                              contenido={infoP.descripcion}
-                              posicion="arriba"
-                            >
-                              <span className={`${estilos.badgeMeta} ${estilos.badgePropiedadArma}`}>
-                                {p}
-                              </span>
-                            </TooltipUniversal>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-
-                  {objetoSeleccionado.categoria === "armaduras" && (() => {
-                    const armaduraObj = objetoSeleccionado as Armadura;
-                    return (
-                      <div className={estilos.filaBadgesPreview}>
-                        <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
-                          CA {armaduraObj.caBase}
-                        </span>
-                        {(() => {
-                          const bonoDestReal =
-                            armaduraObj.bonoDestreza ||
-                            (armaduraObj.subcategoria === "Pesada"
-                              ? "Sin Bono"
-                              : armaduraObj.subcategoria === "Mediana"
-                              ? "Máximo 2"
-                              : "Completo");
-                          const infoDes = obtenerInfoPropiedadArmadura("bonoDestreza", bonoDestReal);
-                          return (
-                            <TooltipUniversal titulo={infoDes.titulo} contenido={infoDes.descripcion} posicion="arriba">
-                              <span className={`${estilos.badgeMeta} ${estilos.badgeBonoDes}`}>
-                                Bono Des: {bonoDestReal}
-                              </span>
-                            </TooltipUniversal>
-                          );
-                        })()}
-                        {armaduraObj.requisitoFuerza && (() => {
-                          const infoFue = obtenerInfoPropiedadArmadura("requisitoFuerza", armaduraObj.requisitoFuerza);
-                          return (
-                            <TooltipUniversal titulo={infoFue.titulo} contenido={infoFue.descripcion} posicion="arriba">
-                              <span className={`${estilos.badgeMeta} ${estilos.badgeRequisitoFuerza}`}>
-                                FUE {armaduraObj.requisitoFuerza}
-                              </span>
-                            </TooltipUniversal>
-                          );
-                        })()}
-                        {armaduraObj.desventajaSigilo && (() => {
-                          const infoSigilo = obtenerInfoPropiedadArmadura("desventajaSigilo");
-                          return (
-                            <TooltipUniversal titulo={infoSigilo.titulo} contenido={infoSigilo.descripcion} posicion="arriba">
-                              <span className={`${estilos.badgeMeta} ${estilos.badgeDesventajaSigilo}`}>
-                                Sigilo (Desv.)
-                              </span>
-                            </TooltipUniversal>
-                          );
-                        })()}
-                      </div>
-                    );
-                  })()}
-
-                  {objetoSeleccionado.categoria === "escudos" && (
-                    <div className={estilos.filaBadgesPreview}>
-                      <span className={`${estilos.badgeMeta} ${estilos.badgeCaArmadura}`}>
-                        <Shield size={10} className={estilos.iconoBadgeInline} />
-                        CA +{(objetoSeleccionado as Escudo).caBase || 2}
-                      </span>
-                    </div>
-                  )}
-
-                  {objetoSeleccionado.descripcion && (
-                    <div className={estilos.descripcionPreview}>
-                      {objetoSeleccionado.descripcion}
-                    </div>
-                  )}
-
-                  {/* Desglose de contenido del paquete */}
-                  {objetoSeleccionado.contents && objetoSeleccionado.contents.length > 0 && (
-                    <div className={estilos.cajaPaqueteContenido}>
-                      <span className={estilos.tituloPaqueteContenido}>
-                        <Package size={12} /> Paquete con {objetoSeleccionado.contents.length} objetos (Podrás abrirlo o desempaquetarlo desde tu inventario):
-                      </span>
-                      <div className={estilos.listaItemsPaquete}>
-                        {objetoSeleccionado.contents.map((item, idx) => (
-                          <div key={idx} className={estilos.filaItemPaquete}>
-                            <span>• {item.item.name}</span>
-                            <strong className={estilos.multiplicadorItemPaquete}>×{item.quantity * (cantidadCompendio || 1)}</strong>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className={estilos.avisoSeleccionarObjeto}>
-                  Selecciona un objeto del buscador para ver sus detalles.
-                </div>
-              )}
+              <VistaPreviaObjetoCompendio
+                objetoSeleccionado={objetoSeleccionado}
+                cantidadCompendio={cantidadCompendio}
+              />
 
             </div>
             {/* Pie del Modal */}
@@ -651,38 +413,10 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
               </div>
 
               {/* Selector de Contenedor de Destino */}
-              <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Guardar en:</label>
-                <div className={estilos.cuadriculaSelectoresDestino}>
-                  {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
-                    const activo = contenedorDestino === opc.clave;
-                    return (
-                      <button
-                        key={opc.clave}
-                        type="button"
-                        className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
-                        data-caja={opc.clave}
-                        onClick={() => setContenedorDestino(opc.clave)}
-                      >
-                        <div className={estilos.iconoSelectorDestino}>
-                          {opc.clave === "mochila" && <Backpack size={13} color={opc.color} />}
-                          {opc.clave === "bolsa_contencion" && <Sparkles size={13} color={opc.color} />}
-                          {opc.clave === "montura" && <Box size={13} color={opc.color} />}
-                          {opc.clave === "almacen" && <Package size={13} color={opc.color} />}
-                        </div>
-                        <div className={estilos.infoSelectorDestino}>
-                          <span className={estilos.nombreSelectorDestino}>
-                            {opc.nombre}
-                          </span>
-                          <span className={estilos.subtituloSelectorDestino}>
-                            {opc.subtitulo}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <SelectorContenedorDestino
+                contenedorSeleccionado={contenedorDestino}
+                alSeleccionarContenedor={setContenedorDestino}
+              />
 
               {/* Notas / Descripción Rápida */}
               <div className={estilos.campoFormulario}>

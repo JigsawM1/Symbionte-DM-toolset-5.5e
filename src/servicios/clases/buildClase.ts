@@ -162,7 +162,11 @@ export function aplicarBuildClaseAPersonaje(
     clases: clasesActualizadas,
     tipoDadoGolpe: opciones.sobrescribirDadoGolpe ? build.dadoGolpe : personaje.tipoDadoGolpe,
     dadosGolpeTotal: opciones.sobrescribirDadoGolpe ? nuevoNivel : personaje.dadosGolpeTotal,
-    dadosGolpeRestantes: opciones.sobrescribirDadoGolpe ? nuevoNivel : personaje.dadosGolpeRestantes,
+    dadosGolpeRestantes: opciones.sobrescribirDadoGolpe
+      ? (personaje.dadosGolpeRestantes !== undefined
+          ? Math.max(0, nuevoNivel - Math.max(0, (personaje.dadosGolpeTotal ?? nuevoNivel) - personaje.dadosGolpeRestantes))
+          : nuevoNivel)
+      : (personaje.dadosGolpeRestantes ?? nuevoNivel),
     competenciasSalvacion,
     competenciasArmas,
     competenciasArmasGrupos,

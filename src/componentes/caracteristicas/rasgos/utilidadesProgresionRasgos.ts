@@ -101,8 +101,8 @@ export function calcularProgresionClases(
         esActivable: !!r.esActivable,
         ligadoA: r.ligadoA,
         categoriaMecanica: r.categoriaMecanica,
-        efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
-        selectores: r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : []
+        efectos: r.efectos ? structuredClone(r.efectos) : [],
+        selectores: r.selectores ? structuredClone(r.selectores) : []
       }));
 
     const rasgosSub1a20: ItemProgresionClase[] = (subDef ? subDef.rasgos : []).map((r) => ({
@@ -128,8 +128,8 @@ export function calcularProgresionClases(
       esActivable: !!r.esActivable,
       ligadoA: r.ligadoA,
       categoriaMecanica: r.categoriaMecanica,
-      efectos: r.efectos ? JSON.parse(JSON.stringify(r.efectos)) : [],
-      selectores: r.selectores ? JSON.parse(JSON.stringify(r.selectores)) : []
+      efectos: r.efectos ? structuredClone(r.efectos) : [],
+      selectores: r.selectores ? structuredClone(r.selectores) : []
     }));
 
     const todosProgresion: ItemProgresionClase[] = [...rasgosClase1a20, ...rasgosSub1a20].sort(

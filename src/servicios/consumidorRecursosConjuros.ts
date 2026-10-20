@@ -13,7 +13,7 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
   switch (gasto.tipo) {
     case 'recursoRasgo': {
       const cfg = obtenerConcesionConRecurso(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel);
-      const disponibles = cfg?.recurso.usosRestantes ?? cfg?.recurso.usosMaximos ?? 0;
+      const disponibles = cfg ? (cfg.recurso.usosRestantes ?? cfg.recurso.usosMaximos ?? calcularUsosMaximosRasgo(cfg.recurso, pj)) : 0;
       if (!cfg || disponibles < cfg.coste) return insuficiente;
       personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste } : r) };
       break;
@@ -55,11 +55,24 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     case 'gratuitoInnato': {
       const rasgo = buscarRasgoConjuroGratuito(pj, gasto.hechizoId);
       if (!rasgo) return insuficiente;
-      if (!rasgo.tieneUsosLimitados) break;
       const idRecurso = resolverIdRasgoObjetivoGasto(rasgo, pj.rasgos);
-      const recursos = pj.rasgos.filter(r => r.id === idRecurso || (rasgo.gastarDePadre && r.id === rasgo.id));
-      if (!recursos.length || recursos.some(r => (r.usosRestantes ?? calcularUsosMaximosRasgo(r, pj)) <= 0)) return insuficiente;
-      personaje = { ...pj, rasgos: pj.rasgos.map(r => recursos.includes(r) ? { ...r, usosRestantes: (r.usosRestantes ?? calcularUsosMaximosRasgo(r, pj)) - 1 } : r) };
+      const rasgoRecurso = pj.rasgos.find(r => r.id === idRecurso) ?? rasgo;
+      if (!rasgoRecurso.tieneUsosLimitados) break;
+      const disponibles = rasgoRecurso.usosRestantes ?? rasgoRecurso.usosMaximos ?? calcularUsosMaximosRasgo(rasgoRecurso, pj);
+      if (disponibles <= 0) return insuficiente;
+      personaje = {
+        ...pj,
+        rasgos: pj.rasgos.map(r => {
+          if (r.id === rasgoRecurso.id) {
+            return { ...r, usosRestantes: disponibles - 1 };
+          }
+          if (rasgo.gastarDePadre && r.id === rasgo.id && rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number") {
+            const dispHijo = r.usosRestantes ?? r.usosMaximos ?? 1;
+            return { ...r, usosRestantes: Math.max(0, dispHijo - 1) };
+          }
+          return r;
+        })
+      };
       break;
     }
   }

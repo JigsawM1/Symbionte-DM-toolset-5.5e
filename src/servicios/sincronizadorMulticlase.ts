@@ -12,6 +12,22 @@ import {
 } from "@/servicios/calculadorMagia";
 import { construirBuildClase } from "@/servicios/gestorClases";
 import { crearMatcherHechizos } from "@/servicios/comparadorHechizos";
+import { obtenerConjurosOtorgadosPorRasgos } from "@/servicios/rasgos/evaluadorConjurosRasgos";
+
+/**
+ * Calcula defensivamente los dados de golpe disponibles al subir o bajar de nivel,
+ * preservando los dados gastados y evitando inconsistencias o NaN.
+ */
+function calcularDadosGolpeAlCambiarNivel(
+  dadosTotalPrevios: number | undefined,
+  dadosRestantesPrevios: number | undefined,
+  nuevoTotal: number
+): number {
+  const totalPrevio = dadosTotalPrevios ?? 1;
+  const restantesPrevios = dadosRestantesPrevios ?? totalPrevio;
+  const diferenciaNivel = nuevoTotal - totalPrevio;
+  return Math.max(0, Math.min(nuevoTotal, restantesPrevios + diferenciaNivel));
+}
 
 /**
  * Servicio puro de dominio para el cálculo, sincronización y mutación inmutable
@@ -35,7 +51,8 @@ export function sincronizarMagiaMulticlase(
   prepPrevios: string[] = [],
   conocPrevios: string[] = [],
   trucosPrevios: string[] = [],
-  siemprePrepPrevios: string[] = []
+  siemprePrepPrevios: string[] = [],
+  conjurosProtegidos: string[] = []
 ): Partial<PersonajeJugador> {
   const clasesLanzadoras = clases
     .map((c) => {
@@ -56,7 +73,8 @@ export function sincronizarMagiaMulticlase(
   const viejosSiemprePrep = siemprePrepPrevios || [];
 
   const esSiemprePrep = crearMatcherHechizos(siemprePrep);
-  const eliminadosSubclase = viejosSiemprePrep.filter((viejo) => !esSiemprePrep(viejo));
+  const esProtegido = crearMatcherHechizos(conjurosProtegidos);
+  const eliminadosSubclase = viejosSiemprePrep.filter((viejo) => !esSiemprePrep(viejo) && !esProtegido(viejo));
 
   const esEliminadoSubclase = crearMatcherHechizos(eliminadosSubclase);
   const prepFinales = prepPrevios.filter((p) => !esEliminadoSubclase(p));
@@ -195,7 +213,8 @@ export function aplicarCambioClaseSubclase(
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -241,7 +260,8 @@ export function aplicarCambioClaseNivel(
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -251,7 +271,7 @@ export function aplicarCambioClaseNivel(
     experiencia: experienciaAjustada,
     clase: generarNombreClaseResumen(clases),
     dadosGolpeTotal: nivelTotal,
-    dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nivelTotal),
+    dadosGolpeRestantes: calcularDadosGolpeAlCambiarNivel(prev.dadosGolpeTotal, prev.dadosGolpeRestantes, nivelTotal),
     ...sincMagia
   };
 
@@ -286,7 +306,8 @@ export function aplicarAgregarClase(prev: PersonajeJugador): PersonajeJugador {
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -297,7 +318,7 @@ export function aplicarAgregarClase(prev: PersonajeJugador): PersonajeJugador {
     clase: generarNombreClaseResumen(nuevasClases),
     subclase: generarSubclaseResumen(nuevasClases),
     dadosGolpeTotal: nuevoNivelTotal,
-    dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nuevoNivelTotal),
+    dadosGolpeRestantes: calcularDadosGolpeAlCambiarNivel(prev.dadosGolpeTotal, prev.dadosGolpeRestantes, nuevoNivelTotal),
     ...sincMagia
   };
 
@@ -325,7 +346,8 @@ export function aplicarEliminarClase(prev: PersonajeJugador, index: number): Per
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -336,7 +358,7 @@ export function aplicarEliminarClase(prev: PersonajeJugador, index: number): Per
     clase: generarNombreClaseResumen(nuevasClases),
     subclase: generarSubclaseResumen(nuevasClases),
     dadosGolpeTotal: nuevoNivelTotal,
-    dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nuevoNivelTotal),
+    dadosGolpeRestantes: calcularDadosGolpeAlCambiarNivel(prev.dadosGolpeTotal, prev.dadosGolpeRestantes, nuevoNivelTotal),
     ...sincMagia
   };
 
@@ -386,7 +408,8 @@ export function aplicarCambioNivelTotal(
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -396,7 +419,7 @@ export function aplicarCambioNivelTotal(
     clase: generarNombreClaseResumen(nuevasClases),
     experiencia: experienciaAjustada,
     dadosGolpeTotal: niv,
-    dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, niv),
+    dadosGolpeRestantes: calcularDadosGolpeAlCambiarNivel(prev.dadosGolpeTotal, prev.dadosGolpeRestantes, niv),
     ...sincMagia
   };
 
@@ -435,7 +458,8 @@ export function aplicarCambioExperiencia(
     prev.conjurosPreparadosIds,
     prev.conjurosConocidosIds,
     prev.trucosConocidosIds,
-    prev.conjurosSiemprePreparadosIds
+    prev.conjurosSiemprePreparadosIds,
+    obtenerConjurosOtorgadosPorRasgos(prev)
   );
 
   const intermedio: PersonajeJugador = {
@@ -445,7 +469,7 @@ export function aplicarCambioExperiencia(
     clases: nuevasClases,
     clase: generarNombreClaseResumen(nuevasClases),
     dadosGolpeTotal: nivelSugerido,
-    dadosGolpeRestantes: Math.min(prev.dadosGolpeRestantes, nivelSugerido),
+    dadosGolpeRestantes: calcularDadosGolpeAlCambiarNivel(prev.dadosGolpeTotal, prev.dadosGolpeRestantes, nivelSugerido),
     ...sincMagia
   };
 

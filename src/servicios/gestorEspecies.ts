@@ -18,6 +18,7 @@ import {
 import { calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
 import { resolverEscaladosRasgo } from "./clases/escaladosRasgos";
 import { obtenerOpcionesDinamicas } from "./hidratadorDotes";
+import { fusionarEstadoRasgo } from "./rasgos/fusionarEstadoRasgo";
 import { DOTES_ORIGEN_DND55 } from "@/constantes/dotesConstantes";
 
 /**
@@ -199,6 +200,7 @@ export function construirRasgosEspecie(
       formulaDados = `${bonificadorCompetencia}d4`;
     }
 
+    const efectosBase = p.efectos ? [...p.efectos] : [];
     let selectoresProcesados: SelectorRasgo[] = (p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : []).map(
       (s: SelectorRasgo) => {
         if (s.claveOpcionesDinamicas && (!s.opciones || s.opciones.length === 0)) {
@@ -220,6 +222,31 @@ export function construirRasgosEspecie(
       });
     }
 
+    const escalados = resolverEscaladosRasgo(
+      {
+        formulaDados: p.formulaDados,
+        recuperacion: p.recuperacion,
+        sincronizarEfectosConFormula: p.sincronizarEfectosConFormula,
+        escaladoFormulaDados: p.escaladoFormulaDados,
+        escaladoUsos: p.escaladoUsos,
+        escaladoRecuperacion: p.escaladoRecuperacion,
+        conjurosOtorgados: p.conjurosOtorgados,
+        escaladoConjurosOtorgados: p.escaladoConjurosOtorgados
+      },
+      nivel,
+      efectosBase,
+      selectoresProcesados
+    );
+
+    const formulaDadosFinal = (p.formulaEscalado === "bono_competencia" && p.formulaDados?.endsWith("d4"))
+      ? `${bonificadorCompetencia}d4`
+      : (escalados.formulaDados ?? formulaDados);
+    const usosFinales = escalados.usosEscalados ?? usos;
+    const conjurosBase = p.conjurosOtorgados ? [...p.conjurosOtorgados] : [];
+    const conjurosFinales = escalados.conjurosOtorgados && escalados.conjurosOtorgados.length > 0
+      ? Array.from(new Set([...conjurosBase, ...escalados.conjurosOtorgados]))
+      : conjurosBase;
+
     return {
       id,
       nombre: p.nombre,
@@ -229,10 +256,10 @@ export function construirRasgosEspecie(
       tipoAccion: p.tipoAccion,
       nivelRequerido: p.nivelRequerido,
       tieneUsosLimitados: !!p.tieneUsosLimitados,
-      usosMaximos: usos,
-      usosRestantes: usos,
-      recuperacion: p.recuperacion || "ninguno",
-      formulaDados,
+      usosMaximos: usosFinales,
+      usosRestantes: usosFinales,
+      recuperacion: (escalados.recuperacion || p.recuperacion || "ninguno") as RecuperacionRasgo,
+      formulaDados: formulaDadosFinal,
       personalizado: false,
       activo: p.esActivable ? false : true,
       esActivable: p.esActivable,
@@ -242,16 +269,16 @@ export function construirRasgosEspecie(
       heredarDadosPadre: p.heredarDadosPadre,
       condicionAlActivar: p.condicionAlActivar,
       duracionEfectoAlActivar: p.duracionEfectoAlActivar,
-      conjurosOtorgados: p.conjurosOtorgados ? [...p.conjurosOtorgados] : [],
+      conjurosOtorgados: conjurosFinales,
       categoriaMecanica: p.categoriaMecanica,
       formulaEscalado: p.formulaEscalado,
       escaladoFormulaDados: p.escaladoFormulaDados,
       escaladoUsos: p.escaladoUsos ? { ...p.escaladoUsos, minimo: p.escaladoUsos.minimo ?? 1 } : undefined,
       escaladoRecuperacion: p.escaladoRecuperacion,
       sincronizarEfectosConFormula: p.sincronizarEfectosConFormula,
-      efectos: p.efectos ? [...p.efectos] : [],
-      selectores: selectoresProcesados,
-      tablaProgresion: p.tablaProgresion,
+      efectos: escalados.efectos,
+      selectores: escalados.selectores,
+      tablaProgresion: p.tablaProgresion ? structuredClone(p.tablaProgresion) : undefined,
       notas: ""
     };
   });
@@ -478,15 +505,7 @@ export function aplicarEspecieAPersonaje(
     const rasgosEspecieFusionados = rasgosEspecieNuevos.map((rNuevo) => {
       const rPrev = mapaRasgosPrevios.get(rNuevo.id);
       if (!rPrev) return rNuevo;
-
-      return {
-        ...rNuevo,
-        usosRestantes: typeof rPrev.usosRestantes === "number" ? rPrev.usosRestantes : rNuevo.usosRestantes,
-        selectores: rNuevo.selectores?.map((sNuevo) => {
-          const sPrev = rPrev.selectores?.find((sp) => sp.id === sNuevo.id);
-          return sPrev ? { ...sNuevo, valorActual: sPrev.valorActual } : sNuevo;
-        })
-      };
+      return fusionarEstadoRasgo(rNuevo, rPrev);
     });
 
     // Preservar rasgos de clase, dotes, trasfondo y personalizados

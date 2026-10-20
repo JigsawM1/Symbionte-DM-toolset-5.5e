@@ -18,7 +18,8 @@ export function usarConstructorRasgo({ personaje, rasgoInicial, origenPredetermi
         if (dote) {
             const pbPersonaje = Math.floor((Math.max(1, personaje.nivel || 1) - 1) / 4) + 2;
             const formulaEsc = dote.formulaEscalado || dote.formulaUsos || "";
-            const maxCalculado = formulaEsc === "bono_competencia" ? pbPersonaje : (dote.usosMaximos || 1);
+            const escalaUsosPorPB = dote.formulaUsos === "bono_competencia" || (formulaEsc === "bono_competencia" && !dote.formulaDados);
+            const maxCalculado = escalaUsosPorPB ? pbPersonaje : (dote.usosMaximos || 1);
             const plantilla: RasgoPersonaje = {
                 ...structuredClone(dote), id: rasgoInicial?.id || "preview_rasgo", origen: "dote",
                 fuente: dote.fuente || "PHB 2024", tipoAccion: dote.tipoAccion || "pasivo",

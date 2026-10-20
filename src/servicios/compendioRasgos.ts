@@ -213,7 +213,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     if (reserva?.recursoLegado === "puntos_hechiceria" && id && (!previa?.tieneUsosLimitados || !previa.usosMaximos)
       && personaje.puntosHechiceriaMaximos > 0) mapaExistentes.set(id, { ...reserva,
         usosMaximos: personaje.puntosHechiceriaMaximos,
-        usosRestantes: Math.max(0, Math.min(personaje.puntosHechiceriaMaximos, personaje.puntosHechiceriaActuales)) });
+        usosRestantes: Math.max(0, Math.min(personaje.puntosHechiceriaMaximos, personaje.puntosHechiceriaActuales ?? personaje.puntosHechiceriaMaximos)) });
   }
 
   const dotesAsiGeneradas: RasgoPersonaje[] = [];
@@ -294,12 +294,14 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
   }
 
   // 5. Sincronizar estado activo de rasgos dependientes de opciones en selectores (pasivos permanentes)
-  const listaFinal = Array.from(mapaFinal.values());
-  for (const r of listaFinal) {
+  const listaBase = Array.from(mapaFinal.values());
+  const listaFinal = listaBase.map((r) => {
     if (r.requiereOpcion && r.ligadoA && !r.esActivable) {
-      r.activo = esRasgoHabilitadoPorOpcion(r, listaFinal);
+      const nuevoActivo = esRasgoHabilitadoPorOpcion(r, listaBase);
+      return r.activo !== nuevoActivo ? { ...r, activo: nuevoActivo } : r;
     }
-  }
+    return r;
+  });
 
   return construirRasgosDesdeSelectores({ ...personaje, rasgos: listaFinal }, rasgosExistentes);
 }

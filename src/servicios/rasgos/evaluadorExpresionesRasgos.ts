@@ -44,6 +44,7 @@ export function cumpleCondicionEfecto(
     const excluidas = condNorm.slice("sin_condiciones:".length).split(",").map(claveEstado);
     return !(personaje.condicionesActivas ?? []).some(c => excluidas.includes(claveEstado(c)));
   }
+  if (condNorm.includes("descanso")) return true;
   if (condNorm === "luz_tenue_u_oscuridad") return (personaje.condicionesActivas ?? []).some(c => ["luz tenue", "oscuridad"].includes(normalizar(c)));
   const estadoArmadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
@@ -59,7 +60,11 @@ export function cumpleCondicionEfecto(
     return estaFuriaActiva(personaje) && estaAtaqueTemerarioActivo(personaje);
   }
   if (condNorm === "sin_armadura") return !estadoArmadura.tieneArmadura;
+  if (condNorm === "con_armadura") return estadoArmadura.tieneArmadura;
+  if (condNorm === "sin_escudo") return !tieneEscudo;
+  if (condNorm === "con_escudo") return tieneEscudo;
   if (condNorm === "sin_armadura_ni_escudo") return !estadoArmadura.tieneArmadura && !tieneEscudo;
+  if (condNorm === "con_armadura_o_escudo") return estadoArmadura.tieneArmadura || tieneEscudo;
   if (condNorm === "sin_armadura_pesada") return !estadoArmadura.esPesada;
 
   if (condNorm.startsWith("opcion_") || condNorm.startsWith("selector_")) {
@@ -78,12 +83,15 @@ export function cumpleCondicionEfecto(
     return true;
   }
 
-  // Si coincide con algún rasgo activo del personaje
-  if (estaRasgoActivo(personaje, condicion)) {
-    return true;
+  // Si coincide con algún rasgo del personaje, comprobar su activación
+  const rasgoCoincidente = (personaje.rasgos || []).find(
+    (r) => normalizar(r.id) === condNorm || normalizar(r.nombre) === condNorm
+  );
+  if (rasgoCoincidente) {
+    return rasgoCoincidente.activo !== false;
   }
 
-  return true;
+  return false;
 }
 
 /**
@@ -481,8 +489,8 @@ export function resolverFormulaDinamica(
       if (!Number.isNaN(resultadoNumerico)) {
         return String(resultadoNumerico);
       }
-    } catch {
-      // Si ocurre algún fallo de parsing, retornar el reemplazo textual de contingencia
+    } catch (error) {
+      logger.warn(`[Evaluador Expresiones] Error al evaluar numéricamente expresión "${reemplazado}":`, error);
     }
   }
 

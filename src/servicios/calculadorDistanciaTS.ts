@@ -121,6 +121,8 @@ export interface EstadoVelocidadDinámica {
   esCarreraActiva: boolean;
 }
 
+export type EstadoVelocidadDinamica = EstadoVelocidadDinámica;
+
 /**
  * Calcula el desglose dinámico de velocidad disponible y restante con precisión decimal limpia.
  */

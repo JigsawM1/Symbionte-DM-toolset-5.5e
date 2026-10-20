@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarAccionesHomebrew, usarAccionesConfiguracion } from "@/almacen/selectores";
 import { sanearObjetoHomebrew } from "@/almacen/sanitizacion";
 import { 
   ObjetoHomebrew, 
@@ -194,7 +194,8 @@ export const ESTADO_INICIAL_FORMULARIO: EstadoFormularioObjeto = {
 };
 
 export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarObjetoHomebrew, actualizarObjetoHomebrew, agregarNotificacion } = usarAlmacenDM();
+  const { agregarObjetoHomebrew, actualizarObjetoHomebrew } = usarAccionesHomebrew();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
 
   // Estado consolidado para batching de re-renders
   const [estado, setEstado] = useState<EstadoFormularioObjeto>(ESTADO_INICIAL_FORMULARIO);

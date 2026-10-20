@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
-import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { usarAccionesHomebrew, usarAccionesConfiguracion } from "@/almacen/selectores";
 import { HechizoBase } from "@/tipos";
 
 export function usarFormularioHechizo(idEnEdicion: string | null, alGuardarExitoso: () => void) {
-  const { agregarHechizoHomebrew, actualizarHechizoHomebrew, agregarNotificacion } = usarAlmacenDM();
+  const { agregarHechizoHomebrew, actualizarHechizoHomebrew } = usarAccionesHomebrew();
+  const { agregarNotificacion } = usarAccionesConfiguracion();
 
   const [hNombre, setHNombre] = useState("");
   const [hNivel, setHNivel] = useState(1);

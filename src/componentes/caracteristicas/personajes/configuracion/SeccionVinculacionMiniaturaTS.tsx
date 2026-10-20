@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, Unlink, Crosshair, RefreshCw, Check, AlertCircle } from "lucide-react";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
@@ -29,10 +29,18 @@ export const SeccionVinculacionMiniaturaTS: React.FC<SeccionVinculacionMiniatura
   const [minisJugador, setMinisJugador] = useState<InfoCriatura[]>([]);
   const [mostrarListaMinis, setMostrarListaMinis] = useState<boolean>(false);
   const [mensajeFeedback, setMensajeFeedback] = useState<{ texto: string; tipo: "exito" | "error" | "info" } | null>(null);
+  const refTimerFeedback = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (refTimerFeedback.current) clearTimeout(refTimerFeedback.current);
+    };
+  }, []);
 
   const mostrarMensaje = (texto: string, tipo: "exito" | "error" | "info") => {
     setMensajeFeedback({ texto, tipo });
-    setTimeout(() => {
+    if (refTimerFeedback.current) clearTimeout(refTimerFeedback.current);
+    refTimerFeedback.current = setTimeout(() => {
       setMensajeFeedback(null);
     }, 4500);
   };

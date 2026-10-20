@@ -1,12 +1,13 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { PersonajeJugador } from "@/tipos";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
-import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check, Clipboard, X, FileText } from "lucide-react";
+import { Plus, Copy, Trash2, CheckCircle2, User, Download, Upload, Check } from "lucide-react";
 import { importarPersonajesDesdeJSON } from "@/almacen/importadorJSON";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion } from "@/almacen/selectores";
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
 import { deshidratarPersonaje, hidratarPersonaje } from "@/servicios/serializadorPersonaje";
+import { ModalesJSONGestorPersonajes } from "./subcomponentes/ModalesJSONGestorPersonajes";
 import { logger } from "@/utiles/logger";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -41,6 +42,15 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   const [errorPegado, setErrorPegado] = useState<string | null>(null);
 
   const refInputArchivo = useRef<HTMLInputElement>(null);
+  const timerCopiadoPjRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerGrupoCopiadoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerCopiadoPjRef.current) clearTimeout(timerCopiadoPjRef.current);
+      if (timerGrupoCopiadoRef.current) clearTimeout(timerGrupoCopiadoRef.current);
+    };
+  }, []);
 
   const personajeAEliminar = personajes.find((p) => p.id === idPjAEliminar);
 
@@ -71,7 +81,11 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
     if (exitoCopiado) {
       setCopiadoPjId(pj.id);
-      setTimeout(() => setCopiadoPjId(null), 3000);
+      if (timerCopiadoPjRef.current) clearTimeout(timerCopiadoPjRef.current);
+      timerCopiadoPjRef.current = setTimeout(() => {
+        setCopiadoPjId(null);
+        timerCopiadoPjRef.current = null;
+      }, 3000);
       agregarNotificacion(`¡Ficha de "${pjActual.nombre}" copiada al portapapeles en formato JSON!`, "exito");
     } else if (exitoDescarga) {
       agregarNotificacion(`¡Ficha de "${pjActual.nombre}" descargada correctamente!`, "exito");
@@ -109,7 +123,11 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
     if (exitoCopiado) {
       setGrupoCopiado(true);
-      setTimeout(() => setGrupoCopiado(false), 3000);
+      if (timerGrupoCopiadoRef.current) clearTimeout(timerGrupoCopiadoRef.current);
+      timerGrupoCopiadoRef.current = setTimeout(() => {
+        setGrupoCopiado(false);
+        timerGrupoCopiadoRef.current = null;
+      }, 3000);
       agregarNotificacion(`¡Respaldo de grupo (${personajesActuales.length} personajes) copiado al portapapeles!`, "exito");
     } else if (exitoDescarga) {
       agregarNotificacion(`¡Respaldo de grupo (${personajesActuales.length} personajes) descargado correctamente!`, "exito");
@@ -339,162 +357,33 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
         })}
       </div>
 
-      {/* Modal para Visualizar / Copiar JSON Manualmente */}
-      {modalJSON && (
-        <div
-          className={estilos.overlayModalJSON}
-          onClick={() => setModalJSON(null)}
-        >
-          <div
-            className={`${estilos.neoRaised} ${estilos.cajaModalJSON}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={estilos.cabeceraModalJSON}>
-              <div className={estilos.filaTituloModalJSON}>
-                <FileText size={16} className={estilos.iconoModalCian} />
-                <h3 className={estilos.tituloModalJSON}>{modalJSON.titulo}</h3>
-              </div>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonCerrarModalCompacto}`}
-                onClick={() => setModalJSON(null)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <p className={estilos.textoInstruccionModal}>
-              Copia el código JSON a continuación para compartir o respaldar la ficha:
-            </p>
-
-            <textarea
-              readOnly
-              value={modalJSON.contenido}
-              rows={12}
-              spellCheck={false}
-              className={estilos.textareaCodigoJSON}
-            />
-
-            <div className={estilos.filaAccionesPieModal}>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonAccionPrimarioModal}`}
-                onClick={async () => {
-                  await copiarAlPortapapeles(modalJSON.contenido);
-                  agregarNotificacion("¡Texto JSON copiado al portapapeles!", "exito");
-                }}
-              >
-                <Clipboard size={14} />
-                Copiar al Portapapeles
-              </button>
-              <button
-                type="button"
-                className={estilos.neoButton}
-                onClick={() => setModalJSON(null)}
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal para Pegar e Importar JSON */}
-      {modalPegarAbierto && (
-        <div
-          className={estilos.overlayModalJSON}
-          onClick={() => setModalPegarAbierto(false)}
-        >
-          <div
-            className={`${estilos.neoRaised} ${estilos.cajaModalJSON}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={estilos.cabeceraModalJSON}>
-              <div className={estilos.filaTituloModalJSON}>
-                <Upload size={16} className={estilos.iconoModalCian} />
-                <h3 className={estilos.tituloModalJSON}>Importar Ficha o Grupo JSON</h3>
-              </div>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonCerrarModalCompacto}`}
-                onClick={() => setModalPegarAbierto(false)}
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className={estilos.filaBotonesPegar}>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonFlex1}`}
-                onClick={() => {
-                  refInputArchivo.current?.click();
-                  setModalPegarAbierto(false);
-                }}
-                title="Seleccionar archivo .json del equipo"
-              >
-                <Upload size={14} />
-                Seleccionar Archivo .JSON
-              </button>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonFlex1}`}
-                onClick={manejarPegarDesdePortapapeles}
-                title="Pegar contenido del portapapeles"
-              >
-                <Clipboard size={14} />
-                Pegar Portapapeles
-              </button>
-            </div>
-
-            <p className={estilos.textoInstruccionModal}>
-              O pega el texto JSON de la ficha o grupo directamente en el siguiente campo:
-            </p>
-
-            <textarea
-              placeholder='Pega aquí el JSON exportado (ej: { "personaje": { ... } } o { "personajes": [ ... ] })'
-              value={textoJSONPegado}
-              onChange={(e) => {
-                setTextoJSONPegado(e.target.value);
-                if (errorPegado) setErrorPegado(null);
-              }}
-              rows={9}
-              spellCheck={false}
-              className={estilos.textareaPegarJSON}
-              data-error={errorPegado ? "true" : "false"}
-            />
-
-            {errorPegado && (
-              <span className={estilos.mensajeErrorPegado}>
-                {errorPegado}
-              </span>
-            )}
-
-            <div className={estilos.filaAccionesPieModal}>
-              <button
-                type="button"
-                className={`${estilos.neoButton} ${estilos.botonAccionPrimarioModal}`}
-                disabled={!textoJSONPegado.trim()}
-                onClick={() => procesarTextoJSON(textoJSONPegado)}
-              >
-                <Check size={14} />
-                Importar Personajes
-              </button>
-              <button
-                type="button"
-                className={estilos.neoButton}
-                onClick={() => {
-                  setModalPegarAbierto(false);
-                  setTextoJSONPegado("");
-                  setErrorPegado(null);
-                }}
-              >
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modales para Visualizar, Copiar y Pegar JSON */}
+      <ModalesJSONGestorPersonajes
+        modalJSON={modalJSON}
+        alCerrarModalJSON={() => setModalJSON(null)}
+        modalPegarAbierto={modalPegarAbierto}
+        alCerrarModalPegar={() => {
+          setModalPegarAbierto(false);
+          setTextoJSONPegado("");
+          setErrorPegado(null);
+        }}
+        textoJSONPegado={textoJSONPegado}
+        alCambiarTextoJSONPegado={(texto) => {
+          setTextoJSONPegado(texto);
+          if (errorPegado) setErrorPegado(null);
+        }}
+        errorPegado={errorPegado}
+        alProcesarTextoJSON={procesarTextoJSON}
+        alAbrirSelectorArchivo={() => {
+          refInputArchivo.current?.click();
+          setModalPegarAbierto(false);
+        }}
+        alPegarDesdePortapapeles={manejarPegarDesdePortapapeles}
+        alCopiarTextoJSON={async (texto) => {
+          await copiarAlPortapapeles(texto);
+          agregarNotificacion("¡Texto JSON copiado al portapapeles!", "exito");
+        }}
+      />
 
       {/* Modal de Confirmación para Eliminar */}
       <ConfirmDialog

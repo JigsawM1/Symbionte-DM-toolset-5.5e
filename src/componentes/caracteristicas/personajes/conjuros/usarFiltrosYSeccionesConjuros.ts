@@ -1,6 +1,7 @@
 import { useState, useMemo, useDeferredValue } from "react";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import { usarEstadoPersistido } from "@/hooks";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import {
   evaluarFiltrosHechizo,
   type FiltroComponentesConjuro
@@ -50,19 +51,34 @@ export const usarFiltrosYSeccionesConjuros = ({
 
   // Estado persistente para IDs de conjuros ocultados por el jugador
   const claveOcultosPj = `ts_conjuros_ocultos_${personaje.id || "default"}`;
-  const [conjurosOcultosIds, setConjurosOcultosIds] = usarEstadoPersistido<string[]>(
+  const [conjurosOcultosLocal, setConjurosOcultosLocal] = usarEstadoPersistido<string[]>(
     claveOcultosPj,
     []
   );
 
+  const conjurosOcultosIds = useMemo(() => {
+    if (Array.isArray(personaje.conjurosOcultos) && personaje.conjurosOcultos.length > 0) {
+      return personaje.conjurosOcultos;
+    }
+    return conjurosOcultosLocal;
+  }, [personaje.conjurosOcultos, conjurosOcultosLocal]);
+
   const alternarOculto = (hechizoId: string) => {
-    setConjurosOcultosIds((prev) =>
+    const alternarAccion = usarAlmacenDM.getState().alternarOcultarConjuro;
+    if (alternarAccion && personaje.id) {
+      alternarAccion(personaje.id, hechizoId);
+    }
+    setConjurosOcultosLocal((prev) =>
       prev.includes(hechizoId) ? prev.filter((id) => id !== hechizoId) : [...prev, hechizoId]
     );
   };
 
   const desocultarTodos = () => {
-    setConjurosOcultosIds([]);
+    const desocultarAccion = usarAlmacenDM.getState().desocultarTodosLosConjuros;
+    if (desocultarAccion && personaje.id) {
+      desocultarAccion(personaje.id);
+    }
+    setConjurosOcultosLocal([]);
   };
 
   const conjurosOcultosSet = useMemo(() => new Set(conjurosOcultosIds), [conjurosOcultosIds]);

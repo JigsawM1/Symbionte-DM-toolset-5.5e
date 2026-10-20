@@ -7,7 +7,22 @@ import { tieneMedioBonoHabilidades, aplicarAprendizDeMuchoAGradosHabilidades, ca
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
 
-export const crearSliceEdicionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "agregarRasgoPersonaje" | "actualizarRasgoPersonaje" | "eliminarRasgoPersonaje" | "sincronizarRasgosPersonaje">> = (set) => ({
+export const crearSliceEdicionRasgos: StateCreator<
+  EstadoDM,
+  [],
+  [],
+  Pick<
+    SubSliceRasgos,
+    | "agregarRasgoPersonaje"
+    | "actualizarRasgoPersonaje"
+    | "eliminarRasgoPersonaje"
+    | "sincronizarRasgosPersonaje"
+    | "alternarOcultarRasgo"
+    | "desocultarTodosLosRasgos"
+    | "alternarOcultarConjuro"
+    | "desocultarTodosLosConjuros"
+  >
+> = (set) => ({
 agregarRasgoPersonaje: (idPj, rasgo) => {
     mutarPersonaje(set, idPj, (pj) => {
       let rasgoAjustado = rasgo;
@@ -128,5 +143,45 @@ sincronizarRasgosPersonaje: (idPj) => {
         gradosHabilidades: gradosActualizados
       };
     });
+  },
+
+  alternarOcultarRasgo: (idPj, idRasgo) => {
+    mutarPersonaje(set, idPj, (pj) => ({
+      ...pj,
+      rasgos: (pj.rasgos || []).map((r) =>
+        r.id === idRasgo ? { ...r, oculto: !r.oculto } : r
+      )
+    }));
+  },
+
+  desocultarTodosLosRasgos: (idPj) => {
+    mutarPersonaje(set, idPj, (pj) => ({
+      ...pj,
+      rasgos: (pj.rasgos || []).map((r) =>
+        r.oculto ? { ...r, oculto: false } : r
+      )
+    }));
+  },
+
+  alternarOcultarConjuro: (idPj, idConjuro) => {
+    mutarPersonaje(set, idPj, (pj) => {
+      const prev = new Set(pj.conjurosOcultos || []);
+      if (prev.has(idConjuro)) {
+        prev.delete(idConjuro);
+      } else {
+        prev.add(idConjuro);
+      }
+      return {
+        ...pj,
+        conjurosOcultos: Array.from(prev)
+      };
+    });
+  },
+
+  desocultarTodosLosConjuros: (idPj) => {
+    mutarPersonaje(set, idPj, (pj) => ({
+      ...pj,
+      conjurosOcultos: []
+    }));
   }
 });

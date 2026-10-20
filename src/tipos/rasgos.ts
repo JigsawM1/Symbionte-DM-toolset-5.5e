@@ -438,6 +438,7 @@ export const EsquemaRasgoPersonaje = z.object({
   // Estado, activables y ligaduras
   personalizado: z.boolean().default(false),
   activo: z.boolean().default(true),
+  oculto: z.boolean().default(false).optional(),
   esActivable: z.boolean().default(false).optional(), // Toggle on/off
   autoDesactivar: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras ejecutarse
   autoDesactivarAlTirarDano: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras tirar daño con arma

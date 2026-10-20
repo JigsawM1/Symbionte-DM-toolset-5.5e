@@ -864,6 +864,10 @@ export function usarAccionesPersonajes() {
       establecerUsosRestantesRasgoPersonaje: s.establecerUsosRestantesRasgoPersonaje,
       sincronizarRasgosPersonaje:         s.sincronizarRasgosPersonaje,
       alternarActivoRasgo:                s.alternarActivoRasgo,
+      alternarOcultarRasgo:               s.alternarOcultarRasgo,
+      desocultarTodosLosRasgos:           s.desocultarTodosLosRasgos,
+      alternarOcultarConjuro:             s.alternarOcultarConjuro,
+      desocultarTodosLosConjuros:         s.desocultarTodosLosConjuros,
       actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo,
       dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje,
 

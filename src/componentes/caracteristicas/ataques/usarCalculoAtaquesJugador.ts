@@ -77,6 +77,10 @@ export function usarCalculoAtaquesJugador() {
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
+    alternarOcultarRasgo,
+    desocultarTodosLosRasgos,
+    alternarOcultarConjuro,
+    desocultarTodosLosConjuros,
     sincronizarRasgosPersonaje,
     romperConcentracion
   } = usarAccionesPersonajes();
@@ -415,6 +419,10 @@ export function usarCalculoAtaquesJugador() {
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
+    alternarOcultarRasgo,
+    desocultarTodosLosRasgos,
+    alternarOcultarConjuro,
+    desocultarTodosLosConjuros,
     obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => {
       const bloqueoFuria = obtenerBloqueoToggleRasgo(r, furiaEstaActiva);
       return bloqueoFuria.bloqueado ? bloqueoFuria : obtenerBloqueoActivacionRasgo(personajeActivo, r);

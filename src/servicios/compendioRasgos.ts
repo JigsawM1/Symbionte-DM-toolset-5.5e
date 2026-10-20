@@ -295,6 +295,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
 
   // 5. Sincronizar estado activo de rasgos dependientes de opciones en selectores (pasivos permanentes)
   const listaBase = Array.from(mapaFinal.values());
+
   const listaFinal = listaBase.map((r) => {
     if (r.requiereOpcion && r.ligadoA && !r.esActivable) {
       const nuevoActivo = esRasgoHabilitadoPorOpcion(r, listaBase);

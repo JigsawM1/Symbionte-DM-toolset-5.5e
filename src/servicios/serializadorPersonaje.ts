@@ -62,6 +62,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     formulaDados: rasgo.formulaDados,
     personalizado: false,
     activo: rasgo.activo,
+    oculto: rasgo.oculto,
     esActivable: rasgo.esActivable,
     autoDesactivar: rasgo.autoDesactivar,
     autoDesactivarAlTirarDano: rasgo.autoDesactivarAlTirarDano,
@@ -89,6 +90,7 @@ export function deshidratarPersonaje(personaje: PersonajeJugador): PersonajeJuga
 
   return {
     ...personaje,
+    conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
     rasgos: Array.isArray(personaje.rasgos)
       ? personaje.rasgos.map(deshidratarRasgo)
       : []
@@ -104,6 +106,7 @@ export function hidratarPersonaje(personaje: PersonajeJugador): PersonajeJugador
 
   return {
     ...personaje,
+    conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
     rasgos: sincronizarRasgosAutomaticos(personaje)
   };
 }

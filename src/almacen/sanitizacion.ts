@@ -1259,7 +1259,8 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
             };
           })
       : [],
-    dotes: Array.isArray(raw.dotes) ? raw.dotes : []
+    dotes: Array.isArray(raw.dotes) ? raw.dotes : [],
+    conjurosOcultos: Array.isArray(raw.conjurosOcultos) ? (raw.conjurosOcultos as string[]) : []
   };
 
   // Normalizar y enriquecer competencias de equipo si vienen crudas o vacías

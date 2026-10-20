@@ -1,5 +1,44 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-19] Persistencia de Rasgos Ocultos en el Almacenamiento Nativo de TaleSpire y Poda Ponytail (Única Fuente de Verdad)
+
+- **Contexto y Diagnóstico del Problema**:
+  - *Reporte*: Al ocultar rasgos en la vista táctica de combate (mediante el botón del ojo en las tarjetas de rasgo), TaleSpire no recordaba los rasgos ocultados tras recargar el simbionte o reiniciar la sesión.
+  - *Causa Raíz*: TaleSpire prioriza estrictamente la lectura del blob global nativo (`window.TS.localStorage.global.getBlob()` / `leerBlobGlobal()`) para inicializar el estado persistente de la campaña. Inicialmente se intentó una solución basada en el array `personaje.rasgosOcultos` y fallbacks en `localStorage`. Sin embargo, dentro del pipeline de persistencia del blob de TaleSpire:
+    1. `EsquemaRasgoPersonaje` no incluía el campo declarativo `oculto: z.boolean().default(false).optional()`.
+    2. `deshidratarRasgo` (`src/servicios/serializadorPersonaje.ts`) **descartaba** el estado `oculto` de los rasgos canónicos de clase/especie al serializar hacia el blob.
+    3. `fusionarEstadoRasgo` (`src/servicios/rasgos/fusionarEstadoRasgo.ts`) no transfería `existente?.oculto` al fusionar la plantilla limpia del compendio con los datos rehidratados del blob.
+    4. En consecuencia, al recargar TaleSpire, `sincronizarRasgosAutomaticos` sobrescribía cada rasgo de clase restaurándolo a visible (`oculto: undefined`/`false`).
+- **Auditoría Ponytail y Poda de la Solución Redundante (`/ponytail-audit`)**:
+  - *Identificación de Sobreingeniería*: Coexistían dos mecanismos: (A) el array paralelo `personaje.rasgosOcultos: string[]` con fallbacks en `localStorage`, y (B) la propiedad `rasgo.oculto: boolean` serializada en el blob de TaleSpire. El mecanismo (A) introducía sincronizaciones bidireccionales innecesarias, Sets en memoria y accesos prohibidos a `localStorage` en CEF.
+  - *Resolución*: Se eliminó por completo la Solución A (array `rasgosOcultos`, fallbacks de `localStorage`, bucles de reconciliación en serialización y sets en componentes). La Solución B (`r.oculto: boolean`) quedó establecida como la **única fuente de verdad** (Single Source of Truth).
+- **Decisión Arquitectónica y Correcciones Aplicadas**:
+  1. **Propiedad `oculto` en Rasgos Canónicos (`src/tipos/rasgos.ts`)**:
+     - Se añadió `oculto: z.boolean().default(false).optional()` en `EsquemaRasgoPersonaje`.
+  2. **Pipeline de Deshidratación y Rehidratación del Blob (`src/servicios/serializadorPersonaje.ts`, `src/servicios/rasgos/fusionarEstadoRasgo.ts`)**:
+     - `deshidratarRasgo`: Preserva `oculto: rasgo.oculto` en rasgos canónicos de clase/especie al serializar en el blob.
+     - `fusionarEstadoRasgo`: Conserva `oculto: existente?.oculto ?? nuevo.oculto ?? false`, protegiendo el estado mutable decidido por el jugador contra el reseteo por plantilla.
+     - `deshidratarPersonaje` e `hidratarPersonaje`: Simplificados al máximo sin bucles ni conjuntos redundantes; delegan la persistencia de rasgos directamente a `deshidratarRasgo` y `sincronizarRasgosAutomaticos`.
+  3. **Mutaciones Atómicas Puras en Zustand (`sliceEdicionRasgos.ts`)**:
+     - `alternarOcultarRasgo`: Mapeo directo sobre `pj.rasgos` alternando `r.oculto = !r.oculto` (de 26 a 7 líneas, sin `localStorage` ni `Set`).
+     - `desocultarTodosLosRasgos`: Mapeo directo sobre `pj.rasgos` limpiando `r.oculto = false`.
+     - `alternarOcultarConjuro` y `desocultarTodosLosConjuros`: Se eliminaron todos los accesos a `localStorage`, dejando la persistencia de `conjurosOcultos` en manos exclusivas de Zustand y el blob de TaleSpire.
+  4. **Componentes Tácticos con Lectura Directa (`SeccionRasgosAtaque.tsx`)**:
+     - Se eliminaron `ocultosFallback`, `usarEstadoPersistido`, `listaEfectivaOcultos` y `rasgosOcultosSet` (-40 líneas).
+     - La visibilidad se evalúa de forma directa y pura: `esRasgoOculto = (item) => Boolean(item.rasgo.oculto)`.
+- **Estrategia de Pruebas Unitarias (`src/servicios/persistenciaRasgosOcultosTaleSpire.test.ts`, `SeccionRasgosAtaque.test.tsx`)**:
+  - Verificación del ciclo completo de TaleSpire (`construirBlobPersistencia -> JSON.stringify -> JSON.parse -> prepararCargaPersistida`) con rasgos canónicos reales de clase (ej. `Tomar aliento` de Guerrero), comprobando que tras la rehidratación conservan `r.oculto === true`.
+  - Pruebas unitarias de `deshidratarRasgo` y `fusionarEstadoRasgo` aislando el comportamiento de conservación de `oculto`.
+  - Pruebas de componente verificando la subsección de ocultos y filtrado directo basadas exclusivamente en `item.rasgo.oculto`.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Límites de Líneas:** 185 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas y 0 en backlog (`SeccionRasgosAtaque.tsx` reducido a 400 líneas, `sliceEdicionRasgos.ts` reducido a 187 líneas).
+  - **Vitest:** 13/13 pruebas aprobadas (5/5 en persistencia de TaleSpire y 8/8 en `SeccionRasgosAtaque`).
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 11.73s (2.115 módulos transformados).
+
+---
+
 ## [2026-10-19] Auditoría e Implementación de la Fase 4: Interfaz de Usuario, Componentes de Ficha (Jugador y DM), Límites de Líneas, Rendimiento en CEF (TaleSpire) y Ciclo de Vida de Modales/Listeners
 
 - **Contexto y Alcance**:

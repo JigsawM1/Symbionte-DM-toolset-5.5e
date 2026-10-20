@@ -67,6 +67,10 @@ export const VistaAtaquesJugador: React.FC = () => {
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
+    alternarOcultarRasgo,
+    desocultarTodosLosRasgos,
+    alternarOcultarConjuro,
+    desocultarTodosLosConjuros,
     obtenerBloqueoToggleRasgo,
     resolverRecursosPadre,
     obtenerNivelEfectivoParaRasgo,
@@ -165,6 +169,8 @@ export const VistaAtaquesJugador: React.FC = () => {
         esHechizoDeSubclase={esHechizoDeSubclase}
         alAbrirDetalle={setHechizoDetalle}
         alLanzar={lanzar}
+        alAlternarOcultar={alternarOcultarConjuro}
+        alDesocultarTodos={desocultarTodosLosConjuros}
       />
 
       {/* Sección 3: Rasgos y Habilidades Tácticas */}
@@ -185,6 +191,8 @@ export const VistaAtaquesJugador: React.FC = () => {
         alAlternarActivo={alternarActivoRasgo}
         obtenerBloqueoToggleRasgo={obtenerBloqueoToggleRasgo}
         resolverRecursosPadre={resolverRecursosPadre}
+        alAlternarOcultar={alternarOcultarRasgo}
+        alDesocultarTodos={desocultarTodosLosRasgos}
       />
 
       {/* Sección 4: Consumibles y Pociones */}

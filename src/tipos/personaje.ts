@@ -1,15 +1,12 @@
 import { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros } from "./capacidadesBase";
 import type { Caracteristica, TipoLanzador, ModeloConjuros } from "./capacidadesBase";
-export { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros };
-export type { Caracteristica, TipoLanzador, ModeloConjuros };
+export { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros, type Caracteristica, type TipoLanzador, type ModeloConjuros };
 import { z } from "zod";
 import { EsquemaRasgoPersonaje } from "./rasgos";
 
 // ==========================================
 // 1. CARACTERÍSTICAS Y CAPACIDADES BASE
 // ==========================================
-
-
 
 export const EsquemaCaracteristicas = z.object({
   fuerza: z.number().default(10),
@@ -490,6 +487,7 @@ export const EsquemaPersonajeJugador = z.object({
   // Rasgos, Dotes y Personalizaciones (Apartado F)
   rasgos: z.array(EsquemaRasgoPersonaje).default([]),
   dotes: z.array(z.string()).default([]),
+  conjurosOcultos: z.array(z.string()).default([]),
 
   // Acompañantes y Sidekicks
   acompanantes: z.array(EsquemaAcompanantePersonaje).default([])

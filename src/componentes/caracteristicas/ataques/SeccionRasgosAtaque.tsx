@@ -35,6 +35,8 @@ interface SeccionRasgosAtaqueProps {
     usosPadre?: { restantes: number; maximos: number; nombre: string };
     formulaDadosEfectiva?: string;
   };
+  alAlternarOcultar?: (idPj: string, idRasgo: string) => void;
+  alDesocultarTodos?: (idPj: string) => void;
 }
 
 export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
@@ -53,26 +55,22 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
   alRecuperarUso,
   alAlternarActivo,
   obtenerBloqueoToggleRasgo,
-  resolverRecursosPadre
+  resolverRecursosPadre,
+  alAlternarOcultar,
+  alDesocultarTodos
 }) => {
-  // Estado persistente para IDs de rasgos ocultados por el jugador
-  const claveOcultosPj = `ts_rasgos_ocultos_${personajeActivo.id || "default"}`;
-  const [rasgosOcultosIds, setRasgosOcultosIds] = usarEstadoPersistido<string[]>(
-    claveOcultosPj,
-    []
-  );
-
   const alternarOculto = useCallback((rasgoId: string) => {
-    setRasgosOcultosIds((prev) =>
-      prev.includes(rasgoId) ? prev.filter((id) => id !== rasgoId) : [...prev, rasgoId]
-    );
-  }, [setRasgosOcultosIds]);
+    alAlternarOcultar?.(personajeActivo.id, rasgoId);
+  }, [alAlternarOcultar, personajeActivo.id]);
 
   const desocultarTodos = useCallback(() => {
-    setRasgosOcultosIds([]);
-  }, [setRasgosOcultosIds]);
+    alDesocultarTodos?.(personajeActivo.id);
+  }, [alDesocultarTodos, personajeActivo.id]);
 
-  const rasgosOcultosSet = useMemo(() => new Set(rasgosOcultosIds), [rasgosOcultosIds]);
+  const esRasgoOculto = useCallback(
+    (item: RasgoAccionCombate) => Boolean(item.rasgo.oculto),
+    []
+  );
 
   // Clasificación de rasgos filtrados entre visibles y ocultos
   const { rasgosVisibles, rasgosOcultos } = useMemo(() => {
@@ -80,7 +78,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
     const ocultos: RasgoAccionCombate[] = [];
 
     for (const item of rasgosFiltrados) {
-      if (rasgosOcultosSet.has(item.rasgo.id)) {
+      if (esRasgoOculto(item)) {
         ocultos.push(item);
       } else {
         visibles.push(item);
@@ -90,7 +88,7 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
     ocultos.sort((a, b) => a.rasgo.nombre.localeCompare(b.rasgo.nombre, "es", { sensitivity: "base" }));
 
     return { rasgosVisibles: visibles, rasgosOcultos: ocultos };
-  }, [rasgosFiltrados, rasgosOcultosSet]);
+  }, [rasgosFiltrados, esRasgoOculto]);
 
   const [subseccionesAbiertas, setSubseccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
     "ts_acciones_subsecciones_rasgos",
@@ -116,24 +114,24 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
 
   // Subcategorías visibles excluyendo rasgos ocultos
   const accionesVisibles = useMemo(
-    () => rasgosAcciones.filter((item) => !rasgosOcultosSet.has(item.rasgo.id)),
-    [rasgosAcciones, rasgosOcultosSet]
+    () => rasgosAcciones.filter((item) => !esRasgoOculto(item)),
+    [rasgosAcciones, esRasgoOculto]
   );
   const adicionalesVisibles = useMemo(
-    () => rasgosAccionesAdicionales.filter((item) => !rasgosOcultosSet.has(item.rasgo.id)),
-    [rasgosAccionesAdicionales, rasgosOcultosSet]
+    () => rasgosAccionesAdicionales.filter((item) => !esRasgoOculto(item)),
+    [rasgosAccionesAdicionales, esRasgoOculto]
   );
   const reaccionesVisibles = useMemo(
-    () => rasgosReacciones.filter((item) => !rasgosOcultosSet.has(item.rasgo.id)),
-    [rasgosReacciones, rasgosOcultosSet]
+    () => rasgosReacciones.filter((item) => !esRasgoOculto(item)),
+    [rasgosReacciones, esRasgoOculto]
   );
   const consumiblesVisibles = useMemo(
-    () => rasgosConsumibles.filter((item) => !rasgosOcultosSet.has(item.rasgo.id)),
-    [rasgosConsumibles, rasgosOcultosSet]
+    () => rasgosConsumibles.filter((item) => !esRasgoOculto(item)),
+    [rasgosConsumibles, esRasgoOculto]
   );
   const activablesVisibles = useMemo(
-    () => rasgosActivables.filter((item) => !rasgosOcultosSet.has(item.rasgo.id)),
-    [rasgosActivables, rasgosOcultosSet]
+    () => rasgosActivables.filter((item) => !esRasgoOculto(item)),
+    [rasgosActivables, esRasgoOculto]
   );
 
   if (rasgosFiltrados.length === 0) {

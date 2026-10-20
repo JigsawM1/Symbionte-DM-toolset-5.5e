@@ -136,11 +136,19 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     expect(html).not.toContain("Mostrar todos");
   });
 
-  it("oculta un rasgo de su categoría y lo traslada a la subsección Rasgos Ocultos cuando su ID está en localStorage", () => {
-    const claveStorage = `ts_rasgos_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(claveStorage, JSON.stringify(["rasgo-oleada-accion"]));
+  it("oculta un rasgo de su categoría y lo traslada a la subsección Rasgos Ocultos cuando rasgo.oculto es true", () => {
+    const itemOleadaOculto = {
+      ...itemOleadaAccion,
+      rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
+    };
 
-    const html = renderToStaticMarkup(<SeccionRasgosAtaque {...propsBase} />);
+    const html = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento, itemDesviarProyectiles]}
+        rasgosAcciones={[itemOleadaOculto]}
+      />
+    );
 
     // La subsección de ocultos debe aparecer
     expect(html).toContain("Rasgos Ocultos");
@@ -158,10 +166,18 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
 
   it("omite una subcategoría si todos sus rasgos están ocultos", () => {
     // Ocultamos el único rasgo de la categoría "Acciones" (Oleada de Acción)
-    const claveStorage = `ts_rasgos_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(claveStorage, JSON.stringify(["rasgo-oleada-accion"]));
+    const itemOleadaOculto = {
+      ...itemOleadaAccion,
+      rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
+    };
 
-    const html = renderToStaticMarkup(<SeccionRasgosAtaque {...propsBase} />);
+    const html = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento, itemDesviarProyectiles]}
+        rasgosAcciones={[itemOleadaOculto]}
+      />
+    );
 
     // La subcategoría "Acciones" debe omitirse porque no tiene ningún rasgo visible
     expect(html).not.toContain("<span>Acciones</span>");
@@ -176,17 +192,19 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
   });
 
   it("mantiene visible la sección principal si todos los rasgos están ocultos para permitir desocultarlos", () => {
-    const claveStorage = `ts_rasgos_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(
-      claveStorage,
-      JSON.stringify([
-        "rasgo-oleada-accion",
-        "rasgo-segundo-aliento",
-        "rasgo-desviar-proyectiles"
-      ])
-    );
+    const itemOleadaOculto = { ...itemOleadaAccion, rasgo: { ...itemOleadaAccion.rasgo, oculto: true } };
+    const itemSegundoOculto = { ...itemSegundoAliento, rasgo: { ...itemSegundoAliento.rasgo, oculto: true } };
+    const itemDesviarOculto = { ...itemDesviarProyectiles, rasgo: { ...itemDesviarProyectiles.rasgo, oculto: true } };
 
-    const html = renderToStaticMarkup(<SeccionRasgosAtaque {...propsBase} />);
+    const html = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        rasgosFiltrados={[itemOleadaOculto, itemSegundoOculto, itemDesviarOculto]}
+        rasgosAcciones={[itemOleadaOculto]}
+        rasgosAccionesAdicionales={[itemSegundoOculto]}
+        rasgosReacciones={[itemDesviarOculto]}
+      />
+    );
 
     // La cabecera general sigue presente con conteo visible 0
     expect(html).toContain("Rasgos y Habilidades Tácticas");
@@ -200,14 +218,13 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
   });
 
   it("funciona correctamente en modo filtrado directo (filtro !== 'todas')", () => {
-    const claveStorage = `ts_rasgos_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(claveStorage, JSON.stringify(["rasgo-oleada-accion"]));
+    const itemOleadaOculto = { ...itemOleadaAccion, rasgo: { ...itemOleadaAccion.rasgo, oculto: true } };
 
     const html = renderToStaticMarkup(
       <SeccionRasgosAtaque
         {...propsBase}
         filtro="accion"
-        rasgosFiltrados={[itemOleadaAccion]}
+        rasgosFiltrados={[itemOleadaOculto]}
       />
     );
 

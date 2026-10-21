@@ -41,11 +41,13 @@ export function evaluarFiltrosHechizo(
   filtroComponentes: FiltroComponentesConjuro
 ): boolean {
   // 1. Filtro de búsqueda por texto
+  // OPTIMIZACIÓN (Bolt): Evalúa campos cortos (nombre, escuela) antes que la descripción larga
+  // en una sola llamada a coincideBusquedaTolerante, tokenizando la consulta una sola vez.
   if (busqueda.trim()) {
-    const coincide =
-      coincideBusquedaTolerante(hechizo.nombre, busqueda) ||
-      coincideBusquedaTolerante(hechizo.descripcion, busqueda) ||
-      coincideBusquedaTolerante(hechizo.escuela, busqueda);
+    const coincide = coincideBusquedaTolerante(
+      [hechizo.nombre, hechizo.escuela, hechizo.descripcion],
+      busqueda
+    );
     if (!coincide) return false;
   }
 

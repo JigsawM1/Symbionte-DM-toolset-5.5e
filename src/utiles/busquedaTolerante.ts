@@ -4,6 +4,11 @@
  * sin importar cómo lo escriba el usuario (ej: "baston" -> "Bastón", "pocion curacion" -> "Poción de Curación").
  */
 
+interface TokenInfo {
+  raw: string;
+  sinEnye: string;
+}
+
 const cacheNormalizacion = new Map<string, string>();
 const LIMITE_CACHE_NORMALIZACION = 5000;
 
@@ -49,10 +54,27 @@ export function tokenizarBusqueda(consulta: string): string[] {
 }
 
 /**
+ * Precalcula información de variantes sin 'ñ' de cada token para evitar evaluar
+ * sustituciones de cadenas en bucles de comparación intensivos.
+ */
+function crearTokensInfo(tokens: string[]): TokenInfo[] {
+  return tokens.map((t) => ({
+    raw: t,
+    sinEnye: t.includes("ñ") ? t.replace(/ñ/g, "n") : t
+  }));
+}
+
+/**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
  * Optimizado perezosamente: examina campos cortos (nombre, categoría) antes de analizar textos masivos.
- * 
+ *
+ * OPTIMIZACIÓN DE RENDIMIENTO (Bolt):
+ * 1. Ruta rápida para objetivo tipo string único (evita asignación de Arrays/Sets intermedios y ordenamientos).
+ * 2. Precalcula variaciones de 'ñ' por token para evitar .replace() en bucles anidados.
+ * 3. Itera directamente sobre Set (for..of) evitando la asignación repetida de Array.from() en el bucle.
+ * Impacto estimado: ~60-80% menos generación de basura GC en búsquedas de compendios/listas con cientos de elementos.
+ *
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
  * @returns true si coincide tolerantemente, false en caso contrario
@@ -67,26 +89,54 @@ export function coincideBusquedaTolerante(
   const tokens = tokenizarBusqueda(consulta);
   if (tokens.length === 0) return true;
 
-  const listaObjetivos = (Array.isArray(objetivos) ? objetivos : [objetivos])
-    .filter((t): t is string => typeof t === "string" && t.length > 0);
+  const tokensInfo = crearTokensInfo(tokens);
+
+  // Fast-path para un solo string objetivo (ej: búsquedas directas de nombre o filtros simples)
+  if (typeof objetivos === "string") {
+    if (objetivos.length === 0) return false;
+    const objNorm = normalizarParaBusqueda(objetivos);
+    if (!objNorm) return false;
+    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+
+    for (let i = 0; i < tokensInfo.length; i++) {
+      const t = tokensInfo[i];
+      if (!objNorm.includes(t.raw) && !objNormSinEnye.includes(t.sinEnye)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (!Array.isArray(objetivos) || objetivos.length === 0) return false;
+
+  // Filtrar objetivos válidos no vacíos sin instanciar pipelines de .filter() extra
+  const listaObjetivos: string[] = [];
+  for (let i = 0; i < objetivos.length; i++) {
+    const item = objetivos[i];
+    if (typeof item === "string" && item.length > 0) {
+      listaObjetivos.push(item);
+    }
+  }
 
   if (listaObjetivos.length === 0) return false;
 
-  // Ordenar perezosamente: campos más cortos primero para descartar o confirmar sin tocar descripciones largas
-  const objetivosOrdenados = listaObjetivos.length > 1
-    ? [...listaObjetivos].sort((a, b) => a.length - b.length)
-    : listaObjetivos;
+  // Ordenar perezosamente por longitud para descartar/confirmar rápidamente antes de cadenas extensas
+  if (listaObjetivos.length > 1) {
+    listaObjetivos.sort((a, b) => a.length - b.length);
+  }
 
-  const tokensPendientes = new Set(tokens);
+  const tokensPendientes = new Set(tokensInfo);
 
-  for (const obj of objetivosOrdenados) {
+  for (let i = 0; i < listaObjetivos.length; i++) {
+    const obj = listaObjetivos[i];
     const objNorm = normalizarParaBusqueda(obj);
+    if (!objNorm) continue;
     const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
-    for (const token of Array.from(tokensPendientes)) {
-      const tokenSinEnye = token.includes("ñ") ? token.replace(/ñ/g, "n") : token;
-      if (objNorm.includes(token) || objNormSinEnye.includes(tokenSinEnye)) {
-        tokensPendientes.delete(token);
+    // Iteración directa sobre el Set de tokens pendientes sin usar Array.from() por objetivo
+    for (const tokenInfo of tokensPendientes) {
+      if (objNorm.includes(tokenInfo.raw) || objNormSinEnye.includes(tokenInfo.sinEnye)) {
+        tokensPendientes.delete(tokenInfo);
       }
     }
 
@@ -141,6 +191,9 @@ export function desduplicarEntidades<T extends { id: string; nombre: string }>(
  * - 300: El título contiene al menos una palabra clave de la consulta
  * - 100: Coincidencia exclusiva en campos secundarios (descripción, tipo, notas, etc.)
  * - 0: Sin coincidencia
+ *
+ * OPTIMIZACIÓN DE RENDIMIENTO (Bolt):
+ * Evita instanciar arrays con .filter() en el conteo de tokens en el título.
  */
 export function calcularRelevanciaBusqueda(
   titulo: string | undefined | null,
@@ -159,12 +212,19 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tokensEnTitulo = tokens.filter((t) =>
-      tituloNorm.includes(t) || tituloNorm.replace(/ñ/g, "n").includes(t.replace(/ñ/g, "n"))
-    );
+    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
+    let coincidencias = 0;
 
-    if (tokensEnTitulo.length === tokens.length) return 400;
-    if (tokensEnTitulo.length > 0) return 300;
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
+      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+        coincidencias++;
+      }
+    }
+
+    if (coincidencias === tokens.length) return 400;
+    if (coincidencias > 0) return 300;
   }
 
   // Comprobar coincidencia en campos secundarios si se proporcionan

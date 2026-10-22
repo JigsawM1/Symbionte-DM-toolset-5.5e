@@ -49,28 +49,13 @@ export const usarFiltrosYSeccionesConjuros = ({
     }
   );
 
-  // Estado persistente para IDs de conjuros ocultados por el jugador
-  const claveOcultosPj = `ts_conjuros_ocultos_${personaje.id || "default"}`;
-  const [conjurosOcultosLocal, setConjurosOcultosLocal] = usarEstadoPersistido<string[]>(
-    claveOcultosPj,
-    []
-  );
-
-  const conjurosOcultosIds = useMemo(() => {
-    if (Array.isArray(personaje.conjurosOcultos) && personaje.conjurosOcultos.length > 0) {
-      return personaje.conjurosOcultos;
-    }
-    return conjurosOcultosLocal;
-  }, [personaje.conjurosOcultos, conjurosOcultosLocal]);
+  const conjurosOcultosIds = personaje.conjurosOcultos || [];
 
   const alternarOculto = (hechizoId: string) => {
     const alternarAccion = usarAlmacenDM.getState().alternarOcultarConjuro;
     if (alternarAccion && personaje.id) {
       alternarAccion(personaje.id, hechizoId);
     }
-    setConjurosOcultosLocal((prev) =>
-      prev.includes(hechizoId) ? prev.filter((id) => id !== hechizoId) : [...prev, hechizoId]
-    );
   };
 
   const desocultarTodos = () => {
@@ -78,7 +63,6 @@ export const usarFiltrosYSeccionesConjuros = ({
     if (desocultarAccion && personaje.id) {
       desocultarAccion(personaje.id);
     }
-    setConjurosOcultosLocal([]);
   };
 
   const conjurosOcultosSet = useMemo(() => new Set(conjurosOcultosIds), [conjurosOcultosIds]);

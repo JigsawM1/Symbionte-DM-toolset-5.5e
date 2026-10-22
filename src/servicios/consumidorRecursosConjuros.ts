@@ -1,11 +1,12 @@
 import { obtenerConcesionConRecurso } from "./rasgos/lanzamientoRecursoRasgos";
-import { buscarRasgoConjuroGratuito } from "./rasgos/conjurosGratuitosRasgos";
+import { buscarRasgoConjuroGratuito, evaluarRecursosLanzamientoGratuito } from "./rasgos/conjurosGratuitosRasgos";
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
-import { resolverIdRasgoObjetivoGasto, calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
+import { calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
+
 /** Valida el estado vigente y devuelve la nueva ficha en una única operación síncrona. */
 export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionGasto): ResultadoConsumoConjuro {
   const insuficiente = { permitido: false as const, motivo: 'No quedan recursos suficientes para lanzar este conjuro.' };
@@ -55,20 +56,16 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     case 'gratuitoInnato': {
       const rasgo = buscarRasgoConjuroGratuito(pj, gasto.hechizoId);
       if (!rasgo) return insuficiente;
-      const idRecurso = resolverIdRasgoObjetivoGasto(rasgo, pj.rasgos);
-      const rasgoRecurso = pj.rasgos.find(r => r.id === idRecurso) ?? rasgo;
-      if (!rasgoRecurso.tieneUsosLimitados) break;
-      const disponibles = rasgoRecurso.usosRestantes ?? rasgoRecurso.usosMaximos ?? calcularUsosMaximosRasgo(rasgoRecurso, pj);
-      if (disponibles <= 0) return insuficiente;
+      const evaluacion = evaluarRecursosLanzamientoGratuito(pj, rasgo);
+      if (!evaluacion.elegible) return insuficiente;
       personaje = {
         ...pj,
         rasgos: pj.rasgos.map(r => {
-          if (r.id === rasgoRecurso.id) {
-            return { ...r, usosRestantes: disponibles - 1 };
+          if (evaluacion.idRecursoHijo && r.id === evaluacion.idRecursoHijo && evaluacion.disponiblesHijo !== undefined) {
+            return { ...r, usosRestantes: Math.max(0, evaluacion.disponiblesHijo - 1) };
           }
-          if (rasgo.gastarDePadre && r.id === rasgo.id && rasgo.tieneUsosLimitados && typeof rasgo.usosMaximos === "number") {
-            const dispHijo = r.usosRestantes ?? r.usosMaximos ?? 1;
-            return { ...r, usosRestantes: Math.max(0, dispHijo - 1) };
+          if (evaluacion.idRecursoPadre && r.id === evaluacion.idRecursoPadre && evaluacion.disponiblesPadre !== undefined) {
+            return { ...r, usosRestantes: Math.max(0, evaluacion.disponiblesPadre - 1) };
           }
           return r;
         })

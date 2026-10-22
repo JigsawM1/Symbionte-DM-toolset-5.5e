@@ -239,10 +239,9 @@ describe("Fase 5: Magia Salvaje", () => {
     expect(rasgo(leer(), r.nombre).activo).toBe(true);
     await emitirTiradaConRasgos(leer(), "ataque", async () => true, finalizar);
     expect(rasgo(leer(), r.nombre).activo).toBe(false); expect(rasgo(leer(), r.nombre).usosRestantes).toBe(0);
-    const nuevo = operarRecursoRasgo(leer(), { tipo: "guardarTabla", idRasgo: r.id, texto: "Resultado confirmado" })!;
-    expect(rasgo(nuevo, r.nombre).usosRestantes).toBe(1);
-    expect(operarRecursoRasgo(nuevo, { tipo: "guardarTabla", idRasgo: r.id, texto: "Duplicado" })).toBeUndefined();
-    expect(rasgo(recargar(nuevo), r.nombre).resultadoTabla?.texto).toBe("Resultado confirmado");
+    const nuevo = operarRecursoRasgo(leer(), { tipo: "guardarTabla", idRasgo: r.id, texto: "Resultado confirmado", detalle: { idFila: "oleada_9" } })!;
+    expect(rasgo(nuevo, r.nombre).usosRestantes).toBe(0);
+    expect(rasgo(recargar(nuevo), "Tabla de Oleada de magia salvaje").resultadoTabla?.texto).toBe("Resultado confirmado");
   });
 });
 

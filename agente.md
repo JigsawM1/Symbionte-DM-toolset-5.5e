@@ -1,5 +1,93 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-21] Corrección de los Siete Hallazgos de Magia Salvaje y Simbionte, Poda de Sobreingeniería y Consumo Atómico
+
+- **Contexto y Diagnóstico**:
+  - Auditoría integral para corregir los 7 hallazgos detectados en la integración de Magia Salvaje, conjuros ocultos y consumo de recursos de clase, conservando la interfaz visual y reutilizando los contratos declarativos existentes del motor de D&D 5.5 / PHB 2024.
+- **Resolución de los Siete Hallazgos y Decisiones Arquitectónicas**:
+  1. **Hallazgo 1: Un único resultado por tirada (`src/utiles/lanzadorDados.ts`)**:
+     - Creada la función `solicitarResultadoTirada` con entrada de grupos estructurados `{ etiqueta, grupos: [{ nombre, formula }], signal, azarLocal }` que devuelve `{ rollId, origen: "talespire" | "local", totales }`.
+     - Se conserva intacta la firma booleana existente de `lanzarDadosTaleSpire` para sus consumidores actuales.
+     - En `procesarResultadosDadosTaleSpire`, la solicitud pendiente por `rollId` se reclama atómicamente antes de cualquier `await`, impidiendo duplicaciones concurrentes.
+     - Si TaleSpire está conectado y falla la emisión o evaluación física, se arroja una excepción sin sustituir el resultado por azar local ni consumir recursos.
+     - Si TaleSpire está desconectado, se resuelve de forma determinista mediante azar local identificado como tal (`origen: "local"`).
+     - Se soporta la cancelación mediante `AbortSignal` con limpieza inmediata del registro en memoria. TTL de 10 minutos para purgar solicitudes huérfanas en `limpiarTiradasExpiradas`.
+  2. **Hallazgo 2: Una sola definición de la tabla canónica (`src/datos/clases/hechicero.json`, `src/datos/magiaSalvaje/datosMagiaSalvaje.ts`)**:
+     - Se eliminaron las descripciones, rangos y subtablas duplicadas de `datosMagiaSalvaje.ts`. El catálogo canónico oficial reside en `hechicero.json`.
+     - En `hechicero.json` se enriquecieron las filas con subtiradas estructuradas con propósito (`opcion`, `duracion`, `dano`, `curacion`), títulos y opciones explícitas (`oleada_5`, `oleada_17`, `oleada_57`, `oleada_61`, `oleada_77`, `oleada_85`, `oleada_89`, `oleada_97`), cubriendo subtiradas condicionales (el milagro de la 97 con 2d10 condicionado a resultado 1 o 2).
+     - En `datosMagiaSalvaje.ts` únicamente residen los metadatos visuales de presentación (títulos estilizados y badges) asociados a los IDs canónicos de fila (`oleada_1`, `oleada_5`, etc.).
+     - Toda presentación y formateo de chat se genera desde estos datos estructurados, sin expresiones regulares frágiles.
+  3. **Hallazgos 3 y 5: Reutilización de capacidades del personaje y reglas canónicas (`src/servicios/magiaSalvaje/servicioMagiaSalvaje.ts`)**:
+     - *Mareas de Caos*: Se prepara y cancela mediante `alternarActivoRasgo(personaje.id, ID_RASGO_MAREAS_CAOS)` manteniendo el consumo diferido de `gastarUsoTrasTirada`. La recarga de Mareas es una acción explícita tras confirmar el lanzamiento de un conjuro con espacio (`modo: "recargar"`); tirar una oleada ordinaria no recarga Mareas automáticamente.
+     - *Caos Controlado (Nv. 14)*: Proyecta `tiradas: 2` en la tabla de oleadas. Solicita dos grupos independientes de 1d100 (sin sumar `2d100`) y ofrece una selección interactiva (`PanelCaosControlado.tsx`) para que el jugador elija cuál de los dos resultados manifestar antes de tirar subtiradas.
+     - *Oleada Domada (Nv. 18)*: Respeta disponibilidad de usos (1 uso), exclusión estricta de la última fila (`oleada_97`) y consumo atómico de 1 uso tras confirmar.
+     - Consultar o buscar una fila en la tabla no activa efectos ni consume recursos.
+     - Se persiste y muestra el número exacto obtenido en el d100 en la tarjeta y en el chat (no el inicio del intervalo).
+  4. **Hallazgo 4: Resultado real, estructurado y recuperable (`src/servicios/rasgos/operacionesAvanzadasRasgos.ts`, `src/tipos/mecanicasRasgos.ts`, `TarjetaUltimaSobrecarga.tsx`)**:
+     - Ampliado `EsquemaResultadoTabla` con metadatos estructurados opcionales: `id`, `fecha`, `idFila`, `tiradaD100`, `estadoEnvio` (`local`, `pendiente`, `enviado`), `origen` y `subtiradas`.
+     - Se aceptan los registros antiguos `{ texto, enviado }` durante la lectura, mostrándolos como texto histórico sin inventar números ni filas ficticias.
+     - Si no hay sobrecargas en la ficha, la tarjeta muestra un estado vacío (eliminado el ejemplo fijo paralelo de Destierro astral).
+     - Guardado antes de enviar al chat: si la comunicación falla, el resultado queda persistido con `estadoEnvio: "pendiente"` y se puede reintentar con el botón de chat sin volver a tirar ni consumir recursos.
+     - En `enviarTabla`, se valida que `idResultado` coincida con el ID del resultado vigente para evitar que respuestas tardías marquen erróneamente un resultado posterior.
+     - Los resultados locales (`estadoEnvio === "local"`) no se anuncian como enviados ni bloquean nuevas tiradas.
+  5. **Hallazgo 6: Una fuente de verdad para conjuros ocultos (`src/almacen/sanitizacion.ts`, `SeccionAtaquesMagicos.tsx`, `usarFiltrosYSeccionesConjuros.ts`)**:
+     - Se eliminó el estado local paralelo (`ocultosFallback`, `usarEstadoPersistido`) y la doble escritura hacia `localStorage`.
+     - `personaje.conjurosOcultos` es la única fuente de verdad en ambas vistas (combate y libro de conjuros).
+     - Migración limpia de `localStorage` en `sanearPersonaje` únicamente cuando la ficha original carezca del campo (`raw.conjurosOcultos === undefined`). Una lista explícita en la ficha, incluida la vacía `[]`, prevalece siempre.
+  6. **Hallazgo 7: Consumo atómico de padre e hijo en lanzamiento gratuito (`src/servicios/rasgos/conjurosGratuitosRasgos.ts`, `src/servicios/consumidorRecursosConjuros.ts`)**:
+     - Implementado `evaluarRecursosLanzamientoGratuito` compartido entre elegibilidad y consumo.
+     - Valida tanto el uso del hijo (`tieneUsosLimitados`) como la reserva del padre (`gastarDePadre`). Si cualquiera está agotado, la operación se rechaza por completo sin modificar ningún recurso.
+     - `undefined` en `usosRestantes` se interpreta como recurso intacto al máximo conforme al contrato del motor.
+     - Si padre e hijo resuelven al mismo identificador de recurso (`esMismoRecurso`), se descuenta una sola vez, previniendo el doble descuento.
+  7. **Simplificación y Límites de Líneas**:
+     - Se modularizó `PanelCaosControlado.tsx` (47 líneas), manteniendo `VistaMagiaSalvaje.tsx` en 483 líneas (< 500).
+     - En `scripts/verificar-limite-lineas.js` se eliminó el conjunto vacío `ARCHIVOS_HEREDADOS_PENDIENTES`, su rama y su contador.
+- **Certificación de Calidad y Pruebas Unitarias**:
+  - `src/servicios/auditoriaCorreccionHallazgos.test.ts`: Suite de 12 pruebas creada específicamente para reproducir y certificar los 7 hallazgos (100% aprobada).
+  - `src/servicios/magiaSalvaje/magiaSalvaje.test.ts`: 9 pruebas unitarias aprobadas.
+  - `src/componentes/caracteristicas/ataques/SeccionAtaquesMagicos.test.tsx`: Corregido tipado estricto en los mocks de `ConjuroAccionElemento` (utilizando `tipoAccion: "accion" | "reaccion"` en lugar de campos obsoletos).
+  - **Pipeline Completo (`pnpm run ci`):**
+    - `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+    - `pnpm run lint`: 0 errores, 0 advertencias con `--max-warnings=0`.
+    - `pnpm run verificar:lineas`: 191 archivos auditados, 0 errores críticos (> 500 líneas).
+    - `pnpm test`: 157 archivos de prueba ejecutados, **2.233 / 2.233 pruebas aprobadas** (100% de éxito).
+    - `pnpm exec vite build`: Empaquetado de producción completado en 10.54s (2.123 módulos).
+  - **Pruebas de Interfaz (`pnpm run test:hechicero-ui`):**
+    - Validación completa en 4 resoluciones (599x760, 599x600, 433x760, 433x600) con 0 errores: flujo de Magia Salvaje, tabla doble, subtiradas, elección y cancelación sin gasto.
+
+---
+
+## [2026-10-20] Implementación del Módulo Visual Canónico de Sobrecarga de Magia Salvaje (D&D 5.5 / PHB 2024)
+
+- **Contexto y Diagnóstico del Problema**:
+  - *Solicitud*: Modernización y rediseño completo de la tabla de Magia Salvaje conforme a la interfaz visual provista (UI moderna de alta densidad, botón central `TIRAR 1D100 EN TALESPIRE`, tarjeta destacada de última sobrecarga, buscador en tiempo real, filtro rápido `1-100`, las 25 filas oficiales de D&D 2024 con badges temáticos y subtablas interactivas con tiradas de dados 3D nativos).
+  - *Diagnóstico previo*: La tabla de Magia Salvaje dependía de un modal básico `<dialog>` en `TablaAleatoriaRasgo.tsx` sin navegación directa, sin soporte para tiradas físicas nativas en la bandeja 3D de TaleSpire ni subtablas visuales interactivas para Aliados (1d4), Rarezas Cosméticas (1d8), Conjuros del Caos (1d10) y Milagro Supremo (1d6).
+- **Decisión Arquitectónica y Patrones Aplicados**:
+  1. **Separación Estricta de Datos y Presentación (`src/datos/magiaSalvaje/datosMagiaSalvaje.ts`)**:
+     - Estructuración tipada de las 25 filas canónicas (`ENTRADAS_MAGIA_SALVAJE_2024`) con rangos (`desde`/`hasta`), títulos, badges (`Duración: 1 min`, `Subtabla Oficial`, `Acción Adicional`, etc.), duraciones formales y especificación completa de subtablas anidadas.
+  2. **Servicio Puro y Detección Declarativa (`src/servicios/magiaSalvaje/servicioMagiaSalvaje.ts`)**:
+     - Eliminación de heurísticas frágiles (`toLowerCase().includes()`) para cumplir estrictamente con las reglas de linting del proyecto (`no-restricted-syntax`), sustituyéndolas por constantes canónicas declarativas (`ID_SUBCLASE_MAGIA_SALVAJE`, `ID_RASGO_TABLA_OLEADA`, `ID_RASGO_MAREAS_CAOS`).
+     - Integración con el motor físico de tiradas 3D de TaleSpire (`lanzarDadosTaleSpire`) y fallback determinista local si TaleSpire no está conectado.
+     - Formateador enriquecido multilínea para el chat de TaleSpire (`formatearSobrecargaParaChat`).
+  3. **Modularización y Componentes UI de Alto Rendimiento (< 300 líneas)**:
+     - `VistaMagiaSalvaje.tsx`: Controlador principal con cabecera (badge `D&D 5.5e (2024)`, toggle de `Marea del Caos • Disponible/Agotada`), botón principal 1d100, tarjeta de última sobrecarga, barra de búsqueda y selector manual rápido 1-100.
+     - `TarjetaUltimaSobrecarga.tsx`: Tarjeta destacada con el resultado activo, botón de reenvío al chat de TaleSpire y badges de efecto y duración.
+     - `FilaSobrecargaMagiaSalvaje.tsx`: Fila individual con caja monoespaciada de rango (`01-04`, `05-08`, etc.), botón `ACTIVAR`, badge temático, descripción y subtabla anidada interactiva con botón para rodar su dado específico (`1d4`, `1d8`, `1d10`, `1d6`).
+     - `MagiaSalvaje.module.css`: Paleta visual basada en el diseño de referencia (violeta eléctrico, cian, ámbar, fondos de alto contraste y scroll CEF nativo). Cero estilos inline para cumplir con `react/forbid-dom-props`.
+  4. **Navegación e Integración de Ficha (`BarraSuperior.tsx`, `BarraSuperior.module.css`, `App.tsx`, `TablaAleatoriaRasgo.tsx`)**:
+     - La pestaña `Magia Salvaje` (con icono de rayo y badge morado `d100`) se activa y renderiza dinámicamente en la barra de navegación del jugador cuando el personaje activo tiene Magia Salvaje.
+     - `TablaAleatoriaRasgo.tsx` incorpora accesos directos tanto en la tarjeta de rasgo como en el modal clásico para saltar a la nueva vista de Magia Salvaje.
+- **Estrategia de Pruebas Unitarias (`src/servicios/magiaSalvaje/magiaSalvaje.test.ts`)**:
+  - 9 pruebas unitarias cubriendo: cobertura total de los 100 números sin huecos ni solapamientos, opciones completas en subtablas (1d4, 1d6, 1d8, 1d10), detección declarativa de subclase y rasgo, evaluación defensiva de recursos (`usosRestantes: undefined`), formateo para chat y ejecución de tirada.
+- **Certificación del Pipeline de CI (100% Exitoso)**:
+  - **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+  - **Límites de Líneas:** 185 archivos auditados vía `pnpm run verificar:lineas`, 0 archivos > 500 líneas y 0 en backlog.
+  - **Vitest:** 156 suites ejecutadas, **2.221 / 2.221 pruebas aprobadas** (100% de éxito).
+  - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 10.12s (2.122 módulos transformados).
+
+---
+
 ## [2026-10-19] Persistencia de Rasgos Ocultos en el Almacenamiento Nativo de TaleSpire y Poda Ponytail (Única Fuente de Verdad)
 
 - **Contexto y Diagnóstico del Problema**:

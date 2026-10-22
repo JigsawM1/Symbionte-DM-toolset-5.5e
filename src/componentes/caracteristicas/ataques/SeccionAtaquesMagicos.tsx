@@ -7,7 +7,6 @@ import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { obtenerBonoDanoConjuroExtra, tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
-import { usarEstadoPersistido } from "@/hooks";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 import estilos from "./VistaAtaquesJugador.module.css";
 
@@ -46,39 +45,18 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
   alAlternarOcultar,
   alDesocultarTodos
 }) => {
-  // Estado persistente local de fallback (para tests aislados o sesiones sin store activo)
-  const claveOcultosPj = `ts_conjuros_ocultos_${personajeActivo.id || "default"}`;
-  const [ocultosFallback, setOcultosFallback] = usarEstadoPersistido<string[]>(
-    claveOcultosPj,
-    []
+  const conjurosOcultosSet = useMemo(
+    () => new Set(personajeActivo.conjurosOcultos || []),
+    [personajeActivo.conjurosOcultos]
   );
 
-  // Lista efectiva: si el personaje tiene conjurosOcultos en su modelo persistido (TaleSpire), se prioriza;
-  // de lo contrario, se recurre defensivamente al hook persistido.
-  const listaEfectivaOcultos = useMemo(() => {
-    if (Array.isArray(personajeActivo.conjurosOcultos) && personajeActivo.conjurosOcultos.length > 0) {
-      return personajeActivo.conjurosOcultos;
-    }
-    return ocultosFallback;
-  }, [personajeActivo.conjurosOcultos, ocultosFallback]);
-
   const alternarOculto = useCallback((hechizoId: string) => {
-    if (alAlternarOcultar) {
-      alAlternarOcultar(personajeActivo.id, hechizoId);
-    }
-    setOcultosFallback((prev) =>
-      prev.includes(hechizoId) ? prev.filter((id) => id !== hechizoId) : [...prev, hechizoId]
-    );
-  }, [alAlternarOcultar, personajeActivo.id, setOcultosFallback]);
+    alAlternarOcultar?.(personajeActivo.id, hechizoId);
+  }, [alAlternarOcultar, personajeActivo.id]);
 
   const desocultarTodos = useCallback(() => {
-    if (alDesocultarTodos) {
-      alDesocultarTodos(personajeActivo.id);
-    }
-    setOcultosFallback([]);
-  }, [alDesocultarTodos, personajeActivo.id, setOcultosFallback]);
-
-  const conjurosOcultosSet = useMemo(() => new Set(listaEfectivaOcultos), [listaEfectivaOcultos]);
+    alDesocultarTodos?.(personajeActivo.id);
+  }, [alDesocultarTodos, personajeActivo.id]);
 
   // Clasificación de conjuros filtrados entre visibles y ocultos
   const { conjurosVisibles, conjurosOcultos } = useMemo(() => {

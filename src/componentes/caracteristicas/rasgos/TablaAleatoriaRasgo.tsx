@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import { obtenerTablaRasgo, tirarFilasTabla, resolverFilaTabla, type FilaTablaRasgo } from "@/servicios/rasgos/tablasAleatoriasRasgos";
+import { resolverTablaRasgo, tirarFilasTabla, resolverFilaTabla, type FilaTablaRasgo } from "@/servicios/rasgos/tablasAleatoriasRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
@@ -16,16 +16,23 @@ export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: Pe
   const candado = useRef(false);
   const dialogo = useRef<HTMLDialogElement>(null);
   useEffect(() => { if (abierto) dialogo.current?.showModal(); }, [abierto]);
-  const cfg = obtenerTablaRasgo(pj, r);
-  if (!cfg) return null;
-  const pendiente = r.resultadoTabla && !r.resultadoTabla.enviado;
+  const tabla = resolverTablaRasgo(pj, r.id);
+  if (!tabla) return r.tablaAleatoria ? <button type="button" disabled title="La referencia o configuración de la tabla no es válida.">Tabla no disponible</button> : null;
+  const cfg = tabla.configuracion;
+  const accion = tabla.rasgoAccion;
+  if (cfg.presentacion === "magia_salvaje") return <button type="button"
+    className={`${estilos.botonCompacto} ${estilos.botonMagiaSalvaje}`}
+    onClick={e => {
+      e.stopPropagation();
+      usarAlmacenDM.setState({ pestañaActiva: "magia_salvaje", tablaRasgoAbierta: { idPersonaje: pj.id, idRasgo: r.id } });
+    }}>Ver Magia Salvaje</button>;
+  const pendiente = accion.resultadoTabla && !accion.resultadoTabla.enviado;
   const recarga = cfg.modo === "recargar";
-  const restantes = r.usosRestantes ?? r.usosMaximos ?? 0;
-  const agotado = r.tieneUsosLimitados && (recarga ? r.activo || restantes >= (r.usosMaximos ?? 1) : restantes < 1);
+  const agotado = !tabla.disponible;
   const enviar = async (texto: string) => {
     try {
       const enviado = ts.estaDisponible ? await ts.chat.send(texto) : true;
-      if (enviado) usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "enviarTabla", idRasgo: r.id });
+      if (enviado) usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "enviarTabla", idRasgo: accion.id, textoResultado: texto });
       informar(!ts.estaDisponible ? "Resultado local; TaleSpire no está conectado." : enviado ? "Resultado enviado al chat." : "Falló el envío. Reintenta el mismo resultado.");
     } catch (err) {
       logger.error("[TablaAleatoriaRasgo] Error al enviar resultado al chat:", err);
@@ -37,7 +44,7 @@ export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: Pe
     candado.current = true; bloquear(true);
     try {
       const texto = `${pj.nombre} · ${r.nombre}${tirada ? ` · 1d${cfg.dado}: ${tirada}` : " · Elección de fila"}\n${resolverFilaTabla(fila)}`;
-      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "guardarTabla", idRasgo: r.id, texto })) {
+      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "guardarTabla", idRasgo: accion.id, texto, detalle: { idFila: fila.id } })) {
         informar("Los usos o el resultado pendiente cambiaron."); return;
       }
       elegir([]); await enviar(texto);
@@ -73,10 +80,10 @@ export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: Pe
           <TextoEnriquecidoDND texto={`${f.tirada ? `1d${cfg.dado}: ${f.tirada}. ` : ""}${f.fila.desde}–${f.fila.hasta}: ${f.fila.texto}`} />
           <button type="button" disabled={ocupado} onClick={() => void resolver(f.fila, f.tirada)}>Resolver resultado {i + 1}</button>
         </div>)}
-        {r.resultadoTabla && <><TextoEnriquecidoDND texto={r.resultadoTabla.texto} />
+        {accion.resultadoTabla && <><TextoEnriquecidoDND texto={accion.resultadoTabla.texto} />
           {pendiente && <button type="button" disabled={ocupado} onClick={async () => {
             if (candado.current) return; candado.current = true; bloquear(true);
-            try { await enviar(r.resultadoTabla!.texto); } finally { candado.current = false; bloquear(false); }
+            try { await enviar(accion.resultadoTabla!.texto); } finally { candado.current = false; bloquear(false); }
           }}>Reintentar envío</button>}</>}
         {mensaje && <p role="status">{mensaje}</p>}
       </div>

@@ -10,16 +10,15 @@ const raizProyecto = path.resolve(__dirname, "..");
 const LIMITE_MAXIMO_LINEAS = 500; // Falla CI si se excede
 const LIMITE_ADVERTENCIA_LINEAS = 300; // Sugerencia de refactorización
 
-// Archivos heredados pendientes de modularización (0 pendientes tras finalizar la Fase 4)
-const ARCHIVOS_HEREDADOS_PENDIENTES = new Set([]);
-
 // Directorios prioritarios a auditar (Modo Jugador y componentes principales)
 const DIRECTORIOS_AUDITADOS = [
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "personajes"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "inventario"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "ataques"),
   path.join(raizProyecto, "src", "componentes", "caracteristicas", "rasgos"),
+  path.join(raizProyecto, "src", "componentes", "caracteristicas", "magiaSalvaje"),
   path.join(raizProyecto, "src", "servicios", "clases"),
+  path.join(raizProyecto, "src", "servicios", "magiaSalvaje"),
   path.join(raizProyecto, "src", "almacen", "slices", "personajes")
 ];
 
@@ -58,7 +57,6 @@ for (const dir of DIRECTORIOS_AUDITADOS) {
 let conteoErrores = 0;
 let conteoAdvertencias = 0;
 let conteoOptimos = 0;
-let conteoHeredados = 0;
 
 console.log("LINEAS | ESTADO      | ARCHIVO");
 console.log("-------------------------------------------------------------------------------");
@@ -74,10 +72,7 @@ const resultados = archivosTotales.map((rutaArchivo) => {
 for (const { rutaRelativa, lineas } of resultados) {
   const lineasFormateadas = lineas.toString().padStart(6);
 
-  if (ARCHIVOS_HEREDADOS_PENDIENTES.has(rutaRelativa)) {
-    console.warn(`${lineasFormateadas} | [HEREDADO]  | ${rutaRelativa} (Pendiente refactorización futura)`);
-    conteoHeredados++;
-  } else if (lineas > LIMITE_MAXIMO_LINEAS) {
+  if (lineas > LIMITE_MAXIMO_LINEAS) {
     console.error(`${lineasFormateadas} | [ERROR]     | ${rutaRelativa} (Excede ${LIMITE_MAXIMO_LINEAS} lineas)`);
     conteoErrores++;
   } else if (lineas > LIMITE_ADVERTENCIA_LINEAS) {
@@ -93,7 +88,6 @@ console.log("-------------------------------------------------------------------
 console.log(`Resumen: ${resultados.length} archivos auditados.`);
 console.log(`  - Correctos (< ${LIMITE_ADVERTENCIA_LINEAS} lineas): ${conteoOptimos}`);
 console.log(`  - Advertencias (${LIMITE_ADVERTENCIA_LINEAS}-${LIMITE_MAXIMO_LINEAS} lineas): ${conteoAdvertencias}`);
-console.log(`  - Heredados en backlog: ${conteoHeredados}`);
 console.log(`  - Errores Críticos (> ${LIMITE_MAXIMO_LINEAS} lineas): ${conteoErrores}\n`);
 
 if (conteoErrores > 0) {

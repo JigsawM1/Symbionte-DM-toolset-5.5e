@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { createServer } from "vite";
 import puppeteer from "puppeteer-core";
+import { probarMagiaSalvaje } from "./probar-magia-salvaje.mjs";
 
 const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"></head><body><div id="root"></div><script type="module">
 import React from 'react'; import {createRoot} from 'react-dom/client';
@@ -12,6 +13,8 @@ import {PERSONAJE_POR_DEFECTO} from '/src/constantes/personajeConstantes.ts';
 import {obtenerRasgosClaseYSubclase} from '/src/servicios/gestorClases.ts';
 import {deshidratarPersonaje,hidratarPersonaje} from '/src/servicios/serializadorPersonaje.ts';
 import {normalizarCondicionesRasgos} from '/src/servicios/rasgos/estadoCondicionesRasgos.ts';
+import {procesarResultadosDadosTaleSpire} from '/src/utiles/lanzadorDados.ts';
+window.procesarDados=procesarResultadosDadosTaleSpire;
 usarAlmacenDM.setState({esGM:false,pestañaActiva:'rasgos',cargandoDatos:false,datosInicialesCargados:false,
  cargarDatosPersistidos:async()=>{},establecerEsGM:()=>{},personajes:[],idPersonajeActivo:'',colaIniciativa:[]});
 window.estado=()=>usarAlmacenDM.getState();
@@ -290,28 +293,7 @@ try {
     const iniciativa=await pagina.waitForFunction(()=>[...document.querySelectorAll('[class*="tarjetaMetricaInteractiva"]')].find(e=>e.textContent.includes('Iniciativa')));
     await iniciativa.asElement().scrollIntoView();await iniciativa.asElement().click();await iniciativa.dispose();
     await pagina.waitForFunction(()=>window.rasgo('Mareas de caos').usosRestantes===0&&!window.rasgo('Mareas de caos').activo);
-    await pagina.evaluate(()=>window.ir('rasgos'));
-    await texto('Tirar en la tabla'); await validarDimensiones('Tabla de oleadas');
-    await texto('Determinar dos resultados','dialog');
-    assert.equal(await pagina.$$eval('dialog button',bs=>bs.filter(b=>b.textContent.startsWith('Resolver resultado')).length),2);
-    await pagina.screenshot({path:`scratch/hechicero-oleadas-${width}x${height}.png`});
-    await texto('Resolver resultado 2','dialog');
-    await pagina.waitForFunction(()=>window.rasgo('Tabla de Oleada de magia salvaje').resultadoTabla?.enviado);
-    await texto('Cerrar tabla','dialog');
-    await texto('Elegir efecto de oleada');await validarDimensiones('Oleada domada');
-    assert.equal(await pagina.$$eval('dialog button',bs=>bs.filter(b=>b.textContent.startsWith('Resolver resultado')).length),24);
-    await pagina.keyboard.press('Escape');
-    assert.equal(await pagina.evaluate(()=>window.rasgo('Oleada domada').usosRestantes),1);
-    await pagina.evaluate(()=>{window.mensajes=[];window.TS={chat:{send:async m=>{window.mensajes.push(m);return false;}}};});
-    await texto('Elegir efecto de oleada');await texto('Resolver resultado 1','dialog');
-    await pagina.waitForFunction(()=>window.rasgo('Oleada domada').resultadoTabla?.enviado===false);
-    assert.equal(await pagina.evaluate(()=>window.rasgo('Oleada domada').usosRestantes),0);
-    await pagina.evaluate(()=>{window.TS.chat.send=async m=>{window.mensajes.push(m);return true;};});
-    await texto('Reintentar envío','dialog');
-    await pagina.waitForFunction(()=>window.rasgo('Oleada domada').resultadoTabla?.enviado);
-    assert.equal(await pagina.evaluate(()=>window.mensajes[0]===window.mensajes[1]),true);
-    assert.equal(await pagina.evaluate(()=>window.rasgo('Oleada domada').usosRestantes),0);
-    await texto('Cerrar tabla','dialog'); await pagina.evaluate(()=>{delete window.TS;});
+    await probarMagiaSalvaje(pagina, { click, texto, width, height });
 
 
     await pagina.evaluate(()=>window.sembrar(20,'Hechicería Aberrante'));
@@ -330,7 +312,7 @@ try {
   }
   informe.casos.push("Innata: gasto, activación con puntos, Escape/cancelación sin gasto y caducidad", "Creación/conversión visible con costes, persistencia y cancelación", "Descanso corto opcional, gasto diario y descanso largo", "Constructor: coste editable, guardado, ejecución y persistencia", "Conjuros: CD por clase, ventaja emitida y fallo de emisión sin gasto");
   informe.casos.push('Aberrante: selección, cancelación, gasto atómico y lanzamiento psiónico', 'Relojería: compra, gasto y persistencia de salvaguarda',
-    'Dracónica: alas, recarga y variante de lanzamiento con cancelación', 'Salvaje: tabla doble, subtiradas y elección con cancelación', 'Metamagia: catálogo, aprendizaje, gasto, doble pulsación y uso gratuito');
+    'Dracónica: alas, recarga y variante de lanzamiento con cancelación', 'Salvaje: vista real, contraste, teclado, búsqueda, subtablas, tirada simple y doble, persistencia y reintento sin gasto', 'Metamagia: catálogo, aprendizaje, gasto, doble pulsación y uso gratuito');
   assert.deepEqual(informe.errores, []);
   fs.writeFileSync("scratch/informe-hechicero-ui.json", JSON.stringify(informe, null, 2));
   console.log(JSON.stringify(informe, null, 2));

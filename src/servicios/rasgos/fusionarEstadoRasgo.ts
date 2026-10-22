@@ -44,6 +44,7 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
     ...nuevo,
     dadosReserva: existente?.dadosReserva,
     resultadoTabla: existente?.resultadoTabla,
+    resultadosTablaPendientes: existente?.resultadosTablaPendientes,
     recuperacionDescansoDisponible: existente?.recuperacionDescansoDisponible,
     selectores: nuevo.selectores?.map((s) => fusionarSelector(s, existente?.selectores?.find((a) => a.id === s.id))),
     vinculoArma: nuevo.vinculoArma ? { ...nuevo.vinculoArma, idInstancia: existente?.vinculoArma?.idInstancia } : undefined,

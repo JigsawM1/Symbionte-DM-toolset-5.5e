@@ -1319,7 +1319,7 @@
             "idRasgoTabla": "rasgo_sub_hechicero_tabla_oleada",
             "dado": 100,
             "tiradas": 1,
-            "modo": "recargar"
+            "modo": "consultar"
           },
           "efectos": [
             {
@@ -1339,200 +1339,421 @@
           "tipoAccion": "especial",
           "categoriaMecanica": "consumible",
           "tablaAleatoria": {
+            "presentacion": "magia_salvaje",
             "dado": 100,
             "tiradas": 1,
             "modo": "aleatoria",
             "filas": [
               {
                 "id": "oleada_1",
+                "titulo": "CICLO DE SOBRECARGAS",
+                "badge": "Duración: 1 min",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 1,
                 "hasta": 4,
                 "texto": "Tira en esta tabla al principio de cada uno de tus turnos durante el próximo minuto, ignorando este resultado en tiradas posteriores."
               },
               {
                 "id": "oleada_5",
+                "titulo": "INVOCACIÓN DE ALIADO",
+                "badge": "Subtabla 1d4",
+                "duracion": "1 MINUTO",
                 "desde": 5,
                 "hasta": 8,
                 "texto": "Una criatura que sea amistosa hacia ti aparece en un espacio sin ocupar al azar a 18 m (60 pies) o menos de ti. La criatura está bajo el control del DM y desaparece 1 minuto después. Tira 1d4 para determinar la criatura: con un 1, aparece un modron duodron; con un 2, aparece un flumph; con un 3, aparece un modron monodron; con un 4, aparece un unicornio. Consulta el *Manual de monstruos* para ver el perfil de la criatura.",
                 "subtiradas": [
                   {
-                    "formula": "1d4"
+                    "formula": "1d4",
+                    "proposito": "opcion",
+                    "titulo": "Criatura invocada",
+                    "opciones": [
+                      {
+                        "numero": 1,
+                        "texto": "Modron duodron"
+                      },
+                      {
+                        "numero": 2,
+                        "texto": "Flumph"
+                      },
+                      {
+                        "numero": 3,
+                        "texto": "Modron monodron"
+                      },
+                      {
+                        "numero": 4,
+                        "texto": "Unicornio (ver perfil en Manual de monstruos)"
+                      }
+                    ]
                   }
                 ]
               },
               {
                 "id": "oleada_9",
+                "titulo": "REGENERACIÓN CONTINUA",
+                "badge": "Duración: 1 min",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 9,
                 "hasta": 12,
                 "texto": "Durante el próximo minuto, recuperas 5 puntos de golpe al principio de cada uno de tus turnos."
               },
               {
                 "id": "oleada_13",
+                "titulo": "DISTORSIÓN DE SALVACIÓN",
+                "badge": "Siguiente Conjuro",
+                "duracion": "1 MINUTO O SIGUIENTE CONJURO",
                 "desde": 13,
                 "hasta": 16,
                 "texto": "Las criaturas tienen desventaja en las tiradas de salvación contra el siguiente conjuro que lances en el próximo minuto que requiera una tirada de salvación."
               },
               {
                 "id": "oleada_17",
+                "titulo": "METAMORFOSIS O RAREZA COSMÉTICA",
+                "badge": "Subtabla 1d8",
+                "duracion": "1 MINUTO (SALVO EFECTO ESPECÍFICO)",
                 "desde": 17,
                 "hasta": 20,
                 "texto": "Quedas sujeto a un efecto que dura 1 minuto a menos que su descripción indique lo contrario. Tira 1d8 para determinar el efecto: con un 1, te rodea una música etérea y tenue que solo tú y las criaturas a 1,5 m (5 pies) o menos de ti podéis oír; con un 2, tu tamaño aumenta en una categoría de tamaño; con un 3, te crece una larga barba hecha de plumas que permanece hasta que estornudes, momento en el cual las plumas explotan de tu rostro y desaparecen; con un 4, debes gritar cuando hables; con un 5, mariposas ilusorias revolotean en el aire a 3 m (10 pies) o menos de ti; con un 6, un ojo aparece en tu frente, otorgándote ventaja en las pruebas de Sabiduría (Percepción); con un 7, burbujas rosadas flotan fuera de tu boca cada vez que hablas; con un 8, tu piel se vuelve de un tono azul vibrante durante 24 horas o hasta que el efecto sea terminado por un conjuro de *eliminar maldición*.",
                 "subtiradas": [
                   {
-                    "formula": "1d8"
+                    "formula": "1d8",
+                    "proposito": "opcion",
+                    "titulo": "Efecto cosmético o alteración",
+                    "opciones": [
+                      {
+                        "numero": 1,
+                        "texto": "Música etérea y tenue en radio de 1,5 m"
+                      },
+                      {
+                        "numero": 2,
+                        "texto": "Tu tamaño aumenta en una categoría"
+                      },
+                      {
+                        "numero": 3,
+                        "texto": "Larga barba de plumas hasta estornudar"
+                      },
+                      {
+                        "numero": 4,
+                        "texto": "Debes gritar cuando hables"
+                      },
+                      {
+                        "numero": 5,
+                        "texto": "Mariposas ilusorias revolotean a 3 m o menos"
+                      },
+                      {
+                        "numero": 6,
+                        "texto": "Un ojo en la frente otorga ventaja en Percepción"
+                      },
+                      {
+                        "numero": 7,
+                        "texto": "Burbujas rosadas flotan de tu boca al hablar"
+                      },
+                      {
+                        "numero": 8,
+                        "texto": "Piel azul vibrante durante 24 h (o eliminar maldición)"
+                      }
+                    ]
                   }
                 ]
               },
               {
                 "id": "oleada_21",
+                "titulo": "ACELERACIÓN ARCANA",
+                "badge": "Acción Adicional",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 21,
                 "hasta": 24,
                 "texto": "Durante el próximo minuto, todos tus conjuros con un tiempo de lanzamiento de una acción tienen un tiempo de lanzamiento de una acción adicional."
               },
               {
                 "id": "oleada_25",
+                "titulo": "DESTIERRO ASTRAL",
+                "badge": "Hasta sig. turno",
+                "duracion": "HASTA EL FINAL DE TU SIGUIENTE TURNO",
                 "desde": 25,
                 "hasta": 28,
                 "texto": "Eres transportado al Plano Astral hasta el final de tu siguiente turno. Luego regresas al espacio que ocupabas anteriormente o al espacio sin ocupar más cercano si ese espacio está ocupado."
               },
               {
                 "id": "oleada_29",
+                "titulo": "DAÑO MAXIMIZADO",
+                "badge": "Máximo daño",
+                "duracion": "1 MINUTO O SIGUIENTE CONJURO DE DAÑO",
                 "desde": 29,
                 "hasta": 32,
                 "texto": "La próxima vez que lances un conjuro que inflija daño dentro del próximo minuto, no tires los dados de daño del conjuro. En su lugar, usa el número más alto posible para cada dado de daño."
               },
               {
                 "id": "oleada_33",
+                "titulo": "RESISTENCIA TOTAL",
+                "badge": "Duración: 1 min",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 33,
                 "hasta": 36,
                 "texto": "Tienes resistencia a todo el daño durante el próximo minuto."
               },
               {
                 "id": "oleada_37",
+                "titulo": "PLANTA EN MACETA",
+                "badge": "Incapacitado",
+                "duracion": "HASTA EL COMIENZO DE TU SIGUIENTE TURNO",
                 "desde": 37,
                 "hasta": 40,
                 "texto": "Te conviertes en una planta en maceta hasta el comienzo de tu siguiente turno. Mientras eres una planta, tienes el estado de incapacitado y tienes vulnerabilidad a todo el daño. Si caes a 0 puntos de golpe, tu maceta se rompe y reviertes a tu forma habitual."
               },
               {
                 "id": "oleada_41",
+                "titulo": "PASO ETÉREO CONTINUO",
+                "badge": "Acción Adicional",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 41,
                 "hasta": 44,
                 "texto": "Durante el próximo minuto, puedes teletransportarte hasta 6 m (20 pies) como acción adicional en cada uno de tus turnos."
               },
               {
                 "id": "oleada_45",
+                "titulo": "MANTO DE INVISIBILIDAD",
+                "badge": "1 - 3 Criaturas",
+                "duracion": "1 MINUTO",
                 "desde": 45,
                 "hasta": 48,
                 "texto": "Tú y hasta tres criaturas de tu elección a 9 m (30 pies) o menos de ti tenéis el estado de invisible durante 1 minuto. Esta invisibilidad termina en una criatura inmediatamente después de que realice una tirada de ataque, inflija daño o lance un conjuro."
               },
               {
                 "id": "oleada_49",
+                "titulo": "ESCUDO ESPECTRAL FLOTANTE",
+                "badge": "+2 CA",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 49,
                 "hasta": 52,
                 "texto": "Un escudo espectral flota cerca de ti durante el próximo minuto, otorgándote un bonificador de +2 a la CA e inmunidad a *proyectil mágico*."
               },
               {
                 "id": "oleada_53",
+                "titulo": "ACCIÓN ADICIONAL INMEDIATA",
+                "badge": "Turno Actual",
+                "duracion": "TURNO ACTUAL",
                 "desde": 53,
                 "hasta": 56,
                 "texto": "Puedes llevar a cabo una acción adicional en este turno."
               },
               {
                 "id": "oleada_57",
+                "titulo": "LANZAMIENTO ALEATORIO",
+                "badge": "Subtabla 1d10",
+                "duracion": "DURACIÓN COMPLETA DEL CONJURO",
                 "desde": 57,
                 "hasta": 60,
                 "texto": "Lanzas un conjuro al azar. Si el conjuro normalmente requiere concentración, en este caso no la requiere; el conjuro dura toda su duración. Tira 1d10 para determinar el conjuro: con un 1, *confusión*; con un 2, *bola de fuego*; con un 3, *nube de oscurecimiento*; con un 4, *volar* (lanzado sobre una criatura al azar a 18 m / 60 pies o menos de ti); con un 5, *grasa*; con un 6, *levitar* (lanzado sobre ti mismo); con un 7, *proyectil mágico* (lanzado como conjuro de nivel 5); con un 8, *reflejo exacto*; con un 9, *polimorfar* (lanzado sobre ti mismo), y si fallas la tirada de salvación, te conviertes en una cabra (ver apéndice B); con un 10, *ver invisibilidad*.",
                 "subtiradas": [
                   {
-                    "formula": "1d10"
+                    "formula": "1d10",
+                    "proposito": "opcion",
+                    "titulo": "Conjuro lanzado al azar",
+                    "opciones": [
+                      {
+                        "numero": 1,
+                        "texto": "Confusión (sin concentración, duración completa)"
+                      },
+                      {
+                        "numero": 2,
+                        "texto": "Bola de fuego"
+                      },
+                      {
+                        "numero": 3,
+                        "texto": "Nube de oscurecimiento (sin concentración)"
+                      },
+                      {
+                        "numero": 4,
+                        "texto": "Volar (sobre criatura al azar a 18 m)"
+                      },
+                      {
+                        "numero": 5,
+                        "texto": "Grasa"
+                      },
+                      {
+                        "numero": 6,
+                        "texto": "Levitar (sobre ti mismo)"
+                      },
+                      {
+                        "numero": 7,
+                        "texto": "Proyectil mágico (lanzado como nivel 5)"
+                      },
+                      {
+                        "numero": 8,
+                        "texto": "Reflejo exacto"
+                      },
+                      {
+                        "numero": 9,
+                        "texto": "Polimorfar (en ti mismo, fallo = cabra)"
+                      },
+                      {
+                        "numero": 10,
+                        "texto": "Ver invisibilidad"
+                      }
+                    ]
                   }
                 ]
               },
               {
                 "id": "oleada_61",
+                "titulo": "TOQUE ÍGNEO INCONTROLADO",
+                "badge": "1d4 Fuego",
+                "duracion": "1 MINUTO",
                 "desde": 61,
                 "hasta": 64,
-                "texto": "Durante el próximo minuto, cualquier objeto no mágico e inflamable que toques y que no esté siendo llevado puesto ni transportado por otra criatura estalla en llamas, sufre 1d4 de daño de fuego y arde."
+                "texto": "Durante el próximo minuto, cualquier objeto no mágico e inflamable que toques y que no esté siendo llevado puesto ni transportado por otra criatura estalla en llamas, sufre 1d4 de daño de fuego y arde.",
+                "subtiradas": [
+                  {
+                    "formula": "1d4",
+                    "proposito": "dano",
+                    "titulo": "Daño de fuego al objeto inflamable"
+                  }
+                ]
               },
               {
                 "id": "oleada_65",
+                "titulo": "SEGURO DE RESURRECCIÓN",
+                "badge": "1 Hora",
+                "duracion": "1 HORA",
                 "desde": 65,
                 "hasta": 68,
                 "texto": "Si mueres dentro de la próxima hora, revives inmediatamente como por el conjuro *reencarnar*."
               },
               {
                 "id": "oleada_69",
+                "titulo": "TERROR PRIMORDIAL",
+                "badge": "Asustado",
+                "duracion": "HASTA EL FINAL DE TU SIGUIENTE TURNO",
                 "desde": 69,
                 "hasta": 72,
                 "texto": "Tienes el estado de asustado hasta el final de tu siguiente turno. El DM determina la fuente de tu miedo."
               },
               {
                 "id": "oleada_73",
+                "titulo": "TELETRANSPORTE INSTANTÁNEO",
+                "badge": "Alcance: 18 m",
+                "duracion": "INSTANTÁNEO",
                 "desde": 73,
                 "hasta": 76,
                 "texto": "Te teletransportas hasta 18 m (60 pies) a un espacio sin ocupar que puedas ver."
               },
               {
                 "id": "oleada_77",
+                "titulo": "RAYO VENENOSO ALEATORIO",
+                "badge": "1d4 Horas",
+                "duracion": "1D4 HORAS",
                 "desde": 77,
                 "hasta": 80,
                 "texto": "Una criatura al azar a 18 m (60 pies) o menos de ti tiene el estado de envenenado durante 1d4 horas.",
                 "subtiradas": [
                   {
-                    "formula": "1d4"
+                    "formula": "1d4",
+                    "proposito": "duracion",
+                    "titulo": "Horas con estado envenenado"
                   }
                 ]
               },
               {
                 "id": "oleada_81",
+                "titulo": "LUZ RADIANTE CEGADORA",
+                "badge": "Radio 9 m",
+                "duracion": "1 MINUTO",
                 "desde": 81,
                 "hasta": 84,
                 "texto": "Emites luz brillante en un radio de 9 m (30 pies) durante el próximo minuto. Cualquier criatura que termine su turno a 1,5 m (5 pies) o menos de ti tiene el estado de cegado hasta el final de su siguiente turno."
               },
               {
                 "id": "oleada_85",
+                "titulo": "SIFÓN NECRÓTICO VITAL",
+                "badge": "1d10 Necrótico",
+                "duracion": "INSTANTÁNEO",
                 "desde": 85,
                 "hasta": 88,
                 "texto": "Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 1d10 de daño necrótico. Recuperas una cantidad de puntos de golpe igual a la suma del daño necrótico infligido.",
                 "subtiradas": [
                   {
-                    "formula": "1d10"
+                    "formula": "1d10",
+                    "proposito": "dano",
+                    "titulo": "Daño necrótico (hasta 3 criaturas) y puntos de golpe recuperados"
                   }
                 ]
               },
               {
                 "id": "oleada_89",
+                "titulo": "DESCARGA DE RELÁMPAGOS",
+                "badge": "4d10 Relámpago",
+                "duracion": "INSTANTÁNEO",
                 "desde": 89,
                 "hasta": 92,
                 "texto": "Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 4d10 de daño de relámpago.",
                 "subtiradas": [
                   {
-                    "formula": "4d10"
+                    "formula": "4d10",
+                    "proposito": "dano",
+                    "titulo": "Daño de relámpago (hasta 3 criaturas)"
                   }
                 ]
               },
               {
                 "id": "oleada_93",
+                "titulo": "FRAGILIDAD PERFORANTE",
+                "badge": "Vulnerabilidad",
+                "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 93,
                 "hasta": 96,
                 "texto": "Tú y todas las criaturas a 9 m (30 pies) o menos de ti tenéis vulnerabilidad al daño perforante durante el próximo minuto."
               },
               {
                 "id": "oleada_97",
+                "titulo": "RESONANCIA CAÓTICA MÁXIMA",
+                "badge": "Subtabla 1d6",
+                "duracion": "INSTANTÁNEO",
                 "desde": 97,
                 "hasta": 100,
                 "texto": "Tira 1d6. Con un 1, recuperas 2d10 puntos de golpe; con un 2, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera 2d10 puntos de golpe; con un 3, recuperas tu espacio de conjuro gastado de nivel más bajo; con un 4, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera su espacio de conjuro gastado de nivel más bajo; con un 5, recuperas todos tus puntos de hechicería gastados; con un 6, todos los efectos de la fila 17–20 te afectan simultáneamente.",
                 "subtiradas": [
                   {
-                    "formula": "1d6"
+                    "formula": "1d6",
+                    "proposito": "opcion",
+                    "titulo": "Efecto de resonancia caótica",
+                    "opciones": [
+                      {
+                        "numero": 1,
+                        "texto": "Recuperas 2d10 puntos de golpe"
+                      },
+                      {
+                        "numero": 2,
+                        "texto": "Un aliado a 90 m o menos recupera 2d10 puntos de golpe"
+                      },
+                      {
+                        "numero": 3,
+                        "texto": "Recuperas tu espacio de conjuro gastado de nivel más bajo"
+                      },
+                      {
+                        "numero": 4,
+                        "texto": "Un aliado a 90 m recupera su espacio gastado más bajo"
+                      },
+                      {
+                        "numero": 5,
+                        "texto": "Recuperas todos tus puntos de hechicería gastados"
+                      },
+                      {
+                        "numero": 6,
+                        "texto": "Todos los efectos de la fila 17–20 te afectan simultáneamente"
+                      }
+                    ]
                   },
                   {
                     "formula": "2d10",
-                    "siResultado": 1
+                    "siResultado": 1,
+                    "proposito": "curacion",
+                    "titulo": "Puntos de golpe recuperados (propio)"
                   },
                   {
                     "formula": "2d10",
-                    "siResultado": 2
+                    "siResultado": 2,
+                    "proposito": "curacion",
+                    "titulo": "Puntos de golpe recuperados (aliado)"
                   }
                 ]
               }

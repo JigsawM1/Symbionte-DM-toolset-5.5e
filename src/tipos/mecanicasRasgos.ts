@@ -1,6 +1,42 @@
 import { z } from "zod";
 import { EsquemaCaracteristica, EsquemaTipoLanzador, EsquemaModeloConjuros } from "./capacidadesBase";
 
+export const EsquemaResultadoSubtirada = z.object({
+  formula: z.string(),
+  total: z.number(),
+  valores: z.array(z.number()).optional(),
+  proposito: z.enum(["opcion", "duracion", "dano", "curacion"]).optional(),
+  opcionElegida: z.string().optional()
+});
+export type ResultadoSubtirada = z.infer<typeof EsquemaResultadoSubtirada>;
+
+export const EsquemaResultadoTabla = z.object({
+  texto: z.string(),
+  enviado: z.boolean(),
+  id: z.string().optional(),
+  fecha: z.union([z.string(), z.number()]).optional(),
+  idFila: z.string().optional(),
+  tiradaD100: z.number().int().min(1).max(100).optional(),
+  estadoEnvio: z.enum(["local", "pendiente", "enviado"]).optional(),
+  origen: z.enum(["talespire", "local"]).optional(),
+  subtiradas: z.array(EsquemaResultadoSubtirada).optional()
+});
+export type ResultadoTabla = z.infer<typeof EsquemaResultadoTabla>;
+
+export const EsquemaOpcionSubtirada = z.object({
+  numero: z.number().int(),
+  texto: z.string()
+});
+
+export const EsquemaDefinicionSubtirada = z.object({
+  formula: z.string().regex(/^\d+d\d+$/),
+  siResultado: z.number().int().optional(),
+  proposito: z.enum(["opcion", "duracion", "dano", "curacion"]).optional(),
+  titulo: z.string().optional(),
+  opciones: z.array(EsquemaOpcionSubtirada).optional()
+});
+export type DefinicionSubtirada = z.infer<typeof EsquemaDefinicionSubtirada>;
+
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
   escaladoConjurosOtorgados: z.array(z.object({ nivelMinimo: z.number().int().min(1).max(20), conjuros: z.array(z.string().min(1)) })).optional(),
@@ -15,14 +51,30 @@ export const EsquemaMecanicasRasgo = z.object({
   gastarUsoTrasTirada: z.boolean().optional(),
   tablaAleatoria: z.object({
     dado: z.number().int().min(2).max(100).default(100),
-    filas: z.array(z.object({ id: z.string(), desde: z.number().int().positive(), hasta: z.number().int().positive(), texto: z.string(),
-      subtiradas: z.array(z.object({ formula: z.string().regex(/^\d+d\d+$/), siResultado: z.number().int().optional() })).optional() })).optional(),
-    idRasgoTabla: z.string().optional(), tiradas: z.number().int().min(1).max(2).default(1),
-    modo: z.enum(["aleatoria", "elegir", "recargar"]).default("aleatoria"), excluirUltima: z.boolean().optional()
+    filas: z.array(z.object({
+      id: z.string(),
+      desde: z.number().int().positive(),
+      hasta: z.number().int().positive(),
+      texto: z.string(),
+      titulo: z.string().optional(),
+      badge: z.string().optional(),
+      duracion: z.string().optional(),
+      subtiradas: z.array(EsquemaDefinicionSubtirada).optional()
+    })).optional(),
+    idRasgoTabla: z.string().optional(),
+    tiradas: z.number().int().min(1).max(2).default(1),
+    modo: z.enum(["aleatoria", "elegir", "recargar", "consultar"]).default("aleatoria"),
+    presentacion: z.literal("magia_salvaje").optional(),
+    excluirUltima: z.boolean().optional()
   }).superRefine((cfg, ctx) => {
+    if (cfg.presentacion === "magia_salvaje" && cfg.dado !== 100) ctx.addIssue({ code: "custom", message: "La presentación de magia salvaje requiere un dado d100." });
+    if (cfg.modo === "consultar" && !cfg.idRasgoTabla) ctx.addIssue({ code: "custom", message: "Consultar requiere idRasgoTabla." });
     if (!cfg.filas) return; // Una extensión puede modificar únicamente el número de resultados.
     const cobertura = new Set<number>();
-    for (const fila of cfg.filas) {
+    const ids = new Set<string>();
+    for (const [indice, fila] of cfg.filas.entries()) {
+      if (ids.has(fila.id)) ctx.addIssue({ code: "custom", path: ["filas", indice, "id"], message: `ID de fila repetido: ${fila.id}.` });
+      ids.add(fila.id);
       if (fila.desde > fila.hasta || fila.hasta > cfg.dado) ctx.addIssue({ code: "custom", message: "Rango de fila fuera del dado." });
       for (let n = fila.desde; n <= Math.min(fila.hasta, cfg.dado); n++) {
         if (cobertura.has(n)) ctx.addIssue({ code: "custom", message: "Las filas de la tabla se solapan." });
@@ -31,7 +83,8 @@ export const EsquemaMecanicasRasgo = z.object({
     }
     if (!cfg.filas.length || (cfg.modo !== "elegir" && cobertura.size !== cfg.dado)) ctx.addIssue({ code: "custom", message: "La tabla debe cubrir todos los resultados del dado." });
   }).optional(),
-  resultadoTabla: z.object({ texto: z.string(), enviado: z.boolean() }).optional(),
+  resultadoTabla: EsquemaResultadoTabla.optional(),
+  resultadosTablaPendientes: z.array(EsquemaResultadoTabla).optional(),
   recursoLegado: z.literal("puntos_hechiceria").optional(),
   finalizarAlDescansar: z.boolean().optional(),
   conversionEspacios: z.object({

@@ -21,6 +21,7 @@ import { establecerCacheEsGM } from '@/utiles/TaleSpireAdapter';
 
 export interface SliceConfiguracion {
   pestañaActiva: string;
+  tablaRasgoAbierta: { idPersonaje: string; idRasgo: string } | null;
   modoHomebrew: "crear" | "lista";
   tipoHomebrewActivo: "criatura" | "hechizo" | "objeto";
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
@@ -74,6 +75,7 @@ export const crearSliceConfiguracion: StateCreator<
   SliceConfiguracion
 > = (set, get) => ({
   pestañaActiva: "jugadores",
+  tablaRasgoAbierta: null,
   modoHomebrew: "crear" as const,
   tipoHomebrewActivo: "criatura" as const,
   metodoVidaMonstruo: "azar" as const,
@@ -95,7 +97,7 @@ export const crearSliceConfiguracion: StateCreator<
   blobRecuperacion: null,
   estadoGuardado: "guardado",
 
-  establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña }),
+  establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña, ...(pestaña !== "magia_salvaje" ? { tablaRasgoAbierta: null } : {}) }),
   establecerModoHomebrew: (modo: "crear" | "lista") => set({ modoHomebrew: modo }),
   establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => set({ tipoHomebrewActivo: tipo }),
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => {

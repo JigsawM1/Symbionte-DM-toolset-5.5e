@@ -20,6 +20,7 @@ const VistaAtaquesJugador = React.lazy(() => import("@/componentes/caracteristic
 const VistaInventarioJugador = React.lazy(() => import("@/componentes/caracteristicas/inventario").then((m) => ({ default: m.VistaInventarioJugador })));
 const VistaRasgosJugador = React.lazy(() => import("@/componentes/caracteristicas/rasgos").then((m) => ({ default: m.VistaRasgosJugador })));
 const IniciativaJugador = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.IniciativaJugador })));
+const VistaMagiaSalvaje = React.lazy(() => import("@/componentes/caracteristicas/magiaSalvaje").then((m) => ({ default: m.VistaMagiaSalvaje })));
 
 const AppContenido: React.FC = () => {
   const { pestañaActiva, esGM } = usarEstadoConfiguracion();
@@ -42,6 +43,9 @@ const AppContenido: React.FC = () => {
           return <Compendio />;
         case "rasgos":
           return <VistaRasgosJugador />;
+        case "magia_salvaje":
+        case "magiasalvaje":
+          return <VistaMagiaSalvaje />;
         case "inventario":
           return <VistaInventarioJugador />;
         case "tablas":

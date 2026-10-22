@@ -47,7 +47,7 @@ export function CapacidadesAvanzadasConstructor({ borrador: b, actualizarBorrado
         alConfirmar={nivelMinimo => cambiar("usoGratuitoCondicionado", { ...b.usoGratuitoCondicionado!, nivelMinimo })} /></label>
     </>}
     <details><summary>Tabla aleatoria editable</summary>
-      <p>Define dado, tiradas (1 o 2), modo (aleatoria, elegir o recargar), filas con desde/hasta/texto y subtiradas con formula y siResultado opcional. Para compartir una tabla usa idRasgoTabla.</p>
+      <p>Define dado, tiradas (1 o 2), modo (aleatoria, elegir, recargar o consultar), filas con desde/hasta/texto y subtiradas con formula y siResultado opcional. Para compartir una tabla usa idRasgoTabla. Consultar ejecuta la tabla referenciada sin gastar ni recargar el rasgo de acceso. presentacion: "magia_salvaje" abre la vista de percentiles y requiere dado: 100. excluirUltima impide elegir la última fila declarada.</p>
       <label>Configuración de tabla<textarea aria-label="Configuración de tabla aleatoria" className={estilos.inputControl} rows={10} value={tabla} onChange={e => editarTabla(e.target.value)} /></label>
       <button type="button" onClick={() => {
         try {

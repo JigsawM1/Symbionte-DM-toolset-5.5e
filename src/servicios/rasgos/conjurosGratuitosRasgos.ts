@@ -8,6 +8,73 @@ import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
 import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 
+export interface EvaluacionRecursosGratuito {
+  elegible: boolean;
+  idRecursoHijo?: string;
+  disponiblesHijo?: number;
+  idRecursoPadre?: string;
+  disponiblesPadre?: number;
+  esMismoRecurso?: boolean;
+}
+
+export function evaluarRecursosLanzamientoGratuito(
+  pj: PersonajeJugador,
+  r: RasgoPersonaje
+): EvaluacionRecursosGratuito {
+  const tieneUsosHijo = Boolean(r.tieneUsosLimitados);
+  const dispHijo = tieneUsosHijo
+    ? (r.usosRestantes ?? r.usosMaximos ?? calcularUsosMaximosRasgo(r, pj))
+    : undefined;
+
+  if (tieneUsosHijo && (dispHijo ?? 0) <= 0) {
+    return { elegible: false };
+  }
+
+  const idRecurso = resolverIdRasgoObjetivoGasto(r, pj.rasgos);
+  const esMismo = idRecurso === r.id;
+
+  if (esMismo || !r.gastarDePadre) {
+    const rasgoDestino = pj.rasgos.find(x => x.id === idRecurso) ?? r;
+    const tieneUsosDestino = Boolean(rasgoDestino.tieneUsosLimitados);
+    const dispDestino = tieneUsosDestino
+      ? (rasgoDestino.usosRestantes ?? rasgoDestino.usosMaximos ?? calcularUsosMaximosRasgo(rasgoDestino, pj))
+      : undefined;
+
+    if (tieneUsosDestino && (dispDestino ?? 0) <= 0) {
+      return { elegible: false };
+    }
+
+    return {
+      elegible: true,
+      idRecursoHijo: rasgoDestino.id,
+      disponiblesHijo: dispDestino,
+      esMismoRecurso: true
+    };
+  }
+
+  const rasgoPadre = pj.rasgos.find(x => x.id === idRecurso);
+  if (!rasgoPadre) {
+    return { elegible: false };
+  }
+  const tieneUsosPadre = Boolean(rasgoPadre.tieneUsosLimitados);
+  const dispPadre = tieneUsosPadre
+    ? (rasgoPadre.usosRestantes ?? rasgoPadre.usosMaximos ?? calcularUsosMaximosRasgo(rasgoPadre, pj))
+    : undefined;
+
+  if (tieneUsosPadre && (dispPadre ?? 0) <= 0) {
+    return { elegible: false };
+  }
+
+  return {
+    elegible: true,
+    idRecursoHijo: r.id,
+    disponiblesHijo: dispHijo,
+    idRecursoPadre: rasgoPadre.id,
+    disponiblesPadre: dispPadre,
+    esMismoRecurso: false
+  };
+}
+
 export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string): RasgoPersonaje | undefined {
   return (pj.rasgos ?? []).find(r => {
     if (r.esActivable || r.activo === false) return false;
@@ -20,13 +87,13 @@ export function buscarRasgoConjuroGratuito(pj: PersonajeJugador, hechizo: string
       (r.selectores ?? []).some(s => s.esConjuroGratuito && (s.valorActual ?? []).some(id => coincideHechizoId(id, hechizo)));
     if (!coincide) return false;
 
-    const idRecurso = resolverIdRasgoObjetivoGasto(r, pj.rasgos);
-    const rasgoRecurso = pj.rasgos.find(x => x.id === idRecurso) ?? r;
-    if (rasgoRecurso.tieneUsosLimitados) {
-      const disponibles = rasgoRecurso.usosRestantes ?? rasgoRecurso.usosMaximos ?? calcularUsosMaximosRasgo(rasgoRecurso, pj);
-      if (disponibles <= 0) return false;
-    }
-    return true;
+    return evaluarRecursosLanzamientoGratuito(pj, r).elegible;
+
+
+
+
+
+
   });
 }
 

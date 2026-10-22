@@ -126,7 +126,7 @@ export const BarraSuperior: React.FC = () => {
             <button
               onClick={() => establecerPestaña("jugadores")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "jugadores" || pestañaActiva === "caracteristicas" || (pestañaActiva !== "acciones" && pestañaActiva !== "ataques" && pestañaActiva !== "conjuros" && pestañaActiva !== "compendio" && pestañaActiva !== "hechizos" && pestañaActiva !== "rasgos" && pestañaActiva !== "inventario" && pestañaActiva !== "tablas" && pestañaActiva !== "notas" && pestañaActiva !== "iniciativa" && pestañaActiva !== "configuracion" && pestañaActiva !== "homebrew") ? estilosClases.pestanaActiva : ""
+                !["acciones", "ataques", "conjuros", "compendio", "hechizos", "rasgos", "inventario", "tablas", "notas", "iniciativa", "configuracion", "homebrew"].includes(pestañaActiva) ? estilosClases.pestanaActiva : ""
               }`}
               title="Ficha y Características del Personaje"
               type="button"

@@ -1260,7 +1260,26 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
           })
       : [],
     dotes: Array.isArray(raw.dotes) ? raw.dotes : [],
-    conjurosOcultos: Array.isArray(raw.conjurosOcultos) ? (raw.conjurosOcultos as string[]) : []
+    conjurosOcultos: (() => {
+      if (Array.isArray(raw.conjurosOcultos)) {
+        return Array.from(new Set(raw.conjurosOcultos.filter((id): id is string => typeof id === "string" && id.trim().length > 0)));
+      }
+      const storage = typeof localStorage !== "undefined" ? localStorage : (typeof window !== "undefined" ? window.localStorage : undefined);
+      if (raw.conjurosOcultos === undefined && typeof raw.id === "string" && storage) {
+        try {
+          const item = storage.getItem(`ts_conjuros_ocultos_${raw.id}`);
+          if (item) {
+            const parsed = JSON.parse(item);
+            if (Array.isArray(parsed)) {
+              return Array.from(new Set(parsed.filter((id): id is string => typeof id === "string" && id.trim().length > 0)));
+            }
+          }
+        } catch (e) {
+          logger.debug("[sanearPersonaje] Error al leer caché antigua de conjuros ocultos:", e);
+        }
+      }
+      return [];
+    })()
   };
 
   // Normalizar y enriquecer competencias de equipo si vienen crudas o vacías

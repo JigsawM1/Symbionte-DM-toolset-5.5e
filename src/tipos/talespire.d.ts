@@ -238,10 +238,10 @@ export interface TaleSpireAPI {
     onRollResults?: Suscribible<ResultadosTirada>;
   };
   chat?: {
-    send: (message: string, target?: string | FragmentoJugador) => Promise<boolean>;
-    multiSend?: (message: string, targets: string[]) => Promise<boolean>;
-    sendAsCreature?: (creatureFragmentOrId: FragmentoOId, message: string) => Promise<boolean>;
-    multiSendAsCreature?: (creatureFragmentOrId: FragmentoOId, message: string, targets: string[]) => Promise<boolean>;
+    send: (message: string, target?: string | FragmentoJugador) => Promise<void>;
+    multiSend?: (message: string, targets: string[]) => Promise<void>;
+    sendAsCreature?: (creatureFragmentOrId: FragmentoOId, message: string) => Promise<void>;
+    multiSendAsCreature?: (creatureFragmentOrId: FragmentoOId, message: string, targets: string[]) => Promise<void>;
   };
   debug?: {
     log: (msg: string) => void;

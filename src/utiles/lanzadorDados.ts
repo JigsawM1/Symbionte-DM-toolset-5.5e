@@ -78,6 +78,36 @@ export interface MetadataDadoGolpe {
 
 export type MetadataEspecialRasgo = MetadataCuracionRasgo | MetadataHpTemporalRasgo;
 
+export interface GrupoTiradaSolicitud {
+  nombre: string;
+  formula: string;
+}
+
+export interface OpcionesSolicitudTirada {
+  etiqueta: string;
+  grupos: GrupoTiradaSolicitud[];
+  signal?: AbortSignal;
+  azarLocal?: () => number;
+}
+
+export interface ResultadoSolicitudTirada {
+  rollId: string;
+  origen: "talespire" | "local";
+  totales: number[];
+}
+
+interface SolicitudPendiente {
+  resolve: (res: ResultadoSolicitudTirada) => void;
+  reject: (err: Error) => void;
+  gruposNombres: string[];
+  creadoEn: number;
+  signal?: AbortSignal;
+  onAbort?: () => void;
+}
+
+// Registro global de solicitudes de tiradas asíncronas con promesa (TaleSpire 3D)
+const solicitudesTiradasPendientes: Record<string, SolicitudPendiente> = {};
+
 // Registro global de tiradas de salvación contra la muerte, curación, HP temporal y dados de golpe 3D activas en memoria
 const tiradasSalvacionMuerteActivas: Record<string, MetadataSalvacionMuerte> = {};
 const tiradasCuracionRasgoActivas: Record<string, MetadataCuracionRasgo> = {};
@@ -90,6 +120,12 @@ const TTL_TIRADAS_EN_MEMORIA_MS = 10 * 60 * 1000;
 export function limpiarRegistrosTiradas(): void {
   for (const registro of [tiradasEspecialesActivas, tiradasIniciativaActivas, tiradasSalvacionMuerteActivas, tiradasCuracionRasgoActivas, tiradasHpTemporalRasgoActivas, tiradasDadoGolpeActivas]) {
     for (const id of Object.keys(registro)) delete registro[id];
+  }
+  for (const id of Object.keys(solicitudesTiradasPendientes)) {
+    const req = solicitudesTiradasPendientes[id];
+    delete solicitudesTiradasPendientes[id];
+    if (req.signal && req.onAbort) req.signal.removeEventListener("abort", req.onAbort);
+    req.reject(new Error("Registro de tiradas reiniciado."));
   }
 }
 
@@ -115,6 +151,13 @@ export function limpiarTiradasExpiradas(
   purgar(tiradasCuracionRasgoActivas);
   purgar(tiradasHpTemporalRasgoActivas);
   purgar(tiradasDadoGolpeActivas);
+  for (const [id, req] of Object.entries(solicitudesTiradasPendientes)) {
+    if (req.creadoEn && ahora - req.creadoEn > ttlMs) {
+      delete solicitudesTiradasPendientes[id];
+      if (req.signal && req.onAbort) req.signal.removeEventListener("abort", req.onAbort);
+      req.reject(new Error("Tiempo de espera para la tirada de TaleSpire agotado (10 min)."));
+    }
+  }
 }
 
 /**
@@ -912,6 +955,92 @@ export function extraerPayloadResultadosDados(evento: unknown): PayloadDadosNorm
   return null;
 }
 
+/**
+ * Solicita una tirada de dados estructurada con grupos nombrados independientes (ej. 2x d100 para Caos Controlado).
+ * Devuelve una promesa con el origen ('talespire' o 'local') y los totales por grupo.
+ * Si TaleSpire está conectado y falla la emisión o evaluación, rechaza con error sin fallback a azar local.
+ */
+export async function solicitarResultadoTirada(opciones: OpcionesSolicitudTirada): Promise<ResultadoSolicitudTirada> {
+  const { etiqueta, grupos, signal, azarLocal } = opciones;
+
+  if (signal?.aborted) {
+    throw new DOMException("Operación de tirada cancelada por el usuario.", "AbortError");
+  }
+
+  // 1. Si TaleSpire está conectado físicamente
+  if (ts.estaDisponible) {
+    const formulaCompuesta = grupos
+      .map(g => `${g.nombre.replace(/[:/]/g, " ").trim()}:${g.formula.trim()}`)
+      .join("/");
+    const formulaLimpia = normalizarFormulaDados(formulaCompuesta);
+
+    logger.debug(`[Lanzador Dados] Solicitando tirada física a TaleSpire: "${etiqueta}" -> "${formulaLimpia}"`);
+    let descriptores = await ts.dice.makeRollDescriptors(formulaLimpia);
+    if (!descriptores || descriptores.length === 0) {
+      descriptores = crearDescriptoresManualmente(formulaLimpia) as typeof descriptores;
+    }
+    if (!descriptores || descriptores.length === 0) {
+      throw new Error(`No se pudieron generar descriptores de dados para "${formulaLimpia}".`);
+    }
+
+    const rollId = await ts.dice.putDiceInTray(descriptores, true);
+    if (signal?.aborted) throw new DOMException("Operación de tirada cancelada por el usuario.", "AbortError");
+    if (!rollId) {
+      throw new Error("TaleSpire no confirmó el rollId para la tirada.");
+    }
+
+    limpiarTiradasExpiradas();
+
+    return new Promise<ResultadoSolicitudTirada>((resolve, reject) => {
+      let onAbort: (() => void) | undefined;
+      if (signal) {
+        onAbort = () => {
+          if (solicitudesTiradasPendientes[rollId]) {
+            delete solicitudesTiradasPendientes[rollId];
+            reject(new DOMException("Operación de tirada cancelada por el usuario.", "AbortError"));
+          }
+        };
+        signal.addEventListener("abort", onAbort, { once: true });
+      }
+
+      solicitudesTiradasPendientes[rollId] = {
+        resolve,
+        reject,
+        gruposNombres: grupos.map(g => sanitizarEtiqueta(g.nombre.replace(/[:/]/g, " ").trim())),
+        creadoEn: Date.now(),
+        signal,
+        onAbort
+      };
+    });
+  }
+
+  // 2. Si TaleSpire NO está disponible -> Azar local identificado
+  logger.debug(`[Lanzador Dados] TaleSpire no disponible. Resolviendo tirada local para "${etiqueta}".`);
+  const rng = azarLocal ?? Math.random;
+  const totales: number[] = [];
+  for (const grupo of grupos) {
+    const match = grupo.formula.trim().match(/^(\d+)d(\d+)$/i);
+    if (match) {
+      const cantidad = parseInt(match[1], 10);
+      const caras = parseInt(match[2], 10);
+      let subtotal = 0;
+      for (let i = 0; i < cantidad; i++) {
+        subtotal += 1 + Math.floor(rng() * caras);
+      }
+      totales.push(subtotal);
+    } else {
+      const parsed = evaluarFormulaDados(grupo.formula);
+      totales.push(parsed);
+    }
+  }
+
+  return {
+    rollId: `local_${Date.now()}_${Math.floor(rng() * 10000)}`,
+    origen: "local",
+    totales
+  };
+}
+
 export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise<boolean> {
   const payload = extraerPayloadResultadosDados(evento);
   if (!payload) {
@@ -923,6 +1052,38 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
   const infoIniciativaPlana = tiradasIniciativaActivas[rollId];
   const infoSalvacionMuertePlana = tiradasSalvacionMuerteActivas[rollId];
   const infoTirada = tiradasEspecialesActivas[rollId];
+
+  // Caso 0: Solicitud asíncrona de resultados de dados con promesa (ej. Magia Salvaje)
+  const solicitudPendiente = solicitudesTiradasPendientes[rollId];
+  if (solicitudPendiente) {
+    delete solicitudesTiradasPendientes[rollId];
+    if (solicitudPendiente.signal && solicitudPendiente.onAbort) {
+      solicitudPendiente.signal.removeEventListener("abort", solicitudPendiente.onAbort);
+    }
+    logger.debug(`[Lanzador Dados] Procesando solicitud estructurada para rollId: ${rollId}`);
+    try {
+      const totales: number[] = [];
+      if (resultsGroups.length !== solicitudPendiente.gruposNombres.length) throw new Error("Número de grupos de dados incompleto.");
+      for (const nombre of solicitudPendiente.gruposNombres) {
+        const coincidentes = resultsGroups.filter(g => g && typeof g === "object" && "name" in g && g.name === nombre);
+        if (coincidentes.length !== 1) throw new Error("No se identifica el grupo de dados solicitado.");
+        const grupo = coincidentes[0];
+        const total = await ts.dice.evaluateDiceResultsGroup(grupo);
+        if (!Number.isFinite(total)) throw new Error("Resultado de dados inválido.");
+        totales.push(total);
+      }
+      if (solicitudPendiente.signal?.aborted) throw new DOMException("Operación de tirada cancelada por el usuario.", "AbortError");
+      solicitudPendiente.resolve({
+        rollId,
+        origen: "talespire",
+        totales
+      });
+    } catch (err) {
+      logger.error(`[Lanzador Dados] Error al evaluar grupos de dados para rollId ${rollId}:`, err);
+      solicitudPendiente.reject(err instanceof Error ? err : new Error(String(err)));
+    }
+    return false;
+  }
   
   // Caso 1: Tirada de iniciativa plana nativa (sin ventaja ni desventaja)
   if (!infoTirada && infoIniciativaPlana) {

@@ -168,7 +168,8 @@ class TaleSpireAdapter {
       const ts = this.tsGlobal;
       if (ts?.chat && typeof ts.chat.send === "function") {
         // La API v0.1 requiere un segundo parámetro "board" para representar visualmente el chat.
-        return await ts.chat.send(message, "board");
+        await ts.chat.send(message, "board");
+        return true;
       }
       logger.warn("[TS Adapter] chat.send no disponible.");
       return false;
@@ -181,10 +182,12 @@ class TaleSpireAdapter {
       const ts = this.tsGlobal;
       if (ts?.chat) {
         if (typeof ts.chat.multiSend === "function") {
-          return await ts.chat.multiSend(message, targets);
+          await ts.chat.multiSend(message, targets);
+          return true;
         } else if (typeof ts.chat.send === "function") {
           // Fallback a send plano si multiSend no existe
-          return await ts.chat.send(message, "board");
+          await ts.chat.send(message, "board");
+          return true;
         }
       }
       logger.warn("[TS Adapter] chat.multiSend no disponible.");
@@ -197,7 +200,8 @@ class TaleSpireAdapter {
     sendAsCreature: async (creatureId: FragmentoOId, message: string): Promise<boolean> => {
       const ts = this.tsGlobal;
       if (ts?.chat && typeof ts.chat.sendAsCreature === "function") {
-        return await ts.chat.sendAsCreature(creatureId, message);
+        await ts.chat.sendAsCreature(creatureId, message);
+        return true;
       }
       return false;
     },
@@ -208,7 +212,8 @@ class TaleSpireAdapter {
     multiSendAsCreature: async (creatureId: FragmentoOId, message: string, targets: string[]): Promise<boolean> => {
       const ts = this.tsGlobal;
       if (ts?.chat && typeof ts.chat.multiSendAsCreature === "function") {
-        return await ts.chat.multiSendAsCreature(creatureId, message, targets);
+        await ts.chat.multiSendAsCreature(creatureId, message, targets);
+        return true;
       }
       return false;
     }

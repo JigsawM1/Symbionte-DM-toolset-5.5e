@@ -1,36 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionAtaquesMagicos } from "./SeccionAtaquesMagicos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 
-// Mock de localStorage para entorno Node de Vitest
-const crearMockLocalStorage = () => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: (key: string) => store[key] || null,
-    setItem: (key: string, value: string) => {
-      store[key] = value.toString();
-    },
-    removeItem: (key: string) => {
-      delete store[key];
-    },
-    clear: () => {
-      store = {};
-    }
-  };
-};
-
-describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
-  let mockStorage: ReturnType<typeof crearMockLocalStorage>;
-
+describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros (Fuente única personaje.conjurosOcultos)", () => {
   const personajeBase: PersonajeJugador = {
     ...PERSONAJE_POR_DEFECTO,
     id: "pj-mago-test",
     nombre: "Elminster",
     espaciosConjuroMaximos: { 1: 4, 2: 3 },
-    espaciosConjuroGastados: { 1: 0, 2: 0 }
+    espaciosConjuroGastados: { 1: 0, 2: 0 },
+    conjurosOcultos: []
   };
 
   const trucoDescarga: HechizoBase = {
@@ -69,7 +51,7 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
     tiempoLanzamiento: "1 Reaccion",
     alcance: "Personal",
     componentesSeleccionados: { verbal: true, somatico: true, material: false },
-    duracion: "1 ronda",
+    duracion: "1 Asalto",
     concentracion: false,
     ritual: false,
     descripcion: "Una barrera invisible de fuerza mágica te protege."
@@ -117,15 +99,6 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
     alLanzar: vi.fn().mockResolvedValue(true)
   };
 
-  beforeEach(() => {
-    mockStorage = crearMockLocalStorage();
-    Object.defineProperty(globalThis, "localStorage", {
-      value: mockStorage,
-      writable: true,
-      configurable: true
-    });
-  });
-
   it("renderiza conjuros visibles y el botón para ocultar cuando no hay conjuros ocultos", () => {
     const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
 
@@ -143,12 +116,16 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
     expect(html).not.toContain("Mostrar todos");
   });
 
-  it("oculta un conjuro de su nivel y lo coloca en la subsección Conjuros Ocultos cuando su ID está en localStorage", () => {
-    // Marcamos "Proyectil Mágico" como oculto
-    const claveStorage = `ts_conjuros_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(claveStorage, JSON.stringify(["hechizo-proyectil-magico"]));
+  it("oculta un conjuro de su nivel y lo coloca en la subsección Conjuros Ocultos cuando su ID está en personaje.conjurosOcultos", () => {
+    const props = {
+      ...propsBase,
+      personajeActivo: {
+        ...personajeBase,
+        conjurosOcultos: ["hechizo-proyectil-magico"]
+      }
+    };
 
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
+    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
 
     // La subsección de ocultos debe aparecer
     expect(html).toContain("Conjuros Ocultos");
@@ -162,15 +139,16 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
     expect(html).toContain('title="Mostrar conjuro (restaurar a su nivel)"');
   });
 
-  it("omite la cabecera de nivel si todos los conjuros de dicho nivel están ocultos", () => {
-    // Ocultamos ambos conjuros de nivel 1
-    const claveStorage = `ts_conjuros_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(
-      claveStorage,
-      JSON.stringify(["hechizo-proyectil-magico", "hechizo-escudo"])
-    );
+  it("omite la cabecera de nivel si todos los conjuros de dicho nivel están ocultos en la ficha", () => {
+    const props = {
+      ...propsBase,
+      personajeActivo: {
+        ...personajeBase,
+        conjurosOcultos: ["hechizo-proyectil-magico", "hechizo-escudo"]
+      }
+    };
 
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
+    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
 
     // El truco de nivel 0 sigue visible
     expect(html).toContain("Trucos Listos");
@@ -186,18 +164,19 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
   });
 
   it("mantiene visible la sección principal si todos los conjuros están ocultos para permitir desocultarlos", () => {
-    // Ocultamos todos los conjuros
-    const claveStorage = `ts_conjuros_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(
-      claveStorage,
-      JSON.stringify([
-        "hechizo-descarga-fuego",
-        "hechizo-proyectil-magico",
-        "hechizo-escudo"
-      ])
-    );
+    const props = {
+      ...propsBase,
+      personajeActivo: {
+        ...personajeBase,
+        conjurosOcultos: [
+          "hechizo-descarga-fuego",
+          "hechizo-proyectil-magico",
+          "hechizo-escudo"
+        ]
+      }
+    };
 
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
+    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
 
     // La cabecera general sigue presente con conteo visible 0
     expect(html).toContain("Conjuros y Acciones Mágicas");
@@ -236,15 +215,16 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros", () => {
   });
 
   it("respeta el estado de colapso de la subsección de ocultos (seccionesAbiertas.magicos_ocultos = false)", () => {
-    const claveStorage = `ts_conjuros_ocultos_${personajeBase.id}`;
-    mockStorage.setItem(claveStorage, JSON.stringify(["hechizo-escudo"]));
+    const props = {
+      ...propsBase,
+      personajeActivo: {
+        ...personajeBase,
+        conjurosOcultos: ["hechizo-escudo"]
+      },
+      seccionesAbiertas: { ...propsBase.seccionesAbiertas, magicos_ocultos: false }
+    };
 
-    const html = renderToStaticMarkup(
-      <SeccionAtaquesMagicos
-        {...propsBase}
-        seccionesAbiertas={{ ...propsBase.seccionesAbiertas, magicos_ocultos: false }}
-      />
-    );
+    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
 
     // Muestra la cabecera de ocultos pero no la tarjeta interna de Escudo
     expect(html).toContain("Conjuros Ocultos");

@@ -1,16 +1,15 @@
-import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useRef, useEffect } from "react";
 import type { PersonajeJugador, TipoTerreno } from "@/tipos";
 import { INFORMACION_TERRENO } from "@/tipos";
 import type { InformacionCA, PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
-  Shield, Zap, Footprints, Award, Sparkles, AlertTriangle,
-  RotateCcw, RefreshCw, Plus, Minus, X, Mountain
+  Shield, Zap, Footprints, Award, Sparkles, Star, AlertTriangle
 } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
 import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { calcularEstadoVelocidadDinamica } from "@/servicios/calculadorDistanciaTS";
 import { usarAccionesPersonajes } from "@/almacen/selectores/usarEstadoPersonajes";
+import { PopoverMovimientoVelocidad } from "./subcomponentes/PopoverMovimientoVelocidad";
 import estilos from "./HojaPersonaje.module.css";
 
 interface MetricasRapidasPersonajeProps {
@@ -22,13 +21,6 @@ interface MetricasRapidasPersonajeProps {
   bonoVelocidad?: number;
   alTirarIniciativa: () => void;
   alAlternarInspiracion: () => void;
-  // Callbacks opcionales para control o testing
-  alModificarMovimientoRestante?: (nuevoRestante: number) => void;
-  alModificarMovimientoGastado?: (delta: number) => void;
-  alDeshacerMovimiento?: () => void;
-  alRestablecerMovimiento?: () => void;
-  alAlternarCarrera?: () => void;
-  alEstablecerTipoTerreno?: (tipo: TipoTerreno) => void;
 }
 
 const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps> = ({
@@ -39,35 +31,22 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   penalizacionArmadura,
   bonoVelocidad = 0,
   alTirarIniciativa,
-  alAlternarInspiracion,
-  alModificarMovimientoRestante,
-  alModificarMovimientoGastado,
-  alDeshacerMovimiento,
-  alRestablecerMovimiento,
-  alAlternarCarrera,
-  alEstablecerTipoTerreno
-}) => {
+  alAlternarInspiracion }) => {
   const accionesPersonajes = usarAccionesPersonajes();
 
-  // Acciones con fallback seguro al store
-  const ejecutarModificarRestante =
-    alModificarMovimientoRestante ||
-    ((nuevo: number) => accionesPersonajes.modificarMovimientoRestanteManualPersonaje(personaje.id, nuevo));
-  const ejecutarModificarGastado =
-    alModificarMovimientoGastado ||
-    ((delta: number) => accionesPersonajes.modificarMovimientoGastadoPersonaje(personaje.id, delta, "Ajuste manual"));
-  const ejecutarDeshacer =
-    alDeshacerMovimiento ||
-    (() => accionesPersonajes.deshacerUltimoMovimientoPersonaje(personaje.id));
-  const ejecutarRestablecer =
-    alRestablecerMovimiento ||
-    (() => accionesPersonajes.restablecerMovimientoPersonaje(personaje.id));
-  const ejecutarAlternarCarrera =
-    alAlternarCarrera ||
-    (() => accionesPersonajes.alternarAccionCarreraPersonaje(personaje.id));
-  const ejecutarEstablecerTerreno =
-    alEstablecerTipoTerreno ||
-    ((tipo: TipoTerreno) => accionesPersonajes.establecerTipoTerrenoPersonaje(personaje.id, tipo));
+  // Acciones directas al store
+  const ejecutarModificarRestante = (nuevo: number) =>
+    accionesPersonajes.modificarMovimientoRestanteManualPersonaje(personaje.id, nuevo);
+  const ejecutarModificarGastado = (delta: number) =>
+    accionesPersonajes.modificarMovimientoGastadoPersonaje(personaje.id, delta, "Ajuste manual");
+  const ejecutarDeshacer = () =>
+    accionesPersonajes.deshacerUltimoMovimientoPersonaje(personaje.id);
+  const ejecutarRestablecer = () =>
+    accionesPersonajes.restablecerMovimientoPersonaje(personaje.id);
+  const ejecutarAlternarCarrera = () =>
+    accionesPersonajes.alternarAccionCarreraPersonaje(personaje.id);
+  const ejecutarEstablecerTerreno = (tipo: TipoTerreno) =>
+    accionesPersonajes.establecerTipoTerrenoPersonaje(personaje.id, tipo);
 
   // 1. Iniciativa
   const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
@@ -87,29 +66,25 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
   const velocidades = obtenerVelocidadesEfectivas(personaje);
   const velocidadBaseTotal = velocidades.caminar;
 
-  const partesVelocidad: string[] = [`Caminar: ${velocidadBaseTotal} ft`];
-  if (velocidades.nadar && velocidades.nadar > 0) {
-    partesVelocidad.push(`Nadar: ${velocidades.nadar} ft`);
-  }
-  if (velocidades.volar && velocidades.volar > 0) {
-    partesVelocidad.push(`Volar: ${velocidades.volar} ft`);
-  }
-  if (velocidades.escalar && velocidades.escalar > 0) {
-    partesVelocidad.push(`Escalar: ${velocidades.escalar} ft`);
-  }
+  const partesVelocidad = [
+    `Caminar: ${velocidadBaseTotal} ft`,
+    velocidades.nadar ? `Nadar: ${velocidades.nadar} ft` : null,
+    velocidades.volar ? `Volar: ${velocidades.volar} ft` : null,
+    velocidades.escalar ? `Escalar: ${velocidades.escalar} ft` : null
+  ].filter(Boolean) as string[];
 
   const velocidadTooltipBase =
     bonoVelocidad > 0
-      ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft )\n${partesVelocidad.join(" • ")}`
+      ? `Velocidad: ${velocidadBaseTotal} ft (+${bonoVelocidad} ft)\n${partesVelocidad.join(" • ")}`
       : partesVelocidad.join(" • ");
 
-  // 3. Estado Dinámico de Movimiento y Terreno Activo
+  // Estado Dinámico de Movimiento y Terreno Activo
   const tipoTerrenoActual: TipoTerreno = personaje.tipoTerreno || "normal";
   const infoTerrenoActual = INFORMACION_TERRENO[tipoTerrenoActual] || INFORMACION_TERRENO.normal;
 
   const estadoVelocidad = calcularEstadoVelocidadDinamica(
     velocidadBaseTotal,
-    0, // ya incluido en velocidadBaseTotal por obtenerVelocidadesEfectivas
+    0,
     personaje.movimientoGastado || 0,
     personaje.movimientoMaximoTemporal ?? null
   );
@@ -121,11 +96,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     `Terreno Activo: ${infoTerrenoActual.nombre} (${infoTerrenoActual.costePies})`,
     estadoVelocidad.esCarreraActiva ? "Carrera activa" : null,
     "Haz clic para seleccionar terreno, ajustar manualmente o restablecer."
-  ]
-    .filter(Boolean)
-    .join("\n");
+  ].filter(Boolean).join("\n");
 
-  // Estado del menú popover interactivo
   const [menuVelocidadAbierto, setMenuVelocidadAbierto] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -140,21 +112,33 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     return () => document.removeEventListener("mousedown", clickFuera);
   }, [menuVelocidadAbierto]);
 
-  // Historial para deshacer
   const historial = Array.isArray(personaje.historialMovimiento) ? personaje.historialMovimiento : [];
   const tieneHistorial = historial.length > 0;
   const ultimoRegistro = tieneHistorial ? historial[historial.length - 1] : null;
 
-  // 4. Clase de Armadura
+  // 3. Clase de Armadura
   const caTotal = claseArmadura?.total ?? personaje.ca ?? 10;
   const avisoNoComp = penalizacionArmadura?.sinCompetencia
-    ? ` [SIN COMPETENCIA] (${[penalizacionArmadura.armaduraNoCompetente, penalizacionArmadura.escudoNoCompetente].filter(Boolean).join(", ")}): Desventaja en ataques/pruebas/salvaciones de FUE y DES. No puedes lanzar conjuros.`
+    ? ` [SIN COMPETENCIA] (${[penalizacionArmadura.armaduraNoCompetente, penalizacionArmadura.escudoNoCompetente].filter(Boolean).join(", ")}): Desventaja en ataques/pruebas/salvaciones de FUE y DES.`
     : "";
   const caTooltip = `${claseArmadura?.desglose || personaje.caNotas || "Clase de Armadura"}${avisoNoComp}`;
 
+  const subtituloArmadura = (() => {
+    if (personaje.caNotas) return personaje.caNotas.toUpperCase();
+    const tieneArmadura = personaje.inventario?.find(i => i.equipado && i.categoria === "armaduras");
+    if (tieneArmadura?.nombre) return tieneArmadura.nombre.toUpperCase();
+    if (claseArmadura?.desglose) {
+      const parte = claseArmadura.desglose.split("(")[0]?.trim();
+      if (parte && parte.length < 16) return parte.toUpperCase();
+    }
+    return (claseArmadura?.armaduraEquipadaNombre || claseArmadura?.tipoArmadura || "BASE").toUpperCase();
+  })();
+
+  const casillasVelocidad = Math.floor(estadoVelocidad.movimientoRestante / 5);
+
   return (
     <section className={estilos.filaMetricasRapidas}>
-      {/* 1. Clase de Armadura */}
+      {/* 1. Clase de Armadura (CA) */}
       <TooltipUniversal
         titulo={penalizacionArmadura?.sinCompetencia ? "Clase de Armadura (Sin Competencia)" : "Clase de Armadura"}
         contenido={caTooltip}
@@ -163,35 +147,49 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
         className={estilos.contenedorTooltipMetrica}
       >
         <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
-          <Shield size={13} className={estilos.iconoMetricaDecorativo} />
-          <span className={estilos.etiquetaMetrica}>
-            Clase Armadura
-            {penalizacionArmadura?.sinCompetencia && (
-              <AlertTriangle size={10} color="var(--pj-texto-alerta)" className={estilos.alertaSinCompetenciaArmadura} />
-            )}
-          </span>
+          <div className={estilos.cabeceraTarjetaMetrica}>
+            <span className={estilos.etiquetaMetrica}>
+              CA <span className="u-sr-only">Clase Armadura</span>
+            </span>
+            <div className={estilos.iconoMetricaContenedor}>
+              {penalizacionArmadura?.sinCompetencia ? (
+                <AlertTriangle size={12} color="var(--pj-texto-alerta)" className={estilos.alertaSinCompetenciaArmadura} />
+              ) : (
+                <Shield size={12} className={estilos.iconoMetricaDecorativo} />
+              )}
+            </div>
+          </div>
           <span className={estilos.valorMetrica}>{caTotal}</span>
+          <span className={estilos.subtituloMetrica} title={subtituloArmadura}>
+            {subtituloArmadura}
+          </span>
         </div>
       </TooltipUniversal>
 
-      {/* 2. Iniciativa */}
+      {/* 2. Iniciativa (INIC) */}
       <TooltipUniversal
         titulo="Iniciativa"
         contenido={`Tirada de Iniciativa: 1d20 ${textoIniciativa} [${desgloseIniciativaTexto}].\nHaz clic para tirar iniciativa en TaleSpire.`}
         posicion="abajo"
         className={estilos.contenedorTooltipMetrica}
       >
-        <div
+        <button
+          type="button"
           className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
           onClick={alTirarIniciativa}
         >
-          <Zap size={13} className={estilos.iconoMetricaDecorativo} />
-          <span className={estilos.etiquetaMetrica}>Iniciativa</span>
-          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>{textoIniciativa}</span>
-        </div>
+          <div className={estilos.cabeceraTarjetaMetrica}>
+            <span className={`${estilos.etiquetaMetrica} ${estilos.etiquetaMetricaCian}`}>
+              INIC <span className="u-sr-only">Iniciativa</span>
+            </span>
+            <Zap size={12} className={estilos.iconoMetricaCian} />
+          </div>
+          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaCian}`}>{textoIniciativa}</span>
+          <span className={estilos.subtituloMetricaInteractivo}>TIRAR D20</span>
+        </button>
       </TooltipUniversal>
 
-      {/* 3. Velocidad Dinámica */}
+      {/* 3. Velocidad (VEL) */}
       <div className={estilos.contenedorVelocidadDinamica} ref={popoverRef}>
         <TooltipUniversal
           titulo="Velocidad de Movimiento"
@@ -200,7 +198,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
           className={estilos.contenedorTooltipMetrica}
           deshabilitado={menuVelocidadAbierto}
         >
-          <div
+          <button
+            type="button"
             className={`
               ${estilos.neoRaised}
               ${estilos.tarjetaMetrica}
@@ -210,23 +209,15 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               ${estadoVelocidad.esCarreraActiva ? estilos.tarjetaMetricaVelocidadCarrera : ""}
             `}
             onClick={() => setMenuVelocidadAbierto((prev) => !prev)}
-            role="button"
             aria-label="Abrir controles de velocidad y movimiento"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                setMenuVelocidadAbierto((prev) => !prev);
-              }
-            }}
+            aria-expanded={menuVelocidadAbierto}
           >
-            {/* Indicador de miniatura de TaleSpire enlazada */}
-            <span
-              className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
-              title={personaje.idMiniaturaTS ? "Miniatura TaleSpire Vinculada" : "Sin miniatura enlazada (Modo Manual)"}
-            />
-            <Footprints size={13} className={estilos.iconoMetricaDecorativo} />
-            <span className={estilos.etiquetaMetrica}>Velocidad</span>
+            <span className={estilos.cabeceraTarjetaMetrica}>
+              <span className={estilos.etiquetaMetrica}>
+                VEL <span className="u-sr-only">Velocidad</span>
+              </span>
+              <Footprints size={12} className={estilos.iconoMetricaDecorativo} />
+            </span>
             <span
               className={`
                 ${estilos.valorMetrica}
@@ -241,206 +232,52 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
               )}
               <span className={estilos.unidadMetrica}>ft</span>
             </span>
-
-            {/* Badge de Terreno si es distinto a normal */}
-            {tipoTerrenoActual !== "normal" && (
-              <span
-                className={`
-                  ${estilos.badgeTerrenoTarjeta}
-                  ${tipoTerrenoActual === "dificil" ? estilos.badgeTerrenoDificil : ""}
-                  ${tipoTerrenoActual === "extremo" ? estilos.badgeTerrenoExtremo : ""}
-                `}
-              >
-                {infoTerrenoActual.nombre} {infoTerrenoActual.multiplicador}x
-              </span>
-            )}
-          </div>
+            <span className={estilos.subtituloMetrica}>
+              {casillasVelocidad} CASILLAS
+            </span>
+          </button>
         </TooltipUniversal>
 
-        {/* Popover Menú Flotante de Gestión de Movimiento */}
         {menuVelocidadAbierto && (
-          <div className={estilos.popoverVelocidad}>
-            <div className={estilos.cabeceraPopoverVelocidad}>
-              <span className={estilos.tituloPopoverVelocidad}>
-                <Footprints size={14} color="var(--pj-texto-cian)" />
-                Control de Movimiento
-              </span>
-              <button
-                type="button"
-                className={estilos.botonCerrarPopover}
-                onClick={() => setMenuVelocidadAbierto(false)}
-                title="Cerrar panel"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className={estilos.cuerpoPopoverVelocidad}>
-              {/* Badge de estado TaleSpire */}
-              <div
-                className={`${estilos.badgeTSEnlace} ${!personaje.idMiniaturaTS ? estilos.badgeTSDesconectado : ""}`}
-              >
-                <span
-                  className={`${estilos.indicadorTSEnlace} ${!personaje.idMiniaturaTS ? estilos.indicadorTSEnlaceInactivo : ""}`}
-                />
-                {personaje.idMiniaturaTS
-                  ? "Miniatura detectada"
-                  : "Modo Manual"}
-              </div>
-
-              {/* Selector de Tipo de Terreno (D&D 5.5e y 3D) */}
-              <div className={estilos.seccionTerrenoPopover}>
-                <div className={estilos.cabeceraTerreno}>
-                  <span className={estilos.tituloTerreno}>
-                    <Mountain size={12} color="var(--pj-texto-terciario)" />
-                    Terreno
-                  </span>
-                </div>
-
-                <div className={estilos.grupoBotonesTerreno}>
-                  {(["normal", "dificil", "extremo"] as TipoTerreno[]).map((tipo) => {
-                    const info = INFORMACION_TERRENO[tipo];
-                    const esActivo = tipoTerrenoActual === tipo;
-                    const claseActivo = esActivo
-                      ? (tipo === "normal" ? estilos.botonTerrenoActivoNormal : tipo === "dificil" ? estilos.botonTerrenoActivoDificil : estilos.botonTerrenoActivoExtremo)
-                      : "";
-
-                    return (
-                      <button
-                        key={tipo}
-                        type="button"
-                        className={`${estilos.botonTerreno} ${claseActivo}`}
-                        onClick={() => ejecutarEstablecerTerreno(tipo)}
-                        title={`${info.nombre}: ${info.descripcion}`}
-                      >
-                        <span>{info.nombre}</span>
-                        <span className={estilos.subMultiplicadorTerreno}>{info.multiplicador}x</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className={estilos.descripcionTerrenoTexto}>
-                  {infoTerrenoActual.descripcion}
-                </div>
-              </div>
-
-              {/* Caja Resumen de Movimiento */}
-              <div className={estilos.resumenMovimientoCaja}>
-                <div>
-                  <div className={estilos.etiquetaMovimientoGrande}>Movimiento Restante</div>
-                  <div className={estilos.valorMovimientoGrande}>
-                    {estadoVelocidad.movimientoRestante} / {estadoVelocidad.velocidadTotal} ft
-                  </div>
-                </div>
-                {personaje.movimientoGastado > 0 && (
-                  <div className={estilos.gastadoSubtexto}>
-                    Gastado: {personaje.movimientoGastado} ft
-                  </div>
-                )}
-              </div>
-
-              {/* Ajuste Manual Rápido */}
-              <div className={estilos.filaAjusteManual}>
-                <button
-                  type="button"
-                  className={estilos.botonPasoPies}
-                  onClick={() => ejecutarModificarGastado(5)}
-                  title="Gastar 5 pies de movimiento"
-                >
-                  <Minus size={12} />
-                  5 ft
-                </button>
-
-                <CampoNumerico
-                  step="any"
-                  min="0"
-                  max={estadoVelocidad.velocidadTotal * 2}
-                  className={estilos.inputRestanteManual}
-                  value={estadoVelocidad.movimientoRestante}
-                  alConfirmar={ejecutarModificarRestante}
-                  title="Escribe directamente los pies restantes y pulsa Enter"
-                  tipo="decimal" identidad={personaje.id}
-                />
-
-                <button
-                  type="button"
-                  className={estilos.botonPasoPies}
-                  onClick={() => ejecutarModificarGastado(-5)}
-                  title="Recuperar 5 pies de movimiento"
-                >
-                  <Plus size={12} />
-                  5 ft
-                </button>
-              </div>
-
-              {/* Botones de Acción: Carrera y Deshacer */}
-              <div className={estilos.filaBotonesAccionVelocidad}>
-                <button
-                  type="button"
-                  className={`
-                    ${estilos.botonAccionVelocidad}
-                    ${estadoVelocidad.esCarreraActiva ? estilos.botonCarreraActivo : ""}
-                  `}
-                  onClick={ejecutarAlternarCarrera}
-                  title="Acción Carrera: duplica la velocidad de este turno"
-                >
-                  <Footprints size={13} />
-                  {estadoVelocidad.esCarreraActiva ? "Carrera ON" : "Carrera OFF"}
-                </button>
-
-                <button
-                  type="button"
-                  className={estilos.botonAccionVelocidad}
-                  onClick={ejecutarDeshacer}
-                  disabled={!tieneHistorial}
-                  title={
-                    ultimoRegistro
-                      ? `Deshacer: ${ultimoRegistro.descripcion}`
-                      : "No hay movimientos previos para deshacer"
-                  }
-                >
-                  <RotateCcw size={13} />
-                  Deshacer
-                </button>
-
-                <button
-                  type="button"
-                  className={`${estilos.botonAccionVelocidad} ${estilos.botonRestablecerTurno}`}
-                  onClick={ejecutarRestablecer}
-                  title="Restablece la velocidad al 100% (iniciar nuevo turno)"
-                >
-                  <RefreshCw size={13} />
-                  Restablecer Turno
-                </button>
-              </div>
-
-              {/* Pie con último movimiento */}
-              {ultimoRegistro && (
-                <div className={estilos.piePopoverHistorial}>
-                  <span>Último: {ultimoRegistro.descripcion}</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <PopoverMovimientoVelocidad
+            idPersonaje={personaje.id}
+            idMiniaturaTS={personaje.idMiniaturaTS}
+            movimientoGastado={personaje.movimientoGastado || 0}
+            estadoVelocidad={estadoVelocidad}
+            tipoTerrenoActual={tipoTerrenoActual}
+            tieneHistorial={tieneHistorial}
+            ultimoRegistro={ultimoRegistro}
+            alCerrar={() => setMenuVelocidadAbierto(false)}
+            alEstablecerTipoTerreno={ejecutarEstablecerTerreno}
+            alModificarRestante={ejecutarModificarRestante}
+            alModificarGastado={ejecutarModificarGastado}
+            alAlternarCarrera={ejecutarAlternarCarrera}
+            alDeshacer={ejecutarDeshacer}
+            alRestablecer={ejecutarRestablecer}
+          />
         )}
       </div>
 
-      {/* 4. Competencia */}
+      {/* 4. Bonificador de Competencia (COMP) */}
       <TooltipUniversal
         titulo="Bonificador por Competencia"
-        contenido={`Bono de Competencia: +${bonoCompetencia}\nSe suma a tiradas de ataque con armas competentes, tiradas de salvación y habilidades competentes, y a la CD de salvación de conjuros.`}
+        contenido={`Bono de Competencia: +${bonoCompetencia}\nSe suma a tiradas de ataque con armas competentes, tiradas de salvación y habilidades competentes.`}
         posicion="abajo"
         className={estilos.contenedorTooltipMetrica}
       >
         <div className={`${estilos.neoRaised} ${estilos.tarjetaMetrica}`}>
-          <Award size={13} className={estilos.iconoMetricaDecorativo} />
-          <span className={estilos.etiquetaMetrica}>Competencia</span>
-          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaAcento}`}>+{bonoCompetencia}</span>
+          <div className={estilos.cabeceraTarjetaMetrica}>
+            <span className={`${estilos.etiquetaMetrica} ${estilos.etiquetaMetricaCian}`}>
+              COMP <span className="u-sr-only">Competencia</span>
+            </span>
+            <Award size={12} className={estilos.iconoMetricaCian} />
+          </div>
+          <span className={`${estilos.valorMetrica} ${estilos.valorMetricaCian}`}>+{bonoCompetencia}</span>
+          <span className={estilos.subtituloMetrica}>BONIF PB</span>
         </div>
       </TooltipUniversal>
 
-      {/* 5. Inspiración Heroica */}
+      {/* 5. Inspiración Heroica (INSP) */}
       <TooltipUniversal
         titulo="Inspiración Heroica"
         contenido={
@@ -452,15 +289,32 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
         alineacion="fin"
         className={estilos.contenedorTooltipMetrica}
       >
-        <div
+        <button
+          type="button"
+          aria-pressed={personaje.inspiracion}
+          aria-label="Inspiración heroica"
           className={`${estilos.neoRaised} ${estilos.tarjetaMetrica} ${estilos.tarjetaMetricaInteractiva}`}
           onClick={alAlternarInspiracion}
         >
-          <span className={estilos.etiquetaMetrica}>Insp.</span>
-          <div className={`${estilos.botonInspiracion} ${personaje.inspiracion ? estilos.botonInspiracionActiva : ""}`}>
-            <Sparkles size={12} color={personaje.inspiracion ? "var(--pj-texto-oro-brillante)" : "var(--pj-texto-terciario)"} />
+          <div className={estilos.cabeceraTarjetaMetrica}>
+            <span className={`${estilos.etiquetaMetrica} ${estilos.etiquetaMetricaOro}`}>
+              Insp. <span className="u-sr-only">Inspiración</span>
+            </span>
+            <Sparkles size={12} className={estilos.iconoMetricaOro} />
           </div>
-        </div>
+          <div className={estilos.centroInspiracion}>
+            <div className={`${estilos.botonInspiracion} ${personaje.inspiracion ? estilos.botonInspiracionActiva : ""}`}>
+              <Star
+                size={14}
+                fill={personaje.inspiracion ? "var(--pj-texto-oro)" : "transparent"}
+                color={personaje.inspiracion ? "var(--pj-texto-oro)" : "var(--pj-texto-terciario)"}
+              />
+            </div>
+          </div>
+          <span className={`${estilos.subtituloMetrica} ${personaje.inspiracion ? estilos.subtituloMetricaOro : ""}`}>
+            {personaje.inspiracion ? "DISPONIBLE" : "AGOTADA"}
+          </span>
+        </button>
       </TooltipUniversal>
     </section>
   );

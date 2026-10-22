@@ -78,19 +78,6 @@
   font-size: var(--pj-fuente-label);
 }
 
-.botonRestablecerRanuras {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-acento);
-  font-size: var(--pj-fuente-boton);
-  padding: 3px 8px;
-  cursor: pointer;
-}
-
 .contenedorGruposGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));

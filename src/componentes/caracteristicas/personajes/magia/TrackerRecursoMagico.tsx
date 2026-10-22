@@ -1,5 +1,5 @@
 import React from "react";
-import { Sparkles, RotateCcw } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import styles from "./TrackerRecursoMagico.module.css";
 
 export interface GrupoRanurasMagicas {
@@ -18,9 +18,6 @@ export interface TrackerRecursoMagicoProps {
   titulo: string;
   iconoColor?: string;
   grupos: GrupoRanurasMagicas[];
-  alRestablecerTodos?: () => void;
-  etiquetaRestablecer?: string;
-  mostrarBotonRestablecer?: boolean;
   soloLectura?: boolean;
   pieDePagina?: string;
   modoGrid?: boolean;
@@ -31,9 +28,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
   titulo,
   iconoColor = "var(--pj-texto-acento)",
   grupos,
-  alRestablecerTodos,
-  etiquetaRestablecer = "Restablecer",
-  mostrarBotonRestablecer = false,
   soloLectura = false,
   pieDePagina,
   modoGrid = true
@@ -88,17 +82,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
             </div>
           )}
 
-          {mostrarBotonRestablecer && alRestablecerTodos && (
-            <button
-              type="button"
-              onClick={alRestablecerTodos}
-              title={`Restablecer todo: ${titulo}`}
-              className={styles.botonRestablecerRanuras}
-            >
-              <RotateCcw size={11} />
-              <span>{etiquetaRestablecer}</span>
-            </button>
-          )}
         </div>
       </div>
 

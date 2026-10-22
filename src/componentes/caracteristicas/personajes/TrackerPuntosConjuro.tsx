@@ -1,7 +1,7 @@
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState } from "react";
-import { Sparkles, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import styles from "./PanelConjurosPersonaje.module.css";
 
@@ -11,8 +11,6 @@ interface TrackerPuntosConjuroProps {
   nivelMaximo: number;
   alGastarPuntos?: (cantidad: number) => void;
   alRecuperarPuntos?: (cantidad: number) => void;
-  alRecuperarTodosPuntos?: () => void;
-  mostrarBotonRestablecer?: boolean;
   mostrarGastoManual?: boolean;
 }
 
@@ -22,8 +20,6 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
   nivelMaximo,
   alGastarPuntos,
   alRecuperarPuntos,
-  alRecuperarTodosPuntos,
-  mostrarBotonRestablecer = false,
   mostrarGastoManual = true
 }) => {
   const [mostrarTablaCostes, setMostrarTablaCostes] = useState(false);
@@ -64,17 +60,6 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
             Nivel Máx: <strong className={styles.resaltadoNivelMax}>{nivelMaximo}</strong>
           </span>
 
-          {mostrarBotonRestablecer && alRecuperarTodosPuntos && (
-            <button
-              type="button"
-              onClick={alRecuperarTodosPuntos}
-              title="Restablecer todos los puntos de conjuro"
-              className={styles.botonRestablecerPuntos}
-            >
-              <RotateCcw size={11} />
-              <span>Restablecer</span>
-            </button>
-          )}
         </div>
       </div>
 

@@ -1,8 +1,8 @@
-import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
-import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import type { PersonajeJugador } from "@/tipos";
-import { Plus, Minus, Dices, RotateCcw, Heart, Skull } from "lucide-react";
+import { Plus, Minus, RotateCcw, Maximize2 } from "lucide-react";
+import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import estilos from "./HojaPersonaje.module.css";
 
 interface PanelVitalidadPersonajeProps {
@@ -32,8 +32,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
   alModificarCansancio,
   alTirarSalvacionMuerte3D
 }) => {
-  const [valorDeltaHp, setValorDeltaHp] = useState<string>("0");
-  const refCantidad = useRef<HTMLInputElement>(null);
+  const [valorDeltaHp, setValorDeltaHp] = useState<string>("1");
   const [editandoTemp, setEditandoTemp] = useState(false);
 
   const maxBase = personaje.hpMaximoBase || personaje.hpMaximo || 10;
@@ -62,65 +61,52 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
       : porcentajeHp < 50
       ? "Desangrándose"
       : porcentajeHp >= 100
-      ? "Pleno"
-      : "Saludable";
+      ? "PLENO"
+      : "Herido";
 
   const manejarAplicarCuracion = () => {
-    if (refCantidad.current && !refCantidad.current.checkValidity()) return;
     const cantidad = Number(valorDeltaHp);
     if (!Number.isFinite(cantidad) || cantidad <= 0) return;
     alModificarHP(Math.abs(cantidad));
-    setValorDeltaHp("0");
   };
 
   const manejarAplicarDano = () => {
-    if (refCantidad.current && !refCantidad.current.checkValidity()) return;
     const cantidad = Number(valorDeltaHp);
     if (!Number.isFinite(cantidad) || cantidad <= 0) return;
     alModificarHP(-Math.abs(cantidad));
-    setValorDeltaHp("0");
   };
 
-  // Alternar slot de éxito (Corazón)
-  const alternarExito = (indice: number) => {
-    const exitosActuales = personaje.salvacionesMuerte?.exitos || 0;
-    if (exitosActuales === indice) {
-      alEstablecerSalvacionMuerte("exitos", indice - 1);
-    } else {
-      alEstablecerSalvacionMuerte("exitos", indice);
-    }
+  const alternarSalvacion = (tipo: "exitos" | "fallos", indice: number) => {
+    const actual = personaje.salvacionesMuerte?.[tipo] || 0;
+    alEstablecerSalvacionMuerte(tipo, actual === indice ? indice - 1 : indice);
   };
 
-  // Alternar slot de fallo (Calavera)
-  const alternarFallo = (indice: number) => {
-    const fallosActuales = personaje.salvacionesMuerte?.fallos || 0;
-    if (fallosActuales === indice) {
-      alEstablecerSalvacionMuerte("fallos", indice - 1);
-    } else {
-      alEstablecerSalvacionMuerte("fallos", indice);
-    }
-  };
+  const penalizadorCansancio = (personaje.cansancio || 0) * 2;
 
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionVitalidad}`}>
       {/* 1. Fila de Salud Principal y HP Temporal */}
       <div className={estilos.filaSaludPrincipal}>
-        {/* Puntos de Golpe */}
         <div className={estilos.cajaHpContenedor}>
+          {/* Cabecera de HP con Stepper [-] 1 [+] y Base: X */}
           <div className={estilos.cabeceraHp}>
+            <div className={estilos.grupoTituloHpYBase}>
+              <span className={estilos.tituloHp}>PUNTOS DE GOLPE</span>
+              <span className={estilos.textoHpBase}>Base: {maxBase}</span>
+            </div>
+
             <div className={estilos.controlesHpMod}>
-              <span className={estilos.tituloHp}>Puntos de Golpe</span>
               <BotonNumerico
                 type="button"
-                className={estilos.botonModHpCurar}
-                onClick={manejarAplicarCuracion}
-                title="Curar cantidad ingresada (+)"
+                className={estilos.botonModHpDano}
+                onClick={manejarAplicarDano}
+                title="Infligir daño por la cantidad (-)"
               >
-                <Plus size={14} />
+                <Minus size={13} />
               </BotonNumerico>
+
               <CampoNumerico
                 value={valorDeltaHp}
-                ref={refCantidad}
                 identidad={personaje.id}
                 alConfirmar={(valor) => setValorDeltaHp(String(valor))}
                 onKeyDown={(e) => {
@@ -131,40 +117,60 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 className={estilos.inputHpMod}
                 min="0"
                 placeholder="0"
-                title="Escribe la cantidad y pulsa Enter o [-] para dañar, o [+] para curar"
+                title="Cantidad para dañar o curar"
                 alVaciar={() => setValorDeltaHp("")}
               />
+
               <BotonNumerico
                 type="button"
-                className={estilos.botonModHpDano}
-                onClick={manejarAplicarDano}
-                title="Infligir daño por cantidad ingresada (- o Enter)"
+                className={estilos.botonModHpCurar}
+                onClick={manejarAplicarCuracion}
+                title="Curar cantidad (+)"
               >
-                <Minus size={14} />
+                <Plus size={13} />
               </BotonNumerico>
             </div>
-            <span className={estilos.textoHpBase} title="HP Máximo Base fijado en configuración">
-              Base: {maxBase}
-            </span>
+
+            {/* Tarjeta lateral de PG Temporal */}
+            <div
+              className={estilos.tarjetaPgTemporalCompacta}
+              onClick={() => setEditandoTemp(true)}
+              title="Haz clic para ajustar PG Temporal"
+            >
+              <span className={estilos.etiquetaPgTemporal}>PG TEMP</span>
+              {editandoTemp ? (
+                <CampoNumerico
+                  value={personaje.hpTemporal ?? 0}
+                  alConfirmar={(valor) => {
+                    alModificarHPTemporal(valor);
+                    setEditandoTemp(false);
+                  }}
+                  onBlur={() => setEditandoTemp(false)}
+                  autoFocus
+                  className={estilos.inputPgTempDirecto}
+                  min="0"
+                  identidad={personaje.id}
+                />
+              ) : (
+                <span className={estilos.valorPgTemporal}>{personaje.hpTemporal || 0}</span>
+              )}
+              <span className={estilos.subtituloPgTemporal}>AJUSTAR</span>
+            </div>
           </div>
 
-          <div className={`${estilos.barraVidaFondo} ${estilos.neoPressed}`}>
-            <div
-              className={`${estilos.barraVidaProgreso} ${claseGradienteVida}`}
-              // eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)
-              style={{ width: `${porcentajeHp}%` }}
-            />
-            <div className={estilos.barraVidaTexto}>
-              {/* HP Actual editable directamente (discreto) */}
+          {/* Barra de Vida con Texto Grande y Badge */}
+          <div className={estilos.filaBarraProgresoVida}>
+            <div className={estilos.textoNumericoHp}>
               <CampoNumerico
                 className={estilos.inputHpDirecto}
                 value={personaje.hpActual}
                 alConfirmar={alEstablecerHPActual}
-                title="Haz clic para editar HP actual directamente"
-                identidad={personaje.id} min={0} max={personaje.hpMaximo}
+                title="Editar HP actual directamente"
+                identidad={personaje.id}
+                min={0}
+                max={personaje.hpMaximo}
               />
               <span className={estilos.separadorHp}>/</span>
-              {/* HP Máximo Efectivo editable directamente (discreto) */}
               <CampoNumerico
                 className={`${estilos.inputHpDirecto} ${claseHpMax}`}
                 value={personaje.hpMaximo}
@@ -172,48 +178,39 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 title={
                   maxEfectivo !== maxBase
                     ? `HP Máximo temporal modificado (${maxEfectivo} vs Base ${maxBase})`
-                    : "Haz clic para modificar el HP Máximo efectivo directamente"
+                    : "Editar HP Máximo efectivo directamente"
                 }
-                identidad={personaje.id} min={1}
+                identidad={personaje.id}
+                min={1}
+              />
+              <span className={estilos.unidadHpPV}>PV</span>
+            </div>
+
+            <div className={`${estilos.barraVidaFondo} ${estilos.neoPressed}`}>
+              <div
+                className={`${estilos.barraVidaProgreso} ${claseGradienteVida}`}
+                // eslint-disable-next-line react/forbid-dom-props
+                style={{ width: `${porcentajeHp}%` }}
               />
             </div>
-            <span className={estilos.badgeEstadoVida}>{etiquetaEstadoVida}</span>
-          </div>
-        </div>
 
-        {/* HP Temporal */}
-        <div className={estilos.cajaHpTemporal}>
-          <span className={estilos.tituloHp}>Temporal</span>
-          <div
-            className={`${estilos.barraTempFondo} ${estilos.neoPressed} ${estilos.tarjetaMetricaInteractiva}`}
-            onClick={() => setEditandoTemp(true)}
-            title="Haz clic para editar HP Temporal"
-          >
-            {editandoTemp ? (
-              <CampoNumerico
-                value={personaje.hpTemporal ?? 0}
-                alConfirmar={(valor) => alModificarHPTemporal(valor)}
-                onBlur={() => setEditandoTemp(false)}
-                autoFocus
-                className={`${estilos.inputHpMod} ${estilos.inputTempFull}`}
-                min="0"
-                identidad={personaje.id}
-              />
-            ) : (
-              <span className={estilos.valorTempHp}>{personaje.hpTemporal || 0}</span>
-            )}
+            <span className={`${estilos.badgeEstadoVida} ${porcentajeHp >= 100 ? estilos.badgeEstadoVidaPleno : ""}`}>
+              {etiquetaEstadoVida}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 2. Sub-fila: Dados de Golpe, Salvaciones de Muerte y Cansancio */}
+      {/* 2. Sub-fila de 3 Columnas: Dados de Golpe, Salvaciones de Muerte y Cansancio */}
       <div className={estilos.filaRecursosSalud}>
-        {/* Dados de Golpe */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoDadosGolpe}`}>
+        {/* Columna 1: Dados de Golpe */}
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
           <div className={estilos.filaCabeceraRecurso}>
-            <span className={estilos.tituloRecursoSalud}>Dados Golpe</span>
+            <span className={estilos.tituloRecursoSalud}>DADOS GOLPE</span>
+            <Maximize2 size={11} className={estilos.iconoRecursoSalud} />
           </div>
-          <div className={estilos.valorDadosGolpe}>
+
+          <div className={estilos.cuerpoRecursoDadosGolpe}>
             <div className={estilos.filaDadosGolpeValores}>
               <CampoNumerico
                 className={estilos.inputDadosGolpeDirecto}
@@ -221,126 +218,134 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 alConfirmar={(valor) => alEstablecerDadosGolpeRestantes?.(valor)}
                 min="0"
                 max={personaje.dadosGolpeTotal}
-                title="Editar cantidad de dados de golpe disponibles"
+                title="Editar dados disponibles"
                 identidad={personaje.id}
               />
-              <span>{personaje.tipoDadoGolpe}{" "}</span>
-              <span className={estilos.textoDadosGolpeTotal}>/ {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}</span>
+              <span className={estilos.textoDadosGolpeTipo}>
+                {personaje.tipoDadoGolpe} / {personaje.dadosGolpeTotal}{personaje.tipoDadoGolpe}
+              </span>
             </div>
+
             <button
               type="button"
-              className={`${estilos.neoButton} ${estilos.botonGastarDado}`}
+              className={estilos.botonGastarDadoAncho}
               onClick={alGastarDadoGolpe}
               disabled={personaje.dadosGolpeRestantes <= 0}
               title="Gastar 1 dado de golpe para curarte"
             >
-              <Dices size={12} />
+              GASTAR
             </button>
           </div>
         </div>
 
-        {/* Salvaciones de Muerte (con Corazones y Calaveras interactivos) */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoSalvacionesMuerte}`}>
+        {/* Columna 2: Salvaciones de Muerte */}
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
           <div className={estilos.filaCabeceraRecurso}>
             <button
               type="button"
-              className={estilos.botonSalvacionMuerte}
+              className={estilos.botonTituloSalvacionMuerte}
               onClick={alTirarSalvacionMuerte3D}
-              title="Haz clic para tirar Salvación de Muerte en 3D (>=10 éxito, <=9 fallo)"
+              title="Tirar Salvación de Muerte en 3D (>=10 éxito, <=9 fallo)"
             >
-              Salv. Muerte
+              SALV. MUERTE
             </button>
             <button
               type="button"
               onClick={alReiniciarSalvacionesMuerte}
               title="Reiniciar salvaciones de muerte"
               className={estilos.botonReiniciarSalvaciones}
+              aria-label="Reiniciar salvaciones de muerte"
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={11} />
             </button>
           </div>
 
-          <div className={estilos.filaPuntosMuerte}>
-            {/* 3 Corazones (Éxitos) */}
-            <div className={estilos.grupoIconosMuerte}>
+          <div className={estilos.cuerpoSalvacionesMuerte}>
+            {/* Fila Éxitos */}
+            <div className={estilos.filaCirculosSalvacion}>
+              <span className={estilos.etiquetaSalvacionTipo}>ÉX</span>
               {[1, 2, 3].map((i) => {
                 const activo = (personaje.salvacionesMuerte?.exitos || 0) >= i;
                 return (
                   <button
                     type="button"
-                    key={`exito-corazon-${i}`}
-                    className={estilos.iconoSlotMuerte}
+                    key={`exito-dot-${i}`}
+                    className={`${estilos.circuloSalvacion} ${activo ? estilos.circuloSalvacionExitoActivo : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      alternarExito(i);
+                      alternarSalvacion("exitos", i);
                     }}
-                    title={`Éxito ${i} (Clic para prender/apagar)`}
-                  >
-                    <Heart
-                      size={16}
-                      strokeWidth={activo ? 2.5 : 1.5}
-                      fill={activo ? "var(--pj-texto-exito)" : "none"}
-                      color={activo ? "var(--pj-texto-exito)" : "rgba(255, 255, 255, 0.25)"}
-                    />
-                  </button>
+                    title={`Éxito ${i} (Clic para marcar/desmarcar)`}
+                    aria-label={`Éxito de muerte ${i}`}
+                  />
                 );
               })}
             </div>
 
-            <span className={estilos.separadorMuerte}>/</span>
-
-            {/* 3 Calaveras (Fallos) - Cambio de color del trazo sin llenado distorsionado */}
-            <div className={estilos.grupoIconosMuerte}>
+            {/* Fila Fallos */}
+            <div className={estilos.filaCirculosSalvacion}>
+              <span className={estilos.etiquetaSalvacionTipo}>FL</span>
               {[1, 2, 3].map((i) => {
                 const activo = (personaje.salvacionesMuerte?.fallos || 0) >= i;
                 return (
                   <button
                     type="button"
-                    key={`fallo-calavera-${i}`}
-                    className={estilos.iconoSlotMuerte}
+                    key={`fallo-dot-${i}`}
+                    className={`${estilos.circuloSalvacion} ${activo ? estilos.circuloSalvacionFalloActivo : ""}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      alternarFallo(i);
+                      alternarSalvacion("fallos", i);
                     }}
-                    title={`Fallo ${i} (Clic para prender/apagar)`}
-                  >
-                    <Skull
-                      size={16}
-                      strokeWidth={activo ? 2.5 : 1.5}
-                      color={activo ? "var(--pj-texto-alerta)" : "rgba(255, 255, 255, 0.25)"}
-                    />
-                  </button>
+                    title={`Fallo ${i} (Clic para marcar/desmarcar)`}
+                    aria-label={`Fallo de muerte ${i}`}
+                  />
                 );
               })}
             </div>
+
+            <span
+              className={estilos.pieSalvacionCd}
+              onClick={alTirarSalvacionMuerte3D}
+              title="Tirar Salvación de Muerte en 3D"
+            >
+              CD 10
+            </span>
           </div>
         </div>
 
-        {/* Cansancio D&D 5.5e (6 niveles) */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed} ${estilos.recursoCansancio}`}>
+        {/* Columna 3: Cansancio (D&D 2024 - 6 niveles) */}
+        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
           <div className={estilos.filaCabeceraRecurso}>
-            <span className={estilos.tituloRecursoSalud}>
-              Cansancio {personaje.cansancio > 0 ? `(${personaje.cansancio})` : ""}
+            <span className={estilos.tituloRecursoSalud}>CANSANCIO</span>
+            <span className={estilos.indicadorPenalizadorCansancio}>
+              -{penalizadorCansancio}
             </span>
           </div>
-          <div className={`${estilos.filaPuntosMuerte} ${estilos.filaPuntosCansancio}`}>
-            {[1, 2, 3, 4, 5, 6].map((nivel) => {
-              const activo = personaje.cansancio >= nivel;
-              return (
-                <button
-                  type="button"
-                  key={`cansancio-${nivel}`}
-                  className={`${estilos.puntoCansancio} ${activo ? estilos.puntoCansancioActivo : ""}`}
-                  aria-label={`Cansancio nivel ${nivel}`}
-                  aria-pressed={activo}
-                  onClick={() => {
-                    const delta = activo && personaje.cansancio === nivel ? -1 : 1;
-                    alModificarCansancio(delta);
-                  }}
-                  title={`Cansancio Nivel ${nivel} (Penalizador -${nivel * 2} a tiradas d20)`}
-                />
-              );
-            })}
+
+          <div className={estilos.cuerpoCansancio}>
+            <div className={estilos.matrizCansancio2x3}>
+              {[1, 2, 3, 4, 5, 6].map((nivel) => {
+                const activo = (personaje.cansancio || 0) >= nivel;
+                return (
+                  <button
+                    type="button"
+                    key={`cansancio-dot-${nivel}`}
+                    className={`${estilos.circuloCansancioMatriz} ${activo ? estilos.circuloCansancioActivo : ""}`}
+                    aria-label={`Cansancio nivel ${nivel}`}
+                    aria-pressed={activo}
+                    onClick={() => {
+                      const delta = activo && personaje.cansancio === nivel ? -1 : 1;
+                      alModificarCansancio(delta);
+                    }}
+                    title={`Nivel ${nivel}: -${nivel * 2} a d20 y -${nivel * 5}ft velocidad`}
+                  />
+                );
+              })}
+            </div>
+
+            <span className={estilos.pieCansancioTexto}>
+              D&D 2024 (-2/nvl)
+            </span>
           </div>
         </div>
       </div>

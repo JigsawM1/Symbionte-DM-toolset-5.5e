@@ -27,6 +27,7 @@ export const BotonSubPestana: React.FC<BotonSubPestanaProps> = ({
   return (
     <button
       type="button"
+      aria-pressed={activa}
       onClick={alClick}
       className={`${estilos.botonSubPestana} ${
         activa ? estilos.botonSubPestanaActivo : ""

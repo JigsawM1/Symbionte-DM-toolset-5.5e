@@ -1,113 +1,88 @@
-import React from "react";
 import type { PersonajeJugador } from "@/tipos";
-import { Settings } from "lucide-react";
-import estilos from "./HojaPersonaje.module.css";
+import { Settings, Pencil } from "lucide-react";
+import estilos from "./CabeceraPersonaje.module.css";
 
 interface CabeceraPersonajeProps {
   personaje: PersonajeJugador;
   alAbrirModalEdicion: () => void;
-  alVincularMiniaturaTS?: (idMini: string | null) => void;
 }
 
-export const CabeceraPersonaje: React.FC<CabeceraPersonajeProps> = ({
-  personaje,
-  alAbrirModalEdicion
-}) => {
-  const inicial = (personaje.nombre || "P")[0].toUpperCase();
+export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPersonajeProps) {
+  const clase = personaje.clases && personaje.clases.length > 1
+    ? personaje.clases.map(c => `${c.nombre} ${c.nivel}${c.subclase ? ` (${c.subclase})` : ""}`).join(" / ")
+    : `${personaje.clase || "Guerrero"}${personaje.subclase ? ` (${personaje.subclase})` : ""}`;
+  const especie = `${personaje.especie || "Humano"}${personaje.subespecie ? ` (${personaje.subespecie})` : ""}`;
 
   return (
-    <section className={`${estilos.neoRaised} ${estilos.seccionCabecera}`}>
-      {/* Contenedor Avatar / Token con soporte para imagen URL y fallback */}
-      <div
-        className={`${estilos.contenedorAvatar} ${estilos.neoPressed}`}
+    <section className={estilos.cabecera} aria-label="Identidad del personaje">
+      <button
+        type="button"
+        className={estilos.avatar}
         onClick={alAbrirModalEdicion}
-        title={
-          personaje.avatarUrl
-            ? "Avatar del personaje (Clic para editar parámetros o imagen)"
-            : "Clic para abrir configuración y añadir una URL de imagen de avatar"
-        }
+        aria-label="Editar avatar del personaje"
+        title="Clic para cambiar avatar o configuración"
       >
-        {personaje.avatarUrl ? (
+        {(personaje.nombre || "P")[0].toUpperCase()}
+        {personaje.avatarUrl && (
           <img
             src={personaje.avatarUrl}
             alt={personaje.nombre}
-            className={estilos.avatarImagen}
-            onError={(e) => {
-              (e.target as HTMLElement).style.display = "none";
-            }}
+            onError={e => { e.currentTarget.hidden = true; }}
           />
-        ) : (
-          <div className={estilos.avatarFallback}>{inicial}</div>
         )}
-
         {personaje.idMiniaturaTS && (
-          <div
-            className={estilos.indicadorMiniVinculada}
-            title="Miniatura física de TaleSpire vinculada"
-          />
+          <span className={estilos.vinculada} title="Miniatura de TaleSpire vinculada" />
         )}
-      </div>
+      </button>
 
-      {/* Información de Identidad */}
-      <div className={estilos.infoIdentidad}>
-        <div className={estilos.filaNombreNivel}>
-          <div className={`${estilos.cajaNombre} ${estilos.neoPressed}`}>
-            <h1 className={estilos.nombrePersonaje}>{personaje.nombre || "Sin Nombre"}</h1>
-            <p className={estilos.subtituloNombre}>
-              {personaje.jugador ? `PJ de ${personaje.jugador}` : "Nombre del Personaje"}
-            </p>
+      <div className={estilos.identidad}>
+        <div className={estilos.fila}>
+          <div className={estilos.bloqueNombre}>
+            <h1 title={personaje.jugador ? `PJ de ${personaje.jugador}` : undefined}>
+              {personaje.nombre || "Sin nombre"}
+            </h1>
+            <button
+              type="button"
+              className={estilos.botonEditarNombre}
+              onClick={alAbrirModalEdicion}
+              title="Editar nombre y datos base"
+              aria-label="Editar nombre del personaje"
+            >
+              <Pencil size={12} />
+            </button>
           </div>
 
-          <div className={`${estilos.cajaNivel} ${estilos.neoPressed}`}>
-            <span className={estilos.numeroNivel}>{personaje.nivel}</span>
-            <span className={estiquetaNivelClass(estilos)}>Nivel</span>
+          <div className={estilos.accionesDerecha}>
+            <span className={estilos.badgeNivel}>NVL {personaje.nivel}</span>
+            <button
+              type="button"
+              className={estilos.editar}
+              onClick={alAbrirModalEdicion}
+              title="Configuración de la ficha"
+              aria-label="Configuración de la ficha"
+            >
+              <Settings size={15} />
+            </button>
           </div>
-
-          <button
-            type="button"
-            className={estilos.botonConfigurarPj}
-            onClick={alAbrirModalEdicion}
-            title="Editar parámetros base de la ficha"
-          >
-            <Settings size={18} />
-          </button>
         </div>
 
-        {/* Cuadrícula de 3 pastillas de detalles */}
-        <div className={estilos.cuadriculaDetalles}>
-          <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span className={estilos.valorDetalle} title={personaje.clase || "Guerrero"}>
-              {personaje.clases && personaje.clases.length > 1
-                ? personaje.clases.map((c) => `${c.nombre} ${c.nivel}`).join(" / ")
-                : (personaje.clase || "Guerrero") + (personaje.subclase ? ` (${personaje.subclase})` : "")}
-            </span>
-            <span className={estilos.labelDetalle}>Clase</span>
+        <div className={estilos.detalles}>
+          <div className={estilos.cajaDetalle}>
+            <span className={estilos.etiquetaDetalle}>CLASE</span>
+            <strong className={estilos.valorDetalle}>{clase}</strong>
           </div>
-
-          <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span
-              className={estilos.valorDetalle}
-              title={personaje.subespecie ? `${personaje.especie || "Humano"} (${personaje.subespecie})` : personaje.especie || "Humano"}
-            >
-              {personaje.subespecie
-                ? `${personaje.especie || "Humano"} (${personaje.subespecie})`
-                : personaje.especie || "Humano"}
-            </span>
-            <span className={estilos.labelDetalle}>Especie</span>
+          <div className={estilos.cajaDetalle}>
+            <span className={estilos.etiquetaDetalle}>ESPECIE</span>
+            <strong className={estilos.valorDetalle}>{especie}</strong>
           </div>
-
-          <div className={`${estilos.pastillaDetalle} ${estilos.neoPressed}`}>
-            <span className={estilos.valorDetalle}>{personaje.trasfondo || "Personalizado"}</span>
-            <span className={estilos.labelDetalle}>Trasfondo</span>
+          <div className={estilos.cajaDetalle}>
+            <span className={estilos.etiquetaDetalle}>TRASFONDO</span>
+            <strong className={estilos.valorDetalle}>{personaje.trasfondo || "Personalizado"}</strong>
           </div>
         </div>
       </div>
     </section>
   );
-};
-
-function estiquetaNivelClass(estilos: Record<string, string>): string {
-  return estilos.etiquetaNivel || "";
 }
 
 export default CabeceraPersonaje;

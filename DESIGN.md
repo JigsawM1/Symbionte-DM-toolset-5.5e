@@ -88,7 +88,7 @@ Las acciones con etiqueta blanca usan `--pj-acento-primario-solido` (`#4f46e5`) 
 ## 4. Componentes y Patrones UI de la Hoja
 
 ### A. Tarjetas de Atributos y Habilidades
-- **Modificador Principal**: Círculo hundido de alto contraste con texto de `--pj-fuente-numero-xl` (`24px`) y color `--pj-texto-acento`.
+- **Modificador Principal**: Botón rectangular de alto contraste junto a la puntuación, con texto de 22px y color `--pj-texto-acento`.
 - **Salvaciones**: Toggle táctico con indicador visual claro (`+PB`, `+Mod`) a `11.5px` legible.
 - **Grados de Habilidad**: 4 estados visuales diferenciados (Sin entrenar, Medio PB, Competente, Pericia).
 
@@ -135,3 +135,12 @@ Las acciones con etiqueta blanca usan `--pj-acento-primario-solido` (`#4f46e5`) 
 - La raíz de la aplicación usa `data-tema="jugador"`; las variantes compartidas se acotan a ese contexto. `temaJugador.css` adapta localmente los tokens generales heredados a los del jugador. Los tooltips portados a `document.body` llevan el mismo atributo y su superficie se estiliza también sobre el propio nodo del portal.
 - El ancho de referencia de TaleSpire CEF es **599px**. La navegación principal del jugador ocupa una fila de cinco controles: Características, Acciones, Conjuros, Inventario y un selector «Más» con Rasgos, Notas e Iniciativa. El selector muestra y destaca la vista adicional activa. Los formularios de multiclase usan dos columnas para mantener visibles sus controles sin reducir el texto.
 - Hasta `480px`, los iconos de navegación se sitúan sobre sus etiquetas para evitar cortar palabras. Hasta `560px`, dados de golpe ocupan la primera fila y salvaciones/cansancio la segunda; las ranuras de magia mantienen su forma circular. Las reglas generales de tamaño de clic no deben reemplazar la forma ni la tipografía local de los componentes.
+
+## 7. Composición de Características del jugador
+
+- La identidad compacta es común a ambos apartados: avatar, nombre, nivel y edición; clase, especie y trasfondo admiten nombres largos y multiclase.
+- **Combate y Atributos**: barra táctica, cinco métricas, franja de sentidos pasivos, selector de apartado, vitalidad, seis tarjetas de atributos y panel de competencias de equipo e idiomas.
+- Cada tarjeta agrupa puntuación editable, botón de modificador, salvación y habilidades según su atributo habitual. Los atributos alternativos cambian la tirada, sin mover la habilidad. La edición y los grados de competencia tienen botones independientes de la tirada.
+- **Conjuros y Magia**: identidad, selector de apartado, CD, ataque, atributo lanzador y concentración; después recursos, búsqueda, filtros y conjuros por nivel. Mantener los conteos y el compendio como información secundaria. La barra táctica pertenece al apartado de combate.
+- Por encima de 480px, atributos en dos columnas y estadísticas mágicas en cuatro. A 480px o menos, atributos en una, estadísticas mágicas en dos y métricas de combate en filas de tres y dos. Los recursos de vitalidad se apilan a ese ancho.
+- Usar superficies planas, bordes discretos y acentos semánticos; evitar alturas artificiales en atributos. Texto mínimo de 11px y controles de al menos 32px, con foco visible, sin animaciones.

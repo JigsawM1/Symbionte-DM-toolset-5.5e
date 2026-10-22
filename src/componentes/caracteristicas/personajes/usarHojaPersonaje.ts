@@ -20,7 +20,7 @@ import { usarEstadoPersistido } from "@/hooks";
 
 export type SubPestanaHoja = "general" | "conjuros";
 
-export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
+export function usarHojaPersonaje() {
   const personajeActivo = usarPersonajeActivo();
   const tipoTirada = usarTipoTirada();
   const sistemaMagia = usarSistemaMagia();
@@ -36,9 +36,9 @@ export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
     ciclarGradoHabilidadPersonaje, aplicarCondicionPersonaje,
     quitarCondicionPersonaje, vincularMiniaturaTSPersonaje,
     establecerPosicionInicialTSPersonaje, gastarEspacioConjuro,
-    recuperarEspacioConjuro, recuperarTodosEspaciosConjuro,
-    gastarPuntosConjuro, recuperarPuntosConjuro, recuperarTodosPuntosConjuro,
-    gastarEspacioPacto, recuperarEspaciosPacto, establecerConcentracion,
+    recuperarEspacioConjuro,
+    gastarPuntosConjuro, recuperarPuntosConjuro,
+    gastarEspacioPacto, recuperarEspaciosPacto,
     romperConcentracion, quitarTrucoConocido, alternarConjuroPreparado,
     desprepararConjuroPersonaje, quitarEfectoPersonaje,
     dispararRasgosIniciativaPersonaje
@@ -47,7 +47,6 @@ export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
   const { establecerTipoTirada } = usarAccionesIniciativa();
   const { rondaActual } = usarEstadoIniciativa();
 
-  const [modalEdicionAbierto, setModalEdicionAbierto] = useState(false);
   const [modalCompetencias, setModalCompetencias] = useState<CategoriaCompetencia | null>(null);
   const [modalDescanso, setModalDescanso] = useState<{
     abierto: boolean;
@@ -78,11 +77,6 @@ export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
   useEffect(() => {
     if (pestañaActiva === "conjuros") setSubPestanaActiva("conjuros");
   }, [pestañaActiva, setSubPestanaActiva]);
-
-  const manejarAbrirEdicion = useCallback(() => {
-    if (alAbrirConfiguracion) alAbrirConfiguracion();
-    else setModalEdicionAbierto(true);
-  }, [alAbrirConfiguracion]);
 
   const statsCalculadas = useMemo(
     () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew) : null),
@@ -242,13 +236,10 @@ export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
   const alCiclarGradoHabilidad = useCallback((h: Habilidad) => { if (pjId) ciclarGradoHabilidadPersonaje(pjId, h); }, [pjId, ciclarGradoHabilidadPersonaje]);
   const alGastarEspacio = useCallback((n: number) => { if (pjId) gastarEspacioConjuro(pjId, n); }, [pjId, gastarEspacioConjuro]);
   const alRecuperarEspacio = useCallback((n: number) => { if (pjId) recuperarEspacioConjuro(pjId, n); }, [pjId, recuperarEspacioConjuro]);
-  const alRecuperarTodosEspacios = useCallback(() => { if (pjId) recuperarTodosEspaciosConjuro(pjId); }, [pjId, recuperarTodosEspaciosConjuro]);
   const alGastarPuntos = useCallback((c: number) => { if (pjId) gastarPuntosConjuro(pjId, c); }, [pjId, gastarPuntosConjuro]);
   const alRecuperarPuntos = useCallback((c: number) => { if (pjId) recuperarPuntosConjuro(pjId, c); }, [pjId, recuperarPuntosConjuro]);
-  const alRecuperarTodosPuntos = useCallback(() => { if (pjId) recuperarTodosPuntosConjuro(pjId); }, [pjId, recuperarTodosPuntosConjuro]);
   const alGastarEspacioPacto = useCallback(() => { if (pjId) gastarEspacioPacto(pjId); }, [pjId, gastarEspacioPacto]);
   const alRecuperarEspaciosPacto = useCallback(() => { if (pjId) recuperarEspaciosPacto(pjId); }, [pjId, recuperarEspaciosPacto]);
-  const alEstablecerConcentracion = useCallback((hId: string, nom: string) => { if (pjId) establecerConcentracion(pjId, hId, nom); }, [pjId, establecerConcentracion]);
   const alRomperConcentracion = useCallback(() => { if (pjId) romperConcentracion(pjId); }, [pjId, romperConcentracion]);
   const alQuitarTruco = useCallback((hId: string) => { if (pjId) quitarTrucoConocido(pjId, hId); }, [pjId, quitarTrucoConocido]);
   const alQuitarConjuro = useCallback((hId: string) => { if (pjId) desprepararConjuroPersonaje(pjId, hId); }, [pjId, desprepararConjuroPersonaje]);
@@ -260,21 +251,21 @@ export function usarHojaPersonaje(alAbrirConfiguracion?: () => void) {
 
   return {
     personajeActivo, statsCalculadas, sistemaMagia, baseDatosHechizos, rondaActual,
-    modoTirada, modalEdicionAbierto, setModalEdicionAbierto, modalCompetencias,
+    modoTirada, modalCompetencias,
     setModalCompetencias, modalDescanso, setModalDescanso, subPestanaActiva,
     setSubPestanaActiva, totalConjurosYTrucos, actualizarPersonaje,
     alternarInspiracionPersonaje, aplicarCondicionPersonaje, quitarCondicionPersonaje,
     quitarEfectoPersonaje, romperConcentracion, vincularMiniaturaTSPersonaje,
-    manejarAbrirEdicion, manejarCambioModoTirada, manejarDescansoCorto,
+    manejarCambioModoTirada, manejarDescansoCorto,
     manejarDescansoLargo, manejarTirarCaracteristica, manejarTirarSalvacion,
     manejarTirarHabilidad, manejarTirarIniciativa, manejarTirarSalvacionMuerte3D,
     manejarTirarDadoGolpe, alModificarHP, alEstablecerHPActual,
     alModificarHPMaximoEfectivo, alModificarHPTemporal, alEstablecerDadosGolpeRestantes,
     alEstablecerSalvacionMuerte, alReiniciarSalvacionesMuerte, alModificarCansancio,
     alAlternarSalvacion, alModificarCaracteristicaBase, alCiclarGradoHabilidad,
-    alGastarEspacio, alRecuperarEspacio, alRecuperarTodosEspacios, alGastarPuntos,
-    alRecuperarPuntos, alRecuperarTodosPuntos, alGastarEspacioPacto,
-    alRecuperarEspaciosPacto, alEstablecerConcentracion, alRomperConcentracion,
+    alGastarEspacio, alRecuperarEspacio, alGastarPuntos,
+    alRecuperarPuntos, alGastarEspacioPacto,
+    alRecuperarEspaciosPacto, alRomperConcentracion,
     alQuitarTruco, alQuitarConjuro, alAlternarPreparado
   };
 }

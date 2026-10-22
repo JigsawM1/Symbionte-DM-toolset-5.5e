@@ -1,0 +1,434 @@
+.seccionAtributos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.encabezadoSeccion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.encabezadoSeccion h2,
+.tituloPanelLateral {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-secundario);
+  font-weight: 800;
+}
+
+.leyenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.itemLeyenda {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dotLeyenda {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.gridAtributos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
+}
+
+.tarjetaAtributo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  gap: 4px 8px;
+  padding: 10px;
+  min-width: 0;
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-tarjeta);
+}
+
+.cabeceraAtributoColumna {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.filaTituloAtributo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nombreAtributo {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--pj-texto-primario);
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+}
+
+.puntuacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--pj-texto-terciario);
+}
+
+.badgePuntuacionBase {
+  width: 38px;
+  min-height: 24px;
+  padding: 1px 3px;
+  box-sizing: border-box;
+  text-align: center;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: 3px;
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-secundario);
+  font: 700 12px var(--fuente-codigo, monospace);
+}
+
+.badgePuntuacionBase[data-bono="true"] {
+  color: var(--pj-texto-cian);
+  border-color: var(--pj-borde-cian);
+}
+
+.circuloModificador {
+  grid-column: 2;
+  grid-row: 1 / 2;
+  align-self: start;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--pj-radio-control);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-acento);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  user-select: none;
+  transition: none;
+}
+
+.circuloModificador:hover {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-texto-cian);
+}
+
+.modificadorNegativo {
+  border-color: rgba(239, 68, 68, 0.4) !important;
+  color: var(--pj-texto-alerta) !important;
+}
+
+.modificadorNegativo:hover {
+  border-color: #ef4444 !important;
+}
+
+.textoModificador {
+  font: 800 22px var(--fuente-codigo, monospace);
+  line-height: 1;
+}
+
+.filaSalvacionAtributo {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: stretch;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
+  margin: 4px 0 2px 0;
+  border-radius: 4px;
+}
+
+.botonToggleSalvacion,
+.botonToggleHabilidad {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 28px;
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--pj-texto-secundario);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: none;
+}
+
+.botonTextoSalvacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 8px 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--pj-texto-secundario);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: none;
+}
+
+.botonTextoSalvacion strong {
+  margin-left: auto;
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.textoSalvacionCompetente {
+  color: var(--pj-texto-cian);
+}
+
+.puntoCompetenciaSalvacion {
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--pj-texto-terciario);
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.puntoCompetenciaActivo {
+  background: var(--pj-texto-cian);
+  border-color: var(--pj-texto-cian);
+  box-shadow: 0 0 5px var(--pj-texto-cian);
+}
+
+.puntoGradoHabilidad {
+  width: 6px;
+  height: 6px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.puntoGradoCompetente {
+  background: var(--pj-texto-cian);
+  border-color: var(--pj-texto-cian);
+  box-shadow: 0 0 4px var(--pj-texto-cian);
+}
+
+.puntoGradoMedio {
+  background: linear-gradient(90deg, var(--pj-texto-cian) 50%, transparent 50%);
+  border-color: var(--pj-texto-cian);
+}
+
+.puntoGradoPericia {
+  background: var(--pj-texto-cian);
+  border-color: var(--pj-texto-cian);
+  box-shadow: 4px 0 0 var(--pj-texto-cian);
+  transform: translateX(-2px);
+}
+
+.puntoGradoVacio {
+  border-color: rgba(148, 163, 184, 0.3);
+  background: transparent;
+}
+
+.itemHabilidad {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: 4px;
+  padding: 1px 0;
+}
+
+.tiradaHabilidad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  min-height: 24px;
+  padding: 2px 4px 2px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: var(--pj-texto-secundario);
+  cursor: pointer;
+  transition: none;
+}
+
+.nombreHabilidad {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.35;
+  text-transform: lowercase;
+}
+
+.nombreHabilidad::first-letter,
+.cajaTextoCompetencia::first-letter {
+  text-transform: uppercase;
+}
+
+.valorBonoHabilidad {
+  flex-shrink: 0;
+  font: 700 12px var(--fuente-codigo, monospace);
+  color: var(--pj-texto-secundario);
+}
+
+.valorBonoHabilidadDestacado {
+  color: var(--pj-texto-cian) !important;
+  font-weight: 800;
+}
+
+.selectorCaracteristicaHabilidad {
+  flex: 0 0 62px;
+  width: 62px;
+  min-width: 0;
+  margin-left: 4px;
+}
+
+.selectorCaracteristicaHabilidad button {
+  min-height: 26px;
+  padding: 2px 4px;
+}
+
+.iconoInlineSalvacion {
+  flex-shrink: 0;
+}
+
+.sinHabilidadesNativas {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  font-size: 11px;
+  font-style: italic;
+  color: var(--pj-texto-terciario);
+}
+
+.itemHabilidad:hover,
+.botonTextoSalvacion:hover,
+.botonToggleSalvacion:hover,
+.botonToggleHabilidad:hover {
+  background: var(--pj-fondo-tarjeta-hover);
+}
+
+.sentidosPasivos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 6px 10px;
+  border-block: 1px solid var(--pj-borde-sutil);
+  background: var(--pj-fondo-panel);
+  color: var(--pj-texto-terciario);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.itemSentidoPasivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.separadorSentidoPasivo {
+  color: var(--pj-borde-medio);
+  user-select: none;
+}
+
+.sentidosPasivos strong {
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-codigo, monospace);
+  font-weight: 800;
+}
+
+.panelCompetencias {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-tarjeta);
+}
+
+.tituloPanelLateral {
+  grid-column: 1 / -1;
+}
+
+.grupoCompetenciaItem {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tituloGrupoCompetencia {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  color: var(--pj-texto-terciario);
+  font-size: 11px;
+}
+
+.cajaTextoCompetencia {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  padding: 6px 8px;
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: 4px;
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-secundario);
+  text-align: center;
+  text-transform: lowercase;
+  font: inherit;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.seccionAtributos :is(button, input):focus-visible,
+.panelCompetencias button:focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .gridAtributos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .panelCompetencias {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

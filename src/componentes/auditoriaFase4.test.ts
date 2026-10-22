@@ -167,27 +167,11 @@ describe("Auditoría Fase 4: Interfaz de Usuario, Componentes de Ficha, Rendimie
       const { ModalesJSONGestorPersonajes } = await import(
         "./caracteristicas/personajes/subcomponentes/ModalesJSONGestorPersonajes"
       );
-      const { PestanaIdentidadEdicion } = await import(
-        "./caracteristicas/personajes/subcomponentes/PestanaIdentidadEdicion"
-      );
-      const { PestanaAtributosEdicion } = await import(
-        "./caracteristicas/personajes/subcomponentes/PestanaAtributosEdicion"
-      );
-      const { PestanaCompetenciasEdicion } = await import(
-        "./caracteristicas/personajes/subcomponentes/PestanaCompetenciasEdicion"
-      );
-      const { PestanaSentidosEdicion } = await import(
-        "./caracteristicas/personajes/subcomponentes/PestanaSentidosEdicion"
-      );
 
       expect(typeof SelectorContenedorDestino).toBe("function");
       expect(typeof VistaPreviaObjetoCompendio).toBe("function");
       expect(typeof BadgesFilaSuperiorObjeto).toBe("function");
       expect(typeof ModalesJSONGestorPersonajes).toBe("function");
-      expect(typeof PestanaIdentidadEdicion).toBe("function");
-      expect(typeof PestanaAtributosEdicion).toBe("function");
-      expect(typeof PestanaCompetenciasEdicion).toBe("function");
-      expect(typeof PestanaSentidosEdicion).toBe("function");
     });
   });
 });

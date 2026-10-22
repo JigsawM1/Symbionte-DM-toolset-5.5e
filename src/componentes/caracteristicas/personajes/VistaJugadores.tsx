@@ -11,7 +11,7 @@ import { GestorPersonajes } from "./GestorPersonajes";
 import { SeccionAcompanantesPersonaje } from "./acompanantes/SeccionAcompanantesPersonaje";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { usarEstadoPersistido } from "@/hooks";
-import { Shield, Users, PawPrint } from "lucide-react";
+import { Plus } from "lucide-react";
 import estilos from "./VistaJugadores.module.css";
 
 type SubPestanaJugador = "ficha" | "acompanantes" | "configuracion" | "personajes";
@@ -36,28 +36,34 @@ export const VistaJugadores: React.FC = () => {
   );
 
   // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
-  // Se bloquea estrictamente hasta que datosInicialesCargados sea true para no vincular
-  // miniaturas al personaje por defecto temporal antes de leer la persistencia real.
   useEffect(() => {
     if (!datosInicialesCargados) return;
     autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje, vincularMiniaturaTSAcompanante);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre]);
 
+  const manejarCrearNuevo = () => {
+    const nuevoId = crearPersonaje();
+    seleccionarPersonajeActivo(nuevoId);
+    setSubPestanaActiva("ficha");
+  };
+
+  const nombreActivo = personajeActivo?.nombre ? personajeActivo.nombre.toUpperCase() : "HEROE";
+
   return (
     <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
-      {/* Barra Superior de Sub-pestañas y Rol */}
+      {/* Barra Superior de Sub-pestañas: Activo vs Acompañantes vs Mis Personajes */}
       <div className={estilos.barraNavegacionSuperior}>
-        {/* Sub-pestañas: Ficha vs Acompañantes vs Mis Personajes */}
         <div className={estilos.grupoSubPestanas}>
           <button
             type="button"
             onClick={() => setSubPestanaActiva("ficha")}
             className={estilos.botonSubPestana}
             data-activa={subPestanaActiva === "ficha"}
+            title="Ver la ficha del personaje activo"
           >
-            <Shield size={12} className={estilos.iconoSubPestana} />
-            {personajeActivo ? `(${personajeActivo.nombre})` : "Ficha de Héroe"}
+            <span className={estilos.dotActivoVerde} />
+            <span className={estilos.textoPill}>ACTIVO: {nombreActivo}</span>
           </button>
 
           <button
@@ -65,9 +71,10 @@ export const VistaJugadores: React.FC = () => {
             onClick={() => setSubPestanaActiva("acompanantes")}
             className={estilos.botonSubPestana}
             data-activa={subPestanaActiva === "acompanantes"}
+            title="Ver acompañantes y monturas del personaje"
           >
-            <PawPrint size={12} className={estilos.iconoSubPestana} />
-            Acompañantes ({personajeActivo?.acompanantes?.length || 0})
+            <span className={subPestanaActiva === "acompanantes" ? estilos.dotActivoCian : estilos.dotGris} />
+            <span className={estilos.textoPill}>ACOMPAÑANTES ({personajeActivo?.acompanantes?.length || 0})</span>
           </button>
 
           <button
@@ -75,11 +82,22 @@ export const VistaJugadores: React.FC = () => {
             onClick={() => setSubPestanaActiva("personajes")}
             className={estilos.botonSubPestana}
             data-activa={subPestanaActiva === "personajes"}
+            title="Gestionar mis personajes y copias"
           >
-            <Users size={12} className={estilos.iconoSubPestana} />
-            Mis Personajes ({personajes.length})
+            <span className={subPestanaActiva === "personajes" ? estilos.dotActivoCian : estilos.dotGris} />
+            <span className={estilos.textoPill}>MIS PERSONAJES ({personajes.length})</span>
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={manejarCrearNuevo}
+          className={estilos.botonNuevoPj}
+          title="Crear un nuevo personaje"
+        >
+          <Plus size={13} className={estilos.iconoNuevo} />
+          <span>NUEVO</span>
+        </button>
       </div>
 
       {/* Contenido según la sub-pestaña activa */}
@@ -135,4 +153,3 @@ export const VistaJugadores: React.FC = () => {
 };
 
 export default VistaJugadores;
-

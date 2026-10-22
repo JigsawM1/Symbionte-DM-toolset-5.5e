@@ -9,240 +9,7 @@
   overflow-y: auto;
 }
 
-.tarjetaModoPrueba {
-  background: linear-gradient(135deg, var(--pj-fondo-tarjeta-elevada), var(--pj-fondo-tarjeta-elevada));
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-panel);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.infoModo {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tituloModo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: var(--pj-fuente-subtitulo);
-  color: var(--pj-texto-acento);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.insigniaRol {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--pj-fuente-badge);
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-weight: 600;
-  background-color: var(--pj-acento-primario-fondo);
-  color: var(--pj-texto-acento);
-  border: 1px solid var(--pj-borde-acento);
-}
-
-.botonAlternarRol {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: linear-gradient(135deg, var(--pj-acento-primario-solido), var(--pj-acento-primario-solido));
-  color: var(--pj-texto-primario);
-  border: none;
-  border-radius: var(--pj-radio-control);
-  padding: 6px 12px;
-  font-size: var(--pj-fuente-boton);
-  font-weight: 600;
-  cursor: pointer;
-  transition: none;
-}
-
-.botonAlternarRol:hover {
-  background: linear-gradient(135deg, var(--pj-acento-primario-solido), var(--pj-acento-primario-solido));
-  transform: translateY(-1px);
-}
-
-.cuadriculaPaneles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
-}
-
-.panelSeccion {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-panel);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.cabeceraPanel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--pj-fuente-cuerpo);
-  font-weight: 700;
-  color: var(--pj-texto-primario);
-  border-bottom: 1px solid var(--pj-borde-sutil);
-  padding-bottom: 8px;
-}
-
-.listaCriaturas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tarjetaCriatura {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-control);
-  padding: 8px 12px;
-}
-
-.nombreCriatura {
-  font-weight: 700;
-  font-size: var(--pj-fuente-subtitulo);
-  color: var(--pj-texto-primario-suave);
-}
-
-.vidaCriatura {
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-exito);
-  font-weight: 700;
-}
-
-.gridDados {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.botonDado {
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-acento);
-  border-radius: var(--pj-radio-control);
-  padding: 10px;
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
-  cursor: pointer;
-  transition: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.botonDado:hover {
-  background-color: var(--pj-acento-primario-activo);
-  border-color: var(--pj-borde-acento);
-  color: var(--pj-texto-primario);
-}
-
-.textoVacio {
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-acento);
-  font-style: italic;
-}
-
 /* Insignias de Condiciones y Tooltip Flotante para TaleSpire CEF */
-.contenedorInsignia {
-  position: relative;
-  display: inline-flex;
-}
-
-.insigniaCondicion {
-  background: var(--pj-acento-peligro-fondo);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta);
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  border-radius: 5px;
-  padding: 4px 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-  transition: none;
-}
-
-.contenedorInsignia:hover .insigniaCondicion {
-  background: var(--pj-acento-peligro-fondo);
-  border-color: var(--pj-borde-peligro);
-  color: var(--pj-texto-primario);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.tooltipFlotante {
-  visibility: hidden;
-  opacity: 0;
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  transform: translateY(-4px);
-  width: 280px;
-  max-width: 85vw;
-  background: var(--pj-fondo-modal-cuerpo);
-  border: 1px solid var(--pj-borde-peligro);
-  box-shadow: var(--pj-sombra-modal);
-  border-radius: var(--pj-radio-panel);
-  padding: 12px 14px;
-  z-index: 9999;
-  pointer-events: none;
-  transition: none;
-  white-space: normal;
-  text-align: left;
-  box-sizing: border-box;
-}
-
-.contenedorInsignia:hover .tooltipFlotante {
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.tooltipTitulo {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-alerta);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--pj-borde-peligro);
-  padding-bottom: 4px;
-}
-
-.tooltipDesc {
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-primario-suave);
-  line-height: 1.45;
-  font-weight: 500;
-}
-
-.listaEfectosTooltip {
-  margin: 6px 0 0 0;
-  padding-left: 16px;
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-alerta);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  line-height: 1.4;
-}
 
 .barraNavegacionSuperior {
   display: flex;
@@ -252,35 +19,98 @@
   border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
   padding: 4px 8px;
+  gap: 8px;
 }
 
 .grupoSubPestanas {
   display: flex;
-  gap: 4px;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .botonSubPestana {
-  background-color: transparent;
-  border: 1px solid transparent;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
   color: var(--pj-texto-secundario);
   padding: 4px 10px;
-  font-size: var(--pj-fuente-boton);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
   border-radius: var(--pj-radio-control);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  letter-spacing: 0.03em;
+  user-select: none;
   transition: none;
 }
 
-.botonSubPestana[data-activa="true"] {
-  background-color: var(--pj-acento-primario-solido);
-  border-color: var(--pj-borde-cian-fuerte);
+.botonSubPestana:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-medio);
   color: var(--pj-texto-primario);
 }
 
-.iconoSubPestana {
-  margin-right: 4px;
+.botonSubPestana[data-activa="true"] {
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+.dotActivoVerde {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--pj-texto-exito);
+  box-shadow: 0 0 6px var(--pj-texto-exito);
+  flex-shrink: 0;
+}
+
+.dotActivoCian {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--pj-texto-cian);
+  flex-shrink: 0;
+}
+
+.dotGris {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--pj-texto-terciario);
+  flex-shrink: 0;
+}
+
+.textoPill {
+  white-space: nowrap;
+}
+
+.botonNuevoPj {
+  background-color: transparent;
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-cian);
+  padding: 4px 10px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+  transition: none;
+}
+
+.botonNuevoPj:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+.iconoNuevo {
+  flex-shrink: 0;
 }
 
 .contenedorAcompanantes {
@@ -290,5 +120,3 @@
   width: 100%;
   box-sizing: border-box;
 }
-
-

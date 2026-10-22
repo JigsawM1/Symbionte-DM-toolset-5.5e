@@ -14,7 +14,6 @@ import { calcularEstadisticasPersonaje } from '/src/almacen/selectores/usarEstad
 import { TrackerPuntosConjuro } from '/src/componentes/caracteristicas/personajes/TrackerPuntosConjuro.tsx';
 import { TarjetaCriaturaIniciativa } from '/src/componentes/caracteristicas/iniciativa/TarjetaCriaturaIniciativa.tsx';
 import { PanelConfiguracionPersonaje } from '/src/componentes/caracteristicas/personajes/PanelConfiguracionPersonaje.tsx';
-import { ModalEditarPersonaje } from '/src/componentes/caracteristicas/personajes/ModalEditarPersonaje.tsx';
 import { ModalDetalleCaracteristica } from '/src/componentes/caracteristicas/personajes/ModalDetalleCaracteristica.tsx';
 import { ModalDetalleHabilidad } from '/src/componentes/caracteristicas/personajes/ModalDetalleHabilidad.tsx';
 import { ModalAgregarObjeto } from '/src/componentes/caracteristicas/inventario/ModalAgregarObjeto.tsx';
@@ -33,7 +32,7 @@ function Escenario({caso,tema,version}){
  const [simple,setSimple]=React.useState({actual:20,opcional:19,decimal:1.5,identidad:'a'});
  const [criatura,setCriatura]=React.useState({id:'criatura-a',nombre:'Prueba numérica',iniciativa:20,vidaActual:20,vidaMaxima:30,vidaTemporal:0,ca:10,condiciones:[],efectos:[],esMonstruo:false});
  window.actualizar=(cambios)=>{setPj(p=>({...p,...cambios}));setSimple(p=>({...p,...cambios}));setCriatura(p=>({...p,...cambios}));};
- window.leer=()=>({pj,simple,criatura,registros:window.registros,guardado:window.guardado,almacen:usarAlmacenDM.getState().objetosHomebrew});
+ window.leer=()=>({pj,simple,criatura,movimientoRestante:(usarAlmacenDM.getState().personajes[0].movimientoMaximoTemporal??30)-usarAlmacenDM.getState().personajes[0].movimientoGastado,registros:window.registros,guardado:window.guardado,almacen:usarAlmacenDM.getState().objetosHomebrew});
  const registrar=(tipo,valor)=>window.registros.push({tipo,valor});
  const cambio=(clave,valor)=>{registrar(clave,valor);setPj(p=>({...p,[clave]:valor}));};
  const guardar=valor=>{window.guardado=valor;registrar('guardado',valor);};
@@ -46,12 +45,11 @@ function Escenario({caso,tema,version}){
   h(CampoNumerico,{'aria-label':'Negativo',value:-3,alConfirmar:valor=>registrar('negativo',valor)}),h('button',{type:'submit'},'Guardar'));
  if(caso==='monedas')contenido=h(BarraMetricasInventario,{estaAbierta:true,alAlternar:nada,totalPOEquivalente:20,sobrecargado:false,pesoTotal:0,capacidadCarga:150,totalSintonizados:0,bolsaMonedas:pj.bolsaMonedas,alEstablecerMonedas:valores=>cambio('bolsaMonedas',{...pj.bolsaMonedas,...valores}),fuerzaEfectiva:10,multiplicadorTexto:'',pesoContenedoresSinCarga:0,porcentajeCarga:0,objetosSintonizados:[]});
  if(caso==='vida')contenido=h(PanelVitalidadPersonaje,{personaje:pj,alModificarHP:valor=>{registrar('dano',valor);setPj(p=>({...p,hpActual:p.hpActual+valor}));},alEstablecerHPActual:valor=>cambio('hpActual',valor),alModificarHPMaximoEfectivo:valor=>cambio('hpMaximo',valor),alModificarHPTemporal:valor=>cambio('hpTemporal',valor),alGastarDadoGolpe:nada,alEstablecerDadosGolpeRestantes:valor=>cambio('dadosGolpeRestantes',valor),alEstablecerSalvacionMuerte:nada,alReiniciarSalvacionesMuerte:nada,alModificarCansancio:nada,alTirarSalvacionMuerte3D:nada});
- if(caso==='atributos')contenido=h(PanelAtributosPersonaje,{personaje:pj,statsCalculadas:calcularEstadisticasPersonaje(pj),alTirarCaracteristica:nada,alTirarSalvacion:nada,alAlternarSalvacion:nada,alModificarCaracteristicaBase:(clave,valor)=>cambio('caracteristicas',{...pj.caracteristicas,[clave]:valor})});
- if(caso==='movimiento')contenido=h(MetricasRapidasPersonaje,{personaje:pj,bonoCompetencia:3,modDestreza:0,alTirarIniciativa:nada,alAlternarInspiracion:nada,alModificarMovimientoRestante:valor=>registrar('movimiento',valor)});
+ if(caso==='atributos')contenido=h(PanelAtributosPersonaje,{personaje:pj,statsCalculadas:calcularEstadisticasPersonaje(pj),alTirarHabilidad:nada,alCiclarGradoHabilidad:nada,alTirarCaracteristica:nada,alTirarSalvacion:nada,alAlternarSalvacion:nada,alModificarCaracteristicaBase:(clave,valor)=>cambio('caracteristicas',{...pj.caracteristicas,[clave]:valor})});
+ if(caso==='movimiento')contenido=h(MetricasRapidasPersonaje,{personaje:pj,bonoCompetencia:3,modDestreza:0,alTirarIniciativa:nada,alAlternarInspiracion:nada});
  if(caso==='puntos')contenido=h(TrackerPuntosConjuro,{puntosMaximos:30,puntosGastados:10,nivelMaximo:3,alGastarPuntos:valor=>registrar('gasto',valor),alRecuperarPuntos:valor=>registrar('recuperacion',valor)});
  if(caso==='iniciativa')contenido=h(TarjetaCriaturaIniciativa,{criatura,esTurnoActivo:false,plantilla:null,onEliminar:nada,onSeleccionar:nada,onCurar:valor=>registrar('curacion',valor),onDañar:valor=>registrar('dano',valor),onCambiarTempHP:valor=>{registrar('temporal',valor);setCriatura(p=>({...p,vidaTemporal:valor}));},onAñadirCondicion:nada,onQuitarCondicion:nada,onAñadirEfecto:nada,onQuitarEfecto:nada,onLanzarIniciativa:nada,onEstablecerIniciativa:valor=>{registrar('iniciativa',valor);setCriatura(p=>({...p,iniciativa:valor}));},onEstablecerVidaMaxima:valor=>setCriatura(p=>({...p,vidaMaxima:valor})),onLanzarAtaqueRapido:nada,obtenerPercepcionPasiva:()=>10});
  if(caso==='configuracion')contenido=h(PanelConfiguracionPersonaje,{personaje:pj,alGuardar:guardar,alVolverAFicha:nada});
- if(caso==='editar')contenido=h(ModalEditarPersonaje,{personaje:pj,alGuardar:guardar,alCerrar:nada});
  if(caso==='caracteristica')contenido=h(ModalDetalleCaracteristica,{personaje:pj,caracteristicaClave:'fuerza',alGuardar:(clave,valor)=>guardar(valor),alCerrar:nada});
  if(caso==='habilidad')contenido=h(ModalDetalleHabilidad,{personaje:pj,habilidadClave:'atletismo',nombreHabilidad:'Atletismo',alGuardarPersonalizacion:(clave,grado,valor)=>guardar(valor),alCerrar:nada});
  if(caso==='agregar')contenido=h(ModalAgregarObjeto,{baseDatosObjetos:OBJETOS_INICIALES,alAgregarObjeto:guardar,alCerrar:nada});

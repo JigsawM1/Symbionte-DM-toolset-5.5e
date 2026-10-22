@@ -88,114 +88,11 @@
    1. CABECERA E IDENTIDAD (APARTADO A)
    ========================================= */
 
-.seccionCabecera {
-  padding: 10px 12px;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-acento-tenue);
-}
-
-.contenedorAvatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 10%;
-  flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--pj-borde-acento-fuerte);
-  box-shadow: var(--pj-sombra-brillo-acento);
-  cursor: pointer;
-  background-color: var(--pj-fondo-hundido);
-}
-
-.contenedorAvatar:hover {
-  border-color: var(--pj-borde-acento-luminoso);
-  box-shadow: var(--pj-sombra-brillo-acento);
-}
-
 .avatarImg,
 .avatarImagen {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.avatarThumbnailContenedor {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: var(--pj-fondo-hundido);
-  border-radius: 50%;
-}
-
-.avatarThumbnailContenedor > *,
-.avatarThumbnailContenedor canvas,
-.avatarThumbnailContenedor img,
-.avatarThumbnailContenedor svg,
-.avatarThumbnailContenedor div {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: contain;
-  border-radius: 50%;
-}
-
-.avatarFallback {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-acento-primario-solido) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--fuente-principal);
-  font-size: var(--pj-fuente-numero-xl);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  letter-spacing: -0.5px;
-}
-
-.indicadorMiniVinculada {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background-color: var(--pj-acento-exito);
-  border: 2px solid var(--pj-fondo-hundido);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.infoIdentidad {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  min-width: 0;
-}
-
-.filaNombreNivel {
-  display: flex;
-  justify-content: space-between;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.cajaNombre {
-  padding: 5px 10px;
-  flex-grow: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-left: 3px solid var(--pj-acento-primario);
 }
 
 .nombrePersonaje {
@@ -208,44 +105,6 @@
   text-overflow: ellipsis;
   line-height: 1.2;
   letter-spacing: 0.2px;
-}
-
-.subtituloNombre {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 600;
-  color: var(--pj-texto-terciario);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-
-.cajaNivel {
-  padding: 3px 8px;
-  text-align: center;
-  min-width: 54px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--pj-borde-acento);
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
-}
-
-.numeroNivel {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-acento);
-  line-height: 1;
-}
-
-.etiquetaNivel {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 2px;
 }
 
 .botonConfigurarPj {
@@ -268,40 +127,6 @@
   border-color: var(--pj-borde-acento-fuerte);
 }
 
-.cuadriculaDetalles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.pastillaDetalle {
-  padding: 4px 6px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-sutil);
-}
-
-.valorDetalle {
-  font-size: var(--pj-fuente-cuerpo);
-  font-weight: 700;
-  color: var(--pj-texto-primario-suave);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.labelDetalle {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 600;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 1px;
-}
-
 /* ==========================================
    2. BARRA TÁCTICA (DESCANSOS, VENT/DISV, COND)
    ========================================= */
@@ -309,21 +134,15 @@
 .seccionBarraTactica {
   padding: 8px 10px;
   display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.columnaControlesTacticos {
-  flex: 1.1;
-  display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.filaDescansosVentaja {
+.filaDescansosVentajaRonda {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -342,7 +161,7 @@
   color: var(--pj-texto-secundario);
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: var(--pj-radio-control);
   cursor: pointer;
   text-transform: uppercase;
@@ -350,6 +169,7 @@
   align-items: center;
   gap: 4px;
   user-select: none;
+  transition: none;
 }
 
 .botonPill:hover {
@@ -371,6 +191,10 @@
   color: var(--pj-texto-alerta);
 }
 
+.botonPillPlano {
+  color: var(--pj-texto-secundario-claro);
+}
+
 .botonPillVent {
   color: var(--pj-texto-exito);
 }
@@ -383,9 +207,10 @@
 }
 
 .botonPillActivoPlano {
-  background-color: var(--pj-fondo-tarjeta-elevada) !important;
-  color: var(--pj-texto-primario) !important;
-  border-color: var(--pj-borde-acento) !important;
+  background-color: #f8fafc !important;
+  color: #090d16 !important;
+  border-color: #cbd5e1 !important;
+  font-weight: 800;
 }
 
 .botonPillActivoVent {
@@ -395,79 +220,70 @@
   box-shadow: var(--pj-sombra-brillo-acento);
 }
 
-.columnaCondicionesActivas {
-  flex: 1;
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  min-height: 58px;
-  background-color: var(--pj-fondo-hundido);
-  position: relative;
-  overflow: visible;
-}
-
-.columnaCondicionesActivas :global(.tooltip-contenido),
-.listaChipsCondiciones :global(.tooltip-contenido) {
-  right: 0 !important;
-  left: auto !important;
-}
-
-.tituloCondicionesActivas {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-}
-
-.listaChipsCondiciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: center;
-  position: relative;
-  overflow: visible;
-}
-
-.chipCondicion {
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  padding: 3px 5px;
-  border-radius: 4px;
+.badgeRondaCombate {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  padding: 4px 8px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-cian);
   font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-acento-brillante);
-  cursor: help;
-  position: relative;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  user-select: none;
+  text-transform: uppercase;
 }
 
-.chipDesangrado {
-  background-color: var(--pj-acento-peligro-fondo) !important;
-  border-color: var(--pj-borde-peligro) !important;
-  color: var(--pj-texto-alerta) !important;
-  box-shadow: var(--pj-sombra-hundida) !important;
-  font-weight: 700;
+.iconoRonda {
+  color: var(--pj-texto-cian);
+  flex-shrink: 0;
 }
 
-.chipBotonCerrar {
-  background: transparent;
-  border: none;
-  color: var(--pj-texto-secundario);
-  cursor: pointer;
-  padding: 0;
+.filaInputCondicion {
   display: flex;
   align-items: center;
-  line-height: 1;
-  position: relative;
-  z-index: 2;
+  gap: 6px;
+  width: 100%;
 }
 
-.chipBotonCerrar:hover {
-  color: var(--pj-texto-alerta);
+.contenedorSelectorCondicion {
+  flex: 1;
+  min-width: 0;
+}
+
+.botonAgregarCondicion {
+  width: 32px;
+  height: 32px;
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: none;
+}
+
+.botonAgregarCondicion:hover {
+  background-color: var(--pj-acento-primario-hover);
+}
+
+.filaChipsActivosVacia {
+  display: flex;
+  align-items: center;
+  padding: 4px 2px;
+}
+
+.filaChipsActivos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding-top: 2px;
 }
 
 .textoSinCondiciones {
@@ -482,7 +298,7 @@
 
 .filaMetricasRapidas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) 58px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   align-items: stretch;
 }
@@ -502,16 +318,91 @@
   height: 100%;
   box-sizing: border-box;
   flex: 1;
-  padding: 8px 4px;
+  padding: 6px 5px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: stretch;
   position: relative;
   text-align: center;
-  border: 1px solid var(--pj-borde-sutil);
-  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-tarjeta);
   user-select: none;
+  min-height: 64px;
+}
+
+.cabeceraTarjetaMetrica {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.iconoMetricaContenedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.etiquetaMetricaCian {
+  color: var(--pj-texto-cian) !important;
+}
+
+.etiquetaMetricaOro {
+  color: var(--pj-texto-oro) !important;
+}
+
+.iconoMetricaCian {
+  color: var(--pj-texto-cian);
+  flex-shrink: 0;
+}
+
+.iconoMetricaOro {
+  color: var(--pj-texto-oro);
+  flex-shrink: 0;
+}
+
+.valorMetricaCian {
+  color: var(--pj-texto-cian) !important;
+}
+
+.subtituloMetrica {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  display: block;
+}
+
+.subtituloMetricaInteractivo {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--pj-texto-cian);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  display: block;
+}
+
+.subtituloMetricaOro {
+  color: var(--pj-texto-oro) !important;
+  font-weight: 800;
+}
+
+.centroInspiracion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 2px 0;
 }
 
 .tarjetaMetricaInteractiva:hover {
@@ -544,10 +435,6 @@
   line-height: 1;
 }
 
-.valorMetricaAcento {
-  color: var(--pj-texto-acento);
-}
-
 .unidadMetrica {
   font-size: var(--pj-fuente-micro);
   font-weight: 600;
@@ -556,16 +443,17 @@
 }
 
 .botonInspiracion {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-medio);
-  cursor: pointer;
+  border: 1.5px solid var(--pj-borde-control, #334155);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1px;
+  margin: 0 auto;
+  align-self: center;
+  transition: none;
 }
 
 .botonInspiracionActiva {
@@ -582,6 +470,9 @@
 }
 
 .tarjetaMetricaVelocidad {
+  font: inherit;
+  gap: 0;
+  text-transform: none;
   cursor: pointer;
   position: relative;
   transition: none;
@@ -703,11 +594,6 @@
   background: var(--pj-acento-exito-fondo);
   color: var(--pj-texto-exito);
   border: 1px solid var(--pj-borde-exito);
-}
-
-.indicadorTSEnlaceEstatico {
-  position: static;
-  display: inline-block;
 }
 
 .badgeTSDesconectado {
@@ -895,16 +781,6 @@
   gap: 4px;
 }
 
-.badgeAltura3D {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  color: var(--pj-texto-cian);
-  background: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
 .grupoBotonesTerreno {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -968,28 +844,6 @@
   margin-top: 2px;
 }
 
-.badgeTerrenoTarjeta {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: var(--pj-radio-control);
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.badgeTerrenoDificil {
-  background: var(--pj-acento-peligro-fondo);
-  color: var(--pj-texto-alerta);
-  border: 1px solid var(--pj-borde-peligro);
-}
-
-.badgeTerrenoExtremo {
-  background: var(--pj-acento-magia-fondo);
-  color: var(--pj-texto-magia);
-  border: 1px solid var(--pj-borde-magia);
-}
-
 
 /* ==========================================
    4. VITALIDAD Y COMBATE (APARTADO C)
@@ -999,109 +853,212 @@
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border-top: 2px solid var(--pj-acento-cian);
+  gap: 8px;
 }
 
 .filaSaludPrincipal {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
 }
 
 .cajaHpContenedor {
-  flex: 2.5;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .cabeceraHp {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+}
+
+.grupoTituloHpYBase {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .tituloHp {
   font-size: var(--pj-fuente-micro);
   font-weight: 800;
-  color: var(--pj-texto-secundario-claro);
+  color: var(--pj-texto-secundario);
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+}
+
+.textoHpBase {
+  font-size: 11px;
+  color: var(--pj-texto-terciario);
 }
 
 .controlesHpMod {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-}
-
-.botonModHpCurar {
-  width: 26px;
-  height: 26px;
+  gap: 2px;
+  background: var(--pj-fondo-hundido);
+  padding: 2px;
   border-radius: var(--pj-radio-control);
-  background-color: var(--pj-acento-exito-oscuro);
-  border: 1px solid var(--pj-acento-exito);
-  color: var(--pj-texto-exito-brillante);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.botonModHpCurar:hover {
-  background-color: var(--pj-acento-exito-oscuro);
-  color: var(--pj-texto-primario);
+  border: 1px solid var(--pj-borde-sutil);
 }
 
 .botonModHpDano {
-  width: 26px;
-  height: 26px;
-  border-radius: var(--pj-radio-control);
-  background-color: var(--pj-acento-peligro-oscuro);
-  border: 1px solid var(--pj-acento-peligro);
-  color: var(--pj-texto-alerta-brillante);
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: var(--pj-texto-alerta);
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 3px;
+  transition: none;
+  padding: 0;
+}
+
+.botonModHpCurar {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  color: var(--pj-texto-exito);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: none;
   padding: 0;
 }
 
 .botonModHpDano:hover {
-  background-color: var(--pj-acento-peligro-oscuro);
-  color: var(--pj-texto-primario);
+  background: var(--pj-acento-peligro-fondo);
+}
+
+.botonModHpCurar:hover {
+  background: var(--pj-acento-exito-fondo);
 }
 
 .inputHpMod {
-  width: 44px;
-  height: 26px;
+  width: 34px;
+  height: 24px;
   text-align: center;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-cuerpo);
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 12px;
   font-weight: 700;
   color: var(--pj-texto-primario);
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: 3px;
   padding: 0;
 }
 
-.inputHpMod:focus {
+.tarjetaPgTemporalCompacta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  min-width: 68px;
+  user-select: none;
+}
+
+.tarjetaPgTemporalCompacta:hover {
   border-color: var(--pj-borde-acento-fuerte);
+  background: var(--pj-fondo-tarjeta-hover);
+}
+
+.etiquetaPgTemporal {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.05em;
+}
+
+.valorPgTemporal {
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--pj-texto-cian);
+  line-height: 1.1;
+}
+
+.subtituloPgTemporal {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--pj-texto-cian);
+  letter-spacing: 0.04em;
+}
+
+.inputPgTempDirecto {
+  width: 48px;
+  height: 22px;
+  text-align: center;
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pj-texto-cian);
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  border-radius: 3px;
+}
+
+.filaBarraProgresoVida {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.textoNumericoHp {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--pj-texto-exito);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.inputHpDirecto {
+  width: 28px;
+  padding: 0;
+  text-align: right;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  font-weight: inherit;
+}
+
+.separadorHp {
+  color: var(--pj-texto-terciario);
+  font-size: 16px;
+  margin: 0 1px;
+}
+
+.unidadHpPV {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  margin-left: 2px;
 }
 
 .barraVidaFondo {
-  height: 38px;
-  border-radius: var(--pj-radio-control);
+  flex: 1;
+  height: 12px;
+  border-radius: 6px;
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  background-color: var(--pj-fondo-hundido-profundo);
+  background: var(--pj-fondo-hundido-profundo);
   border: 1px solid var(--pj-borde-sutil);
 }
 
@@ -1110,335 +1067,297 @@
   left: 0;
   top: 0;
   bottom: 0;
-  border-radius: 5px;
+  border-radius: 6px;
   min-width: 4px;
 }
 
-/* Gradientes semánticos de estado de vida */
 .vidaPlena {
-  background: linear-gradient(90deg, var(--pj-acento-exito) 0%, var(--pj-acento-exito-medio) 100%);
+  background: linear-gradient(90deg, #10b981 0%, #06b6d4 50%, #8b5cf6 100%);
 }
 
 .vidaHerida {
-  background: linear-gradient(90deg, var(--pj-acento-oro) 0%, var(--pj-acento-oro-medio) 100%);
+  background: linear-gradient(90deg, #eab308 0%, #f97316 100%);
 }
 
 .vidaCritica {
-  background: linear-gradient(90deg, var(--pj-acento-peligro) 0%, var(--pj-acento-peligro-medio) 100%);
-}
-
-.barraVidaTexto {
-  position: relative;
-  z-index: 2;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  text-shadow: none;
+  background: linear-gradient(90deg, #ef4444 0%, #b91c1c 100%);
 }
 
 .badgeEstadoVida {
-  position: relative;
-  z-index: 2;
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background-color: var(--pj-fondo-base);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
+  letter-spacing: 0.05em;
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-terciario);
+  border: 1px solid var(--pj-borde-sutil);
+  flex-shrink: 0;
 }
 
-.inputHpDirecto {
-  width: 46px;
-  background: transparent;
-  border: 1px solid transparent;
-  outline: none;
-  border-radius: var(--pj-radio-control);
-  text-align: center;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  padding: 1px;
-  cursor: text;
-}
-
-.inputHpDirecto:hover {
-  background-color: var(--pj-fondo-hundido);
-  border-color: var(--pj-borde-medio);
-}
-
-.inputHpDirecto:focus {
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-acento-fuerte);
-}
-
-.hpMaxAumentado {
-  color: var(--pj-texto-cian) !important;
-}
-
-.hpMaxReducido {
-  color: var(--pj-texto-alerta) !important;
-}
-
-.cajaHpTemporal {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  justify-content: flex-end;
-}
-
-.barraTempFondo {
-  height: 38px;
-  border-radius: var(--pj-radio-control);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-cian);
-}
-
-.barraTempFondo:hover {
-  border-color: var(--pj-borde-cian-fuerte);
-}
-
-.valorTempHp {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-cian);
+.badgeEstadoVidaPleno {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .filaRecursosSalud {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 1.8fr) minmax(124px, 1fr);
-  grid-template-areas: "dados muerte cansancio";
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-}
-
-.recursoDadosGolpe {
-  grid-area: dados;
-  min-width: 0;
-}
-
-.recursoSalvacionesMuerte {
-  grid-area: muerte;
-  min-width: 0;
-}
-
-.recursoCansancio {
-  grid-area: cansancio;
-  min-width: 0;
-}
-
-@media (max-width: 560px) {
-  .filaRecursosSalud {
-    grid-template-columns: minmax(220px, 1.8fr) minmax(124px, 1fr);
-    grid-template-areas: "dados dados" "muerte cansancio";
-  }
+  align-items: stretch;
+  margin-top: 4px;
 }
 
 .tarjetaRecursoSalud {
-  padding: 6px 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
+  justify-content: space-between;
+  border-radius: var(--pj-radio-control);
+  border: 1px solid var(--pj-borde-medio);
+  background: var(--pj-fondo-tarjeta);
+  min-height: 90px;
+  box-sizing: border-box;
 }
 
 .filaCabeceraRecurso {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: space-evenly;
   width: 100%;
   margin-bottom: 4px;
-  padding: 0 2px;
 }
 
 .tituloRecursoSalud {
   font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-label);
+  font-weight: 800;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
-.botonSalvacionMuerte {
-  background: transparent;
-  border: 1px solid var(--pj-borde-acento);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-secundario);
-  text-transform: uppercase;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: var(--pj-radio-control);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.iconoRecursoSalud {
+  color: var(--pj-texto-terciario);
+  opacity: 0.7;
 }
 
-.botonSalvacionMuerte:hover {
-  color: var(--pj-texto-primario);
-  background-color: var(--pj-acento-primario-solido);
-  border-color: var(--pj-borde-acento-fuerte);
-}
-
-.valorDadosGolpe {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-acento);
+.cuerpoRecursoDadosGolpe {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.filaDadosGolpeValores {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--fuente-codigo, monospace);
 }
 
 .inputDadosGolpeDirecto {
-  width: 26px;
-  background: transparent;
-  border: 1px solid transparent;
-  outline: none;
-  border-radius: var(--pj-radio-control);
-  text-align: center;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-acento);
+  width: 24px;
   padding: 0;
-  cursor: text;
-}
-
-.inputDadosGolpeDirecto:hover {
-  background-color: var(--pj-fondo-hundido);
-  border-color: var(--pj-borde-medio);
-}
-
-.inputDadosGolpeDirecto:focus {
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-acento-fuerte);
-}
-
-.filaPuntosMuerte {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.iconoSlotMuerte {
+  text-align: right;
   background: transparent;
   border: none;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--pj-texto-primario);
+}
+
+.textoDadosGolpeTipo {
+  font-size: 12px;
+  color: var(--pj-texto-secundario);
+  font-weight: 600;
+}
+
+.botonGastarDadoAncho {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid var(--pj-borde-medio);
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-secundario-claro);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
   cursor: pointer;
+  transition: none;
+  user-select: none;
+}
+
+.botonGastarDadoAncho:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+.botonGastarDadoAncho:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.cuerpoSalvacionesMuerte {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+}
+
+.botonTituloSalvacionMuerte {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 800;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: none;
+}
+
+.botonTituloSalvacionMuerte:hover {
+  color: var(--pj-texto-primario);
+}
+
+.botonReiniciarSalvaciones {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  color: var(--pj-texto-terciario);
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
-  border-radius: 3px;
+  transition: none;
 }
 
-.iconoSlotMuerte:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
+.botonReiniciarSalvaciones:hover {
+  color: var(--pj-texto-primario);
 }
 
-.puntoCansancio {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
+.filaCirculosSalvacion {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.puntoCansancio::before {
-  content: "";
+.etiquetaSalvacionTipo {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--pj-texto-terciario);
+  width: 16px;
+}
+
+.circuloSalvacion {
+  min-width: 0 !important;
+  min-height: 0 !important;
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 1.5px solid var(--pj-texto-terciario);
-  background-color: var(--pj-fondo-hundido);
+  border: 1.5px solid var(--pj-borde-control, #334155);
+  background-color: var(--pj-fondo-hundido, #090d16);
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: none;
 }
 
-.puntoCansancio:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
+.circuloSalvacionExitoActivo {
+  background-color: #10b981 !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
-.puntoCansancioActivo::before {
-  background-color: var(--pj-acento-oro);
-  border-color: var(--pj-texto-oro);
-  box-shadow: var(--pj-sombra-brillo-oro);
+.circuloSalvacionFalloActivo {
+  background-color: #ef4444 !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.pieSalvacionCd {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.indicadorPenalizadorCansancio {
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pj-texto-alerta);
+}
+
+.cuerpoCansancio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+}
+
+.matrizCansancio2x3 {
+  display: grid;
+  grid-template-columns: repeat(3, 16px);
+  gap: 5px 8px;
+  justify-content: center;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.circuloCansancioMatriz {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pj-borde-control, #334155);
+  background-color: var(--pj-fondo-hundido, #090d16);
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: none;
+}
+
+.circuloCansancioActivo {
+  background-color: #ef4444 !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+
+.pieCansancioTexto {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--pj-texto-terciario);
+  letter-spacing: 0.03em;
+  margin-top: 2px;
 }
 
 /* ==========================================
    5. ATRIBUTOS Y SENTIDOS PASIVOS (APARTADO B)
    ========================================= */
-
-.filaAtributosSentidos {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.gridAtributos {
-  flex: 6;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.tarjetaAtributo {
-  padding: 8px 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  cursor: pointer;
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
-}
-
-.tarjetaAtributo:hover {
-  border-color: var(--pj-borde-acento-fuerte);
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-hover) 0%, var(--pj-fondo-tarjeta-hover) 100%);
-}
-
-.nombreAtributo {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 800;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  margin-bottom: 3px;
-}
-
-.circuloModificador {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 5px;
-  border: 2px solid var(--pj-borde-acento-tenue);
-  background-color: var(--pj-fondo-hundido-profundo);
-}
-
-.textoModificador {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-xl);
-  font-weight: 800;
-  color: var(--pj-texto-acento);
-}
 
 /* Inputs numéricos sin flechas */
 .badgePuntuacionBase::-webkit-outer-spin-button,
@@ -1461,200 +1380,9 @@
   appearance: textfield;
 }
 
-.badgePuntuacionBase {
-  background: var(--pj-fondo-hundido-profundo);
-  border: 1px solid var(--pj-borde-sutil);
-  outline: none;
-  border-radius: 4px;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-cuerpo);
-  font-weight: 700;
-  color: var(--pj-texto-secundario);
-  margin-bottom: 5px;
-  width: 38px;
-  text-align: center;
-  padding: 1px;
-  cursor: text;
-}
-
-.badgePuntuacionBase:hover {
-  border-color: var(--pj-borde-medio);
-}
-
-.badgePuntuacionBase:focus {
-  border-color: var(--pj-borde-acento-fuerte);
-  color: var(--pj-texto-primario);
-  background-color: var(--pj-fondo-base);
-}
-
-.filaSalvacionAtributo {
-  width: 100%;
-  padding-top: 5px;
-  border-top: 1px solid var(--pj-borde-sutil);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding-left: 2px;
-  padding-right: 2px;
-  font-size: var(--pj-fuente-micro);
-  text-transform: uppercase;
-  color: var(--pj-texto-terciario);
-}
-
-.botonToggleSalvacion {
-  background: transparent;
-  border: none;
-  padding: 3px;
-  margin: -3px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--pj-radio-control);
-  outline: none;
-}
-
-.botonToggleSalvacion:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-}
-
-.puntoCompetenciaSalvacion {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background-color: var(--pj-fondo-hundido);
-  border: 1.5px solid var(--pj-borde-medio);
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
-  outline: none;
-}
-
-.puntoCompetenciaActivo {
-  background-color: var(--pj-acento-primario-solido);
-  border-color: var(--pj-borde-acento-luminoso);
-  box-shadow: var(--pj-sombra-brillo-acento);
-}
-
-.botonTextoSalvacion {
-  background: transparent;
-  border: 1px solid transparent;
-  padding: 1px 4px;
-  margin: -1px -3px;
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: var(--pj-radio-control);
-  outline: none;
-  display: flex;
-  align-items: center;
-}
-
-.botonTextoSalvacion:hover {
-  color: var(--pj-texto-acento);
-  background-color: var(--pj-acento-primario-fondo);
-  border-color: var(--pj-borde-acento);
-}
-
-.textoSalvacionCompetente {
-  color: var(--pj-texto-primario);
-  font-weight: 800;
-}
-
-.panelSentidosPasivos {
-  flex: 3.8;
-  padding: 10px 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 7px;
-  background: var(--pj-fondo-cabecera-gradiente);
-}
-
-.tituloPanelLateral {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 800;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  border-bottom: 1px solid var(--pj-borde-sutil);
-  padding-bottom: 4px;
-}
-
-.itemSentidoPasivo {
-  padding: 6px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--pj-borde-sutil);
-  background-color: var(--pj-fondo-hundido);
-}
-
-.valorSentidoPasivo {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-acento);
-}
-
-.labelSentidoPasivo {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 600;
-  color: var(--pj-texto-secundario-claro);
-  text-transform: uppercase;
-  text-align: right;
-  line-height: 1.2;
-}
-
 /* ==========================================
    6. HABILIDADES Y COMPETENCIAS (APARTADO B)
    ========================================= */
-
-.filaHabilidadesCompetencias {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-.panelHabilidades {
-  flex: 6.2;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  background: var(--pj-fondo-cabecera-gradiente);
-}
-
-.gridHabilidadesDobleColumna {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 8px;
-}
-
-.itemHabilidad {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  min-height: 30px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-sutil);
-}
-
-.itemHabilidad:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-acento);
-}
-
-.infoHabilidadIzquierda {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
 .nombreHabilidad {
   font-size: var(--pj-fuente-cuerpo);
@@ -1662,137 +1390,7 @@
   color: var(--pj-texto-primario-suave);
 }
 
-.caracAbrevHabilidad {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-terciario);
-  text-transform: uppercase;
-}
-
-.selectorCaracteristicaHabilidad {
-  width: 56px;
-  flex: 0 0 56px;
-  min-width: 0;
-}
-
-@media (max-width: 599px) {
-  .filaHabilidadesCompetencias { flex-direction: column; }
-  .panelHabilidades, .panelCompetencias { min-width: 0; }
-  .gridHabilidadesDobleColumna { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .itemHabilidad { min-width: 0; gap: 4px; }
-  .infoHabilidadIzquierda { min-width: 0; flex-wrap: wrap; gap: 4px; }
-}
-
-.valorBonoHabilidad {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-secundario);
-}
-
-.valorBonoHabilidadDestacado {
-  color: var(--pj-texto-acento);
-  font-weight: 800;
-}
-
-.botonToggleHabilidad {
-  background: transparent;
-  border: none;
-  padding: 3px;
-  margin: -3px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--pj-radio-control);
-  outline: none;
-  flex-shrink: 0;
-}
-
-.botonToggleHabilidad:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-}
-
 /* Indicador de 4 Estados de Grado de Habilidad */
-.puntoGradoHabilidad {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  border: 1.5px solid var(--pj-borde-medio);
-  background-color: var(--pj-fondo-hundido);
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  outline: none;
-}
-
-.puntoGradoVacio {
-  border-color: var(--pj-borde-sutil);
-  background-color: var(--pj-fondo-hundido);
-}
-
-.puntoGradoMedio {
-  border-color: var(--pj-borde-acento-luminoso);
-  background: linear-gradient(90deg, var(--pj-acento-primario-solido) 50%, var(--pj-fondo-panel) 50%);
-}
-
-.puntoGradoCompetente {
-  border-color: var(--pj-acento-primario);
-  background-color: var(--pj-acento-primario-solido);
-}
-
-.puntoGradoPericia {
-  border-color: var(--pj-texto-cian);
-  background-color: var(--pj-texto-cian);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.panelCompetencias {
-  flex: 3.8;
-  padding: 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--pj-fondo-cabecera-gradiente);
-}
-
-.grupoCompetenciaItem {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.tituloGrupoCompetencia {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.cajaTextoCompetencia {
-  padding: 6px 8px;
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-secundario-claro);
-  line-height: 1.35;
-  min-height: 28px;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-sutil);
-}
-
-.cajaTextoCompetenciaInteractiva {
-  cursor: pointer;
-  user-select: none;
-}
-
-.cajaTextoCompetenciaInteractiva:hover {
-  border-color: var(--pj-borde-cian);
-  background-color: var(--pj-acento-cian-fondo);
-  color: var(--pj-texto-primario);
-}
 
 /* ==========================================
    7. GESTOR DE PERSONAJES (GALERÍA)
@@ -1863,7 +1461,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 8px 0;
+  padding: 8px 0 84px;
 }
 
 .inputArchivoOculto {
@@ -2221,152 +1819,6 @@
   gap: 8px;
 }
 
-.indicadorMiniaturaTablero {
-  height: 38px;
-  font-size: var(--pj-fuente-label);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 10px;
-  border-radius: 4px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-terciario);
-}
-
-.indicadorMiniaturaTablero[data-detectada="true"] {
-  background-color: var(--pj-acento-exito-fondo);
-  border-color: var(--pj-borde-exito);
-  color: var(--pj-texto-exito);
-}
-
-.puntoMiniaturaTablero {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--pj-acento-primario-solido);
-  flex-shrink: 0;
-}
-
-.puntoMiniaturaTablero[data-detectada="true"] {
-  background-color: var(--pj-acento-exito-oscuro);
-}
-
-.filaAvatarEdicion {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.avatarEdicionImg {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
-  border: 1px solid var(--pj-borde-acento);
-}
-
-.inputAvatarEdicion {
-  flex-grow: 1;
-}
-
-.textoInstruccionAtributos {
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-secundario-claro);
-  margin: 0;
-}
-
-.gridAtributosEdicion {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.tarjetaAtributoEdicion {
-  padding: 10px;
-  border-radius: var(--pj-radio-control);
-}
-
-.etiquetaAtributoEdicion {
-  font-size: var(--pj-fuente-label);
-  font-weight: 700;
-  color: var(--pj-texto-acento);
-}
-
-.filaInputsAtributoEdicion {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.columnaInputAtributo {
-  flex: 1;
-}
-
-.labelMicroAtributo {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  display: block;
-}
-
-.inputAtributoNumerico {
-  width: 100%;
-  padding: 4px 8px;
-  box-sizing: border-box;
-}
-
-.gridSalvacionesEdicion {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.labelCheckboxSalvacion {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: var(--pj-radio-control);
-  cursor: pointer;
-  font-size: var(--pj-fuente-label);
-}
-
-.gridHabilidadesEdicion {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 2px;
-  max-height: 240px;
-  overflow-y: auto;
-}
-
-.columnaHabilidadEdicion {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.nombreHabilidadEdicion {
-  font-size: var(--pj-fuente-subtitulo);
-  color: var(--pj-texto-secundario-claro);
-}
-
-.botonGuardarEdicionPj {
-  background-color: var(--pj-acento-primario-solido);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-acento);
-}
-
-.botonGuardarEdicionPj:hover {
-  background-color: var(--pj-acento-primario-solido);
-}
-
-.iconoGuardarMargen {
-  margin-right: 4px;
-}
-
 /* ==========================================
    5. PANEL DE INVENTARIO Y EQUIPO (APARTADO E)
    ========================================= */
@@ -2378,12 +1830,6 @@
 }
 
 /* --- SECCIÓN 1: BOLSA DE MONEDAS --- */
-.contenedorMonedas {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 
 .cabeceraMonedas {
   display: flex;
@@ -2475,12 +1921,6 @@
 }
 
 /* --- SECCIÓN 2: CAPACIDAD DE CARGA --- */
-.contenedorCarga {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
 
 .cabeceraCarga {
   display: flex;
@@ -2569,12 +2009,6 @@
 }
 
 /* --- SECCIÓN 3: SINTONIZACIÓN --- */
-.contenedorSintonizacion {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 
 .cabeceraSintonizacion {
   display: flex;
@@ -2913,15 +2347,6 @@
   flex: 1;
 }
 
-.nombreObjeto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-primario);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .nombreObjetoClickable {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
@@ -2968,24 +2393,6 @@
   letter-spacing: 0.3px;
   padding: 1px 5px;
   border-radius: 3px;
-}
-
-.badgeTipoArma {
-  background-color: var(--pj-acento-peligro-fondo);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta);
-}
-
-.badgeTipoArmadura {
-  background-color: var(--pj-acento-primario-fondo);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-acento);
-}
-
-.badgeTipoEquipo {
-  background-color: var(--pj-acento-primario-fondo);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-secundario-claro);
 }
 
 .badgeBonoMagico {
@@ -3304,38 +2711,6 @@
 }
 
 /* --- SECCIÓN 6: BOTONES DE AGREGAR --- */
-.filaBotonesAgregar {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.botonAgregarPrincipal {
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta) 100%);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-primario);
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  transition: none;
-}
-
-.botonAgregarPrincipal:hover {
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-hover) 0%, var(--pj-fondo-tarjeta-hover) 100%);
-  border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-primario);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
 
 /* --- MODAL AGREGAR OBJETO --- */
 .tabsModalAgregar {
@@ -3392,11 +2767,11 @@
 /* --- SUB-PESTAÑAS DE HOJA PERSONAJE (GENERAL VS CONJUROS) --- */
 .barraSubPestanas {
   display: flex;
-  gap: 6px;
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-acento);
+  gap: 4px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
-  padding: 4px;
+  padding: 3px;
 }
 
 .botonSubPestana {
@@ -3407,12 +2782,15 @@
   gap: 6px;
   background-color: transparent;
   border: 1px solid transparent;
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-acento);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
+  border-radius: 4px;
+  color: var(--pj-texto-secundario);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   padding: 6px 12px;
   cursor: pointer;
+  user-select: none;
   transition: none;
 }
 
@@ -3423,7 +2801,7 @@
 
 .botonSubPestanaActivo {
   background-color: var(--pj-fondo-tarjeta-elevada);
-  border-color: var(--pj-borde-acento);
+  border-color: var(--pj-borde-acento-fuerte);
   color: var(--pj-texto-primario);
 }
 
@@ -3560,24 +2938,6 @@
   box-shadow: var(--pj-sombra-tarjeta);
   backdrop-filter: none;
   animation: none;
-}
-
-.dockMovilizacionRapida {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 6px 8px;
-  background: var(--pj-fondo-panel);
-  border: 1px dashed var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  margin-bottom: 4px;
-  transition: none;
-}
-
-.dockMovilizacionActivo {
-  border-color: var(--pj-borde-cian);
-  background: var(--pj-fondo-tarjeta-elevada);
-  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .tituloDockMovilizacion {
@@ -4072,12 +3432,6 @@
   resize: none;
 }
 
-.filaBadgesColumna {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
 /* Colores de cabecera de contenedores especiales por data-caja */
 .tituloGrupoInventario[data-caja="mochila"] {
   color: var(--pj-texto-oro);
@@ -4139,49 +3493,8 @@
   cursor: pointer;
 }
 
-.cabeceraAtributo {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  justify-content: center;
-}
-
-.badgePuntuacionBase[data-bono="true"] {
-  border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-cian);
-}
-
-.iconoInlineSalvacion {
-  margin-left: 3px;
-  vertical-align: middle;
-}
-
 .iconoDescanso {
   margin-right: 2px;
-}
-
-.cabeceraCondicionesActivas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 4px;
-}
-
-.textoRondaActual {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-terciario);
-  font-weight: 700;
-}
-
-.tituloGrupoCompetencia {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.iconoInlineHabilidad {
-  margin-left: 2px;
 }
 
 /* Clases para PanelVitalidadPersonaje */
@@ -4194,27 +3507,10 @@
   opacity: 0.6;
 }
 
-.inputTempFull {
-  width: 100%;
-  height: 100%;
-  font-size: var(--pj-fuente-titulo-grande);
-}
-
 .filaDadosGolpeValores {
   display: flex;
   align-items: center;
   gap: 2px;
-}
-
-.textoDadosGolpeTotal {
-  font-size: var(--pj-fuente-label);
-  opacity: 0.7;
-}
-
-.botonGastarDado {
-  padding: 2px 6px;
-  font-size: var(--pj-fuente-boton);
-  min-height: 24px;
 }
 
 .botonReiniciarSalvaciones {
@@ -4225,24 +3521,65 @@
   padding: 0;
 }
 
-.grupoIconosMuerte {
-  display: flex;
-  gap: 3px;
+
+
+
+
+
+/* Composición de la hoja: superficies sobrias, controles independientes y ancho CEF. */
+.contenedorPrincipal .neoRaised, .contenedorPrincipal .neoPressed {
+  box-shadow: none;
+  background-image: none;
+}
+.contenedorPrincipal .neoRaised {
+  background-color: var(--pj-fondo-tarjeta);
+}
+.contenedorPrincipal .neoPressed {
+  background-color: var(--pj-fondo-hundido);
+}
+.contenedorPrincipal .tarjetaMetrica {
+  background: var(--pj-fondo-tarjeta);
+}
+.contenedorPrincipal .seccionVitalidad {
+  padding: 10px;
+  border-radius: var(--pj-radio-control);
+}
+.contenedorPrincipal :is(button, input) {
+  min-height: 32px;
+}
+.contenedorPrincipal button {
+  min-width: 32px;
+}
+.contenedorPrincipal :is(button, input):focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .filaMetricasRapidas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .contenedorPrincipal .filaSaludPrincipal {
+    flex-direction: column;
+  }
+  .contenedorPrincipal .filaRecursosSalud {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "dados" "muerte" "cansancio";
+  }
+  .contenedorPrincipal .cajaHpTemporal {
+    width: auto;
+  }
 }
 
-.separadorMuerte {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  margin: 0 2px;
+.contenedorPrincipal .seccionBarraTactica {
+  flex-direction: column;
 }
-
-.filaPuntosCansancio {
-  display: grid;
-  grid-template-columns: repeat(3, 32px);
-  gap: 4px;
+.contenedorPrincipal .columnaCondicionesActivas {
+  min-height: 0;
+  background: transparent;
+  padding: 4px 0 0;
+  border: 0;
+  border-top: 1px solid var(--pj-borde-sutil);
 }
-
-
-
-
-
+.contenedorPrincipal .filaDescansosVentaja {
+  flex-wrap: wrap;
+}

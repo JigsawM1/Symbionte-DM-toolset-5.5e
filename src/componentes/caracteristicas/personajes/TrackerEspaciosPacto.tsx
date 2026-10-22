@@ -10,7 +10,6 @@ interface TrackerEspaciosPactoProps {
   nivelEspacioPacto: number;
   alGastarEspacioPacto?: () => void;
   alRecuperarEspaciosPacto?: () => void;
-  mostrarBotonRecuperar?: boolean;
   soloLectura?: boolean;
 }
 
@@ -20,7 +19,6 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
   nivelEspacioPacto,
   alGastarEspacioPacto,
   alRecuperarEspaciosPacto,
-  mostrarBotonRecuperar = false,
   soloLectura = false
 }) => {
   if (espaciosPactoMaximos <= 0) {
@@ -46,9 +44,6 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
       titulo="Magia de Pacto"
       iconoColor="var(--pj-texto-magia)"
       grupos={grupos}
-      alRestablecerTodos={alRecuperarEspaciosPacto}
-      etiquetaRestablecer="Descanso Corto"
-      mostrarBotonRestablecer={mostrarBotonRecuperar}
       soloLectura={soloLectura}
       modoGrid={false}
       colorBordeContenedor="var(--pj-borde-magia)"

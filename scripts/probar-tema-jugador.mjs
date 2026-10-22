@@ -3,8 +3,10 @@ import fs from 'node:fs';
 import { createServer } from 'vite';
 import puppeteer from 'puppeteer-core';
 import { html as base } from './fixture-tema-jugador.mjs';
+import { prepararPruebaHoja, probarHojaPersonaje } from './probar-hoja-personaje.mjs';
 fs.mkdirSync('scratch',{recursive:true});
 const html=base.replace('window.listo=true;',`window.listo=true;
+${prepararPruebaHoja}
 window.actualizarPrueba=cambios=>usarAlmacenDM.setState(cambios);
 window.leerPrueba=()=>{const s=usarAlmacenDM.getState();return {personaje:s.personajes[0],cola:s.colaIniciativa};};
 window.probarRanuras=()=>raiz.render(React.createElement('div',{'data-tema':'jugador'},React.createElement(React.Suspense,{fallback:'Cargando'},React.createElement(React.lazy(()=>import('/src/componentes/caracteristicas/personajes/TrackerEspaciosPacto.tsx').then(m=>({default:m.TrackerEspaciosPacto}))),{espaciosPactoMaximos:2,espaciosPactoGastados:1,nivelEspacioPacto:3,alGastarEspacioPacto:()=>window.gastos=(window.gastos||0)+1,alRecuperarEspaciosPacto:()=>window.recuperaciones=(window.recuperaciones||0)+1}))));
@@ -17,6 +19,7 @@ const resultados={vistas:[],regresiones:[],errores:[]};
 try{
  await servidor.listen();navegador=await puppeteer.launch({executablePath:ejecutable,headless:true});
  const pagina=await navegador.newPage();pagina.on('pageerror',e=>resultados.errores.push(e.message));
+ pagina.on('console',mensaje=>{if(mensaje.type()==='error')console.error(mensaje.text());});
  await pagina.setViewport({width:599,height:760});await pagina.goto('http://127.0.0.1:'+servidor.httpServer.address().port+'/__revision');await pagina.waitForFunction(()=>window.listo);
  const referenciaDM=await pagina.evaluate(()=>window.probarDM());
  const analizar=()=>pagina.evaluate(()=>{
@@ -36,6 +39,7 @@ try{
   const botones=await pagina.$$('button');let cantidad=0;
   for(const boton of botones){if(cantidad>=12)break;const r=await boton.boundingBox();if(!r||r.y<0||r.y+r.height>760)continue;await boton.hover();const estado=await analizar();if(estado.contrasteBajo.length)resultados.vistas.push({vista,estado:'hover',boton:await boton.evaluate(el=>el.textContent||el.title),...estado});cantidad++;}
  }
+ await probarHojaPersonaje(pagina, analizar, resultados);
  for(const vista of ['caracteristicas','acciones','conjuros','rasgos','inventario','iniciativa','notas']){
   await pagina.evaluate(v=>window.mostrar(v),vista);await new Promise(r=>setTimeout(r,150));
   const controles=await pagina.$$('main button:not(:disabled),main input,main textarea,main [class*="tarjetaCriatura"]');
@@ -122,4 +126,10 @@ try{
   const posesion=resultados.regresiones.find(r=>r.caso==='Añadir otras posesiones tras desplazar el formulario');assert(posesion.visible&&posesion.recibeClic&&posesion.objeto==='Llave de prueba'&&posesion.cierra);
  }
  console.log(JSON.stringify({vistas:resultados.vistas.filter(v=>v.contrasteBajo.length||v.fuentesPequenas.length||v.desbordes.length),regresiones:resultados.regresiones,errores:resultados.errores},null,2));
+}catch(error){
+ const diagnostico=await navegador?.pages().then(async paginas=>paginas.at(-1).evaluate(()=>({
+  personaje:window.estadoHoja?.(),entradas:[...document.querySelectorAll('input')].map(e=>({etiqueta:e.getAttribute('aria-label'),valor:e.value})),texto:document.body.innerText
+ })));
+ fs.writeFileSync('scratch/error-hoja-jugador.json',JSON.stringify({diagnostico,errores:resultados.errores},null,2));
+ const paginas=await navegador?.pages();await paginas?.at(-1)?.screenshot({path:'scratch/error-hoja-jugador.png'});throw error;
 }finally{await navegador?.close();await servidor.close();}

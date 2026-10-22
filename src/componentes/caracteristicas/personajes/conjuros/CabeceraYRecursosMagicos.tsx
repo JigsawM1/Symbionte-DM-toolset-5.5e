@@ -1,6 +1,6 @@
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
-import { Zap, BookOpen, AlertTriangle } from "lucide-react";
+import { BookOpen, AlertTriangle } from "lucide-react";
 import { TarjetasMetricasMagia } from "../TarjetasMetricasMagia";
 import { TrackerEspaciosConjuro } from "../TrackerEspaciosConjuro";
 import { TrackerEspaciosPacto } from "../TrackerEspaciosPacto";
@@ -14,6 +14,7 @@ export type { CabeceraYRecursosMagicosProps };
 
 export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> = ({
   personaje,
+  alRomperConcentracion,
   baseDatosHechizos,
   sistemaMagia,
   penalizacionArmadura,
@@ -32,10 +33,8 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   nivelesArcanoDisponibles,
   alGastarEspacio,
   alRecuperarEspacio,
-  alRecuperarTodosEspacios,
   alGastarPuntos,
   alRecuperarPuntos,
-  alRecuperarTodosPuntos,
   alGastarEspacioPacto,
   alRecuperarEspaciosPacto,
   asignarArcanoMistico,
@@ -66,51 +65,28 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
         </div>
       )}
 
-      {/* Tarjetas de Estadísticas Mágicas */}
       <div className={estilos.gridEstadisticas}>
         <div className={estilos.tarjetaEstadistica}>
-          <span className={estilos.estadisticaEtiqueta}>Habilidad</span>
-          <div className={estilos.estadisticaFilaValor}>
-            <span className={estilos.estadisticaHabilidad}>{etiquetaHabilidad}</span>
-            <span className={estilos.estadisticaModificador}>
-              {modHabilidad >= 0 ? `+${modHabilidad}` : modHabilidad}
-            </span>
-          </div>
+          <span className={estilos.estadisticaEtiqueta}>CD salvación</span>
+          <strong className={estilos.estadisticaNumeroMono}>{cdConjuros}</strong>
         </div>
-
+        <button type="button" onClick={manejarTiradaAtaqueMagico} disabled={estaBloqueadoPorArmadura}
+          title={estaBloqueadoPorArmadura ? motivoBloqueoArmadura : "Tirar ataque mágico en TaleSpire"}
+          className={`${estilos.tarjetaAtaqueMagico} ${estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""}`}>
+          <span className={estilos.estadisticaEtiqueta}>Ataque conjuro</span>
+          <strong className={estilos.estadisticaNumeroMorado}>{bonoAtaqueMagico >= 0 ? "+" : ""}{bonoAtaqueMagico}</strong>
+        </button>
         <div className={estilos.tarjetaEstadistica}>
-          <span className={estilos.estadisticaEtiqueta}>CD Salvación</span>
-          <span className={estilos.estadisticaNumeroMono}>{cdConjuros}</span>
+          <span className={estilos.estadisticaEtiqueta}>{etiquetaHabilidad}</span>
+          <strong className={estilos.estadisticaNumeroMono}>{modHabilidad >= 0 ? "+" : ""}{modHabilidad}</strong>
         </div>
-
-        <div
-          onClick={manejarTiradaAtaqueMagico}
-          title={
-            estaBloqueadoPorArmadura
-              ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
-              : "Haz clic para tirar Ataque Mágico en TaleSpire"
-          }
-          className={`${estilos.tarjetaAtaqueMagico} ${
-            estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""
-          }`}
-        >
-          <div className={estilos.cabeceraAtaqueMagicoFila}>
-            {estaBloqueadoPorArmadura ? (
-              <AlertTriangle size={11} color="var(--pj-texto-alerta)" />
-            ) : (
-              <Zap size={11} color="var(--pj-texto-magia)" />
-            )}
-            <span
-              className={estaBloqueadoPorArmadura ? estilos.etiquetaAtaqueMagicoBloqueado : estilos.estadisticaEtiquetaMorada}
-            >
-              Ataque Mágico
-            </span>
-          </div>
-          <span
-            className={estaBloqueadoPorArmadura ? estilos.valorAtaqueMagicoBloqueado : estilos.estadisticaNumeroMorado}
-          >
-            {bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : bonoAtaqueMagico}
-          </span>
+        <div className={estilos.tarjetaConcentracion}>
+          <span className={estilos.estadisticaEtiqueta}>Concentración</span>
+          <strong className={estilos.estadoConcentracion}>{personaje.concentracionActiva ? "Activa" : "Inactiva"}</strong>
+          {personaje.concentracionActiva && <>
+            <span className={estilos.nombreConcentracion}>{personaje.concentracionActiva.nombreHechizo}</span>
+            <button type="button" className={estilos.botonRomperConcentracion} onClick={alRomperConcentracion}>Romper</button>
+          </>}
         </div>
       </div>
 
@@ -148,7 +124,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
               nivelMaximo={personaje.nivelConjuroMaximo || 0}
               alGastarPuntos={alGastarPuntos}
               alRecuperarPuntos={alRecuperarPuntos}
-              alRecuperarTodosPuntos={alRecuperarTodosPuntos}
             />
           ) : (
             <TrackerEspaciosConjuro
@@ -156,7 +131,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
               espaciosGastados={personaje.espaciosConjuroGastados || {}}
               alGastarEspacio={alGastarEspacio}
               alRecuperarEspacio={alRecuperarEspacio}
-              alRecuperarTodosEspacios={alRecuperarTodosEspacios}
             />
           ))}
 

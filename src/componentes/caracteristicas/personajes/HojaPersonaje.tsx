@@ -4,9 +4,9 @@ import { BarraTacticaPersonaje } from "./BarraTacticaPersonaje";
 import { MetricasRapidasPersonaje } from "./MetricasRapidasPersonaje";
 import { PanelVitalidadPersonaje } from "./PanelVitalidadPersonaje";
 import { PanelAtributosPersonaje } from "./PanelAtributosPersonaje";
-import { PanelHabilidadesPersonaje } from "./PanelHabilidadesPersonaje";
+import { PanelCompetenciasPersonaje } from "./PanelCompetenciasPersonaje";
+import { SentidosPasivosPersonaje } from "./SentidosPasivosPersonaje";
 import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
-import { ModalEditarPersonaje } from "./ModalEditarPersonaje";
 import { ModalSelectorCompetencias } from "./ModalSelectorCompetencias";
 import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import { BotonSubPestana } from "./BotonSubPestana";
@@ -15,7 +15,7 @@ import { Swords, Sparkles } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 interface HojaPersonajeProps {
-  alAbrirConfiguracion?: () => void;
+  alAbrirConfiguracion: () => void;
 }
 
 export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguracion }) => {
@@ -26,8 +26,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     baseDatosHechizos,
     rondaActual,
     modoTirada,
-    modalEdicionAbierto,
-    setModalEdicionAbierto,
     modalCompetencias,
     setModalCompetencias,
     modalDescanso,
@@ -41,8 +39,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     quitarCondicionPersonaje,
     quitarEfectoPersonaje,
     romperConcentracion,
-    vincularMiniaturaTSPersonaje,
-    manejarAbrirEdicion,
     manejarCambioModoTirada,
     manejarDescansoCorto,
     manejarDescansoLargo,
@@ -65,18 +61,15 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     alCiclarGradoHabilidad,
     alGastarEspacio,
     alRecuperarEspacio,
-    alRecuperarTodosEspacios,
     alGastarPuntos,
     alRecuperarPuntos,
-    alRecuperarTodosPuntos,
     alGastarEspacioPacto,
     alRecuperarEspaciosPacto,
-    alEstablecerConcentracion,
     alRomperConcentracion,
     alQuitarTruco,
     alQuitarConjuro,
     alAlternarPreparado
-  } = usarHojaPersonaje(alAbrirConfiguracion);
+  } = usarHojaPersonaje();
 
   if (!personajeActivo || !statsCalculadas) {
     return (
@@ -95,54 +88,55 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       {/* 1. Cabecera e Identidad (Apartado A) */}
       <CabeceraPersonaje
         personaje={personajeActivo}
-        alAbrirModalEdicion={manejarAbrirEdicion}
-        alVincularMiniaturaTS={(idMini) => vincularMiniaturaTSPersonaje(personajeActivo.id, idMini)}
+        alAbrirModalEdicion={alAbrirConfiguracion}
       />
 
-      {/* 2. Barra Táctica: Descansos, Ventaja/Desventaja y Condiciones */}
-      <BarraTacticaPersonaje
-        modoTirada={modoTirada}
-        condicionesActivas={personajeActivo.condicionesActivas || []}
-        efectosActivos={personajeActivo.efectosActivos || []}
-        rondaActual={rondaActual}
-        hpActual={personajeActivo.hpActual}
-        hpMaximo={personajeActivo.hpMaximo || personajeActivo.hpMaximoBase || 10}
-        penalizacionArmadura={statsCalculadas.penalizacionArmadura}
-        desventajaSigiloArmadura={statsCalculadas.desventajaSigiloArmadura}
-        concentracionActiva={personajeActivo.concentracionActiva}
-        alCambiarModoTirada={manejarCambioModoTirada}
-        alEjecutarDescansoCorto={manejarDescansoCorto}
-        alEjecutarDescansoLargo={manejarDescansoLargo}
-        alAplicarCondicion={(cond) => aplicarCondicionPersonaje(personajeActivo.id, cond)}
-        alQuitarCondicion={(cond) => quitarCondicionPersonaje(personajeActivo.id, cond)}
-        alQuitarEfecto={(idEfecto) => quitarEfectoPersonaje(personajeActivo.id, idEfecto)}
-        alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
-      />
+              {/* 2. Barra Táctica: Descansos, Ventaja/Desventaja y Condiciones */}
+        <BarraTacticaPersonaje
+          modoTirada={modoTirada}
+          condicionesActivas={personajeActivo.condicionesActivas || []}
+          efectosActivos={personajeActivo.efectosActivos || []}
+          rondaActual={rondaActual}
+          hpActual={personajeActivo.hpActual}
+          hpMaximo={personajeActivo.hpMaximo || personajeActivo.hpMaximoBase || 10}
+          penalizacionArmadura={statsCalculadas.penalizacionArmadura}
+          desventajaSigiloArmadura={statsCalculadas.desventajaSigiloArmadura}
+          concentracionActiva={personajeActivo.concentracionActiva}
+          alCambiarModoTirada={manejarCambioModoTirada}
+          alEjecutarDescansoCorto={manejarDescansoCorto}
+          alEjecutarDescansoLargo={manejarDescansoLargo}
+          alAplicarCondicion={(cond) => aplicarCondicionPersonaje(personajeActivo.id, cond)}
+          alQuitarCondicion={(cond) => quitarCondicionPersonaje(personajeActivo.id, cond)}
+          alQuitarEfecto={(idEfecto) => quitarEfectoPersonaje(personajeActivo.id, idEfecto)}
+          alRomperConcentracion={() => romperConcentracion(personajeActivo.id)}
+        />
 
-      {/* 3. Métricas Rápidas: CA, Iniciativa, Velocidad, PB, Inspiración */}
-      <MetricasRapidasPersonaje
-        personaje={personajeActivo}
-        bonoCompetencia={statsCalculadas.bonoCompetencia}
-        modDestreza={statsCalculadas.modificadores.destreza}
-        claseArmadura={statsCalculadas.claseArmadura}
-        penalizacionArmadura={statsCalculadas.penalizacionArmadura}
-        bonoVelocidad={statsCalculadas.bonoVelocidadRasgos}
-        alTirarIniciativa={manejarTirarIniciativa}
-        alAlternarInspiracion={() => alternarInspiracionPersonaje(personajeActivo.id)}
-      />
+        {/* 3. Métricas Rápidas: CA, Iniciativa, Velocidad, PB, Inspiración */}
+        <MetricasRapidasPersonaje
+          personaje={personajeActivo}
+          bonoCompetencia={statsCalculadas.bonoCompetencia}
+          modDestreza={statsCalculadas.modificadores.destreza}
+          claseArmadura={statsCalculadas.claseArmadura}
+          penalizacionArmadura={statsCalculadas.penalizacionArmadura}
+          bonoVelocidad={statsCalculadas.bonoVelocidadRasgos}
+          alTirarIniciativa={manejarTirarIniciativa}
+          alAlternarInspiracion={() => alternarInspiracionPersonaje(personajeActivo.id)}
+        />
+
+        <SentidosPasivosPersonaje pasivas={statsCalculadas.pasivas} />
 
       {/* 4. Barra de Sub-Pestañas Internas (General vs Conjuros) */}
       <div className={estilos.barraSubPestanas}>
         <BotonSubPestana
           activa={subPestanaActiva === "general"}
-          etiqueta="Combate y Atributos"
+          etiqueta="COMBATE Y ATRIBUTOS"
           icono={<Swords size={14} color={subPestanaActiva === "general" ? "var(--pj-texto-cian)" : "var(--pj-texto-terciario)"} />}
           alClick={() => setSubPestanaActiva("general")}
         />
 
         <BotonSubPestana
           activa={subPestanaActiva === "conjuros"}
-          etiqueta="Conjuros y Magia"
+          etiqueta="CONJUROS Y MAGIA"
           icono={<Sparkles size={14} color={subPestanaActiva === "conjuros" ? "var(--pj-texto-acento)" : "var(--pj-texto-terciario)"} />}
           badge={totalConjurosYTrucos}
           alClick={() => setSubPestanaActiva("conjuros")}
@@ -154,6 +148,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         <>
           {/* Vitalidad y Supervivencia (Apartado C) */}
           <PanelVitalidadPersonaje
+            key={`vitalidad:${personajeActivo.id}`}
             personaje={personajeActivo}
             alModificarHP={alModificarHP}
             alEstablecerHPActual={alEstablecerHPActual}
@@ -167,8 +162,11 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alTirarSalvacionMuerte3D={manejarTirarSalvacionMuerte3D}
           />
 
-          {/* Características y Sentidos Pasivos (Apartado B) */}
+          {/* Atributos, salvaciones y habilidades agrupadas */}
           <PanelAtributosPersonaje
+            key={`atributos:${personajeActivo.id}`}
+            alTirarHabilidad={manejarTirarHabilidad}
+            alCiclarGradoHabilidad={alCiclarGradoHabilidad}
             personaje={personajeActivo}
             statsCalculadas={statsCalculadas}
             alTirarCaracteristica={manejarTirarCaracteristica}
@@ -177,13 +175,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alModificarCaracteristicaBase={alModificarCaracteristicaBase}
           />
 
-          {/* Habilidades y Competencias (Apartado B) */}
-          <PanelHabilidadesPersonaje
-            key={personajeActivo.id}
+          {/* Competencias de equipo, herramientas e idiomas */}
+          <PanelCompetenciasPersonaje
             personaje={personajeActivo}
             statsCalculadas={statsCalculadas}
-            alTirarHabilidad={manejarTirarHabilidad}
-            alCiclarGradoHabilidad={alCiclarGradoHabilidad}
             alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
           />
         </>
@@ -197,16 +192,13 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           baseDatosHechizos={baseDatosHechizos}
           sistemaMagia={sistemaMagia}
           penalizacionArmadura={statsCalculadas.penalizacionArmadura}
-          alAbrirConfiguracion={manejarAbrirEdicion}
+          alAbrirConfiguracion={alAbrirConfiguracion}
           alGastarEspacio={alGastarEspacio}
           alRecuperarEspacio={alRecuperarEspacio}
-          alRecuperarTodosEspacios={alRecuperarTodosEspacios}
           alGastarPuntos={alGastarPuntos}
           alRecuperarPuntos={alRecuperarPuntos}
-          alRecuperarTodosPuntos={alRecuperarTodosPuntos}
           alGastarEspacioPacto={alGastarEspacioPacto}
           alRecuperarEspaciosPacto={alRecuperarEspaciosPacto}
-          alEstablecerConcentracion={alEstablecerConcentracion}
           alRomperConcentracion={alRomperConcentracion}
           alQuitarTruco={alQuitarTruco}
           alQuitarConjuro={alQuitarConjuro}
@@ -232,11 +224,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           }}
           alCerrar={() => setModalCompetencias(null)}
         />
-      )}
-
-      {/* Modal de Configuración Base Fallback */}
-      {modalEdicionAbierto && (
-        <ModalEditarPersonaje personaje={personajeActivo} alGuardar={(cambios) => actualizarPersonaje(personajeActivo.id, cambios)} alCerrar={() => setModalEdicionAbierto(false)} />
       )}
 
       {/* Modal Resumen de Descanso */}

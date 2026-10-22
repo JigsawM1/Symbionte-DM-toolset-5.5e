@@ -1,15 +1,21 @@
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
-import React, { useState } from "react";
-import type { PersonajeJugador, Caracteristica } from "@/tipos";
+import React, { useState, useMemo } from "react";
+import type { PersonajeJugador, Caracteristica, Habilidad } from "@/tipos";
 import { CARACTERISTICAS_CLAVES } from "@/constantes";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { AlertTriangle, Sparkles } from "lucide-react";
-import estilos from "./HojaPersonaje.module.css";
+import { HABILIDADES_LISTA } from "@/constantes/homebrewConstantes";
+import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes/personajeConstantes";
+import { obtenerHabilidadesConFuerzaRasgos } from "@/servicios/rasgos/evaluadorSalvacionesRasgos";
+import { FilaHabilidadPersonaje } from "./FilaHabilidadPersonaje";
+import estilos from "./AtributosPersonaje.module.css";
 
 interface PanelAtributosPersonajeProps {
   personaje: PersonajeJugador;
   statsCalculadas: EstadisticasCalculadasPersonaje;
+  alTirarHabilidad: (hab: Habilidad, nombre: string, bono: number, caracteristica?: Caracteristica) => void;
+  alCiclarGradoHabilidad: (hab: Habilidad) => void;
   alTirarCaracteristica: (carac: Caracteristica, nombre: string, bono: number) => void;
   alTirarSalvacion: (carac: Caracteristica, nombre: string, bono: number) => void;
   alAlternarSalvacion: (carac: Caracteristica) => void;
@@ -19,21 +25,39 @@ interface PanelAtributosPersonajeProps {
 const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> = ({
   personaje,
   statsCalculadas,
+  alTirarHabilidad,
+  alCiclarGradoHabilidad,
   alTirarCaracteristica,
   alTirarSalvacion,
   alAlternarSalvacion,
   alModificarCaracteristicaBase
 }) => {
-  const { modificadores, salvaciones, pasivas } = statsCalculadas;
+  const { modificadores, salvaciones } = statsCalculadas;
 
   // Estado local para permitir escribir libremente y dejar el campo vacío antes de confirmar
   const [campoEnEdicion, setCampoEnEdicion] = useState<Caracteristica | null>(null);
 
+  const habilidadesConFuerza = useMemo(() => obtenerHabilidadesConFuerzaRasgos(personaje), [personaje]);
+
   const penalizacionSinComp = !!statsCalculadas.penalizacionArmadura?.sinCompetencia;
 
   return (
-    <section className={estilos.filaAtributosSentidos}>
-      {/* Cuadrícula 3x2 de Características */}
+    <section aria-label="Atributos y habilidades" className={estilos.seccionAtributos}>
+      <div className={estilos.encabezadoSeccion}>
+        <h2>ATRIBUTOS Y HABILIDADES</h2>
+        <div className={estilos.leyenda}>
+          <span className={estilos.itemLeyenda}>
+            <span className={`${estilos.dotLeyenda} ${estilos.puntoGradoVacio}`} /> BASE
+          </span>
+          <span className={estilos.itemLeyenda}>
+            <span className={`${estilos.dotLeyenda} ${estilos.puntoGradoCompetente}`} /> COMPETENTE
+          </span>
+          <span className={estilos.itemLeyenda}>
+            <span className={`${estilos.dotLeyenda} ${estilos.puntoGradoPericia}`} /> PERICIA
+          </span>
+        </div>
+      </div>
+
       <div className={estilos.gridAtributos}>
         {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }) => {
           const carac = clave as Caracteristica;
@@ -80,53 +104,56 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
             tooltipAtributo = `Prueba de ${etiqueta} (${modTexto}). VENTAJA por: ${evalCarac.motivosVentaja.join(", ")}. Clic para tirar.`;
           }
 
+          const puntBase = personaje.caracteristicas?.[carac] ?? 10;
+          const puntEfectiva = statsCalculadas.puntuacionesEfectivas?.[carac] ?? puntBase;
+          const tieneBono = puntEfectiva !== puntBase;
+          const diferencia = puntEfectiva - puntBase;
+          const valorMostrar =
+            override !== null && override !== undefined
+              ? override
+              : campoEnEdicion === carac
+              ? puntBase
+              : puntEfectiva;
+
+          const tooltipTexto =
+            override !== null && override !== undefined
+              ? `Override fijo activo: ${override}. Modifica en configuración.`
+              : tieneBono
+              ? `Puntuación efectiva: ${puntEfectiva} (Base: ${puntBase} ${diferencia > 0 ? `+${diferencia}` : `${diferencia}`} por Rasgos). Clic para editar base.`
+              : "Puntuación base. Clic para modificar directamente.";
+
+          const habilidadesAtributo = HABILIDADES_LISTA.filter(
+            ({ clave: c }) => MAPA_HABILIDAD_A_CARACTERISTICA[c as Habilidad] === carac
+          );
+
           return (
             <div
               key={carac}
-              className={`${estilos.neoRaised} ${estilos.tarjetaAtributo}`}
-              onClick={() => alTirarCaracteristica(carac, etiqueta, mod)}
-              title={tooltipAtributo}
+              className={estilos.tarjetaAtributo}
+              data-atributo={carac}
             >
-              <div className={estilos.cabeceraAtributo}>
-                <span className={estilos.nombreAtributo}>{etiqueta}</span>
-                {evalCarac.tieneDesventaja && (
-                  <span title={`Desventaja en pruebas por: ${motivosCarac}`}>
-                    <AlertTriangle size={11} color="var(--pj-texto-oro)" />
-                  </span>
-                )}
-                {evalCarac.tieneVentaja && !evalCarac.tieneDesventaja && (
-                  <span title={`Ventaja en pruebas por: ${motivosCarac}`}>
-                    <Sparkles size={11} color="var(--pj-texto-cian)" />
-                  </span>
-                )}
-              </div>
+              {/* Bloque Izquierdo: Nombre grande (FUE, DES, etc.) y Puntuación debajo */}
+              <div className={estilos.cabeceraAtributoColumna}>
+                <div className={estilos.filaTituloAtributo}>
+                  <h3 className={estilos.nombreAtributo} title={etiqueta}>
+                    {etiqueta.slice(0, 3).toUpperCase()}
+                  </h3>
+                  {evalCarac.tieneDesventaja && (
+                    <span title={`Desventaja en pruebas por: ${motivosCarac}`}>
+                      <AlertTriangle size={11} color="var(--pj-texto-oro)" />
+                    </span>
+                  )}
+                  {evalCarac.tieneVentaja && !evalCarac.tieneDesventaja && (
+                    <span title={`Ventaja en pruebas por: ${motivosCarac}`}>
+                      <Sparkles size={11} color="var(--pj-texto-cian)" />
+                    </span>
+                  )}
+                </div>
 
-              <div className={`${estilos.circuloModificador} ${estilos.neoPressed}`}>
-                <span className={estilos.textoModificador}>{modTexto}</span>
-              </div>
-
-              {/* Input numérico directo sin flechas: muestra puntuación efectiva y permite editar la base */}
-              {(() => {
-                const puntBase = personaje.caracteristicas?.[carac] ?? 10;
-                const puntEfectiva = statsCalculadas.puntuacionesEfectivas?.[carac] ?? puntBase;
-                const tieneBono = puntEfectiva !== puntBase;
-                const diferencia = puntEfectiva - puntBase;
-                const valorMostrar =
-                  override !== null && override !== undefined
-                    ? override
-                    : campoEnEdicion === carac
-                    ? puntBase
-                    : puntEfectiva;
-
-                const tooltipTexto =
-                  override !== null && override !== undefined
-                    ? `Override fijo activo: ${override}. Modifica en configuración.`
-                    : tieneBono
-                    ? `Puntuación efectiva: ${puntEfectiva} (Base: ${puntBase} ${diferencia > 0 ? `+${diferencia}` : `${diferencia}`} por Rasgos). Clic para editar base.`
-                    : "Puntuación base. Clic para modificar directamente.";
-
-                return (
+                <label className={estilos.puntuacion}>
+                  <span>Puntuación</span>
                   <CampoNumerico
+                    aria-label={`Puntuación de ${etiqueta}`}
                     className={estilos.badgePuntuacionBase}
                     data-bono={tieneBono && (override === null || override === undefined)}
                     value={valorMostrar}
@@ -134,24 +161,37 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                     readOnly={override !== null && override !== undefined}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
-                    onFocus={() => {
-                      setCampoEnEdicion(carac);                    }}
+                    onFocus={() => setCampoEnEdicion(carac)}
                     alConfirmar={(valor) => alModificarCaracteristicaBase(carac, valor)}
                     onBlur={() => setCampoEnEdicion(null)}
                     title={tooltipTexto}
-                    identidad={personaje.id} min={1} max={30}
+                    identidad={personaje.id}
+                    min={1}
+                    max={30}
                   />
-                );
-              })()}
+                </label>
+              </div>
+
+              {/* Botón rectangular prominente de modificador a la derecha */}
+              <button
+                type="button"
+                className={`${estilos.circuloModificador} ${mod < 0 ? estilos.modificadorNegativo : ""}`}
+                title={tooltipAtributo}
+                aria-label={`Tirar ${etiqueta} (${modTexto})`}
+                onClick={() => alTirarCaracteristica(carac, etiqueta, mod)}
+              >
+                <span className={estilos.textoModificador}>{modTexto}</span>
+              </button>
 
               {/* Fila de Salvación: Check aislado a la izquierda y Tirada a la derecha */}
               <div
                 className={estilos.filaSalvacionAtributo}
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Botón exclusivo para alternar el check de salvación */}
                 <button
                   type="button"
+                  aria-label={`Competencia en salvación de ${etiqueta}`}
+                  aria-pressed={tieneCompetenciaSalv}
                   className={estilos.botonToggleSalvacion}
                   onClick={(e) => {
                     e.preventDefault();
@@ -172,7 +212,6 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                   />
                 </button>
 
-                {/* Botón exclusivo para la tirada 3D de salvación */}
                 <button
                   type="button"
                   className={`${estilos.botonTextoSalvacion} ${
@@ -192,7 +231,8 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                       : `Tirada de Salvación de ${etiqueta} (${salvTexto}). Clic para tirar en 3D.`
                   }
                 >
-                  {salvTexto} Salv.
+                  <span>SALVACIÓN {etiqueta.slice(0, 3).toUpperCase()}</span>
+                  <strong>{salvTexto}</strong>
                   {evalSalv.tieneDesventaja && (
                     <AlertTriangle size={10} color="var(--pj-texto-oro)" className={estilos.iconoInlineSalvacion} />
                   )}
@@ -201,29 +241,29 @@ const PanelAtributosPersonajeComponent: React.FC<PanelAtributosPersonajeProps> =
                   )}
                 </button>
               </div>
+
+              {/* Habilidades asociadas al atributo */}
+              {habilidadesAtributo.length > 0 ? (
+                habilidadesAtributo.map(({ clave: c, nombre }) => (
+                  <FilaHabilidadPersonaje
+                    key={`${personaje.id}:${c}`}
+                    hab={c as Habilidad}
+                    nombre={nombre}
+                    personaje={personaje}
+                    statsCalculadas={statsCalculadas}
+                    habilidadesConFuerza={habilidadesConFuerza}
+                    alTirarHabilidad={alTirarHabilidad}
+                    alCiclarGradoHabilidad={alCiclarGradoHabilidad}
+                  />
+                ))
+              ) : (
+                <div className={estilos.sinHabilidadesNativas}>
+                  <span>Sin habilidades nativas</span>
+                </div>
+              )}
             </div>
           );
         })}
-      </div>
-
-      {/* Panel Lateral: Sentidos Pasivos con justify-content: center */}
-      <div className={`${estilos.neoRaised} ${estilos.panelSentidosPasivos}`}>
-        <span className={estilos.tituloPanelLateral}>Sentidos Pasivos</span>
-
-        <div className={`${estilos.itemSentidoPasivo} ${estilos.neoPressed}`}>
-          <span className={estilos.valorSentidoPasivo}>{pasivas.percepcion}</span>
-          <span className={estilos.labelSentidoPasivo}>Percepción<br />Pasiva</span>
-        </div>
-
-        <div className={`${estilos.itemSentidoPasivo} ${estilos.neoPressed}`}>
-          <span className={estilos.valorSentidoPasivo}>{pasivas.investigacion}</span>
-          <span className={estilos.labelSentidoPasivo}>Investigación<br />Pasiva</span>
-        </div>
-
-        <div className={`${estilos.itemSentidoPasivo} ${estilos.neoPressed}`}>
-          <span className={estilos.valorSentidoPasivo}>{pasivas.perspicacia}</span>
-          <span className={estilos.labelSentidoPasivo}>Perspicacia<br />Pasiva</span>
-        </div>
       </div>
     </section>
   );

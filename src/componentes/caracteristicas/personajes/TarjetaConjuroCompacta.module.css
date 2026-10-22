@@ -289,3 +289,58 @@
   border-color: var(--pj-borde-oro);
 }
 
+
+/* La carta conserva las alternativas de lanzamiento y deja espacio al nombre. */
+.tarjeta {
+  align-items: flex-start;
+  padding: 10px;
+  background-image: none;
+  min-width: 0;
+}
+.tarjetaPreparada {
+  background: var(--pj-fondo-tarjeta);
+  border-color: var(--pj-borde-medio);
+}
+.ladoIzquierdo {
+  align-items: flex-start;
+}
+.nombreConjuro {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  min-height: 32px;
+}
+.filaTitulo, .filaMetadatos {
+  flex-wrap: wrap;
+}
+.filaMetadatos {
+  line-height: 1.5;
+}
+.ladoDerecho {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 48%;
+}
+.tarjeta button {
+  min-width: 32px;
+  min-height: 32px;
+}
+.tarjeta button:focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .tarjeta {
+    flex-wrap: wrap;
+  }
+  .ladoIzquierdo {
+    flex-basis: 100%;
+  }
+  .ladoDerecho {
+    max-width: 100%;
+    width: 100%;
+  }
+  .columnaAcciones {
+    flex: 1;
+  }
+}

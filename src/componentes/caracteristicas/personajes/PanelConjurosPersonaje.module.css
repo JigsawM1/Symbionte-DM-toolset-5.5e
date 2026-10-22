@@ -1,7 +1,7 @@
 .contenedor {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   padding: 4px 0;
 }
 
@@ -62,7 +62,7 @@
 
 .gridEstadisticas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -70,7 +70,7 @@
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
-  padding: 10px 12px;
+  padding: 10px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,7 +80,7 @@
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-acento);
   border-radius: var(--pj-radio-panel);
-  padding: 10px 12px;
+  padding: 10px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -122,32 +122,6 @@
   font-weight: 700;
   color: var(--pj-texto-label);
   text-transform: uppercase;
-}
-
-.estadisticaEtiquetaMorada {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  color: var(--pj-texto-magia);
-  text-transform: uppercase;
-}
-
-.estadisticaFilaValor {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  margin-top: 2px;
-}
-
-.estadisticaHabilidad {
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
-  color: var(--pj-texto-acento);
-}
-
-.estadisticaModificador {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-cian);
 }
 
 .estadisticaNumeroMono {
@@ -218,12 +192,6 @@
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
-}
-
-.cabeceraNivel {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .cabeceraNivelInteractiva {
@@ -614,25 +582,6 @@
 /* CabeceraYRecursosMagicos */
 .iconoAlertaArmaduraShrink {
   flex-shrink: 0;
-}
-
-.cabeceraAtaqueMagicoFila {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.etiquetaAtaqueMagicoBloqueado {
-  color: var(--pj-texto-alerta);
-  font-size: var(--pj-fuente-label);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.valorAtaqueMagicoBloqueado {
-  color: var(--pj-texto-alerta);
-  font-size: var(--pj-fuente-numero-lg);
-  font-weight: 800;
 }
 
 /* TarjetasMetricasMagia */
@@ -1094,19 +1043,6 @@
   color: var(--pj-texto-cian);
 }
 
-.botonRestablecerPuntos {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-acento);
-  font-size: var(--pj-fuente-boton);
-  padding: 3px 8px;
-  cursor: pointer;
-}
-
 .cabeceraBarraPuntos {
   display: flex;
   justify-content: space-between;
@@ -1233,4 +1169,80 @@
 
 .valorCosteResaltado {
   color: var(--pj-texto-cian);
+}
+
+.tarjetaConcentracion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 10px 6px;
+  min-width: 0;
+  text-align: center;
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-oro);
+  border-radius: var(--pj-radio-control);
+}
+.estadoConcentracion {
+  color: var(--pj-texto-oro);
+  font-size: 12px;
+}
+.nombreConcentracion {
+  color: var(--pj-texto-secundario);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.contenedor .gridEstadisticas > * {
+  min-width: 0;
+  gap: 6px;
+  justify-content: center;
+  border-radius: var(--pj-radio-control);
+}
+.contenedor .estadisticaEtiqueta {
+  font-size: 11px;
+  text-align: center;
+}
+.contenedor .gridMetricasMagiaLibres {
+  gap: 8px;
+}
+.contenedor .numeroMetricaMagia {
+  font-size: 14px;
+}
+.contenedor .contenedorTrackers {
+  gap: 8px;
+}
+.contenedor :is(button, input) {
+  min-height: 32px;
+}
+.contenedor button {
+  min-width: 32px;
+}
+.contenedor :is(button, input):focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+@media (max-width: 480px) {
+  .contenedor .gridEstadisticas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.contenedor .tarjetaMetricaMagiaItem {
+  background: transparent;
+  border: 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  justify-content: center;
+  text-align: center;
+  padding: 2px 0;
+}
+.contenedor .filaValorMetricaMagia {
+  margin: 0;
+}
+.contenedor .subtextoMetricaMagia {
+  flex-basis: 100%;
+  font-weight: 400;
+  color: var(--pj-texto-terciario);
 }

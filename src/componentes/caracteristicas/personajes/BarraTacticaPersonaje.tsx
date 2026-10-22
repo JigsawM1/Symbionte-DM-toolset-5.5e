@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { SelectorSugerencias, ChipCondicion } from "@/componentes/comunes";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { ConcentracionActiva, EfectoActivoPj } from "@/tipos";
 import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
-import { Moon, Sunrise } from "lucide-react";
+import { Moon, Sunrise, Clock, Plus } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 
 export type ModoTirada = "disv" | "plano" | "vent";
@@ -28,6 +28,11 @@ interface BarraTacticaPersonajeProps {
   alRomperConcentracion?: () => void;
 }
 
+const SUGERENCIAS_CONDICIONES_ESTATICAS = [
+  ...CONDICIONES_2024.map((c) => c.nombre),
+  ...EFECTOS_PREDEFINIDOS.map((e) => e.nombre)
+];
+
 const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   modoTirada,
   condicionesActivas,
@@ -48,11 +53,6 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
 }) => {
   const [condicionSeleccionada, setCondicionSeleccionada] = useState("");
 
-  const sugerenciasCondiciones = useMemo(() => [
-    ...CONDICIONES_2024.map((c) => c.nombre),
-    ...EFECTOS_PREDEFINIDOS.map((e) => e.nombre)
-  ], []);
-
   // Estados automáticos derivados del personaje
   const estaDesangrandose = hpActual > 0 && hpActual < hpMaximo / 2;
   const tienePenalizacionArmadura = Boolean(penalizacionArmadura?.sinCompetencia);
@@ -67,13 +67,12 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
     return true;
   });
 
-  const nombresEfectosSet = new Set<string>();
-  efectosFiltrados.forEach((ef) => {
-    const efMin = ef.nombre.toLowerCase().trim();
-    const efBase = ef.nombre.split(" (")[0].toLowerCase().trim();
-    nombresEfectosSet.add(efMin);
-    nombresEfectosSet.add(efBase);
-  });
+  const nombresEfectosSet = new Set(
+    efectosFiltrados.flatMap((ef) => [
+      ef.nombre.toLowerCase().trim(),
+      ef.nombre.split(" (")[0].toLowerCase().trim()
+    ])
+  );
 
   // Filtrar condiciones manuales para evitar duplicar las automáticas, concentración o efectos activos
   const condicionesManuales = condicionesActivas.filter((cond) => {
@@ -95,70 +94,82 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
     tieneConcentracion ||
     efectosFiltrados.length > 0;
 
+  const manejarAgregarManual = () => {
+    if (!condicionSeleccionada.trim()) return;
+    alAplicarCondicion(condicionSeleccionada.trim());
+    setCondicionSeleccionada("");
+  };
+
   return (
     <section className={`${estilos.neoRaised} ${estilos.seccionBarraTactica}`}>
-      {/* Columna Izquierda: Descansos y Modulador de Tiradas */}
-      <div className={estilos.columnaControlesTacticos}>
-        <div className={estilos.filaDescansosVentaja}>
-          {/* Botones de Descanso */}
-          <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
-            <button
-              type="button"
-              className={`${estilos.botonPill} ${estilos.botonPillDescansoCorto}`}
-              onClick={alEjecutarDescansoCorto}
-              title="Descanso Corto (Gastar dados de golpe para curar)"
-            >
-              <Moon size={11} className={estilos.iconoDescanso} />
-              Corto
-            </button>
-            <button
-              type="button"
-              className={`${estilos.botonPill} ${estilos.botonPillDescansoLargo}`}
-              onClick={alEjecutarDescansoLargo}
-              title="Descanso Largo (Restaurar HP, dados y reducir cansancio)"
-            >
-              <Sunrise size={11} className={estilos.iconoDescanso} />
-              Largo
-            </button>
-          </div>
-
-          {/* Selector de Ventaja/Desventaja */}
-          <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
-            <button
-              type="button"
-              className={`${estilos.botonPill} ${estilos.botonPillDisv} ${
-                modoTirada === "disv" ? estilos.botonPillActivoDisv : ""
-              }`}
-              onClick={() => alCambiarModoTirada("disv")}
-              title="Tirar con Desventaja (2d20 menor)"
-            >
-              Disv
-            </button>
-            <button
-              type="button"
-              className={`${estilos.botonPill} ${
-                modoTirada === "plano" ? estilos.botonPillActivoPlano : ""
-              }`}
-              onClick={() => alCambiarModoTirada("plano")}
-              title="Tirada normal plana (1d20)"
-            >
-              Plano
-            </button>
-            <button
-              type="button"
-              className={`${estilos.botonPill} ${estilos.botonPillVent} ${
-                modoTirada === "vent" ? estilos.botonPillActivoVent : ""
-              }`}
-              onClick={() => alCambiarModoTirada("vent")}
-              title="Tirar con Ventaja (2d20 mayor)"
-            >
-              Vent
-            </button>
-          </div>
+      {/* Fila 1: Descansos, Tri-estado Ventaja/Desventaja y Contador de Ronda */}
+      <div className={estilos.filaDescansosVentajaRonda}>
+        {/* Botones de Descanso */}
+        <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
+          <button
+            type="button"
+            className={`${estilos.botonPill} ${estilos.botonPillDescansoCorto}`}
+            onClick={alEjecutarDescansoCorto}
+            title="Descanso Corto (Gastar dados de golpe para curar)"
+          >
+            <Moon size={11} className={estilos.iconoDescanso} />
+            <span>Corto</span>
+          </button>
+          <button
+            type="button"
+            className={`${estilos.botonPill} ${estilos.botonPillDescansoLargo}`}
+            onClick={alEjecutarDescansoLargo}
+            title="Descanso Largo (Restaurar HP, dados y reducir cansancio)"
+          >
+            <Sunrise size={11} className={estilos.iconoDescanso} />
+            <span>Largo</span>
+          </button>
         </div>
 
-        {/* Selector de Condiciones y Efectos con autocompletado */}
-        <div>
+        {/* Selector Tri-estado de Ventaja / Desventaja */}
+        <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
+          <button
+            type="button"
+            className={`${estilos.botonPill} ${estilos.botonPillDisv} ${
+              modoTirada === "disv" ? estilos.botonPillActivoDisv : ""
+            }`}
+            onClick={() => alCambiarModoTirada("disv")}
+            title="Tirar con Desventaja (2d20 menor)"
+          >
+            Disv
+          </button>
+          <button
+            type="button"
+            className={`${estilos.botonPill} ${estilos.botonPillPlano} ${
+              modoTirada === "plano" ? estilos.botonPillActivoPlano : ""
+            }`}
+            onClick={() => alCambiarModoTirada("plano")}
+            title="Tirada normal plana (1d20)"
+          >
+            Plano
+          </button>
+          <button
+            type="button"
+            className={`${estilos.botonPill} ${estilos.botonPillVent} ${
+              modoTirada === "vent" ? estilos.botonPillActivoVent : ""
+            }`}
+            onClick={() => alCambiarModoTirada("vent")}
+            title="Tirar con Ventaja (2d20 mayor)"
+          >
+            Vent
+          </button>
+        </div>
+
+        {/* Badge Indicador de Ronda */}
+        <div className={estilos.badgeRondaCombate} title="Ronda actual de combate en curso">
+          <Clock size={12} className={estilos.iconoRonda} />
+          <span>Ronda {rondaActual !== undefined && rondaActual > 0 ? rondaActual : 1}</span>
+        </div>
+      </div>
+
+      {/* Fila 2: Input horizontal completo de búsqueda/selección y botón (+) */}
+      <div className={estilos.filaInputCondicion}>
+        <div className={estilos.contenedorSelectorCondicion}>
           <SelectorSugerencias
             valor={condicionSeleccionada}
             alCambiar={setCondicionSeleccionada}
@@ -166,106 +177,99 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
               alAplicarCondicion(opcion.valor);
               setCondicionSeleccionada("");
             }}
-            opciones={sugerenciasCondiciones}
+            opciones={SUGERENCIAS_CONDICIONES_ESTATICAS}
             placeholder="Añadir Condición o Estado..."
           />
         </div>
+        <button
+          type="button"
+          className={estilos.botonAgregarCondicion}
+          onClick={manejarAgregarManual}
+          title="Añadir la condición seleccionada o escrita"
+          aria-label="Añadir condición activa"
+        >
+          <Plus size={15} />
+        </button>
       </div>
 
-      {/* Columna Derecha: Condiciones Activas y Efectos Automáticos */}
-      <div className={`${estilos.columnaCondicionesActivas} ${estilos.neoPressed}`}>
-        <div className={estilos.cabeceraCondicionesActivas}>
-          <span className={estilos.tituloCondicionesActivas}>Condiciones y Efectos</span>
-          {rondaActual !== undefined && rondaActual > 0 && (
-            <span className={estilos.textoRondaActual}>
-              Ronda {rondaActual}
-            </span>
+      {/* Fila 3: Chips de Condiciones y Estados Activos */}
+      {hayCondicionesOEstados ? (
+        <div className={estilos.filaChipsActivos}>
+          {/* Chip automático de Desangrándose (<50% de HP) */}
+          {estaDesangrandose && (
+            <ChipCondicion
+              nombre="Desangrándose"
+              esDesangrado
+            />
           )}
-        </div>
-        <div className={estilos.listaChipsCondiciones}>
-          {hayCondicionesOEstados ? (
-            <>
-              {/* Chip automático de Desangrándose (<50% de HP) */}
-              {estaDesangrandose && (
-                <ChipCondicion
-                  nombre="Desangrándose"
-                  esDesangrado
-                  alineacionTooltip="derecha"
-                />
-              )}
 
-              {/* Chip automático de Armadura / Escudo sin Competencia (D&D 5.5e) */}
-              {tienePenalizacionArmadura && (
-                <ChipCondicion
-                  nombre="Armadura sin Competencia"
-                  esAlerta
-                  textoCustom="SIN COMPETENCIA (ARMADURA)"
-                  alineacionTooltip="derecha"
-                  tooltipCustom={`Armadura sin Competencia\n\n• Vistes ${[
-                    penalizacionArmadura?.armaduraNoCompetente,
-                    penalizacionArmadura?.escudoNoCompetente
-                  ]
-                    .filter(Boolean)
-                    .join(" y ")} sin entrenamiento.\n• Desventaja en tiradas de ataque y pruebas/salvaciones de FUE y DES.\n• Incapacidad total para lanzar conjuros.`}
-                />
-              )}
-
-              {/* Chip automático de Desventaja en Sigilo por Armadura */}
-              {tieneDesventajaSigilo && (
-                <ChipCondicion
-                  nombre="Desventaja en Sigilo (Armadura)"
-                  esSigilo
-                  textoCustom="SIGILO RUIDOSO (ARMADURA)"
-                  alineacionTooltip="derecha"
-                />
-              )}
-
-              {/* Chip de Concentración Activa */}
-              {tieneConcentracion && concentracionActiva && (
-                <ChipCondicion
-                  nombre="Concentración"
-                  concentracion
-                  textoCustom={`[CON] ${concentracionActiva.nombreHechizo.toUpperCase()}`}
-                  tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente.`}
-                  alineacionTooltip="derecha"
-                  onQuitar={alRomperConcentracion}
-                />
-              )}
-
-              {/* Condiciones de estado manuales añadidas por el usuario */}
-              {condicionesManuales.map((cond) => (
-                <ChipCondicion
-                  key={cond}
-                  nombre={cond}
-                  alineacionTooltip="derecha"
-                  onQuitar={() => alQuitarCondicion(cond)}
-                />
-              ))}
-
-              {/* Efectos mágicos y temporales con rondas restantes */}
-              {efectosFiltrados.map((ef) => {
-                const rondasRestantes = (ef.expiraRonda !== undefined && rondaActual !== undefined)
-                  ? Math.max(0, ef.expiraRonda - rondaActual)
-                  : undefined;
-
-                return (
-                  <ChipCondicion
-                    key={ef.id}
-                    nombre={ef.nombre}
-                    concentracion={ef.concentracion}
-                    expiraRonda={ef.expiraRonda}
-                    rondasRestantes={rondasRestantes}
-                    alineacionTooltip="derecha"
-                    onQuitar={alQuitarEfecto ? () => alQuitarEfecto(ef.id) : undefined}
-                  />
-                );
-              })}
-            </>
-          ) : (
-            <span className={estilos.textoSinCondiciones}>Sin estados alterados ni efectos</span>
+          {/* Chip automático de Armadura / Escudo sin Competencia (D&D 5.5e) */}
+          {tienePenalizacionArmadura && (
+            <ChipCondicion
+              nombre="Armadura sin Competencia"
+              esAlerta
+              textoCustom="SIN COMPETENCIA (ARMADURA)"
+              tooltipCustom={`Armadura sin Competencia\n\n• Vistes ${[
+                penalizacionArmadura?.armaduraNoCompetente,
+                penalizacionArmadura?.escudoNoCompetente
+              ]
+                .filter(Boolean)
+                .join(" y ")} sin entrenamiento.\n• Desventaja en tiradas de ataque y pruebas/salvaciones de FUE y DES.\n• Incapacidad total para lanzar conjuros.`}
+            />
           )}
+
+          {/* Chip automático de Desventaja en Sigilo por Armadura */}
+          {tieneDesventajaSigilo && (
+            <ChipCondicion
+              nombre="Desventaja en Sigilo (Armadura)"
+              esSigilo
+              textoCustom="SIGILO RUIDOSO (ARMADURA)"
+            />
+          )}
+
+          {/* Chip de Concentración Activa */}
+          {tieneConcentracion && concentracionActiva && (
+            <ChipCondicion
+              nombre="Concentración"
+              concentracion
+              textoCustom={`[CON] ${concentracionActiva.nombreHechizo.toUpperCase()}`}
+              tooltipCustom={`Concentración Activa\n\n• Manteniendo conjuro: ${concentracionActiva.nombreHechizo}.\n• Si sufres daño, debes superar una salvación de Constitución (CD 10 o mitad del daño recibido).\n• Quedar incapacitado o lanzar otro conjuro de concentración rompe este efecto inmediatamente.`}
+              onQuitar={alRomperConcentracion}
+            />
+          )}
+
+          {/* Condiciones de estado manuales añadidas por el usuario */}
+          {condicionesManuales.map((cond) => (
+            <ChipCondicion
+              key={cond}
+              nombre={cond}
+              onQuitar={() => alQuitarCondicion(cond)}
+            />
+          ))}
+
+          {/* Efectos mágicos y temporales con rondas restantes */}
+          {efectosFiltrados.map((ef) => {
+            const rondasRestantes = (ef.expiraRonda !== undefined && rondaActual !== undefined)
+              ? Math.max(0, ef.expiraRonda - rondaActual)
+              : undefined;
+
+            return (
+              <ChipCondicion
+                key={ef.id}
+                nombre={ef.nombre}
+                concentracion={ef.concentracion}
+                expiraRonda={ef.expiraRonda}
+                rondasRestantes={rondasRestantes}
+                onQuitar={alQuitarEfecto ? () => alQuitarEfecto(ef.id) : undefined}
+              />
+            );
+          })}
         </div>
-      </div>
+      ) : (
+        <div className={estilos.filaChipsActivosVacia}>
+          <span className={estilos.textoSinCondiciones}>Sin estados alterados ni efectos</span>
+        </div>
+      )}
     </section>
   );
 };

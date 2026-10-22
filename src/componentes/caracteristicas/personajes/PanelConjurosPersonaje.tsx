@@ -30,10 +30,9 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   sistemaMagia,
   penalizacionArmadura,
   alAbrirConfiguracion,
-  alGastarEspacio, alRecuperarEspacio, alRecuperarTodosEspacios,
-  alGastarPuntos, alRecuperarPuntos, alRecuperarTodosPuntos,
+  alGastarEspacio, alRecuperarEspacio,
+  alGastarPuntos, alRecuperarPuntos,
   alGastarEspacioPacto, alRecuperarEspaciosPacto,
-  alEstablecerConcentracion: _alEstablecerConcentracion,
   alRomperConcentracion,
   alQuitarTruco, alQuitarConjuro, alAlternarPreparado
 }) => {
@@ -130,10 +129,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         nivelesArcanoDisponibles={nivelesArcanoDisponibles}
         alGastarEspacio={alGastarEspacio}
         alRecuperarEspacio={alRecuperarEspacio}
-        alRecuperarTodosEspacios={alRecuperarTodosEspacios}
         alGastarPuntos={alGastarPuntos}
         alRecuperarPuntos={alRecuperarPuntos}
-        alRecuperarTodosPuntos={alRecuperarTodosPuntos}
         alGastarEspacioPacto={alGastarEspacioPacto}
         alRecuperarEspaciosPacto={alRecuperarEspaciosPacto}
         asignarArcanoMistico={asignarArcanoMistico}

@@ -12,7 +12,7 @@ export interface ChipCondicionProps {
   rondasRestantes?: number;
   textoCustom?: string;
   tooltipCustom?: string;
-  alineacionTooltip?: "izquierda" | "derecha";
+  alineacionTooltip?: "izquierda" | "derecha" | "auto";
   onQuitar?: () => void;
   className?: string;
 }
@@ -78,13 +78,28 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
     claseVariante = "chip-condicion-magico";
   }
 
+  const refChip = React.useRef<HTMLDivElement>(null);
+  const [ladoAuto, setLadoAuto] = React.useState<"izquierda" | "derecha">("izquierda");
+
+  const manejarMouseEnter = React.useCallback(() => {
+    if (typeof window !== "undefined" && refChip.current) {
+      const rect = refChip.current.getBoundingClientRect();
+      const espacioDerecha = window.innerWidth - rect.left;
+      const nuevoLado = espacioDerecha < 280 && rect.right > 280 ? "derecha" : "izquierda";
+      setLadoAuto((actual) => (actual !== nuevoLado ? nuevoLado : actual));
+    }
+  }, []);
+
+  const ladoEfectivo =
+    alineacionTooltip && alineacionTooltip !== "auto"
+      ? alineacionTooltip
+      : ladoAuto;
+
   // Clase de anclaje de posición de tooltip
   const claseAncla =
-    alineacionTooltip === "derecha"
+    ladoEfectivo === "derecha"
       ? "tooltip-ancla-derecha"
-      : alineacionTooltip === "izquierda"
-      ? "tooltip-ancla-izquierda"
-      : "";
+      : "tooltip-ancla-izquierda";
 
   // Texto principal
   const nombreLimpio = nombre.replace(/\u{1FA78}\s*/gu, "");
@@ -144,6 +159,8 @@ export const ChipCondicion: React.FC<ChipCondicionProps> = React.memo(({
 
   return (
     <div
+      ref={refChip}
+      onMouseEnter={manejarMouseEnter}
       className={`chip-condicion-universal ${claseVariante} ${claseAncla} ${className}`}
     >
       <span className="u-flex-inline u-alinear-centro u-gap-sm">

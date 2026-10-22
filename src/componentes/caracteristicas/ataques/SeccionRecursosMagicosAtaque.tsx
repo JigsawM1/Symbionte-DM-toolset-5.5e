@@ -16,10 +16,8 @@ interface SeccionRecursosMagicosAtaqueProps {
   alAlternar: () => void;
   alGastarEspacioConjuro: (pjId: string, nivel: number) => void;
   alRecuperarEspacioConjuro: (pjId: string, nivel: number) => void;
-  alRecuperarTodosEspaciosConjuro: (pjId: string) => void;
   alGastarPuntosConjuro: (pjId: string, cantidad: number) => void;
   alRecuperarPuntosConjuro: (pjId: string, cantidad: number) => void;
-  alRecuperarTodosPuntosConjuro: (pjId: string) => void;
   alGastarEspacioPacto: (pjId: string) => void;
   alRecuperarEspaciosPacto: (pjId: string) => void;
   alRomperConcentracion?: (pjId: string) => void;
@@ -34,10 +32,8 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
   alAlternar,
   alGastarEspacioConjuro,
   alRecuperarEspacioConjuro,
-  alRecuperarTodosEspaciosConjuro,
   alGastarPuntosConjuro,
   alRecuperarPuntosConjuro,
-  alRecuperarTodosPuntosConjuro,
   alGastarEspacioPacto,
   alRecuperarEspaciosPacto,
   alRomperConcentracion
@@ -84,8 +80,6 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
                 nivelMaximo={personajeActivo.nivelConjuroMaximo || 0}
                 alGastarPuntos={(cant) => alGastarPuntosConjuro(personajeActivo.id, cant)}
                 alRecuperarPuntos={(cant) => alRecuperarPuntosConjuro(personajeActivo.id, cant)}
-                alRecuperarTodosPuntos={() => alRecuperarTodosPuntosConjuro(personajeActivo.id)}
-                mostrarBotonRestablecer={false}
                 mostrarGastoManual={false}
               />
             ) : (
@@ -94,8 +88,6 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
                 espaciosGastados={personajeActivo.espaciosConjuroGastados || {}}
                 alGastarEspacio={(niv) => alGastarEspacioConjuro(personajeActivo.id, niv)}
                 alRecuperarEspacio={(niv) => alRecuperarEspacioConjuro(personajeActivo.id, niv)}
-                alRecuperarTodosEspacios={() => alRecuperarTodosEspaciosConjuro(personajeActivo.id)}
-                mostrarBotonRestablecer={false}
                 soloLectura={true}
               />
             ))}
@@ -107,7 +99,6 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
               nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 1}
               alGastarEspacioPacto={() => alGastarEspacioPacto(personajeActivo.id)}
               alRecuperarEspaciosPacto={() => alRecuperarEspaciosPacto(personajeActivo.id)}
-              mostrarBotonRecuperar={false}
               soloLectura={true}
             />
           )}

@@ -1,5 +1,61 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-22] Rediseño Táctico Integral de la Pestaña Características (Fidelidad con screen.png y DESIGN.md)
+
+- **Contexto y Diagnóstico**:
+  - *Objetivo*: Renovar la interfaz de usuario y la experiencia de juego de la pestaña 'Características' del jugador según el mock visual provisto (`screen.png`), cumpliendo rigurosamente con las especificaciones del sistema de diseño táctico (`DESIGN.md`) para entornos TaleSpire CEF.
+  - *Puntos de dolor previos*: Dispersión visual, inconsistencia en proporciones de cajas métricas, mezcla de mayúsculas/minúsculas no tácticas, selectores desplegables excesivos en filas de habilidades y riesgo de sobrepasar el límite de 500 líneas en componentes monolíticos.
+
+- **Decisiones Arquitectónicas y Soluciones Aplicadas**:
+  1. **Sub-barra Táctica de Personajes (`VistaJugadores.tsx`, `VistaJugadores.module.css`)**:
+     - Transformación a botones tipo *pill* con puntos indicadores tácticos (`• ACTIVO: [NOMBRE]` con dot verde esmeralda neón `#10b981`, `• ACOMPAÑANTES (N)` y `• MIS PERSONAJES (N)` con dots grises/cian).
+     - Botón de creación rápida `+ NUEVO` posicionado a la derecha con acento cian.
+  2. **Cabecera del Personaje (`CabeceraPersonaje.tsx`, `CabeceraPersonaje.module.css`)**:
+     - Avatar táctico cuadrado con indicador de miniatura vinculada a TaleSpire en la esquina inferior derecha.
+     - Nombre con botón de edición rápida (icono lápiz) y badge de nivel rectangular (`NVL [N]`) junto al acceso de configuración.
+     - Tarjetas tácticas hundidas en relieve invertido (`CLASE`, `ESPECIE`, `TRASFONDO`) con etiqueta superior e información negrita en contraste.
+  3. **Barra Táctica y Control de Combate (`BarraTacticaPersonaje.tsx`)**:
+     - Estructura horizontal en tres niveles:
+       - Fila 1: Botones de descanso (`CORTO` / `LARGO`), selector tri-estado de ventaja (`DISV` / `PLANO` / `VENT`) con botón plano activo en fondo blanco puro y texto oscuro, y badge `RONDA [N]` con icono de reloj.
+       - Fila 2: Buscador horizontal completo de condiciones con botón cuadrado sólido de adición (`+`).
+       - Fila 3: Chips tácticos de concentración, estados activos y desangrado, o mensaje de estado limpio (*"Sin estados alterados ni efectos"*).
+       - Adaptabilidad responsive: `flex-wrap: wrap` en `.filaDescansosVentajaRonda` para fluir sin desbordar en resoluciones compactas de 433px.
+  4. **Modularización y Métricas Rápidas (`MetricasRapidasPersonaje.tsx`, `PopoverMovimientoVelocidad.tsx`)**:
+     - Para prevenir sobrepasar el límite de 500 líneas, se extrajo limpiamente el popover de controles de movimiento a `subcomponentes/PopoverMovimientoVelocidad.tsx`.
+     - 5 tarjetas métricas perfectamente simétricas (`CA`, `INIC`, `VEL`, `COMP`, `INSP.`) con jerarquía de tres niveles: cabecera con icono, valor central grande (20-22px) y pie informativo o botón interactivo (`TIRAR D20`, `AGOTADA/DISPONIBLE`).
+  5. **Accesibilidad y Compatibilidad de Pruebas (`utilidades.css`)**:
+     - Adición de la regla utilitaria `.u-sr-only` conforme a los estándares WCAG/Tailwind.
+     - Permite que las cadenas requeridas por lectores de pantalla y aserciones de pruebas unitarias existan en el DOM sin saturar la estética táctica condensada de las tarjetas.
+  6. **Sentidos Pasivos y Panel de Vitalidad (`SentidosPasivosPersonaje.tsx`, `PanelVitalidadPersonaje.tsx`)**:
+     - Franja horizontal compacta para sentidos pasivos con separadores sutiles.
+     - Barra de vida continua con gradiente táctico suave (esmeralda -> cian -> violeta), stepper horizontal para ajuste numérico y tarjetas inferiores simétricas para dados de golpe, salvaciones de muerte (matriz 2x3 de círculos interactivos con CD 10) y niveles de cansancio D&D 2024.
+  8. **Refinamiento de Botones de Salud y Persistencia Superior en Magia**:
+     - *Diagnóstico*: Los selectores globales '[data-tema="jugador"] :is(button, [role="button"])' forzaban 'min-width: 32px; min-height: 32px;', agigantando y solapando los círculos de salvaciones de muerte y cansancio.
+     - *Corrección*: Se aplicó 'min-width: 0 !important; min-height: 0 !important;' y dimensiones fijas de 14px y 15px con rejilla 'repeat(3, 16px); gap: 5px 8px;', eliminando cualquier solapamiento.
+     - *Persistencia*: Se desvinculó la barra táctica, métricas rápidas y sentidos pasivos del condicional de subpestaña en 'HojaPersonaje.tsx', asegurando que permanezcan siempre visibles al navegar a 'Conjuros y Magia'.
+
+  9. **Poda de Sobreingeniería (/ponytail-audit) y Restauración del Popover Enriquecido de Movimiento**:
+     - *Restauración de Popover*: Se restauró en 'PopoverMovimientoVelocidad.tsx' el diseño completo preferido por el usuario (badge de conexión de miniatura TaleSpire, selector de terreno con multiplicadores '1x/2x/3x' y descripción contextual, caja de resumen 'Movimiento Restante / Gastado' y ajuste rápido con 'CampoNumerico').
+     - *Poda Ponytail*: Eliminada prop 'alVincularMiniaturaTS' inerte en 'CabeceraPersonaje' y 6 props delegadas innecesarias en 'MetricasRapidasPersonaje' conectando directamente al store; eliminada heurística de 'COTA MALLA' por 'armaduraEquipadaNombre || tipoArmadura || "BASE"'; extraídas sugerencias de condiciones estáticas a nivel de módulo eliminando 'useMemo'; unificada lógica gemela de salvaciones de muerte en 'alternarSalvacion'; y marcado iterativo en 'SentidosPasivosPersonaje'. Reducción neta de ~70 líneas de sobreingeniería sin alterar funcionalidad.
+
+  10. **Corrección de Tooltips Cortados en Estados y Condiciones (`BarraTacticaPersonaje.tsx`, `ChipCondicion.tsx`, `index.css`)**:
+     - *Diagnóstico*: En `BarraTacticaPersonaje.tsx` se forzaba `alineacionTooltip="derecha"` sobre los chips de condiciones y estados (incluyendo las manuales como *Asustado*). En CSS, `tooltip-ancla-derecha` aplica `right: 0 !important; left: auto !important;`, forzando que el borde derecho del tooltip se ancle al borde derecho del chip y expanda su cuerpo (260-280px) hacia la izquierda (`x < 0`), provocando que el texto inicial se cortara contra el margen izquierdo de la ventana TaleSpire CEF.
+     - *Corrección*: Se retiró la propiedad `alineacionTooltip="derecha"` de todos los chips de `BarraTacticaPersonaje.tsx`. En `ChipCondicion.tsx` se implementó posicionamiento inteligente: por defecto se ancla a la izquierda (`left: 0; right: auto;`, abriéndose con holgura hacia la derecha); si el chip se encuentra cerca del borde derecho de la pantalla (`espacioDerecha < 280 && rect.right > 280`), conmuta dinámicamente a la derecha (`right: 0; left: auto;`). En `index.css` se definió `max-width: min(280px, calc(100vw - 24px));` y `word-break: break-word;` para evitar cualquier desborde horizontal. Certificado con prueba visual Puppeteer (`scratch/tooltip-asustado-corregido.png`).
+
+  11. **Panel de Atributos y Habilidades (`PanelAtributosPersonaje.tsx`, `AtributosPersonaje.module.css`)**:
+     - Grid de 2 columnas tácticas con modificador destacado en caja de acento cian.
+     - Puntuación base editable de forma inline (`Puntuación [X]`).
+     - Barra de salvación con botón interactivo de tirada y filas de habilidades limpias y legibles con indicadores visuales de competencia y pericia.
+
+- **Certificación de Calidad y Pruebas**:
+  - `pnpm exec tsc --noEmit`: **0 errores** con `strict: true`.
+  - `pnpm run lint`: **0 errores y 0 advertencias** con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: **196 archivos auditados, 0 errores críticos** (> 500 líneas).
+  - `pnpm test src/componentes/caracteristicas/personajes`: **80 / 80 pruebas aprobadas (100% de éxito)**.
+  - Verificación visual con Puppeteer en `scratch/hoja-599.png` y `scratch/hoja-433.png` certificando fidelidad con `screen.png` y cero animaciones en entorno CEF.
+
+---
+
 ## [2026-10-21] Corrección de los Siete Hallazgos de Magia Salvaje y Simbionte, Poda de Sobreingeniería y Consumo Atómico
 
 - **Contexto y Diagnóstico**:

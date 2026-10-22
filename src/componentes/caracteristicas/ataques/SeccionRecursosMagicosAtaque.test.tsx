@@ -23,10 +23,8 @@ describe("SeccionRecursosMagicosAtaque - Integración de BannerConcentracionActi
     alAlternar: vi.fn(),
     alGastarEspacioConjuro: vi.fn(),
     alRecuperarEspacioConjuro: vi.fn(),
-    alRecuperarTodosEspaciosConjuro: vi.fn(),
     alGastarPuntosConjuro: vi.fn(),
     alRecuperarPuntosConjuro: vi.fn(),
-    alRecuperarTodosPuntosConjuro: vi.fn(),
     alGastarEspacioPacto: vi.fn(),
     alRecuperarEspaciosPacto: vi.fn(),
     alRomperConcentracion: vi.fn()

@@ -57,10 +57,8 @@ export const VistaAtaquesJugador: React.FC = () => {
     lanzar,
     gastarEspacioConjuro,
     recuperarEspacioConjuro,
-    recuperarTodosEspaciosConjuro,
     gastarPuntosConjuro,
     recuperarPuntosConjuro,
-    recuperarTodosPuntosConjuro,
     gastarEspacioPacto,
     recuperarEspaciosPacto,
     romperConcentracion,
@@ -132,10 +130,8 @@ export const VistaAtaquesJugador: React.FC = () => {
         alAlternar={() => alternarSeccion("recursos")}
         alGastarEspacioConjuro={gastarEspacioConjuro}
         alRecuperarEspacioConjuro={recuperarEspacioConjuro}
-        alRecuperarTodosEspaciosConjuro={recuperarTodosEspaciosConjuro}
         alGastarPuntosConjuro={gastarPuntosConjuro}
         alRecuperarPuntosConjuro={recuperarPuntosConjuro}
-        alRecuperarTodosPuntosConjuro={recuperarTodosPuntosConjuro}
         alGastarEspacioPacto={gastarEspacioPacto}
         alRecuperarEspaciosPacto={recuperarEspaciosPacto}
         alRomperConcentracion={romperConcentracion}

@@ -385,7 +385,8 @@ button.activo {
   padding: 8px 12px;
   border-radius: 4px;
   width: max-content;
-  max-width: 260px;
+  max-width: min(280px, calc(100vw - 24px));
+  word-break: break-word;
   font-size: 12px;
   line-height: 1.45;
   white-space: pre-wrap;

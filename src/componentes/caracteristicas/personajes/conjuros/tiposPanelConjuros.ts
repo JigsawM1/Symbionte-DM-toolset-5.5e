@@ -24,10 +24,8 @@ export interface CabeceraYRecursosMagicosProps {
   nivelesArcanoDisponibles: number[];
   alGastarEspacio: (nivel: number) => void;
   alRecuperarEspacio: (nivel: number) => void;
-  alRecuperarTodosEspacios: () => void;
   alGastarPuntos: (cantidad: number) => void;
   alRecuperarPuntos: (cantidad: number) => void;
-  alRecuperarTodosPuntos: () => void;
   alGastarEspacioPacto?: () => void;
   alRecuperarEspaciosPacto?: () => void;
   asignarArcanoMistico: (personajeId: string, nivel: number, hechizoId: string) => void;
@@ -48,13 +46,10 @@ export interface PanelConjurosPersonajeProps {
   alAbrirConfiguracion?: () => void;
   alGastarEspacio: (nivel: number) => void;
   alRecuperarEspacio: (nivel: number) => void;
-  alRecuperarTodosEspacios: () => void;
   alGastarPuntos: (cantidad: number) => void;
   alRecuperarPuntos: (cantidad: number) => void;
-  alRecuperarTodosPuntos: () => void;
   alGastarEspacioPacto?: () => void;
   alRecuperarEspaciosPacto?: () => void;
-  alEstablecerConcentracion: (id: string, nombre: string) => void;
   alRomperConcentracion: () => void;
   alQuitarTruco: (hechizoId: string) => void;
   alQuitarConjuro: (hechizoId: string) => void;

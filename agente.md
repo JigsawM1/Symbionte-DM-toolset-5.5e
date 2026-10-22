@@ -1,5 +1,23 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-22] Corrección y Estabilización de la Suite CI: Subclase Mecanismo de Relojería y Alias Tolerantes
+
+- **Contexto y Diagnóstico**:
+  - *Problema*: La ejecución de `pnpm run ci` falló en la fase de `vitest run` con 10 pruebas no superadas distribuidas en `hechiceroMecanicasDND55.test.ts`, `hechiceroSubclases.test.ts` y `subclasesMagia.test.ts`.
+  - *Causa raíz*: En una edición anterior para ajustar unidades de distancia en tablas de Magia Salvaje (commit `060bbd7`), se mutaron involuntariamente los nombres canónicos e IDs de la subclase de Hechicero (cambiando `hechiceria_del_mecanismo_de_relojeria` / `"Hechicería del Mecanismo de Relojería"` a `hechiceria_mecanica` / `"Hechicería Mecánica"` y sus rasgos asociados), lo que rompió la resolución del builder y catálogos de progresión.
+- **Acciones y Solución Aplicada**:
+  1. **Restauración canónica en `src/datos/clases/hechicero.json`**:
+     - Se restableció el `id` de la subclase a `hechiceria_del_mecanismo_de_relojeria` y su nombre oficial a `"Hechicería del Mecanismo de Relojería"`.
+     - Se restableció el campo `subclase` y los identificadores canónicos de sus 5 rasgos: `conjuros_de_relojeria`, `restaurar_equilibrio`, `bastion_de_la_ley`, `trance_del_orden` y `cabalgata_de_relojeria`.
+  2. **Defensividad en el catálogo de subclases (`src/servicios/clases/catalogoClases.ts`)**:
+     - Se registraron en `ALIAS_SUBCLASES_EQUIVALENTES` sinónimos de tolerancia (`"hechiceria mecanica"`, `"mecanismo de relojeria"`, `"relojeria"`) apuntando a `"hechiceria del mecanismo de relojeria"`, asegurando resiliencia frente a variantes de entrada.
+- **Certificación CI**:
+  - `tsc --noEmit`: 0 errores.
+  - `eslint src --max-warnings=0`: 0 advertencias/errores.
+  - `vitest run`: 160 suites y 2.269 pruebas aprobadas (100% pasando).
+  - `node scripts/verificar-limite-lineas.js`: Conforme en todos los archivos.
+  - `vite build`: Compilación exitosa en 8.25s.
+
 ## [2026-10-22] Rediseño Táctico Integral de la Pestaña Características (Fidelidad con screen.png y DESIGN.md)
 
 - **Contexto y Diagnóstico**:

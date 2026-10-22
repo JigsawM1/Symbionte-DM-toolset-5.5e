@@ -1,5 +1,7 @@
 import type { PersonajeJugador } from "@/tipos";
-import { Settings, Pencil } from "lucide-react";
+import { useState } from "react";
+import { Settings } from "lucide-react";
+import { ModalRetratoPersonaje } from "./ModalRetratoPersonaje";
 import estilos from "./CabeceraPersonaje.module.css";
 
 interface CabeceraPersonajeProps {
@@ -8,6 +10,7 @@ interface CabeceraPersonajeProps {
 }
 
 export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPersonajeProps) {
+  const [verRetrato, setVerRetrato] = useState(false);
   const clase = personaje.clases && personaje.clases.length > 1
     ? personaje.clases.map(c => `${c.nombre} ${c.nivel}${c.subclase ? ` (${c.subclase})` : ""}`).join(" / ")
     : `${personaje.clase || "Guerrero"}${personaje.subclase ? ` (${personaje.subclase})` : ""}`;
@@ -18,9 +21,9 @@ export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPe
       <button
         type="button"
         className={estilos.avatar}
-        onClick={alAbrirModalEdicion}
-        aria-label="Editar avatar del personaje"
-        title="Clic para cambiar avatar o configuración"
+        onClick={() => personaje.avatarUrl ? setVerRetrato(true) : alAbrirModalEdicion()}
+        aria-label={personaje.avatarUrl ? "Ampliar retrato del personaje" : "Añadir avatar del personaje"}
+        title={personaje.avatarUrl ? "Ver retrato ampliado" : "Añadir avatar en la configuración"}
       >
         {(personaje.nombre || "P")[0].toUpperCase()}
         {personaje.avatarUrl && (
@@ -41,15 +44,6 @@ export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPe
             <h1 title={personaje.jugador ? `PJ de ${personaje.jugador}` : undefined}>
               {personaje.nombre || "Sin nombre"}
             </h1>
-            <button
-              type="button"
-              className={estilos.botonEditarNombre}
-              onClick={alAbrirModalEdicion}
-              title="Editar nombre y datos base"
-              aria-label="Editar nombre del personaje"
-            >
-              <Pencil size={12} />
-            </button>
           </div>
 
           <div className={estilos.accionesDerecha}>
@@ -81,6 +75,14 @@ export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPe
           </div>
         </div>
       </div>
+      {verRetrato && personaje.avatarUrl && (
+        <ModalRetratoPersonaje
+          key={`${personaje.id}:${personaje.avatarUrl}`}
+          nombre={personaje.nombre || "Sin nombre"}
+          imagen={personaje.avatarUrl}
+          alCerrar={() => setVerRetrato(false)}
+        />
+      )}
     </section>
   );
 }

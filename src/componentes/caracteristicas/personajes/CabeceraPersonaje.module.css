@@ -81,25 +81,6 @@
   text-transform: uppercase;
 }
 
-.botonEditarNombre {
-  background: transparent;
-  border: none;
-  color: var(--pj-texto-terciario);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  border-radius: 4px;
-  transition: none;
-  flex-shrink: 0;
-}
-
-.botonEditarNombre:hover {
-  color: var(--pj-texto-cian);
-  background: var(--pj-fondo-hundido);
-}
-
 .accionesDerecha {
   display: flex;
   align-items: center;

@@ -1,0 +1,144 @@
+.modal {
+  margin: auto;
+  width: min(720px, calc(100vw - 24px));
+  height: min(760px, calc(100dvh - 24px));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+  background: var(--pj-fondo-modal-cuerpo);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-modal);
+  overflow: hidden;
+}
+
+.modal::backdrop {
+  background: var(--pj-fondo-modal-overlay);
+}
+
+.contenido {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--pj-fondo-modal-cabecera);
+  border-bottom: 1px solid var(--pj-borde-sutil);
+}
+
+.cabecera h2 {
+  margin: 0;
+  font-size: var(--pj-fuente-titulo);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-fondo-panel);
+  color: var(--pj-texto-secundario-claro);
+  font: inherit;
+  font-size: var(--pj-fuente-boton);
+  cursor: pointer;
+}
+
+.modal button:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
+}
+
+.modal button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.modal :focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: -2px;
+}
+
+.vista {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--pj-fondo-hundido);
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+
+.vista:active {
+  cursor: grabbing;
+}
+
+.vista img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.vista p {
+  padding: 16px;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+.pie {
+  padding: 8px 12px;
+  border-top: 1px solid var(--pj-borde-sutil);
+  background: var(--pj-fondo-modal-cabecera);
+}
+
+.controles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  gap: 8px;
+}
+
+.zoom input {
+  min-width: 0;
+  width: 100%;
+  min-height: 32px;
+  accent-color: var(--pj-acento-primario-solido);
+}
+
+.zoom output {
+  min-width: 4ch;
+  color: var(--pj-texto-cian);
+  font-size: var(--pj-fuente-boton);
+  text-align: right;
+}
+
+.pie p {
+  margin: 6px 0 0;
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-micro);
+}

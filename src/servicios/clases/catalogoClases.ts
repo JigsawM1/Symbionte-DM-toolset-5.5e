@@ -88,7 +88,10 @@ export const ALIAS_SUBCLASES_EQUIVALENTES: Record<string, string> = {
   "guerrero de la sombra": "camino de la sombra",
   "guerrero de la misericordia": "camino de la misericordia",
   "guerrero de los elementos": "camino de los elementos",
-  "guerrero de la mano abierta": "camino de la mano abierta"
+  "guerrero de la mano abierta": "camino de la mano abierta",
+  "hechiceria mecanica": "hechiceria del mecanismo de relojeria",
+  "mecanismo de relojeria": "hechiceria del mecanismo de relojeria",
+  "relojeria": "hechiceria del mecanismo de relojeria"
 };
 
 export function obtenerSubclasePorNombre(

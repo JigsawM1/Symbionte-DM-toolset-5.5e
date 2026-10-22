@@ -10,6 +10,7 @@ import { esNombreVacioODot } from "@/servicios/resolutorCriaturas";
 import { formatearDetalleAtaqueRapido } from "@/utiles/procesadorAtaques";
 import type { PasivasCombatePJ } from "@/tipos/sync";
 import { InsigniasPasivasJugador } from "./InsigniasPasivasJugador";
+import { ModalRetratoPersonaje } from "@/componentes/caracteristicas/personajes/ModalRetratoPersonaje";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -18,6 +19,7 @@ interface TarjetaCriaturaIniciativaProps {
   estaSeleccionadaEnTS?: boolean;
   plantilla: MonstruoBase | null;
   pasivasJugador?: PasivasCombatePJ | null;
+  avatarUrlPJ?: string | null;
   onEliminar: () => void;
   onSeleccionar: () => void;
   onCurar: (cantidad: number) => void;
@@ -59,6 +61,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   estaSeleccionadaEnTS = false,
   plantilla,
   pasivasJugador,
+  avatarUrlPJ,
   rondaActual,
   onEliminar,
   onSeleccionar,
@@ -77,6 +80,8 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onAlternarRol
 }) => {
   const pasivasEfectivas = pasivasJugador || criatura.pasivas || null;
+  const avatarEfectivo = !criatura.esMonstruo ? (criatura.avatarUrl || avatarUrlPJ || undefined) : undefined;
+  const [verRetrato, setVerRetrato] = useState(false);
   const [hpInput, setHpInput] = useState("");
   const [dropdownAbierto, setDropdownAbierto] = useState<"condicion" | "efecto" | null>(null);
   const [editandoIniciativa, setEditandoIniciativa] = useState(false);
@@ -187,6 +192,30 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               data-muerto={estaMuerto}
               title="Ver bloque de estadísticas"
             >
+              {avatarEfectivo && (
+                <>
+                  <img
+                    src={avatarEfectivo}
+                    alt={criatura.nombre}
+                    className={estilosClases.avatarPjMiniatura}
+                    title="Ver retrato ampliado"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setVerRetrato(true);
+                    }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
+                  />
+                  {verRetrato && (
+                    <ModalRetratoPersonaje
+                      nombre={criatura.nombre || "Personaje"}
+                      imagen={avatarEfectivo}
+                      alCerrar={() => setVerRetrato(false)}
+                    />
+                  )}
+                </>
+              )}
               {esNombreVacioODot(criatura.nombre) ? (
                 <span className={estilosClases.textoMiniSinNombre}>
                   [Mini sin nombre: {criatura.id.slice(-4)}]

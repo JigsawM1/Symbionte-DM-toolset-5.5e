@@ -124,22 +124,40 @@ export const crearSliceSync: StateCreator<
 
         const tsModAcomp = timestampsModificacionLocal[acomp.id];
         const mutacionEnTransitoAcomp = tsModAcomp !== undefined || mutacionEnTransitoPJ;
+        const esFallbackAcomp =
+          typeof criaturaAcompEnCola.vidaMaxima === "number" &&
+          criaturaAcompEnCola.vidaMaxima === 10 &&
+          (acomp.vidaMaxima || 0) > 10;
 
         return {
           ...acomp,
-          condiciones: mutacionEnTransitoAcomp ? acomp.condiciones : criaturaAcompEnCola.condiciones || [],
-          efectos: mutacionEnTransitoAcomp ? acomp.efectos : criaturaAcompEnCola.efectos || [],
+          condiciones: mutacionEnTransitoAcomp
+            ? acomp.condiciones
+            : esFallbackAcomp && (criaturaAcompEnCola.condiciones || []).length === 0 && (acomp.condiciones || []).length > 0
+            ? acomp.condiciones
+            : criaturaAcompEnCola.condiciones || [],
+          efectos: mutacionEnTransitoAcomp
+            ? acomp.efectos
+            : esFallbackAcomp && (criaturaAcompEnCola.efectos || []).length === 0 && (acomp.efectos || []).length > 0
+            ? acomp.efectos
+            : criaturaAcompEnCola.efectos || [],
           vidaActual: mutacionEnTransitoAcomp
+            ? acomp.vidaActual
+            : esFallbackAcomp && criaturaAcompEnCola.vidaActual === 10
             ? acomp.vidaActual
             : typeof criaturaAcompEnCola.vidaActual === "number"
             ? criaturaAcompEnCola.vidaActual
             : acomp.vidaActual,
           vidaMaxima: mutacionEnTransitoAcomp
             ? acomp.vidaMaxima
+            : esFallbackAcomp
+            ? acomp.vidaMaxima
             : typeof criaturaAcompEnCola.vidaMaxima === "number" && criaturaAcompEnCola.vidaMaxima > 0
             ? criaturaAcompEnCola.vidaMaxima
             : acomp.vidaMaxima,
           vidaTemporal: mutacionEnTransitoAcomp
+            ? acomp.vidaTemporal
+            : esFallbackAcomp && criaturaAcompEnCola.vidaTemporal === 0 && (acomp.vidaTemporal || 0) > 0
             ? acomp.vidaTemporal
             : typeof criaturaAcompEnCola.vidaTemporal === "number"
             ? criaturaAcompEnCola.vidaTemporal
@@ -154,21 +172,40 @@ export const crearSliceSync: StateCreator<
         };
       }
 
+      const esFallbackTaleSpire =
+        typeof criaturaEnCola.vidaMaxima === "number" &&
+        criaturaEnCola.vidaMaxima === 10 &&
+        (pj.hpMaximoBase ?? pj.hpMaximo ?? 10) > 10;
+
       return {
         ...pj,
-        condicionesActivas: mutacionEnTransitoPJ ? pj.condicionesActivas : criaturaEnCola.condiciones || [],
-        efectosActivos: mutacionEnTransitoPJ ? pj.efectosActivos : criaturaEnCola.efectos || [],
+        condicionesActivas: mutacionEnTransitoPJ
+          ? pj.condicionesActivas
+          : esFallbackTaleSpire && (criaturaEnCola.condiciones || []).length === 0 && (pj.condicionesActivas || []).length > 0
+          ? pj.condicionesActivas
+          : criaturaEnCola.condiciones || [],
+        efectosActivos: mutacionEnTransitoPJ
+          ? pj.efectosActivos
+          : esFallbackTaleSpire && (criaturaEnCola.efectos || []).length === 0 && (pj.efectosActivos || []).length > 0
+          ? pj.efectosActivos
+          : criaturaEnCola.efectos || [],
         hpActual: mutacionEnTransitoPJ
+          ? pj.hpActual
+          : esFallbackTaleSpire && criaturaEnCola.vidaActual === 10
           ? pj.hpActual
           : typeof criaturaEnCola.vidaActual === "number"
           ? criaturaEnCola.vidaActual
           : pj.hpActual,
         hpMaximo: mutacionEnTransitoPJ
           ? pj.hpMaximo
+          : esFallbackTaleSpire
+          ? pj.hpMaximo
           : typeof criaturaEnCola.vidaMaxima === "number" && criaturaEnCola.vidaMaxima > 0
           ? criaturaEnCola.vidaMaxima
           : pj.hpMaximo,
         hpTemporal: mutacionEnTransitoPJ
+          ? pj.hpTemporal
+          : esFallbackTaleSpire && criaturaEnCola.vidaTemporal === 0 && (pj.hpTemporal || 0) > 0
           ? pj.hpTemporal
           : typeof criaturaEnCola.vidaTemporal === "number"
           ? criaturaEnCola.vidaTemporal
@@ -358,7 +395,7 @@ export const crearSliceSync: StateCreator<
         !criatura.esAcompanante &&
         (criatura.id === dto.id ||
           criatura.idPersonajeDuenio === dto.id ||
-          (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS));
+          (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, dto.nombre));
       if (coincidePorIdPJ) {
         const tsModColaDM = timestampsModificacionLocal[criatura.id];
         const edicionRecienteColaDM = Boolean(
@@ -372,6 +409,7 @@ export const crearSliceSync: StateCreator<
           esMonstruo: false,
           idPlantillaAsociada: undefined,
           idPersonajeDuenio: dto.id,
+          avatarUrl: dto.avatarUrl ?? criatura.avatarUrl,
           iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
           vidaActual: edicionRecienteColaDM ? criatura.vidaActual : dto.hpActual,
           vidaMaxima: edicionRecienteColaDM ? criatura.vidaMaxima : dto.hpMaximo,
@@ -394,7 +432,7 @@ export const crearSliceSync: StateCreator<
           (a) =>
             criatura.id === a.id ||
             criatura.idAcompanante === a.id ||
-            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS)
+            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, a.nombre)
         );
 
         if (acompCoincidente) {

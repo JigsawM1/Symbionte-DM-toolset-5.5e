@@ -1,15 +1,18 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selectores";
 import { ChipCondicion } from "@/componentes/comunes";
 import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { Users, Swords, Heart } from "lucide-react";
+import { ModalRetratoPersonaje } from "@/componentes/caracteristicas/personajes/ModalRetratoPersonaje";
 import estilos from "./IniciativaJugador.module.css";
 
 export const IniciativaJugador: React.FC = () => {
-  const { colaIniciativa, indiceTurnoActivo, rondaActual } = usarEstadoIniciativa();
+  const { colaIniciativa, indiceTurnoActivo, rondaActual, personajes } = usarEstadoIniciativa();
   const { mostrarPorcentajeVidaAJugadores } = usarEstadoConfiguracion();
 
   const refContenedorScroll = useRef<HTMLDivElement>(null);
+  const [retratoModal, setRetratoModal] = useState<{ nombre: string; imagen: string } | null>(null);
 
   // Auto-scroll suave al combatiente activo al cambiar de turno
   useEffect(() => {
@@ -66,6 +69,17 @@ export const IniciativaJugador: React.FC = () => {
               const efectosVisibles = item.efectos || [];
               const tieneEstados = condicionesVisibles.length > 0 || efectosVisibles.length > 0;
 
+              const pjAsociado = !item.esMonstruo
+                ? (personajes || []).find(
+                    (p) =>
+                      p.id === item.id ||
+                      p.id === item.idPersonajeDuenio ||
+                      (p.idMiniaturaTS && p.idMiniaturaTS === item.id) ||
+                      coincidenNombresTaleSpire(p.nombre, item.nombre)
+                  )
+                : undefined;
+              const avatarFinal = !item.esMonstruo ? (item.avatarUrl || pjAsociado?.avatarUrl) : undefined;
+
               return (
                 <div
                   key={item.id}
@@ -77,6 +91,21 @@ export const IniciativaJugador: React.FC = () => {
                     <div className={estilos.nombreContenedor}>
                       {esTurnoActual && <Swords size={16} className={estilos.iconoTurnoActivo} />}
                       <span className={estilos.posicionTexto}>#{index + 1}</span>
+                      {avatarFinal && (
+                        <img
+                          src={avatarFinal}
+                          alt={item.nombre}
+                          className={estilos.avatarPjIniciativa}
+                          title="Ver retrato ampliado"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRetratoModal({ nombre: item.nombre, imagen: avatarFinal });
+                          }}
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
+                        />
+                      )}
                       <h3 className={estilos.nombreCriatura}>{item.nombre}</h3>
                     </div>
 
@@ -149,6 +178,14 @@ export const IniciativaJugador: React.FC = () => {
           </div>
         )}
       </div>
+
+      {retratoModal && (
+        <ModalRetratoPersonaje
+          nombre={retratoModal.nombre}
+          imagen={retratoModal.imagen}
+          alCerrar={() => setRetratoModal(null)}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,51 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-22] Sincronización y Renderizado de Retratos (Avatares) de PJs en Iniciativa (Optimizada con /ponytail-audit)
+
+- **Contexto y Diagnóstico**:
+  - *Objetivo*: Permitir que los avatares/retratos configurados en las fichas de los Personajes Jugadores (`avatarUrl`) se sincronicen por el canal de TaleSpire (`TS.sync`) y se muestren como tokens circulares tácticos en los trackers de iniciativa del DM (`TarjetaCriaturaIniciativa.tsx`) y de los Jugadores (`IniciativaJugador.tsx`), permitiendo que todos los participantes vean cómo luce cada personaje.
+  - *Restricción clave*: La funcionalidad aplica exclusiva y estrictamente a los Personajes Jugadores (PJs); los monstruos y PNJs del DM no transmiten ni requieren avatares.
+- **Decisiones Arquitectónicas y Solución Aplicada (Revisión Ponytail)**:
+  - *Poda YAGNI y Presupuesto de Red TaleSpire (`LIMITE_PAQUETE_SYNC = 380`)*:
+    1. Se descartó crear almacenamiento de blobs local o caché adicional en Zustand: el CEF de TaleSpire gestiona la caché HTTP nativa de imágenes externas.
+    2. En `proyeccionEstadoCombate.ts`, se filtran y descartan cadenas en Base64 (`data:image/...`), strings vacíos o URLs locales, aceptando únicamente enlaces web estándar (`http://` o `https://`). Esto previene la fragmentación y saturación del bus de CEF.
+    3. Minificación en el formato de red: se incorporó la clave corta `av?: string` a `WireEstadoCombatePJ` y `WireCriaturaIniciativa`.
+    4. Exclusión de monstruos: en `serializarIniciativaDM`, `av` solo se emite cuando `!criatura.esMonstruo && criatura.avatarUrl`.
+  - *Integración en Almacén DM*:
+    - `CriaturaIniciativa` se amplió con `avatarUrl?: string`.
+    - En `sliceSync.ts:actualizarPersonajeDesdeSync`, se asigna `avatarUrl: dto.avatarUrl ?? criatura.avatarUrl` al actualizar la criatura en la cola del DM.
+  - *UI Táctica, Resiliencia Visual y Modal Ampliado*:
+    - En `TarjetaCriaturaIniciativa.tsx` (DM) e `IniciativaJugador.tsx` (Jugadores), los PJs renderizan un avatar circular (`object-fit: cover; border-radius: 50%`) con borde táctico dorado.
+    - Se incluyó `onError` nativo para ocultar silenciosamente la miniatura si el enlace expira o devuelve 404, evitando romper el layout.
+    - **Modal de Retrato Ampliado (`ModalRetratoPersonaje.tsx`)**: Al hacer clic sobre el avatar en cualquiera de los dos trackers, se abre el modal interactivo con zoom, paneo, navegación por teclado y controles idénticos a los de la pestaña 'Características', con `e.stopPropagation()` para no disparar la selección de criatura.
+- **Certificación CI y Pruebas**:
+  - `src/servicios/sincronizacion/sincronizacionAvataresPJ.test.ts`: 7/7 pruebas unitarias pasando (100% éxito).
+  - Suite completa `vitest run`: 162 archivos de prueba y 2.282 pruebas aprobadas (100% éxito).
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 advertencias y 0 errores.
+  - `node scripts/verificar-limite-lineas.js`: 192 archivos conformes, 0 errores críticos (> 500 líneas).
+
+## [2026-10-22] Blindaje Defensivo de Sincronización y Cierre de Asimetría TaleSpire CEF
+
+- **Contexto y Diagnóstico**:
+  - *Problema*: Degradación accidental de datos en la ficha del jugador (`hpMaximo` y `hpActual` reseteados a 10, `hpTemporal` a 0, `condicionesActivas` y `efectosActivos` vaciados a `[]`, acompañantes reseteados e `iniciativa` a 0).
+  - *Causa raíz*:
+    1. **Asimetría en la cola del DM (`sliceSync.ts:357`)**: Al procesar la emisión de un jugador (`actualizarPersonajeDesdeSync`), el DM solo emparejaba la criatura en la cola por GUID exacto (`idMiniaturaTS`), sin coincidencia por nombre tolerante (`coincidenNombresTaleSpire`). Si la miniatura no tenía el GUID asociado aún, la criatura en la cola del DM permanecía con el valor de contingencia en frío de TaleSpire (`vidaMaxima: 10`, `vidaActual: 10`, `condiciones: []`, `efectos: []`).
+    2. **Aceptación ciega en el Jugador (`sliceSync.ts:168`)**: Al recibir el snapshot `DM`, el jugador emparejaba la criatura por nombre, encontraba el fallback de 10 HP y sobreescribía destructivamente su ficha local.
+    3. **Iniciativa provisionada en 0 (`proyeccionEstadoCombate.ts:33`)**: Si la miniatura en TaleSpire tenía un 0 antes de tirar dados, el combatiente proyectaba 0 anulando su bonificador de destreza.
+- **Decisiones Arquitectónicas y Solución Aplicada (Revisión Ponytail)**:
+  - *Poda YAGNI*: Se descartó duplicar el botón de vinculación en `CabeceraPersonaje.tsx` (ya resuelto por `SeccionVinculacionMiniaturaTS.tsx`) y fabricar objetos sintéticos de `PersonajeJugador` en el DM.
+  - *Cierre de asimetría*: Se incorporó `coincidenNombresTaleSpire` al mapeo de `colaIniciativa` en `actualizarPersonajeDesdeSync` tanto para el personaje principal como para acompañantes, logrando que la cola del DM absorba inmediatamente las estadísticas reales.
+  - *Escudo defensivo en el Jugador*: En `aplicarIniciativaDesdeSync`, se implementó la detección de contingencia en frío (`criaturaEnCola.vidaMaxima === 10 && (pj.hpMaximoBase ?? pj.hpMaximo ?? 10) > 10`). Si se detecta, se preserva el estado local del jugador (`hpMaximo`, `hpActual`, `hpTemporal`, `condicionesActivas`, `efectosActivos` y acompañantes), permitiendo únicamente la aplicación de daño, curación y efectos legítimos del combate.
+  - *Protección de iniciativa*: En `proyeccionEstadoCombate.ts`, se evalúa `criaturaCola.iniciativa !== 0` para no aplastar la tirada o bonificador del jugador por un 0 plano no tirado de TaleSpire.
+- **Certificación CI y Pruebas**:
+  - `src/servicios/sincronizacion/proteccionDatosSync.test.ts`: 6/6 pruebas aprobadas (100% de éxito).
+  - `sincronizacionRobusta.test.ts`, `causalidadSync.test.ts`, `sincronizacionIniciativa.test.ts`: 40/40 pruebas aprobadas.
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 advertencias y 0 errores.
+  - `node scripts/verificar-limite-lineas.js`: 192 archivos conformes, 0 errores críticos (> 500 líneas).
+
+
 ## [2026-10-22] Corrección y Estabilización de la Suite CI: Subclase Mecanismo de Relojería y Alias Tolerantes
 
 - **Contexto y Diagnóstico**:

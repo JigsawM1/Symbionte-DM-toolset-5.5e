@@ -5,7 +5,7 @@ import {
   usarAccionesIniciativa,
   usarEstadoHomebrew,
 } from "@/almacen/selectores";
-import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura } from "@/servicios/resolutorCriaturas";
+import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura, resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
 import type { PasivasCombatePJ } from "@/tipos/sync";
 import {
   esIdInvocacionEscalable,
@@ -32,6 +32,7 @@ interface ItemCriaturaIniciativaProps {
   estaSeleccionadaEnTS: boolean;
   plantilla: MonstruoBase | null;
   pasivasJugador?: PasivasCombatePJ | null;
+  avatarUrlPJ?: string | null;
   rondaActual: number;
   onEliminar: (id: string) => void;
   onSeleccionar: (id: string) => void;
@@ -57,6 +58,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   estaSeleccionadaEnTS,
   plantilla,
   pasivasJugador,
+  avatarUrlPJ,
   rondaActual,
   onEliminar,
   onSeleccionar,
@@ -101,6 +103,7 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
         estaSeleccionadaEnTS={estaSeleccionadaEnTS}
         plantilla={plantilla}
         pasivasJugador={pasivasJugador}
+        avatarUrlPJ={avatarUrlPJ}
         rondaActual={rondaActual}
         onEliminar={manejarEliminar}
         onSeleccionar={manejarSeleccionar}
@@ -363,6 +366,7 @@ export const GestorIniciativa: React.FC = () => {
                     estaSeleccionadaEnTS={estaSeleccionadaEnTS}
                     plantilla={plantilla}
                     pasivasJugador={obtenerPasivasCriatura(criatura, personajes)}
+                    avatarUrlPJ={criatura.avatarUrl || (!criatura.esMonstruo ? resolverPersonajePorCriatura(criatura, personajes)?.avatarUrl : undefined)}
                     rondaActual={rondaActual}
                     onEliminar={alEliminarCriatura}
                     onSeleccionar={alSeleccionarCriatura}

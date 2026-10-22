@@ -30,7 +30,7 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
   );
 
   const iniciativaFinal =
-    criaturaCola?.iniciativa !== undefined
+    criaturaCola?.iniciativa !== undefined && criaturaCola.iniciativa !== 0
       ? criaturaCola.iniciativa
       : (stats.modificadores?.destreza || 0) + (pj.iniciativaBono || 0);
 
@@ -38,6 +38,10 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
     id: pj.id,
     idMiniaturaTS: pj.idMiniaturaTS,
     nombre: pj.nombre,
+    avatarUrl:
+      pj.avatarUrl && (pj.avatarUrl.startsWith("http://") || pj.avatarUrl.startsWith("https://"))
+        ? pj.avatarUrl
+        : undefined,
     iniciativa: iniciativaFinal,
     hpActual: pj.hpActual,
     hpMaximo: pj.hpMaximo,
@@ -71,7 +75,7 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
           coincidenNombresTaleSpire(c.nombre, a.nombre)
       );
       const iniciativaFinalAcomp =
-        criaturaColaAcomp?.iniciativa !== undefined
+        criaturaColaAcomp?.iniciativa !== undefined && criaturaColaAcomp.iniciativa !== 0
           ? criaturaColaAcomp.iniciativa
           : typeof a.iniciativa === "number"
           ? a.iniciativa

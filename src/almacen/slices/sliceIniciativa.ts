@@ -299,6 +299,7 @@ export const crearSliceIniciativa: StateCreator<
     const entradaJugador: CriaturaIniciativa = {
       id: idObjetivo,
       nombre: personaje.nombre,
+      avatarUrl: personaje.avatarUrl,
       iniciativa: indiceExistente >= 0 ? state.colaIniciativa[indiceExistente].iniciativa : 0,
       vidaMaxima: personaje.hpMaximo || 10,
       vidaActual: personaje.hpActual !== undefined ? personaje.hpActual : (personaje.hpMaximo || 10),
@@ -347,6 +348,7 @@ export const crearSliceIniciativa: StateCreator<
             esMonstruo: false,
             idPlantillaAsociada: undefined,
             idPersonajeDuenio: pj.id,
+            avatarUrl: pj.avatarUrl,
             ca: stats.claseArmadura.total,
             bonificadorIniciativa: stats.modificadores.destreza,
             pasivas: {
@@ -1373,6 +1375,7 @@ export const crearSliceIniciativa: StateCreator<
         nuevasCriaturas.push({
           id: cTS.id,
           nombre: pjAsociado.nombre,
+          avatarUrl: pjAsociado.avatarUrl,
           iniciativa: 0,
           vidaMaxima: pjAsociado.hpMaximo || 10,
           vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),

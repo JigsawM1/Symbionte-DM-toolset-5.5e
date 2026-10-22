@@ -43,6 +43,7 @@ export interface EstadoCombatePJ {
   id: string;
   idMiniaturaTS?: string | null;
   nombre: string;
+  avatarUrl?: string;
   iniciativa: number;
   hpActual: number;
   hpMaximo: number;
@@ -94,6 +95,7 @@ export interface WireEstadoCombatePJ {
   id: string;
   m?: string | null; // idMiniaturaTS
   n: string; // nombre
+  av?: string; // avatarUrl (solo PJs)
   i: number; // iniciativa
   va: number; // vidaActual
   vm: number; // vidaMaxima
@@ -111,6 +113,7 @@ export interface WireEstadoCombatePJ {
 export interface WireCriaturaIniciativa {
   id: string;
   n: string;
+  av?: string; // avatarUrl (solo PJs)
   i: number;
   va: number;
   vm: number;
@@ -176,6 +179,7 @@ export const EsquemaWireEstadoCombatePJ = z.object({
   id: z.string(),
   m: z.string().nullable().optional(),
   n: z.string().default("Personaje"),
+  av: z.string().optional(),
   i: z.number().default(0),
   va: z.number().nullable().optional().transform((v) => v ?? 0),
   vm: z.number().nullable().optional().transform((v) => v ?? 0),
@@ -199,6 +203,7 @@ export const EsquemaWireEstadoCombatePJ = z.object({
 const EsquemaWireCriaturaIniciativa = z.object({
   id: z.string(),
   n: z.string().default("Criatura"),
+  av: z.string().optional(),
   i: z.number().default(0),
   va: z.number().nullable().optional().transform((v) => v ?? 0),
   vm: z.number().nullable().optional().transform((v) => v ?? 0),
@@ -304,6 +309,9 @@ export function serializarEstadoCombatePJ(
 
   if (pj.ts) wire.ts = pj.ts;
   if (pj.idMiniaturaTS) wire.m = pj.idMiniaturaTS;
+  if (pj.avatarUrl && (pj.avatarUrl.startsWith("http://") || pj.avatarUrl.startsWith("https://"))) {
+    wire.av = pj.avatarUrl;
+  }
   if (pj.hpTemporal && pj.hpTemporal > 0) wire.vt = pj.hpTemporal;
   if (pj.ca !== undefined && pj.ca !== 10) wire.ca = pj.ca;
   if (pj.condiciones && pj.condiciones.length > 0) wire.c = pj.condiciones;
@@ -372,6 +380,7 @@ export function deserializarEstadoCombatePJ(wire: WireEstadoCombatePJ): EstadoCo
     id: wire.id,
     idMiniaturaTS: wire.m ?? null,
     nombre: wire.n || "Personaje",
+    avatarUrl: wire.av,
     iniciativa: wire.i ?? 0,
     hpActual: wire.va ?? 0,
     hpMaximo: wire.vm ?? 0,
@@ -440,6 +449,7 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
       } else {
         if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
         if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
+        if (criatura.avatarUrl) item.av = criatura.avatarUrl;
       }
 
       if (criatura.condiciones && criatura.condiciones.length > 0) item.c = criatura.condiciones;
@@ -467,6 +477,7 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
     cola: (wire.c || []).map((w) => ({
       id: w.id,
       nombre: w.n || "Criatura",
+      avatarUrl: w.av,
       iniciativa: w.i ?? 0,
       vidaActual: w.va ?? 0,
       vidaMaxima: w.vm ?? 0,

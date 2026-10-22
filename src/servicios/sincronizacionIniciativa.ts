@@ -151,6 +151,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       return {
         id: cTS.id,
         nombre: pjAsociado.nombre,
+        avatarUrl: pjAsociado.avatarUrl,
         iniciativa: iniciativaFisica,
         vidaMaxima: pjAsociado.hpMaximo || 10,
         vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),

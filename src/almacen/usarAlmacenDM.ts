@@ -21,6 +21,7 @@ export interface EfectoActivo {
 
 export interface CriaturaIniciativa {
   id: string; // ID único (de TaleSpire o local)
+  avatarUrl?: string;
   nombre: string;
   iniciativa: number;
   vidaMaxima: number;

@@ -775,10 +775,10 @@
       ]
     },
     {
-      "id": "hechiceria_del_mecanismo_de_relojeria",
+      "id": "hechiceria_mecanica",
       "clasePadre": "hechicero",
-      "nombre": "Hechicería del Mecanismo de Relojería",
-      "descripcion": "La fuerza cósmica del orden te ha impregnado de magia. Ese poder surge de Mechanus o de un reino similar: un plano de existencia moldeado enteramente por la eficiencia del mecanismo de relojería. Tú o alguien de tu linaje podríais haberos visto envueltos en las maquinaciones de los modrons, los seres ordenados que habitan Mechanus. Quizás tu antepasado incluso participó en la Gran Marcha de los Modrons. Sea cual sea su origen en tu interior, el poder del orden puede parecer extraño a los demás, pero para ti, es parte de un sistema vasto y glorioso.",
+      "nombre": "Hechicería Mecánica",
+      "descripcion": "La fuerza cósmica del orden te ha impregnado de magia. Ese poder surge de Mechanus o de un reino similar: un plano de existencia moldeado enteramente por la eficiencia Mecánica. Tú o alguien de tu linaje podríais haberos visto envueltos en las maquinaciones de los modrons, los seres ordenados que habitan Mechanus. Quizás tu antepasado incluso participó en la Gran Marcha de los Modrons. Sea cual sea su origen en tu interior, el poder del orden puede parecer extraño a los demás, pero para ti, es parte de un sistema vasto y glorioso.",
       "lema": "Canaliza las fuerzas cósmicas del orden",
       "nivelDesbloqueo": 3,
       "rasgos": [
@@ -787,9 +787,9 @@
           "nombre": "Conjuros mecánicos",
           "descripcion": "Cuando alcances un nivel de hechicero especificado en la tabla \"Conjuros mecánicos\", a partir de entonces siempre tendrás preparados los conjuros que se indican.\n\nAdemás, consulta la tabla \"Manifestaciones del orden\" y elige o determina al azar el modo en que quieres que se manifieste tu conexión con el orden mientras lanzas cualquiera de tus conjuros de hechicero.",
           "tipoAccion": "pasivo",
-          "subclase": "Hechicería del Mecanismo de Relojería",
+          "subclase": "Hechicería Mecanica",
           "formulaDados": "1d6",
-          "id": "rasgo_sub_hechiceria_del_mecanismo_de_relojeria_conjuros_de_relojeria",
+          "id": "rasgo_sub_hechiceria_mecanica_conjuros_de_relojeria",
           "categoriaMecanica": "pasivo_permanente",
           "esActivable": false,
           "tablaProgresion": {
@@ -908,10 +908,10 @@
           "nombre": "Restaurar equilibrio",
           "descripcion": "Tu conexión con el plano del orden absoluto te permite igualar momentos caóticos. Cuando una criatura que puedas ver a 60 pies o menos de ti esté a punto de hacer una prueba de d20 con ventaja o desventaja, puedes llevar a cabo una reacción para evitar que la tirada se vea afectada por la ventaja o la desventaja.\n\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Carisma (mínimo una vez), y recuperas todos los usos gastados tras finalizar un descanso largo.",
           "tipoAccion": "reaccion",
-          "subclase": "Hechicería del Mecanismo de Relojería",
+          "subclase": "Hechicería Mecanica",
           "tieneUsosLimitados": true,
           "recuperacion": "descanso_largo",
-          "id": "rasgo_sub_hechiceria_del_mecanismo_de_relojeria_restaurar_equilibrio",
+          "id": "rasgo_sub_hechiceria_mecanica_restaurar_equilibrio",
           "categoriaMecanica": "consumible",
           "esActivable": false,
           "usosMaximos": 1,
@@ -926,9 +926,9 @@
           "nombre": "Bastión de la ley",
           "descripcion": "Puedes recurrir a la gran ecuación de la existencia para imbuir a una criatura con un escudo resplandeciente de orden. Como acción de magia, puedes gastar de 1 a 5 puntos de hechicería para crear una salvaguarda mágica alrededor de ti o de otra criatura que puedas ver a 30 pies o menos de ti. La salvaguarda está representada por una cantidad de d8 igual a la cantidad de puntos de hechicería gastados para crearla. Cuando la criatura protegida sufra daño, puede gastar una cantidad de esos dados, tirarlos y reducir el daño sufrido en el total obtenido en esos dados.\n\nLa salvaguarda dura hasta que finalices un descanso largo o hasta que vuelvas a usar este rasgo.",
           "tipoAccion": "accion",
-          "subclase": "Hechicería del Mecanismo de Relojería",
+          "subclase": "Hechicería Mecanica",
           "tieneUsosLimitados": false,
-          "id": "rasgo_sub_hechiceria_del_mecanismo_de_relojeria_bastion_de_la_ley",
+          "id": "rasgo_sub_hechiceria_mecanica_bastion_de_la_ley",
           "categoriaMecanica": "consumible",
           "esActivable": false,
           "idRasgoRecurso": "rasgo_cls_hechicero_fuente_de_magia",
@@ -943,10 +943,10 @@
           "nombre": "Trance del orden",
           "descripcion": "Ganas la capacidad de alinear tu consciencia con los cálculos interminables de Mechanus. Como acción adicional, puedes entrar en este estado durante 1 minuto. Mientras dure, las tiradas de ataque contra ti no pueden beneficiarse de ventaja, y siempre que hagas una prueba de d20, puedes tratar una tirada de 9 o inferior en el d20 como un 10.\n\nUna vez que uses este rasgo, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 5 puntos de hechicería (no requiere acción) para restaurar su uso.",
           "tipoAccion": "accion_adicional",
-          "subclase": "Hechicería del Mecanismo de Relojería",
+          "subclase": "Hechicería Mecanica",
           "tieneUsosLimitados": true,
           "recuperacion": "descanso_largo",
-          "id": "rasgo_sub_hechiceria_del_mecanismo_de_relojeria_trance_del_orden",
+          "id": "rasgo_sub_hechiceria_mecanica_trance_del_orden",
           "categoriaMecanica": "activable",
           "esActivable": true,
           "usosMaximos": 1,
@@ -962,10 +962,10 @@
           "nombre": "Cabalgata de relojería",
           "descripcion": "Invocas momentáneamente espíritus del orden para purgar el desorden a tu alrededor. Como acción de magia, invocas a los espíritus en un cubo de 30 pies que se origina en ti. Los espíritus parecen modrons u otros constructos de tu elección. Los espíritus son intangibles e invulnerables, y generan los efectos a continuación dentro del cubo antes de desaparecer. Una vez que uses esta acción, no podrás volver a hacerlo hasta que finalices un descanso largo, a menos que gastes 7 puntos de hechicería (no requiere acción) para restaurar su uso.\n\n***Sanar.*** Los espíritus restauran hasta 100 puntos de golpe, divididos como elijas entre cualquier cantidad de criaturas de tu elección en el cubo.\n\n***Reparar.*** Cualquier objeto dañado que se encuentre enteramente dentro del cubo se repara instantáneamente.\n\n***Disipar.*** Todo conjuro de nivel 6 o inferior finaliza en las criaturas y objetos de tu elección en el cubo.",
           "tipoAccion": "accion",
-          "subclase": "Hechicería del Mecanismo de Relojería",
+          "subclase": "Hechicería Mecanica",
           "tieneUsosLimitados": true,
           "recuperacion": "descanso_largo",
-          "id": "rasgo_sub_hechiceria_del_mecanismo_de_relojeria_cabalgata_de_relojeria",
+          "id": "rasgo_sub_hechiceria_mecanica_cabalgata_de_relojeria",
           "categoriaMecanica": "consumible",
           "esActivable": false,
           "usosMaximos": 1,
@@ -1360,7 +1360,7 @@
                 "duracion": "1 MINUTO",
                 "desde": 5,
                 "hasta": 8,
-                "texto": "Una criatura que sea amistosa hacia ti aparece en un espacio sin ocupar al azar a 18 m (60 pies) o menos de ti. La criatura está bajo el control del DM y desaparece 1 minuto después. Tira 1d4 para determinar la criatura: con un 1, aparece un modron duodron; con un 2, aparece un flumph; con un 3, aparece un modron monodron; con un 4, aparece un unicornio. Consulta el *Manual de monstruos* para ver el perfil de la criatura.",
+                "texto": "Una criatura que sea amistosa hacia ti aparece en un espacio sin ocupar al azar a 60 pies o menos de ti. La criatura está bajo el control del DM y desaparece 1 minuto después.",
                 "subtiradas": [
                   {
                     "formula": "1d4",
@@ -1381,7 +1381,7 @@
                       },
                       {
                         "numero": 4,
-                        "texto": "Unicornio (ver perfil en Manual de monstruos)"
+                        "texto": "Unicornio"
                       }
                     ]
                   }
@@ -1412,7 +1412,7 @@
                 "duracion": "1 MINUTO (SALVO EFECTO ESPECÍFICO)",
                 "desde": 17,
                 "hasta": 20,
-                "texto": "Quedas sujeto a un efecto que dura 1 minuto a menos que su descripción indique lo contrario. Tira 1d8 para determinar el efecto: con un 1, te rodea una música etérea y tenue que solo tú y las criaturas a 1,5 m (5 pies) o menos de ti podéis oír; con un 2, tu tamaño aumenta en una categoría de tamaño; con un 3, te crece una larga barba hecha de plumas que permanece hasta que estornudes, momento en el cual las plumas explotan de tu rostro y desaparecen; con un 4, debes gritar cuando hables; con un 5, mariposas ilusorias revolotean en el aire a 3 m (10 pies) o menos de ti; con un 6, un ojo aparece en tu frente, otorgándote ventaja en las pruebas de Sabiduría (Percepción); con un 7, burbujas rosadas flotan fuera de tu boca cada vez que hablas; con un 8, tu piel se vuelve de un tono azul vibrante durante 24 horas o hasta que el efecto sea terminado por un conjuro de *eliminar maldición*.",
+                "texto": "Quedas sujeto a un efecto que dura 1 minuto a menos que su descripción indique lo contrario. Tira 1d8 para determinar el efecto:",
                 "subtiradas": [
                   {
                     "formula": "1d8",
@@ -1421,7 +1421,7 @@
                     "opciones": [
                       {
                         "numero": 1,
-                        "texto": "Música etérea y tenue en radio de 1,5 m"
+                        "texto": "Música etérea y tenue en radio de 5 pies"
                       },
                       {
                         "numero": 2,
@@ -1437,7 +1437,7 @@
                       },
                       {
                         "numero": 5,
-                        "texto": "Mariposas ilusorias revolotean a 3 m o menos"
+                        "texto": "Mariposas ilusorias revolotean a 10 pies o menos"
                       },
                       {
                         "numero": 6,
@@ -1507,7 +1507,7 @@
                 "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 41,
                 "hasta": 44,
-                "texto": "Durante el próximo minuto, puedes teletransportarte hasta 6 m (20 pies) como acción adicional en cada uno de tus turnos."
+                "texto": "Durante el próximo minuto, puedes teletransportarte hasta 20 pies como acción adicional en cada uno de tus turnos."
               },
               {
                 "id": "oleada_45",
@@ -1516,7 +1516,7 @@
                 "duracion": "1 MINUTO",
                 "desde": 45,
                 "hasta": 48,
-                "texto": "Tú y hasta tres criaturas de tu elección a 9 m (30 pies) o menos de ti tenéis el estado de invisible durante 1 minuto. Esta invisibilidad termina en una criatura inmediatamente después de que realice una tirada de ataque, inflija daño o lance un conjuro."
+                "texto": "Tú y hasta tres criaturas de tu elección a 30 pies o menos de ti tenéis el estado de invisible durante 1 minuto. Esta invisibilidad termina en una criatura inmediatamente después de que realice una tirada de ataque, inflija daño o lance un conjuro."
               },
               {
                 "id": "oleada_49",
@@ -1543,7 +1543,7 @@
                 "duracion": "DURACIÓN COMPLETA DEL CONJURO",
                 "desde": 57,
                 "hasta": 60,
-                "texto": "Lanzas un conjuro al azar. Si el conjuro normalmente requiere concentración, en este caso no la requiere; el conjuro dura toda su duración. Tira 1d10 para determinar el conjuro: con un 1, *confusión*; con un 2, *bola de fuego*; con un 3, *nube de oscurecimiento*; con un 4, *volar* (lanzado sobre una criatura al azar a 18 m / 60 pies o menos de ti); con un 5, *grasa*; con un 6, *levitar* (lanzado sobre ti mismo); con un 7, *proyectil mágico* (lanzado como conjuro de nivel 5); con un 8, *reflejo exacto*; con un 9, *polimorfar* (lanzado sobre ti mismo), y si fallas la tirada de salvación, te conviertes en una cabra (ver apéndice B); con un 10, *ver invisibilidad*.",
+                "texto": "Lanzas un conjuro al azar. Si el conjuro normalmente requiere concentración, en este caso no la requiere; el conjuro dura toda su duración. Tira 1d10 para determinar el conjuro:",
                 "subtiradas": [
                   {
                     "formula": "1d10",
@@ -1564,7 +1564,7 @@
                       },
                       {
                         "numero": 4,
-                        "texto": "Volar (sobre criatura al azar a 18 m)"
+                        "texto": "Volar (sobre criatura al azar a 60 pies)"
                       },
                       {
                         "numero": 5,
@@ -1631,11 +1631,11 @@
               {
                 "id": "oleada_73",
                 "titulo": "TELETRANSPORTE INSTANTÁNEO",
-                "badge": "Alcance: 18 m",
+                "badge": "Alcance: 60 pies",
                 "duracion": "INSTANTÁNEO",
                 "desde": 73,
                 "hasta": 76,
-                "texto": "Te teletransportas hasta 18 m (60 pies) a un espacio sin ocupar que puedas ver."
+                "texto": "Te teletransportas hasta 60 pies a un espacio sin ocupar que puedas ver."
               },
               {
                 "id": "oleada_77",
@@ -1644,7 +1644,7 @@
                 "duracion": "1D4 HORAS",
                 "desde": 77,
                 "hasta": 80,
-                "texto": "Una criatura al azar a 18 m (60 pies) o menos de ti tiene el estado de envenenado durante 1d4 horas.",
+                "texto": "Una criatura al azar a 60 pies o menos de ti tiene el estado de envenenado durante 1d4 horas.",
                 "subtiradas": [
                   {
                     "formula": "1d4",
@@ -1656,11 +1656,11 @@
               {
                 "id": "oleada_81",
                 "titulo": "LUZ RADIANTE CEGADORA",
-                "badge": "Radio 9 m",
+                "badge": "Radio 30 pies",
                 "duracion": "1 MINUTO",
                 "desde": 81,
                 "hasta": 84,
-                "texto": "Emites luz brillante en un radio de 9 m (30 pies) durante el próximo minuto. Cualquier criatura que termine su turno a 1,5 m (5 pies) o menos de ti tiene el estado de cegado hasta el final de su siguiente turno."
+                "texto": "Emites luz brillante en un radio de 30 pies durante el próximo minuto. Cualquier criatura que termine su turno a 5 pies o menos de ti tiene el estado de cegado hasta el final de su siguiente turno."
               },
               {
                 "id": "oleada_85",
@@ -1669,7 +1669,7 @@
                 "duracion": "INSTANTÁNEO",
                 "desde": 85,
                 "hasta": 88,
-                "texto": "Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 1d10 de daño necrótico. Recuperas una cantidad de puntos de golpe igual a la suma del daño necrótico infligido.",
+                "texto": "Hasta tres criaturas de tu elección que puedas ver a 30 pies o menos de ti sufren 1d10 de daño necrótico. Recuperas una cantidad de puntos de golpe igual a la suma del daño necrótico infligido.",
                 "subtiradas": [
                   {
                     "formula": "1d10",
@@ -1685,7 +1685,7 @@
                 "duracion": "INSTANTÁNEO",
                 "desde": 89,
                 "hasta": 92,
-                "texto": "Hasta tres criaturas de tu elección que puedas ver a 9 m (30 pies) o menos de ti sufren 4d10 de daño de relámpago.",
+                "texto": "Hasta tres criaturas de tu elección que puedas ver a 30 pies o menos de ti sufren 4d10 de daño de relámpago.",
                 "subtiradas": [
                   {
                     "formula": "4d10",
@@ -1701,7 +1701,7 @@
                 "duracion": "1 MINUTO (10 ASALTOS)",
                 "desde": 93,
                 "hasta": 96,
-                "texto": "Tú y todas las criaturas a 9 m (30 pies) o menos de ti tenéis vulnerabilidad al daño perforante durante el próximo minuto."
+                "texto": "Tú y todas las criaturas a 30 pies o menos de ti tenéis vulnerabilidad al daño perforante durante el próximo minuto."
               },
               {
                 "id": "oleada_97",
@@ -1710,7 +1710,7 @@
                 "duracion": "INSTANTÁNEO",
                 "desde": 97,
                 "hasta": 100,
-                "texto": "Tira 1d6. Con un 1, recuperas 2d10 puntos de golpe; con un 2, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera 2d10 puntos de golpe; con un 3, recuperas tu espacio de conjuro gastado de nivel más bajo; con un 4, un aliado de tu elección a 90 m (300 pies) o menos de ti recupera su espacio de conjuro gastado de nivel más bajo; con un 5, recuperas todos tus puntos de hechicería gastados; con un 6, todos los efectos de la fila 17–20 te afectan simultáneamente.",
+                "texto": "Tira 1d6.",
                 "subtiradas": [
                   {
                     "formula": "1d6",
@@ -1723,7 +1723,7 @@
                       },
                       {
                         "numero": 2,
-                        "texto": "Un aliado a 90 m o menos recupera 2d10 puntos de golpe"
+                        "texto": "Un aliado a 300 pies o menos recupera 2d10 puntos de golpe"
                       },
                       {
                         "numero": 3,
@@ -1731,7 +1731,7 @@
                       },
                       {
                         "numero": 4,
-                        "texto": "Un aliado a 90 m recupera su espacio gastado más bajo"
+                        "texto": "Un aliado a 300 pies o menos recupera su espacio gastado más bajo"
                       },
                       {
                         "numero": 5,

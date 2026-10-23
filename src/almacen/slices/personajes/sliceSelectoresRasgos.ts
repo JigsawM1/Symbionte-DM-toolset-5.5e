@@ -12,7 +12,7 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import type { TamanoPersonaje } from "@/tipos";
 import { normalizarTextoSeguro } from "./condicionesRasgosHelpers";
 import { generarId } from "@/utiles/generarId";
-import { seleccionOpcionValida } from "@/servicios/rasgos/seleccionesRasgos";
+import { seleccionOpcionValida, descomponerSeleccion } from "@/servicios/rasgos/seleccionesRasgos";
 import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
@@ -25,7 +25,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const maxPedido = [...(selectorPedido?.escaladoMaxSelecciones ?? [])].sort((a, b) => b.nivelMinimo - a.nivelMinimo)
         .find(e => rasgoPedido && obtenerNivelEfectivoParaRasgo(pj, rasgoPedido) >= e.nivelMinimo)?.valor ?? selectorPedido?.maxSelecciones ?? 1;
       if (!selectorPedido || selectorPedido.modo === "consulta" || new Set(valorActual).size !== valorActual.length || valorActual.length > maxPedido
-        || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === id.split(/:|__/)[0])))) return pj;
+        || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === descomponerSeleccion(id).base)))) return pj;
       if (selectorPedido.categoriaDote === "estilo_combate" && valorActual.some(id => !puedeElegirDoteEstilo(pj, idRasgo, id))) return pj;
       if (selectorPedido.tipoSelector === "dote" && valorActual.some(id => !evaluarRequisitoDote(selectorPedido.opciones.find(o=>o.id===id)?.requisito,pj,pj.nivel).cumple)) return pj;
       if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")

@@ -204,28 +204,14 @@ export const TIPO_LANZADOR_POR_CLASE: Record<
 };
 
 /** Progresión de Magia de Pacto del Brujo (niveles 1-20) */
-export const TABLA_PACTO_BRUJO: Record<number, { espacios: number; nivel: number }> = {
-  1: { espacios: 1, nivel: 1 },
-  2: { espacios: 2, nivel: 1 },
-  3: { espacios: 2, nivel: 2 },
-  4: { espacios: 2, nivel: 2 },
-  5: { espacios: 2, nivel: 3 },
-  6: { espacios: 2, nivel: 3 },
-  7: { espacios: 2, nivel: 4 },
-  8: { espacios: 2, nivel: 4 },
-  9: { espacios: 2, nivel: 5 },
-  10: { espacios: 2, nivel: 5 },
-  11: { espacios: 3, nivel: 5 },
-  12: { espacios: 3, nivel: 5 },
-  13: { espacios: 3, nivel: 5 },
-  14: { espacios: 3, nivel: 5 },
-  15: { espacios: 3, nivel: 5 },
-  16: { espacios: 3, nivel: 5 },
-  17: { espacios: 4, nivel: 5 },
-  18: { espacios: 4, nivel: 5 },
-  19: { espacios: 4, nivel: 5 },
-  20: { espacios: 4, nivel: 5 }
-};
+export const TABLA_PACTO_BRUJO: Record<number, { espacios: number; nivel: number }> = Object.fromEntries(
+  Array.from({ length: 20 }, (_, i) => {
+    const niv = i + 1;
+    const espacios = niv >= 17 ? 4 : niv >= 11 ? 3 : niv >= 2 ? 2 : 1;
+    const nivel = Math.min(5, Math.ceil(niv / 2));
+    return [niv, { espacios, nivel }];
+  })
+);
 
 // ==========================================
 // 4. PLANTILLA LIMPIA Y BÁSICA POR DEFECTO

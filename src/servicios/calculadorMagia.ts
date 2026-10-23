@@ -728,12 +728,7 @@ export function obtenerConjurosSubclasePersonaje(
  * - Nivel 17+: Nivel 9
  */
 export function obtenerNivelesArcanoMisticoDisponibles(nivelBrujo: number): number[] {
-  const niveles: number[] = [];
-  if (nivelBrujo >= 11) niveles.push(6);
-  if (nivelBrujo >= 13) niveles.push(7);
-  if (nivelBrujo >= 15) niveles.push(8);
-  if (nivelBrujo >= 17) niveles.push(9);
-  return niveles;
+  return [6, 7, 8, 9].filter((lvl) => nivelBrujo >= 11 + (lvl - 6) * 2);
 }
 
 /**

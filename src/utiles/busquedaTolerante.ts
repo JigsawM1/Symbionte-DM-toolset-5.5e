@@ -51,8 +51,12 @@ export function tokenizarBusqueda(consulta: string): string[] {
 /**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
- * Optimizado perezosamente: examina campos cortos (nombre, categoría) antes de analizar textos masivos.
- * 
+ *
+ * Optimización de rendimiento Ponytail:
+ * - Ruta rápida para objetivo único tipo string sin asignaciones de Arrays ni Sets intermedios.
+ * - Iteración directa sobre índices en Set evitando conversiones `Array.from()`.
+ * - Pre-normalización de tokens en memoria plana sin instanciar objetos intermedios.
+ *
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
  * @returns true si coincide tolerantemente, false en caso contrario
@@ -67,32 +71,51 @@ export function coincideBusquedaTolerante(
   const tokens = tokenizarBusqueda(consulta);
   if (tokens.length === 0) return true;
 
-  const listaObjetivos = (Array.isArray(objetivos) ? objetivos : [objetivos])
-    .filter((t): t is string => typeof t === "string" && t.length > 0);
+  const tokensSinEnye = tokens.map((t) => (t.includes("ñ") ? t.replace(/ñ/g, "n") : t));
 
-  if (listaObjetivos.length === 0) return false;
-
-  // Ordenar perezosamente: campos más cortos primero para descartar o confirmar sin tocar descripciones largas
-  const objetivosOrdenados = listaObjetivos.length > 1
-    ? [...listaObjetivos].sort((a, b) => a.length - b.length)
-    : listaObjetivos;
-
-  const tokensPendientes = new Set(tokens);
-
-  for (const obj of objetivosOrdenados) {
-    const objNorm = normalizarParaBusqueda(obj);
+  // Ruta rápida para un único string objetivo (ej: búsquedas directas de nombre o filtros simples)
+  if (typeof objetivos === "string") {
+    if (objetivos.length === 0) return false;
+    const objNorm = normalizarParaBusqueda(objetivos);
+    if (!objNorm) return false;
     const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
-    for (const token of Array.from(tokensPendientes)) {
-      const tokenSinEnye = token.includes("ñ") ? token.replace(/ñ/g, "n") : token;
-      if (objNorm.includes(token) || objNormSinEnye.includes(tokenSinEnye)) {
-        tokensPendientes.delete(token);
+    for (let i = 0; i < tokens.length; i++) {
+      if (!objNorm.includes(tokens[i]) && !objNormSinEnye.includes(tokensSinEnye[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (!Array.isArray(objetivos) || objetivos.length === 0) return false;
+
+  const listaObjetivos: string[] = [];
+  for (let i = 0; i < objetivos.length; i++) {
+    const item = objetivos[i];
+    if (typeof item === "string" && item.length > 0) {
+      listaObjetivos.push(item);
+    }
+  }
+  if (listaObjetivos.length === 0) return false;
+
+  const tokensPendientes = new Set<number>();
+  for (let i = 0; i < tokens.length; i++) {
+    tokensPendientes.add(i);
+  }
+
+  for (let i = 0; i < listaObjetivos.length; i++) {
+    const objNorm = normalizarParaBusqueda(listaObjetivos[i]);
+    if (!objNorm) continue;
+    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
+
+    for (const idx of tokensPendientes) {
+      if (objNorm.includes(tokens[idx]) || objNormSinEnye.includes(tokensSinEnye[idx])) {
+        tokensPendientes.delete(idx);
       }
     }
 
-    if (tokensPendientes.size === 0) {
-      return true;
-    }
+    if (tokensPendientes.size === 0) return true;
   }
 
   return false;
@@ -159,12 +182,18 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tokensEnTitulo = tokens.filter((t) =>
-      tituloNorm.includes(t) || tituloNorm.replace(/ñ/g, "n").includes(t.replace(/ñ/g, "n"))
-    );
+    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
+    let coincidencias = 0;
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
+      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+        coincidencias++;
+      }
+    }
 
-    if (tokensEnTitulo.length === tokens.length) return 400;
-    if (tokensEnTitulo.length > 0) return 300;
+    if (coincidencias === tokens.length) return 400;
+    if (coincidencias > 0) return 300;
   }
 
   // Comprobar coincidencia en campos secundarios si se proporcionan

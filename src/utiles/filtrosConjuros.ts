@@ -40,12 +40,12 @@ export function evaluarFiltrosHechizo(
   filtroResolucion: "todos" | "ataque" | "salvacion" | "utilidad",
   filtroComponentes: FiltroComponentesConjuro
 ): boolean {
-  // 1. Filtro de búsqueda por texto
+  // 1. Filtro de búsqueda por texto (evalúa campos cortos antes de la descripción larga en una sola llamada)
   if (busqueda.trim()) {
-    const coincide =
-      coincideBusquedaTolerante(hechizo.nombre, busqueda) ||
-      coincideBusquedaTolerante(hechizo.descripcion, busqueda) ||
-      coincideBusquedaTolerante(hechizo.escuela, busqueda);
+    const coincide = coincideBusquedaTolerante(
+      [hechizo.nombre, hechizo.escuela, hechizo.descripcion],
+      busqueda
+    );
     if (!coincide) return false;
   }
 

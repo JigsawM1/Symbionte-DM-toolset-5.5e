@@ -1,8 +1,18 @@
 import type { EfectoMecanicoRasgo, RasgoPersonaje, SelectorRasgo } from "@/tipos";
-import { obtenerMaxInvocacionesBrujo } from "@/constantes/invocacionesSobrenaturales";
 import { normalizar } from "./rasgos/utilidadesRasgos";
 
 // Compatibilidad al incorporar datos antiguos: las reglas de ejecución solo leen metadatos.
+const ESCALADO_CANONICO_INVOCACIONES = [
+  { nivelMinimo: 1, valor: 1 },
+  { nivelMinimo: 2, valor: 3 },
+  { nivelMinimo: 5, valor: 5 },
+  { nivelMinimo: 7, valor: 6 },
+  { nivelMinimo: 9, valor: 7 },
+  { nivelMinimo: 12, valor: 8 },
+  { nivelMinimo: 15, valor: 9 },
+  { nivelMinimo: 18, valor: 10 }
+];
+
 const CONDICIONES_HEREDADAS: Array<[RegExp, string]> = [
   [/furia de los dioses|furia_de_los_dioses/, "Furia de los Dioses"],
   [/^(furia|rasgo_cls_barbaro_furia)$/, "Furia"],
@@ -54,10 +64,8 @@ function migrarSelector(selector: SelectorRasgo): SelectorRasgo {
   const listaHeredada = id.includes("conjuro_nv1") || id.includes("hechizo_nv1") ||
     (etiqueta.includes("nivel 1") && etiqueta.includes("conjuro"));
   let escaladoMaxSelecciones = selector.escaladoMaxSelecciones;
-  if (selector.tipoSelector === undefined && tipoSelector === "invocacion" && !escaladoMaxSelecciones?.length) {
-    escaladoMaxSelecciones = Array.from({ length: 20 }, (_, i) => ({
-      nivelMinimo: i + 1, valor: obtenerMaxInvocacionesBrujo(i + 1)
-    })).filter((entrada, i, tabla) => i === 0 || entrada.valor !== tabla[i - 1].valor);
+    if (selector.tipoSelector === undefined && tipoSelector === "invocacion" && !escaladoMaxSelecciones?.length) {
+    escaladoMaxSelecciones = ESCALADO_CANONICO_INVOCACIONES;
   }
   return {
     ...selector,

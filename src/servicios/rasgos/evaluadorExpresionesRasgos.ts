@@ -32,6 +32,12 @@ import { resolverRasgoRecurso } from "./utilidadesRasgos";
 /**
  * Evalúa las condiciones contextuales de un efecto mecánico de rasgo.
  */
+export const MAPA_TIPOS_DANO_CANONICOS: Record<string, string> = {
+  necrotico: "Necrótico", psiquico: "Psíquico", radiante: "Radiante",
+  fuego: "Fuego", frio: "Frío", acido: "Ácido",
+  relampago: "Relámpago", trueno: "Trueno", veneno: "Veneno", fuerza: "Fuerza"
+};
+
 export function cumpleCondicionEfecto(
   condicion: string | null | undefined,
   personaje: PersonajeJugador
@@ -45,6 +51,7 @@ export function cumpleCondicionEfecto(
     return !(personaje.condicionesActivas ?? []).some(c => excluidas.includes(claveEstado(c)));
   }
   if (condNorm.includes("descanso")) return true;
+  if (condNorm === "concentracion") return Boolean(personaje.concentracionActiva) || (personaje.condicionesActivas ?? []).some(c => normalizar(c).includes("concentra"));
   if (condNorm === "luz_tenue_u_oscuridad") return (personaje.condicionesActivas ?? []).some(c => ["luz tenue", "oscuridad"].includes(normalizar(c)));
   const estadoArmadura = tieneArmaduraEquipada(personaje);
   const tieneEscudo = tieneEscudoEquipado(personaje);
@@ -130,25 +137,6 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     // Efectos base del rasgo (con hidratación de respaldo si proviene de un snapshot antiguo de localStorage)
     let efectosBase = rasgo.efectos?.map(ef => typeof ef.valor === "string" && ef.valor.includes("dados_padre")
       ? { ...ef, valor: resolverFormulaDinamica(ef.valor, personaje, rasgo.fuente, rasgo) } : ef);
-    if (esRevelacion && (!Array.isArray(efectosBase) || efectosBase.length === 0)) {
-      efectosBase = [
-        {
-          tipo: "bono_dano_ataque",
-          objetivo: "todos_ataques",
-          valor: "bono_competencia",
-          aplicaA: "todos_ataques",
-          descripcion: "Revelación celestial (+PB daño en ataques)"
-        },
-        {
-          tipo: "bono_dano_conjuro",
-          objetivo: "todos_conjuros",
-          valor: "bono_competencia",
-          aplicaA: "todos_conjuros",
-          descripcion: "Revelación celestial (+PB daño en conjuros)"
-        }
-      ];
-    }
-
     // 1. Efectos base del rasgo
     if (Array.isArray(efectosBase)) {
       // Detección de selector de tipo de daño asociado al rasgo (ej. Golpe divino, Devorador de vida)
@@ -173,20 +161,8 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
             const opEncontrada = sel.opciones?.find(
               (o) => o.id.toLowerCase() === val.toLowerCase() || normalizar(o.nombre) === normalizar(val)
             );
-            const mapaTipos: Record<string, string> = {
-              necrotico: "Necrótico",
-              psiquico: "Psíquico",
-              radiante: "Radiante",
-              fuego: "Fuego",
-              frio: "Frío",
-              acido: "Ácido",
-              relampago: "Relámpago",
-              trueno: "Trueno",
-              veneno: "Veneno",
-              fuerza: "Fuerza"
-            };
             const claveNorm = val.toLowerCase().replace(/[\u0300-\u036f]/g, "");
-            tipoDanoSelector = opEncontrada?.nombre || mapaTipos[claveNorm] || (val.charAt(0).toUpperCase() + val.slice(1));
+            tipoDanoSelector = opEncontrada?.nombre || MAPA_TIPOS_DANO_CANONICOS[claveNorm] || (val.charAt(0).toUpperCase() + val.slice(1));
             break;
           }
         }
@@ -222,20 +198,10 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
                 for (const sel of rRed.selectores || []) {
                   for (const val of sel.valorActual || []) {
                     const op = sel.opciones?.find((o) => o.id === val || normalizar(o.nombre) === normalizar(val));
-                    if (op) {
-                      if (typeof op.costeDados === "number" && op.costeDados > 0) {
-                        dadosARestar += op.costeDados;
-                      } else if (op.formulaDados) {
-                        const matchD = op.formulaDados.match(/^(\d+)d/i);
-                        dadosARestar += matchD ? parseInt(matchD[1], 10) : 1;
-                      } else {
-                        dadosARestar += 1;
-                      }
-                    }
+                    dadosARestar += typeof op?.costeDados === "number" && op.costeDados > 0 ? op.costeDados : op?.formulaDados ? parseInt(op.formulaDados.match(/^(\d+)d/i)?.[1] || "1", 10) : 1;
                   }
                 }
               }
-
               if (dadosARestar > 0) {
                 const valorStr = String(efecto.valor || "");
                 const matchDados = valorStr.match(/^(\d+)d(\d+)(.*)$/i);
@@ -287,13 +253,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
               (i) => i.id === baseId || i.id === opId
             );
             if (invCatalogo) {
-              opcion = {
-                id: invCatalogo.id,
-                nombre: invCatalogo.nombre,
-                descripcion: invCatalogo.descripcion,
-                selectores: invCatalogo.selectores,
-                efectos: invCatalogo.efectos
-              } as import("@/tipos/rasgos").OpcionSelector;
+              opcion = invCatalogo as unknown as import("@/tipos/rasgos").OpcionSelector;
             }
           }
 
@@ -304,18 +264,12 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
                 let efectoFinal = efOp.selectorObjetivo ? { ...efOp, aplicaA: opId.split(":")[1] } : efOp;
                 if (efOp.tipo === "dano_secundario") {
                   let tipoDanoResuelto = efOp.tipoDano;
-                  const mapaTipos: Record<string, string> = {
-                    necrotico: "Necrótico", psiquico: "Psíquico", radiante: "Radiante",
-                    fuego: "Fuego", frio: "Frío", acido: "Ácido",
-                    relampago: "Relámpago", trueno: "Trueno", veneno: "Veneno", fuerza: "Fuerza"
-                  };
-
                   if (opId.includes(":")) {
                     const subtipo = opId.split(":")[1].toLowerCase().replace(/[\u0300-\u036f]/g, "");
-                    tipoDanoResuelto = mapaTipos[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
+                    tipoDanoResuelto = MAPA_TIPOS_DANO_CANONICOS[subtipo] || (subtipo.charAt(0).toUpperCase() + subtipo.slice(1));
                   } else if (opcion.selectores?.[0]?.valorActual?.[0]) {
                     const v = opcion.selectores[0].valorActual[0].toLowerCase().replace(/[\u0300-\u036f]/g, "");
-                    tipoDanoResuelto = mapaTipos[v] || tipoDanoResuelto;
+                    tipoDanoResuelto = MAPA_TIPOS_DANO_CANONICOS[v] || tipoDanoResuelto;
                   }
                   efectoFinal = { ...efOp, tipoDano: tipoDanoResuelto };
                 } else if (
@@ -342,30 +296,11 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
           if (baseId === "lecciones_de_los_primeros" && opId.includes(":")) {
             const doteId = opId.split(":")[1];
             const doteNorm = normalizar(doteId);
-
-            const dote = DOTES_ORIGEN_DND55.find(
-              (d) =>
-                d.id === doteId ||
-                normalizar(d.id) === doteNorm ||
-                normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") ||
-                normalizar(d.nombre) === doteNorm
-            );
-
-            if (dote && Array.isArray(dote.efectos)) {
-              const yaExisteEnRasgos = (personaje.rasgos || []).some(
-                (r) =>
-                  r.id === dote.id ||
-                  r.id === `dote_invocacion_${dote.id}` ||
-                  (r.origen === "dote" && normalizar(r.nombre) === normalizar(dote.nombre))
-              );
-              if (yaExisteEnRasgos) continue;
-
+            const dote = DOTES_ORIGEN_DND55.find(d => normalizar(d.id) === doteNorm || normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") || normalizar(d.nombre) === doteNorm);
+            if (dote?.efectos && !(personaje.rasgos || []).some(r => r.id === dote.id || (r.origen === "dote" && normalizar(r.nombre) === normalizar(dote.nombre)))) {
               for (const efDote of dote.efectos) {
                 if (efDote.activo !== false && cumpleCondicionEfecto(efDote.condicion, personaje)) {
-                  efectosResultado.push({
-                    ...efDote,
-                    descripcion: efDote.descripcion || `Lecciones de los Primeros (${dote.nombre})`
-                  });
+                  efectosResultado.push({ ...efDote, descripcion: efDote.descripcion || `Lecciones de los Primeros (${dote.nombre})` });
                 }
               }
             }
@@ -407,8 +342,8 @@ export function resolverFormulaDinamica(
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
   const nivelBrujo =
-    personaje.clases?.find((c) => normalizar(c.nombre) === "brujo")?.nivel ||
-    (normalizar(personaje.clase) === "brujo" ? personaje.nivel : 0) ||
+    obtenerNivelClasePersonaje(personaje, "brujo") ||
+    (normalizar(personaje.clase || "").includes("brujo") ? nivelGlobal : 0) ||
     1;
   const nivelEspacioPacto =
     personaje.nivelEspacioPacto && personaje.nivelEspacioPacto > 0

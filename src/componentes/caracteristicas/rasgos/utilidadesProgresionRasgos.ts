@@ -284,16 +284,7 @@ export function resolverDotesDesdeInvocaciones(rasgos: RasgoPersonaje[]): RasgoP
               d.id === doteId ||
               normalizar(d.id) === doteNorm ||
               normalizar(d.id).replace(/^dote_/, "") === doteNorm.replace(/^dote_/, "") ||
-              normalizar(d.nombre) === doteNorm ||
-              (doteNorm === "alert" && d.id === "dote_alerta") ||
-              (doteNorm === "crafter" && d.id === "dote_fabricante") ||
-              (doteNorm === "healer" && d.id === "dote_sanador") ||
-              (doteNorm === "musician" && d.id === "dote_musico") ||
-              (doteNorm === "lucky" && d.id === "dote_afortunado") ||
-              (doteNorm === "savage-attacker" && d.id === "dote_atacante_salvaje") ||
-              (doteNorm === "skilled" && d.id === "dote_habilidoso") ||
-              (doteNorm === "tough" && d.id === "dote_duro") ||
-              (doteNorm === "tavern-brawler" && d.id === "dote_maton_taberna")
+              normalizar(d.nombre) === doteNorm
           );
 
           if (dotePlantilla) {

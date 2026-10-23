@@ -1,168 +1,126 @@
 import type { EfectoMecanicoRasgo, TipoEfectoMecanico } from "@/tipos";
+
 export interface BorradorEfectoRasgo {
-    nuevoTipoEfecto: TipoEfectoMecanico;
-    nuevoObjetivo: string;
-    nuevoValor: string;
-    nuevoTipoDano: string;
-    nuevoAplicaA: string;
-    nuevoLimiteMaximo: number;
-    nuevoPermiteEscudo: boolean;
-    nuevaDescripcionEfecto: string;
-    nuevoCondicion: string;
+  nuevoTipoEfecto: TipoEfectoMecanico;
+  nuevoObjetivo: string;
+  nuevoValor: string;
+  nuevoTipoDano: string;
+  nuevoAplicaA: string;
+  nuevoLimiteMaximo: number;
+  nuevoPermiteEscudo: boolean;
+  nuevaDescripcionEfecto: string;
+  nuevoCondicion: string;
 }
-export function construirEfectoRasgo(datos: BorradorEfectoRasgo, id: string, etiquetaObjetivo?: string): EfectoMecanicoRasgo {
-    const {
-      nuevoTipoEfecto,
-      nuevoObjetivo,
-      nuevoValor,
-      nuevoTipoDano,
-      nuevoAplicaA,
-      nuevoLimiteMaximo,
-      nuevoPermiteEscudo,
-      nuevaDescripcionEfecto,
-      nuevoCondicion
-    } = datos;
-    const efId = id;
-    let descFinal = nuevaDescripcionEfecto.trim();
-    if (!descFinal) {
-        switch (nuevoTipoEfecto) {
-            case "dado_extra_dano":
-                descFinal = `+${nuevoValor} al daño (${nuevoAplicaA})`;
-                break;
-            case "dano_secundario":
-                descFinal = `/${nuevoValor} [${nuevoTipoDano}]`;
-                break;
-            case "bono_ataque":
-                descFinal = `+${nuevoValor} a tiradas de ataque (${nuevoAplicaA})`;
-                break;
-            case "bono_dano_ataque":
-            case "bono_dano_fuerza":
-                descFinal = nuevoAplicaA === "arma_pesada"
-                    ? `+${nuevoValor} al daño (Armas Pesadas)`
-                    : nuevoAplicaA === "arma_arrojadiza"
-                        ? `+${nuevoValor} al daño (Armas Arrojadizas)`
-                        : nuevoAplicaA === "arma_duelo"
-                            ? `+${nuevoValor} al daño (Armas a Una Mano)`
-                            : `+${nuevoValor} al daño físico`;
-                break;
-            case "bono_dano_conjuro":
-                descFinal = `+${nuevoValor} al daño mágico (${nuevoAplicaA})`;
-                break;
-            case "modificador_ca":
-                if (nuevoObjetivo === "defensa_sin_armadura") {
-                    descFinal = `Defensa sin armadura (${nuevoValor})`;
-                }
-                else {
-                    const condTexto = nuevoCondicion === "con_armadura" ? "con armadura" : nuevoCondicion || "incondicional";
-                    descFinal = `+${nuevoValor} a la CA (${condTexto})`;
-                }
-                break;
-            case "modificador_stat":
-                descFinal = `+${nuevoValor} a ${nuevoObjetivo} (Límite ${nuevoLimiteMaximo})`;
-                break;
-            case "modificador_velocidad":
-                descFinal = `+${nuevoValor} pies de velocidad`;
-                break;
-            case "movimiento_especial": {
-                const esIgualVelocidad = nuevoValor === "caminar" || nuevoValor === "velocidad_caminar";
-                const tipoMov = nuevoObjetivo.includes("escalar") || nuevoObjetivo.includes("trepar")
-                    ? "trepando"
-                    : nuevoObjetivo.includes("nadar")
-                        ? "de nado"
-                        : "volando";
-                descFinal = esIgualVelocidad
-                    ? `Velocidad ${tipoMov} igual a tu velocidad`
-                    : `Velocidad ${tipoMov}: ${nuevoValor} pies`;
-                break;
-            }
-            case "ventaja": {
-                const optEncontrada = etiquetaObjetivo ? { etiqueta: etiquetaObjetivo } : undefined;
-                descFinal = optEncontrada ? `Ventaja: ${optEncontrada.etiqueta}` : `Ventaja en ${nuevoObjetivo}`;
-                break;
-            }
-            case "bono_salvacion":
-                descFinal = `+${nuevoValor} a salvación de ${nuevoObjetivo}`;
-                break;
-            case "habilidad_con_fuerza":
-                descFinal = `Usar Fuerza en ${nuevoValor}`;
-                break;
-            case "medio_bono_habilidades":
-                descFinal = "Medio bono de competencia a habilidades sin competencia";
-                break;
-            case "ataque_desarmado":
-                descFinal = `Ataque sin armas con ${nuevoObjetivo} (${nuevoValor})`;
-                break;
-            case "conjuro_otorgado":
-                descFinal = `Conjuro otorgado: ${nuevoValor}`;
-                break;
-            case "conjuro_gratuito":
-                descFinal = `Lanzamiento gratuito: ${nuevoValor}`;
-                break;
-            case "modificador_capacidad_carga":
-                descFinal = `Capacidad de carga ×${nuevoValor}`;
-                break;
-            case "modificador_tamano":
-                descFinal = `Tamaño modificado a ${nuevoValor}`;
-                break;
-            case "hp_temporal": {
-                const vNorm = nuevoValor.trim().toLowerCase();
-                if (vNorm === "bono_competencia" || vNorm === "pb" || vNorm === "bc") {
-                    descFinal = "Otorga puntos de golpe temporales iguales al bono de competencia";
-                }
-                else if (vNorm === "nivel") {
-                    descFinal = "Otorga puntos de golpe temporales iguales al nivel del personaje";
-                }
-                else if (vNorm === "constitucion" || vNorm === "con") {
-                    descFinal = "Otorga puntos de golpe temporales iguales al modificador de Constitución";
-                }
-                else if (vNorm === "2_veces_dado_inspiracion") {
-                    descFinal = "Puntos de golpe temporales iguales al doble del dado de inspiración";
-                }
-                else {
-                    descFinal = `Puntos de golpe temporales: ${nuevoValor}`;
-                }
-                break;
-            }
-            case "modificador_hp_maximo":
-                descFinal = `Modificador de HP Máximo: ${nuevoValor}`;
-                break;
-            case "restaurar_recurso": {
-                const objNorm = nuevoObjetivo.trim().toLowerCase();
-                if (objNorm === "inspiracion" || objNorm === "inspiracion_heroica" || objNorm.includes("inspiracion")) {
-                    const condTexto = nuevoCondicion.includes("corto") ? "un descanso corto" : "un descanso largo";
-                    descFinal = `Recupera Inspiración Heroica tras finalizar ${condTexto}`;
-                }
-                else {
-                    descFinal = `Restaurar ${nuevoValor} uso(s) de ${nuevoObjetivo}${nuevoCondicion ? ` (${nuevoCondicion})` : ""}`;
-                }
-                break;
-            }
-            case "competencia":
-                descFinal = `Competencia con ${nuevoObjetivo}`;
-                break;
-            case "limite_des_armadura_media":
-                descFinal = `Límite de Destreza en armadura media: ${nuevoValor}`;
-                break;
-            case "dado_extra_critico":
-                descFinal = `+${nuevoValor} dado extra en crítico (${nuevoAplicaA || nuevoObjetivo})`;
-                break;
-            default:
-                descFinal = `${nuevoTipoEfecto}: ${nuevoValor}`;
-                break;
-        }
+
+const MAPA_DESCRIPCION_APLICA_A: Record<string, string> = {
+  arma_pesada: "Armas Pesadas",
+  arma_arrojadiza: "Armas Arrojadizas",
+  arma_duelo: "Armas a Una Mano"
+};
+
+const MAPA_HP_TEMPORAL: Record<string, string> = {
+  bono_competencia: "Otorga puntos de golpe temporales iguales al bono de competencia",
+  pb: "Otorga puntos de golpe temporales iguales al bono de competencia",
+  bc: "Otorga puntos de golpe temporales iguales al bono de competencia",
+  nivel: "Otorga puntos de golpe temporales iguales al nivel del personaje",
+  constitucion: "Otorga puntos de golpe temporales iguales al modificador de Constitución",
+  con: "Otorga puntos de golpe temporales iguales al modificador de Constitución",
+  "2_veces_dado_inspiracion": "Puntos de golpe temporales iguales al doble del dado de inspiración"
+};
+
+const GENERADORES_DESCRIPCION: Partial<
+  Record<TipoEfectoMecanico, (d: BorradorEfectoRasgo, etiqueta?: string) => string>
+> = {
+  dado_extra_dano: (d) => `+${d.nuevoValor} al daño (${d.nuevoAplicaA})`,
+  dano_secundario: (d) => `/${d.nuevoValor} [${d.nuevoTipoDano}]`,
+  bono_ataque: (d) => `+${d.nuevoValor} a tiradas de ataque (${d.nuevoAplicaA})`,
+  bono_dano_ataque: (d) =>
+    MAPA_DESCRIPCION_APLICA_A[d.nuevoAplicaA]
+      ? `+${d.nuevoValor} al daño (${MAPA_DESCRIPCION_APLICA_A[d.nuevoAplicaA]})`
+      : `+${d.nuevoValor} al daño físico`,
+  bono_dano_fuerza: (d) =>
+    MAPA_DESCRIPCION_APLICA_A[d.nuevoAplicaA]
+      ? `+${d.nuevoValor} al daño (${MAPA_DESCRIPCION_APLICA_A[d.nuevoAplicaA]})`
+      : `+${d.nuevoValor} al daño físico`,
+  bono_dano_conjuro: (d) => `+${d.nuevoValor} al daño mágico (${d.nuevoAplicaA})`,
+  modificador_ca: (d) =>
+    d.nuevoObjetivo === "defensa_sin_armadura"
+      ? `Defensa sin armadura (${d.nuevoValor})`
+      : `+${d.nuevoValor} a la CA (${d.nuevoCondicion === "con_armadura" ? "con armadura" : d.nuevoCondicion || "incondicional"})`,
+  modificador_stat: (d) => `+${d.nuevoValor} a ${d.nuevoObjetivo} (Límite ${d.nuevoLimiteMaximo})`,
+  modificador_velocidad: (d) => `+${d.nuevoValor} pies de velocidad`,
+  movimiento_especial: (d) => {
+    const esIgual = d.nuevoValor === "caminar" || d.nuevoValor === "velocidad_caminar";
+    const tipo =
+      d.nuevoObjetivo.includes("escalar") || d.nuevoObjetivo.includes("trepar")
+        ? "trepando"
+        : d.nuevoObjetivo.includes("nadar")
+        ? "de nado"
+        : "volando";
+    return esIgual ? `Velocidad ${tipo} igual a tu velocidad` : `Velocidad ${tipo}: ${d.nuevoValor} pies`;
+  },
+  ventaja: (d, etiq) => (etiq ? `Ventaja: ${etiq}` : `Ventaja en ${d.nuevoObjetivo}`),
+  bono_salvacion: (d) => `+${d.nuevoValor} a salvación de ${d.nuevoObjetivo}`,
+  habilidad_con_fuerza: (d) => `Usar Fuerza en ${d.nuevoValor}`,
+  medio_bono_habilidades: () => "Medio bono de competencia a habilidades sin competencia",
+  ataque_desarmado: (d) => `Ataque sin armas con ${d.nuevoObjetivo} (${d.nuevoValor})`,
+  conjuro_otorgado: (d) => `Conjuro otorgado: ${d.nuevoValor}`,
+  conjuro_gratuito: (d) => `Lanzamiento gratuito: ${d.nuevoValor}`,
+  modificador_capacidad_carga: (d) => `Capacidad de carga ×${d.nuevoValor}`,
+  modificador_tamano: (d) => `Tamaño modificado a ${d.nuevoValor}`,
+  hp_temporal: (d) =>
+    MAPA_HP_TEMPORAL[d.nuevoValor.trim().toLowerCase()] || `Puntos de golpe temporales: ${d.nuevoValor}`,
+  modificador_hp_maximo: (d) => `Modificador de HP Máximo: ${d.nuevoValor}`,
+  restaurar_recurso: (d) => {
+    const objNorm = d.nuevoObjetivo.trim().toLowerCase();
+    if (objNorm === "inspiracion" || objNorm === "inspiracion_heroica" || objNorm.includes("inspiracion")) {
+      const condTexto = d.nuevoCondicion.includes("corto") ? "un descanso corto" : "un descanso largo";
+      return `Recupera Inspiración Heroica tras finalizar ${condTexto}`;
     }
-    const nuevoEfecto: EfectoMecanicoRasgo = {
-        id: efId,
-        tipo: nuevoTipoEfecto,
-        objetivo: nuevoTipoEfecto === "conjuro_gratuito" ? nuevoValor.trim() : nuevoObjetivo.trim() || "general",
-        valor: nuevoValor.trim(),
-        condicion: nuevoCondicion.trim() || undefined,
-        tipoDano: nuevoTipoEfecto === "dano_secundario" ? (nuevoTipoDano.trim() || "Radiante") : undefined,
-        aplicaA: nuevoAplicaA,
-        limiteMaximo: nuevoTipoEfecto === "modificador_stat" ? nuevoLimiteMaximo : undefined,
-        permiteEscudo: nuevoTipoEfecto === "modificador_ca" ? nuevoPermiteEscudo : undefined,
-        descripcion: descFinal,
-        activo: true
-    };
-    return nuevoEfecto;
+    return `Restaurar ${d.nuevoValor} uso(s) de ${d.nuevoObjetivo}${d.nuevoCondicion ? ` (${d.nuevoCondicion})` : ""}`;
+  },
+  competencia: (d) => `Competencia con ${d.nuevoObjetivo}`,
+  limite_des_armadura_media: (d) => `Límite de Destreza en armadura media: ${d.nuevoValor}`,
+  dado_extra_critico: (d) => `+${d.nuevoValor} dado extra en crítico (${d.nuevoAplicaA || d.nuevoObjetivo})`
+};
+
+export function construirEfectoRasgo(
+  datos: BorradorEfectoRasgo,
+  id: string,
+  etiquetaObjetivo?: string
+): EfectoMecanicoRasgo {
+  const {
+    nuevoTipoEfecto,
+    nuevoObjetivo,
+    nuevoValor,
+    nuevoTipoDano,
+    nuevoAplicaA,
+    nuevoLimiteMaximo,
+    nuevoPermiteEscudo,
+    nuevaDescripcionEfecto,
+    nuevoCondicion
+  } = datos;
+
+  let descFinal = nuevaDescripcionEfecto.trim();
+  if (!descFinal) {
+    descFinal =
+      GENERADORES_DESCRIPCION[nuevoTipoEfecto]?.(datos, etiquetaObjetivo) ||
+      `${nuevoTipoEfecto}: ${nuevoValor}`;
+  }
+
+  const nuevoEfecto: EfectoMecanicoRasgo = {
+    id,
+    tipo: nuevoTipoEfecto,
+    objetivo: nuevoTipoEfecto === "conjuro_gratuito" ? nuevoValor.trim() : nuevoObjetivo.trim() || "general",
+    valor: nuevoValor.trim(),
+    condicion: nuevoCondicion.trim() || undefined,
+    tipoDano: nuevoTipoEfecto === "dano_secundario" ? nuevoTipoDano.trim() || "Radiante" : undefined,
+    aplicaA: nuevoAplicaA,
+    limiteMaximo: nuevoTipoEfecto === "modificador_stat" ? nuevoLimiteMaximo : undefined,
+    permiteEscudo: nuevoTipoEfecto === "modificador_ca" ? nuevoPermiteEscudo : undefined,
+    descripcion: descFinal,
+    activo: true
+  };
+
+  return nuevoEfecto;
 }

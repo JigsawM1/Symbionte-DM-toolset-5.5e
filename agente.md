@@ -1,5 +1,66 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-22] Integración Certificada con Poda Ponytail de Optimizaciones Bolt (Comparador de Hechizos y Búsqueda Tolerante)
+
+- **Contexto y Diagnóstico**:
+  - *Auditoría de Ramas*: Revisión integral de viabilidad sobre las 5 ramas de `/origin/bolt/` (`opt-spell-lookup-cache`, `opt-crear-matcher-hechizos`, `optimizar-comparador-hechizos`, `optimize-search-filter-performance` y `optimize-tolerant-search-filters`).
+  - *Filtrado de Riesgos y Sobreingeniería*:
+    - Descartada `opt-spell-lookup-cache` por riesgo de desincronización de rasgos canónicos de combate en `usarCalculoAtaquesJugador`.
+    - Descartada `optimize-search-filter-performance` por sobreingeniería YAGNI (máscaras de bits y caché global con purga total).
+    - Seleccionadas para integración con poda Ponytail: `origin/bolt/optimizar-comparador-hechizos-8818321642077678722` y `origin/bolt/optimize-tolerant-search-filters-1210031077286049012`.
+- **Poda Ponytail Aplicada (Opción A - Ahorro Neto de 73 líneas)**:
+  1. *Comparador de Hechizos (`src/servicios/comparadorHechizos.ts`)*:
+     - **Unificación de Mapa Bidireccional (`yagni`)**: Se eliminó `MAPA_REVERSO_ALIAS` y sus bucles gemelos. La equivalencia de alias es intrínsecamente simétrica; un único `MAPA_ALIAS_NORMALIZADO` poblado en ambas direcciones simplificó la inicialización y las consultas.
+     - **Poda de Estructuras Intermedias (`shrink`)**: Se eliminó `interface AliasNormalizado` y la búsqueda manual con `.some()`. Se almacenan directamente arrays de strings limpios y slugs en tiempo constante.
+     - **Consolidación de Comprobaciones O(1) (`shrink`)**: Se unificaron las 5 comprobaciones en cascada `.has()` repetidas en `deduplicarListaIds` y `crearMatcherHechizos` mediante la función pura `coincideConConjunto`.
+  2. *Búsqueda Tolerante y Filtros (`src/utiles/busquedaTolerante.ts`, `src/utiles/filtrosConjuros.ts`)*:
+     - **Ruta Rápida para String Único**: En `coincideBusquedaTolerante`, si `typeof objetivos === "string"`, evalúa de inmediato sin instanciar `Array`, `Set` ni ordenamientos.
+     - **Poda de Objetos en Heap (`shrink`)**: Eliminada `interface TokenInfo` y la asignación de objetos wrapper `{ raw, sinEnye }`. Se evalúan los tokens directamente con un `Set<number>` de índices, reduciendo drásticamente la presión sobre el recolector de basura (GC) en CEF.
+     - **Poda de Ordenamiento Inútil (`delete`)**: Se eliminó `listaObjetivos.sort(...)` en cada evaluación de búsqueda; los llamadores como `filtrosConjuros.ts` suministran naturalmente los campos ordenados `[nombre, escuela, descripcion]`.
+     - **Tokenización Única en Conjuros**: `evaluarFiltrosHechizo` unifica las 3 llamadas independientes en una sola evaluación multitarget, tokenizando la consulta una única vez por conjuro del catálogo.
+  3. *Rescate y Certificación de Pruebas (`src/servicios/comparadorHechizos.test.ts`)*:
+     - Se rescató la suite de 3 pruebas unitarias para `crearMatcherHechizos` de la rama temprana de Bolt, validando entradas nulas/vacías, slugs con prefijo, mayúsculas y sinónimos pre-expandidos.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 192 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 164 archivos de prueba ejecutados, **2.304 / 2.304 pruebas aprobadas (100% éxito)**.
+  - `pnpm exec vite build`: Compilación de producción exitosa en 14.26s (2.125 módulos transformados).
+
+
+## [2026-10-22] Auditoría y Verificación del Consumo de Efectos de Rasgos de Brujo en el Builder
+
+- **Contexto y Diagnóstico**:
+  - *Pregunta / Solicitud*: Verificar la clase Brujo y confirmar si todos los efectos mecánicos de sus rasgos (tanto de la clase base niveles 1-20 como de sus 4 subclases canónicas PHB 2024: *Patrón de los Archihadas*, *Patrón Celestial*, *Patrón Infernal* y *Patrón del Gran Primigenio*, así como las 28 Invocaciones Sobrenaturales) se construyen y consumen correctamente a través del builder del sistema (`src/servicios/clases/buildClase.ts` y `src/servicios/clases/constructorRasgosClase.ts`).
+  - *Inventario del Catálogo*:
+    - `src/datos/clases/brujo.json` contiene **18 rasgos base** y **20 rasgos de subclase** (5 por cada una de las 4 subclases).
+    - Los efectos directos declarados en el JSON abarcan: `inmunidad_condicion` (*Defensas fascinantes* en Archihadas), `resistencia_dano` (*Alma radiante* en Celestial, *Escudo de pensamientos* en Gran Primigenio y dinámico en *Resiliencia infernal* con 12 opciones), `hp_temporal` con fórmulas dinámicas escaladas (*Bendición del Oscuro* y *Resiliencia celestial*), y la extensión mecánica de nivel 20 (*Maestro sobrenatural* fusionado en *Astucia mágica*).
+    - En `src/datos/invocaciones-sobrenaturales.json` (28 invocaciones), 15 declaran efectos estructurados directos: `conjuro_gratuito`, `ventaja`, `bono_dano_conjuro`, `modificador_alcance_conjuro`, `hp_temporal` y `movimiento_especial`.
+- **Análisis de Consumo a través del Builder**:
+  1. **Generación en la Build de Clase (`buildClase.ts` / `constructorRasgosClase.ts`)**:
+     - `construirBuildClase("Brujo", nivel, subclase)`: Genera la estructura completa `BuildClaseCalculada`, procesando la jerarquía de rasgos, magia del pacto (Carisma, espacios de pacto de nivel 1 a 5), conjuros otorgados y subclase. Resuelve la extensión de nivel 20 fusionando *Maestro sobrenatural* en *Astucia mágica* (`recuperarPactoAlUsar: "maximo"`), y calcula `efectosActivosResueltos`.
+     - `aplicarBuildClaseAPersonaje`: Aplica inmutablemente la build a la ficha del personaje, asignando espacios de pacto, salvaciones, competencias y rasgos con sus efectos asociados intactos.
+  2. **Consumo por los Evaluadores del Motor de Juego**:
+     - `inmunidad_condicion`: Consumido por `evaluarEfectosRasgosActivos` y `obtenerResumenDefensasRasgos` (Inmunidad al estado *Hechizado*).
+     - `resistencia_dano`: Consumido por `obtenerResumenDefensasRasgos` tanto para resistencias estáticas (*Radiante* y *Psíquico*) como dinámicas seleccionadas (*Resiliencia infernal*).
+     - `hp_temporal`: Resuelto mediante `resolverFormulaDinamica` y evaluado numéricamente con `evaluarExpresionNumericaSegura`.
+     - `bono_dano_conjuro` y `modificador_alcance_conjuro`: Consumidos en `aplicarModificadoresInvocacionesAHechizo` (suma modificador por Carisma a trucos con *Descarga agónica* y extiende el alcance a `30 * nivel_brujo` pies con *Lanza sobrenatural*).
+     - `ventaja`: Evaluado en `evaluarVentajasDeRasgosEnTirada` bajo concentración (*Mente sobrenatural*).
+     - `movimiento_especial`: Evaluado en `calcularVelocidadPersonaje` concediendo velocidad de nado (*Don de las profundidades*).
+     - `conjuro_gratuito` y `conjurosOtorgados`: Evaluados en `tieneConjuroGratuitoActivo` y `evaluarEfectosRasgosActivos` (*Armadura de sombras*, *Contactar con el patrón*, *Pasos feéricos*, etc.).
+     - `vinculoArma`: Gestionado a través de `obtenerConfiguracionPactoDelFilo` (*Pacto del filo*).
+- **Correcciones Quirúrgicas Aplicadas**:
+  - En `evaluadorExpresionesRasgos.ts` (`cumpleCondicionEfecto`): Se añadió la resolución de `condNorm === "concentracion"` evaluando `Boolean(personaje.concentracionActiva) || condicionesActivas.includes("concentra")`.
+  - En `evaluadorSalvacionesRasgos.ts` (`evaluarVentajasDeRasgosEnTirada`): Se amplió la coincidencia de salvaciones para contemplar sub-objetivos jerárquicos como `obj.startsWith("salvacion." + subtipoNorm + ".")` (ej. `salvacion.constitucion.concentracion`).
+- **Certificación CI y Pruebas**:
+  - `src/servicios/verificacionBuilderBrujo.test.ts`: Nueva suite exhaustiva con 13 pruebas automatizadas cubriendo todas las subclases a nivel 20, extensiones, invocaciones y evaluadores mecánicos.
+  - Todas las 6 suites de Brujo pasando: **159 / 159 pruebas unitarias aprobadas**.
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 192 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm exec vite build`: Compilación de producción completada con éxito en 9.57s.
+
+
 ## [2026-10-22] Resolución Certificada de Hallazgos Ponytail en Rasgos y Evaluadores de Bárbaro
 
 - **Contexto y Diagnóstico**:
@@ -14041,3 +14102,84 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - Para 1/10/50 minis: una consulta de propiedad y una agrupada de información. Comparación de persistencia de 1000 iteraciones: 46.7 ms con comportamiento anterior modelado y 43.1 ms con caché, JSON idéntico. No extrapolar estas cifras a CEF.
 - GitHub Actions incluye simulación y pruebas de navegador; Node 22.12.0 por Puppeteer 25. Scripts de prueba antes ignorados ahora incluidos en control de versiones. No se ejecutó workflow remoto ni se desplegó. CEF y transporte entre equipos reales pendientes; no se encontró inspector accesible en localhost:8080.
 - Informe: scratch/informe-auditoria-seguridad-calidad.md. Métricas: scratch/perfil-ciclo-vida.json. Ausencia de SQL/ORM/IndexedDB confirmada en fuentes, scripts y manifiesto; índices SQL no aplicables al almacenamiento actual.
+
+
+---
+
+## [2026-10-23] Auditoría de Brujo y Simplificación Ponytail de Efectos Mecánicos
+
+### Contexto y Requerimientos
+1. **Auditoría Exhaustiva de la Clase Brujo (D&D 5.5e / 2024):**
+   - Se verificó que todos los efectos y rasgos de los niveles 1 al 20, sus 4 subclases oficiales (*Archifada*, *Filo Celestial/Celestial*, *Inmemorial*, *Infernal*) y las 28 invocaciones sobrenaturales sean consumidos y reflejados de forma 100% genérica a través del constructor y los evaluadores mecánicos.
+   - Creación de suite unitaria dedicada: `src/servicios/verificacionBuilderBrujo.test.ts` (13 pruebas de integración cubriendo desde salvaciones y espacios de pacto hasta *Armadura de Sombras*, *Lanza de Agonía*, *Don de los Protectores*, etc.).
+2. **Ejecución del Plan `/plan` de Simplificación Ponytail de Efectos Mecánicos (`plan_simplificacion_efectos_ponytail.md`):**
+   - Resolución de los 11 hallazgos de sobreingeniería y redundancia de código en los evaluadores mecánicos de rasgos (`evaluadorExpresionesRasgos.ts`, `evaluadorCombateRasgos.ts`, `evaluadorSalvacionesRasgos.ts`, `evaluadorVitalidadRasgos.ts`, `construirEfectoRasgo.ts` y catálogo `aasimar.json`).
+
+### Decisiones Arquitectónicas y Modificaciones Realizadas
+1. **Declaratividad Pura en el Catálogo (`aasimar.json`):**
+   - Se declararon los efectos mecánicos estructurados de daño (+PB en ataques y conjuros) y movimiento (`movimiento_especial: "volar"`) directamente en las opciones del selector de Revelación Celestial (`alas_celestiales`, `fulgor_interior`, `mortaja_necrotica`).
+2. **Eliminación de Redundancia y Código Muerto:**
+   - **`evaluadorExpresionesRasgos.ts`**:
+     - Extracción de constante inmutable de solo lectura `MAPA_TIPOS_DANO_CANONICOS`, eliminando mapas literales duplicados inline.
+     - Aplanamiento de bucles y simplificación concisa de `lecciones_de_los_primeros`.
+   - **`evaluadorCombateRasgos.ts`**:
+     - Eliminación del wrapper sin uso `obtenerBonoDanoFuerzaExtra` (0 llamadas en todo el código base).
+     - Retiro de filtrado duplicado de armaduras (`sin_armadura`, `sin_escudo`) en `evaluarAtaqueDesarmadoEspecial`, delegando puramente en `cumpleCondicionEfecto`.
+     - Simplificación de `obtenerPesoDadoDesarmado` utilizando la función canónica `obtenerDadoInspiracionBardica(nivelBardo)` en lugar de bifurcaciones repetitivas de niveles.
+     - Respaldo reactivo limpio (2 líneas) para compatibilidad con la Barra Táctica y Combat Tracker cuando el jugador activa condiciones temporales directas sin tener el rasgo seleccionado en el builder.
+   - **`evaluadorVitalidadRasgos.ts`**:
+     - Retiro de comprobaciones redundantes de armadura y escudo en `obtenerBonoCARasgos`, ya que son filtradas previamente en `cumpleCondicionEfecto`.
+   - **`evaluadorSalvacionesRasgos.ts`**:
+     - Eliminación de la bifurcación manual de `dano_furia` y `mitad_nivel` en `obtenerBonosSalvacionesRasgos`, delegando en la llamada canónica a `resolverFormulaDinamica()`.
+     - Reducción de `MAPA_OBJETIVO_A_HABILIDAD` de 36 entradas redundantes a los 8 alias indispensables cuyas claves difieren del enum `Habilidad` tras `normalizar()`.
+   - **`construirEfectoRasgo.ts`**:
+     - Reemplazo del switch anidado de 125 líneas por la tabla declarativa `GENERADORES_DESCRIPCION` (`Partial<Record<TipoEfectoMecanico, ...>>`), reduciendo la complejidad ciclomática a O(1) de búsqueda y haciendo la generación de descripciones extensible y mantenible.
+
+### Errores Cometidos y Lecciones Aprendidas (Auto-mejora)
+- **Cierre de bloques JSDoc en reescrituras de código:** Al aplicar scripts de edición de texto con búsquedas por fragmentos, un comentario `/**` sin cerrar envolvió involuntariamente las firmas exportadas de `calcularBonoHPMaximoRasgos` y `obtenerMaestriasArmasAprendidas`. Se detectó y resolvió de inmediato gracias a las pruebas unitarias y a la ejecución de `pnpm exec tsc --noEmit`. Lección: verificar siempre que los delimitadores de comentarios JSDoc se mantengan balanceados y completos en cualquier automatización.
+- **Diferencia entre CRLF y LF en Windows:** Las operaciones multilínea literales fallan en Windows si los saltos de línea difieren entre el script y el archivo en disco. Lección: usar índices de corte deterministas (`indexOf`) o normalizar saltos de línea antes de operar sobre archivos con CRLF.
+
+### Métricas de Verificación Post-Implementación
+- **Reducción de Código:** 204 inserciones vs 346 eliminaciones (reducción neta de -142 líneas de código muerto y sobreingeniería).
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con **0 errores** bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Límite de Líneas:** `pnpm run verificar:lineas` auditó **192 archivos con 0 errores críticos (> 500 líneas)**.
+- **Vitest:** **164 suites de pruebas ejecutadas, 2.304 / 2.304 pruebas aprobadas al 100% (0 fallos)**.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 13.80s.
+
+
+---
+
+## [2026-10-23] Ejecución del Plan Ponytail: Flujo de Rasgos del Brujo
+
+### Contexto y Alcance
+- Ejecución de la simplificación Ponytail sobre el flujo integral de la clase Brujo (*Invocaciones Sobrenaturales*, *Magia de Pacto*, *Arcanos Místicos*, dotes ligadas a *Lecciones de los Primeros* y selectores reactivos).
+- Resolución de los 10 hallazgos de sobreingeniería manteniendo un comportamiento idéntico y 100% de cobertura en todas las suites de prueba.
+
+### Modificaciones Quirúrgicas Realizadas
+1. **`src/constantes/invocacionesSobrenaturales.ts`:**
+   - Sustituida la escalera de 8 ramas `if` por un array indexado O(1) `MAX_INVOCACIONES_POR_NIVEL[n - 1]` en `obtenerMaxInvocacionesBrujo`.
+   - Reemplazados los clones profundos con `JSON.parse(JSON.stringify(...))` por la API estándar nativa `structuredClone` para escalados, selectores y efectos.
+2. **`src/constantes/personajeConstantes.ts`:**
+   - Compactada `TABLA_PACTO_BRUJO`: en lugar de 20 entradas literales hardcodeadas, se deriva mediante `Object.fromEntries` y la función matemática canónica `Math.min(5, Math.ceil(niv / 2))` y cálculo escalonado de espacios.
+3. **`src/servicios/rasgos/evaluadorExpresionesRasgos.ts`:**
+   - Unificada la obtención del nivel de brujo en `resolverFormulaDinamica` delegando en `obtenerNivelClasePersonaje(personaje, "brujo")`.
+   - Eliminada la reconstrucción parcial redundante de `OpcionSelector` desde `CATALOGO_INVOCACIONES_SOBRENATURALES`, reutilizando directamente la invocación catalogada.
+4. **`src/servicios/calculadorMagia.ts`:**
+   - Simplificada `obtenerNivelesArcanoMisticoDisponibles` sustituyendo 4 bifurcaciones `if` por una expresión funcional compacta: `[6, 7, 8, 9].filter(lvl => nivelBrujo >= 11 + (lvl - 6) * 2)`.
+5. **`src/servicios/migradorRasgosHeredados.ts`:**
+   - Sustituido el cálculo en caliente de un array de 20 elementos y filtrado consecutivo por la constante estática canónica `ESCALADO_CANONICO_INVOCACIONES`.
+6. **`src/componentes/caracteristicas/rasgos/utilidadesProgresionRasgos.ts`:**
+   - Retirados los 9 checks en inglés hardcodeados de dotes de origen en `resolverDotesDesdeInvocaciones`, resolviendo directamente mediante el catálogo en español canónico `DOTES_ORIGEN_DND55`.
+7. **`src/componentes/caracteristicas/rasgos/GrupoClaseRasgos.tsx`:**
+   - Simplificado el cálculo de `maxInvocaciones` eliminando el reordenamiento de arrays en render y recurriendo directamente a `obtenerMaxInvocacionesBrujo(grupo.clase.nivel)`.
+8. **`src/almacen/slices/personajes/sliceSelectoresRasgos.ts`:**
+   - Sustituido el desglose manual con regex `id.split(/:|__/)[0]` por la función canónica `descomponerSeleccion(id).base`.
+
+### Métricas de Verificación Post-Implementación
+- **Balance de Líneas:** 35 inserciones vs 79 eliminaciones (-44 líneas netas de reducción de sobreingeniería).
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con **0 errores** bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con **0 errores y 0 advertencias** (`--max-warnings=0`).
+- **Límites de Líneas:** `pnpm run verificar:lineas` auditó **192 archivos con 0 errores críticos (> 500 líneas)**.
+- **Vitest:** **164 suites de pruebas ejecutadas, 2.304 / 2.304 pruebas aprobadas al 100% (0 fallos)**.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 13.61s.

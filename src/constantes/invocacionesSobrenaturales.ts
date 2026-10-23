@@ -32,25 +32,13 @@ export function obtenerNivelEspacioPacto(nivelBrujo: number): number {
 
 /**
  * Tabla canónica de progresión de invocaciones conocidas del Brujo (D&D 5.5e / 2024).
- * Nivel 1: 1
- * Nivel 2-4: 3
- * Nivel 5-6: 5
- * Nivel 7-8: 6
- * Nivel 9-11: 7
- * Nivel 12-14: 8
- * Nivel 15-17: 9
- * Nivel 18-20: 10
+ * Nv 1: 1 | Nv 2-4: 3 | Nv 5-6: 5 | Nv 7-8: 6 | Nv 9-11: 7 | Nv 12-14: 8 | Nv 15-17: 9 | Nv 18-20: 10
  */
+const MAX_INVOCACIONES_POR_NIVEL = [1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 10];
+
 export function obtenerMaxInvocacionesBrujo(nivelBrujo: number): number {
   const n = Math.max(1, Math.min(20, Math.floor(nivelBrujo) || 1));
-  if (n >= 18) return 10;
-  if (n >= 15) return 9;
-  if (n >= 12) return 8;
-  if (n >= 9) return 7;
-  if (n >= 7) return 6;
-  if (n >= 5) return 5;
-  if (n >= 2) return 3;
-  return 1;
+  return MAX_INVOCACIONES_POR_NIVEL[n - 1];
 }
 
 /**
@@ -78,7 +66,7 @@ export function generarOpcionesSelectorInvocaciones(_nivelBrujo: number = 20): O
       categoriaMecanica: inv.categoriaMecanica,
       recursoGastado: inv.recursoGastado,
       formulaDados: inv.formulaDados,
-      escaladoFormulaDados: inv.escaladoFormulaDados ? JSON.parse(JSON.stringify(inv.escaladoFormulaDados)) : undefined,
+      escaladoFormulaDados: inv.escaladoFormulaDados ? structuredClone(inv.escaladoFormulaDados) : undefined,
       tieneUsosLimitados: inv.tieneUsosLimitados,
       usosMaximos: inv.usosMaximos,
       usosRestantes: inv.usosRestantes,
@@ -93,10 +81,10 @@ export function generarOpcionesSelectorInvocaciones(_nivelBrujo: number = 20): O
                 opciones: obtenerOpcionesDinamicas(sel.claveOpcionesDinamicas)
               };
             }
-            return JSON.parse(JSON.stringify(sel));
+            return structuredClone(sel);
           })
         : undefined,
-      efectos: inv.efectos ? JSON.parse(JSON.stringify(inv.efectos)) : undefined
+      efectos: inv.efectos ? structuredClone(inv.efectos) : undefined
     };
   });
 }

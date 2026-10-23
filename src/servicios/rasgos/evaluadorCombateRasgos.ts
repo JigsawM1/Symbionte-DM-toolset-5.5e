@@ -10,9 +10,7 @@ import {
   estaRevelacionCelestialActiva,
   obtenerBonoCompetenciaPersonaje,
   obtenerNivelClasePersonaje,
-  tieneArmaduraEquipada,
-  tieneEscudoEquipado
-} from "./utilidadesRasgos";
+  } from "./utilidadesRasgos";
 import {
   evaluarEfectosRasgosActivos,
   resolverFormulaDinamica,
@@ -200,32 +198,18 @@ export function obtenerBonoDanoAtaqueExtra(
         const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
         const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
         bonoTotal += valorNumerico;
-        const descNorm = normalizar(ef.descripcion || "");
-        if (descNorm.includes("revelacion celestial") || descNorm.includes("revelacion_celestial")) {
+        if (normalizar(ef.descripcion || "").includes("revelacion")) {
           yaAplicoRevelacion = true;
         }
       }
     }
   }
 
-  // Respaldo reactivo garantizado: si Revelación celestial está activa (condiciones, efectos temporales o rasgo conmutado)
-  // y ningún efecto de rasgo previo aportó el bono, sumar directamente el Bono de Competencia (+PB)
   if (!yaAplicoRevelacion && estaRevelacionCelestialActiva(personaje)) {
     bonoTotal += obtenerBonoCompetenciaPersonaje(personaje);
   }
 
   return bonoTotal;
-}
-
-/**
- * Obtiene bonificadores numéricos extra al daño procedentes de rasgos activos
- * con efecto `bono_dano_fuerza` o similar (delegador retrocompatible).
- */
-export function obtenerBonoDanoFuerzaExtra(
-  personaje: PersonajeJugador,
-  contexto: ContextoAtaquePersonaje
-): number {
-  return obtenerBonoDanoAtaqueExtra(personaje, contexto);
 }
 
 /**
@@ -303,10 +287,6 @@ export function obtenerBonoDanoConjuroExtra(
   for (const ef of efectos) {
     if (ef.tipo === "bono_dano_conjuro") {
       const objNorm = normalizar(ef.objetivo || "");
-      // Los efectos de tipo 'agregar_modificador_habilidad' (ej. Lanzamiento potente de Clérigo)
-      // están destinados a activar la bandera mecánica `agregarModificadorHabilidad: true` en el
-      // hechizo/truco, la cual ya suma directamente el modificador de característica (Sabiduría)
-      // al daño. Si se sumaran numéricamente aquí también, el modificador se duplicaría (daño + SAB * 2).
       if (objNorm === "agregar_modificador_habilidad" || objNorm.includes("modificador_habilidad")) {
         continue;
       }
@@ -315,16 +295,13 @@ export function obtenerBonoDanoConjuroExtra(
         const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
         const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
         bonoTotal += valorNumerico;
-        const descNorm = normalizar(ef.descripcion || "");
-        if (descNorm.includes("revelacion celestial") || descNorm.includes("revelacion_celestial")) {
+        if (normalizar(ef.descripcion || "").includes("revelacion")) {
           yaAplicoRevelacion = true;
         }
       }
     }
   }
 
-  // Respaldo reactivo garantizado: si Revelación celestial está activa (condiciones, efectos temporales o conmutador)
-  // y ningún efecto de rasgo previo aportó el bono, sumar directamente el Bono de Competencia (+PB)
   if (!yaAplicoRevelacion && estaRevelacionCelestialActiva(personaje)) {
     bonoTotal += obtenerBonoCompetenciaPersonaje(personaje);
   }
@@ -344,19 +321,16 @@ export interface InfoAtaqueDesarmadoEspecial {
  * Evalúa el peso relativo de dados de daño para ordenamiento.
  */
 function obtenerPesoDadoDesarmado(valorDado: string, nivelBardo: number): number {
-  if (valorDado === "dado_inspiracion" || valorDado === "dado_padre") {
-    if (nivelBardo >= 15) return 12;
-    if (nivelBardo >= 10) return 10;
-    if (nivelBardo >= 5) return 8;
-    return 6;
-  }
-  const match = valorDado.match(/(\d*)d(\d+)/i);
+  const dado = (valorDado === "dado_inspiracion" || valorDado === "dado_padre")
+    ? obtenerDadoInspiracionBardica(nivelBardo)
+    : valorDado;
+  const match = dado.match(/(\d*)d(\d+)/i);
   if (match) {
     const cant = parseInt(match[1] || "1", 10);
     const caras = parseInt(match[2], 10);
     return cant * caras;
   }
-  const num = Number(valorDado);
+  const num = Number(dado);
   return isNaN(num) ? 0 : num;
 }
 
@@ -366,21 +340,8 @@ function obtenerPesoDadoDesarmado(valorDado: string, nivelBardo: number): number
  * Aplica precedencia por peso de modificación para que ataques marciales superiores prevalezcan sobre 1d4.
  */
 export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): InfoAtaqueDesarmadoEspecial {
-  const armadura = tieneArmaduraEquipada(personaje);
-  const tieneEscudo = tieneEscudoEquipado(personaje);
-  const sinArmaduraNiEscudo = !armadura.tieneArmadura && !tieneEscudo;
-
   const efectos = evaluarEfectosRasgosActivos(personaje);
-  const efectosDesarmadosValidos = efectos.filter((ef) => {
-    if (ef.tipo !== "ataque_desarmado") return false;
-    const condNorm = normalizar(ef.condicion || "");
-    if (condNorm === "sin_armadura" && armadura.tieneArmadura) return false;
-    if (condNorm === "sin_escudo" && tieneEscudo) return false;
-    if (condNorm === "sin_armadura_ni_escudo" && !sinArmaduraNiEscudo) return false;
-    if (condNorm === "con_armadura" && !armadura.tieneArmadura) return false;
-    if (condNorm === "con_escudo" && !tieneEscudo) return false;
-    return true;
-  });
+  const efectosDesarmadosValidos = efectos.filter((ef) => ef.tipo === "ataque_desarmado");
 
   if (efectosDesarmadosValidos.length === 0) {
     return { aplica: false };
@@ -402,11 +363,9 @@ export function evaluarAtaqueDesarmadoEspecial(personaje: PersonajeJugador): Inf
     dadoDano = obtenerDadoInspiracionBardica(nivelBardo);
   }
 
-  const nombreAtaque = ef.descripcion || "Golpe sin Armas Especial";
-  const esCaracteristicaValida = (c?: string): c is Caracteristica =>
-    Boolean(c && ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].includes(normalizar(c)));
-  const caracSugerida: Caracteristica = esCaracteristicaValida(ef.objetivo)
-    ? (normalizar(ef.objetivo) as Caracteristica)
+  const nombreAtaque = ef.descripcion || "Ataque desarmado especial";
+  const caracSugerida = (ef.objetivo && ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"].includes(normalizar(ef.objetivo)))
+    ? normalizar(ef.objetivo) as Caracteristica
     : (dadoDano === "1d4" ? "fuerza" : "destreza");
   const propiedades = caracSugerida === "fuerza" ? [nombreAtaque] : [nombreAtaque, "Sutil"];
 

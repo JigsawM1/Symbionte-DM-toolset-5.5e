@@ -36,12 +36,6 @@ export const GrupoClaseRasgos: React.FC<GrupoClaseRasgosProps> = ({
   const selectorInvocaciones = grupo.rasgoInvocaciones?.selectores?.find(s => s.tipoSelector === "invocacion");
   const aprendidasInvocaciones = selectorInvocaciones?.valorActual || [];
   const maxInvocaciones = useMemo(() => {
-    if (selectorInvocaciones?.escaladoMaxSelecciones && grupo.clase.nivel) {
-      const entrada = [...selectorInvocaciones.escaladoMaxSelecciones]
-        .sort((a, b) => b.nivelMinimo - a.nivelMinimo)
-        .find((e) => grupo.clase.nivel >= e.nivelMinimo);
-      if (entrada) return entrada.valor;
-    }
     if (grupo.clase.nivel) {
       return obtenerMaxInvocacionesBrujo(grupo.clase.nivel);
     }

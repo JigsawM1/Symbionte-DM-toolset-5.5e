@@ -7,9 +7,7 @@ import {
 } from "@/tipos";
 import {
   normalizar,
-  obtenerNivelClasePersonaje,
-  obtenerBonoDanoFuria
-} from "./utilidadesRasgos";
+  } from "./utilidadesRasgos";
 import {
   evaluarEfectosRasgosActivos,
   resolverFormulaDinamica,
@@ -126,6 +124,8 @@ export function evaluarVentajasDeRasgosEnTirada(
           obj === `salvacion.${subtipoNorm}` ||
           obj === `salvacion_${subtipoNorm}` ||
           obj === subtipoNorm ||
+          obj.startsWith(`salvacion.${subtipoNorm}.`) ||
+          obj.startsWith(`salvacion_${subtipoNorm}_`) ||
           obj === "salvacion.todas" ||
           obj === "todas" ||
           (esMuerte && (obj === "salvacion.muerte" || obj === "salvacion.salvacion_muerte" || obj === "salvacion_muerte" || obj === "muerte" || obj === "salvaciones_muerte")) ||
@@ -221,16 +221,9 @@ export function obtenerBonosSalvacionesRasgos(
       let valorNum = 0;
 
       const valStr = String(ef.valor).toLowerCase().trim();
-      if (valStr === "dano_furia") {
-        const nivelB = obtenerNivelClasePersonaje(personaje, "bárbaro") || personaje.nivel || 1;
-        valorNum = obtenerBonoDanoFuria(nivelB);
-      } else if (valStr === "mitad_nivel") {
-        valorNum = Math.max(1, Math.floor((personaje.nivel || 1) / 2));
-      } else {
-        const formulaResuelta = resolverFormulaDinamica(valStr, personaje);
-        const valorEval = evaluarExpresionNumericaSegura(formulaResuelta);
-        valorNum = !isNaN(valorEval) ? valorEval : (Number(ef.valor) || 0);
-      }
+      const formulaResuelta = resolverFormulaDinamica(valStr, personaje);
+      const valorEval = evaluarExpresionNumericaSegura(formulaResuelta);
+      valorNum = !isNaN(valorEval) ? valorEval : (Number(ef.valor) || 0);
 
       if (objNorm === "todas" || objNorm === "universal" || objNorm === "") {
         for (const k of Object.keys(bonos) as Caracteristica[]) {
@@ -587,38 +580,13 @@ export function obtenerCompetenciasEfectivasTexto(personaje: PersonajeJugador): 
   * Diccionario de normalización para mapear objetivos de habilidades a identificadores canónicos Habilidad.
   */
 const MAPA_OBJETIVO_A_HABILIDAD: Record<string, Habilidad> = {
-  acrobacias: "acrobacias",
-  atletismo: "atletismo",
   conocimiento_arcano: "arcanos",
-  "conocimiento arcano": "arcanos",
   arcano: "arcanos",
-  arcanos: "arcanos",
   arcana: "arcanos",
   engano: "engaño",
-  engaño: "engaño",
-  historia: "historia",
-  interpretacion: "interpretacion",
-  interpretación: "interpretacion",
-  intimidacion: "intimidacion",
-  intimidación: "intimidacion",
-  investigacion: "investigacion",
-  investigación: "investigacion",
   juego_de_manos: "juegoManos",
-  "juego de manos": "juegoManos",
   juegomanos: "juegoManos",
-  medicina: "medicina",
-  naturaleza: "naturaleza",
-  percepcion: "percepcion",
-  percepción: "percepcion",
-  perspicacia: "perspicacia",
-  persuasion: "persuasion",
-  persuasión: "persuasion",
-  religion: "religion",
-  religión: "religion",
-  sigilo: "sigilo",
-  supervivencia: "supervivencia",
   trato_con_animales: "manejoAnimales",
-  "trato con animales": "manejoAnimales",
   manejoanimales: "manejoAnimales",
   animales: "manejoAnimales"
 };

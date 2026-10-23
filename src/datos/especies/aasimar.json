@@ -126,18 +126,70 @@
                   "valor": "volar",
                   "descripcion": "Velocidad de vuelo igual a tu velocidad",
                   "activo": true
+                },
+                {
+                  "tipo": "bono_dano_ataque",
+                  "objetivo": "todos_ataques",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Radiante",
+                  "descripcion": "Revelación celestial (+PB daño en ataques)",
+                  "activo": true
+                },
+                {
+                  "tipo": "bono_dano_conjuro",
+                  "objetivo": "todos_conjuros",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Radiante",
+                  "descripcion": "Revelación celestial (+PB daño en conjuros)",
+                  "activo": true
                 }
               ]
             },
             {
               "id": "fulgor_interior",
               "nombre": "Fulgor interior",
-              "descripcion": "De tus ojos y tu boca surge una luz abrasadora. Emites luz brillante en 10 pies y tenue otros 10 pies. Al final de cada uno de tus turnos, cada criatura a 10 pies o menos recibe daño radiante igual a tu PB. Daño extra radiante igual a tu PB una vez por turno."
+              "descripcion": "De tus ojos y tu boca surge una luz abrasadora. Emites luz brillante en 10 pies y tenue otros 10 pies. Al final de cada uno de tus turnos, cada criatura a 10 pies o menos recibe daño radiante igual a tu PB. Daño extra radiante igual a tu PB una vez por turno.",
+              "efectos": [
+                {
+                  "tipo": "bono_dano_ataque",
+                  "objetivo": "todos_ataques",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Radiante",
+                  "descripcion": "Revelación celestial (+PB daño en ataques)",
+                  "activo": true
+                },
+                {
+                  "tipo": "bono_dano_conjuro",
+                  "objetivo": "todos_conjuros",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Radiante",
+                  "descripcion": "Revelación celestial (+PB daño en conjuros)",
+                  "activo": true
+                }
+              ]
             },
             {
               "id": "mortaja_necrotica",
               "nombre": "Mortaja necrótica",
-              "descripcion": "Tus ojos se vuelven pozos de oscuridad y brotan alas que no vuelan. Las criaturas no aliadas a 10 pies o menos deben superar una salvación de Carisma (CD 8 + mod CAR + PB) o estarán asustadas hasta el final de tu siguiente turno. Daño extra necrótico igual a tu PB una vez por turno."
+              "descripcion": "Tus ojos se vuelven pozos de oscuridad y brotan alas que no vuelan. Las criaturas no aliadas a 10 pies o menos deben superar una salvación de Carisma (CD 8 + mod CAR + PB) o estarán asustadas hasta el final de tu siguiente turno. Daño extra necrótico igual a tu PB una vez por turno.",
+              "efectos": [
+                {
+                  "tipo": "bono_dano_ataque",
+                  "objetivo": "todos_ataques",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Necrótico",
+                  "descripcion": "Revelación celestial (+PB daño en ataques)",
+                  "activo": true
+                },
+                {
+                  "tipo": "bono_dano_conjuro",
+                  "objetivo": "todos_conjuros",
+                  "valor": "bono_competencia",
+                  "tipoDano": "Necrótico",
+                  "descripcion": "Revelación celestial (+PB daño en conjuros)",
+                  "activo": true
+                }
+              ]
             }
           ],
           "maxSelecciones": 1,

@@ -107,8 +107,6 @@ export function obtenerBonoCARasgos(personaje: PersonajeJugador): ResultadoBonoC
     return { bonoTotal: 0, fuentes: [] };
   }
 
-  const armadura = tieneArmaduraEquipada(personaje);
-  const tieneEscudo = tieneEscudoEquipado(personaje);
   const efectos = evaluarEfectosRasgosActivos(personaje);
   let bonoTotal = 0;
   const fuentes: Array<{ nombre: string; valor: number }> = [];
@@ -118,21 +116,6 @@ export function obtenerBonoCARasgos(personaje: PersonajeJugador): ResultadoBonoC
       const objNorm = normalizar(ef.objetivo);
       // Omitir si es configuración de defensa sin armadura
       if (objNorm.includes("defensa_sin_armadura")) {
-        continue;
-      }
-
-      // Evaluar condiciones de armadura y escudo
-      const condNorm = normalizar(ef.condicion || "");
-      if (condNorm === "con_armadura" && !armadura.tieneArmadura) {
-        continue;
-      }
-      if (condNorm === "sin_armadura" && armadura.tieneArmadura) {
-        continue;
-      }
-      if (condNorm === "con_escudo" && !tieneEscudo) {
-        continue;
-      }
-      if (condNorm === "sin_escudo" && tieneEscudo) {
         continue;
       }
 

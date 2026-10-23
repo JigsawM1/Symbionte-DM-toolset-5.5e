@@ -5,9 +5,15 @@ import {
   calcularReglasFormaSalvaje,
   esBestiaValidaParaDruida,
   calcularHpTemporalFormaSalvaje,
-  } from "./reglasFormaSalvaje";
+  obtenerBestiaFormaActiva,
+  puedeLanzarConjuroEnFormaSalvaje
+} from "./reglasFormaSalvaje";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
+import {
+  obtenerVelocidadesEfectivas,
+  obtenerSentidosEfectivos
+} from "@/servicios/rasgos/evaluadorMovilidadRasgos";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
 
 describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => {
@@ -173,6 +179,169 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
         "m_arana",
         "m_caballo_de_monta"
       ]);
+    });
+  });
+
+  describe("4. Reglas Canónicas Avanzadas PHB 2024 (Constitución, Salvaciones, Velocidades, Sentidos y Magia)", () => {
+    it("Reemplaza FUE, DES y CON, y usa el modificador superior en salvaciones y habilidades de la bestia", () => {
+      const store = usarAlmacenDM.getState();
+      const idPj = store.crearPersonaje({
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 3,
+        caracteristicas: {
+          fuerza: 8,
+          destreza: 10,
+          constitucion: 12,
+          inteligencia: 10,
+          sabiduria: 16,
+          carisma: 10
+        },
+        gradosHabilidades: {
+          ...PERSONAJE_POR_DEFECTO.gradosHabilidades,
+          percepcion: "competente",
+          sigilo: "ninguna"
+        }
+      });
+
+      // Lobo: FUE 14, DES 15, CON 12. Habilidades: Percepción +3, Sigilo +4.
+      store.transformarEnFormaSalvaje(idPj, "m_lobo");
+      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
+      const stats = calcularEstadisticasPersonaje(pj);
+
+      // Adopta características físicas
+      expect(stats.puntuacionesEfectivas.fuerza).toBe(lobo.caracteristicas.fuerza);
+      expect(stats.puntuacionesEfectivas.destreza).toBe(lobo.caracteristicas.destreza);
+      expect(stats.puntuacionesEfectivas.constitucion).toBe(lobo.caracteristicas.constitucion);
+
+      // Si la bestia tiene mayor bono en sigilo (+4), lo adopta
+      expect(stats.habilidades.sigilo).toBeGreaterThanOrEqual(4);
+    });
+
+    it("Adopta la velocidad al caminar y modos de movimiento de la bestia (sin vuelo hasta nv 8)", () => {
+      const store = usarAlmacenDM.getState();
+      // Druida nivel 4 (no puede volar todavía)
+      const idPj = store.crearPersonaje({
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 4,
+        velocidad: "30 pies"
+      });
+
+      // Lobo tiene velocidad 40 pies
+      store.transformarEnFormaSalvaje(idPj, "m_lobo");
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
+      let velocidades = obtenerVelocidadesEfectivas(pj);
+      expect(velocidades.caminar).toBe(40);
+
+      // Si se transforma en cuervo pero es nivel 4, no puede volar
+      store.revertirFormaSalvaje(idPj);
+      store.transformarEnFormaSalvaje(idPj, "m_cuervo");
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
+      velocidades = obtenerVelocidadesEfectivas(pj);
+      expect(velocidades.volar).toBeUndefined();
+
+      // Subimos a nivel 8: ahora sí puede volar con la velocidad del cuervo (50 pies)
+      pj.nivel = 8;
+      velocidades = obtenerVelocidadesEfectivas(pj);
+      expect(velocidades.volar).toBe(50);
+    });
+
+    it("Adopta sentidos de la bestia (visión en la oscuridad y percepción pasiva)", () => {
+      const store = usarAlmacenDM.getState();
+      const idPj = store.crearPersonaje({
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 3,
+        sentidos: "visión en la oscuridad 0 pies, percepción pasiva 10"
+      });
+
+      // Lobo no tiene visión en la oscuridad pero tiene percepción pasiva 13
+      store.transformarEnFormaSalvaje(idPj, "m_lobo");
+      const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
+      const sentidos = obtenerSentidosEfectivos(pj);
+      expect(sentidos.percepcionPasiva).toBeGreaterThanOrEqual(13);
+      expect(sentidos.visionOscuridad).toBe(60);
+    });
+
+    it("Círculo de la Luna nivel 6+ imbuye Resplandor Lunar (daño Radiante)", () => {
+      const pjLuna: any = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        subclase: "Círculo de la Luna",
+        nivel: 6,
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 18
+        },
+        condicionesActivas: ["Forma salvaje"]
+      };
+
+      const stats = calcularEstadisticasPersonaje(pjLuna);
+      const ataques = generarListaAtaquesFisicos({
+        personajeActivo: pjLuna,
+        statsCalculadas: stats,
+        baseDatosObjetos: [],
+        caracteristicasArmas: {}
+      });
+
+      const mordisco = ataques.find((a) => a.nombre.includes("Mordisco"));
+      expect(mordisco).toBeDefined();
+      expect(mordisco?.propiedades).toContain("Resplandor lunar (Radiante)");
+      expect(mordisco?.tipoDano).toContain("radiante");
+      expect(mordisco?.esMagico).toBe(true);
+    });
+
+    it("Restricción canónica de conjuros: Druida base bloqueado, Luna permite su lista, Nv 18 desbloquea", () => {
+      const pjBase: any = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 5,
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 5
+        },
+        condicionesActivas: ["Forma salvaje"]
+      };
+
+      // Druida base no puede lanzar conjuros en forma salvaje
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjBase, "Curar heridas")).toBe(false);
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjBase, "Rayo lunar")).toBe(false);
+
+      // Círculo de la Luna sí puede lanzar los conjuros preparados de su subclase
+      const pjLuna: any = {
+        ...pjBase,
+        subclase: "Círculo de la Luna"
+      };
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Curar heridas")).toBe(true);
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Rayo lunar")).toBe(true);
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Bola de fuego")).toBe(false);
+
+      // Druida Nivel 18 (Bestia lanzadora) puede lanzar conjuros en forma salvaje
+      const pjArchidruida: any = {
+        ...pjBase,
+        nivel: 18
+      };
+      expect(puedeLanzarConjuroEnFormaSalvaje(pjArchidruida, "Cualquier conjuro")).toBe(true);
+    });
+
+    it("Condición Incapacitado finaliza la Forma Salvaje automáticamente", () => {
+      const pjTransformado: any = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 3,
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 3
+        },
+        condicionesActivas: ["Forma salvaje", "Incapacitado"]
+      };
+
+      // Al estar incapacitado, obtenerBestiaFormaActiva devuelve null
+      expect(obtenerBestiaFormaActiva(pjTransformado)).toBeNull();
     });
   });
 });

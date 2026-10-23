@@ -23,6 +23,11 @@ import { usarAccionesConfiguracion, usarSistemaMagia } from "@/almacen/selectore
 import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { tieneRestriccionRasgos } from "@/servicios/rasgos/restriccionesRasgos";
+import {
+  obtenerBestiaFormaActiva,
+  obtenerNivelDruida,
+  esDruidaCirculoLuna
+} from "@/servicios/reglasFormaSalvaje";
 
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
@@ -119,9 +124,19 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     };
   }, [personaje, penalizacionArmadura, sistemaMagiaEfectivo]);
 
-  // 2. Estado general de bloqueo por armadura
+  // 2. Estado general de bloqueo por armadura, rasgos y Forma salvaje
   const estaBloqueadoPorArmadura = Boolean(penalizacionArmadura?.sinCompetencia);
   const estaBloqueadoPorRasgo = useMemo(() => Boolean(personaje && tieneRestriccionRasgos(personaje, "conjuros")), [personaje]);
+  const estaBloqueadoPorFormaSalvaje = useMemo(() => {
+    if (!personaje) return false;
+    const bestia = obtenerBestiaFormaActiva(personaje);
+    if (!bestia) return false;
+    const nivelDruida = obtenerNivelDruida(personaje);
+    if (nivelDruida >= 18) return false;
+    if (esDruidaCirculoLuna(personaje)) return false;
+    return true;
+  }, [personaje]);
+
   const motivoBloqueoArmadura = estaBloqueadoPorArmadura
     ? `No puedes lanzar conjuros mientras vistas ${[
         penalizacionArmadura?.armaduraNoCompetente,
@@ -130,6 +145,12 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         .filter(Boolean)
         .join(" o ")} sin competencia.`
     : undefined;
+
+  const motivoBloqueoGeneral = estaBloqueadoPorFormaSalvaje
+    ? "No puedes lanzar conjuros mientras estás transformado en Forma salvaje (PHB 2024)."
+    : estaBloqueadoPorRasgo
+      ? "Un rasgo activo impide lanzar conjuros."
+      : motivoBloqueoArmadura;
 
   // 3. Validador reactivo
   const validar = useCallback(
@@ -307,8 +328,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   );
 
   return {
-    puedeLanzar: !estaBloqueadoPorArmadura && !estaBloqueadoPorRasgo,
-    motivoBloqueo: estaBloqueadoPorRasgo ? "Un rasgo activo impide lanzar conjuros." : motivoBloqueoArmadura,
+    puedeLanzar: !estaBloqueadoPorArmadura && !estaBloqueadoPorRasgo && !estaBloqueadoPorFormaSalvaje,
+    motivoBloqueo: motivoBloqueoGeneral,
     validar,
     lanzar
   };

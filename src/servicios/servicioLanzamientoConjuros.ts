@@ -17,6 +17,7 @@ import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { tieneRestriccionRasgos } from "./rasgos/restriccionesRasgos";
+import { puedeLanzarConjuroEnFormaSalvaje } from "./reglasFormaSalvaje";
 import { obtenerConcesionRitual } from "./rasgos/conjurosRitualesRasgos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
@@ -122,6 +123,9 @@ export function validarLanzamiento(
     return { permitido: false, motivo: "La clase de lanzamiento seleccionada no está disponible." };
   if (contexto.personajeActual && tieneRestriccionRasgos(contexto.personajeActual, "conjuros")) {
     return { permitido: false, motivo: "Un rasgo activo impide lanzar conjuros." };
+  }
+  if (contexto.personajeActual && !puedeLanzarConjuroEnFormaSalvaje(contexto.personajeActual, solicitud.hechizo.nombre)) {
+    return { permitido: false, motivo: "No puedes lanzar este conjuro mientras estás en Forma salvaje (PHB 2024)." };
   }
   if (solicitud.sinConcentracion && (!contexto.personajeActual || !obtenerVarianteConjuro(contexto.personajeActual, solicitud.hechizo)))
     return { permitido: false, motivo: "Esta variante de lanzamiento no está disponible." };

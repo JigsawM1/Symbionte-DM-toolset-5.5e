@@ -6,6 +6,12 @@ import {
 } from "@/tipos";
 import { normalizar } from "./utilidadesRasgos";
 import {
+  obtenerBestiaFormaActiva,
+  extraerVelocidadesBestia,
+  extraerSentidosBestia,
+  obtenerNivelDruida
+} from "@/servicios/reglasFormaSalvaje";
+import {
   evaluarEfectosRasgosActivos,
   resolverFormulaDinamica,
   evaluarExpresionNumericaSegura
@@ -100,22 +106,45 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
     return { caminar: 30, planea: false };
   }
 
+  // D&D 2024 (Forma Salvaje): Adopta los modos y velocidades de la Bestia
+  const bestiaActiva = obtenerBestiaFormaActiva(personaje);
+  let velBestia: ReturnType<typeof extraerVelocidadesBestia> | null = null;
+  if (bestiaActiva) {
+    velBestia = extraerVelocidadesBestia(bestiaActiva);
+    const nivelDruida = obtenerNivelDruida(personaje);
+    if (nivelDruida < 8) {
+      velBestia.volar = undefined;
+      velBestia.planea = false;
+    }
+  }
+
   // 1. Velocidad base al caminar y bonos/penalizaciones numéricas
-  const baseCaminar =
-    typeof personaje.velocidad === "string"
-      ? parseInt(personaje.velocidad, 10) || 30
-      : (typeof personaje.velocidad === "number"
-        ? personaje.velocidad
-        : (personaje.velocidad?.caminar || 30));
+  const baseCaminar = velBestia
+    ? velBestia.caminar
+    : (typeof personaje.velocidad === "string"
+        ? parseInt(personaje.velocidad, 10) || 30
+        : (typeof personaje.velocidad === "number"
+          ? personaje.velocidad
+          : (personaje.velocidad?.caminar || 30)));
 
   const bonoCaminar = calcularBonoVelocidadRasgos(personaje);
   let caminar = Math.max(0, baseCaminar + bonoCaminar);
 
-  let nadar = typeof personaje.velocidad === "object" ? personaje.velocidad?.nadar : undefined;
-  let volar = typeof personaje.velocidad === "object" ? personaje.velocidad?.volar : undefined;
-  let escalar = typeof personaje.velocidad === "object" ? personaje.velocidad?.escalar : undefined;
-  let excavar = typeof personaje.velocidad === "object" ? personaje.velocidad?.excavar : undefined;
-  const planea = typeof personaje.velocidad === "object" ? Boolean(personaje.velocidad?.planea) : false;
+  let nadar = velBestia
+    ? velBestia.nadar
+    : (typeof personaje.velocidad === "object" ? personaje.velocidad?.nadar : undefined);
+  let volar = velBestia
+    ? velBestia.volar
+    : (typeof personaje.velocidad === "object" ? personaje.velocidad?.volar : undefined);
+  let escalar = velBestia
+    ? velBestia.escalar
+    : (typeof personaje.velocidad === "object" ? personaje.velocidad?.escalar : undefined);
+  let excavar = velBestia
+    ? velBestia.excavar
+    : (typeof personaje.velocidad === "object" ? personaje.velocidad?.excavar : undefined);
+  const planea = velBestia
+    ? velBestia.planea
+    : (typeof personaje.velocidad === "object" ? Boolean(personaje.velocidad?.planea) : false);
 
   // 2. Efectos de movimiento especial (ej. otorgar velocidad de escalar/nadar/volar igual a caminar)
   const efectos = evaluarEfectosRasgosActivos(personaje);
@@ -295,10 +324,22 @@ export const calcularVelocidadPersonaje = obtenerVelocidadesEfectivas;
  * En D&D 5.5e: Si ya posee visión en la oscuridad, suma el bono; si no poseía, obtiene el valor mínimo indicado.
  */
 export function obtenerSentidosEfectivos(personaje: PersonajeJugador): SentidosEstructurados {
+  if (!personaje) {
+    return { percepcionPasiva: 10 };
+  }
+
   let visionBase = 0;
   let percepcionPasiva = 10;
+  let visionCiegaBase: number | undefined;
 
-  if (typeof personaje.sentidos === "string") {
+  const bestiaActiva = obtenerBestiaFormaActiva(personaje);
+  const sentidosBestia = bestiaActiva ? extraerSentidosBestia(bestiaActiva) : null;
+
+  if (sentidosBestia) {
+    visionBase = sentidosBestia.visionOscuridad || 0;
+    visionCiegaBase = sentidosBestia.visionCiega;
+    percepcionPasiva = sentidosBestia.percepcionPasiva ?? 10;
+  } else if (typeof personaje.sentidos === "string") {
     const match = personaje.sentidos.match(/visi[oó]n en la oscuridad\s*(\d+)/i);
     if (match) {
       visionBase = parseInt(match[1], 10) || 0;
@@ -309,6 +350,7 @@ export function obtenerSentidosEfectivos(personaje: PersonajeJugador): SentidosE
     }
   } else if (personaje.sentidos && typeof personaje.sentidos === "object") {
     visionBase = personaje.sentidos.visionOscuridad || 0;
+    visionCiegaBase = personaje.sentidos.visionCiega;
     percepcionPasiva = personaje.sentidos.percepcionPasiva ?? 10;
   }
 
@@ -337,9 +379,9 @@ export function obtenerSentidosEfectivos(personaje: PersonajeJugador): SentidosE
   const resultado: SentidosEstructurados = {
     percepcionPasiva,
     visionOscuridad: visionFinal > 0 ? visionFinal : undefined,
-    visionCiega: typeof personaje.sentidos === "object" ? personaje.sentidos?.visionCiega : undefined,
-    visionVerdadera: typeof personaje.sentidos === "object" ? personaje.sentidos?.visionVerdadera : undefined,
-    sentidoSismico: typeof personaje.sentidos === "object" ? personaje.sentidos?.sentidoSismico : undefined
+    visionCiega: visionCiegaBase ?? (typeof personaje?.sentidos === "object" ? personaje.sentidos?.visionCiega : undefined),
+    visionVerdadera: typeof personaje?.sentidos === "object" ? personaje.sentidos?.visionVerdadera : undefined,
+    sentidoSismico: typeof personaje?.sentidos === "object" ? personaje.sentidos?.sentidoSismico : undefined
   };
 
   return resultado;

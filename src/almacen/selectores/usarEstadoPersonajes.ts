@@ -16,7 +16,7 @@ import {
 import { esCompetenteConArmadura } from '@/constantes/competenciasConstantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
 import { OBJETOS_INICIALES } from '@/utiles/datosIniciales';
-import { obtenerBestiaFormaActiva, esDruidaCirculoLuna } from '@/servicios/reglasFormaSalvaje';
+import { obtenerBestiaFormaActiva, esDruidaCirculoLuna, extraerSentidosBestia } from '@/servicios/reglasFormaSalvaje';
 import {
   calcularModificadoresStatsRasgos,
   calcularDefensaSinArmaduraRasgos,
@@ -236,7 +236,7 @@ export function calcularEstadisticasPersonaje(
   const puntuacionesEfectivas: Record<Caracteristica, number> = {
     fuerza: bestiaActiva?.caracteristicas?.fuerza ?? personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? Math.min(limitesStatsRasgos.fuerza || 20, (carac.fuerza ?? 10) + bonosStatsRasgos.fuerza),
     destreza: bestiaActiva?.caracteristicas?.destreza ?? personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? Math.min(limitesStatsRasgos.destreza || 20, (carac.destreza ?? 10) + bonosStatsRasgos.destreza),
-    constitucion: personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? Math.min(limitesStatsRasgos.constitucion || 20, (carac.constitucion ?? 10) + bonosStatsRasgos.constitucion),
+    constitucion: bestiaActiva?.caracteristicas?.constitucion ?? personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? Math.min(limitesStatsRasgos.constitucion || 20, (carac.constitucion ?? 10) + bonosStatsRasgos.constitucion),
     inteligencia: personalizacionesCarac.inteligencia?.valorFijo ?? overrides.inteligencia ?? Math.min(limitesStatsRasgos.inteligencia || 20, (carac.inteligencia ?? 10) + bonosStatsRasgos.inteligencia),
     sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? Math.min(limitesStatsRasgos.sabiduria || 20, (carac.sabiduria ?? 10) + bonosStatsRasgos.sabiduria),
     carisma: personalizacionesCarac.carisma?.valorFijo ?? overrides.carisma ?? Math.min(limitesStatsRasgos.carisma || 20, (carac.carisma ?? 10) + bonosStatsRasgos.carisma)
@@ -336,6 +336,16 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
+  // D&D 2024: Si está en Forma salvaje, conserva sus competencias y gana las de la bestia.
+  // Si la bestia tiene un bono superior en su ficha, usa el bono de la bestia.
+  if (bestiaActiva?.salvaciones) {
+    for (const [k, modBestia] of Object.entries(bestiaActiva.salvaciones)) {
+      if (typeof modBestia === "number" && k in salvaciones) {
+        salvaciones[k as Caracteristica] = Math.max(salvaciones[k as Caracteristica], modBestia);
+      }
+    }
+  }
+
   const habilidades = {} as Record<Habilidad, number>;
   const gradosHabilidadesEfectivos = {} as Record<Habilidad, GradoCompetencia>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
@@ -404,8 +414,19 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
+  // D&D 2024: Si está en Forma salvaje, conserva sus competencias y gana las de la bestia.
+  // Si la bestia tiene un bono superior en su ficha, usa el bono de la bestia.
+  if (bestiaActiva?.habilidades) {
+    for (const [hab, modBestia] of Object.entries(bestiaActiva.habilidades)) {
+      if (typeof modBestia === "number" && hab in habilidades) {
+        habilidades[hab as Habilidad] = Math.max(habilidades[hab as Habilidad], modBestia);
+      }
+    }
+  }
+
+  const sentidosBestia = bestiaActiva ? extraerSentidosBestia(bestiaActiva) : null;
   const pasivas = {
-    percepcion: 10 + (habilidades.percepcion || 0),
+    percepcion: Math.max(10 + (habilidades.percepcion || 0), sentidosBestia?.percepcionPasiva ?? 0),
     investigacion: 10 + (habilidades.investigacion || 0),
     perspicacia: 10 + (habilidades.perspicacia || 0)
   };

@@ -24,7 +24,11 @@ import {
   componerFormulasDano
 } from "@/servicios/calculadorDanoCombate";
 import { calcularAtaqueDesarmado } from "@/servicios/calculadorAtaqueDesarmado";
-import { obtenerBestiaFormaActiva } from "@/servicios/reglasFormaSalvaje";
+import {
+  obtenerBestiaFormaActiva,
+  esDruidaCirculoLuna,
+  obtenerNivelDruida
+} from "@/servicios/reglasFormaSalvaje";
 
 export { calcularAtaqueDesarmado };
 
@@ -516,6 +520,10 @@ export function generarListaAtaquesFisicos(
   // 5. Ataques de Forma Salvaje (si el personaje está transformado)
   const bestiaActiva = obtenerBestiaFormaActiva(personajeActivo);
   if (bestiaActiva && Array.isArray(bestiaActiva.acciones)) {
+    const esLuna = esDruidaCirculoLuna(personajeActivo);
+    const nivelDruida = obtenerNivelDruida(personajeActivo);
+    const tieneResplandorLunar = esLuna && nivelDruida >= 6;
+
     for (const acc of bestiaActiva.acciones) {
       const desc = acc.descripcion || "";
       const esAtaque =
@@ -527,11 +535,17 @@ export function generarListaAtaquesFisicos(
         const alcanceMatch = desc.match(/alcance ([^,.]+)/i);
         const alcance = alcanceMatch ? alcanceMatch[1] : "5 pies";
         const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
-        const tipoDano = tipoDanoMatch ? tipoDanoMatch[1] : "contundente";
+        const tipoDanoBase = tipoDanoMatch ? tipoDanoMatch[1] : "contundente";
+        const tipoDano = tieneResplandorLunar ? `${tipoDanoBase} / radiante` : tipoDanoBase;
         const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
         const bonoAtk = (acc as any).bonoAtaque ?? (bonoMatch ? parseInt(bonoMatch[1], 10) : (statsCalculadas.modificadores.fuerza + statsCalculadas.bonoCompetencia));
         const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
         const formulaDano = (acc as any).dano || (danoMatch ? danoMatch[1] : "1d6");
+
+        const propiedades = ["Arma Natural", "Forma Salvaje"];
+        if (tieneResplandorLunar) {
+          propiedades.push("Resplandor lunar (Radiante)");
+        }
 
         ataques.unshift({
           id: `bestia-${bestiaActiva.id}-${acc.nombre.toLowerCase().replace(/\s+/g, '-')}`,
@@ -547,8 +561,8 @@ export function generarListaAtaquesFisicos(
           esDanoFijo: false,
           tipoDano,
           alcance,
-          propiedades: ["Arma Natural", "Forma Salvaje"],
-          esMagico: false,
+          propiedades,
+          esMagico: tieneResplandorLunar,
           tieneTiradaAtaque: true,
           esCompetenteConArma: true,
           esSutil: false,

@@ -29,6 +29,85 @@ export function bestiaTieneVuelo(bestia: MonstruoBase): boolean {
   return false;
 }
 
+/**
+ * Parsea y extrae velocidades estructuradas de cualquier bloque de estadísticas de bestia.
+ */
+export function extraerVelocidadesBestia(bestia: MonstruoBase): {
+  caminar: number;
+  nadar?: number;
+  volar?: number;
+  escalar?: number;
+  excavar?: number;
+  planea: boolean;
+} {
+  let caminar = 30;
+  let nadar: number | undefined;
+  let volar: number | undefined;
+  let escalar: number | undefined;
+  let excavar: number | undefined;
+  let planea = false;
+
+  if (typeof bestia.velocidad === "string") {
+    const s = bestia.velocidad.toLowerCase();
+    const caminarMatch = s.match(/^(\d+)\s*(?:pies|ft)?/i);
+    if (caminarMatch) caminar = parseInt(caminarMatch[1], 10) || 30;
+
+    const nadarMatch = s.match(/nadar\s*(\d+)/i);
+    if (nadarMatch) nadar = parseInt(nadarMatch[1], 10);
+
+    const volarMatch = s.match(/volar\s*(\d+)/i);
+    if (volarMatch) volar = parseInt(volarMatch[1], 10);
+
+    const escalarMatch = s.match(/(?:escalar|trepar)\s*(\d+)/i);
+    if (escalarMatch) escalar = parseInt(escalarMatch[1], 10);
+
+    const excavarMatch = s.match(/excavar\s*(\d+)/i);
+    if (excavarMatch) excavar = parseInt(excavarMatch[1], 10);
+  } else if (bestia.velocidad && typeof bestia.velocidad === "object") {
+    const v = bestia.velocidad as any;
+    caminar = v.caminar ?? 30;
+    nadar = v.nadar;
+    volar = v.volar ?? v.volando;
+    escalar = v.escalar ?? v.trepar;
+    excavar = v.excavar;
+    planea = Boolean(v.planea);
+  }
+
+  return { caminar, nadar, volar, escalar, excavar, planea };
+}
+
+/**
+ * Extrae los sentidos clave de una bestia (visión en la oscuridad, ciega y percepción pasiva).
+ */
+export function extraerSentidosBestia(bestia: MonstruoBase): {
+  visionOscuridad?: number;
+  visionCiega?: number;
+  percepcionPasiva?: number;
+} {
+  let visionOscuridad: number | undefined;
+  let visionCiega: number | undefined;
+  let percepcionPasiva: number | undefined;
+
+  if (bestia.sentidos && typeof bestia.sentidos === "object") {
+    const s = bestia.sentidos as any;
+    visionOscuridad = s.visionOscuridad;
+    visionCiega = s.visionCiega;
+    percepcionPasiva = s.percepcionPasiva;
+  } else if (typeof bestia.sentidos === "string") {
+    const sentidosStr = bestia.sentidos.toLowerCase();
+    const matchVO = sentidosStr.match(/visi[oó]n en la oscuridad\s*(\d+)/i);
+    if (matchVO) visionOscuridad = parseInt(matchVO[1], 10);
+
+    const matchVC = sentidosStr.match(/visi[oó]n ciega\s*(\d+)/i);
+    if (matchVC) visionCiega = parseInt(matchVC[1], 10);
+
+    const matchPP = sentidosStr.match(/percepci[oó]n pasiva\s*(\d+)/i);
+    if (matchPP) percepcionPasiva = parseInt(matchPP[1], 10);
+  }
+
+  return { visionOscuridad, visionCiega, percepcionPasiva };
+}
+
 export interface ReglasFormaSalvajeNivel {
   maxFormasConocidas: number;
   vdMaximo: number;
@@ -180,7 +259,10 @@ export function calcularHpTemporalFormaSalvaje(
 }
 
 /**
- * Recupera el objeto de la bestia actualmente activa del personaje, si la hay.
+ * Recupera el objeto de la bestia actualmente activa del personaje, si la hay y la forma sigue vigente.
+ * Según D&D 2024:
+ * "You stay in that form for a number of hours equal to half your Druid level or until you use Wild Shape again,
+ * have the Incapacitated condition, or die."
  */
 export function obtenerBestiaFormaActiva(
   pj: PersonajeJugador,
@@ -189,9 +271,68 @@ export function obtenerBestiaFormaActiva(
   const idActiva = pj.formaSalvaje?.formaActivaId;
   if (!idActiva) return null;
 
+  // Condiciones que finalizan de inmediato la Forma salvaje según PHB 2024
+  const conds = (pj.condicionesActivas || []).map((c) => c.toLowerCase().trim());
+  if (
+    conds.includes("incapacitado") ||
+    conds.includes("incapacitated") ||
+    conds.includes("inconsciente") ||
+    conds.includes("unconscious") ||
+    conds.includes("muerto") ||
+    conds.includes("dead")
+  ) {
+    return null;
+  }
+
+  // Si la condición "Forma salvaje" fue retirada explícitamente y el rasgo está inactivo
+  const rasgoForma = (pj.rasgos || []).find((r) => r.nombre.toLowerCase().trim() === "forma salvaje");
+  const tieneCondicion = conds.some((c) => c.includes("forma salvaje") || c.includes("wild shape"));
+  if (!tieneCondicion && rasgoForma && !rasgoForma.activo) {
+    return null;
+  }
+
   const enHomebrew = catalogoHomebrew.find((m) => m.id === idActiva);
   if (enHomebrew) return enHomebrew;
 
   const enOficiales = MONSTRUOS_INICIALES.find((m) => m.id === idActiva);
   return enOficiales || null;
+}
+
+/** Lista canónica de conjuros que el Círculo de la Luna puede lanzar en Forma salvaje (PHB 2024) */
+export const CONJUROS_CIRCULO_LUNA_PERMITIDOS = new Set([
+  "curar heridas",
+  "rayo lunar",
+  "voluta estelar",
+  "conjurar animales",
+  "fuente de luz lunar",
+  "curar heridas en masa",
+  "cure wounds",
+  "moonbeam",
+  "starry wisp",
+  "conjure animals",
+  "moonlight step",
+  "mass cure wounds"
+]);
+
+/**
+ * Comprueba si un personaje transformado en Forma salvaje puede lanzar un conjuro dado.
+ * PHB 2024:
+ * - Druida estándar: No puede lanzar conjuros hasta nivel 18 (Bestia lanzadora / Beast Spells).
+ * - Círculo de la Luna: Puede lanzar los conjuros preparados de su lista de subclase.
+ */
+export function puedeLanzarConjuroEnFormaSalvaje(
+  pj: PersonajeJugador,
+  nombreHechizo: string
+): boolean {
+  if (!obtenerBestiaFormaActiva(pj)) return true; // No está transformado
+
+  const nivelDruida = obtenerNivelDruida(pj);
+  if (nivelDruida >= 18) return true; // Bestia lanzadora (PHB 2024 nivel 18)
+
+  if (esDruidaCirculoLuna(pj)) {
+    const norm = nombreHechizo.toLowerCase().trim();
+    return CONJUROS_CIRCULO_LUNA_PERMITIDOS.has(norm);
+  }
+
+  return false;
 }

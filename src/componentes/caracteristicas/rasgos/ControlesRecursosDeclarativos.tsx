@@ -108,7 +108,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
       <Sparkles size={13} aria-hidden="true" />Usar</button>}
     {rasgo.recargarUsoConPacto && <button type="button" className={estilos.botonCompacto} disabled={restantes >= (rasgo.usosMaximos ?? 1) || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos}
       title="Recargar uso con un espacio de pacto" aria-label="Recargar uso con un espacio de pacto"
-      onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().recargarUsoRasgoConPacto(pj.id, rasgo.id); }}><RotateCcw size={13} aria-hidden="true" />Recargar</button>}
+      onClick={e => { e.stopPropagation(); usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "recargarUsoConPacto", idRasgo: rasgo.id }); }}><RotateCcw size={13} aria-hidden="true" />Recargar</button>}
     {curacion && <button type="button" className={estilos.botonCompacto} disabled={restantes < 1}
       title="Elegir cuántos dados de curación gastar" aria-label="Elegir cuántos dados de curación gastar"
       onClick={e => { e.stopPropagation(); setDados(1); setError(""); setMostrar(true); }}><Dices size={13} aria-hidden="true" />Lanzar d{caras}</button>}

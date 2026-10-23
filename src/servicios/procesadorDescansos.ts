@@ -132,24 +132,22 @@ export function ejecutarDescansoCorto(
       ? calcularUsosMaximosRasgo(rasgo, personaje)
       : (rasgo.usosMaximos ?? 1);
     const restantesActuales = rasgo.usosRestantes ?? maxUsos;
+    const esRecuperacionCorto = rasgo.recuperacion === "descanso_corto" || Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0);
+    let rModificado = { ...rasgo };
+    let cambioPuntos = false;
+    if (esRecuperacionCorto && (rModificado.usosRecuperadosConPuntos ?? 0) > 0) {
+      rModificado.usosRecuperadosConPuntos = 0;
+      cambioPuntos = true;
+    }
 
-    // Recarga dinámica parcial (ej. recarga 1 uso en descanso corto)
-    if (rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0) {
-      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
-        const nuevosRestantes = Math.min(maxUsos, restantesActuales + rasgo.recargaDescansoCorto);
-        if (nuevosRestantes > restantesActuales || rasgo.usosMaximos !== maxUsos) {
-          rasgosRecargadosCorto++;
-          return { ...rasgo, usosMaximos: maxUsos, usosRestantes: nuevosRestantes };
-        }
-      }
-    } else if (rasgo.recuperacion === "descanso_corto") {
-      // Recarga completa clásica en descanso corto
-      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos) {
+    if (esRecuperacionCorto) {
+      const nuevosRestantes = rasgo.recargaDescansoCorto ? Math.min(maxUsos, restantesActuales + rasgo.recargaDescansoCorto) : maxUsos;
+      if (restantesActuales < maxUsos || rasgo.usosMaximos !== maxUsos || cambioPuntos) {
         rasgosRecargadosCorto++;
-        return { ...rasgo, usosMaximos: maxUsos, usosRestantes: maxUsos };
+        return { ...rModificado, usosMaximos: maxUsos, usosRestantes: nuevosRestantes };
       }
     }
-    return rasgo;
+    return cambioPuntos ? rModificado : rasgo;
   });
 
   if (rasgosRecargadosCorto > 0) {
@@ -356,6 +354,11 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
        Boolean(rasgo.recargaDescansoCorto && rasgo.recargaDescansoCorto > 0))
     ) {
       rModificado = { ...rModificado, dadosGuardados: [] };
+      huboCambio = true;
+    }
+
+    if ((rModificado.usosRecuperadosConPuntos ?? 0) > 0) {
+      rModificado = { ...rModificado, usosRecuperadosConPuntos: 0 };
       huboCambio = true;
     }
 

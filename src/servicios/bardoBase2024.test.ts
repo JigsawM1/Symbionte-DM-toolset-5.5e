@@ -105,6 +105,50 @@ describe("Bardo base 2024: datos y consumidores reales", () => {
     expect(inspiracion(pacto).usosRestantes).toBe(1);
   });
 
+  it("estrategia de puntos de conjuro recupera usos con coste escalonado (2, 4, 6... n+2) y reinicia en descanso", () => {
+    const cinco = crearBardo(5);
+    const id = inspiracion(cinco).id;
+    const conPuntos = { ...cinco, puntosConjuroMaximos: 27, puntosConjuroGastados: 0 };
+    inspiracion(conPuntos).usosRestantes = 0;
+
+    // 1er uso consecutivo: 2 puntos (m = 0 -> 2 pts)
+    const r1 = operarRecursoRasgo(conPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 2, cantidadUsos: 1 });
+    expect(r1).toBeDefined();
+    expect(inspiracion(r1!).usosRestantes).toBe(1);
+    expect(inspiracion(r1!).usosRecuperadosConPuntos).toBe(1);
+    expect(r1!.puntosConjuroGastados).toBe(2);
+
+    // 2º uso consecutivo sobre r1: 4 puntos (m = 1 -> 4 pts)
+    const r1Segundo = operarRecursoRasgo(r1!, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 4, cantidadUsos: 1 });
+    expect(r1Segundo).toBeDefined();
+    expect(inspiracion(r1Segundo!).usosRestantes).toBe(2);
+    expect(inspiracion(r1Segundo!).usosRecuperadosConPuntos).toBe(2);
+    expect(r1Segundo!.puntosConjuroGastados).toBe(6);
+
+    // 2 usos simultáneos desde cero: 2 + 4 = 6 puntos
+    const r2 = operarRecursoRasgo(conPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 6, cantidadUsos: 2 });
+    expect(r2).toBeDefined();
+    expect(inspiracion(r2!).usosRestantes).toBe(2);
+    expect(inspiracion(r2!).usosRecuperadosConPuntos).toBe(2);
+    expect(r2!.puntosConjuroGastados).toBe(6);
+
+    // Rechazo si la equivalencia no es exacta según la progresión escalonada
+    expect(operarRecursoRasgo(conPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 4, cantidadUsos: 2 })).toBeUndefined();
+    expect(operarRecursoRasgo(r1!, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 2, cantidadUsos: 1 })).toBeUndefined();
+
+    // Rechazo si no hay suficientes puntos disponibles
+    const sinPuntos = { ...conPuntos, puntosConjuroGastados: 26 };
+    expect(operarRecursoRasgo(sinPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 2, cantidadUsos: 1 })).toBeUndefined();
+
+    // Rechazo si la reserva de inspiración ya está completa
+    const llena = { ...conPuntos, rasgos: conPuntos.rasgos.map(r => r.id === id ? { ...r, usosRestantes: 4 } : r) };
+    expect(operarRecursoRasgo(llena, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: id, puntos: 2, cantidadUsos: 1 })).toBeUndefined();
+
+    // Reinicio de contador tras descanso corto (Inspiración en nivel 5 es descanso corto)
+    const descansado = ejecutarDescansoCorto(r1Segundo!, 0).personajeActualizado;
+    expect(inspiracion(descansado).usosRecuperadosConPuntos).toBe(0);
+  });
+
   it("descansos, cambio de Carisma, reconstrucción y guardado conservan correctamente el gasto", () => {
     const p = crearBardo(4);
     usarAlmacenDM.setState({ personajes: [p], idPersonajeActivo: p.id });

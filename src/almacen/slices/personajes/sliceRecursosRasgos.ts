@@ -11,7 +11,7 @@ import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos"
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { operarRecursoRasgo } from "@/servicios/rasgos/conversionRecursosRasgos";
 
-export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "operarRecursoRasgoPersonaje" | "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPacto" | "recargarUsoRasgoConPadre">> = (set, get) => ({
+export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "operarRecursoRasgoPersonaje" | "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPadre">> = (set, get) => ({
 operarRecursoRasgoPersonaje: (idPj, op) => {
     let aplicado = false;
     mutarPersonaje(set, idPj, pj => {
@@ -33,17 +33,7 @@ recargarUsoRasgoConPadre: (idPj, idRasgo) => {
         : x === padre ? { ...x, usosRestantes: (x.usosRestantes ?? x.usosMaximos ?? 0) - coste } : x) };
     });
   },
-recargarUsoRasgoConPacto: (idPj, idRasgo) => {
-    mutarPersonaje(set, idPj, pj => {
-      const r = pj.rasgos.find(r => r.id === idRasgo);
-      if (!r?.recargarUsoConPacto || !r.tieneUsosLimitados || (r.usosRestantes ?? r.usosMaximos ?? 0) >= (r.usosMaximos ?? 1)
-        || pj.espaciosPactoGastados >= pj.espaciosPactoMaximos || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)
-        || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)) return pj;
-      return { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1,
-        rasgos: pj.rasgos.map(x => x === r ? { ...x, usosRestantes: Math.min(x.usosMaximos ?? 1, (x.usosRestantes ?? x.usosMaximos ?? 0) + 1) } : x) };
-    });
-  },
-gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
+  gastarUsoRasgoPersonaje: (idPj, idRasgo, cantidad = 1) => {
     const cant = Math.max(1, typeof cantidad === "number" && !isNaN(cantidad) ? cantidad : 1);
     mutarPersonaje(set, idPj, (pj) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);

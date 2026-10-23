@@ -99,6 +99,7 @@ export const EsquemaMecanicasRasgo = z.object({
   }).optional(),
   recuperacionOpcionalDescanso: z.object({ idRasgoObjetivo: z.string().min(1), formulaCantidad: z.string().min(1) }).optional(),
   recuperacionDescansoDisponible: z.boolean().optional(),
+  usosRecuperadosConPuntos: z.number().int().min(0).optional(),
   activacionAlternativa: z.object({ idRasgoRecurso: z.string().min(1), coste: z.number().int().positive() }).optional(),
   // Recursos de pacto: ejecución atómica al usar o recargar un rasgo.
   recuperarPactoAlUsar: z.enum(["mitad_maximo", "maximo"]).optional(),

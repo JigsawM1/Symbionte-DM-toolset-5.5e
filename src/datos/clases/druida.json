@@ -51,21 +51,47 @@
       "nivel": 1,
       "nombre": "Druídico",
       "descripcion": "Conoces el druídico, el idioma secreto de los druidas. Al aprender esta antigua lengua, también desbloqueaste la magia de comunicarte con los animales; siempre tienes el conjuro *hablar con los animales* preparado.\nPuedes usar el druídico para dejar mensajes ocultos. Tú y otros que conozcan el druídico detectáis automáticamente la presencia de este tipo de mensajes. Otras personas detectan la presencia del mensaje si superan una prueba de Inteligencia (Investigación) CD 15, pero no pueden descifrarlo sin magia.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 1,
       "nombre": "Orden primigenio",
       "descripcion": "Te has dedicado a una de las siguientes funciones sagradas, a tu elección.\n\n***Mago.*** Conoces un truco adicional de la lista de conjuros de druida. Además, tu conexión mística con la naturaleza te proporciona un bonificador a tus pruebas de Inteligencia (Conocimiento arcano o Naturaleza). El bonificador es igual a tu modificador por Sabiduría (bonificador mínimo de +1).\n\n***Guardián.*** Entrenado para la batalla, ganas competencia con armas marciales y entrenamiento con armaduras medias.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_orden_primigenio",
+          "tipoSelector": "general",
+          "tipo": "unico",
+          "etiqueta": "Orden primigenio",
+          "opciones": [
+            {
+              "id": "mago",
+              "nombre": "Mago",
+              "descripcion": "Conoces un truco adicional de druida y sumas tu modificador por Sabiduría (mínimo +1) a tus pruebas de Inteligencia (Conocimiento arcano o Naturaleza)."
+            },
+            {
+              "id": "guardian",
+              "nombre": "Guardián",
+              "descripcion": "Ganas competencia con armas marciales y entrenamiento con armaduras medias."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "mago"
+          ]
+        }
+      ]
     },
     {
       "nivel": 1,
       "nombre": "Lanzamiento de conjuros",
       "descripcion": "Has aprendido a lanzar conjuros estudiando las fuerzas místicas de la naturaleza. Consulta el *capítulo 7* para ver las reglas sobre el lanzamiento de conjuros. La información presentada a continuación detalla cómo usar esas reglas con los conjuros de druida, que encontrarás más adelante en la lista de conjuros de druida de la descripción de la clase.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de druida. Se recomiendan *saber druídico* y *crear llama*.\nCada vez que subas un nivel de druida, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de druida.\nCuando alcances los niveles 4 y 10 de druida, aprenderás otro truco de tu elección de la lista de conjuros de druida, como se muestra en la columna \"Trucos\" de la tabla \"Rasgos de druida\".\n\n***Espacios de conjuro.*** La tabla \"Rasgos de druida\" muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas una serie de conjuros de nivel 1 y superiores, que son los que podrás lanzar con este rasgo. Para empezar, elige cuatro conjuros de nivel 1 de la lista de conjuros de druida. Se recomiendan *encantar animal*, *curar heridas*, *fuego feérico* y *ola atronadora*.\nEl número de conjuros de tu lista aumenta conforme subes de nivel de druida, como se muestra en la columna \"Conjuros preparados\" de la tabla \"Rasgos de druida\". Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de druida hasta que el número de conjuros de tu lista coincida con el número de la tabla. Estos conjuros deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un druida de nivel 3, podrías preparar cualquier combinación de seis conjuros de nivel 1 o 2.\nSi otro rasgo de druida te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de druida para ti.\n\n***Cambiar los conjuros preparados.*** Tras finalizar un descanso largo, puedes cambiar tu lista de conjuros preparados, sustituyendo cualquiera de los conjuros por otros conjuros de druida para los que tengas espacios de conjuro.\n\n***Aptitud mágica.*** La Sabiduría es tu aptitud mágica en lo que respecta a tus conjuros de druida.\n\n***Canalizador mágico.*** Puedes utilizar un *canalizador druídico* como canalizador mágico para tus conjuros de druida.",
       "tipoAccion": "pasivo",
-      "tieneUsosLimitados": true,
-      "recuperacion": "descanso_largo"
+      "tieneUsosLimitados": false,
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 2,
@@ -73,7 +99,10 @@
       "descripcion": "Puedes invocar un espíritu de la naturaleza que asume una forma animal para ayudarte. Como acción de magia, puedes gastar un espacio de conjuro o un uso de Forma salvaje para lanzar el conjuro *encontrar familiar* sin necesidad de componentes materiales.\nCuando lanzas el conjuro de esta manera, el familiar es de tipo feérico y desaparece cuando finalizas un descanso largo.",
       "tipoAccion": "accion",
       "tieneUsosLimitados": true,
-      "recuperacion": "descanso_largo"
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible",
+      "usosMaximos": 1,
+      "costeRecurso": "espacio_o_forma_salvaje"
     },
     {
       "nivel": 2,
@@ -85,6 +114,7 @@
       "recargaDescansoCorto": 1,
       "escaladoUsos": {
         "tipo": "por_nivel",
+        "minimo": 2,
         "tabla": [
           {
             "nivelMinimo": 2,
@@ -98,21 +128,38 @@
             "nivelMinimo": 17,
             "valor": 4
           }
-        ],
-        "minimo": 2
-      }
+        ]
+      },
+      "categoriaMecanica": "consumible",
+      "esActivable": true,
+      "condicionAlActivar": "Forma salvaje",
+      "efectos": [
+        {
+          "tipo": "hp_temporal",
+          "objetivo": "pg_temporales",
+          "valor": "nivel_druida",
+          "descripcion": "Obtienes puntos de golpe temporales iguales a tu nivel de druida al adoptar Forma salvaje (el triple de tu nivel si eres Círculo de la Luna)."
+        }
+      ],
+      "desactivarConCondiciones": [
+        "Incapacitado",
+        "Inconsciente",
+        "Muerto"
+      ]
     },
     {
       "nivel": 3,
       "nombre": "Subclase de druida",
       "descripcion": "Consigues una subclase de druida de tu elección. Las subclases son especializaciones que te proporcionan rasgos cuando alcanzas ciertos niveles de druida. De aquí en adelante, obtienes todos los rasgos de tu subclase que sean de tu nivel de druida e inferiores.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 4,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de druida.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 5,
@@ -120,69 +167,105 @@
       "descripcion": "Una vez en cada uno de tus turnos, si no te quedan usos de Forma salvaje, puedes obtener un uso gastando un espacio de conjuro (no requiere acción).\nAdemás, puedes gastar un uso de tu Forma salvaje (no requiere acción) para obtener un espacio de conjuro de nivel 1, pero no podrás volver a hacerlo hasta que finalices un descanso largo.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
-      "recuperacion": "descanso_largo"
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible",
+      "usosMaximos": 1
     },
     {
       "nivel": 6,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de druida.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 7,
       "nombre": "Furia elemental",
       "descripcion": "El poder de los elementos fluye por ti. Obtienes una de las siguientes opciones, a tu elección.\n\n***Lanzamiento potente.*** Sumas tu modificador por Sabiduría al daño que causas con cualquier truco de druida.\n\n***Golpe primordial.*** Una vez en cada uno de tus turnos, cuando aciertes a una criatura con una tirada de ataque usando un arma o un ataque de una forma de bestia en Forma salvaje, podrás hacer que el objetivo sufra 1d8 de daño de frío, fuego, relámpago o trueno adicional (elígelo cuando aciertes).",
       "tipoAccion": "pasivo",
-      "formulaDados": "1d8"
+      "formulaDados": "1d8",
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_furia_elemental",
+          "tipoSelector": "general",
+          "tipo": "unico",
+          "etiqueta": "Furia elemental",
+          "opciones": [
+            {
+              "id": "lanzamiento_potente",
+              "nombre": "Lanzamiento potente",
+              "descripcion": "Sumas tu modificador por Sabiduría al daño de cualquier truco de druida."
+            },
+            {
+              "id": "golpe_primordial",
+              "nombre": "Golpe primordial",
+              "descripcion": "Una vez en cada uno de tus turnos, cuando aciertes con un arma o ataque de bestia en Forma salvaje, infliges 1d8 de daño adicional (frío, fuego, relámpago o trueno)."
+            }
+          ],
+          "maxSelecciones": 1,
+          "valorActual": [
+            "golpe_primordial"
+          ]
+        }
+      ]
     },
     {
       "nivel": 8,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 10,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de druida.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 12,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 14,
       "nombre": "Rasgo de subclase",
       "descripcion": "Obtienes un rasgo de tu subclase de druida.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 15,
       "nombre": "Furia elemental mejorada",
       "descripcion": "La opción elegida para Furia elemental se vuelve más poderosa, como se detalla a continuación.\n\n***Lanzamiento potente.*** Cuando lances un truco de druida con un alcance de 3 m (10 pies) o más, el alcance del conjuro aumentará en 90 m (300 pies).\n\n***Golpe primordial.*** El daño adicional de tu Golpe primordial aumenta a 2d8.",
       "tipoAccion": "pasivo",
-      "formulaDados": "2d8"
+      "formulaDados": "2d8",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 16,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra [dote](feats.html) de tu elección para la que cumplas las condiciones.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 18,
       "nombre": "Conjurar como bestia",
       "descripcion": "Mientras usas Forma salvaje, podrás lanzar conjuros en forma de bestia, salvo cualquier conjuro que tenga un componente material con un coste especificado o que consuma su componente material.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "pasivo_permanente"
     },
     {
       "nivel": 19,
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra [dote](feats.html) de tu elección para la que cumplas las condiciones. Se recomienda Don del viaje dimensional.",
-      "tipoAccion": "pasivo"
+      "tipoAccion": "pasivo",
+      "categoriaMecanica": "selector_informativo"
     },
     {
       "nivel": 20,
@@ -190,7 +273,9 @@
       "descripcion": "La vitalidad de la naturaleza florece constantemente en tu interior, otorgándote los siguientes beneficios.\n\n***Forma salvaje perenne.*** Cada vez que tires iniciativa y no te queden usos de Forma salvaje, recuperas un uso gastado de este rasgo.\n\n***Mago de la naturaleza.*** Puedes convertir usos de Forma salvaje en un espacio de conjuro (no requiere acción). Elige una cantidad de tus usos no gastados de Forma salvaje y conviértelos en un solo espacio de conjuro, contribuyendo cada uso con 2 niveles de conjuro. Por ejemplo, si conviertes dos usos de Forma salvaje, produces un espacio de conjuro de nivel 4. Una vez que uses este beneficio, no podrás volver a hacerlo hasta que finalices un descanso largo.\n\n***Longevidad.*** La magia primordial que manejas hace que envejezcas más lentamente. Por cada diez años que pasan, tu cuerpo envejece solo un año.",
       "tipoAccion": "pasivo",
       "tieneUsosLimitados": true,
-      "recuperacion": "descanso_largo"
+      "recuperacion": "descanso_largo",
+      "categoriaMecanica": "consumible",
+      "usosMaximos": 1
     }
   ],
   "subclases": [
@@ -209,7 +294,42 @@
           "tipoAccion": "pasivo",
           "subclase": "Círculo de la Tierra",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_largo"
+          "recuperacion": "descanso_largo",
+          "categoriaMecanica": "selector_informativo",
+          "selectores": [
+            {
+              "id": "selector_tierra_bioma",
+              "tipoSelector": "general",
+              "tipo": "unico",
+              "etiqueta": "Tipo de tierra elegida",
+              "opciones": [
+                {
+                  "id": "arida",
+                  "nombre": "Árida",
+                  "descripcion": "Conjuros de fuego y tierra (Saeta de fuego, Manos ardientes, Bola de fuego)."
+                },
+                {
+                  "id": "polar",
+                  "nombre": "Polar",
+                  "descripcion": "Conjuros de frío y control (Rayo de escarcha, Tormenta de hielo, Cono de frío)."
+                },
+                {
+                  "id": "templada",
+                  "nombre": "Templada",
+                  "descripcion": "Conjuros de tormenta y movilidad (Paso brumoso, Relámpago, Libertad de movimiento)."
+                },
+                {
+                  "id": "tropical",
+                  "nombre": "Tropical",
+                  "descripcion": "Conjuros de veneno y plagas (Rayo de enfermedad, Telaraña, Polimorfar)."
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "templada"
+              ]
+            }
+          ]
         },
         {
           "nivel": 3,
@@ -217,7 +337,22 @@
           "descripcion": "Como acción de magia, puedes gastar un uso de tu Forma salvaje y elegir un punto a 18 m (60 pies) o menos de ti. Flores que dan vitalidad y espinas que drenan vida aparecen por un momento en una esfera de 3 m (10 pies) de radio centrada en ese punto. Cada criatura de tu elección en la esfera debe hacer una tirada de salvación de Constitución contra tu CD de salvación de conjuros, sufriendo 2d6 de daño necrótico si falla la tirada o la mitad de daño si la supera. Una criatura de tu elección en esa área recupera 2d6 puntos de golpe.\nEl daño y la curación aumentan en 1d6 cuando alcanzas los niveles 10 (3d6) y 14 (4d6) de druida.",
           "tipoAccion": "accion",
           "subclase": "Círculo de la Tierra",
-          "formulaDados": "2d6"
+          "formulaDados": "2d6",
+          "categoriaMecanica": "consumible",
+          "escaladoFormulaDados": [
+            {
+              "nivelMinimo": 3,
+              "valor": "2d6"
+            },
+            {
+              "nivelMinimo": 10,
+              "valor": "3d6"
+            },
+            {
+              "nivelMinimo": 14,
+              "valor": "4d6"
+            }
+          ]
         },
         {
           "nivel": 6,
@@ -226,21 +361,27 @@
           "tipoAccion": "pasivo",
           "subclase": "Círculo de la Tierra",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_corto"
+          "recuperacion": "descanso_largo",
+          "categoriaMecanica": "consumible",
+          "usosMaximos": 1
         },
         {
           "nivel": 10,
           "nombre": "Custodia de la naturaleza",
           "descripcion": "Tienes inmunidad al estado de envenenado, y tienes resistencia a un tipo de daño asociado a tu elección de tierra actual en el rasgo Conjuros de círculo, como se muestra en la tabla Custodia de la naturaleza.\n##### Custodia de la naturaleza\n| Tipo de tierra | Resistencia |\n|-----------|------------|\n| Árida      | Fuego       |\n| Polar     | Frío       |\n| Templada | Relámpago  |\n| Tropical  | Veneno     |",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo de la Tierra"
+          "subclase": "Círculo de la Tierra",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
           "nombre": "Santuario de la naturaleza",
           "descripcion": "Como acción de magia, puedes gastar un uso de tu Forma salvaje y hacer que árboles y enredaderas espectrales aparezcan en un cubo de 4,5 m (15 pies) sobre el suelo a 36 m (120 pies) o menos de ti. Duran allí 1 minuto o hasta que tengas el estado de incapacitado o mueras. Tú y tus aliados tenéis cobertura media mientras estéis en esa área, y tus aliados obtienen la resistencia actual de tu Custodia de la naturaleza mientras estén allí.\nComo acción adicional, puedes mover el cubo hasta 18 m (60 pies) por el suelo a 36 m (120 pies) o menos de ti.",
           "tipoAccion": "accion_adicional",
-          "subclase": "Círculo de la Tierra"
+          "subclase": "Círculo de la Tierra",
+          "categoriaMecanica": "consumible",
+          "esActivable": true,
+          "condicionAlActivar": "Santuario de la naturaleza"
         }
       ],
       "variantesConjuros": {
@@ -392,21 +533,47 @@
           "nombre": "Conjuros del Círculo de la Luna",
           "descripcion": "Cuando alcances un nivel de druida especificado en la tabla Conjuros del Círculo de la Luna, a partir de entonces siempre tendrás preparados los conjuros indicados.\nAdemás, puedes lanzar los conjuros de este rasgo mientras estás en una Forma salvaje.\n##### Conjuros del Círculo de la Luna\n| Nivel de druida | Conjuros preparados                          |\n|:-----------:|------------------------------------------|\n|      3      | *curar heridas*, *rayo lunar*, *voluta estelar* |\n|      5      | *conjurar animales*                        |\n|      7      | *fuente de luz lunar*                     |\n|      9      | *curar heridas en masa*                       |",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo de la Luna"
+          "subclase": "Círculo de la Luna",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 3,
           "nombre": "Formas de círculo",
           "descripcion": "Puedes canalizar magia lunar cuando asumes una Forma salvaje, otorgándote los siguientes beneficios.\n\n***Valor de desafío.*** El valor de desafío máximo para la forma es igual a tu nivel de druida dividido entre 3 (redondeando hacia abajo).\n\n***Clase de Armadura.*** Hasta que abandones la forma, tu CA es igual a 13 más tu modificador por Sabiduría si ese total es mayor que la CA de la bestia.\n\n***Puntos de golpe temporales.*** Obtienes una cantidad de puntos de golpe temporales igual al triple de tu nivel de druida.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo de la Luna"
+          "subclase": "Círculo de la Luna",
+          "categoriaMecanica": "pasivo_permanente",
+          "efectos": [
+            {
+              "tipo": "modificador_ca",
+              "objetivo": "forma_salvaje",
+              "valor": "13_mas_sabiduria",
+              "descripcion": "CA igual a 13 + Sabiduría mientras estés en Forma salvaje si supera la CA de la bestia."
+            },
+            {
+              "tipo": "hp_temporal",
+              "objetivo": "forma_salvaje_luna",
+              "valor": "3x_nivel_druida",
+              "descripcion": "PG temporales al transformarte iguales al triple de tu nivel de druida."
+            }
+          ]
         },
         {
           "nivel": 6,
           "nombre": "Formas de círculo mejoradas",
           "descripcion": "Mientras estés en una Forma salvaje, obtienes los siguientes beneficios.\n\n***Resplandor lunar.*** Cada uno de tus ataques en una Forma salvaje puede causar su tipo de daño normal o daño radiante. Realizas esta elección cada vez que aciertas con esos ataques.\n\n***Dureza aumentada.*** Puedes sumar tu modificador por Sabiduría a tus tiradas de salvación de Constitución.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo de la Luna"
+          "subclase": "Círculo de la Luna",
+          "categoriaMecanica": "pasivo_permanente",
+          "efectos": [
+            {
+              "tipo": "bono_salvacion",
+              "objetivo": "salvacion.constitucion",
+              "valor": "sabiduria",
+              "condicion": "forma_salvaje",
+              "descripcion": "Sumas tu modificador por Sabiduría a tus tiradas de salvación de Constitución."
+            }
+          ]
         },
         {
           "nivel": 10,
@@ -415,7 +582,13 @@
           "tipoAccion": "accion_adicional",
           "subclase": "Círculo de la Luna",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_largo"
+          "recuperacion": "descanso_largo",
+          "categoriaMecanica": "consumible",
+          "escaladoUsos": {
+            "tipo": "por_modificador",
+            "modificador": "sabiduria",
+            "minimo": 1
+          }
         },
         {
           "nivel": 14,
@@ -423,7 +596,10 @@
           "descripcion": "El poder de la luna te inunda, otorgándote los siguientes beneficios.\n\n***Resplandor lunar mejorado.*** Una vez por turno, puedes infligir 2d10 de daño radiante adicional a un objetivo que aciertes con el ataque de una Forma salvaje.\n\n***Luz de luna compartida.*** Cada vez que uses Paso a la luz de la luna, también puedes teletransportar a una criatura voluntaria. Esa criatura debe estar a 3 m (10 pies) o menos de ti, y la teletransportas a un espacio sin ocupar que puedas ver a 3 m (10 pies) o menos de tu espacio de destino.",
           "tipoAccion": "pasivo",
           "subclase": "Círculo de la Luna",
-          "formulaDados": "2d10"
+          "formulaDados": "2d10",
+          "categoriaMecanica": "activable",
+          "esActivable": true,
+          "autoDesactivarAlTirarDano": true
         }
       ],
       "progresionConjuros": [
@@ -455,35 +631,43 @@
           "nombre": "Conjuros del Círculo del Mar",
           "descripcion": "Cuando alcances un nivel de druida especificado en la tabla Conjuros del Círculo del Mar, a partir de entonces siempre tendrás preparados los conjuros indicados.\n##### Conjuros del Círculo del Mar\n| Nivel de druida | Conjuros preparados                                                       |\n|:-----------:|-----------------------------------------------------------------------|\n|     3     | *nube de oscurecimiento*, *ráfaga de viento*, *rayo de escarcha*, *hacer añicos*, *ola atronadora* |\n|     5     | *relámpago*, *respirar bajo el agua*                                   |\n|     7     | *controlar agua*, *tormenta de hielo*                                          |\n|     9     | *conjurar elemental*, *inmovilizar monstruo*                                   |",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo del Mar"
+          "subclase": "Círculo del Mar",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 3,
           "nombre": "Ira del mar",
           "descripcion": "Como acción adicional, puedes gastar un uso de tu Forma salvaje para manifestar una emanación de 1,5 m (5 pies) que adopta la forma del rocío del océano que te rodea durante 10 minutos. Termina antes de tiempo si la disipas (no requiere acción), la manifiestas de nuevo, o tienes el estado de incapacitado.\nCuando manifiestas la emanación y como acción adicional en tus turnos posteriores, puedes elegir a otra criatura que puedas ver en la emanación. El objetivo debe tener éxito en una tirada de salvación de Constitución contra tu CD de salvación de conjuros o sufrir daño de frío y, si la criatura es Grande o más pequeña, ser empujada hasta 4,5 m (15 pies) lejos de ti. Para determinar este daño, tira una cantidad de d6 igual a tu modificador por Sabiduría (mínimo de un dado).",
           "tipoAccion": "accion_adicional",
-          "subclase": "Círculo del Mar"
+          "subclase": "Círculo del Mar",
+          "categoriaMecanica": "consumible",
+          "esActivable": true,
+          "condicionAlActivar": "Ira del mar",
+          "formulaDados": "1d6"
         },
         {
           "nivel": 6,
           "nombre": "Afinidad acuática",
           "descripcion": "El tamaño de la emanación creada por tu Ira del mar aumenta a 3 m (10 pies).\nAdemás, obtienes una velocidad nadando igual a tu velocidad.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo del Mar"
+          "subclase": "Círculo del Mar",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 10,
           "nombre": "Nacido de la tormenta",
           "descripcion": "Tu Ira del mar confiere dos beneficios más mientras está activa, como se detalla a continuación.\n\n***Vuelo.*** Obtienes una velocidad volando igual a tu velocidad.\n\n***Resistencia.*** Tienes resistencia al daño de frío, relámpago y trueno.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo del Mar"
+          "subclase": "Círculo del Mar",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
           "nombre": "Don oceánico",
           "descripcion": "En lugar de manifestar la emanación de Ira del mar a tu alrededor, puedes manifestarla alrededor de una criatura voluntaria a 18 m (60 pies) o menos de ti. Esa criatura obtiene todos los beneficios de la emanación y usa tu CD de salvación de conjuros y tu modificador por Sabiduría para ella.\nAdemás, puedes manifestar la emanación tanto alrededor de la otra criatura como a tu alrededor si gastas dos usos de tu Forma salvaje en lugar de uno al manifestarla.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo del Mar"
+          "subclase": "Círculo del Mar",
+          "categoriaMecanica": "pasivo_permanente"
         }
       ],
       "progresionConjuros": [
@@ -533,8 +717,14 @@
           "tipoAccion": "pasivo",
           "subclase": "Círculo de las Estrellas",
           "tieneUsosLimitados": true,
-          "recuperacion": "descanso_corto",
-          "formulaDados": "1d6"
+          "recuperacion": "descanso_largo",
+          "formulaDados": "1d6",
+          "categoriaMecanica": "consumible",
+          "escaladoUsos": {
+            "tipo": "por_modificador",
+            "modificador": "sabiduria",
+            "minimo": 1
+          }
         },
         {
           "nivel": 3,
@@ -542,7 +732,39 @@
           "descripcion": "Como acción adicional, puedes gastar un uso de tu rasgo Forma salvaje para adoptar una forma estelar en lugar de cambiar de forma.\nMientras estás en tu forma estelar, conservas tu perfil, pero tu cuerpo se vuelve luminoso, tus articulaciones brillan como estrellas, y líneas brillantes las conectan como en un mapa estelar. Esta forma emite luz brillante en un radio de 3 m (10 pies) y luz tenue por otros 3 m (10 pies) adicionales. La forma dura 10 minutos. Termina antes de tiempo si la disipas (no requiere acción), tienes el estado de incapacitado, o usas este rasgo de nuevo.\nCada vez que asumas tu forma estelar, elige cuál de las siguientes constelaciones brilla en tu cuerpo; tu elección te otorga ciertos beneficios mientras estás en la forma.\n\n***Arquero.*** Una constelación de un arquero aparece en ti. Cuando activas esta forma y como acción adicional en tus turnos posteriores mientras dure, puedes realizar un ataque de conjuro a distancia, lanzando una flecha luminosa que tiene como objetivo a una criatura a 18 m (60 pies) o menos de ti. Si aciertas, el ataque inflige daño radiante igual a 1d8 más tu modificador por Sabiduría.\n\n***Cáliz.*** Una constelación de un cáliz dador de vida aparece en ti. Cada vez que lanzas un conjuro usando un espacio de conjuro que restaura puntos de golpe a una criatura, tú u otra criatura a 9 m (30 pies) o menos de ti puede recuperar puntos de golpe iguales a 1d8 más tu modificador por Sabiduría.\n\n***Dragón.*** Una constelación de un dragón sabio aparece en ti. Cuando haces una prueba de Inteligencia o de Sabiduría o una tirada de salvación de Constitución para mantener la concentración, puedes tratar una tirada de 9 o inferior en el d20 como un 10.",
           "tipoAccion": "accion_adicional",
           "subclase": "Círculo de las Estrellas",
-          "formulaDados": "1d8"
+          "formulaDados": "1d8",
+          "categoriaMecanica": "consumible",
+          "esActivable": true,
+          "condicionAlActivar": "Forma estelar",
+          "selectores": [
+            {
+              "id": "selector_constelacion_estelar",
+              "tipoSelector": "general",
+              "tipo": "unico",
+              "etiqueta": "Constelación activa",
+              "opciones": [
+                {
+                  "id": "arquero",
+                  "nombre": "Arquero",
+                  "descripcion": "Acción adicional: ataque de conjuro a distancia (18 m) infligiendo 1d8 + Sabiduría de daño radiante (2d8 a nivel 10)."
+                },
+                {
+                  "id": "caliz",
+                  "nombre": "Cáliz",
+                  "descripcion": "Al curar con conjuro de espacio, tú u otra criatura a 9 m recupera 1d8 + Sabiduría PG adicionales (2d8 a nivel 10)."
+                },
+                {
+                  "id": "dragon",
+                  "nombre": "Dragón",
+                  "descripcion": "En pruebas de Sabiduría/Inteligencia o salvación de Constitución de concentración, tiradas de 9 o menos cuentan como 10. Vuelo 20 pies a nivel 10."
+                }
+              ],
+              "maxSelecciones": 1,
+              "valorActual": [
+                "arquero"
+              ]
+            }
+          ]
         },
         {
           "nivel": 6,
@@ -552,7 +774,13 @@
           "subclase": "Círculo de las Estrellas",
           "tieneUsosLimitados": true,
           "recuperacion": "descanso_largo",
-          "formulaDados": "1d6"
+          "formulaDados": "1d6",
+          "categoriaMecanica": "consumible",
+          "escaladoUsos": {
+            "tipo": "por_modificador",
+            "modificador": "sabiduria",
+            "minimo": 1
+          }
         },
         {
           "nivel": 10,
@@ -560,14 +788,16 @@
           "descripcion": "Las constelaciones de tu Forma estelar mejoran. El 1d8 del Arquero y el Cáliz se convierte en 2d8, y mientras el Dragón está activo, tienes una velocidad volando de 6 m (20 pies) y puedes flotar.\nAdemás, al comienzo de cada uno de tus turnos mientras estás en tu Forma estelar, puedes cambiar qué constelación brilla en tu cuerpo.",
           "tipoAccion": "pasivo",
           "subclase": "Círculo de las Estrellas",
-          "formulaDados": "1d8"
+          "formulaDados": "1d8",
+          "categoriaMecanica": "pasivo_permanente"
         },
         {
           "nivel": 14,
           "nombre": "Lleno de estrellas",
           "descripcion": "Mientras estás en tu Forma estelar, te vuelves parcialmente incorpóreo, dándote resistencia al daño contundente, perforante y cortante.",
           "tipoAccion": "pasivo",
-          "subclase": "Círculo de las Estrellas"
+          "subclase": "Círculo de las Estrellas",
+          "categoriaMecanica": "pasivo_permanente"
         }
       ],
       "progresionConjuros": [

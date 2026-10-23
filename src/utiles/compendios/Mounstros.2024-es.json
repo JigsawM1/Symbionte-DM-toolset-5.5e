@@ -42436,6 +42436,70 @@
       "tesoros": "Cualquiera "
     },
     {
+      "id": "m_vaca",
+      "nombre": "Vaca",
+      "tipo": "Bestia",
+      "ca": 10,
+      "caNotas": "",
+      "vidaMaxima": 15,
+      "vidaActual": 15,
+      "vidaNotas": "2d10 + 4",
+      "iniciativaBonificador": 0,
+      "velocidad": "30 pies",
+      "sentidos": "Percepción pasiva 11",
+      "tamaño": "Grande",
+      "alineacion": "Sin alineamiento",
+      "idiomas": "ninguno",
+      "desafio": "1/4",
+      "fuente": "MM'25",
+      "caracteristicas": {
+        "fuerza": 18,
+        "destreza": 10,
+        "constitucion": 14,
+        "inteligencia": 2,
+        "sabiduria": 12,
+        "carisma": 7
+      },
+      "salvaciones": {},
+      "habilidades": {
+        "percepcion": 1
+      },
+      "vulnerabilidades": [],
+      "resistencias": [],
+      "inmunidadesDaño": [],
+      "inmunidadesCondicion": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Cuernos",
+          "bonificadorAtaque": "+6",
+          "dadosDaño": "1d6+4",
+          "tipoDaño": "perforante"
+        }
+      ],
+      "rasgos": [
+        {
+          "nombre": "Carga",
+          "descripcion": "Si la vaca se mueve al menos 20 pies en línea recta hacia un objetivo e impacta con un ataque de cuernos en el mismo turno, el objetivo sufre 7 (2d6) de daño perforante adicional. Si el objetivo es una criatura, debe superar una tirada de salvación de Fuerza CD 14 o quedará derribada."
+        }
+      ],
+      "acciones": [
+        {
+          "nombre": "Cuernos",
+          "bonificadorAtaque": "6",
+          "daño": "1d6+4",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +6, alcance 5 pies. Impacto: 7 (1d6 + 4) de daño perforante."
+        }
+      ],
+      "accionesAdicionales": [],
+      "reacciones": [],
+      "accionesLegendariasTotal": "0",
+      "accionesLegendarias": [],
+      "equipo": "",
+      "tesoros": ""
+    },
+    {
       "id": "m_vampiro",
       "nombre": "Vampiro",
       "tipo": "Muerto viviente",
@@ -42756,6 +42820,92 @@
       ],
       "equipo": "",
       "tesoros": "Cualquiera "
+    },
+    {
+      "id": "m_velociraptor",
+      "nombre": "Velociraptor",
+      "tipo": "Bestia",
+      "ca": 13,
+      "caNotas": "",
+      "vidaMaxima": 10,
+      "vidaActual": 10,
+      "vidaNotas": "3d4 + 3",
+      "iniciativaBonificador": 2,
+      "velocidad": "30 pies",
+      "sentidos": "Percepción pasiva 12",
+      "tamaño": "Diminuto",
+      "alineacion": "Sin alineamiento",
+      "idiomas": "ninguno",
+      "desafio": "1/4",
+      "fuente": "MM'25",
+      "caracteristicas": {
+        "fuerza": 6,
+        "destreza": 14,
+        "constitucion": 13,
+        "inteligencia": 4,
+        "sabiduria": 12,
+        "carisma": 6
+      },
+      "salvaciones": {},
+      "habilidades": {
+        "percepcion": 3
+      },
+      "vulnerabilidades": [],
+      "resistencias": [],
+      "inmunidadesDaño": [],
+      "inmunidadesCondicion": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "+4",
+          "dadosDaño": "1d6+2",
+          "tipoDaño": "perforante"
+        },
+        {
+          "nombre": "Garras",
+          "bonificadorAtaque": "+4",
+          "dadosDaño": "1d4+2",
+          "tipoDaño": "cortante"
+        }
+      ],
+      "rasgos": [
+        {
+          "nombre": "Tácticas de manada",
+          "descripcion": "El velociraptor tiene ventaja en las tiradas de ataque contra una criatura si al menos uno de los aliados del velociraptor se encuentra a 5 pies de la criatura y el aliado no está incapacitado."
+        }
+      ],
+      "acciones": [
+        {
+          "nombre": "Ataque múltiple",
+          "bonificadorAtaque": "",
+          "daño": "",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "El velociraptor realiza un ataque de Mordisco y un ataque de Garras."
+        },
+        {
+          "nombre": "Mordisco",
+          "bonificadorAtaque": "4",
+          "daño": "1d6+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Impacto: 5 (1d6 + 2) de daño perforante."
+        },
+        {
+          "nombre": "Garras",
+          "bonificadorAtaque": "4",
+          "daño": "1d4+2",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +4, alcance 5 pies. Impacto: 4 (1d4 + 2) de daño cortante."
+        }
+      ],
+      "accionesAdicionales": [],
+      "reacciones": [],
+      "accionesLegendariasTotal": "0",
+      "accionesLegendarias": [],
+      "equipo": "",
+      "tesoros": ""
     },
     {
       "id": "m_vrock",

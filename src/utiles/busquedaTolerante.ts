@@ -7,12 +7,7 @@
 const cacheNormalizacion = new Map<string, string>();
 const LIMITE_CACHE_NORMALIZACION = 5000;
 
-interface TokensConsulta {
-  tokens: string[];
-  tokensSinEnye: string[];
-}
-
-const cacheTokenizacion = new Map<string, TokensConsulta>();
+const cacheTokenizacion = new Map<string, string[]>();
 const LIMITE_CACHE_TOKENIZACION = 1000;
 
 /**
@@ -57,16 +52,14 @@ export function tokenizarBusqueda(consulta: string): string[] {
 }
 
 /**
- * Obtiene o calcula de forma cacheada los tokens de la consulta y sus variantes sin 'ñ'.
- * Evita repetidas divisiones y expresiones regulares al filtrar listas grandes.
+ * Obtiene o calcula de forma cacheada los tokens normalizados de la consulta.
+ * ponytail: NFD ya convierte 'ñ' en 'n'; no se guardan variantes duplicadas.
  */
-function obtenerTokensConsulta(consulta: string): TokensConsulta {
+function obtenerTokensConsulta(consulta: string): string[] {
   const enCache = cacheTokenizacion.get(consulta);
   if (enCache) return enCache;
 
   const tokens = tokenizarBusqueda(consulta);
-  const tokensSinEnye = tokens.map((t) => (t.includes("ñ") ? t.replace(/ñ/g, "n") : t));
-  const resultado: TokensConsulta = { tokens, tokensSinEnye };
 
   if (cacheTokenizacion.size >= LIMITE_CACHE_TOKENIZACION) {
     let eliminados = 0;
@@ -76,18 +69,18 @@ function obtenerTokensConsulta(consulta: string): TokensConsulta {
       if (eliminados >= 200) break;
     }
   }
-  cacheTokenizacion.set(consulta, resultado);
-  return resultado;
+  cacheTokenizacion.set(consulta, tokens);
+  return tokens;
 }
 
 /**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
  *
- * Optimización Bolt ⚡:
+ * Optimizaciones de búsqueda:
  * - Cacheo de tokenización/normalización de la consulta (`obtenerTokensConsulta`).
  * - Eliminación de asignación de `Set` e iterables intermedios por cada elemento filtrado.
- * - Bitmask para hasta 30 tokens o array de booleans para eliminar GC overhead durante búsquedas masivas.
+ * - Máscara de bits para hasta 30 tokens o array de booleanos para reducir asignaciones.
  *
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
@@ -100,7 +93,7 @@ export function coincideBusquedaTolerante(
   if (!consulta || !consulta.trim()) return true;
   if (!objetivos) return false;
 
-  const { tokens, tokensSinEnye } = obtenerTokensConsulta(consulta);
+  const tokens = obtenerTokensConsulta(consulta);
   const numTokens = tokens.length;
   if (numTokens === 0) return true;
 
@@ -109,10 +102,9 @@ export function coincideBusquedaTolerante(
     if (objetivos.length === 0) return false;
     const objNorm = normalizarParaBusqueda(objetivos);
     if (!objNorm) return false;
-    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
     for (let i = 0; i < numTokens; i++) {
-      if (!objNorm.includes(tokens[i]) && !objNormSinEnye.includes(tokensSinEnye[i])) {
+      if (!objNorm.includes(tokens[i])) {
         return false;
       }
     }
@@ -131,13 +123,10 @@ export function coincideBusquedaTolerante(
 
       const objNorm = normalizarParaBusqueda(item);
       if (!objNorm) continue;
-      const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
       for (let t = 0; t < numTokens; t++) {
-        if ((faltantesMask & (1 << t)) !== 0) {
-          if (objNorm.includes(tokens[t]) || objNormSinEnye.includes(tokensSinEnye[t])) {
-            faltantesMask &= ~(1 << t);
-          }
+        if ((faltantesMask & (1 << t)) !== 0 && objNorm.includes(tokens[t])) {
+          faltantesMask &= ~(1 << t);
         }
       }
 
@@ -157,14 +146,11 @@ export function coincideBusquedaTolerante(
 
     const objNorm = normalizarParaBusqueda(item);
     if (!objNorm) continue;
-    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
     for (let t = 0; t < numTokens; t++) {
-      if (!encontrado[t]) {
-        if (objNorm.includes(tokens[t]) || objNormSinEnye.includes(tokensSinEnye[t])) {
-          encontrado[t] = true;
-          faltantes--;
-        }
+      if (!encontrado[t] && objNorm.includes(tokens[t])) {
+        encontrado[t] = true;
+        faltantes--;
       }
     }
 

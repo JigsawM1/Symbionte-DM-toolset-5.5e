@@ -56,6 +56,26 @@ describe("busquedaTolerante - Búsqueda insensible a tildes, mayúsculas y orden
     expect(coincideBusquedaTolerante("Leñador", "leñador")).toBe(true);
   });
 
+  it.each([30, 31])("exige todos los términos repartidos entre campos con %i palabras", (cantidad) => {
+    const campos = Array.from({ length: cantidad }, (_, i) => `TÉRMINO${i}FIN`);
+    const consulta = campos.join(" ").toLowerCase();
+
+    expect(coincideBusquedaTolerante([null, ...campos, undefined], consulta)).toBe(true);
+    expect(coincideBusquedaTolerante(campos.slice(0, -1), consulta)).toBe(false);
+  });
+
+  it("conserva la búsqueda normalizada después de expulsar consultas de la caché", () => {
+    const consulta = "leñador ágil";
+    expect(coincideBusquedaTolerante(["Leñador", "Ágil"], consulta)).toBe(true);
+
+    for (let i = 0; i < 1001; i++) {
+      coincideBusquedaTolerante("Otro texto", `consulta-${i}`);
+    }
+
+    expect(coincideBusquedaTolerante(["Lenador", "Agil"], consulta)).toBe(true);
+    expect(coincideBusquedaTolerante(["Leñador"], consulta)).toBe(false);
+  });
+
   it("desduplica entidades por ID y por nombre normalizado (ej. Aceite duplicado)", () => {
     const lista1 = [
       { id: "oil", nombre: "Aceite", pesoLb: 1 },

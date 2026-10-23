@@ -69,6 +69,11 @@
   background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
 }
 
+.bloqueIniciativaConAvatar {
+  width: 58px;
+  height: 38px;
+}
+
 .etiquetaInicMini {
   font-size: var(--dm-fuente-minima, 9px);
   font-weight: bold;
@@ -154,7 +159,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
 }
 
 .avatarRedondeado {
@@ -173,21 +178,31 @@
   flex-direction: column;
 }
 
-.avatarPjMiniatura {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+.columnaIniciativaYAvatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.avatarPjIniciativa {
+  width: 58px;
+  height: 72px;
+  border-radius: 20%;
   object-fit: cover;
   flex-shrink: 0;
-  border: 1.5px solid var(--pj-dorado-borde, #d4af37);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--pj-dorado-borde, #d4af37);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.avatarPjMiniatura:hover {
-  transform: scale(1.1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+.avatarPjIniciativa:hover {
+  transform: scale(1.08);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.65);
 }
 
 .nombreCriaturaLink {
@@ -766,7 +781,7 @@
 @media (max-width: 620px) {
   :global([data-tema="dm"]) .tarjetaCriaturaBrutal {
     display: grid;
-    grid-template-columns: 46px minmax(0, 1fr) 104px 24px;
+    grid-template-columns: auto minmax(0, 1fr) 104px 24px;
     grid-template-areas:
       "iniciativa datos salud eliminar"
       "iniciativa acciones salud eliminar";
@@ -774,6 +789,7 @@
     padding: 8px;
   }
 
+  :global([data-tema="dm"]) .columnaIniciativaYAvatar,
   :global([data-tema="dm"]) .bloqueIniciativaIzquierda {
     grid-area: iniciativa;
     margin-left: 0;

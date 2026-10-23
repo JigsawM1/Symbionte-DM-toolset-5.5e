@@ -141,44 +141,72 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         }
       />
 
-      {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
-      <div
-        className={estilosClases.bloqueIniciativaIzquierda}
-        data-turno-activo={esTurnoActivo}
-      >
-        {/* Botón de dado en la parte superior */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onLanzarIniciativa();
-          }}
-          className={estilosClases.botonDadoIniciativa}
-          title="Lanzar dado de iniciativa en TaleSpire"
-        >
-          <Dices size={12} />
-        </button>
-
-        {/* Valor de iniciativa — clic para editar en caliente */}
-        {editandoIniciativa ? (
-          <CampoNumerico
-            ref={refInputIniciativa}
-            value={criatura.iniciativa}
-            alConfirmar={onEstablecerIniciativa}
-            onBlur={() => setEditandoIniciativa(false)}
-            className={estilosClases.inputIniciativaEditable}
-            data-turno-activo={esTurnoActivo}
-            identidad={criatura.id}
-          />
-        ) : (
-          <span
-            onClick={activarEdicionIniciativa}
-            className={estilosClases.valorInicGigante}
-            data-turno-activo={esTurnoActivo}
-            title="Clic para editar iniciativa manualmente"
-          >
-            {criatura.iniciativa}
-          </span>
+      {/* Columna Izquierda: Avatar del PJ e Iniciativa */}
+      <div className={estilosClases.columnaIniciativaYAvatar}>
+        {avatarEfectivo && (
+          <>
+            <img
+              src={avatarEfectivo}
+              alt={criatura.nombre}
+              className={estilosClases.avatarPjIniciativa}
+              title="Ver retrato ampliado"
+              onClick={(e) => {
+                e.stopPropagation();
+                setVerRetrato(true);
+              }}
+              onError={(e) => {
+                (e.currentTarget as HTMLElement).style.display = "none";
+              }}
+            />
+            {verRetrato && (
+              <ModalRetratoPersonaje
+                nombre={criatura.nombre || "Personaje"}
+                imagen={avatarEfectivo}
+                alCerrar={() => setVerRetrato(false)}
+              />
+            )}
+          </>
         )}
+
+        {/* Caja de Iniciativa — Editable al clic + botón de dado separado */}
+        <div
+          className={`${estilosClases.bloqueIniciativaIzquierda} ${avatarEfectivo ? estilosClases.bloqueIniciativaConAvatar : ""}`}
+          data-turno-activo={esTurnoActivo}
+        >
+          {/* Botón de dado en la parte superior */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onLanzarIniciativa();
+            }}
+            className={estilosClases.botonDadoIniciativa}
+            title="Lanzar dado de iniciativa en TaleSpire"
+          >
+            <Dices size={12} />
+          </button>
+
+          {/* Valor de iniciativa — clic para editar en caliente */}
+          {editandoIniciativa ? (
+            <CampoNumerico
+              ref={refInputIniciativa}
+              value={criatura.iniciativa}
+              alConfirmar={onEstablecerIniciativa}
+              onBlur={() => setEditandoIniciativa(false)}
+              className={estilosClases.inputIniciativaEditable}
+              data-turno-activo={esTurnoActivo}
+              identidad={criatura.id}
+            />
+          ) : (
+            <span
+              onClick={activarEdicionIniciativa}
+              className={estilosClases.valorInicGigante}
+              data-turno-activo={esTurnoActivo}
+              title="Clic para editar iniciativa manualmente"
+            >
+              {criatura.iniciativa}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Cuerpo central */}
@@ -192,30 +220,6 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               data-muerto={estaMuerto}
               title="Ver bloque de estadísticas"
             >
-              {avatarEfectivo && (
-                <>
-                  <img
-                    src={avatarEfectivo}
-                    alt={criatura.nombre}
-                    className={estilosClases.avatarPjMiniatura}
-                    title="Ver retrato ampliado"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setVerRetrato(true);
-                    }}
-                    onError={(e) => {
-                      (e.currentTarget as HTMLElement).style.display = "none";
-                    }}
-                  />
-                  {verRetrato && (
-                    <ModalRetratoPersonaje
-                      nombre={criatura.nombre || "Personaje"}
-                      imagen={avatarEfectivo}
-                      alCerrar={() => setVerRetrato(false)}
-                    />
-                  )}
-                </>
-              )}
               {esNombreVacioODot(criatura.nombre) ? (
                 <span className={estilosClases.textoMiniSinNombre}>
                   [Mini sin nombre: {criatura.id.slice(-4)}]

@@ -14,10 +14,17 @@
   - *Integración en Almacén DM*:
     - `CriaturaIniciativa` se amplió con `avatarUrl?: string`.
     - En `sliceSync.ts:actualizarPersonajeDesdeSync`, se asigna `avatarUrl: dto.avatarUrl ?? criatura.avatarUrl` al actualizar la criatura en la cola del DM.
-  - *UI Táctica, Resiliencia Visual y Modal Ampliado*:
-    - En `TarjetaCriaturaIniciativa.tsx` (DM) e `IniciativaJugador.tsx` (Jugadores), los PJs renderizan un avatar circular (`object-fit: cover; border-radius: 50%`) con borde táctico dorado.
-    - Se incluyó `onError` nativo para ocultar silenciosamente la miniatura si el enlace expira o devuelve 404, evitando romper el layout.
-    - **Modal de Retrato Ampliado (`ModalRetratoPersonaje.tsx`)**: Al hacer clic sobre el avatar en cualquiera de los dos trackers, se abre el modal interactivo con zoom, paneo, navegación por teclado y controles idénticos a los de la pestaña 'Características', con `e.stopPropagation()` para no disparar la selección de criatura.
+  - *UI Táctica, Aprovechamiento de Espacio y Retrato Ampliado*:
+    - **Optimización de distribución espacial**:
+      - DM (`TarjetaCriaturaIniciativa`): Se creó la columna táctica izquierda (`columnaIniciativaYAvatar`), ubicando el avatar del PJ directamente arriba del bloque de iniciativa (`bloqueIniciativaConAvatar`). Esto libera el ancho completo del cuerpo central para el nombre y las estadísticas, logrando que el rostro quede alineado con la identidad del personaje y la tirada de dados alineada con las acciones.
+      - Jugador (`IniciativaJugador`): Se estructuró en dos columnas (`columnaAvatar` a la izquierda y `columnaDetalles` a la derecha), manteniendo a los monstruos al 100% de ancho sin deformaciones.
+    - **Escalado y formato de retrato táctico (tipo carta/token)**:
+      - Dimensiones unificadas a **58px × 72px** con `border-radius: 20%` y marco dorado `#d4af37`.
+      - DM (`TarjetaCriaturaIniciativa`): Retrato de 58px × 72px ubicado en la columna izquierda sobre el bloque de iniciativa (58px × 38px), logrando alineación vertical perfecta de 58px de ancho.
+      - Jugador (`IniciativaJugador`): Retrato de 58px × 72px en la columna izquierda (`columnaAvatar`), compartiendo las mismas dimensiones y estilo que en el DM.
+      - Cabecera de Ficha (`CabeceraPersonaje`): Se actualizó el avatar principal a 58px × 72px con curvatura al 20%, unificando la identidad visual entre la pestaña de características y ambos trackers de combate.
+    - **Resiliencia visual**: `onError` nativo para ocultar la imagen si el link expira o es inválido sin dejar marcos rotos.
+    - **Modal de Retrato Ampliado (`ModalRetratoPersonaje.tsx`)**: Al hacer clic sobre el avatar en cualquiera de los dos trackers, se abre el visor con zoom, paneo interactivo y controles tácticos, aislando el evento con `e.stopPropagation()` para evitar alternar la selección de criatura o activar turnos.
 - **Certificación CI y Pruebas**:
   - `src/servicios/sincronizacion/sincronizacionAvataresPJ.test.ts`: 7/7 pruebas unitarias pasando (100% éxito).
   - Suite completa `vitest run`: 162 archivos de prueba y 2.282 pruebas aprobadas (100% éxito).

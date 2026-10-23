@@ -86,12 +86,9 @@ export const IniciativaJugador: React.FC = () => {
                   data-turno-activo={esTurnoActual}
                   className={`${estilos.tarjetaCriatura} ${esTurnoActual ? estilos.turnoActivo : ""}`}
                 >
-                  {/* Fila Superior: Posición, Nombre e Iniciativa */}
-                  <div className={estilos.filaEncabezadoCriatura}>
-                    <div className={estilos.nombreContenedor}>
-                      {esTurnoActual && <Swords size={16} className={estilos.iconoTurnoActivo} />}
-                      <span className={estilos.posicionTexto}>#{index + 1}</span>
-                      {avatarFinal && (
+                  <div className={estilos.filaPrincipalTarjeta}>
+                    {avatarFinal && (
+                      <div className={estilos.columnaAvatar}>
                         <img
                           src={avatarFinal}
                           alt={item.nombre}
@@ -105,37 +102,47 @@ export const IniciativaJugador: React.FC = () => {
                             (e.currentTarget as HTMLElement).style.display = "none";
                           }}
                         />
-                      )}
-                      <h3 className={estilos.nombreCriatura}>{item.nombre}</h3>
-                    </div>
-
-                    <div className={estilos.iniciativaBadge}>
-                      <span>Init:</span>
-                      <strong>{item.iniciativa}</strong>
-                    </div>
-                  </div>
-
-                  {/* Fila Central: Barra de Salud (Configurable por DM) */}
-                  <div className={estilos.seccionSalud}>
-                    <div className={estilos.saludTextoFila}>
-                      <span className={estilos.saludEtiqueta}>
-                        <Heart size={12} /> Estado de Salud
-                      </span>
-                      <strong className={estilos.saludTextoValor} data-salud={estadoSalud}>
-                        {mostrarPorcentajeVidaAJugadores ? `${porcentaje}%` : estadoTexto}
-                      </strong>
-                    </div>
-
-                    {mostrarPorcentajeVidaAJugadores && (
-                      <div className={estilos.barraVidaContenedor}>
-                        <div
-                          className={estilos.barraVidaRelleno}
-                          data-salud={estadoSalud}
-                          // eslint-disable-next-line react/forbid-dom-props -- Ancho continuo dinámico (0-100%) para barra de vida en tiempo de ejecución
-                          style={{ width: `${porcentaje}%` }}
-                        />
                       </div>
                     )}
+
+                    <div className={estilos.columnaDetalles}>
+                      {/* Fila Superior: Posición, Nombre e Iniciativa */}
+                      <div className={estilos.filaEncabezadoCriatura}>
+                        <div className={estilos.nombreContenedor}>
+                          {esTurnoActual && <Swords size={16} className={estilos.iconoTurnoActivo} />}
+                          <span className={estilos.posicionTexto}>#{index + 1}</span>
+                          <h3 className={estilos.nombreCriatura}>{item.nombre}</h3>
+                        </div>
+
+                        <div className={estilos.iniciativaBadge}>
+                          <span>Init:</span>
+                          <strong>{item.iniciativa}</strong>
+                        </div>
+                      </div>
+
+                      {/* Fila Central: Barra de Salud (Configurable por DM) */}
+                      <div className={estilos.seccionSalud}>
+                        <div className={estilos.saludTextoFila}>
+                          <span className={estilos.saludEtiqueta}>
+                            <Heart size={12} /> Estado de Salud
+                          </span>
+                          <strong className={estilos.saludTextoValor} data-salud={estadoSalud}>
+                            {mostrarPorcentajeVidaAJugadores ? `${porcentaje}%` : estadoTexto}
+                          </strong>
+                        </div>
+
+                        {mostrarPorcentajeVidaAJugadores && (
+                          <div className={estilos.barraVidaContenedor}>
+                            <div
+                              className={estilos.barraVidaRelleno}
+                              data-salud={estadoSalud}
+                              // eslint-disable-next-line react/forbid-dom-props -- Ancho continuo dinámico (0-100%) para barra de vida en tiempo de ejecución
+                              style={{ width: `${porcentaje}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Fila Inferior: Condiciones y Efectos Activos con Hover Tooltip y Duración */}

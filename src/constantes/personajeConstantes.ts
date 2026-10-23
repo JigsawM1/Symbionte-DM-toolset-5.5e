@@ -336,6 +336,11 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   puntosHechiceriaMaximos: 0,
   puntosHechiceriaActuales: 0,
   espaciosConjuroAdicionales: {},
+  formaSalvaje: {
+    formasConocidasIds: [],
+    formaActivaId: null,
+    hpTemporalAlTransformar: 0
+  },
   overrideEspaciosConjuro: null,
   overridePuntosConjuro: null,
 

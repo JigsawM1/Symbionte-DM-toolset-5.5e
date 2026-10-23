@@ -11,7 +11,8 @@ import { ModalSelectorCompetencias } from "./ModalSelectorCompetencias";
 import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarHojaPersonaje } from "./usarHojaPersonaje";
-import { Swords, Sparkles } from "lucide-react";
+import { Swords, Sparkles, PawPrint } from "lucide-react";
+import { PanelFormaSalvaje } from "./PanelFormaSalvaje";
 import estilos from "./HojaPersonaje.module.css";
 
 interface HojaPersonajeProps {
@@ -141,6 +142,16 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           badge={totalConjurosYTrucos}
           alClick={() => setSubPestanaActiva("conjuros")}
         />
+
+        {esDruida && (
+          <BotonSubPestana
+            activa={subPestanaActiva === "formaSalvaje"}
+            etiqueta="FORMA SALVAJE"
+            icono={<PawPrint size={14} color={subPestanaActiva === "formaSalvaje" ? "#22c55e" : "var(--pj-texto-terciario)"} />}
+            badge={personajeActivo.formaSalvaje?.formaActivaId ? "Activa" : undefined}
+            alClick={() => setSubPestanaActiva("formaSalvaje")}
+          />
+        )}
       </div>
 
       {/* 5. Contenido según Sub-pestaña Activa */}
@@ -182,6 +193,15 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
             alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
           />
         </>
+      )}
+
+      {subPestanaActiva === "formaSalvaje" && esDruida && (
+        <PanelFormaSalvaje
+          personaje={personajeActivo}
+          alTransformar={(idBestia) => transformarEnFormaSalvaje(personajeActivo.id, idBestia)}
+          alRevertir={() => revertirFormaSalvaje(personajeActivo.id)}
+          alGuardarFormasConocidas={(formas) => establecerFormasConocidasDruida(personajeActivo.id, formas)}
+        />
       )}
 
       {subPestanaActiva === "conjuros" && (

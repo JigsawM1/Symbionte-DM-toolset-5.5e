@@ -475,6 +475,15 @@ export const EsquemaPersonajeJugador = z.object({
   puntosHechiceriaMaximos: z.number().int().min(0).default(0),
   puntosHechiceriaActuales: z.number().int().min(0).default(0),
   espaciosConjuroAdicionales: z.record(z.string(), z.number().int().min(0)).default({}),
+  formaSalvaje: z.object({
+    formasConocidasIds: z.array(z.string()).default([]),
+    formaActivaId: z.string().nullable().default(null),
+    hpTemporalAlTransformar: z.number().default(0)
+  }).default({
+    formasConocidasIds: [],
+    formaActivaId: null,
+    hpTemporalAlTransformar: 0
+  }),
 
   // Overrides Manuales
   overrideEspaciosConjuro: z.record(z.string(), z.number()).nullable().default(null),

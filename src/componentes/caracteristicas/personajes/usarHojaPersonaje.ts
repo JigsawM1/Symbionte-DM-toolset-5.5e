@@ -18,7 +18,7 @@ import type { CategoriaCompetencia } from "./ModalSelectorCompetencias";
 import type { AccionDescanso } from "@/servicios/procesadorDescansos";
 import { usarEstadoPersistido } from "@/hooks";
 
-export type SubPestanaHoja = "general" | "conjuros";
+export type SubPestanaHoja = "general" | "conjuros" | "formaSalvaje";
 
 export function usarHojaPersonaje() {
   const personajeActivo = usarPersonajeActivo();
@@ -41,7 +41,10 @@ export function usarHojaPersonaje() {
     gastarEspacioPacto, recuperarEspaciosPacto,
     romperConcentracion, quitarTrucoConocido, alternarConjuroPreparado,
     desprepararConjuroPersonaje, quitarEfectoPersonaje,
-    dispararRasgosIniciativaPersonaje
+    dispararRasgosIniciativaPersonaje,
+    establecerFormasConocidasDruida,
+    transformarEnFormaSalvaje,
+    revertirFormaSalvaje
   } = usarAccionesPersonajes();
 
   const { establecerTipoTirada } = usarAccionesIniciativa();
@@ -255,7 +258,8 @@ export function usarHojaPersonaje() {
     setModalCompetencias, modalDescanso, setModalDescanso, subPestanaActiva,
     setSubPestanaActiva, totalConjurosYTrucos, actualizarPersonaje,
     alternarInspiracionPersonaje, aplicarCondicionPersonaje, quitarCondicionPersonaje,
-    quitarEfectoPersonaje, romperConcentracion, vincularMiniaturaTSPersonaje,
+    quitarEfectoPersonaje, romperConcentracion,
+    establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje, vincularMiniaturaTSPersonaje,
     manejarCambioModoTirada, manejarDescansoCorto,
     manejarDescansoLargo, manejarTirarCaracteristica, manejarTirarSalvacion,
     manejarTirarHabilidad, manejarTirarIniciativa, manejarTirarSalvacionMuerte3D,

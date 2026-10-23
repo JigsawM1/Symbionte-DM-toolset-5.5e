@@ -199,6 +199,9 @@ export interface SubSliceRasgos {
   guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;
   consumirDadoGuardado: (idPj: string, idRasgo: string, indiceDado: number) => void;
   recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;
+  establecerFormasConocidasDruida: (idPj: string, formasIds: string[]) => void;
+  transformarEnFormaSalvaje: (idPj: string, idBestia: string) => void;
+  revertirFormaSalvaje: (idPj: string) => void;
 }
 
 export interface SubSliceAcompanantes {

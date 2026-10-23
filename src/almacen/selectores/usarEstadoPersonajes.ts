@@ -16,6 +16,7 @@ import {
 import { esCompetenteConArmadura } from '@/constantes/competenciasConstantes';
 import { calcularModificadorCaracteristica } from '@/servicios/procesadorDescansos';
 import { OBJETOS_INICIALES } from '@/utiles/datosIniciales';
+import { obtenerBestiaFormaActiva, esDruidaCirculoLuna } from '@/servicios/reglasFormaSalvaje';
 import {
   calcularModificadoresStatsRasgos,
   calcularDefensaSinArmaduraRasgos,
@@ -230,9 +231,11 @@ export function calcularEstadisticasPersonaje(
         limitesMaximos: {}
       };
 
+  const bestiaActiva = pj ? obtenerBestiaFormaActiva(pj) : null;
+
   const puntuacionesEfectivas: Record<Caracteristica, number> = {
-    fuerza: personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? Math.min(limitesStatsRasgos.fuerza || 20, (carac.fuerza ?? 10) + bonosStatsRasgos.fuerza),
-    destreza: personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? Math.min(limitesStatsRasgos.destreza || 20, (carac.destreza ?? 10) + bonosStatsRasgos.destreza),
+    fuerza: bestiaActiva?.caracteristicas?.fuerza ?? personalizacionesCarac.fuerza?.valorFijo ?? overrides.fuerza ?? Math.min(limitesStatsRasgos.fuerza || 20, (carac.fuerza ?? 10) + bonosStatsRasgos.fuerza),
+    destreza: bestiaActiva?.caracteristicas?.destreza ?? personalizacionesCarac.destreza?.valorFijo ?? overrides.destreza ?? Math.min(limitesStatsRasgos.destreza || 20, (carac.destreza ?? 10) + bonosStatsRasgos.destreza),
     constitucion: personalizacionesCarac.constitucion?.valorFijo ?? overrides.constitucion ?? Math.min(limitesStatsRasgos.constitucion || 20, (carac.constitucion ?? 10) + bonosStatsRasgos.constitucion),
     inteligencia: personalizacionesCarac.inteligencia?.valorFijo ?? overrides.inteligencia ?? Math.min(limitesStatsRasgos.inteligencia || 20, (carac.inteligencia ?? 10) + bonosStatsRasgos.inteligencia),
     sabiduria: personalizacionesCarac.sabiduria?.valorFijo ?? overrides.sabiduria ?? Math.min(limitesStatsRasgos.sabiduria || 20, (carac.sabiduria ?? 10) + bonosStatsRasgos.sabiduria),
@@ -627,7 +630,17 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
-  const totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
+  let totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
+  if (bestiaActiva) {
+    const esLuna = pj ? esDruidaCirculoLuna(pj) : false;
+    const modSab = modificadores.sabiduria;
+    const caLuna = 13 + modSab;
+    const caBestia = bestiaActiva.ca || 10;
+    const caEfectivaBestia = esLuna ? Math.max(caBestia, caLuna) : caBestia;
+    totalCA = caEfectivaBestia + bonosCARasgos.bonoTotal;
+    caBase = caEfectivaBestia;
+    desglosePartes.splice(0, desglosePartes.length, esLuna && caLuna > caBestia ? `Armadura de la Luna (${caLuna})` : `${bestiaActiva.nombre} (${caBestia})`);
+  }
 
   const claseArmadura: InformacionCA = {
     total: totalCA,
@@ -870,6 +883,9 @@ export function usarAccionesPersonajes() {
       desocultarTodosLosConjuros:         s.desocultarTodosLosConjuros,
       actualizarSeleccionRasgo:           s.actualizarSeleccionRasgo,
       dispararRasgosIniciativaPersonaje:  s.dispararRasgosIniciativaPersonaje,
+      establecerFormasConocidasDruida:    s.establecerFormasConocidasDruida,
+      transformarEnFormaSalvaje:          s.transformarEnFormaSalvaje,
+      revertirFormaSalvaje:               s.revertirFormaSalvaje,
 
       // Acompañantes y Sidekicks
       agregarAcompanantePersonaje:         s.agregarAcompanantePersonaje,

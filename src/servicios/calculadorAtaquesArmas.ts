@@ -24,6 +24,7 @@ import {
   componerFormulasDano
 } from "@/servicios/calculadorDanoCombate";
 import { calcularAtaqueDesarmado } from "@/servicios/calculadorAtaqueDesarmado";
+import { obtenerBestiaFormaActiva } from "@/servicios/reglasFormaSalvaje";
 
 export { calcularAtaqueDesarmado };
 
@@ -364,7 +365,7 @@ export function calcularAtaqueImprovisado(contexto: {
 export function generarListaAtaquesFisicos(
   params: ParametrosCalculoAtaquesFisicos
 ): AtaquePersonajeCalculado[] {
-  const { personajeActivo, statsCalculadas, baseDatosObjetos, caracteristicasArmas } = params;
+  const { personajeActivo, statsCalculadas, baseDatosObjetos, caracteristicasArmas = {} } = params;
   if (!personajeActivo || !statsCalculadas) return [];
 
   const ataques: AtaquePersonajeCalculado[] = [];
@@ -510,6 +511,51 @@ export function generarListaAtaquesFisicos(
       esSutil,
       esDistancia
     });
+  }
+
+  // 5. Ataques de Forma Salvaje (si el personaje está transformado)
+  const bestiaActiva = obtenerBestiaFormaActiva(personajeActivo);
+  if (bestiaActiva && Array.isArray(bestiaActiva.acciones)) {
+    for (const acc of bestiaActiva.acciones) {
+      const desc = acc.descripcion || "";
+      const esAtaque =
+        desc.toLowerCase().includes("ataque") ||
+        desc.toLowerCase().includes("weapon attack") ||
+        desc.toLowerCase().includes("a impactar") ||
+        Boolean(acc.bonoAtaque || (acc as any).bonificadorAtaque || acc.dano || (acc as any).daño);
+      if (esAtaque) {
+        const alcanceMatch = desc.match(/alcance ([^,.]+)/i);
+        const alcance = alcanceMatch ? alcanceMatch[1] : "5 pies";
+        const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
+        const tipoDano = tipoDanoMatch ? tipoDanoMatch[1] : "contundente";
+        const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
+        const bonoAtk = acc.bonoAtaque ?? (bonoMatch ? parseInt(bonoMatch[1], 10) : (statsCalculadas.modificadores.fuerza + statsCalculadas.bonoCompetencia));
+        const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
+        const formulaDano = acc.dano || (danoMatch ? danoMatch[1] : "1d6");
+
+        ataques.unshift({
+          id: `bestia-${bestiaActiva.id}-${acc.nombre.toLowerCase().replace(/\s+/g, '-')}`,
+          nombre: `${acc.nombre} (${bestiaActiva.nombre})`,
+          tipo: "Arma",
+          subtipo: "Forma Salvaje",
+          tipoAccion: "accion",
+          caracteristicaUsada: "fuerza",
+          bonoAtaque: bonoAtk,
+          dadoDano: formulaDano,
+          dadoDanoBase: formulaDano,
+          modificadorDano: statsCalculadas.modificadores.fuerza,
+          esDanoFijo: false,
+          tipoDano,
+          alcance,
+          propiedades: ["Arma Natural", "Forma Salvaje"],
+          esMagico: false,
+          tieneTiradaAtaque: true,
+          esCompetenteConArma: true,
+          esSutil: false,
+          esDistancia: desc.toLowerCase().includes("a distancia")
+        });
+      }
+    }
   }
 
   return ataques;

@@ -5,10 +5,12 @@ import { crearSliceEdicionRasgos } from "./sliceEdicionRasgos";
 import { crearSliceRecursosRasgos } from "./sliceRecursosRasgos";
 import { crearSliceActivacionRasgos } from "./sliceActivacionRasgos";
 import { crearSliceSelectoresRasgos } from "./sliceSelectoresRasgos";
+import { crearSliceFormaSalvaje } from "./sliceFormaSalvaje";
 
 export const crearSubSliceRasgos: StateCreator<EstadoDM, [], [], SubSliceRasgos> = (...argumentos) => ({
   ...crearSliceEdicionRasgos(...argumentos),
   ...crearSliceRecursosRasgos(...argumentos),
   ...crearSliceActivacionRasgos(...argumentos),
   ...crearSliceSelectoresRasgos(...argumentos),
+  ...crearSliceFormaSalvaje(...argumentos),
 });

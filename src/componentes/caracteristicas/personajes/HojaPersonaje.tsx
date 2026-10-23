@@ -69,7 +69,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     alRomperConcentracion,
     alQuitarTruco,
     alQuitarConjuro,
-    alAlternarPreparado
+    alAlternarPreparado,
+    establecerFormasConocidasDruida,
+    transformarEnFormaSalvaje,
+    revertirFormaSalvaje
   } = usarHojaPersonaje();
 
   if (!personajeActivo || !statsCalculadas) {
@@ -83,6 +86,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
       </div>
     );
   }
+
+  const esDruida = Boolean(
+    personajeActivo.clase?.toLowerCase().includes("druida") ||
+    personajeActivo.clases?.some((cls) => cls.nombre.toLowerCase().includes("druida")) ||
+    personajeActivo.rasgos?.some((r) => r.nombre.toLowerCase().trim() === "forma salvaje")
+  );
 
   return (
     <main className={estilos.contenedorPrincipal}>

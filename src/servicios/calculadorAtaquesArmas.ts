@@ -522,16 +522,16 @@ export function generarListaAtaquesFisicos(
         desc.toLowerCase().includes("ataque") ||
         desc.toLowerCase().includes("weapon attack") ||
         desc.toLowerCase().includes("a impactar") ||
-        Boolean(acc.bonoAtaque || (acc as any).bonificadorAtaque || acc.dano || (acc as any).daño);
+        Boolean((acc as any).bonoAtaque || (acc as any).bonificadorAtaque || (acc as any).dano || (acc as any).daño);
       if (esAtaque) {
         const alcanceMatch = desc.match(/alcance ([^,.]+)/i);
         const alcance = alcanceMatch ? alcanceMatch[1] : "5 pies";
         const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
         const tipoDano = tipoDanoMatch ? tipoDanoMatch[1] : "contundente";
         const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
-        const bonoAtk = acc.bonoAtaque ?? (bonoMatch ? parseInt(bonoMatch[1], 10) : (statsCalculadas.modificadores.fuerza + statsCalculadas.bonoCompetencia));
+        const bonoAtk = (acc as any).bonoAtaque ?? (bonoMatch ? parseInt(bonoMatch[1], 10) : (statsCalculadas.modificadores.fuerza + statsCalculadas.bonoCompetencia));
         const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
-        const formulaDano = acc.dano || (danoMatch ? danoMatch[1] : "1d6");
+        const formulaDano = (acc as any).dano || (danoMatch ? danoMatch[1] : "1d6");
 
         ataques.unshift({
           id: `bestia-${bestiaActiva.id}-${acc.nombre.toLowerCase().replace(/\s+/g, '-')}`,

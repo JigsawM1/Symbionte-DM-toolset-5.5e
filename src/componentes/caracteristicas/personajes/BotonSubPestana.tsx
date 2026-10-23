@@ -9,7 +9,7 @@ export interface BotonSubPestanaProps {
   /** Icono representativo (generalmente de lucide-react) */
   icono: React.ReactNode;
   /** Conteo opcional mostrado en badge (ej. total de conjuros y trucos) */
-  badge?: number;
+  badge?: number | string;
   /** Callback invocado al hacer clic */
   alClick: () => void;
 }
@@ -35,7 +35,7 @@ export const BotonSubPestana: React.FC<BotonSubPestanaProps> = ({
     >
       {icono}
       <span>{etiqueta}</span>
-      {badge !== undefined && badge > 0 && (
+      {badge !== undefined && (typeof badge === "string" ? Boolean(badge) : badge > 0) && (
         <span className={estilos.badgeContadorConjuros}>{badge}</span>
       )}
     </button>

@@ -8,7 +8,7 @@ import {
   obtenerBestiaFormaActiva
 } from "@/servicios/reglasFormaSalvaje";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
-import { PawPrint, Shield, Zap, Search, X, Check } from "lucide-react";
+import { PawPrint, Zap, X, Check } from "lucide-react";
 import estilos from "./PanelFormaSalvaje.module.css";
 
 interface PanelFormaSalvajeProps {

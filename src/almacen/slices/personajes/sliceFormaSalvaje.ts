@@ -18,7 +18,7 @@ export const crearSliceFormaSalvaje: StateCreator<
     SubSliceRasgos,
     "establecerFormasConocidasDruida" | "transformarEnFormaSalvaje" | "revertirFormaSalvaje"
   >
-> = (set, get) => ({
+> = (set) => ({
   establecerFormasConocidasDruida: (idPj, formasIds) => {
     mutarPersonaje(set, idPj, (pj) => {
       const nivelDruida = obtenerNivelDruida(pj);

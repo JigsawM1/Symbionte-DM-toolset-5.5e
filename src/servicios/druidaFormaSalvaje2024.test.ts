@@ -5,12 +5,10 @@ import {
   calcularReglasFormaSalvaje,
   esBestiaValidaParaDruida,
   calcularHpTemporalFormaSalvaje,
-  obtenerBestiasElegiblesCompendio
-} from "./reglasFormaSalvaje";
+  } from "./reglasFormaSalvaje";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
-import type { PersonajeJugador } from "@/tipos";
 
 describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => {
   const lobo = MONSTRUOS_INICIALES.find((m) => m.id === "m_lobo")!;
@@ -90,6 +88,12 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
           {
             id: "rasgo_forma_salvaje",
             nombre: "Forma salvaje",
+            origen: "clase",
+            fuente: "PHB 2024",
+            tipoAccion: "accion_adicional",
+            personalizado: false,
+            activo: false,
+            notas: "",
             categoriaMecanica: "consumible",
             esActivable: true,
             tieneUsosLimitados: true,
@@ -126,7 +130,9 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       // Ataques de la bestia generados en combate
       const ataques = generarListaAtaquesFisicos({
         personajeActivo: pjTransformado,
-        statsCalculadas: stats
+        statsCalculadas: stats,
+        baseDatosObjetos: [],
+        caracteristicasArmas: {}
       });
 
       const ataqueMordisco = ataques.find((a) => a.nombre.includes("Mordisco") || a.subtipo === "Forma Salvaje");

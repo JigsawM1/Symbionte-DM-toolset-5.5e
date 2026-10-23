@@ -322,9 +322,9 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       // Debe preservar competente y pericia
       expect(pjNivel2.gradosHabilidades.persuasion).toBe("competente");
       expect(pjNivel2.gradosHabilidades.historia).toBe("pericia");
-      // Debe haber asignado grado 'medio' a las no competentes
-      expect(pjNivel2.gradosHabilidades.atletismo).toBe("medio");
-      expect(pjNivel2.gradosHabilidades.sigilo).toBe("medio");
+      // El beneficio se calcula sin sobrescribir grados manuales.
+      expect(pjNivel2.gradosHabilidades.atletismo).toBe("ninguna");
+      expect(pjNivel2.gradosHabilidades.sigilo).toBe("ninguna");
     });
 
     it("respeta 'medio' como piso mínimo al ciclar habilidades de un bardo con Aprendiz de mucho", () => {

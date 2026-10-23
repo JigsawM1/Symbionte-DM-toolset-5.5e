@@ -14,6 +14,7 @@ import { normalizarTextoSeguro } from "./condicionesRasgosHelpers";
 import { generarId } from "@/utiles/generarId";
 import { seleccionOpcionValida, descomponerSeleccion } from "@/servicios/rasgos/seleccionesRasgos";
 import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
+import { reconciliarConjurosRasgos } from "@/servicios/rasgos/reconciliarConjurosRasgos";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
 actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
@@ -28,7 +29,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
         || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === descomponerSeleccion(id).base)))) return pj;
       if (selectorPedido.categoriaDote === "estilo_combate" && valorActual.some(id => !puedeElegirDoteEstilo(pj, idRasgo, id))) return pj;
       if (selectorPedido.tipoSelector === "dote" && valorActual.some(id => !evaluarRequisitoDote(selectorPedido.opciones.find(o=>o.id===id)?.requisito,pj,pj.nivel).cumple)) return pj;
-      if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")
+      if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroHabilidades || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")
         && valorActual.some(id => !seleccionOpcionValida(selectorPedido, id, valorActual, obtenerNivelEfectivoParaRasgo(pj, rasgoPedido!), pj))) return pj;
       let tamanoActualizado = pj.tamano;
       const esSelectorTamano =
@@ -347,6 +348,8 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
         conjurosSiemprePreparadosIds: conjurosSiempreActualizados,
         conjurosPreparadosIds: conjurosPreparadosActualizados,
         conjurosConocidosIds: conjurosConocidosActualizados,
+        ...(selectorPedido.tipoSelector === "dote" || esSelectorDeConjuros(selectorPedido)
+          ? reconciliarConjurosRasgos(pj, rasgosActualizados) : {}),
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

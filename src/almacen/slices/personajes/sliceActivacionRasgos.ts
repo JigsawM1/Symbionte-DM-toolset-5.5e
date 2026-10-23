@@ -1,8 +1,9 @@
 import { obtenerPagoActivacionAlternativa } from "@/servicios/rasgos/conversionRecursosRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases";
 import { claveEstado } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
-import { tieneMedioBonoHabilidades, aplicarAprendizDeMuchoAGradosHabilidades, calcularBonoHPMaximoRasgos, calcularUsosMaximosRasgo, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularBonoHPMaximoRasgos, calcularUsosMaximosRasgo, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
 import { normalizar, resolverRasgoPadre } from "@/servicios/rasgos/utilidadesRasgos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
@@ -181,8 +182,6 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const pjPrevio = activarOpcionales({
         ...pj, rasgos: rasgosActualizados, condicionesActivas: condicionesActualizadas, efectosActivos: efectosActualizados
       }, idRasgo, nuevoActivo ? decisiones : undefined, get().rondaActual || 1);
-      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(pj.gradosHabilidades, tieneMedioBonoHabilidades(pjPrevio));
-
       const tieneEfectoHP = (targetTrait.efectos || []).some((e) => e.tipo === "modificador_hp_maximo");
       let hpMaximo = pj.hpMaximo;
       let hpActual = pj.hpActual;
@@ -194,7 +193,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         hpActual = Math.min(hpActual + (deltaBono > 0 ? deltaBono : 0), hpMaximo);
       }
 
-      return { ...pjPrevio, hpMaximoBase, hpMaximo, hpActual, gradosHabilidades: gradosActualizados };
+      return { ...pjPrevio, hpMaximoBase, hpMaximo, hpActual };
     });
 
     const state = get();
@@ -245,7 +244,8 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const rasgosActualizados = pj.rasgos.map((r) => {
         if (!r.dispararAlTirarIniciativa) return r;
 
-        const estaHabilitado = r.esActivable ? r.activo : true;
+        const estaHabilitado = r.activo !== false && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1)
+          && esRasgoHabilitadoPorOpcion(r, pj.rasgos);
         const restantes = r.usosRestantes ?? r.usosMaximos ?? 0;
         const tieneUsos = !r.tieneUsosLimitados || restantes >= (r.costeFijo ?? 1);
         if (!estaHabilitado || !tieneUsos) return r;

@@ -1,9 +1,7 @@
 import {
   type PersonajeJugador,
   type Caracteristica,
-  type Habilidad,
-  type GradoCompetencia,
-  GRADOS_HABILIDADES_DEFECTO
+  type Habilidad
 } from "@/tipos";
 import {
   normalizar,
@@ -288,36 +286,6 @@ export function tieneMedioBonoHabilidades(personaje: PersonajeJugador): boolean 
 }
 
 /**
- * Aplica o revierte el grado "medio" (medio bono) en las competencias de habilidades del personaje
- * respetando estrictamente las habilidades que ya cuenten con competencia o pericia.
- */
-export function aplicarAprendizDeMuchoAGradosHabilidades(
-  gradosHabilidades: Record<Habilidad, GradoCompetencia> | undefined,
-  tieneAprendiz: boolean
-): Record<Habilidad, GradoCompetencia> {
-  const resultado: Record<Habilidad, GradoCompetencia> = {
-    ...GRADOS_HABILIDADES_DEFECTO,
-    ...(gradosHabilidades || {})
-  };
-
-  const listaHabilidades = Object.keys(resultado) as Habilidad[];
-  for (const hab of listaHabilidades) {
-    const gradoActual = resultado[hab] || "ninguna";
-    if (tieneAprendiz) {
-      if (gradoActual === "ninguna") {
-        resultado[hab] = "medio";
-      }
-    } else {
-      if (gradoActual === "medio") {
-        resultado[hab] = "ninguna";
-      }
-    }
-  }
-
-  return resultado;
-}
-
-/**
  * Obtiene competencias adicionales (armas marciales/sencillas, armaduras, herramientas)
  * otorgadas por rasgos activos o dotes seleccionadas (ej. Lecciones de los Primeros -> Fabricante).
  * Evaluación 100% genérica a través de efectos mecánicos de tipo 'competencia'.
@@ -330,6 +298,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   salvaciones: Caracteristica[];
   idiomas: string[];
   habilidades: Habilidad[];
+  pericias: Habilidad[];
 } {
   const armas = new Set<"sencillas" | "marciales" | "fuego">();
   const armaduras = new Set<"ligeras" | "medias" | "pesadas" | "escudos">();
@@ -337,6 +306,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
   const salvaciones = new Set<Caracteristica>();
   const idiomas = new Set<string>();
   const habilidades = new Set<Habilidad>();
+  const pericias = new Set<Habilidad>();
   let armasImprovisadas = false;
 
   const posiblesStats: Caracteristica[] = ["fuerza", "destreza", "constitucion", "inteligencia", "sabiduria", "carisma"];
@@ -384,6 +354,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
         const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[habLimpia] || (habLimpia as Habilidad);
         if (habCanonica && habCanonica in MAPA_HABILIDAD_A_CARACTERISTICA) {
           habilidades.add(habCanonica);
+          if (valNorm === "pericia") pericias.add(habCanonica);
         }
       }
       if (valNorm in MAPA_OBJETIVO_A_HABILIDAD && (objNorm.includes("habilidad") || texto.includes("habilidad"))) {
@@ -420,7 +391,8 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
     herramientas: Array.from(herramientas),
     salvaciones: Array.from(salvaciones),
     idiomas: Array.from(idiomas),
-    habilidades: Array.from(habilidades)
+    habilidades: Array.from(habilidades),
+    pericias: Array.from(pericias)
   };
 }
 

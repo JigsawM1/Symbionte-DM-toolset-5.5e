@@ -94,7 +94,6 @@ export function usarAccionesTarjetaRasgo({
   const esManosCurativas = normNombre.includes("manos curativas");
   const esPreservarVida = normNombre.includes("preservar vida");
   const esMantoInspiracion = normNombre.includes("manto de inspiracion");
-  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
   const esCuracion = rasgo.categoriaMecanica === "curacion";
@@ -107,7 +106,6 @@ export function usarAccionesTarjetaRasgo({
       tieneEfectoHpTemporalAuto ||
       esManosCurativas ||
       esMantoInspiracion ||
-      esInspiracionBardica ||
       esAtaqueAliento ||
       rasgo.categoriaMecanica === "consumible" ||
       rasgo.gastarDePadre);
@@ -116,7 +114,7 @@ export function usarAccionesTarjetaRasgo({
   const manejarTirarDados = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
     if (!formulaEfectiva) return;
-    if (sinUsosDisponibles || tiradaEnCurso.current) return;
+    if ((sinUsosDisponibles && !rasgo.noGastarAlTirarDados) || tiradaEnCurso.current) return;
     tiradaEnCurso.current = true;
 
     try {

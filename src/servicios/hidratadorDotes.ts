@@ -11,6 +11,7 @@ import generalesJson from "@/datos/dotes/generales.json";
 import epicasJson from "@/datos/dotes/epicas.json";
 import estiloCombateJson from "@/datos/dotes/estilo_combate.json";
 import { CATALOGO_MANIOBRAS_COMBATE } from "@/constantes/maniobrasCombate";
+import { HABILIDADES_LISTA } from "@/constantes/homebrewConstantes";
 
 // =======================================================
 // UTILIDADES PURAS DE BÚSQUEDA Y FILTRADO DE CONJUROS
@@ -105,6 +106,8 @@ export const OPCIONES_DANOS_RESISTENCIA_ENERGIAS: OpcionSelector[] = [
 
 // Opciones calculadas de conjuros en memoria
 const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
+  habilidades_pericia: () => HABILIDADES_LISTA.map(h => ({ id: h.clave, nombre: h.nombre, descripcion: "Pericia en una habilidad competente.",
+    efectos: [{ tipo: "competencia", objetivo: `habilidad.${h.clave}`, valor: "pericia" }] })),
   metamagia: () => metamagiaJson.map(op => EsquemaOpcionSelector.parse(op)),
   maniobras_combate: () => CATALOGO_MANIOBRAS_COMBATE,
   dotes_elegibles: () =>

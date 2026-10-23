@@ -307,7 +307,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                 type="button"
                 className={estilos.botonLanzarDadosModal}
                 onClick={manejarTirarDados}
-                disabled={sinUsosDisponibles}
+                disabled={sinUsosDisponibles && !rasgo.noGastarAlTirarDados}
                 title={
                   esCuracion
                     ? esPreservarVida && usosPadre

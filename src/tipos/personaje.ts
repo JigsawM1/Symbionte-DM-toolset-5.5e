@@ -454,6 +454,8 @@ export const EsquemaPersonajeJugador = z.object({
   conjurosPreparadosIds: z.array(z.string()).default([]),
   conjurosSiemprePreparadosIds: z.array(z.string()).default([]),
   aprendizajesConjurosIndependientes: z.object({ trucos: z.array(z.string()), conjuros: z.array(z.string()) }).optional(),
+  // En grimorios, conjuros identifica el aprendizaje y preparados su preparación independiente.
+  eleccionesConjurosClase: z.record(z.string(), z.object({ trucos: z.array(z.string()), conjuros: z.array(z.string()), preparados: z.array(z.string()).optional() })).optional(),
 
   // Recursos: Espacios de Conjuro
   espaciosConjuroMaximos: z.record(z.string(), z.number()).default({}),

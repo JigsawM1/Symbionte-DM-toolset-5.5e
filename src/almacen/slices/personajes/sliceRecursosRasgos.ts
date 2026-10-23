@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
-import { calcularUsosMaximosRasgo, calcularHpTemporalDeEfecto, obtenerEfectoHpTemporalRasgo } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularUsosMaximosRasgo } from "@/servicios/rasgos/evaluadorExpresionesRasgos";
+import { calcularHpTemporalDeEfecto, obtenerEfectoHpTemporalRasgo } from "@/servicios/rasgos/evaluadorVitalidadRasgos";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import { resolverIdRasgoObjetivoGasto, coincideCondicionConRasgo } from "./condicionesRasgosHelpers";

@@ -1,4 +1,5 @@
 import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
+import { RecuperarUsosConEspacio } from "./RecuperarUsosConEspacio";
 import { ReservaDadosRasgo } from "./ReservaDadosRasgo";
 import { TablaAleatoriaRasgo } from "./TablaAleatoriaRasgo";
 import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases";
@@ -72,6 +73,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
     } finally { queueMicrotask(() => { bloqueado.current = false; }); }
   };
   return <>
+    {rasgo.recuperarUsosConEspacio && <RecuperarUsosConEspacio personaje={pj} rasgo={rasgo} />}
     {vista === "detalle" && rasgo.varianteSinConcentracion && <ConjurosConRecursoRasgo personaje={pj} rasgo={rasgo} />}
     {rasgo.reservaDados && <ReservaDadosRasgo personaje={pj} rasgo={rasgo} />}
     {rasgo.tablaAleatoria && <TablaAleatoriaRasgo personaje={pj} rasgo={rasgo} />}

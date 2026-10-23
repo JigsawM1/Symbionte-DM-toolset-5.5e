@@ -23,6 +23,7 @@ export function fusionarExtensionRasgo(
     if (r.recuperarPactoAlUsar) padre.recuperarPactoAlUsar = r.recuperarPactoAlUsar;
     if (r.guardaDadosTirada) padre.guardaDadosTirada = true;
     if (r.recargaConEspacio) padre.recargaConEspacio = true;
+    if (r.recuperarUsosConEspacio !== undefined) padre.recuperarUsosConEspacio = r.recuperarUsosConEspacio;
     if (r.multiplicadorRecargaEspacio) padre.multiplicadorRecargaEspacio = r.multiplicadorRecargaEspacio;
     if (r.recuperacion) padre.recuperacion = r.recuperacion as RecuperacionRasgo;
     if (r.recargaDescansoCorto !== undefined) padre.recargaDescansoCorto = r.recargaDescansoCorto;

@@ -224,6 +224,7 @@ export const EsquemaOpcionesDinamicas = z.object({
 export type OpcionesDinamicas = z.infer<typeof EsquemaOpcionesDinamicas>;
 
 export const EsquemaSelectorRasgo = z.object({
+  filtroHabilidades: z.object({ soloCompetentes: z.boolean(), excluirPericia: z.boolean() }).optional(),
   momentoEleccion: z.enum(["activacion", "descanso_largo"]).optional(),
   cambioDisponible: z.boolean().optional(),
   id: z.string(),

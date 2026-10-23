@@ -303,7 +303,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarTirarDados}
-              disabled={!alGastarUso || sinUsosDisponibles}
+              disabled={!alGastarUso || (sinUsosDisponibles && !rasgo.noGastarAlTirarDados)}
               title={
                 esCuracion
                   ? esPreservarVida && usosPadre

@@ -70,12 +70,13 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
       expect(conjuros?.recuperacion).toBe("ninguno");
     });
 
-    it("Nivel 2: Pericia y Aprendiz de mucho son pasivo_permanente", () => {
+    it("Nivel 2: Pericia ofrece elecciones y Aprendiz de mucho es pasivo permanente", () => {
       const rasgosNv2 = obtenerRasgosClaseYSubclase("Bardo", 2);
 
       const pericia = rasgosNv2.find((r) => r.nombre === "Pericia");
       expect(pericia).toBeDefined();
-      expect(pericia?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(pericia?.categoriaMecanica).toBe("selector_informativo");
+      expect(pericia?.selectores?.[0].valorActual).toEqual([]);
       expect(pericia?.tablaProgresion?.filas[0].nivel).toBe(2);
 
       const aprendiz = rasgosNv2.find((r) => r.nombre === "Aprendiz de mucho");
@@ -188,7 +189,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
 
       const donEpico = rasgosNv20.find((r) => r.nombre.includes("Don épico"));
       expect(donEpico?.categoriaMecanica).toBe("selector_informativo");
-      expect(donEpico?.selectores?.[0].valorActual).toContain("dote_don_recuerdo_conjuros");
+      expect(donEpico?.selectores?.[0].valorActual).toEqual([]);
 
       const palabras = rasgosNv20.find((r) => r.nombre === "Palabras de creación");
       expect(palabras?.categoriaMecanica).toBe("pasivo_permanente");

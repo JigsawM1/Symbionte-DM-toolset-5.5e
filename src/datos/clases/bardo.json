@@ -130,21 +130,29 @@
           }
         ],
         "notaPie": "Cada nivel reemplaza al anterior"
-      }
+      },
+      "noGastarAlTirarDados": true
     },
     {
       "nivel": 1,
       "nombre": "Lanzamiento de conjuros",
       "descripcion": "Has aprendido a lanzar conjuros mediante tus artes bárdicas.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de bardo. Se recomiendan *luces danzantes* y *burla dañina*.\nCada vez que subas un nivel de bardo, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de bardo.\n\nCuando alcances los niveles 4 y 10 de bardo, aprenderás otro truco de tu elección de la lista de conjuros de bardo.\n\n***Espacios de conjuro.*** El panel de espacios de conjuro de acciones o características muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas una serie de conjuros de nivel 1 y superiores, que son los que podrás lanzar con este rasgo. Para empezar, elige cuatro conjuros de nivel 1 de la lista de conjuros de bardo. Se recomiendan *hechizar persona*, *rociada de color*, *susurros discordantes* y *palabra de curación*.\n\nEl número de conjuros de tu lista aumenta conforme subes de nivel de bardo. Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de bardo hasta que el número de conjuros de tu lista coincida con el número de la tabla. Estos conjuros deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un bardo de nivel 3, podrás preparar cualquier combinación de seis conjuros de niveles 1 o 2.\n\nSi otro rasgo de bardo te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de bardo para ti.\n\n***Cambiar los conjuros preparados.*** Cada vez que subas un nivel de bardo, puedes sustituir un conjuro de tu lista por otro conjuro de bardo para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de bardo.\n\n***Canalizador mágico.*** Puedes utilizar un *instrumento musical* como canalizador mágico para tus conjuros de bardo.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "configuracionMagica": {
+        "tipoLanzador": "completo",
+        "habilidadConjuro": "carisma",
+        "modeloConjuros": "preparados",
+        "nivelInicio": 1
+      },
+      "claseConjurosOtorgados": "Bardo"
     },
     {
       "nivel": 2,
       "nombre": "Pericia",
       "descripcion": "Ganas pericia en dos de tus competencias de habilidades de tu elección. Se recomiendan Interpretación y Persuasión si eres competente en ellas.\n\nEn el nivel 9 de bardo, ganas pericia en otras dos competencias de habilidades de tu elección.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente",
+      "categoriaMecanica": "selector_informativo",
       "tablaProgresion": {
         "columnas": [
           "Nivel",
@@ -165,7 +173,24 @@
           }
         ],
         "notaPie": "Se apilan los niveles"
-      }
+      },
+      "selectores": [
+        {
+          "id": "selector_pericia_bardo_nv2",
+          "tipo": "multiple",
+          "tipoSelector": "general",
+          "etiqueta": "Pericia de nivel 2",
+          "maxSelecciones": 2,
+          "valorActual": [],
+          "visualizacion": "normal",
+          "claveOpcionesDinamicas": "habilidades_pericia",
+          "filtroHabilidades": {
+            "soloCompetentes": true,
+            "excluirPericia": true
+          },
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 2,
@@ -195,15 +220,30 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bardo.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv4",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 5,
       "nombre": "Fuente de inspiración",
       "descripcion": "Ahora recuperas todos los usos gastados de Inspiración bárdica cuando finalizas un descanso corto o largo.\n\nAdemás, puedes gastar un espacio de conjuro (no requiere acción) para recuperar un uso gastado de Inspiración bárdica.",
-      "tipoAccion": "especial",
+      "tipoAccion": "pasivo",
       "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
-      "categoriaMecanica": "extension"
+      "categoriaMecanica": "extension",
+      "recuperarUsosConEspacio": 1
     },
     {
       "nivel": 6,
@@ -224,28 +264,83 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv8",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 9,
       "nombre": "Pericia",
       "descripcion": "Ganas pericia en otras dos de tus competencias de habilidades de tu elección.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "extension",
+      "ligadoA": "rasgo_cls_bardo_pericia",
+      "selectores": [
+        {
+          "id": "selector_pericia_bardo_nv9",
+          "tipo": "multiple",
+          "tipoSelector": "general",
+          "etiqueta": "Pericia de nivel 9",
+          "maxSelecciones": 2,
+          "valorActual": [],
+          "visualizacion": "normal",
+          "claveOpcionesDinamicas": "habilidades_pericia",
+          "filtroHabilidades": {
+            "soloCompetentes": true,
+            "excluirPericia": true
+          },
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 10,
       "nombre": "Secretos mágicos",
       "descripcion": "Cada vez que aprendas o cambies un conjuro por subir de nivel de Bardo, puedes elegirlo de las listas de Bardo, Clérigo, Druida o Mago. El conjuro debe ser de un nivel para el cual ya tengas espacios de conjuro.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "ampliacionListaConjuros": {
+        "clase": "Bardo",
+        "listas": [
+          "Clérigo",
+          "Druida",
+          "Mago"
+        ],
+        "nivelMinimoConjuro": 1
+      }
     },
     {
       "nivel": 12,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv12",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 14,
@@ -259,7 +354,21 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv16",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 18,
@@ -279,7 +388,21 @@
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don del recuerdo de conjuros.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_don_epico_bardo_nv19",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 20,
@@ -306,7 +429,8 @@
           "descripcion": "Palabras de creación (Palabra de poder: matar siempre preparado)",
           "activo": true
         }
-      ]
+      ],
+      "claseConjurosOtorgados": "Bardo"
     }
   ],
   "subclases": [

@@ -249,7 +249,7 @@ export const crearSliceConfiguracion: StateCreator<
 
       // 1. Personajes (Ficha individual o Party Backup)
       if (Array.isArray(datosObj.personajes) || datosObj.personaje) {
-        const pjsImportados = importarPersonajesDesdeJSON(datosJSON).map(hidratarPersonaje);
+        const pjsImportados = importarPersonajesDesdeJSON(datosJSON).map(p => hidratarPersonaje(p, cambiosParciales.baseDatosHechizos ?? estado.baseDatosHechizos));
         if (pjsImportados.length > 0) {
           const mapaPjs = new Map<string, PersonajeJugador>();
           estado.personajes.forEach((pj) => mapaPjs.set(pj.id, pj));

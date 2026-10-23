@@ -100,7 +100,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
     }
 
     // Auto-detección y sincronización de conjuros de subclase al crear
-    nuevoPersonaje = normalizarMecanicasRasgos(undefined, sincronizarConjurosSubclaseHelper(nuevoPersonaje));
+    nuevoPersonaje = normalizarMecanicasRasgos(undefined, sincronizarConjurosSubclaseHelper(nuevoPersonaje), get().baseDatosHechizos);
 
     set((state) => ({
       personajes: [...state.personajes, nuevoPersonaje],
@@ -235,7 +235,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
           cambios.clase !== undefined ? fusionado.clase : undefined,
           cambios.subclase !== undefined ? fusionado.subclase : undefined,
           cambios.nivel !== undefined ? fusionado.nivel : undefined
-        ));
+        ), state.baseDatosHechizos);
       })
     }));
   },
@@ -244,7 +244,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;
-        return normalizarMecanicasRasgos(pj, aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones));
+        return normalizarMecanicasRasgos(pj, aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones), state.baseDatosHechizos);
       })
     }));
   },

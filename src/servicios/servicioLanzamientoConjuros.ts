@@ -2,6 +2,7 @@ import { obtenerConcesionConRecurso, obtenerVarianteConjuro } from "./rasgos/lan
 import { normalizar } from "./rasgos/utilidadesRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "./rasgos/conversionRecursosRasgos";
 import { resolverClaseLanzamiento, obtenerModificadoresConjuroRasgos } from "./rasgos/modificadoresConjuroRasgos";
+import { clasesPropietariasConjuro } from "./rasgos/listasConjurosRasgos";
 import { evaluarEfectosCondicionesEnTirada } from "./procesadorCondiciones";
 /**
  * Servicio Centralizado de Lanzamiento de Conjuros (D&D 5.5e 2024)
@@ -117,6 +118,10 @@ export function validarLanzamiento(
   contexto: ContextoMagicoPersonaje,
   preparadoPrecalculado?: LanzamientoPreparado
 ): ResultadoValidacion {
+  if (contexto.personajeActual && solicitud.claseLanzamiento && ["espacio", "truco", "ataqueMagico", "ritual"].includes(solicitud.modo)
+    && clasesPropietariasConjuro(contexto.personajeActual, solicitud.hechizo.id).length
+    && !resolverClaseLanzamiento(contexto.personajeActual, solicitud.hechizo, solicitud.claseLanzamiento))
+    return { permitido: false, motivo: "Este conjuro no está disponible para la clase de lanzamiento elegida." };
   if (contexto.personajeActual && solicitud.claseLanzamiento && solicitud.modo !== "objetoMagico" && solicitud.modo !== "gratuitoInnato"
     && !contexto.personajeActual.clasesLanzadoras.some(c => normalizar(c.clase) === normalizar(solicitud.claseLanzamiento)))
     return { permitido: false, motivo: "La clase de lanzamiento seleccionada no está disponible." };

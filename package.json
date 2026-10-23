@@ -18,6 +18,7 @@
     "test:guerrero-ui": "node scripts/probar-guerrero.mjs",
     "test:brujo-ui": "node scripts/probar-brujo.mjs",
     "test:barbaro-ui": "node scripts/probar-barbaro.mjs",
+    "test:bardo-ui": "node scripts/probar-bardo.mjs",
     "test:hechicero-ui": "node scripts/probar-hechicero.mjs"
   },
   "dependencies": {

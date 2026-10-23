@@ -14183,3 +14183,36 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Límites de Líneas:** `pnpm run verificar:lineas` auditó **192 archivos con 0 errores críticos (> 500 líneas)**.
 - **Vitest:** **164 suites de pruebas ejecutadas, 2.304 / 2.304 pruebas aprobadas al 100% (0 fallos)**.
 - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 13.61s.
+
+## [2026-10-23] Bardo base PHB 2024: consumidores declarativos y verificación
+
+- Alcance autorizado: Bardo base, niveles 1–20. Fuente canónica local `dicionario_herramientas/clases/bardo.md`; tabla mágica contrastada con Bard Features de las reglas oficiales de 2024. Las subclases quedan para otra fase.
+- Pericia conserva su ID de nivel 2 y recibe el segundo selector mediante extensión a nivel 9. Validación compartida de competencia previa y duplicados; efectos de competencia con grado pericia, calculados sin sobrescribir grados manuales.
+- Fuente de inspiración añade recuperación de un uso mediante cualquier espacio disponible, incluidos los de pacto, en una operación atómica. La extensión conserva la acción adicional de Inspiración. Tirar el dado no vuelve a gastar ni exige usos disponibles después de concederlo.
+- Secretos mágicos amplía listas por metadatos, con nivel y aptitud de Bardo. Las elecciones nuevas pueden registrar clase; su retirada conserva procedencias independientes. En multiclase se ofrece elección explícita de clase en el compendio y se bloquea una clase de lanzamiento incompatible con un conjuro registrado.
+- Mejoras de característica y Don épico comienzan vacíos. Las elecciones anteriores válidas se conservan; quitar una elección retira únicamente la dote vinculada. Aprendiz de mucho se calcula como beneficio derivado y ya no escribe grados medios en build, activación o edición.
+- Palabras de creación mantiene exclusivamente sus dos conjuros, atribuidos a Bardo. Destinatarios, distancias, caducidad de Inspiración, Contraencantamiento y segundo objetivo siguen siendo manuales. La edición de conjuros continúa libre respecto al momento y número de sustituciones por nivel.
+- Compatibilidad: las elecciones antiguas sin procedencia y los grados medios antiguos no se reclasifican por conjetura. El control de cupos individuales en multiclase usa las elecciones con clase registrada. La selección de una dote no certifica la automatización de todos sus efectos internos.
+- Verificación: `pnpm run ci` completo; 166 suites y 2364 pruebas aprobadas, TypeScript, ESLint, comprobación de tamaño y build correctos. Se añadieron 60 casos en dos suites del Bardo y se adaptaron expectativas anteriores.
+- `pnpm run test:bardo-ui`: 10 recorridos a 599/433 px, 8 comprobaciones de dimensiones, 0 errores JavaScript. Incluye Pericia, gasto, dado agotado, conversión, Escape/cancelación, persistencia, descanso, Secretos, procedencia multiclase y elección/retirada de dotes. Aplicación real en Chromium local con emisión local y serialización; no certifica CEF/TaleSpire, almacenamiento nativo ni multicliente.
+- Graphify actualizado y regenerado con `cluster-only . --no-label`; 3160 nodos, 13045 relaciones y 114 comunidades. Dos advertencias del extractor en suites previas no constituyen errores de TypeScript.
+- Matriz, limitaciones e inventario: `informes/bardo-base-2024.md`. Evidencias: `scratch/bardo-ci.log`, `scratch/bardo-ui-informe.json` y capturas locales.
+## [2026-10-23] Acceso verificado a DevTools del simbionte en TaleSpire
+
+- Para futuras pruebas en CEF/TaleSpire, usar el inspector remoto del simbionte cuando TaleSpire tenga habilitado y disponible el puerto local `9222`.
+- Acceso comprobado en esta sesión desde el navegador integrado de Codex: el inspector conectó y mostró el DOM y los estilos de la página real del simbionte en `localhost:54958/symbiotes/1_6d987f7f-bb41-41ea-8a23-8c5d7e1777ef/index.html`.
+- Enlace verificado: https://chrome-devtools-frontend.appspot.com/serve_rev/@dd98cd04c723035396b6d301e1f196b29a14a0ff/inspector.html?ws=localhost:9222/devtools/page/2F5462DCB2B60F1E76FCFEB8309A79A5
+- El identificador de página, el puerto del contenido y la revisión del frontend pueden cambiar entre sesiones. Si el enlace caduca, consultar `http://localhost:9222/json/list`, localizar el destino `/symbiotes/` y usar su URL de inspector o su `webSocketDebuggerUrl` para obtener el enlace vigente.
+- Priorizar este acceso para inspeccionar DOM, CSS y consola de la instancia real durante las pruebas. En esta comprobación solo se verificaron conexión, DOM y estilos; no se ejecutaron comandos en consola ni se certificaron flujos funcionales o sincronización multicliente.
+- Si el usuario toma el control durante una prueba, detener las interacciones y obtener el estado actualizado antes de continuar.
+
+## [2026-10-23] Correcciones de la autorrevisión del Bardo
+
+- Corregidos H1–H6: procedencias por clase, retirada de conjuros de dotes, clase y nivel de lanzamiento de Secretos, cupos individuales, catálogo efectivo y ramas inhabilitadas de Pericia.
+- El registro opcional de preparados de grimorio distingue la preparación del aprendizaje. Selección y retirada conservan aportaciones de otras clases; carga persistida e importación reciben el catálogo efectivo. No se amplió el transporte de sincronización.
+- Poda aplicada: función sin consumidores de escritura de grados medios, alias redundantes y retirada de dotes duplicada. No se añadieron dependencias.
+- Regresiones nuevas: 16 casos en bardoAutorrevision2024.test.ts, incluidas adquisición real de procedencias compartidas, retirada, persistencia del libro, dotes, lanzamiento, cupos, homebrew y dependencias.
+- pnpm run ci: salida 0; 167 suites y 2380 pruebas aprobadas, TypeScript, ESLint, auditoría de líneas y build correctos. Registro final: scratch/bardo-correcciones-ci.log.
+- pnpm run test:bardo-ui: salida 0; 18 recorridos a 599/433 px, 10 medidas y cero errores JavaScript. Aplicación React real en Chromium local con emisión local y serialización; no se certifican CEF/TaleSpire, almacenamiento nativo ni multicliente.
+- Graphify update y cluster-only --no-label completados: 3172 nodos, 13113 relaciones y 126 comunidades. Persisten dos avisos del extractor sobre sintaxis de suites anteriores; CI las valida.
+- Informe actualizado: informes/bardo-base-2024.md. Auditoría y cierre: scratch/autorrevision-bardo-2024.md. Se conservó la anotación anterior de DevTools ajena a estos cambios.

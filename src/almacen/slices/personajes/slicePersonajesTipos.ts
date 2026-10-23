@@ -122,12 +122,12 @@ export interface SubSliceMagia {
   establecerConcentracion: (id: string, hechizoId: string, nombreHechizo: string) => void;
   romperConcentracion: (id: string) => void;
 
-  agregarTrucoConocido: (id: string, hechizoId: string) => void;
-  quitarTrucoConocido: (id: string, hechizoId: string) => void;
+  agregarTrucoConocido: (id: string, hechizoId: string, clase?: string) => void;
+  quitarTrucoConocido: (id: string, hechizoId: string, clase?: string) => void;
 
-  agregarConjuroConocido: (id: string, hechizoId: string) => void;
-  quitarConjuroConocido: (id: string, hechizoId: string) => void;
-  alternarConjuroPreparado: (id: string, hechizoId: string) => void;
+  agregarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
+  quitarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
+  alternarConjuroPreparado: (id: string, hechizoId: string, clase?: string) => void;
   desprepararConjuroPersonaje: (id: string, hechizoId: string) => void;
 
   gastarEspacioConjuro: (id: string, nivel: number) => void;

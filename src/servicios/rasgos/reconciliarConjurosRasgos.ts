@@ -30,6 +30,9 @@ export function reconciliarConjurosRasgos(
   const antes = obtenerAportes(anterior, anterior.rasgos || []);
   const despues = obtenerAportes(anterior, rasgos);
   const subclase = obtenerConjurosSubclasePersonaje(anterior.clases, anterior.clase, anterior.subclase, anterior.nivel);
+  const elecciones = Object.entries(anterior.eleccionesConjurosClase ?? {});
+  const conocidosClase = elecciones.flatMap(([, e]) => e.conjuros);
+  const preparadosClase = elecciones.flatMap(([clase, e]) => anterior.clasesLanzadoras.find(c => c.clase === clase)?.modeloConjuros === "grimorio" ? e.preparados ?? [] : e.conjuros);
   const coincide = (lista: string[], id: string) => lista.some((c) => coincideHechizoId(c, id));
   const reconciliar = (actuales: string[], previos: string[], nuevos: string[], otrasFuentes: string[]) => {
     const resultado = actuales.filter((id) => !coincide(previos, id) || coincide(nuevos, id) || coincide(otrasFuentes, id));
@@ -38,10 +41,10 @@ export function reconciliarConjurosRasgos(
   };
   return {
     conjurosSiemprePreparadosIds: reconciliar(anterior.conjurosSiemprePreparadosIds || [], antes.siempre, despues.siempre, subclase.conjuros),
-    conjurosPreparadosIds: reconciliar(anterior.conjurosPreparadosIds || [], antes.preparados, despues.preparados, subclase.conjuros),
+    conjurosPreparadosIds: reconciliar(anterior.conjurosPreparadosIds || [], antes.preparados, despues.preparados, [...subclase.conjuros, ...preparadosClase]),
     conjurosConocidosIds: reconciliar(anterior.conjurosConocidosIds || [], antes.conocidos, despues.conocidos,
-      [...subclase.conjuros, ...(anterior.aprendizajesConjurosIndependientes?.conjuros ?? [])]),
+      [...subclase.conjuros, ...conocidosClase, ...(anterior.aprendizajesConjurosIndependientes?.conjuros ?? [])]),
     trucosConocidosIds: reconciliar(anterior.trucosConocidosIds || [], antes.trucos, despues.trucos,
-      [...subclase.trucos, ...(anterior.aprendizajesConjurosIndependientes?.trucos ?? [])])
+      [...subclase.trucos, ...elecciones.flatMap(([, e]) => e.trucos), ...(anterior.aprendizajesConjurosIndependientes?.trucos ?? [])])
   };
 }

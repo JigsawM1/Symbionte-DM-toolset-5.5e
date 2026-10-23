@@ -3,9 +3,10 @@ import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { resolverGruposYSustitutosCompetencias } from "@/constantes/competenciasConstantes";
-import { tieneMedioBonoHabilidades, aplicarAprendizDeMuchoAGradosHabilidades, obtenerCompetenciasExtraRasgos, sonHerramientasEquivalentes } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerCompetenciasExtraRasgos, sonHerramientasEquivalentes } from "@/servicios/evaluadorEfectosRasgos";
 import { normalizarTextoClase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
 import { obtenerRasgosClaseYSubclase, obtenerConjurosSubclaseBuild } from "./constructorRasgosClase";
+import { reconciliarEleccionesConjuros } from "../rasgos/listasConjurosRasgos";
 
 /**
  * Construye la estructura completa de build para una clase y subclase a un nivel dado.
@@ -276,26 +277,14 @@ export function aplicarBuildClaseAPersonaje(
     rasgos: rasgosFinales
   };
 
-  const tieneAprendiz = tieneMedioBonoHabilidades(personajeConRasgos);
-  const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
-    personaje.gradosHabilidades,
-    tieneAprendiz
-  );
-
-  const personajeFinal: PersonajeJugador = {
-    ...personajeConRasgos,
-    gradosHabilidades: gradosActualizados
-  };
-
   // 7. Sincronizar conjuros de subclase
   if (opciones.sincronizarConjurosSubclase) {
-    const syncMagia = sincronizarConjurosSubclaseHelper(personajeFinal);
-    return {
+    const syncMagia = sincronizarConjurosSubclaseHelper(personajeConRasgos);
+    return reconciliarEleccionesConjuros({
       ...syncMagia,
-      rasgos: rasgosFinales,
-      gradosHabilidades: gradosActualizados
-    };
+      rasgos: rasgosFinales
+    });
   }
 
-  return personajeFinal;
+  return reconciliarEleccionesConjuros(personajeConRasgos);
 }

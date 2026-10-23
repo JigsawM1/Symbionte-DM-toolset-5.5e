@@ -6,6 +6,7 @@ import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evalu
 import { consumirRecursoConjuro } from "../consumidorRecursosConjuros";
 
 export type OperacionRecursoRasgo = OperacionAvanzadaRasgo
+  | { tipo: "recuperarUsosConEspacio"; idRasgo: string; nivel: number; pacto?: boolean }
   | { tipo: "crearEspacio"; idRasgo: string; nivel: number; cantidad: number }
   | { tipo: "convertirEspacio"; idRasgo: string; nivel: number; origen: "ordinario" | "adicional" | "pacto" }
   | { tipo: "recuperarDescanso"; idRasgo: string; cantidad: number };
@@ -29,10 +30,19 @@ export function obtenerMaximoRecuperacionDescanso(pj: PersonajeJugador, r: Rasgo
 
 /** Toda validación y todo intercambio ocurren sobre el mismo estado vigente. */
 export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRasgo): PersonajeJugador | undefined {
-  if (op.tipo !== "crearEspacio" && op.tipo !== "convertirEspacio" && op.tipo !== "recuperarDescanso") return operarCapacidadRasgo(pj, op);
+  if (op.tipo !== "crearEspacio" && op.tipo !== "convertirEspacio" && op.tipo !== "recuperarDescanso" && op.tipo !== "recuperarUsosConEspacio") return operarCapacidadRasgo(pj, op);
   const r = pj.rasgos.find(x => x.id === op.idRasgo);
   if (!r || r.activo === false || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)
     || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return;
+  if (op.tipo === "recuperarUsosConEspacio") {
+    const disponibles = r.usosRestantes ?? r.usosMaximos ?? 0;
+    if (!r.recuperarUsosConEspacio || !r.tieneUsosLimitados || disponibles >= (r.usosMaximos ?? 0)
+      || !Number.isInteger(op.nivel) || op.nivel < 1 || op.nivel > 9 || (op.pacto && op.nivel !== pj.nivelEspacioPacto)) return;
+    const consumo = consumirRecursoConjuro(pj, { tipo: op.pacto ? "pacto" : "espacio", nivel: op.nivel });
+    if (!consumo.permitido) return;
+    return { ...consumo.personaje, rasgos: consumo.personaje.rasgos.map(x => x.id === r.id
+      ? { ...x, usosRestantes: Math.min(r.usosMaximos ?? 0, disponibles + r.recuperarUsosConEspacio!) } : x) };
+  }
   if (op.tipo === "recuperarDescanso") {
     if (!Number.isInteger(op.cantidad) || op.cantidad < 1 || op.cantidad > obtenerMaximoRecuperacionDescanso(pj, r)) return;
     return { ...pj, rasgos: pj.rasgos.map(x => x.id === r.id

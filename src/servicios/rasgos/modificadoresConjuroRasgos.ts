@@ -4,15 +4,24 @@ import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import { evaluarEfectosRasgosActivos } from "./evaluadorExpresionesRasgos";
 import { normalizar } from "./utilidadesRasgos";
+import { clasesPropietariasConjuro } from "./listasConjurosRasgos";
+import { conjuroEnAmpliacion } from "./ampliacionesListaConjuros";
+import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
 
 /** La procedencia es explícita o inequívoca; pertenecer a varias listas no elige una clase. */
 export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoBase, clase?: string): string | undefined {
-  const candidatas = pj.clasesLanzadoras.filter(c => !hechizo.clases?.length
-    || hechizo.clases.some(n => normalizar(n) === normalizar(c.clase) || normalizar(n) === normalizar(c.listaConjuros ?? ""))
+  const propietarias = clasesPropietariasConjuro(pj, hechizo.id);
+  const independiente = [...(pj.aprendizajesConjurosIndependientes?.conjuros ?? []), ...(pj.aprendizajesConjurosIndependientes?.trucos ?? [])].some(id => coincideHechizoId(id, hechizo.id));
+  const candidatas = pj.clasesLanzadoras.filter(c => ((!propietarias.length || independiente || propietarias.some(p => normalizar(p) === normalizar(c.clase)))
+    && hechizo.nivel <= obtenerNivelMaximoConjuroPorTipoClase(c.tipoLanzador, c.nivel) && (!hechizo.clases?.length
+    || conjuroEnAmpliacion(pj, hechizo, c.clase)
+    || hechizo.clases.some(n => normalizar(n) === normalizar(c.clase) || normalizar(n) === normalizar(c.listaConjuros ?? ""))))
     || pj.rasgos.some(r => normalizar(r.claseConjurosOtorgados ?? "") === normalizar(c.clase) && r.activo !== false
       && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r, pj.rasgos)
       && r.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id))));
   if (clase) return candidatas.find(c => normalizar(c.clase) === normalizar(clase))?.clase;
+  const adquiridas = candidatas.filter(c => propietarias.some(p => normalizar(p) === normalizar(c.clase)));
+  if (adquiridas.length === 1) return adquiridas[0].clase;
   return candidatas.length === 1 ? candidatas[0].clase : undefined;
 }
 

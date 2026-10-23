@@ -7,9 +7,10 @@ import { construirRasgosDesdeSelectores, materializaSelector } from "./seleccion
 import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
 import { retirarConcentracionRestringida } from "./restriccionesRasgos";
 import { aplicarEventosActivacion } from "./activacionDeclarativa";
+import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "./listasConjurosRasgos";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
-export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador): PersonajeJugador {
+export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
   let cambio = false;
   const rasgos = (pj.rasgos ?? []).map(r => {
     // El catálogo ya utiliza el mismo resolutor durante su construcción por nivel.
@@ -71,5 +72,5 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   const legado = actual.rasgos.find(r => r.recursoLegado === "puntos_hechiceria");
   if (legado) actual = { ...actual, puntosHechiceriaMaximos: legado.usosMaximos ?? 0,
     puntosHechiceriaActuales: legado.usosRestantes ?? legado.usosMaximos ?? 0 };
-  return retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual)));
+  return reconciliarEleccionesConjuros(retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual))), catalogo);
 }

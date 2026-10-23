@@ -1,5 +1,68 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-22] Resolución Certificada de Hallazgos Ponytail en Rasgos y Evaluadores de Bárbaro
+
+- **Contexto y Diagnóstico**:
+  - Tras la aprobación del plan `/plan`, se aplicó la simplificación quirúrgica de los hallazgos de sobreingeniería YAGNI en el catálogo del Bárbaro (`src/datos/clases/barbaro.json`) y sus evaluadores mecánicos (`evaluadorExpresionesRasgos.ts`, `utilidadesRasgos.ts`).
+- **Acciones y Mejoras Aplicadas**:
+  1. *Evaluación de Fórmulas Dinámicas (`evaluadorExpresionesRasgos.ts`)*:
+     - Se eliminaron las 12 variables locales y 12 invocaciones manuales a `.replace(/nivel_<clase>/gi, String(...))` para Bardo, Clérigo, Druida, Explorador, Guerrero, Hechicero, Mago, Monje, Paladín, Pícaro, Brujo y Bárbaro.
+     - Se unificaron en una única expresión regular dinámica `.replace(/nivel_([a-záéíóúñ]+)/gi, ...)` que resuelve dinámicamente mediante `obtenerNivelClasePersonaje`, otorgando escalabilidad inmediata y eliminando más de 20 líneas de código repetitivo.
+     - Se simplificó la evaluación de condición de *Ataque Temerario* (`condNorm.includes("temerario") || condNorm.includes("reckless")`).
+  2. *Utilidades de Bárbaro (`utilidadesRasgos.ts`)*:
+     - `estaFuriaActiva`: Se unificaron las 3 exploraciones secuenciales redundantes (`condicionesActivas`, `efectosActivos`, `rasgos`) mediante un predicado compacto reusable.
+     - `obtenerBonoDanoFuria`: Compactado a un operador ternario directo de una línea.
+  3. *Catálogo Declarativo (`barbaro.json`)*:
+     - Se eliminó la fórmula ternaria muerta `formulaUsos` en Furia (sobreescrita canónicamente por `escaladoUsos.tabla` en el builder).
+     - Se consolidaron los 3 objetos individuales de resistencia física de Furia (`Contundente`, `Perforante`, `Cortante`) en un único efecto con `objetivo: "Contundente, Perforante, Cortante"`, aprovechando el parsing nativo `split(/[,;]/)` de `resumenDefensasRasgos.ts`.
+     - Se consolidaron las 3 resistencias divinas en *Furia de los dioses* (`Necrótico, Psíquico, Radiante`).
+  4. *Suite de Pruebas (`verificacionBuilderBarbaro.test.ts`)*:
+     - Adaptado el conteo exacto a los 24 efectos declarativos consolidados y validada la presencia de resistencias mediante `includes()`.
+- **Certificación del Pipeline CI**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 192 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 163 suites ejecutadas, **2.288 / 2.288 pruebas aprobadas (100% de éxito)**.
+  - `pnpm exec vite build`: Compilación de producción completada con éxito en 12.38s.
+
+
+## [2026-10-22] Auditoría Ponytail (/ponytail-audit) de Rasgos y Efectos de Bárbaro
+
+- **Contexto**: Auditoría exhaustiva de sobreingeniería y simplificación YAGNI sobre la definición declarativa de rasgos de Bárbaro (`src/datos/clases/barbaro.json`) y sus evaluadores mecánicos (`evaluadorExpresionesRasgos.ts`, `utilidadesRasgos.ts`, `evaluadorCombateRasgos.ts`).
+- **Hallazgos Principales Identificados**:
+  1. *Evaluador de fórmulas dinámicas*: 12 variables de clase manuales y 12 reemplazos regex redundantes (`nivel_<clase>`) sustituibles por un único `replace(/nivel_([a-z]+)/gi, ...)`.
+  2. *Declaración de resistencias*: Objetos JSON triplicados para daño físico/divino sustituibles por un único efecto con `objetivo: "Contundente, Perforante, Cortante"` (soportado nativamente por `split(/[,;]/)` en `resumenDefensasRasgos.ts`).
+  3. *Bifurcación de daño de furia*: `obtenerBonoDanoFuria` hardcodeado es redundante con el escalado declarativo `escaladoEfectos` que el builder ya resuelve en `bono_dano_fuerza`.
+  4. *Fórmula de usos obsoleta*: `formulaUsos` en Furia convive con `escaladoUsos.tabla`, siendo descartada por la precedencia del builder.
+  5. *Multi-alias en evaluador*: 5 comparaciones de igualdad para `ataque_temerario_activo` simplificables.
+- **Balance Neto Potencial**: -70 líneas de código y JSON, 0 dependencias añadidas.
+
+
+## [2026-10-22] Auditoría y Verificación del Consumo de Efectos de Rasgos de Bárbaro en el Builder
+
+- **Contexto y Diagnóstico**:
+  - *Pregunta / Solicitud*: Verificar la clase Bárbaro y confirmar si todos los efectos mecánicos de sus rasgos (tanto de la clase base niveles 1-20 como de sus 4 subclases canónicas PHB 2024: *Senda del Berserker*, *Senda del Corazón Salvaje*, *Senda del Árbol del Mundo* y *Senda del Fanático*) se consumen correctamente a través del builder del sistema (`src/servicios/clases/buildClase.ts` y `src/servicios/clases/constructorRasgosClase.ts`).
+  - *Inventario del Catálogo*:
+    - `src/datos/clases/barbaro.json` contiene **28 efectos declarativos** distribuidos en 15 tipos de efectos únicos: `bono_dano_fuerza`, `ventaja`, `resistencia_dano`, `restriccion`, `modificador_ca`, `habilidad_con_fuerza`, `modificador_velocidad`, `dado_extra_dano`, `renunciar_ventaja`, `modificador_stat`, `inmunidad_condicion`, `hp_temporal`, `dano_secundario`, `bono_salvacion` y `movimiento_especial`.
+- **Análisis de Consumo a través del Builder**:
+  1. **Generación Pura y Agnóstica (`constructorRasgosClase.ts`)**:
+     - `obtenerRasgosClaseYSubclase`: Procesa cada rasgo del catálogo hasta el nivel especificado. Los rasgos declarados con `categoriaMecanica: "extension"` ligados a otro rasgo (como *Salto instintivo*, *Furia implacable*, *Golpe brutal mejorado*, *Duración de Furia persistente* y *Furia ciega*) son consolidados orgánicamente en el padre mediante `fusionarExtensionRasgo`. Los efectos de las extensiones se transfieren y acumulan íntegramente en `padre.efectos`.
+     - `construirRasgo`: Invoca `resolverEscaladosRasgo` que evalúa `escaladoEfectos` (ej. el daño de furia escalando de +2 a +4), `escaladoFormulaDados` (Golpe brutal de 1d10 a 2d10), `sincronizarEfectosConFormula` y `escaladoUsos`.
+  2. **Orquestación en la Build de Clase (`buildClase.ts`)**:
+     - `construirBuildClase`: Produce `BuildClaseCalculada`, exponiendo la lista íntegra de `rasgos` construidos y calculando `efectosActivosResueltos: rasgos.flatMap((r) => (r.activo !== false ? r.efectos || [] : []))`.
+     - `aplicarBuildClaseAPersonaje`: Aplica la build de forma pura e inmutable, ejecuta `sincronizarRasgosAutomaticos` y consolida competencias, armaduras, salvaciones y herramientas en el personaje, preservando todos los `efectos` de los rasgos.
+  3. **Consumo por los Evaluadores del Motor**:
+     - Los 15 tipos de efectos son consumidos por los evaluadores especializados (`evaluarEfectosRasgosActivos`, `calcularDefensaSinArmaduraRasgos`, `evaluarVentajasDeRasgosEnTirada`, `obtenerResumenDefensasRasgos`, `calcularVelocidadPersonaje`, `calcularEstadisticasPersonaje`, etc.), respondiendo dinámicamente al estado activo del personaje, condiciones y equipamiento.
+- **Certificación CI y Pruebas**:
+  - `src/servicios/verificacionBuilderBarbaro.test.ts`: Nueva suite con 6 pruebas que audita programáticamente los 28 efectos en las 4 subclases a nivel 20 y el consumo de los 15 tipos en los evaluadores (100% éxito).
+  - 5 suites completas de bárbaro pasando: 137 / 137 pruebas aprobadas.
+  - Suite completa: 163 archivos de prueba y 2.288 pruebas aprobadas (100% de éxito).
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias.
+  - `pnpm run verificar:lineas`: 192 archivos auditados, 0 archivos > 500 líneas.
+  - `pnpm exec vite build`: Compilación de producción exitosa en 16.33s.
+
+
 ## [2026-10-22] Sincronización y Renderizado de Retratos (Avatares) de PJs en Iniciativa (Optimizada con /ponytail-audit)
 
 - **Contexto y Diagnóstico**:

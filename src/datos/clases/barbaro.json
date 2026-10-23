@@ -44,7 +44,6 @@
       "descripcion": "Puedes imbuirte de un poder primigenio llamado Furia, una fuerza que te otorga un poder y una resistencia extraordinarios. Puedes entrar en ella como acción adicional si no llevas armadura pesada.\n\nRecuperas un uso gastado cuando finalizas un descanso corto y recuperas todos los usos gastados cuando finalizas un descanso largo.\n\nMientras está activa, tu Furia sigue las siguientes reglas:\n\n***Resistencia al daño.*** Tienes resistencia al daño contundente, perforante y cortante.\n\n***Daño de Furia.*** Cuando haces un ataque usando Fuerza (ya sea con un arma o un ataque sin armas) y causas daño al objetivo, obtienes un bonificador al daño que aumenta a medida que ganas niveles como bárbaro.\n\n***Ventaja de Fuerza.*** Tienes ventaja en las pruebas de Fuerza y en las tiradas de salvación de Fuerza.\n\n***Sin concentración ni conjuros.*** No puedes mantener la concentración y no puedes lanzar conjuros.\n\n***Duración.*** La Furia dura hasta el final de tu siguiente turno, y termina antes si te pones una armadura pesada o si tienes el estado de incapacitado. Si tu Furia sigue activa en tu siguiente turno, puedes extenderla durante otra ronda haciendo una de las siguientes acciones:\n\n- Hacer una tirada de ataque contra un enemigo.\n\n- Obligar a un enemigo a hacer una tirada de salvación.\n\n- Usar una acción adicional para extender tu Furia.\n\nCada vez que se extiende la Furia, dura hasta el final de tu siguiente turno. Puedes mantener una Furia hasta un máximo de 10 minutos.",
       "tipoAccion": "accion_adicional",
       "tieneUsosLimitados": true,
-      "formulaUsos": "(niv) => (niv >= 17 ? 6 : niv >= 12 ? 5 : niv >= 6 ? 4 : niv >= 3 ? 3 : 2)",
       "recuperacion": "descanso_dinamico",
       "recargaDescansoCorto": 1,
       "escaladoUsos": {
@@ -103,24 +102,10 @@
           "activo": true
         },
         {
-          "id": "furia_resistencia_contundente",
+          "id": "furia_resistencias_fisicas",
           "tipo": "resistencia_dano",
-          "objetivo": "Contundente",
-          "tipoDano": "Contundente",
-          "valor": 1
-        },
-        {
-          "id": "furia_resistencia_perforante",
-          "tipo": "resistencia_dano",
-          "objetivo": "Perforante",
-          "tipoDano": "Perforante",
-          "valor": 1
-        },
-        {
-          "id": "furia_resistencia_cortante",
-          "tipo": "resistencia_dano",
-          "objetivo": "Cortante",
-          "tipoDano": "Cortante",
+          "objetivo": "Contundente, Perforante, Cortante",
+          "tipoDano": "Contundente, Perforante, Cortante",
           "valor": 1
         },
         {
@@ -1474,25 +1459,12 @@
               "activo": true
             },
             {
+              "id": "furia_de_los_dioses_resistencias",
               "tipo": "resistencia_dano",
-              "objetivo": "Necrótico",
+              "objetivo": "Necrótico, Psíquico, Radiante",
               "valor": "resistencia",
               "activo": true,
-              "tipoDano": "Necrótico"
-            },
-            {
-              "tipo": "resistencia_dano",
-              "objetivo": "Psíquico",
-              "valor": "resistencia",
-              "activo": true,
-              "tipoDano": "Psíquico"
-            },
-            {
-              "tipo": "resistencia_dano",
-              "objetivo": "Radiante",
-              "valor": "resistencia",
-              "activo": true,
-              "tipoDano": "Radiante"
+              "tipoDano": "Necrótico, Psíquico, Radiante"
             }
           ]
         },

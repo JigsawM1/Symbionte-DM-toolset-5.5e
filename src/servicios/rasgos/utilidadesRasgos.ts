@@ -127,19 +127,13 @@ export function estaRasgoActivo(personaje: PersonajeJugador, rasgoIdONombre: str
  * Comprueba si la Furia del bárbaro está activa actualmente.
  */
 export function estaFuriaActiva(personaje: PersonajeJugador): boolean {
-  const enCondiciones = (personaje.condicionesActivas || []).some((c) => {
-    const norm = normalizar(c);
-    return (norm === "furia" || norm.includes("furia")) && !norm.includes("furia de los dioses");
-  });
-  if (enCondiciones) return true;
-
-  const enEfectos = (personaje.efectosActivos || []).some((e) => {
-    const norm = normalizar(e.nombre);
-    return (norm === "furia" || norm.includes("furia")) && !norm.includes("furia de los dioses");
-  });
-  if (enEfectos) return true;
-
-  return estaRasgoActivo(personaje, "furia");
+  const coincideFuria = (s: string) => {
+    const n = normalizar(s);
+    return n.includes("furia") && !n.includes("furia de los dioses");
+  };
+  return (personaje.condicionesActivas || []).some(coincideFuria) ||
+         (personaje.efectosActivos || []).some((e) => coincideFuria(e.nombre)) ||
+         estaRasgoActivo(personaje, "furia");
 }
 
 /**
@@ -251,9 +245,7 @@ export function obtenerNivelClasePersonaje(personaje: PersonajeJugador, nombreCl
  * - Niveles 16-20: +4
  */
 export function obtenerBonoDanoFuria(nivelBarbaro: number): number {
-  if (nivelBarbaro >= 16) return 4;
-  if (nivelBarbaro >= 9) return 3;
-  return 2;
+  return nivelBarbaro >= 16 ? 4 : nivelBarbaro >= 9 ? 3 : 2;
 }
 
 /**

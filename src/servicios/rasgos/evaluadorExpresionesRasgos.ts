@@ -50,10 +50,7 @@ export function cumpleCondicionEfecto(
   const tieneEscudo = tieneEscudoEquipado(personaje);
 
   if (condNorm === "furia_activa") return estaFuriaActiva(personaje);
-  if (
-    condNorm === "ataque_temerario_activo" || condNorm === "ataque_temerario" ||
-    condNorm === "ataque temerario" || condNorm === "reckless" || condNorm === "reckless_attack"
-  ) {
+  if (condNorm.includes("temerario") || condNorm.includes("reckless")) {
     return estaAtaqueTemerarioActivo(personaje);
   }
   if (condNorm === "furia_y_temerario_activos" || condNorm === "furia_y_ataque_temerario_activos") {
@@ -405,18 +402,8 @@ export function resolverFormulaDinamica(
     ? obtenerNivelClasePersonaje(personaje, nombreClaseContexto) || nivelGlobal
     : nivelGlobal;
   const mitadNivel = Math.max(1, Math.floor(nivelClase / 2));
-  const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || nivelGlobal;
-  const nivelBardo = obtenerNivelClasePersonaje(personaje, "bardo") || nivelClase;
-  const nivelClerigo = obtenerNivelClasePersonaje(personaje, "clerigo") || nivelClase;
-  const nivelDruida = obtenerNivelClasePersonaje(personaje, "druida") || nivelClase;
-  const nivelExplorador = obtenerNivelClasePersonaje(personaje, "explorador") || nivelClase;
-  const nivelGuerrero = obtenerNivelClasePersonaje(personaje, "guerrero") || nivelClase;
-  const nivelHechicero = obtenerNivelClasePersonaje(personaje, "hechicero") || nivelClase;
-  const nivelMago = obtenerNivelClasePersonaje(personaje, "mago") || nivelClase;
-  const nivelMonje = obtenerNivelClasePersonaje(personaje, "monje") || nivelClase;
-  const nivelPaladin = obtenerNivelClasePersonaje(personaje, "paladin") || nivelClase;
-  const nivelPicaro = obtenerNivelClasePersonaje(personaje, "picaro") || nivelClase;
-  const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro);
+  const nivelBarbaro = obtenerNivelClasePersonaje(personaje, "barbaro") || (normalizar(personaje.clase || "").includes("barbaro") ? nivelGlobal : 0);
+  const bonoFuria = obtenerBonoDanoFuria(nivelBarbaro || nivelGlobal);
   const bonoCompetencia = Math.floor((nivelGlobal - 1) / 4) + 2;
 
   const nivelBrujo =
@@ -450,18 +437,16 @@ export function resolverFormulaDinamica(
     .replace(/mitad_nivel/gi, String(mitadNivel))
     .replace(/bono_competencia/gi, String(bonoCompetencia))
     .replace(/\b(pb|bc)\b/gi, String(bonoCompetencia))
-    .replace(/nivel_barbaro/gi, String(nivelBarbaro))
-    .replace(/nivel_bardo/gi, String(nivelBardo))
-    .replace(/nivel_clerigo/gi, String(nivelClerigo))
-    .replace(/nivel_druida/gi, String(nivelDruida))
-    .replace(/nivel_explorador/gi, String(nivelExplorador))
-    .replace(/nivel_guerrero/gi, String(nivelGuerrero))
-    .replace(/nivel_hechicero/gi, String(nivelHechicero))
-    .replace(/nivel_mago/gi, String(nivelMago))
-    .replace(/nivel_monje/gi, String(nivelMonje))
-    .replace(/nivel_paladin/gi, String(nivelPaladin))
-    .replace(/nivel_picaro/gi, String(nivelPicaro))
-    .replace(/nivel_brujo/gi, String(nivelBrujo))
+    .replace(/nivel_([a-záéíóúñ]+)/gi, (_m, nombreClaseCapturada) => {
+      const clsNorm = normalizar(nombreClaseCapturada);
+      if (clsNorm === "espacio_pacto") return String(nivelEspacioPacto);
+      if (clsNorm === "barbaro") return String(nivelBarbaro || nivelGlobal);
+      if (clsNorm === "brujo") return String(nivelBrujo);
+      const lvl = obtenerNivelClasePersonaje(personaje, clsNorm);
+      if (lvl > 0) return String(lvl);
+      if (nombreClaseContexto && normalizar(nombreClaseContexto).includes(clsNorm)) return String(nivelClase);
+      return String(normalizar(personaje.clase || "").includes(clsNorm) ? nivelClase : 0);
+    })
     .replace(/\bnivel\b/gi, String(nivelClase))
     .replace(/\b(constitucion|con)\b/gi, String(modCon))
     .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))

@@ -130,21 +130,29 @@
           }
         ],
         "notaPie": "Cada nivel reemplaza al anterior"
-      }
+      },
+      "noGastarAlTirarDados": true
     },
     {
       "nivel": 1,
       "nombre": "Lanzamiento de conjuros",
       "descripcion": "Has aprendido a lanzar conjuros mediante tus artes bárdicas.\n\n***Trucos.*** Conoces dos trucos de tu elección escogidos de entre los de la lista de conjuros de bardo. Se recomiendan *luces danzantes* y *burla dañina*.\nCada vez que subas un nivel de bardo, puedes sustituir uno de tus trucos por otro truco de tu elección de la lista de conjuros de bardo.\n\nCuando alcances los niveles 4 y 10 de bardo, aprenderás otro truco de tu elección de la lista de conjuros de bardo.\n\n***Espacios de conjuro.*** El panel de espacios de conjuro de acciones o características muestra cuántos espacios de conjuro tienes para lanzar tus conjuros de nivel 1 y superiores. Recuperas todos los espacios utilizados tras finalizar un descanso largo.\n\n***Conjuros preparados de nivel 1 y superiores.*** Preparas una serie de conjuros de nivel 1 y superiores, que son los que podrás lanzar con este rasgo. Para empezar, elige cuatro conjuros de nivel 1 de la lista de conjuros de bardo. Se recomiendan *hechizar persona*, *rociada de color*, *susurros discordantes* y *palabra de curación*.\n\nEl número de conjuros de tu lista aumenta conforme subes de nivel de bardo. Cuando ese número aumente, elige conjuros adicionales de la lista de conjuros de bardo hasta que el número de conjuros de tu lista coincida con el número de la tabla. Estos conjuros deben ser de un nivel para el que tengas espacios de conjuro. Por ejemplo, si eres un bardo de nivel 3, podrás preparar cualquier combinación de seis conjuros de niveles 1 o 2.\n\nSi otro rasgo de bardo te proporciona conjuros que siempre tienes preparados, esos conjuros no cuentan para el total que puedes preparar con este rasgo, pero sí que cuentan como conjuros de bardo para ti.\n\n***Cambiar los conjuros preparados.*** Cada vez que subas un nivel de bardo, puedes sustituir un conjuro de tu lista por otro conjuro de bardo para el que tengas espacios de conjuro.\n\n***Aptitud mágica.*** El Carisma es tu aptitud mágica en lo que respecta a tus conjuros de bardo.\n\n***Canalizador mágico.*** Puedes utilizar un *instrumento musical* como canalizador mágico para tus conjuros de bardo.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "configuracionMagica": {
+        "tipoLanzador": "completo",
+        "habilidadConjuro": "carisma",
+        "modeloConjuros": "preparados",
+        "nivelInicio": 1
+      },
+      "claseConjurosOtorgados": "Bardo"
     },
     {
       "nivel": 2,
       "nombre": "Pericia",
       "descripcion": "Ganas pericia en dos de tus competencias de habilidades de tu elección. Se recomiendan Interpretación y Persuasión si eres competente en ellas.\n\nEn el nivel 9 de bardo, ganas pericia en otras dos competencias de habilidades de tu elección.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente",
+      "categoriaMecanica": "selector_informativo",
       "tablaProgresion": {
         "columnas": [
           "Nivel",
@@ -165,7 +173,24 @@
           }
         ],
         "notaPie": "Se apilan los niveles"
-      }
+      },
+      "selectores": [
+        {
+          "id": "selector_pericia_bardo_nv2",
+          "tipo": "multiple",
+          "tipoSelector": "general",
+          "etiqueta": "Pericia de nivel 2",
+          "maxSelecciones": 2,
+          "valorActual": [],
+          "visualizacion": "normal",
+          "claveOpcionesDinamicas": "habilidades_pericia",
+          "filtroHabilidades": {
+            "soloCompetentes": true,
+            "excluirPericia": true
+          },
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 2,
@@ -195,15 +220,30 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones. Vuelves a obtener este rasgo en los niveles 8, 12 y 16 de bardo.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv4",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 5,
       "nombre": "Fuente de inspiración",
       "descripcion": "Ahora recuperas todos los usos gastados de Inspiración bárdica cuando finalizas un descanso corto o largo.\n\nAdemás, puedes gastar un espacio de conjuro (no requiere acción) para recuperar un uso gastado de Inspiración bárdica.",
-      "tipoAccion": "especial",
+      "tipoAccion": "pasivo",
       "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
-      "categoriaMecanica": "extension"
+      "categoriaMecanica": "extension",
+      "recuperarUsosConEspacio": 1
     },
     {
       "nivel": 6,
@@ -224,28 +264,83 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv8",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 9,
       "nombre": "Pericia",
       "descripcion": "Ganas pericia en otras dos de tus competencias de habilidades de tu elección.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "extension",
+      "ligadoA": "rasgo_cls_bardo_pericia",
+      "selectores": [
+        {
+          "id": "selector_pericia_bardo_nv9",
+          "tipo": "multiple",
+          "tipoSelector": "general",
+          "etiqueta": "Pericia de nivel 9",
+          "maxSelecciones": 2,
+          "valorActual": [],
+          "visualizacion": "normal",
+          "claveOpcionesDinamicas": "habilidades_pericia",
+          "filtroHabilidades": {
+            "soloCompetentes": true,
+            "excluirPericia": true
+          },
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 10,
       "nombre": "Secretos mágicos",
       "descripcion": "Cada vez que aprendas o cambies un conjuro por subir de nivel de Bardo, puedes elegirlo de las listas de Bardo, Clérigo, Druida o Mago. El conjuro debe ser de un nivel para el cual ya tengas espacios de conjuro.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "pasivo_permanente"
+      "categoriaMecanica": "pasivo_permanente",
+      "ampliacionListaConjuros": {
+        "clase": "Bardo",
+        "listas": [
+          "Clérigo",
+          "Druida",
+          "Mago"
+        ],
+        "nivelMinimoConjuro": 1
+      }
     },
     {
       "nivel": 12,
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv12",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 14,
@@ -259,7 +354,21 @@
       "nombre": "Mejora de característica",
       "descripcion": "Obtienes la dote Mejora de característica u otra dote de tu elección para la que cumplas las condiciones.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_asi_bardo_nv16",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 18,
@@ -279,7 +388,21 @@
       "nombre": "Don épico",
       "descripcion": "Obtienes una dote de don épico u otra dote de tu elección para la que cumplas las condiciones. Se recomienda Don del recuerdo de conjuros.",
       "tipoAccion": "pasivo",
-      "categoriaMecanica": "selector_informativo"
+      "categoriaMecanica": "selector_informativo",
+      "selectores": [
+        {
+          "id": "selector_dote_don_epico_bardo_nv19",
+          "tipo": "unico",
+          "tipoSelector": "dote",
+          "etiqueta": "Dote elegida",
+          "maxSelecciones": 1,
+          "valorActual": [],
+          "requiereEleccionExplicita": true,
+          "claveOpcionesDinamicas": "dotes_elegibles",
+          "visualizacion": "normal",
+          "opciones": []
+        }
+      ]
     },
     {
       "nivel": 20,
@@ -306,7 +429,8 @@
           "descripcion": "Palabras de creación (Palabra de poder: matar siempre preparado)",
           "activo": true
         }
-      ]
+      ],
+      "claseConjurosOtorgados": "Bardo"
     }
   ],
   "subclases": [
@@ -338,20 +462,14 @@
             {
               "tipo": "ataque_desarmado",
               "objetivo": "destreza",
-              "valor": "dado_inspiracion",
+              "valor": "dados_padre",
               "condicion": "sin_armadura_ni_escudo",
               "descripcion": "Daño bárdico",
-              "activo": true
-            },
-            {
-              "tipo": "ventaja",
-              "objetivo": "habilidad.interpretacion",
-              "valor": "ventaja",
-              "condicion": "bailando",
-              "descripcion": "Virtuoso de la danza (Ventaja en Carisma (Interpretación) al bailar)",
-              "activo": true
+              "activo": true,
+              "tipoDano": "Contundente"
             }
-          ]
+          ],
+          "ligadoA": "rasgo_cls_bardo_inspiracion_bardica"
         },
         {
           "nivel": 6,
@@ -361,7 +479,8 @@
           "subclase": "Colegio de la Danza",
           "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
           "gastarDePadre": true,
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "costeFijo": 1
         },
         {
           "nivel": 6,
@@ -369,11 +488,15 @@
           "descripcion": "Cuando tiras iniciativa, puedes gastar un uso de tu Inspiración bárdica si no tienes el estado de Incapacitado. Al hacerlo, tira tu dado de Inspiración bárdica; tú y cada aliado a 30 pies o menos de ti que pueda verte u oírte gana un bonificador a la iniciativa igual al número que hayas sacado.",
           "tipoAccion": "especial",
           "subclase": "Colegio de la Danza",
-          "autoDesactivar": true,
           "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
           "gastarDePadre": true,
           "heredarDadosPadre": true,
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "iniciativaOpcional": true,
+          "costeFijo": 1,
+          "desactivarConCondiciones": [
+            "Incapacitado"
+          ]
         },
         {
           "nivel": 14,
@@ -402,28 +525,16 @@
           "categoriaMecanica": "consumible",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_largo",
-          "conjurosOtorgados": [
-            "Hechizar persona",
-            "Imagen múltiple"
-          ],
-          "efectos": [
-            {
-              "tipo": "conjuro_otorgado",
-              "objetivo": "Hechizar persona",
-              "valor": "siempre_preparado",
-              "descripcion": "Magia cautivadora: Hechizar persona siempre preparado",
-              "activo": true
-            },
-            {
-              "tipo": "conjuro_otorgado",
-              "objetivo": "Imagen múltiple",
-              "valor": "siempre_preparado",
-              "descripcion": "Magia cautivadora: Imagen múltiple siempre preparado",
-              "activo": true
-            }
-          ]
+          "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
+          "recargarUsoConPadre": true,
+          "trasLanzarConjuro": {
+            "escuelas": [
+              "Encantamiento",
+              "Ilusionismo",
+              "Ilusión"
+            ]
+          }
         },
         {
           "nivel": 3,
@@ -435,15 +546,8 @@
           "gastarDePadre": true,
           "heredarDadosPadre": true,
           "categoriaMecanica": "consumible",
-          "efectos": [
-            {
-              "tipo": "hp_temporal",
-              "objetivo": "propio",
-              "valor": "2_veces_dado_inspiracion",
-              "descripcion": "Otorga Puntos de golpe temporales al personaje igual al doble del número sacado en el dado de Inspiración bárdica",
-              "activo": true
-            }
-          ]
+          "multiplicadorResultadoManual": 2,
+          "costeFijo": 1
         },
         {
           "nivel": 6,
@@ -453,23 +557,21 @@
           "subclase": "Colegio del Glamour",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_largo",
           "esActivable": true,
           "condicionAlActivar": "Manto de Majestad (Mantle of Majesty)",
+          "finalizarAlDescansar": true,
           "duracionEfectoAlActivar": 10,
-          "conjurosOtorgados": [
-            "Orden imperiosa"
-          ],
           "categoriaMecanica": "activable",
-          "efectos": [
-            {
-              "tipo": "conjuro_gratuito",
-              "objetivo": "Orden imperiosa",
-              "valor": "sin_espacio",
-              "descripcion": "Permite lanzar Orden imperiosa sin gastar espacios ni puntos de conjuro mientras Manto de majestad esté activo",
-              "activo": true
-            }
+          "lanzamientoConActivacion": {
+            "conjuroId": "h_orden-imperiosa",
+            "nivel": 1
+          },
+          "claseConjurosOtorgados": "Bardo",
+          "recuperarUsosConEspacio": 1,
+          "nivelMinimoRecuperarUsosConEspacio": 3,
+          "desactivarConCondiciones": [
+            "Incapacitado"
           ]
         },
         {
@@ -480,19 +582,14 @@
           "subclase": "Colegio del Glamour",
           "tieneUsosLimitados": true,
           "usosMaximos": 1,
-          "formulaUsos": "1",
           "recuperacion": "descanso_corto",
           "esActivable": true,
           "condicionAlActivar": "Majestad Inquebrantable (Unbreakable Majesty)",
+          "finalizarAlDescansar": true,
           "categoriaMecanica": "activable",
-          "efectos": [
-            {
-              "tipo": "personalizado",
-              "objetivo": "propio",
-              "valor": "informativo",
-              "descripcion": "Presencia majestuosa: Si una criatura te acierta con un ataque por primera vez en un turno, debe superar una salvación de Carisma contra tu CD de conjuros o el ataque falla.",
-              "activo": true
-            }
+          "duracionEfectoAlActivar": 10,
+          "desactivarConCondiciones": [
+            "Incapacitado"
           ]
         }
       ],
@@ -534,247 +631,10 @@
               "tipoSelector": "general",
               "etiqueta": "Habilidades adicionales",
               "maxSelecciones": 3,
-              "valorActual": [
-                "arcanos",
-                "historia",
-                "naturaleza"
-              ],
-              "opciones": [
-                {
-                  "id": "acrobacias",
-                  "nombre": "Acrobacias",
-                  "descripcion": "Competencia en la habilidad Acrobacias.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.acrobacias",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "manejoAnimales",
-                  "nombre": "Manejo de animales",
-                  "descripcion": "Competencia en la habilidad Manejo de animales.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.manejoAnimales",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "arcanos",
-                  "nombre": "Conocimiento arcano (Arcanos)",
-                  "descripcion": "Competencia en la habilidad Conocimiento arcano.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.arcanos",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "atletismo",
-                  "nombre": "Atletismo",
-                  "descripcion": "Competencia en la habilidad Atletismo.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.atletismo",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "engano",
-                  "nombre": "Engaño",
-                  "descripcion": "Competencia en la habilidad Engaño.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.engano",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "historia",
-                  "nombre": "Historia",
-                  "descripcion": "Competencia en la habilidad Historia.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.historia",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "perspicacia",
-                  "nombre": "Perspicacia",
-                  "descripcion": "Competencia en la habilidad Perspicacia.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.perspicacia",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "intimidacion",
-                  "nombre": "Intimidación",
-                  "descripcion": "Competencia en la habilidad Intimidación.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.intimidacion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "investigacion",
-                  "nombre": "Investigación",
-                  "descripcion": "Competencia en la habilidad Investigación.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.investigacion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "medicina",
-                  "nombre": "Medicina",
-                  "descripcion": "Competencia en la habilidad Medicina.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.medicina",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "naturaleza",
-                  "nombre": "Naturaleza",
-                  "descripcion": "Competencia en la habilidad Naturaleza.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.naturaleza",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "percepcion",
-                  "nombre": "Percepción",
-                  "descripcion": "Competencia en la habilidad Percepción.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.percepcion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "interpretacion",
-                  "nombre": "Interpretación",
-                  "descripcion": "Competencia en la habilidad Interpretación.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.interpretacion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "persuasion",
-                  "nombre": "Persuasión",
-                  "descripcion": "Competencia en la habilidad Persuasión.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.persuasion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "religion",
-                  "nombre": "Religión",
-                  "descripcion": "Competencia en la habilidad Religión.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.religion",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "juegoManos",
-                  "nombre": "Juego de manos",
-                  "descripcion": "Competencia en la habilidad Juego de manos.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.juegoManos",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "sigilo",
-                  "nombre": "Sigilo",
-                  "descripcion": "Competencia en la habilidad Sigilo.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.sigilo",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                },
-                {
-                  "id": "supervivencia",
-                  "nombre": "Supervivencia",
-                  "descripcion": "Competencia en la habilidad Supervivencia.",
-                  "efectos": [
-                    {
-                      "tipo": "competencia",
-                      "objetivo": "habilidad.supervivencia",
-                      "valor": "competente",
-                      "activo": true
-                    }
-                  ]
-                }
-              ]
+              "valorActual": [],
+              "opciones": [],
+              "claveOpcionesDinamicas": "habilidades_competencia",
+              "visualizacion": "normal"
             }
           ]
         },
@@ -787,7 +647,8 @@
           "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
           "gastarDePadre": true,
           "heredarDadosPadre": true,
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "costeFijo": 1
         },
         {
           "nivel": 6,
@@ -795,7 +656,31 @@
           "descripcion": "Aprendes dos conjuros de tu elección. Estos conjuros pueden provenir de la lista de conjuros de clérigo, druida o mago, o cualquier combinación de los mismos. Un conjuro que elijas debe ser un truco o un conjuro para el que tengas espacios de conjuro,.\n\nSiempre tienes los conjuros elegidos preparados, y cada vez que subas un nivel de bardo, puedes sustituir uno de los conjuros por otro conjuro que cumpla con estos requisitos.",
           "tipoAccion": "pasivo",
           "subclase": "Colegio del Conocimiento",
-          "categoriaMecanica": "pasivo_permanente"
+          "categoriaMecanica": "selector_informativo",
+          "claseConjurosOtorgados": "Bardo",
+          "conjurosDesdeSelectores": true,
+          "selectores": [
+            {
+              "id": "selector_descubrimientos_magicos",
+              "tipo": "multiple",
+              "tipoSelector": "conjuro",
+              "etiqueta": "Descubrimientos mágicos",
+              "maxSelecciones": 2,
+              "valorActual": [],
+              "visualizacion": "lista",
+              "claveOpcionesDinamicas": "conjuros_catalogo",
+              "destinoConjuros": "siempre_preparados",
+              "filtroConjuros": {
+                "listas": [
+                  "Clérigo",
+                  "Druida",
+                  "Mago"
+                ],
+                "nivelMaximoPorClase": "Bardo"
+              },
+              "opciones": []
+            }
+          ]
         },
         {
           "nivel": 14,
@@ -806,7 +691,9 @@
           "ligadoA": "rasgo_cls_bardo_inspiracion_bardica",
           "gastarDePadre": true,
           "heredarDadosPadre": true,
-          "categoriaMecanica": "consumible"
+          "categoriaMecanica": "consumible",
+          "gastoSegunResultado": true,
+          "costeFijo": 1
         }
       ]
     },
@@ -870,7 +757,7 @@
           "nivel": 14,
           "nombre": "Magia de batalla",
           "descripcion": "Después de lanzar un conjuro que tenga un tiempo de lanzamiento de una acción, puedes hacer un ataque con un arma como acción adicional.",
-          "tipoAccion": "pasivo",
+          "tipoAccion": "accion_adicional",
           "subclase": "Colegio del Valor",
           "categoriaMecanica": "pasivo_permanente"
         }

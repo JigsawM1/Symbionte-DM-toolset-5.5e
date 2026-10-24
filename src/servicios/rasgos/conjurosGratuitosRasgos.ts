@@ -7,6 +7,8 @@ import { obtenerModificadorAptitudMagica } from "../calculadorMagia";
 import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
 import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
+import { resolverClaseLanzamiento } from "./modificadoresConjuroRasgos";
+import { seleccionesValidas } from "./seleccionesRasgos";
 
 export interface EvaluacionRecursosGratuito {
   elegible: boolean;
@@ -114,11 +116,11 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
     && obtenerNivelEfectivoParaRasgo(pj,r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r,pj.rasgos)
     && ((r.conjurosOtorgados ?? []).some(coincide) || (r.selectores ?? []).some(s => s.tipoSelector === "conjuro"
       && s.destinoConjuros !== "referencia" && s.destinoConjuros !== "libro"
-      && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && s.valorActual.some(coincide))))
+      && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(coincide))))
     .map(r => r.claseConjurosOtorgados!.toLocaleLowerCase("es")));
   const claseElegida = solicitud.modo !== "arcanoMistico" && solicitud.modo !== "gratuitoInnato"
     ? solicitud.claseLanzamiento?.toLocaleLowerCase("es") : undefined;
-  const clase = claseElegida ?? (clases.size === 1 ? [...clases][0] : undefined);
+  const clase = claseElegida ?? (clases.size === 1 ? [...clases][0] : resolverClaseLanzamiento(pj, solicitud.hechizo));
   const aptitud = r?.aptitudConjuroGratuito ?? (clase
     ? pj.clasesLanzadoras.find(c => c.clase.toLocaleLowerCase("es") === clase)?.habilidadConjuro
       ?? obtenerClasePorNombre(clase)?.configuracionMagica?.habilidadConjuro : undefined);
@@ -128,7 +130,7 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
   const modificador = aptitud ? obtenerModificadorAptitudMagica(pj, aptitud) : solicitud.modificadorHabilidad ?? 0;
   const competencia = Math.floor((Math.max(1, pj.nivel) - 1) / 4) + 2;
   const hechizo: HechizoBase = r?.ignorarComponentesConjuro ? { ...solicitud.hechizo, componentesSeleccionados: { verbal: false, somatico: false, material: false }, materiales: "" } : variante ? { ...solicitud.hechizo, componentesSeleccionados: { ...solicitud.hechizo.componentesSeleccionados, material: false }, materiales: "" } : solicitud.hechizo;
-  return { ...solicitud, hechizo, ...(aptitud ? {
+  return { ...solicitud, hechizo, claseLanzamiento: clase ?? solicitud.claseLanzamiento, ...(aptitud ? {
     modificadorHabilidad: modificador, bonoAtaqueMagico: competencia + modificador, cdSalvacionPersonaje: 8 + competencia + modificador
   } : {}) };
 }

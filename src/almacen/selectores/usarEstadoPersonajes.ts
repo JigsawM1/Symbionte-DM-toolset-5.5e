@@ -274,7 +274,8 @@ export function calcularEstadisticasPersonaje(
         herramientas: [] as string[],
         salvaciones: [] as Caracteristica[],
         idiomas: [] as string[],
-        habilidades: [] as Habilidad[]
+        habilidades: [] as Habilidad[],
+        pericias: [] as Habilidad[]
       };
   const compSalv = {
     fuerza: (pj?.competenciasSalvacion?.fuerza || false) || compExtraRasgos.salvaciones.includes("fuerza"),
@@ -346,8 +347,10 @@ export function calcularEstadisticasPersonaje(
     const modBase = modificadores[caracAsociada] || 0;
     const gradoExtra = compExtraRasgos.habilidades?.includes(hab) ? "competente" : "ninguna";
     const gradoGuardado = grados[hab] || "ninguna";
-    const gradoBase: GradoCompetencia = gradoGuardado !== "ninguna" ? gradoGuardado : gradoExtra;
-    const grado: GradoCompetencia = gradoBase === "ninguna" && tieneAprendiz ? "medio" : gradoBase;
+    const gradoBase: GradoCompetencia = gradoGuardado === "pericia" ? "pericia"
+      : gradoExtra === "competente" ? "competente" : gradoGuardado;
+    const grado: GradoCompetencia = compExtraRasgos.pericias.includes(hab) ? "pericia"
+      : gradoBase === "ninguna" && tieneAprendiz ? "medio" : gradoBase;
     gradosHabilidadesEfectivos[hab] = grado;
     const custom = personalizaciones[hab];
 

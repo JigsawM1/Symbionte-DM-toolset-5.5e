@@ -37,8 +37,12 @@ export function sincronizarConjurosSubclaseHelper(
 
   // Filtrar de preparados los que correspondían a la subclase anterior
   const esEliminadoSubclase = crearMatcherHechizos(eliminadosSubclase);
+  const elecciones = Object.entries(pj.eleccionesConjurosClase ?? {});
+  const conocidosIndependientes = [...(pj.aprendizajesConjurosIndependientes?.conjuros ?? []), ...elecciones.flatMap(([, e]) => e.conjuros)];
+  const preparadoIndependiente = crearMatcherHechizos([...(pj.aprendizajesConjurosIndependientes?.conjuros ?? []), ...elecciones.flatMap(([clase, e]) =>
+    pj.clasesLanzadoras.find(c => c.clase.toLowerCase() === clase.toLowerCase())?.modeloConjuros === "grimorio" ? e.preparados ?? [] : e.conjuros)]);
   const preparados = deduplicarListaIds(
-    (pj.conjurosPreparadosIds || []).filter((prep) => !esEliminadoSubclase(prep))
+    (pj.conjurosPreparadosIds || []).filter((prep) => !esEliminadoSubclase(prep) || preparadoIndependiente(prep))
   );
   // Añadir los nuevos de subclase sin duplicar
   const esPreparado = crearMatcherHechizos(preparados);
@@ -49,7 +53,7 @@ export function sincronizarConjurosSubclaseHelper(
   });
 
   // Filtrar de conocidos los eliminados de subclase
-  const aprendizajesIndependientes = crearMatcherHechizos(pj.aprendizajesConjurosIndependientes?.conjuros ?? []);
+  const aprendizajesIndependientes = crearMatcherHechizos(conocidosIndependientes);
   const conocidos = deduplicarListaIds(
     (pj.conjurosConocidosIds || []).filter(
       (con) => !esEliminadoSubclase(con) || aprendizajesIndependientes(con)

@@ -70,12 +70,13 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
       expect(conjuros?.recuperacion).toBe("ninguno");
     });
 
-    it("Nivel 2: Pericia y Aprendiz de mucho son pasivo_permanente", () => {
+    it("Nivel 2: Pericia ofrece elecciones y Aprendiz de mucho es pasivo permanente", () => {
       const rasgosNv2 = obtenerRasgosClaseYSubclase("Bardo", 2);
 
       const pericia = rasgosNv2.find((r) => r.nombre === "Pericia");
       expect(pericia).toBeDefined();
-      expect(pericia?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(pericia?.categoriaMecanica).toBe("selector_informativo");
+      expect(pericia?.selectores?.[0].valorActual).toEqual([]);
       expect(pericia?.tablaProgresion?.filas[0].nivel).toBe(2);
 
       const aprendiz = rasgosNv2.find((r) => r.nombre === "Aprendiz de mucho");
@@ -188,7 +189,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
 
       const donEpico = rasgosNv20.find((r) => r.nombre.includes("Don épico"));
       expect(donEpico?.categoriaMecanica).toBe("selector_informativo");
-      expect(donEpico?.selectores?.[0].valorActual).toContain("dote_don_recuerdo_conjuros");
+      expect(donEpico?.selectores?.[0].valorActual).toEqual([]);
 
       const palabras = rasgosNv20.find((r) => r.nombre === "Palabras de creación");
       expect(palabras?.categoriaMecanica).toBe("pasivo_permanente");
@@ -281,7 +282,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
         expect(pies?.categoriaMecanica).toBe("pasivo_permanente");
         expect(pies?.efectos?.some((e) => e.tipo === "modificador_ca")).toBe(true);
         expect(pies?.efectos?.some((e) => e.tipo === "ataque_desarmado")).toBe(true);
-        expect(pies?.efectos?.some((e) => e.tipo === "ventaja")).toBe(true);
+        expect(pies?.efectos?.some((e) => e.tipo === "ventaja")).toBe(false);
 
         const mov = rasgos.find((r) => r.nombre === "Movimiento inspirador");
         expect(mov?.categoriaMecanica).toBe("consumible");
@@ -308,7 +309,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
         expect(magia?.categoriaMecanica).toBe("consumible");
         expect(magia?.tieneUsosLimitados).toBe(true);
         expect(magia?.usosMaximos).toBe(1);
-        expect(magia?.conjurosOtorgados).toEqual(["Hechizar persona", "Imagen múltiple"]);
+        expect(magia?.conjurosOtorgados).toEqual([]); // Concesión permanente mediante progresionConjuros, separada del recurso.
 
         const manto = rasgos.find((r) => r.nombre === "Manto de inspiración");
         expect(manto?.categoriaMecanica).toBe("consumible");
@@ -340,7 +341,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
         expect(tieneConjuroGratuitoActivo(pjGlamour, "Imagen múltiple")).toBe(false);
       });
 
-      it("Manto de majestad otorga Orden imperiosa gratis mientras esté activo (incluso con usosRestantes = 0)", () => {
+      it("Manto de majestad declara su alternativa propia sin habilitar el lanzamiento gratuito genérico", () => {
         const rasgos = obtenerRasgosClaseYSubclase("Bardo", 6, "Colegio del Glamour");
         const majestadBase = rasgos.find((r) => r.nombre === "Manto de majestad")!;
         expect(majestadBase).toBeDefined();
@@ -363,9 +364,10 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
           nivel: 6,
           rasgos: [{ ...majestadBase, activo: true, usosRestantes: 0 }]
         };
-        expect(tieneConjuroGratuitoActivo(pjActivo, "Orden imperiosa")).toBe(true);
+        expect(majestadBase.lanzamientoConActivacion?.nivel).toBe(1);
+        expect(tieneConjuroGratuitoActivo(pjActivo, "Orden imperiosa")).toBe(false);
 
-        // 3. Activo mediante condición asociada en condicionesActivas -> SÍ otorga Orden imperiosa gratis
+        // Una condición aislada no sustituye el lanzamiento con activación y concentración.
         const pjPorCondicion: PersonajeJugador = {
           ...PERSONAJE_POR_DEFECTO,
           clase: "Bardo",
@@ -374,7 +376,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
           condicionesActivas: ["Manto de Majestad (Mantle of Majesty)"],
           rasgos: [{ ...majestadBase, activo: false, usosRestantes: 0 }]
         };
-        expect(tieneConjuroGratuitoActivo(pjPorCondicion, "Orden imperiosa")).toBe(true);
+        expect(tieneConjuroGratuitoActivo(pjPorCondicion, "Orden imperiosa")).toBe(false);
       });
     });
 
@@ -394,7 +396,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
         expect(palabras?.heredarDadosPadre).toBe(true);
 
         const descubrimientos = rasgos.find((r) => r.nombre === "Descubrimientos mágicos");
-        expect(descubrimientos?.categoriaMecanica).toBe("pasivo_permanente");
+        expect(descubrimientos?.categoriaMecanica).toBe("selector_informativo");
 
         const habilidad = rasgos.find((r) => r.nombre === "Habilidad inigualable");
         expect(habilidad?.categoriaMecanica).toBe("consumible");

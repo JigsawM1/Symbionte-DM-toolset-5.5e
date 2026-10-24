@@ -1,5 +1,9 @@
 import type { PersonajeJugador, RasgoPersonaje, SelectorRasgo } from "@/tipos";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
+import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "./rasgos/listasConjurosRasgos";
+import { hidratarSelectoresConjuros } from "./rasgos/catalogoSelectoresConjuros";
+import { reconciliarIntentoRasgo } from "./rasgos/resolucionesRasgos";
+import { normalizarCondicionesRasgos } from "./rasgos/estadoCondicionesRasgos";
 
 /**
  * Determina si un rasgo proviene formalmente del compendio canónico (clase, especie, subclase).
@@ -102,12 +106,12 @@ export function deshidratarPersonaje(personaje: PersonajeJugador): PersonajeJuga
  * Hidrata un personaje en memoria restaurando las descripciones oficiales,
  * tablas de progresión y opciones dinámicas directamente desde el compendio.
  */
-export function hidratarPersonaje(personaje: PersonajeJugador): PersonajeJugador {
+export function hidratarPersonaje(personaje: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
   if (!personaje) return personaje;
 
-  return {
+  return normalizarCondicionesRasgos(reconciliarIntentoRasgo(reconciliarEleccionesConjuros({
     ...personaje,
     conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
-    rasgos: sincronizarRasgosAutomaticos(personaje)
-  };
+    rasgos: catalogo ? hidratarSelectoresConjuros(sincronizarRasgosAutomaticos(personaje), catalogo) : sincronizarRasgosAutomaticos(personaje)
+  }, catalogo)));
 }

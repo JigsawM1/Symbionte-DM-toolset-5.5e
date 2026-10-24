@@ -18,6 +18,7 @@ export function finalizarRasgosAlDescansar(pj: PersonajeJugador): PersonajeJugad
   const ids = new Set(rasgos.map(r => r.id));
   const condiciones = new Set(rasgos.flatMap(r => r.condicionAlActivar ? [claveEstado(r.condicionAlActivar)] : []));
   return { ...pj, rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
+    concentracionActiva: ids.has(pj.concentracionActiva?.idRasgoOrigen ?? "") ? null : pj.concentracionActiva,
     efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "") && !condiciones.has(claveEstado(e.nombre))),
     condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c))) };
 }
@@ -33,8 +34,9 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
       claveEstado(e.nombre) === claveEstado(r.condicionAlActivar!) && e.expiraRonda !== undefined && e.expiraRonda <= ronda);
     const armaduraImpide = r.desactivarConArmaduraPesada && tieneArmaduraEquipada(pj).esPesada;
     const sinHp = r.desactivarSinHp && pj.hpActual <= 0;
+    const sinConcentracion = r.lanzamientoConActivacion && pj.concentracionActiva?.idRasgoOrigen !== r.id;
     const faltaRequisito = r.requiereRasgosActivos?.some(id => !pj.rasgos.some(a => a.id === id && a.activo));
-    if (!impedido && !expirado && !armaduraImpide && !sinHp && !faltaRequisito) return r;
+    if (!impedido && !expirado && !armaduraImpide && !sinHp && !faltaRequisito && !sinConcentracion) return r;
     cambio = true;
     if (r.condicionAlActivar) retirar.add(claveEstado(r.condicionAlActivar));
     return { ...r, activo: false };
@@ -54,7 +56,14 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
     });
     if (!nuevos) break;
   }
-  return cambio ? { ...pj, rasgos,
+  const idConcentracion = pj.concentracionActiva?.idRasgoOrigen;
+  const retirarConcentracion = idConcentracion && !rasgos.some(r => r.id === idConcentracion && r.activo);
+  if (retirarConcentracion) {
+    retirar.add(claveEstado(pj.concentracionActiva!.nombreHechizo));
+    for (const e of pj.efectosActivos ?? []) if (e.idRasgoOrigen === idConcentracion) retirar.add(claveEstado(e.nombre));
+  }
+  return cambio || retirarConcentracion ? { ...pj, rasgos,
+    concentracionActiva: retirarConcentracion ? null : pj.concentracionActiva,
     condicionesActivas: (pj.condicionesActivas ?? []).filter(c => !retirar.has(claveEstado(c))),
     efectosActivos: (pj.efectosActivos ?? []).filter(e => !retirar.has(claveEstado(e.nombre))) } : pj;
 }

@@ -1,5 +1,172 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-23] Poda Ponytail Post-Escalado (Procesador de Descansos y Tests de Bardo)
+
+- **Diagnóstico Ponytail**:
+  - `shrink` en `procesadorDescansos.ts`: Duplicación de lógica entre la recarga parcial y completa en descanso corto (`recargaDescansoCorto` vs `descanso_corto`).
+  - `shrink` en `bardoBase2024.test.ts`: Importación dinámica innecesaria de `ejecutarDescansoCorto` cuando ya estaba importada en la cabecera.
+- **Poda Aplicada**:
+  1. *Fusión de Ramas en Descanso Corto (`procesadorDescansos.ts`)*:
+     - Unificado el cálculo de `nuevosRestantes` mediante operador ternario dentro de una sola comprobación `if (esRecuperacionCorto)`.
+     - Ahorro de 8 líneas netas y eliminación de código repetido.
+  2. *Limpieza de Importación en Test (`bardoBase2024.test.ts`)*:
+     - Eliminado `await import("./procesadorDescansos")` y simplificado el test a ejecución síncrona directa.
+- **Certificación CI**:
+  - `tsc --noEmit`: 0 errores.
+  - `eslint src --max-warnings=0`: 0 errores, 0 advertencias.
+  - `pnpm test`: 168 suites ejecutadas, **2.386 / 2.386 pruebas aprobadas (100%)**.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos.
+  - `pnpm run build`: Compilación Vite en producción exitosa.
+
+
+## [2026-10-23] Coste Escalonado Acumulativo de Puntos de Conjuro (2, 4, 6, 8... n+2)
+
+- **Contexto y Diagnóstico**:
+  - *Observación del Usuario*: Con la variante de Puntos de Conjuro (DMG), la recuperación de usos de rasgos (ej. *Inspiración bárdica* a nivel 7) aplicaba un coste fijo lineal ($2+2+2\dots$). Esto rompía el balance respecto a los espacios de conjuro tradicionales, donde los 4 espacios de nivel 1 se agotan y fuerzan al jugador a gastar espacios de nivel 2 o superior (más costosos).
+  - *Solución*: Implementar una progresión aritmética acumulativa ($2 \rightarrow 4 \rightarrow 6 \rightarrow 8 \dots$) que registre los usos recuperados en el rasgo y reinicie dicho contador según el tipo de descanso correspondiente al rasgo.
+- **Implementación**:
+  1. *Esquema y Tipado (`mecanicasRasgos.ts`)*:
+     - Añadido `usosRecuperadosConPuntos: z.number().int().min(0).optional()` a `EsquemaMecanicasRasgo`.
+  2. *Cálculo en $O(1)$ y Estrategia (`conversionRecursosRasgos.ts`)*:
+     - Implementada la fórmula cerrada: $\text{Coste Total}(m, U) = U \cdot (2m + U + 1)$.
+     - Creados los helpers `calcularCostePuntosRecuperacion(vecesPrevias, cantidadUsos)` y `calcularMaxUsosPagablesConPuntos(vecesPrevias, puntosDisponibles, maxFaltantes)`.
+     - `ejecutarRecuperacionPorPuntos` valida el coste esperado y actualiza `usosRecuperadosConPuntos: previos + cantidad`.
+  3. *Reinicio en Descansos (`procesadorDescansos.ts`)*:
+     - `ejecutarDescansoCorto`: Reinicia `usosRecuperadosConPuntos: 0` si el rasgo se recupera en descanso corto (`recuperacion === "descanso_corto"` o recarga dinámica de descanso corto).
+     - `ejecutarDescansoLargo`: Reinicia `usosRecuperadosConPuntos: 0` para todos los rasgos que tengan usos registrados.
+  4. *Interfaz de Usuario (`RecuperarUsosConEspacio.tsx`)*:
+     - Muestra el aviso dinámico con los usos recuperados este descanso y el coste del siguiente uso.
+     - Botón `[Máx]` calcula el tope de usos pagables respetando la curva de progresión.
+     - Botón de apertura deshabilitado si los puntos disponibles son inferiores al coste del siguiente uso.
+  5. *Pruebas Unitarias Integradas*:
+     - `bardoBase2024.test.ts`: Validado el salto de coste $2 \rightarrow 4$ pts consecutivo, $6$ pts simultáneo, rechazo por coste inexacto o puntos insuficientes, y reinicio tras descanso corto.
+     - `RecuperarUsosConEspacio.test.tsx`: Validada la desactivación del botón cuando el saldo es inferior al siguiente escalón ($m = 2 \implies 6$ pts requeridos).
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm exec eslint src --max-warnings=0`: 0 errores, 0 advertencias.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 168 suites ejecutadas, **2.386 / 2.386 pruebas aprobadas (100% éxito)**.
+  - `pnpm run build`: Compilación Vite en producción completada con éxito.
+
+
+## [2026-10-23] Unificación de Recarga con Espacios de Pacto (Brujo D&D 2024) en el Patrón Strategy
+
+- **Contexto y Diagnóstico**:
+  - *Pregunta del Usuario*: Verificar si el Brujo (Warlock) también cuenta con la mecánica de gastar espacios de conjuro (espacios de pacto) para recargar usos de rasgos en D&D 2024, y si es conveniente unificar dicha lógica bajo el patrón **Strategy**.
+  - *Hallazgo de Reglas D&D 5.5 (2024)*: Confirmado en el compendio (`brujo.json`). Tres subclases canónicas poseen rasgos con 1 uso por descanso que permiten gastar un espacio de Magia del Pacto para recargar su uso sin acción:
+    1. *Defensas fascinantes* (Archihadas, Nivel 10)
+    2. *Arrojar al Infierno* (Infernal, Nivel 14)
+    3. *Combatiente clarividente* (Gran Primigenio, Nivel 10)
+  - *Problema Arquitectónico*: `recargarUsoRasgoConPacto` en `sliceRecursosRasgos.ts` mutaba manualmente `espaciosPactoGastados` y `usosRestantes`, duplicando la lógica de consumo y rompiendo el principio de fuente única de verdad respecto a `consumirRecursoConjuro`.
+- **Solución Implementada**:
+  1. *Estrategia en Dominio (`conversionRecursosRasgos.ts`)*:
+     - Ampliado el tipo discriminado `OperacionRecursoRasgo` para incluir `{ tipo: "recargarUsoConPacto"; idRasgo: string }`.
+     - Implementada la función pura `ejecutarRecuperacionPorPacto(pj, r)` como tercera estrategia de la familia:
+       - Valida que el rasgo posea `recargarUsoConPacto` y que sus usos disponibles no hayan alcanzado el máximo (`r.usosMaximos ?? 1`).
+       - Delega el consumo atómico a `consumirRecursoConjuro(pj, { tipo: "pacto", nivel: pj.nivelEspacioPacto })`.
+       - Aplica la mutación inmutable mediante `aplicarRecuperacion(r, consumo, 1)`.
+  2. *Poda de Fachada Redundante y Despacho Directo (`sliceRecursosRasgos.ts`, `slicePersonajesTipos.ts`, `ControlesRecursosDeclarativos.tsx`)*:
+     - Se podó el método de fachada `recargarUsoRasgoConPacto` del store Zustand (`SubSliceRasgos`), eliminando la duplicidad de APIs.
+     - La UI (`ControlesRecursosDeclarativos.tsx`) y los tests (`brujoDeclarativo2024.test.ts`) ahora invocan directamente el despachador unificado `operarRecursoRasgoPersonaje(pj.id, { tipo: "recargarUsoConPacto", idRasgo })`, alineándose al 100% con el estándar del proyecto (Command pattern).
+  3. *Experiencia de Usuario (UI/UX)*:
+     - Se mantiene el botón táctico de 1 clic `[ ↺ Recargar ]` en `ControlesRecursosDeclarativos.tsx` (a diferencia del Bardo que exige un modal porque hay 9 niveles distintos o puntos a elegir, el Brujo solo tiene ranuras de pacto idénticas y fijas, por lo que 1 clic directo sin modales es la interacción óptima para TaleSpire/CEF).
+  4. *Pruebas Unitarias Integradas (`brujoDeclarativo2024.test.ts`)*:
+     - Actualizada y verificada la suite de Brujo validando el flujo mediante `operarRecursoRasgoPersonaje`: rechazo sin consumir dos veces, bloqueo por falta de espacios de pacto y recarga exitosa con deducción atómica de pacto cuando hay disponibles.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm exec eslint src --max-warnings=0`: 0 errores, 0 advertencias.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 168 suites ejecutadas, **2.385 / 2.385 pruebas aprobadas (100% éxito)**.
+  - `pnpm run build`: Compilación Vite en producción completada con éxito.
+
+
+## [2026-10-23] Poda Ponytail y Simplificación de Sobreingeniería (Recuperar Usos de Rasgos)
+
+- **Contexto y Diagnóstico**:
+  - *Auditoría Ponytail*: Detección de sobreingeniería accidental tras la implementación del patrón Strategy en `RecuperarUsosConEspacio.tsx` (interfaces monouso de objetos envoltorios, bucle `useMemo` imperativo de 35 líneas, código duplicado de mutación en dominio y script efímero en `scratch/`).
+- **Poda Aplicada**:
+  1. *Aplanado de Interfaces y Objetos Envoltorios (`yagni`)*:
+     - Eliminadas `interface EstrategiaRecuperacionUI` e `interface ResumenConversion`. Se sustituyeron por ramas directas y limpias (`esModoPuntos ? ... : ...`), reduciendo la ceremonia de clases/objetos en el renderizado y eliminando la asignación innecesaria en cada ciclo de React.
+  2. *Compactación del Selector de Espacios (`shrink`)*:
+     - Reemplazado el bucle imperativo `for` de 35 líneas por un `flatMap` idiomático y puro de 8 líneas.
+  3. *Unificación de Mutación Inmutable en Dominio (`shrink`)*:
+     - En `conversionRecursosRasgos.ts`, extraída la función pura `aplicarRecuperacion` para evitar duplicar el `.map` inmutable sobre el array de rasgos tanto en espacios como en puntos.
+  4. *Limpieza de Scripts Efímeros (`delete`)*:
+     - Eliminado `scratch/probar-puntos-ui.mjs` una vez concluida la validación de capturas.
+  - *Resultado de Líneas*: `RecuperarUsosConEspacio.tsx` se redujo de 389 líneas a **248 líneas netas** (un ahorro neto de **-141 líneas**, situándose holgadamente en el tramo `[CORRECTO]` < 300 líneas).
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 168 suites ejecutadas, **2.384 / 2.384 pruebas aprobadas (100% éxito)**.
+  - `pnpm run test:bardo-ui`: Suite UI Chromium superada sin desbordamientos ni regresiones.
+  - `pnpm run build`: Compilación Vite completada con éxito.
+
+
+
+## [2026-10-23] Arquitectura con Patrón Strategy: Recuperación de Usos con Puntos de Conjuro (Variante DMG)
+
+- **Contexto y Diagnóstico**:
+  - *Solicitud del Usuario*: Adaptar la recuperación de usos de rasgos que consumen espacios de conjuro (ej. *Fuente de Inspiración Bárdica*) cuando el personaje o la campaña utiliza el sistema de **Puntos de Conjuro (variante DMG)** en lugar de espacios tradicionales, aplicando la equivalencia de gasto canónica y el patrón de diseño **Strategy**.
+  - *Reglas de Negocio Acordadas*:
+    - Equivalencia canónica: cada uso equivale a un espacio de Nivel 1 = **2 puntos de conjuro** (`COSTE_PUNTOS_POR_NIVEL[1]`).
+    - Selección interactiva de usos a recuperar mediante control numérico con contador (`-` / `+`), botón de tope directo ("Máx") y previsualización en vivo del coste total y puntos restantes.
+- **Implementación del Patrón Strategy**:
+  1. *Estrategias en Dominio (`conversionRecursosRasgos.ts`)*:
+     - Ampliado el tipo de unión discriminada `OperacionRecursoRasgo` para soportar `{ tipo: "recuperarUsosConEspacio", modo: "puntos", puntos, cantidadUsos }`.
+     - Desacopladas las funciones puras `ejecutarRecuperacionPorEspacio` y `ejecutarRecuperacionPorPuntos`.
+     - `ejecutarRecuperacionPorPuntos` valida la equivalencia estricta ($P = U \times 2$), verifica la disponibilidad en el saldo de puntos y ejecuta `consumirRecursoConjuro(pj, { tipo: "puntos", cantidad: op.puntos, nivel: 1 })`.
+  2. *Estrategias en Presentación (`RecuperarUsosConEspacio.tsx`)*:
+     - Definida la interfaz `EstrategiaRecuperacionUI` (`obtenerResumen()`, `esValido()`, `obtenerTextoConfirmar()`, `ejecutarConfirmacion()`, `renderizarControles()`).
+     - `estrategiaEspacios`: Administra la selección en la rejilla táctica de niveles 1 a 9 y Pacto, confirmando con `"Gastar espacio y recuperar"`.
+     - `estrategiaPuntos`: Administra el contador numérico de usos (tope inteligente según faltantes y saldo divisible por 2), confirmando con `"Gastar X puntos y recuperar"`.
+     - El componente modal actúa como el Contexto (*Strategy Context*), resolviendo la estrategia activa mediante `usarSistemaMagia()` y los recursos de la ficha.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `src/servicios/bardoBase2024.test.ts`: Test unitario dedicado a la estrategia de puntos de conjuro (1 uso = 2 pts, 2 usos = 4 pts, rechazo por saldo insuficiente, rechazo por equivalencia inválida o reserva llena).
+  - `src/componentes/caracteristicas/rasgos/RecuperarUsosConEspacio.test.tsx`: Nueva suite con 3 pruebas verificando la selección automática de estrategia y desactivación por estado completo.
+  - `pnpm test`: 168 suites ejecutadas, **2.384 / 2.384 pruebas aprobadas (100% éxito)**.
+  - `pnpm run test:bardo-ui`: Suite UI completa aprobada sin regresiones.
+  - `scratch/probar-puntos-ui.mjs`: Captura visual Chromium validada en resolución 433px (`scratch/bardo-puntos-433.png`).
+  - `pnpm run build`: Compilación Vite de producción completada con éxito.
+
+
+
+## [2026-10-23] Rediseño Visual y Experiencia Táctica del Modal de Recuperación de Usos con Espacio (Inspiración Bárdica)
+
+- **Contexto y Diagnóstico**:
+  - *Solicitud del Usuario*: Rediseñar y mejorar la apariencia visual del modal "Recuperar usos de Inspiración bárdica" (`RecuperarUsosConEspacio.tsx`).
+  - *Estado Inicial*:
+    - Cabecera plana sin icono, sin botón de cierre (`X`) ni jerarquía semántica (`<h3>`).
+    - Explicación de reglas en texto crudo ("Gasta un espacio de cualquier nivel... No requiere acción") sin formato ni retroalimentación del estado actual de la reserva.
+    - Selector desplegable estándar (`SelectorDesplegable`) con borde cian plano descontextualizado.
+    - Ausencia de previsión tras el gasto (cuántos espacios quedarán o cómo quedará la reserva tras recuperar).
+- **Decisiones Arquitectónicas y Mejoras Visuales**:
+  1. *Estructura y Jerarquía de Diálogo Modal*:
+     - Se incorporó la cabecera canónica (`modal.cabecera`) con icono temático de magia/inspiración (`Sparkles`), título `<h3>` y botón accesible de cierre (`X`).
+  2. *Tarjeta Táctica de Reglas y Conversión*:
+     - Se creó `RecuperarUsosConEspacio.module.css` consumiendo estrictamente los tokens de `temaJugador.css` (optimizado para CEF en TaleSpire sin filtros blur costosos).
+     - Insignia de regla D&D 5.5e: `Sin acción requerida` con icono `Zap`.
+     - Contador de estado en vivo de la reserva: `Reserva: X / Y`.
+     - Tarjeta de flujo visual con panel hundido: `Gasto: 1 Espacio` ──▶ `Recuperación: +1 uso (Quedará en X+1 / Y)`.
+  3. *Rejilla Táctica de Selección de Espacios*:
+     - Reemplazado el selector desplegable por una rejilla responsiva táctica de tarjetas de espacios (`role="radiogroup"` / `role="radio"`).
+     - Cada tarjeta refleja el nivel (u origen Pacto), los espacios disponibles y la proyección tras el gasto ("Quedarán Z"), con resplandor sutil de acento y marca de verificación `Check` al seleccionarse.
+  4. *Compatibilidad e Invariantes de CI*:
+     - El botón de confirmación mantiene exactamente el texto `"Gastar espacio y recuperar"`, asegurando compatibilidad total con la suite E2E de Puppeteer (`scripts/probar-bardo.mjs`).
+     - Dimensiones del diálogo verificadas en 433px (ancho 401px, alto 393px) y 599px (ancho 460px, alto 393px), completamente dentro de los márgenes de TaleSpire.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm run verificar:lineas`: 194 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 167 suites ejecutadas, **2.380 / 2.380 pruebas aprobadas (100% éxito)**.
+  - `pnpm run test:bardo-ui`: Suite UI completa aprobada sin desbordamientos ni regresiones.
+  - `pnpm run build`: Compilación Vite de producción completada con éxito.
+
+
+
 ## [2026-10-22] Integración Certificada con Poda Ponytail de Optimizaciones Bolt (Comparador de Hechizos y Búsqueda Tolerante)
 
 - **Contexto y Diagnóstico**:
@@ -14183,3 +14350,60 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - **Límites de Líneas:** `pnpm run verificar:lineas` auditó **192 archivos con 0 errores críticos (> 500 líneas)**.
 - **Vitest:** **164 suites de pruebas ejecutadas, 2.304 / 2.304 pruebas aprobadas al 100% (0 fallos)**.
 - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 13.61s.
+
+## [2026-10-23] Bardo base PHB 2024: consumidores declarativos y verificación
+
+- Alcance autorizado: Bardo base, niveles 1–20. Fuente canónica local `dicionario_herramientas/clases/bardo.md`; tabla mágica contrastada con Bard Features de las reglas oficiales de 2024. Las subclases quedan para otra fase.
+- Pericia conserva su ID de nivel 2 y recibe el segundo selector mediante extensión a nivel 9. Validación compartida de competencia previa y duplicados; efectos de competencia con grado pericia, calculados sin sobrescribir grados manuales.
+- Fuente de inspiración añade recuperación de un uso mediante cualquier espacio disponible, incluidos los de pacto, en una operación atómica. La extensión conserva la acción adicional de Inspiración. Tirar el dado no vuelve a gastar ni exige usos disponibles después de concederlo.
+- Secretos mágicos amplía listas por metadatos, con nivel y aptitud de Bardo. Las elecciones nuevas pueden registrar clase; su retirada conserva procedencias independientes. En multiclase se ofrece elección explícita de clase en el compendio y se bloquea una clase de lanzamiento incompatible con un conjuro registrado.
+- Mejoras de característica y Don épico comienzan vacíos. Las elecciones anteriores válidas se conservan; quitar una elección retira únicamente la dote vinculada. Aprendiz de mucho se calcula como beneficio derivado y ya no escribe grados medios en build, activación o edición.
+- Palabras de creación mantiene exclusivamente sus dos conjuros, atribuidos a Bardo. Destinatarios, distancias, caducidad de Inspiración, Contraencantamiento y segundo objetivo siguen siendo manuales. La edición de conjuros continúa libre respecto al momento y número de sustituciones por nivel.
+- Compatibilidad: las elecciones antiguas sin procedencia y los grados medios antiguos no se reclasifican por conjetura. El control de cupos individuales en multiclase usa las elecciones con clase registrada. La selección de una dote no certifica la automatización de todos sus efectos internos.
+- Verificación: `pnpm run ci` completo; 166 suites y 2364 pruebas aprobadas, TypeScript, ESLint, comprobación de tamaño y build correctos. Se añadieron 60 casos en dos suites del Bardo y se adaptaron expectativas anteriores.
+- `pnpm run test:bardo-ui`: 10 recorridos a 599/433 px, 8 comprobaciones de dimensiones, 0 errores JavaScript. Incluye Pericia, gasto, dado agotado, conversión, Escape/cancelación, persistencia, descanso, Secretos, procedencia multiclase y elección/retirada de dotes. Aplicación real en Chromium local con emisión local y serialización; no certifica CEF/TaleSpire, almacenamiento nativo ni multicliente.
+- Graphify actualizado y regenerado con `cluster-only . --no-label`; 3160 nodos, 13045 relaciones y 114 comunidades. Dos advertencias del extractor en suites previas no constituyen errores de TypeScript.
+- Matriz, limitaciones e inventario: `informes/bardo-base-2024.md`. Evidencias: `scratch/bardo-ci.log`, `scratch/bardo-ui-informe.json` y capturas locales.
+## [2026-10-23] Acceso verificado a DevTools del simbionte en TaleSpire
+
+- Para futuras pruebas en CEF/TaleSpire, usar el inspector remoto del simbionte cuando TaleSpire tenga habilitado y disponible el puerto local `9222`.
+- Acceso comprobado en esta sesión desde el navegador integrado de Codex: el inspector conectó y mostró el DOM y los estilos de la página real del simbionte en `localhost:54958/symbiotes/1_6d987f7f-bb41-41ea-8a23-8c5d7e1777ef/index.html`.
+- Enlace verificado: https://chrome-devtools-frontend.appspot.com/serve_rev/@dd98cd04c723035396b6d301e1f196b29a14a0ff/inspector.html?ws=localhost:9222/devtools/page/2F5462DCB2B60F1E76FCFEB8309A79A5
+- El identificador de página, el puerto del contenido y la revisión del frontend pueden cambiar entre sesiones. Si el enlace caduca, consultar `http://localhost:9222/json/list`, localizar el destino `/symbiotes/` y usar su URL de inspector o su `webSocketDebuggerUrl` para obtener el enlace vigente.
+- Priorizar este acceso para inspeccionar DOM, CSS y consola de la instancia real durante las pruebas. En esta comprobación solo se verificaron conexión, DOM y estilos; no se ejecutaron comandos en consola ni se certificaron flujos funcionales o sincronización multicliente.
+- Si el usuario toma el control durante una prueba, detener las interacciones y obtener el estado actualizado antes de continuar.
+
+## [2026-10-23] Correcciones de la autorrevisión del Bardo
+
+- Corregidos H1–H6: procedencias por clase, retirada de conjuros de dotes, clase y nivel de lanzamiento de Secretos, cupos individuales, catálogo efectivo y ramas inhabilitadas de Pericia.
+- El registro opcional de preparados de grimorio distingue la preparación del aprendizaje. Selección y retirada conservan aportaciones de otras clases; carga persistida e importación reciben el catálogo efectivo. No se amplió el transporte de sincronización.
+- Poda aplicada: función sin consumidores de escritura de grados medios, alias redundantes y retirada de dotes duplicada. No se añadieron dependencias.
+- Regresiones nuevas: 16 casos en bardoAutorrevision2024.test.ts, incluidas adquisición real de procedencias compartidas, retirada, persistencia del libro, dotes, lanzamiento, cupos, homebrew y dependencias.
+- pnpm run ci: salida 0; 167 suites y 2380 pruebas aprobadas, TypeScript, ESLint, auditoría de líneas y build correctos. Registro final: scratch/bardo-correcciones-ci.log.
+- pnpm run test:bardo-ui: salida 0; 18 recorridos a 599/433 px, 10 medidas y cero errores JavaScript. Aplicación React real en Chromium local con emisión local y serialización; no se certifican CEF/TaleSpire, almacenamiento nativo ni multicliente.
+- Graphify update y cluster-only --no-label completados: 3172 nodos, 13113 relaciones y 126 comunidades. Persisten dos avisos del extractor sobre sintaxis de suites anteriores; CI las valida.
+- Informe actualizado: informes/bardo-base-2024.md. Auditoría y cierre: scratch/autorrevision-bardo-2024.md. Se conservó la anotación anterior de DevTools ajena a estos cambios.
+
+## [2026-10-23] Bardo PHB 2024: Danza, Glamour, Conocimiento y Valor
+
+- Implementados los 16 rasgos de las cuatro subclases en bardo.json, conservando IDs y la clase base; fuente local dicionario_herramientas/clases/bardo.md. La comparación estructural de rasgos de clase con HEAD no mostró diferencias.
+- Danza usa referencia declarativa al dado de Inspiración para ataque desarmado sin gastar y fórmula alternativa de CA condicionada al equipo. Tándem se integra opcionalmente en iniciativa y permite ambos órdenes de gasto/recuperación, sin duplicar Inspiración superior.
+- Glamour separa siempre preparados de lanzamiento gratuito. Manto de inspiración muestra el doble del mismo dado sin conceder PG temporales propios. Magia cautivadora ofrece su uso tras lanzar con espacio y recarga con el padre. Manto de majestad se inicia desde Orden imperiosa, conserva concentración originada por rasgo y permite repeticiones activo; recupera por espacio 3+ incluido pacto. Los estados breves finalizan por rondas, Incapacitado y descanso; la concentración también finaliza al retirar o sustituir la capacidad.
+- Conocimiento tiene competencias derivadas y dos conjuros filtrados del catálogo efectivo, incluidos homebrew y trucos, con nivel y aptitud de Bardo en multiclase. Habilidad inigualable reserva un uso, persiste ID y resultado, conserva el intento al cerrar, evita repetir dados y confirma gasto solo al convertir el fallo en éxito. Emisión fallida o retirada libera la reserva.
+- Valor mantiene la extensión de Inspiración y competencias efectivas de equipo sin fijarlas como manuales. Ataque adicional y Magia de batalla son informativos; no se automatiza una economía de acciones no registrada.
+- Corregidas pérdidas de metadatos homebrew al reconstruir y de conjuros preparados compartidos al cambiar de colegio. No se añadieron dependencias ni se amplió el transporte de sincronización. Se conservó la recuperación mediante puntos añadida previamente.
+- pnpm run ci: salida 0; 170 suites y 2496 pruebas aprobadas, TypeScript, ESLint, tamaño y build correctos. Nuevas suites con 105 casos de recorrido declarativo y 5 del controlador de resolución. pnpm exec tsc --noEmit adicional y git diff --check correctos.
+- pnpm run test:bardo-subclases-ui: salida 0; 26 comprobaciones en App real a 599/433 px y 0 errores JavaScript. Incluye elecciones, retirada, gasto, conversión, concentración, alternativas desde carta, Escape, persistencia, ambos órdenes de iniciativa, resultado del mismo dado y PG temporales propios intactos. pnpm run test:bardo-ui: salida 0, 18 recorridos y 10 medidas sin errores JavaScript.
+- Las pruebas de UI usan Chromium local, dados locales y el serializador real de fichas. Las pruebas de emisión fallida son simulaciones. Se comprobó que el inspector CEF 9222 publica la pantalla real del simbionte; no se desplegó ni se certificaron flujos nuevos en TaleSpire, almacenamiento nativo o multicliente.
+- Graphify update y cluster-only --no-label completados: 3226 nodos, 13409 relaciones y 108 comunidades. Se mantienen dos avisos del extractor sobre suites anteriores que sí supera CI.
+- Matriz de los 16 rasgos, recursos, categorías, efectos, selectores, dependencias, límites e inventario completo: informes/bardo-subclases-2024.md. Evidencias finales en scratch/bardo-subclases-ci-cierre.log, scratch/bardo-subclases-ui-final.log, scratch/bardo-subclases-ui.json y scratch/bardo-base-ui.log.
+
+## [2026-10-23] Simplificaciones posteriores a ponytail-audit del Bardo
+
+- Aplicadas las tres propuestas autorizadas: restauración de iniciativa compartida entre el almacén y Tándem; montaje de App exportado en scripts/fixture-bardo.mjs para las dos regresiones de navegador; retorno único de reconciliación en el builder.
+- El almacén conserva la selección de disparadores ejecutados y sus gastos; el cálculo compartido aplica las restauraciones y sus exclusiones. Tándem conserva la revalidación antes del gasto y ambos órdenes respecto a Inspiración superior.
+- Medición frente al estado anterior a esta poda: 36 líneas menos en los módulos simplificados, scripts y configuración, contando el módulo nuevo. Se añadieron tres casos de regresión para cantidad fija, máximo y hasta una cantidad, comprobando también el respaldo excluido.
+- Regresiones focalizadas: salida 0; 242 pruebas en seis suites, incluidos Bardo, Monje y Bárbaro. Evidencia: scratch/bardo-ponytail-regresiones.log.
+- pnpm run test:bardo-subclases-ui y pnpm run test:bardo-ui: salida 0; 26 y 18 recorridos respectivamente, a 599/433 px, sin errores JavaScript. Evidencias: scratch/bardo-ponytail-subclases-ui.log y scratch/bardo-ponytail-base-ui.log. Chromium local con App real, dados locales y serialización; no certifica TaleSpire real ni multicliente.
+- Graphify update y cluster-only --no-label completados: 3226 nodos, 13414 relaciones y 114 comunidades. Persisten los avisos del extractor sobre dos suites anteriores. Evidencia: scratch/bardo-ponytail-graphify.log.
+- pnpm run ci: salida 0; 170 suites y 2499 pruebas aprobadas, TypeScript, ESLint, comprobación de tamaño y build correctos. git diff --check: salida 0. Evidencia: scratch/bardo-ponytail-ci.log. El build mantiene el aviso de tamaño de chunks.

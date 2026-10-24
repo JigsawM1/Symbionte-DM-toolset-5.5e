@@ -122,12 +122,12 @@ export interface SubSliceMagia {
   establecerConcentracion: (id: string, hechizoId: string, nombreHechizo: string) => void;
   romperConcentracion: (id: string) => void;
 
-  agregarTrucoConocido: (id: string, hechizoId: string) => void;
-  quitarTrucoConocido: (id: string, hechizoId: string) => void;
+  agregarTrucoConocido: (id: string, hechizoId: string, clase?: string) => void;
+  quitarTrucoConocido: (id: string, hechizoId: string, clase?: string) => void;
 
-  agregarConjuroConocido: (id: string, hechizoId: string) => void;
-  quitarConjuroConocido: (id: string, hechizoId: string) => void;
-  alternarConjuroPreparado: (id: string, hechizoId: string) => void;
+  agregarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
+  quitarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
+  alternarConjuroPreparado: (id: string, hechizoId: string, clase?: string) => void;
   desprepararConjuroPersonaje: (id: string, hechizoId: string) => void;
 
   gastarEspacioConjuro: (id: string, nivel: number) => void;
@@ -184,7 +184,6 @@ export interface SubSliceRasgos {
   actualizarRasgoPersonaje: (idPj: string, idRasgo: string, cambios: Partial<RasgoPersonaje>) => void;
   eliminarRasgoPersonaje: (idPj: string, idRasgo: string) => void;
   gastarUsoRasgoPersonaje: (idPj: string, idRasgo: string, cantidad?: number) => void;
-  recargarUsoRasgoConPacto: (idPj: string, idRasgo: string) => void;
   recargarUsoRasgoConPadre: (idPj: string, idRasgo: string) => void;
   recuperarUsoRasgoPersonaje: (idPj: string, idRasgo: string, cantidad?: number) => void;
   establecerUsosRestantesRasgoPersonaje: (idPj: string, idRasgo: string, usos: number) => void;
@@ -195,7 +194,7 @@ export interface SubSliceRasgos {
   alternarOcultarConjuro: (idPj: string, idConjuro: string) => void;
   desocultarTodosLosConjuros: (idPj: string) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
-  dispararRasgosIniciativaPersonaje: (idPj: string) => void;
+  dispararRasgosIniciativaPersonaje: (idPj: string, omitirRestauraciones?: boolean) => void;
   guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;
   consumirDadoGuardado: (idPj: string, idRasgo: string, indiceDado: number) => void;
   recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;

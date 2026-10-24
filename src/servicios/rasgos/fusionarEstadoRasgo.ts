@@ -9,6 +9,7 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
   };
   // También reconoce opciones futuras declaradas cuando el guardado anterior está deshidratado.
   const valorActual = seleccion.filter((valor) => {
+    if (nuevo.claveOpcionesDinamicas === "conjuros_catalogo") return true;
     const base = valor.split(/:|__/)[0];
     const futura = nuevo.opcionesDinamicas?.some(g => g.opciones.some(o => o.id === base));
     return contiene(nuevo, valor) || (!futura && (!existente || !contiene(existente, valor)));
@@ -17,7 +18,8 @@ function fusionarSelector(nuevo: SelectorRasgo, existente?: SelectorRasgo): Sele
     ...nuevo,
     cambioDisponible: existente?.cambioDisponible ?? nuevo.cambioDisponible,
     valorActual: valorActual.slice(0, nuevo.maxSelecciones),
-    opciones: nuevo.opciones.map((opcion) => {
+    opciones: [...nuevo.opciones, ...(nuevo.claveOpcionesDinamicas === "conjuros_catalogo"
+      ? existente?.opciones.filter(o => valorActual.includes(o.id) && !nuevo.opciones.some(n => n.id === o.id)) ?? [] : [])].map((opcion) => {
       const anterior = existente?.opciones.find((o) => o.id === opcion.id);
       return {
         ...opcion,

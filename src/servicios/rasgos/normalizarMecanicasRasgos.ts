@@ -3,13 +3,18 @@ import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { normalizarMagiaRasgos } from "./magiaRasgos";
 import { normalizarCondicionesRasgos, claveEstado } from "./estadoCondicionesRasgos";
-import { construirRasgosDesdeSelectores, materializaSelector } from "./seleccionesRasgos";
+import { construirRasgosDesdeSelectores, materializaSelector, seleccionesValidas } from "./seleccionesRasgos";
 import { reconciliarConjurosRasgos } from "./reconciliarConjurosRasgos";
 import { retirarConcentracionRestringida } from "./restriccionesRasgos";
 import { aplicarEventosActivacion } from "./activacionDeclarativa";
+import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "./listasConjurosRasgos";
+import { hidratarSelectoresConjuros } from "./catalogoSelectoresConjuros";
+import { reconciliarIntentoRasgo } from "./resolucionesRasgos";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
-export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador): PersonajeJugador {
+export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
+  if (catalogo) pj = { ...pj, rasgos: hidratarSelectoresConjuros(pj.rasgos, catalogo) };
+  pj = { ...pj, rasgos: pj.rasgos.map(r => r.conjurosDesdeSelectores ? { ...r, conjurosOtorgados: r.selectores?.flatMap(s => seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj)) ?? [] } : r) };
   let cambio = false;
   const rasgos = (pj.rasgos ?? []).map(r => {
     // El catálogo ya utiliza el mismo resolutor durante su construcción por nivel.
@@ -71,5 +76,5 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   const legado = actual.rasgos.find(r => r.recursoLegado === "puntos_hechiceria");
   if (legado) actual = { ...actual, puntosHechiceriaMaximos: legado.usosMaximos ?? 0,
     puntosHechiceriaActuales: legado.usosRestantes ?? legado.usosMaximos ?? 0 };
-  return retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual)));
+  return reconciliarIntentoRasgo(reconciliarEleccionesConjuros(retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual))), catalogo));
 }

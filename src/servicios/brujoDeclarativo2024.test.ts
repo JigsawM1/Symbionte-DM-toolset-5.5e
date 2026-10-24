@@ -162,9 +162,34 @@ describe("Brujo PHB 2024: recorrido declarativo completo", () => {
   it.each([["Patrón de los Archihadas","Defensas fascinantes"],["Patrón Infernal","Arrojar al Infierno"],["Patrón del Gran Primigenio","Combatiente clarividente"]])("recarga %s / %s sin gastar dos veces", (sub,nombre) => {
     sembrar(14,sub); const id=rasgo(nombre).id;
     usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj().id,id);
-    usarAlmacenDM.getState().recargarUsoRasgoConPacto(pj().id,id);
+    usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj().id,{tipo:"recargarUsoConPacto",idRasgo:id});
     expect(rasgo(nombre).usosRestantes).toBe(1);expect(pj().espaciosPactoGastados).toBe(1);
-    usarAlmacenDM.getState().recargarUsoRasgoConPacto(pj().id,id);expect(pj().espaciosPactoGastados).toBe(1);
+    usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj().id,{tipo:"recargarUsoConPacto",idRasgo:id});expect(pj().espaciosPactoGastados).toBe(1);
+  });
+  it("recargarUsoConPacto opera mediante operarRecursoRasgoPersonaje y respeta el límite de espacios de pacto", () => {
+    sembrar(14, "Patrón Infernal");
+    const id = rasgo("Arrojar al Infierno").id;
+    usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj().id, id);
+    usarAlmacenDM.setState({
+      personajes: [{ ...pj(), espaciosPactoGastados: pj().espaciosPactoMaximos }]
+    });
+    const aplicadoSinPactos = usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj().id, {
+      tipo: "recargarUsoConPacto",
+      idRasgo: id
+    });
+    expect(aplicadoSinPactos).toBe(false);
+    expect(rasgo("Arrojar al Infierno").usosRestantes).toBe(0);
+
+    usarAlmacenDM.setState({
+      personajes: [{ ...pj(), espaciosPactoGastados: pj().espaciosPactoMaximos - 1 }]
+    });
+    const aplicadoConPacto = usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj().id, {
+      tipo: "recargarUsoConPacto",
+      idRasgo: id
+    });
+    expect(aplicadoConPacto).toBe(true);
+    expect(rasgo("Arrojar al Infierno").usosRestantes).toBe(1);
+    expect(pj().espaciosPactoGastados).toBe(pj().espaciosPactoMaximos);
   });
   it("Resiliencia celestial recibe PG propios en ambos descansos y al usar Astucia", () => {
     sembrar(10,"Patrón Celestial");

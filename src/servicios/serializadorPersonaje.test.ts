@@ -195,7 +195,7 @@ describe("Módulo de Serialización, Deshidratación e Hidratación de Personaje
 
     // Como respaldo.yaml ya contiene personajes deshidratados por la exportación,
     // los hidratamos primero para recrear su estado completo en memoria con selectores y descripciones
-    const personajesCompletos = personajesCrudos.map(hidratarPersonaje);
+    const personajesCompletos = personajesCrudos.map(p => hidratarPersonaje(p));
     const pesoOriginal = Buffer.byteLength(JSON.stringify(personajesCompletos));
 
     const personajesDeshidratados = personajesCompletos.map(deshidratarPersonaje);

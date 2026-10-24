@@ -70,7 +70,7 @@ export function calcularDefensaSinArmaduraRasgos(
   const tieneEscudo = tieneEscudoEquipado(personaje);
   const efectos = evaluarEfectosRasgosActivos(personaje);
 
-  for (const ef of efectos) {
+  for (const ef of [...efectos].sort((a, b) => (modificadores[normalizar(String(b.valor)) as Caracteristica] ?? 0) - (modificadores[normalizar(String(a.valor)) as Caracteristica] ?? 0))) {
     if (ef.tipo === "modificador_ca" && normalizar(ef.objetivo).includes("defensa_sin_armadura")) {
       const statNorm = normalizar(String(ef.valor)) as Caracteristica;
       // Regla de escudo: si permiteEscudo es explícito se respeta; si no, Bárbaro (con) permite escudo y Monje (sab) no permite escudo

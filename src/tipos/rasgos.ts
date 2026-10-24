@@ -110,6 +110,7 @@ export const EsquemaRecursoGastado = z.enum(["espacio_pacto", "uso_rasgo", "ning
 export type RecursoGastado = z.infer<typeof EsquemaRecursoGastado>;
 
 export const EsquemaOpcionSelector = z.object({
+  datosConjuro: z.object({ nivel: z.number().int().min(0).max(9), clases: z.array(z.string()), alcance: z.string().optional(), dadosDaño: z.string().optional(), requiereAtaque: z.boolean().optional() }).optional(),
   costeFijo: z.number().int().positive().optional(),
   ...EsquemaMecanicasRasgo.shape,
   esActivable: z.boolean().optional(),
@@ -224,6 +225,7 @@ export const EsquemaOpcionesDinamicas = z.object({
 export type OpcionesDinamicas = z.infer<typeof EsquemaOpcionesDinamicas>;
 
 export const EsquemaSelectorRasgo = z.object({
+  filtroHabilidades: z.object({ soloCompetentes: z.boolean(), excluirPericia: z.boolean() }).optional(),
   momentoEleccion: z.enum(["activacion", "descanso_largo"]).optional(),
   cambioDisponible: z.boolean().optional(),
   id: z.string(),
@@ -249,6 +251,8 @@ export const EsquemaSelectorRasgo = z.object({
   destinoConjuros: z.enum(["siempre_preparados", "libro", "referencia", "arcano_mistico"]).optional(),
   nivelConjuro: z.number().int().min(0).max(9).optional(),
   filtroConjuros: z.object({
+    listas: z.array(z.string()).min(1).optional(),
+    nivelMaximoPorClase: z.string().optional(),
     soloConocidos: z.boolean().optional(),
     clase: z.string().optional(),
     requiereDano: z.boolean().optional(),

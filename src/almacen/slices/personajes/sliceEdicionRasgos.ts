@@ -3,7 +3,7 @@ import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { migrarMetadatosRasgos } from "@/servicios/migradorRasgosHeredados";
-import { tieneMedioBonoHabilidades, aplicarAprendizDeMuchoAGradosHabilidades, calcularBonoHPMaximoRasgos, calcularUsosMaximosRasgo, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularBonoHPMaximoRasgos, calcularUsosMaximosRasgo, esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
 
@@ -112,12 +112,6 @@ sincronizarRasgosPersonaje: (idPj) => {
         return r;
       });
       const pjConRasgos = { ...pj, rasgos: rasgosSincronizados };
-      const tieneAprendiz = tieneMedioBonoHabilidades(pjConRasgos);
-      const gradosActualizados = aplicarAprendizDeMuchoAGradosHabilidades(
-        pj.gradosHabilidades,
-        tieneAprendiz
-      );
-
       // Sincronizar trucos de rasgos habilitados
       let trucosActualizados = [...(pj.trucosConocidosIds || [])];
       for (const r of rasgosSincronizados) {
@@ -139,8 +133,7 @@ sincronizarRasgosPersonaje: (idPj) => {
 
       return {
         ...pjConRasgos,
-        trucosConocidosIds: trucosActualizados,
-        gradosHabilidades: gradosActualizados
+        trucosConocidosIds: trucosActualizados
       };
     });
   },

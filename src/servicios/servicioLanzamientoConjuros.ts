@@ -2,6 +2,8 @@ import { obtenerConcesionConRecurso, obtenerVarianteConjuro } from "./rasgos/lan
 import { normalizar } from "./rasgos/utilidadesRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "./rasgos/conversionRecursosRasgos";
 import { resolverClaseLanzamiento, obtenerModificadoresConjuroRasgos } from "./rasgos/modificadoresConjuroRasgos";
+import { clasesPropietariasConjuro } from "./rasgos/listasConjurosRasgos";
+import { obtenerLanzamientoEstado } from "./rasgos/lanzamientoEstadoRasgo";
 import { evaluarEfectosCondicionesEnTirada } from "./procesadorCondiciones";
 /**
  * Servicio Centralizado de Lanzamiento de Conjuros (D&D 5.5e 2024)
@@ -38,7 +40,8 @@ export type ModoLanzamiento =
   | "arcanoMistico"
   | "gratuitoInnato"
   | "ataqueMagico"
-  | "recursoRasgo";
+  | "recursoRasgo"
+  | "estadoRasgo";
 
 export interface SolicitudLanzamiento {
   sinConcentracion?: boolean;
@@ -90,6 +93,7 @@ export interface FormulaConstruida {
 }
 
 export type InstruccionGasto =
+  | { tipo: "estadoRasgo"; idRasgo: string; hechizo: HechizoBase; nivel: number; ronda?: number }
   | { tipo: "recursoRasgo"; idRasgo: string; hechizo: HechizoBase; nivel: number }
   | { tipo: "ninguno" }
   | { tipo: "espacio"; nivel: number }
@@ -117,6 +121,14 @@ export function validarLanzamiento(
   contexto: ContextoMagicoPersonaje,
   preparadoPrecalculado?: LanzamientoPreparado
 ): ResultadoValidacion {
+  if (solicitud.modo === "estadoRasgo") {
+    const r = contexto.personajeActual && obtenerLanzamientoEstado(contexto.personajeActual, solicitud.idRasgoOrigen ?? "", solicitud.hechizo, solicitud.nivelLanzamiento);
+    if (!r || (solicitud.claseLanzamiento && normalizar(r.claseConjurosOtorgados) !== normalizar(solicitud.claseLanzamiento))) return { permitido: false, motivo: "Esta alternativa no está disponible o no conserva su concentración." };
+  }
+  if (contexto.personajeActual && solicitud.claseLanzamiento && ["espacio", "truco", "ataqueMagico", "ritual"].includes(solicitud.modo)
+    && clasesPropietariasConjuro(contexto.personajeActual, solicitud.hechizo.id).length
+    && !resolverClaseLanzamiento(contexto.personajeActual, solicitud.hechizo, solicitud.claseLanzamiento))
+    return { permitido: false, motivo: "Este conjuro no está disponible para la clase de lanzamiento elegida." };
   if (contexto.personajeActual && solicitud.claseLanzamiento && solicitud.modo !== "objetoMagico" && solicitud.modo !== "gratuitoInnato"
     && !contexto.personajeActual.clasesLanzadoras.some(c => normalizar(c.clase) === normalizar(solicitud.claseLanzamiento)))
     return { permitido: false, motivo: "La clase de lanzamiento seleccionada no está disponible." };
@@ -132,7 +144,7 @@ export function validarLanzamiento(
     if (origen?.clase && normalizar(origen.clase) !== normalizar(solicitud.claseLanzamiento))
       return { permitido: false, motivo: "La procedencia del conjuro la determina su concesión." };
   }
-  if (solicitud.idRasgoOrigen && solicitud.modo !== "recursoRasgo" && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
+  if (solicitud.idRasgoOrigen && solicitud.modo !== "recursoRasgo" && solicitud.modo !== "estadoRasgo" && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
     || !obtenerConcesionRitual(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo.id)))
     return { permitido: false, motivo: "Esta concesión solo permite sus rituales adquiridos." };
   // 1. Regla D&D 5.5e: Bloqueo total por vestir armadura o escudo sin competencia
@@ -458,6 +470,12 @@ export function prepararLanzamiento(
       break;
     }
 
+    case "estadoRasgo": {
+      formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · Acción adicional` };
+      gasto = { tipo: "estadoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };
+      break;
+    }
     case "recursoRasgo": {
       formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       gasto = { tipo: "recursoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };

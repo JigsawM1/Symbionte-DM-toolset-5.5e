@@ -1,3 +1,5 @@
+import { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
+import { conjuroEnAmpliacion } from "./rasgos/ampliacionesListaConjuros";
 import type {
   ClaseLanzadora,
   Caracteristica,
@@ -878,30 +880,7 @@ export function obtenerClasesListaMagicaPersonaje(
  * Determina el nivel máximo de conjuro que una clase puede lanzar según su tipo y nivel,
  * respetando las reglas oficiales de D&D 5.5e (2024).
  */
-export function obtenerNivelMaximoConjuroPorTipoClase(
-  tipo: TipoLanzador,
-  nivelClase: number
-): number {
-  const niv = Math.min(20, Math.max(1, Math.floor(nivelClase) || 1));
-  switch (tipo) {
-    case "completo":
-      return Math.min(9, Math.ceil(niv / 2));
-    case "medio":
-      // En D&D 5.5e (2024), los medio-lanzadores obtienen magia desde nivel 1
-      return Math.min(5, Math.ceil(niv / 4));
-    case "tercio":
-      if (niv < 3) return 0;
-      if (niv <= 6) return 1;
-      if (niv <= 12) return 2;
-      if (niv <= 18) return 3;
-      return 4;
-    case "pacto":
-      return TABLA_PACTO_BRUJO[niv]?.nivel ?? 1;
-    case "ninguno":
-    default:
-      return 0;
-  }
-}
+export { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
 
 /**
  * Obtiene el conjunto de niveles de conjuro lanzables para una clase específica según su tipo y nivel.
@@ -1083,7 +1062,7 @@ export function construirPerfilLanzadorPersonaje(
 
   let clasePrincipal: PerfilLanzadorPersonaje["clasePrincipal"] = undefined;
   const infoPrinc = detectarTipoLanzador(personaje.clase || "", personaje.subclase);
-  if (infoPrinc) {
+  if (infoPrinc && (!personaje.clases || personaje.clases.length <= 1)) {
     clasePrincipal = {
       nombreNorm: normalizarTexto(personaje.clase || ""),
       listaNorm: infoPrinc.listaConjuros ? normalizarTexto(infoPrinc.listaConjuros) : "",
@@ -1117,6 +1096,7 @@ export function puedePersonajeLanzarHechizo(
   perfilPrecalculado?: PerfilLanzadorPersonaje
 ): boolean {
   if (!personaje) return true;
+  if (conjuroEnAmpliacion(personaje, hechizo)) return true;
 
   const perfil = perfilPrecalculado ?? construirPerfilLanzadorPersonaje(personaje);
 

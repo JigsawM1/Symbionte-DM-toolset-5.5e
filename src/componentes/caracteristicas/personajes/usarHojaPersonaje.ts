@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { elegirIniciativaOpcional } from "../rasgos/elegirIniciativaOpcional";
 import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
 import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
@@ -184,6 +185,8 @@ export function usarHojaPersonaje() {
 
   const manejarTirarIniciativa = useCallback(async () => {
     if (!personajeActivo || !statsCalculadas) return;
+    const opcional = await elegirIniciativaOpcional(personajeActivo.id);
+    if (!opcional) return;
     const ev = evaluarEfectosCondicionesEnTirada({
       tipo: "iniciativa", caracteristica: "destreza", penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura, condicionesActivas: personajeActivo.condicionesActivas, personaje: personajeActivo
@@ -193,8 +196,8 @@ export function usarHojaPersonaje() {
       tipo: "iniciativa", criaturaId: personajeActivo.idMiniaturaTS || personajeActivo.id,
       nombrePersonaje: personajeActivo.nombre, idMiniaturaTS: personajeActivo.idMiniaturaTS, idPersonaje: personajeActivo.id
     };
-    const emitida = await lanzarTiradaD20Personaje("Iniciativa", bonoFinal, metaInic, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, undefined, "iniciativa");
-    if (emitida) dispararRasgosIniciativaPersonaje(personajeActivo.id);
+    const emitida = await lanzarTiradaD20Personaje("Iniciativa", bonoFinal + opcional.bono, metaInic, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, undefined, "iniciativa");
+    if (emitida && opcional.confirmar()) dispararRasgosIniciativaPersonaje(personajeActivo.id, opcional.usada);
   }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje, dispararRasgosIniciativaPersonaje]);
 
   const manejarTirarSalvacionMuerte3D = useCallback(async () => {

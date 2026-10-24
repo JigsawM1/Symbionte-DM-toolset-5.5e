@@ -4,6 +4,7 @@ import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
+import { consumirLanzamientoEstado } from "./rasgos/lanzamientoEstadoRasgo";
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
 
@@ -12,6 +13,10 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
   const insuficiente = { permitido: false as const, motivo: 'No quedan recursos suficientes para lanzar este conjuro.' };
   let personaje = pj;
   switch (gasto.tipo) {
+    case 'estadoRasgo': {
+      const nuevo = consumirLanzamientoEstado(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel, gasto.ronda);
+      return nuevo ? { permitido: true, personaje: nuevo } : insuficiente;
+    }
     case 'recursoRasgo': {
       const cfg = obtenerConcesionConRecurso(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel);
       const disponibles = cfg ? (cfg.recurso.usosRestantes ?? cfg.recurso.usosMaximos ?? calcularUsosMaximosRasgo(cfg.recurso, pj)) : 0;

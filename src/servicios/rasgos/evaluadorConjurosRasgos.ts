@@ -23,7 +23,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
     if (r.nivelRequerido && obtenerNivelEfectivoParaRasgo(personaje, r) < r.nivelRequerido) continue;
     if (!esRasgoHabilitadoPorOpcion(r, personaje.rasgos)) continue;
 
-    if (Array.isArray(r.conjurosOtorgados)) {
+    if (!r.conjurosDesdeSelectores && Array.isArray(r.conjurosOtorgados)) {
       for (const c of r.conjurosOtorgados) {
         if (c && c.trim()) conjuros.add(c.trim());
       }
@@ -34,7 +34,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
         if (sel.destinoConjuros === "libro") continue;
         if (esSelectorDeConjuros(sel)) {
           if (Array.isArray(sel.valorActual)) {
-            for (const val of sel.valorActual) {
+            for (const val of seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje)) {
               if (val && val.trim()) conjuros.add(val.trim());
             }
           }
@@ -42,7 +42,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
         // Extraer conjuros otorgados o gratuitos desde opciones seleccionadas en selectores (ej. Invocaciones, Maestría en conjuros)
         if (Array.isArray(sel.valorActual)) {
-          for (const opId of sel.tipoSelector === "invocacion" ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje) : sel.valorActual) {
+          for (const opId of sel.tipoSelector === "invocacion" || sel.filtroConjuros ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje) : sel.valorActual) {
             if (personaje.rasgos.some(h => h.idSelectorOrigen === sel.id && h.ligadoA === r.id && h.requiereOpcion === opId)) continue;
             const baseId = opId.includes(":")
               ? opId.split(":")[0]

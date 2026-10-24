@@ -234,7 +234,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
     if (Array.isArray(rasgo.selectores)) {
       for (const selector of rasgo.selectores) {
         const selecciones = selector.modo === "consulta" ? selector.opciones.map(o => o.id)
-          : selector.tipoSelector === "invocacion" ? seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : selector.valorActual || [];
+          : selector.tipoSelector === "invocacion" || selector.filtroHabilidades ? seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : selector.valorActual || [];
         for (const opId of selecciones) {
           if (rasgos.some(r => r.idSelectorOrigen === selector.id && r.ligadoA === rasgo.id && r.requiereOpcion === opId)) continue;
           if (selector.tipoSelector === "dote" && rasgos.some(r => r.origen === "dote" && r.ligadoA === rasgo.id)) continue;

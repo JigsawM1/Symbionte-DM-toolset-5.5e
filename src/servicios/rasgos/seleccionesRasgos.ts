@@ -4,6 +4,10 @@ import { coincideHechizoId } from "../comparadorHechizos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { fusionarEstadoRasgo } from "./fusionarEstadoRasgo";
+import { habilidadElegible } from "./habilidadesSelectores";
+import { conjuroEnAmpliacion } from "./ampliacionesListaConjuros";
+import { normalizar } from "./utilidadesRasgos";
+import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
 
 export const materializaSelector = (s: SelectorRasgo): boolean => s.materializarRasgos === true || s.tipoSelector === "invocacion";
 
@@ -31,6 +35,7 @@ export function descomponerSeleccion(valor: string): { base: string; instancia: 
 }
 
 export function opcionesElegiblesConjuros(selector: SelectorRasgo, pj?: PersonajeJugador): OpcionSelector[] {
+  if (selector.filtroHabilidades) return selector.opciones.filter(op => habilidadElegible(selector, op.id, pj));
   if (!selector.filtroConjuros) return selector.opciones;
 
   // Precalculamos matchers/listas compartidos una sola vez para la iteración completa de opciones,
@@ -71,8 +76,13 @@ function opcionConjuroElegible(
 ): boolean {
   const filtro = selector.filtroConjuros;
   if (!filtro) return true;
-  const h = obtenerHechizoCatalogo(op.id);
+  const h = op.datosConjuro ? { id: op.id, ...op.datosConjuro } : obtenerHechizoCatalogo(op.id);
   if (!h) return false;
+  if (filtro.listas && !h.clases.some(c => filtro.listas!.some(lista => normalizar(lista) === normalizar(c)))) return false;
+  if (filtro.nivelMaximoPorClase) {
+    const clase = pj?.clasesLanzadoras.find(c => normalizar(c.clase) === normalizar(filtro.nivelMaximoPorClase));
+    if (!clase || h.nivel > obtenerNivelMaximoConjuroPorTipoClase(clase.tipoLanzador, clase.nivel)) return false;
+  }
 
   if (filtro.excluirPreparados) {
     const yaElegidoEnSelector = selector.valorActual.some(id => coincideHechizoId(id, h.id));
@@ -84,7 +94,7 @@ function opcionConjuroElegible(
     }
   }
 
-  if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !pj?.rasgos.some(r =>
+  if (filtro.clase && !h.clases.some(c => c.toLowerCase() === filtro.clase?.toLowerCase()) && !(pj && conjuroEnAmpliacion(pj, h, filtro.clase)) && !pj?.rasgos.some(r =>
     r.activo !== false && r.claseConjurosOtorgados === filtro.clase && r.selectores?.some(s => s.tipoSelector === "conjuro"
       && s.destinoConjuros !== "referencia" && s.valorActual.some(id => coincideHechizoId(id, h.id))))) return false;
 
@@ -97,12 +107,13 @@ function opcionConjuroElegible(
 
   if (filtro.requiereDano && !h.dadosDaño) return false;
   if (filtro.requiereAtaque && !h.requiereAtaque) return false;
-  if (filtro.alcanceMinimo && (parseInt(h.alcance, 10) || 0) < filtro.alcanceMinimo) return false;
+  if (filtro.alcanceMinimo && (parseInt(h.alcance ?? "", 10) || 0) < filtro.alcanceMinimo) return false;
   return true;
 }
 
 /** Requisitos ejecutables compartidos por almacén, proyección y UI. */
 export function seleccionOpcionValida(selector: SelectorRasgo, valor: string, seleccion: string[], nivel: number, pj?: PersonajeJugador): boolean {
+  if (!habilidadElegible(selector, valor, pj)) return false;
   const { base, argumento } = descomponerSeleccion(valor);
   const op = selector.opciones.find(o => o.id === base && opcionConjuroElegible(o, selector, pj));
   if (!op || (op.nivelMinimo ?? 1) > nivel) return false;

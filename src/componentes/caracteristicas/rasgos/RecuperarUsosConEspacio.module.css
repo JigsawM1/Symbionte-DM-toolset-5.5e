@@ -1,0 +1,369 @@
+/* ==========================================================================
+   RecuperarUsosConEspacio.module.css
+   Estilos específicos para el diálogo modal de recuperación de usos con espacios.
+   ToolSet D&D 5.5e (TaleSpire CEF)
+   ========================================================================== */
+
+.cuerpoDialogo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 1. Tarjeta informativa de la regla y estado */
+.tarjetaResumen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+.filaRegla {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.insigniaAccion {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-cian-claro);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.conteoUsos {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-secundario);
+}
+
+.conteoUsos strong {
+  color: var(--pj-texto-primario);
+}
+
+/* 2. Visualización del flujo de conversión */
+.flujoConversion {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+}
+
+.bloqueRecurso {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.etiquetaBloque {
+  font-size: var(--pj-fuente-micro);
+  text-transform: uppercase;
+  color: var(--pj-texto-terciario);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.valorBloque {
+  font-size: var(--pj-fuente-cuerpo);
+  font-weight: 700;
+  color: var(--pj-texto-primario);
+}
+
+.valorBloqueGanancia {
+  font-size: var(--pj-fuente-cuerpo);
+  font-weight: 700;
+  color: var(--pj-texto-magia);
+}
+
+.subBloque {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+.flechaFlujo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-terciario);
+}
+
+/* 3. Selector táctico de espacios */
+.seccionSeleccion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cabeceraSeleccion {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.etiquetaSeccion {
+  font-size: var(--pj-fuente-label);
+  font-weight: 600;
+  color: var(--pj-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ayudaSeccion {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+.rejillaEspacios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+  gap: 8px;
+}
+
+.tarjetaEspacio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  min-height: 52px;
+  box-sizing: border-box;
+}
+
+.tarjetaEspacio:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+}
+
+.tarjetaEspacioActiva {
+  background: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento-fuerte);
+  box-shadow: 0 0 0 1px var(--pj-borde-acento-fuerte), var(--pj-sombra-brillo-acento);
+}
+
+.tarjetaEspacio:focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+
+.filaTarjetaEspacio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.insigniaNivel {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 700;
+  color: var(--pj-texto-acento-brillante);
+}
+
+.insigniaPacto {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 700;
+  color: var(--pj-texto-magia);
+}
+
+.checkActivo {
+  color: var(--pj-texto-acento-brillante);
+  flex-shrink: 0;
+}
+
+.detallesEspacio {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.conteoDisponibles {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 600;
+  color: var(--pj-texto-primario-suave);
+}
+
+.proyeccionRestante {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+/* 4. Alertas y Estados Vacíos */
+.avisoVacio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.4;
+}
+
+.alertaError {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-badge);
+  line-height: 1.4;
+}
+
+/* 5. Estrategia por Puntos de Conjuro */
+.seccionPuntos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tarjetaContador {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-panel);
+}
+
+.filaContador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.botonContador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--pj-texto-primario);
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.botonContador:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-acento-brillante);
+}
+
+.botonContador:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.displayContador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.numeroContador {
+  font-size: var(--pj-fuente-numero-lg);
+  font-weight: 700;
+  color: var(--pj-texto-primario);
+  line-height: 1.1;
+}
+
+.etiquetaContador {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.botonMaximo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  color: var(--pj-texto-cian-claro);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  height: 36px;
+  box-sizing: border-box;
+}
+
+.botonMaximo:hover:not(:disabled) {
+  border-color: var(--pj-borde-cian-fuerte);
+  background: var(--pj-fondo-tarjeta-hover);
+}
+
+.botonMaximo:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.resumenCostePuntos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pj-borde-sutil);
+}
+
+.itemCostePuntos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemCostePuntos span {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+  text-transform: uppercase;
+}
+
+.itemCostePuntos strong {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-cian-claro);
+}
+
+.itemCostePuntos .puntosRestantes {
+  color: var(--pj-texto-secundario);
+}

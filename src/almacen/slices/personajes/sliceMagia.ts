@@ -1,4 +1,5 @@
 import { consumirRecursoConjuro } from "@/servicios/consumidorRecursosConjuros";
+import { elegirConjuroClase, clasesPropietariasConjuro, retirarEleccionConjuro, conjuroElegidoPorClase } from "@/servicios/rasgos/listasConjurosRasgos";
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
@@ -198,50 +199,67 @@ export const crearSubSliceMagia: StateCreator<
     sincronizarConcentracionEnIniciativa(set, id, null);
   },
 
-  agregarTrucoConocido: (id, hechizoId) => {
+  agregarTrucoConocido: (id, hechizoId, clase) => {
     mutarPersonaje(set, id, (pj) => {
+      const elegida = elegirConjuroClase(pj, hechizoId, "trucos", clase, get().baseDatosHechizos);
+      if (!elegida) return pj;
+      pj = elegida;
       const listaActual = pj.trucosConocidosIds || [];
       const aprendizajes = pj.aprendizajesConjurosIndependientes ?? { trucos: [], conjuros: [] };
       return { ...pj, trucosConocidosIds: listaActual.some(hId => coincideHechizoId(hId, hechizoId)) ? listaActual : [...listaActual, hechizoId],
-        aprendizajesConjurosIndependientes: { ...aprendizajes, trucos: Array.from(new Set([...aprendizajes.trucos, hechizoId])) } };
+        aprendizajesConjurosIndependientes: clasesPropietariasConjuro(pj, hechizoId).length ? pj.aprendizajesConjurosIndependientes : { ...aprendizajes, trucos: Array.from(new Set([...aprendizajes.trucos, hechizoId])) } };
     });
   },
 
-  quitarTrucoConocido: (id, hechizoId) => {
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      aprendizajesConjurosIndependientes: pj.aprendizajesConjurosIndependientes ? { ...pj.aprendizajesConjurosIndependientes,
-        trucos: pj.aprendizajesConjurosIndependientes.trucos.filter(id => !coincideHechizoId(id, hechizoId)) } : undefined,
-      trucosConocidosIds: (pj.trucosConocidosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId))
-    }));
+  quitarTrucoConocido: (id, hechizoId, clase) => {
+    mutarPersonaje(set, id, (pj) => {
+      const actualizado = retirarEleccionConjuro(pj, hechizoId, clase, "trucos");
+      const independientes = pj.aprendizajesConjurosIndependientes && { ...pj.aprendizajesConjurosIndependientes,
+        trucos: clase ? pj.aprendizajesConjurosIndependientes.trucos : pj.aprendizajesConjurosIndependientes.trucos.filter(v => !coincideHechizoId(v, hechizoId)) };
+      const conservar = clasesPropietariasConjuro(actualizado, hechizoId).length || independientes?.trucos.some(v => coincideHechizoId(v, hechizoId));
+      return { ...actualizado, aprendizajesConjurosIndependientes: independientes,
+        trucosConocidosIds: conservar ? pj.trucosConocidosIds : pj.trucosConocidosIds.filter(v => !coincideHechizoId(v, hechizoId)) };
+    });
   },
 
-  agregarConjuroConocido: (id, hechizoId) => {
+  agregarConjuroConocido: (id, hechizoId, clase) => {
     mutarPersonaje(set, id, (pj) => {
+      const elegida = elegirConjuroClase(pj, hechizoId, "conjuros", clase, get().baseDatosHechizos);
+      if (!elegida) return pj;
+      pj = elegida;
       const listaActual = pj.conjurosConocidosIds || [];
       const aprendizajes = pj.aprendizajesConjurosIndependientes ?? { trucos: [], conjuros: [] };
       return { ...pj, conjurosConocidosIds: listaActual.some(hId => coincideHechizoId(hId, hechizoId)) ? listaActual : [...listaActual, hechizoId],
-        aprendizajesConjurosIndependientes: { ...aprendizajes, conjuros: Array.from(new Set([...aprendizajes.conjuros, hechizoId])) } };
+        aprendizajesConjurosIndependientes: clasesPropietariasConjuro(pj, hechizoId).length ? pj.aprendizajesConjurosIndependientes : { ...aprendizajes, conjuros: Array.from(new Set([...aprendizajes.conjuros, hechizoId])) } };
     });
   },
 
-  quitarConjuroConocido: (id, hechizoId) => {
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      aprendizajesConjurosIndependientes: pj.aprendizajesConjurosIndependientes ? { ...pj.aprendizajesConjurosIndependientes,
-        conjuros: pj.aprendizajesConjurosIndependientes.conjuros.filter(id => !coincideHechizoId(id, hechizoId)) } : undefined,
-      conjurosConocidosIds: (pj.conjurosConocidosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId)),
-      conjurosPreparadosIds: (pj.conjurosPreparadosIds || []).filter((hId) => !coincideHechizoId(hId, hechizoId))
-    }));
+  quitarConjuroConocido: (id, hechizoId, clase) => {
+    mutarPersonaje(set, id, (pj) => {
+      const actualizado = retirarEleccionConjuro(pj, hechizoId, clase, "conjuros");
+      const independientes = pj.aprendizajesConjurosIndependientes && { ...pj.aprendizajesConjurosIndependientes,
+        conjuros: clase ? pj.aprendizajesConjurosIndependientes.conjuros : pj.aprendizajesConjurosIndependientes.conjuros.filter(v => !coincideHechizoId(v, hechizoId)) };
+      const siempre = pj.conjurosSiemprePreparadosIds.some(v => coincideHechizoId(v, hechizoId));
+      const conservar = siempre || clasesPropietariasConjuro(actualizado, hechizoId).length || independientes?.conjuros.some(v => coincideHechizoId(v, hechizoId));
+      const preparado = siempre || Object.keys(actualizado.eleccionesConjurosClase ?? {}).some(c => conjuroElegidoPorClase(actualizado, hechizoId, c, "preparados"));
+      return { ...actualizado, aprendizajesConjurosIndependientes: independientes,
+        conjurosConocidosIds: conservar ? pj.conjurosConocidosIds : pj.conjurosConocidosIds.filter(v => !coincideHechizoId(v, hechizoId)),
+        conjurosPreparadosIds: preparado ? pj.conjurosPreparadosIds : pj.conjurosPreparadosIds.filter(v => !coincideHechizoId(v, hechizoId)) };
+    });
   },
 
-  alternarConjuroPreparado: (id, hechizoId) => {
+  alternarConjuroPreparado: (id, hechizoId, clase) => {
     mutarPersonaje(set, id, (pj) => {
       const preparados = pj.conjurosPreparadosIds || [];
-      const estaPreparado = preparados.some((hId) => coincideHechizoId(hId, hechizoId));
-      const nuevaLista = estaPreparado
+      const estaPreparado = clase ? conjuroElegidoPorClase(pj, hechizoId, clase, "preparados") : preparados.some((hId) => coincideHechizoId(hId, hechizoId));
+      const elegida = estaPreparado ? retirarEleccionConjuro(pj, hechizoId, clase, "preparados") : elegirConjuroClase(pj, hechizoId, "preparados", clase, get().baseDatosHechizos);
+      if (!elegida) return pj;
+      pj = elegida;
+      const otraProcedencia = Object.keys(pj.eleccionesConjurosClase ?? {}).some(c => conjuroElegidoPorClase(pj, hechizoId, c, "preparados"))
+        || pj.conjurosSiemprePreparadosIds.some(v => coincideHechizoId(v, hechizoId));
+      const nuevaLista = estaPreparado && !otraProcedencia
         ? preparados.filter((hId) => !coincideHechizoId(hId, hechizoId))
-        : [...preparados, hechizoId];
+        : preparados.some(v => coincideHechizoId(v, hechizoId)) ? preparados : [...preparados, hechizoId];
 
       return { ...pj, conjurosPreparadosIds: nuevaLista };
     });
@@ -249,6 +267,7 @@ export const crearSubSliceMagia: StateCreator<
 
   desprepararConjuroPersonaje: (id, hechizoId) => {
     mutarPersonaje(set, id, (pj) => {
+      pj = retirarEleccionConjuro(pj, hechizoId, undefined, "preparados");
       const preparados = pj.conjurosPreparadosIds || [];
       const nuevaLista = preparados.filter((hId) => !coincideHechizoId(hId, hechizoId));
       return { ...pj, conjurosPreparadosIds: nuevaLista };

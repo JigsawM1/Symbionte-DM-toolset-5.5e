@@ -7,6 +7,9 @@
 const cacheNormalizacion = new Map<string, string>();
 const LIMITE_CACHE_NORMALIZACION = 5000;
 
+const cacheTokenizacion = new Map<string, string[]>();
+const LIMITE_CACHE_TOKENIZACION = 1000;
+
 /**
  * Normaliza una cadena de texto eliminando tildes, diéresis, mayúsculas y caracteres diacríticos.
  * También normaliza opcionalmente 'ñ' a 'n' para usuarios sin teclado en español.
@@ -49,13 +52,35 @@ export function tokenizarBusqueda(consulta: string): string[] {
 }
 
 /**
+ * Obtiene o calcula de forma cacheada los tokens normalizados de la consulta.
+ * ponytail: NFD ya convierte 'ñ' en 'n'; no se guardan variantes duplicadas.
+ */
+function obtenerTokensConsulta(consulta: string): string[] {
+  const enCache = cacheTokenizacion.get(consulta);
+  if (enCache) return enCache;
+
+  const tokens = tokenizarBusqueda(consulta);
+
+  if (cacheTokenizacion.size >= LIMITE_CACHE_TOKENIZACION) {
+    let eliminados = 0;
+    for (const k of cacheTokenizacion.keys()) {
+      cacheTokenizacion.delete(k);
+      eliminados++;
+      if (eliminados >= 200) break;
+    }
+  }
+  cacheTokenizacion.set(consulta, tokens);
+  return tokens;
+}
+
+/**
  * Comprueba si una consulta coincide con uno o varios textos objetivos.
  * Coincide si TODOS los tokens de la consulta están presentes en la unión de los textos.
  *
- * Optimización de rendimiento Ponytail:
- * - Ruta rápida para objetivo único tipo string sin asignaciones de Arrays ni Sets intermedios.
- * - Iteración directa sobre índices en Set evitando conversiones `Array.from()`.
- * - Pre-normalización de tokens en memoria plana sin instanciar objetos intermedios.
+ * Optimizaciones de búsqueda:
+ * - Cacheo de tokenización/normalización de la consulta (`obtenerTokensConsulta`).
+ * - Eliminación de asignación de `Set` e iterables intermedios por cada elemento filtrado.
+ * - Máscara de bits para hasta 30 tokens o array de booleanos para reducir asignaciones.
  *
  * @param objetivos Texto o lista de textos (ej: [nombre, categoria, subtitulo, descripcion])
  * @param consulta Texto que el usuario ingresó en el buscador
@@ -68,20 +93,18 @@ export function coincideBusquedaTolerante(
   if (!consulta || !consulta.trim()) return true;
   if (!objetivos) return false;
 
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return true;
+  const tokens = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+  if (numTokens === 0) return true;
 
-  const tokensSinEnye = tokens.map((t) => (t.includes("ñ") ? t.replace(/ñ/g, "n") : t));
-
-  // Ruta rápida para un único string objetivo (ej: búsquedas directas de nombre o filtros simples)
+  // Ruta rápida para un único string objetivo
   if (typeof objetivos === "string") {
     if (objetivos.length === 0) return false;
     const objNorm = normalizarParaBusqueda(objetivos);
     if (!objNorm) return false;
-    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
-    for (let i = 0; i < tokens.length; i++) {
-      if (!objNorm.includes(tokens[i]) && !objNormSinEnye.includes(tokensSinEnye[i])) {
+    for (let i = 0; i < numTokens; i++) {
+      if (!objNorm.includes(tokens[i])) {
         return false;
       }
     }
@@ -90,32 +113,48 @@ export function coincideBusquedaTolerante(
 
   if (!Array.isArray(objetivos) || objetivos.length === 0) return false;
 
-  const listaObjetivos: string[] = [];
+  // Si la consulta tiene <= 30 tokens, usamos un bitmask entero sin asignación de objetos
+  if (numTokens <= 30) {
+    let faltantesMask = (1 << numTokens) - 1;
+
+    for (let i = 0; i < objetivos.length; i++) {
+      const item = objetivos[i];
+      if (typeof item !== "string" || item.length === 0) continue;
+
+      const objNorm = normalizarParaBusqueda(item);
+      if (!objNorm) continue;
+
+      for (let t = 0; t < numTokens; t++) {
+        if ((faltantesMask & (1 << t)) !== 0 && objNorm.includes(tokens[t])) {
+          faltantesMask &= ~(1 << t);
+        }
+      }
+
+      if (faltantesMask === 0) return true;
+    }
+
+    return false;
+  }
+
+  // Fallback seguro para consultas extremadamente largas (> 30 tokens)
+  let faltantes = numTokens;
+  const encontrado = new Array<boolean>(numTokens).fill(false);
+
   for (let i = 0; i < objetivos.length; i++) {
     const item = objetivos[i];
-    if (typeof item === "string" && item.length > 0) {
-      listaObjetivos.push(item);
-    }
-  }
-  if (listaObjetivos.length === 0) return false;
+    if (typeof item !== "string" || item.length === 0) continue;
 
-  const tokensPendientes = new Set<number>();
-  for (let i = 0; i < tokens.length; i++) {
-    tokensPendientes.add(i);
-  }
-
-  for (let i = 0; i < listaObjetivos.length; i++) {
-    const objNorm = normalizarParaBusqueda(listaObjetivos[i]);
+    const objNorm = normalizarParaBusqueda(item);
     if (!objNorm) continue;
-    const objNormSinEnye = objNorm.includes("ñ") ? objNorm.replace(/ñ/g, "n") : objNorm;
 
-    for (const idx of tokensPendientes) {
-      if (objNorm.includes(tokens[idx]) || objNormSinEnye.includes(tokensSinEnye[idx])) {
-        tokensPendientes.delete(idx);
+    for (let t = 0; t < numTokens; t++) {
+      if (!encontrado[t] && objNorm.includes(tokens[t])) {
+        encontrado[t] = true;
+        faltantes--;
       }
     }
 
-    if (tokensPendientes.size === 0) return true;
+    if (faltantes === 0) return true;
   }
 
   return false;

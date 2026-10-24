@@ -12,6 +12,7 @@ import {
 } from "@/servicios/evaluadorEfectosRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { logger } from "@/utiles/logger";
+import { tirarRasgoConResultado } from "./tirarRasgoConResultado";
 
 interface ParametrosAccionesTarjetaRasgo {
   rasgo: RasgoPersonaje;
@@ -86,28 +87,24 @@ export function usarAccionesTarjetaRasgo({
   );
 
   const sinUsosDisponibles =
-    (esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||
+    !((personajeActivoAlmacen?.intentoRasgoPendiente?.idRasgo === rasgo.id) && rasgo.gastoSegunResultado) && ((esRecursoEspacioPacto && espaciosPactoDisponibles <= 0) ||
     ((tieneUsosPropios || tieneUsosPadre) && usosRestantes <= 0) ||
-    (tieneUsosPropios && faltaReservaPadre);
+    (tieneUsosPropios && faltaReservaPadre));
 
   const normNombre = rasgo.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const esManosCurativas = normNombre.includes("manos curativas");
   const esPreservarVida = normNombre.includes("preservar vida");
-  const esMantoInspiracion = normNombre.includes("manto de inspiracion");
-  const esInspiracionBardica = normNombre.includes("inspiracion bardica");
   const esAtaqueAliento = normNombre.includes("ataque de aliento") || normNombre.includes("arma de aliento");
 
   const esCuracion = rasgo.categoriaMecanica === "curacion";
   const esCuracionAuto = esCuracion && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !esManosCurativas && !esPreservarVida;
-  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !esMantoInspiracion && !rasgo.hpTemporalAlUsarRasgo && !rasgo.hpTemporalAlActivarRasgo;
+  const tieneEfectoHpTemporalAuto = (rasgo.efectos || []).some((ef) => ef.tipo === "hp_temporal") && !rasgo.hpTemporalAlUsarRasgo && !rasgo.hpTemporalAlActivarRasgo;
   const gastaUsoAlTirar =
     !rasgo.noGastarAlTirarDados &&
     (esCuracionAuto ||
       esPreservarVida ||
       tieneEfectoHpTemporalAuto ||
       esManosCurativas ||
-      esMantoInspiracion ||
-      esInspiracionBardica ||
       esAtaqueAliento ||
       rasgo.categoriaMecanica === "consumible" ||
       rasgo.gastarDePadre);
@@ -116,10 +113,14 @@ export function usarAccionesTarjetaRasgo({
   const manejarTirarDados = async (e: React.MouseEvent): Promise<void> => {
     e.stopPropagation();
     if (!formulaEfectiva) return;
-    if (sinUsosDisponibles || tiradaEnCurso.current) return;
+    if ((sinUsosDisponibles && !rasgo.noGastarAlTirarDados) || tiradaEnCurso.current) return;
     tiradaEnCurso.current = true;
 
     try {
+      if (idPersonaje && (rasgo.gastoSegunResultado || rasgo.multiplicadorResultadoManual)) {
+        await tirarRasgoConResultado(idPersonaje, rasgo.id, formulaEfectiva);
+        return;
+      }
       const nombreLimpioRasgo = rasgo.nombre.replace(/:/g, " -");
       const formula = `!${nombreLimpioRasgo}:${formulaEfectiva}`;
       const etiqueta = `${nombrePersonaje} - ${nombreLimpioRasgo} (${formulaEfectiva})`;

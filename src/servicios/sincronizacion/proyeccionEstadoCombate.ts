@@ -62,7 +62,7 @@ export function proyectarEstadoCombatePJ(pj: PersonajeJugador): EstadoCombatePJ 
     },
     concentracion: pj.concentracionActiva
       ? {
-          hechizoId: pj.concentracionActiva.hechizoId,
+          hechizoId: pj.concentracionActiva.hechizoId ?? pj.concentracionActiva.idRasgoOrigen ?? "",
           nombreHechizo: pj.concentracionActiva.nombreHechizo,
         }
       : null,

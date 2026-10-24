@@ -36,7 +36,7 @@ export function prepararCargaPersistida(raw: Record<string, unknown>): Partial<E
   if (datos.hechizos_homebrew) cambios.baseDatosHechizos = desduplicarEntidades(HECHIZOS_INICIALES, datos.hechizos_homebrew.map(d => sanearHechizoCD(EsquemaHechizoBase.parse(d))));
   if (datos.objetos_homebrew) cambios.objetosHomebrew = desduplicarEntidades(OBJETOS_INICIALES.map(sanearObjetoHomebrew), datos.objetos_homebrew.map(d => EsquemaObjetoJuego.parse(sanearObjetoHomebrew(d))));
   if (datos.personajes) {
-    cambios.personajes = datos.personajes.map(sanearPersonaje).map(hidratarPersonaje);
+    cambios.personajes = datos.personajes.map(sanearPersonaje).map(p => hidratarPersonaje(p, cambios.baseDatosHechizos ?? HECHIZOS_INICIALES));
     cambios.idPersonajeActivo = cambios.personajes.some(p => p.id === datos.id_personaje_activo)
       ? datos.id_personaje_activo : cambios.personajes[0]?.id ?? null;
   }

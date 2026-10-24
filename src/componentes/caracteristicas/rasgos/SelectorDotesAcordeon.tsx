@@ -147,6 +147,8 @@ export const SelectorDotesAcordeon: React.FC<SelectorDotesAcordeonProps> = ({
     <div className={estilos.contenedorAcordeonDotes}>
       {/* Barra de herramientas: Buscador y Filtros */}
       <div className={estilos.barraHerramientasDotes}>
+        {selector.requiereEleccionExplicita && seleccionados.length > 0 && <button type="button" className={estilos.botonFiltroEstado}
+          title="Quitar elección de dote" onClick={() => alActualizarSeleccion?.(selector.id, [])}>Quitar elección</button>}
         <div className={estilos.contenedorBuscador}>
           <Search size={14} color="var(--pj-texto-terciario)" />
           <input

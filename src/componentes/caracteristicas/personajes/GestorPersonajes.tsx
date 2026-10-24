@@ -145,7 +145,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
   const procesarTextoJSON = (texto: string) => {
     try {
       const parsed = JSON.parse(texto);
-      const pjs = importarPersonajesDesdeJSON(parsed).map(hidratarPersonaje);
+      const pjs = importarPersonajesDesdeJSON(parsed).map(p => hidratarPersonaje(p, usarAlmacenDM.getState().baseDatosHechizos));
       if (pjs.length > 0 && alImportar) {
         alImportar(pjs);
         setModalPegarAbierto(false);

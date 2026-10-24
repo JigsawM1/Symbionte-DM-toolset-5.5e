@@ -39,6 +39,19 @@ export type DefinicionSubtirada = z.infer<typeof EsquemaDefinicionSubtirada>;
 
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
+  nivelMinimoRecuperarUsosConEspacio: z.number().int().min(1).max(9).optional(),
+  iniciativaOpcional: z.boolean().optional(),
+  conjurosDesdeSelectores: z.boolean().optional(),
+  gastoSegunResultado: z.boolean().optional(),
+  multiplicadorResultadoManual: z.number().positive().optional(),
+  trasLanzarConjuro: z.object({ escuelas: z.array(z.string()).min(1) }).optional(),
+  lanzamientoConActivacion: z.object({ conjuroId: z.string().min(1), nivel: z.number().int().min(1).max(9) }).optional(),
+  recuperarUsosConEspacio: z.number().int().positive().optional(),
+  ampliacionListaConjuros: z.object({
+    clase: z.string().min(1),
+    listas: z.array(z.string().min(1)).min(1),
+    nivelMinimoConjuro: z.number().int().min(0).max(9).default(1)
+  }).optional(),
   escaladoConjurosOtorgados: z.array(z.object({ nivelMinimo: z.number().int().min(1).max(20), conjuros: z.array(z.string().min(1)) })).optional(),
   costeRecargaPadre: z.number().int().positive().optional(),
   costeActivacionPorSelector: z.object({ idSelector: z.string().min(1), costePorOpcion: z.number().int().positive() }).optional(),
@@ -93,6 +106,7 @@ export const EsquemaMecanicasRasgo = z.object({
   }).optional(),
   recuperacionOpcionalDescanso: z.object({ idRasgoObjetivo: z.string().min(1), formulaCantidad: z.string().min(1) }).optional(),
   recuperacionDescansoDisponible: z.boolean().optional(),
+  usosRecuperadosConPuntos: z.number().int().min(0).optional(),
   activacionAlternativa: z.object({ idRasgoRecurso: z.string().min(1), coste: z.number().int().positive() }).optional(),
   // Recursos de pacto: ejecución atómica al usar o recargar un rasgo.
   recuperarPactoAlUsar: z.enum(["mitad_maximo", "maximo"]).optional(),

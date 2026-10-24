@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useDeferredValue } from "react";
+import React, { useState, useMemo, useDeferredValue, useCallback } from "react";
+import { conjuroElegidoPorClase } from "@/servicios/rasgos/listasConjurosRasgos";
 import {
   Star,
   CheckSquare,
@@ -29,6 +30,7 @@ import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/
 import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { FilaConjuroCompendio } from "./FilaConjuroCompendio";
+import { SelectorClaseConjuros } from "./SelectorClaseConjuros";
 import { FichaHechizo } from "./FichaHechizo";
 import estilos from "./CompendioConjurosJugador.module.css";
 
@@ -55,6 +57,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   const [escuelaFiltro, setEscuelaFiltro] = useState<string>("todas");
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
   const [paginaActual, setPaginaActual] = useState<number>(1);
+  const [claseEleccion, setClaseEleccion] = useState("");
   const { esGM } = usarEstadoConfiguracion();
   const { baseDatosHechizos } = usarEstadoHomebrew();
   const { personajes, idPersonajeActivo } = usarEstadoPersonajes();
@@ -92,18 +95,24 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   const {
     esHechizoDeSubclase,
     obtenerOrigenConjuro,
-    estaPreparado,
-    estaEnLista,
+    estaPreparado: preparadoGlobal,
+    estaEnLista: enListaGlobal,
     maximos,
     conteoEfectivo
   } = usarMagiaPersonaje(personajeActivo, baseDatosHechizos);
+  const perfilEleccion = personajeActivo?.clasesLanzadoras.find(c => c.clase === claseEleccion);
+  const estaPreparado = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo ? preparadoGlobal(h)
+    : !!obtenerOrigenConjuro(h) || conjuroElegidoPorClase(personajeActivo, h.id, perfilEleccion.clase, h.nivel === 0 ? "trucos" : "preparados"), [perfilEleccion, personajeActivo, preparadoGlobal, obtenerOrigenConjuro]);
+  const estaEnLista = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo ? enListaGlobal(h)
+    : !!obtenerOrigenConjuro(h) || conjuroElegidoPorClase(personajeActivo, h.id, perfilEleccion.clase, h.nivel === 0 ? "trucos" : "conjuros"), [perfilEleccion, personajeActivo, enListaGlobal, obtenerOrigenConjuro]);
 
   const esGrimorio = useMemo(() => {
     if (!personajeActivo) return false;
+    if (perfilEleccion) return perfilEleccion.modeloConjuros === "grimorio";
     if (personajeActivo.clasesLanzadoras?.some((c: ClaseLanzadora) => c.modeloConjuros === "grimorio")) return true;
     const clasePrincipal = personajeActivo.clasesLanzadoras?.[0]?.clase || personajeActivo.clase || "";
     return clasePrincipal.toLowerCase().includes("mago") || clasePrincipal.toLowerCase().includes("wizard");
-  }, [personajeActivo]);
+  }, [personajeActivo, perfilEleccion]);
 
   const requierePreparacion = useMemo(() => {
     if (!personajeActivo) return false;
@@ -113,7 +122,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     );
   }, [personajeActivo]);
 
-  const esModeloConocidos = maximos.modelo === "conocidos";
+  const esModeloConocidos = (perfilEleccion?.modeloConjuros ?? maximos.modelo) === "conocidos";
   const esPreparadorSinGrimorio = requierePreparacion && !esGrimorio;
 
   // Auto-ajustar la pestaña activa según el perfil de magia del personaje
@@ -223,30 +232,30 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     if (!personajeActivo) return;
     if (hechizo.nivel === 0) {
       if (estaEnLista(hechizo)) {
-        quitarTrucoConocido(personajeActivo.id, hechizo.id);
+        quitarTrucoConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       } else {
-        agregarTrucoConocido(personajeActivo.id, hechizo.id);
+        agregarTrucoConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       }
     } else {
       if (esModeloConocidos) {
         // En modelo de conocidos: el control marca o desmarca directamente como conocido
         if (estaEnLista(hechizo)) {
-          quitarConjuroConocido(personajeActivo.id, hechizo.id);
+          quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
         } else {
-          agregarConjuroConocido(personajeActivo.id, hechizo.id);
+          agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
         }
       } else if (esPreparadorSinGrimorio) {
         // En preparadores divinos sin libro (Clérigo/Druida/Paladín): prepara o desprepara para el día
-        alternarConjuroPreparado(personajeActivo.id, hechizo.id);
+        alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       } else {
         // Mago / Grimorio (con libro de conjuros): agrega o quita del libro
         if (estaEnLista(hechizo)) {
           if (estaPreparado(hechizo)) {
-            alternarConjuroPreparado(personajeActivo.id, hechizo.id);
+            alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
           }
-          quitarConjuroConocido(personajeActivo.id, hechizo.id);
+          quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
         } else {
-          agregarConjuroConocido(personajeActivo.id, hechizo.id);
+          agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
         }
       }
     }
@@ -257,20 +266,21 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     if (hechizo.nivel === 0) return;
     if (esModeloConocidos) {
       if (estaEnLista(hechizo)) {
-        quitarConjuroConocido(personajeActivo.id, hechizo.id);
+        quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       } else {
-        agregarConjuroConocido(personajeActivo.id, hechizo.id);
+        agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       }
       return;
     }
     if (esGrimorio && !estaEnLista(hechizo)) {
-      agregarConjuroConocido(personajeActivo.id, hechizo.id);
+      agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
     }
-    alternarConjuroPreparado(personajeActivo.id, hechizo.id);
+    alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
   };
 
   return (
     <div className={estilos.contenedorGeneral}>
+      <SelectorClaseConjuros personaje={personajeActivo} valor={claseEleccion} alCambiar={setClaseEleccion} />
       <div className={estilos.cabeceraPrincipal}>
         <div className={estilos.filaTitulo}>
           <div className="u-flex u-alinear-centro u-gap-lg">

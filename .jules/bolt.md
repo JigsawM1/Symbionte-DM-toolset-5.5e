@@ -1,7 +1,3 @@
-# Bolt's Journal
-
-## System Profile & Codebase Learnings
-
-## 2025-05-20 - Pre-computing spell matchers in trait option filters
-**Learning:** `opcionesElegiblesConjuros` filters candidate spell options for character trait selectors. Evaluating filters like `excluirPreparados` previously created temporary array concatenations (`[...pj.conjurosPreparadosIds, ...]`) inside the `.filter()` callback for every candidate spell (up to hundreds of items).
-**Action:** Precompute matcher functions outside the option loop once per selector evaluation to avoid redundant garbage collection overhead and repeated scans.
+## 2026-03-08 - Optimización de `coincideBusquedaTolerante`
+**Learning:** En operaciones de búsqueda y filtrado en caliente sobre grandes colecciones (listas de objetos, hechizos, monstruos), instanciar objetos `Set` o arrays intermedios por cada elemento filtrado produce overhead significativo por Garbage Collection. El uso de bitmasks para rastrear tokens encontrados (para consultas ≤ 30 tokens) y el cacheo de tokenización elimina asignaciones de memoria en bucles de filtrado.
+**Action:** Usar bitmasks o iteración de índices en funciones utilitarias invocar en bucles `.filter()` masivos en lugar de instanciar data structures pesadas (`Set`/`Map`) por elemento.

@@ -1,5 +1,23 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-23] Integración Certificada de Bardo PHB 2024 y Recuperación de Recursos en Main
+
+**Alcance de la Fusión en `main`:**
+- Integración completa y limpia de la rama `bardo-automatizacion` en `main` sin conflictos (78 archivos modificados, +3.319 / -669 líneas).
+- **Bardo PHB 2024 y 4 Subclases Declarativas (`src/datos/clases/bardo.json`):** Niveles 1 a 20 estandarizados según D&D 5.5e (2024), con Inspiración Bárdica escalada (d6-d12), Secretos Mágicos dinámicos (acceso a listas de Clérigo, Druida y Mago) y cuatro colegios canónicos: Saber, Valor, Glamour y Danza.
+- **Patrón Strategy de Recuperación de Usos (`conversionRecursosRasgos.ts`, `RecuperarUsosConEspacio.tsx`):** Conversión de recursos mágicos para recarga de rasgos mediante espacios de conjuro tradicionales o puntos de conjuro (DMG) con coste escalonado acumulativo ($2 \rightarrow 4 \rightarrow 6 \dots$) calculado en $O(1)$ con la fórmula $\text{Coste}(m, U) = U \cdot (2m + U + 1)$. Unificación con la recarga de pacto del Brujo bajo el patrón Command (`operarRecursoRasgoPersonaje`).
+- **Automatización Táctica de Tiradas e Iniciativa:** Integración de iniciativa opcional por Carisma (`iniciativaOpcionalRasgos.ts`, `elegirIniciativaOpcional.ts`) y resolución automatizada de tiradas de rasgos (`tirarRasgoConResultado.ts`, `resolucionesRasgos.ts`).
+- **Poda Ponytail:** Aplanado de interfaces monouso en UI y reducción de sobreabstracciones, manteniendo todos los componentes holgadamente dentro de los umbrales de tamaño (`< 300` o `< 500` líneas).
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 170 suites ejecutadas, **2.502 / 2.502 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 196 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 18.47s (2.138 módulos procesados).
+
+---
+
 ## [2026-10-23] Poda Ponytail Post-Escalado (Procesador de Descansos y Tests de Bardo)
 
 - **Diagnóstico Ponytail**:

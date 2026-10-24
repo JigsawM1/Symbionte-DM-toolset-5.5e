@@ -106,6 +106,27 @@
   white-space: nowrap;
 }
 
+.botonVincularMiniRapido {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10b981;
+  color: #34d399;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.botonVincularMiniRapido:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
 .editar {
   width: 28px;
   height: 28px;

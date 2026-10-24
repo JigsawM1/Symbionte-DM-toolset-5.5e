@@ -1,10 +1,10 @@
 import { EsquemaWireMensajeSync } from "@/tipos/sync";
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ts } from '@/utiles/TaleSpireAdapter';
-import { autorizarMensaje as autorizarVerificado, invalidarAutoridadSync } from './autoridadSync';
+import { autorizarMensaje as autorizarVerificado, invalidarAutoridadSync, puedeEmitirPJ } from './autoridadSync';
 import { procesarMensajeSyncEntrante, reiniciarSincronizacion } from '../sincronizacionSimbiote';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
-import type { FragmentoCliente } from '@/tipos/talespire';
+import type { FragmentoCliente, FragmentoCriatura, InfoCriatura } from '@/tipos/talespire';
 
 function autorizarMensaje(datos: unknown, remitente?: FragmentoCliente) {
   return autorizarVerificado(EsquemaWireMensajeSync.parse(datos), remitente);
@@ -68,6 +68,33 @@ describe('Autoridad nativa de sincronización', () => {
     expect(await autorizarMensaje(mensaje, jugador)).toBe(false);
     // Tras el fallo, la siguiente llamada debe consultar nuevamente y resolverse exitosamente
     vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockResolvedValue([{ id: 'mini-propia' }]);
+    expect(await autorizarMensaje(mensaje, jugador)).toBe(true);
+  });
+  it('permite emitir PJ mediante puedeEmitirPJ si la mini está seleccionada o no tiene dueño restringido', async () => {
+    vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockResolvedValue([]);
+    vi.spyOn(ts.clients, 'obtenerPlayerId').mockResolvedValue('jugador');
+    vi.spyOn(ts.creatures, 'getSelectedCreatures').mockResolvedValue([{ id: 'mini-seleccionada' } as unknown as FragmentoCriatura]);
+
+    // Caso 1: mini seleccionada
+    expect(await puedeEmitirPJ('mini-seleccionada')).toBe(true);
+
+    // Caso 2: mini sin dueño en getMoreInfo
+    vi.spyOn(ts.creatures, 'getSelectedCreatures').mockResolvedValue([]);
+    vi.spyOn(ts.creatures, 'getMoreInfo').mockResolvedValue([{ id: 'mini-libre', ownerIds: [] } as unknown as InfoCriatura]);
+    expect(await puedeEmitirPJ('mini-libre')).toBe(true);
+
+    // Caso 3: mini con dueño diferente
+    vi.spyOn(ts.creatures, 'getMoreInfo').mockResolvedValue([{ id: 'mini-ajena', ownerIds: ['otro-jugador'] } as unknown as InfoCriatura]);
+    expect(await puedeEmitirPJ('mini-ajena')).toBe(false);
+  });
+
+  it('acepta mensaje PJ por getMoreInfo cuando getCreaturesOwnedByPlayer viene vacío para jugadores', async () => {
+    vi.mocked(ts.creatures.getCreaturesOwnedByPlayer).mockResolvedValue([]);
+    vi.spyOn(ts.creatures, 'getMoreInfo').mockResolvedValue([
+      { id: 'mini-desatendida', ownerIds: [] } as unknown as InfoCriatura
+    ]);
+
+    const mensaje = { v: 2 as const, s: 'sesion', t: 'PJ' as const, d: { id: 'pj', m: 'mini-desatendida', n: 'Pj', i: 0, va: 10, vm: 10 } };
     expect(await autorizarMensaje(mensaje, jugador)).toBe(true);
   });
 });

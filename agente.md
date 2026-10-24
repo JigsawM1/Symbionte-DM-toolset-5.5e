@@ -1,5 +1,58 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-24] Poda Ponytail Post-Implementación: Vinculación y Sincronización de Miniaturas TaleSpire
+
+- **Diagnóstico Ponytail**:
+  - *delete*: Eliminada la API y definiciones huérfanas de `picking` (`startPicking`, `suscribirAPicking`, `EventoPickingTS`) en `TaleSpireAdapter.ts` y `talespire.d.ts` sin consumidores en el proyecto.
+  - *shrink*: Eliminada duplicación de búsqueda manual de candidatos en `SeccionVinculacionMiniaturaTS.tsx` (-27 líneas), delegando directamente en la cascada encapsulada de `ts.creatures.getCreaturesOwnedByPlayer`.
+  - *shrink*: Unificación de consultas concurrentes a `parties`, `initiative` y `getSelectedCreatures` en el fallback de `TaleSpireAdapter.ts` mediante `Promise.allSettled`.
+  - *shrink*: Simplificado el manejador de vinculación rápida en `CabeceraPersonaje.tsx`, eliminando el bloque `try/catch` redundante puesto que `getMoreInfo` nunca rechaza.
+  - *shrink*: Reducida la iteración imperativa sobre `getSelectedCreatures` en `autoridadSync.ts` a un predicado en una sola línea.
+
+- **Impacto y Certificación CI**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo tipado estricto (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `pnpm run verificar:lineas`: 196 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 170 suites ejecutadas, **2.505 / 2.505 pruebas aprobadas (100% éxito)**.
+  - `pnpm exec vite build`: Compilación de producción completada exitosamente en 9.12s.
+
+---
+
+## [2026-10-24] Corrección de Vinculación y Sincronización de Miniaturas TaleSpire para Jugadores sin Rango DM
+
+- **Contexto y Causa Raíz**:
+  - *Problema Reportado*: Los jugadores no podían vincular sus miniaturas 3D a sus fichas de personaje a menos que tuvieran rango de Master/DM en TaleSpire.
+  - *Diagnóstico en TaleSpire API v0.1*: Según la especificación oficial, `creatures.getCreaturesOwnedByPlayer` falla con el error de permiso `insufficientRights` cuando el cliente no es GM (`clientMode !== 'gm'`).
+  - *Efecto Cascada*:
+    1. El resolutor automático (`autoResolverMiniaturasJugador`) y el explorador interactivo ("Mis Miniaturas") recibían una lista vacía o rechazo, indicando erróneamente que no había miniaturas asignadas.
+    2. En `PestanaIdentidad`, la selección de miniatura dependía de hacer scroll y pulsar "Guardar Cambios", no guardándose de forma inmediata en el store global.
+    3. La autoridad de sincronización (`puedeEmitirPJ` en `autoridadSync.ts`) bloqueaba la emisión remota de cambios del jugador porque `minisPropias` (dependiente de `getCreaturesOwnedByPlayer`) devolvía conjunto vacío.
+    4. En el cliente DM, `autorizarPersonaje` rechazaba la ficha entrante con `ACK(ok: false)` a menos que el DM hubiese asignado manualmente propietarios nativos a la miniatura en TaleSpire.
+
+- **Solución Arquitectónica Implementada**:
+  1. *Adaptador TaleSpire y Tipado Nativo (`src/tipos/talespire.d.ts`, `src/utiles/TaleSpireAdapter.ts`)*:
+     - Incorporados namespaces oficiales `parties` (`getParties`, `getCreaturesInParty`) y `picking` (`startPicking`, `suscribirAPicking`).
+     - `getCreaturesOwnedByPlayer` cuenta con un fallback transparente y resiliente para jugadores: si la API nativa rechaza con `insufficientRights` o devuelve un array vacío, consulta en cascada `parties.getParties() -> parties.getCreaturesInParty()`, `initiative.getQueue()` y `creatures.getSelectedCreatures()`, enriqueciendo los datos mediante `creatures.getMoreInfo()` y filtrando por `ownerIds` o pertenencia al grupo del jugador.
+     - Protegido `getMoreInfo` con comprobación segura de entorno (`typeof window !== "undefined"`) para evitar `ReferenceError` en entornos SSR/Node de Vitest.
+  2. *Resolutor Inteligente de Miniaturas (`src/servicios/resolutorMiniaturasJugador.ts`)*:
+     - Añadida coincidencia difusa de nombres mediante `coincidenNombresTaleSpire` para soportar nombres con sufijos, roles entre corchetes (`[PJ]`) o numeraciones de instancia (`#1`).
+     - `autoResolverMiniaturasJugador` recurre a `getSelectedCreatures()` si la consulta inicial de ownership no devuelve candidatos.
+  3. *Autoridad de Sincronización Resiliente (`src/servicios/sincronizacion/autoridadSync.ts`)*:
+     - En `puedeEmitirPJ`, si `minisPropias` no contiene la miniatura, se valida de forma secundaria si está actualmente seleccionada en el tablero por el jugador (`getSelectedCreatures`) o si `getMoreInfo` confirma que está sin asignar o asignada al jugador.
+     - En `autorizarPersonaje`, el cliente DM acepta miniaturas del grupo o no asignadas, evitando sobrescribir y anular el vínculo de los jugadores.
+  4. *Experiencia de Usuario Inmediata (UI/UX)*:
+     - En `PestanaIdentidad.tsx`: La selección de miniatura invoca de forma inmediata `usarAlmacenDM.getState().vincularMiniaturaTSPersonaje` para persistencia instantánea.
+     - En `CabeceraPersonaje.tsx` & `.module.css`: Incorporado botón táctico de 1 clic `[Vincular Mini]` visible cuando el personaje no tiene miniatura asignada y hay una miniatura activa seleccionada en TaleSpire.
+
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo tipado estricto (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `pnpm run verificar:lineas`: 196 archivos conformes, 0 errores críticos (> 500 líneas).
+  - `pnpm test`: 170 suites ejecutadas, **2.505 / 2.505 pruebas aprobadas (100% éxito)** (+3 tests añadidos para autoridad de sync y heurística de nombres).
+  - `pnpm exec vite build`: Compilación de producción exitosa en 13.03s.
+
+---
+
 ## [2026-10-23] Integración Certificada de Bardo PHB 2024 y Recuperación de Recursos en Main
 
 **Alcance de la Fusión en `main`:**

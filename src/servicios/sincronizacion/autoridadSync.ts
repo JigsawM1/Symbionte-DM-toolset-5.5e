@@ -47,7 +47,26 @@ export async function puedeEmitirPJ(mini: string | null | undefined): Promise<bo
   const inicio = generacion;
   try {
     const player = await ts.clients.obtenerPlayerId();
-    return !!player && (await minisPropias(player)).has(mini.toLowerCase()) && inicio === generacion;
+    if (!player) return false;
+    const miniBuscada = mini.toLowerCase();
+    const propias = await minisPropias(player);
+    if (propias.has(miniBuscada)) return inicio === generacion;
+
+    // Respaldo para clientes Jugadores en TaleSpire:
+    const seleccion = await ts.creatures.getSelectedCreatures();
+    if (seleccion.some(s => (typeof s === "string" ? s : s?.id)?.toLowerCase() === miniBuscada)) {
+      return inicio === generacion;
+    }
+
+    const infos = await ts.creatures.getMoreInfo([mini]);
+    if (infos && infos[0]) {
+      const info = infos[0];
+      const pId = player.toLowerCase();
+      if (!info.ownerIds || info.ownerIds.length === 0 || info.ownerIds.some(o => o.toLowerCase() === pId)) {
+        return inicio === generacion;
+      }
+    }
+    return false;
   } catch (err) {
     logger.debug('[Sync] Error verificando propiedad de miniatura para emitir PJ:', err);
     return false;
@@ -59,7 +78,20 @@ export async function autorizarPersonaje(wire: WireEstadoCombatePJ, remitente: F
     const cliente = await obtenerCliente(remitente.id);
     if (!cliente || cliente.player.id !== remitente.player.id || cliente.clientMode === 'spectator' || !wire.m) return false;
     const propias = await minisPropias(cliente.player.id);
-    return inicio === generacion && propias.has(wire.m.toLowerCase()) && (wire.ac ?? []).every(a => !!a.m && propias.has(a.m.toLowerCase()));
+    if (propias.has(wire.m.toLowerCase()) && (wire.ac ?? []).every(a => !!a.m && propias.has(a.m.toLowerCase()))) {
+      return inicio === generacion;
+    }
+
+    // Respaldo de autorización cuando el DM no asignó propietarios nativos en TaleSpire:
+    const todasMinis = [wire.m, ...(wire.ac ?? []).map(a => a.m).filter(Boolean) as string[]];
+    const infos = await ts.creatures.getMoreInfo(todasMinis);
+    const remitentePlayerId = cliente.player.id.toLowerCase();
+    const esValida = infos.length === todasMinis.length && infos.every(info => {
+      if (!info) return false;
+      return !info.ownerIds || info.ownerIds.length === 0 || info.ownerIds.some(o => o.toLowerCase() === remitentePlayerId);
+    });
+
+    return esValida && inicio === generacion;
   } catch (err) {
     logger.debug('[Sync] Error autorizando personaje remoto:', err);
     return false;

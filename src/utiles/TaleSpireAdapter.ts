@@ -30,7 +30,8 @@ import type {
   InfoCliente,
   InfoJugador,
   UnidadDistanciaTS,
-  EventoCriaturaTS
+  EventoCriaturaTS,
+  FragmentoParty
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 
@@ -307,11 +308,53 @@ class TaleSpireAdapter {
       if (window.TS?.creatures && typeof window.TS.creatures.getCreaturesOwnedByPlayer === "function") {
         try {
           const idStr = typeof playerFragmentOrId === "string" ? playerFragmentOrId : playerFragmentOrId.id;
-          return await window.TS.creatures.getCreaturesOwnedByPlayer(idStr);
+          const res = await window.TS.creatures.getCreaturesOwnedByPlayer(idStr);
+          if (Array.isArray(res) && res.length > 0) return res;
         } catch (e) {
-          logger.warn("[TS Adapter] Error en getCreaturesOwnedByPlayer:", e);
+          logger.warn("[TS Adapter] Error o permisos insuficientes en getCreaturesOwnedByPlayer:", e);
         }
       }
+
+      // Estrategia Fallback para Jugadores (cuando no se tiene rango DM / insufficientRights):
+      try {
+        const [resParties, resQueue, resSel] = await Promise.allSettled([
+          this.parties.getParties().then(async parties => {
+            const ids: string[] = [];
+            for (const p of parties) ids.push(...await this.parties.getCreaturesInParty(p.id));
+            return ids;
+          }),
+          window.TS?.initiative?.getQueue ? window.TS.initiative.getQueue().then(q => q?.items?.map(i => i.id) || []) : Promise.resolve([]),
+          this.creatures.getSelectedCreatures().then(s => s.map(c => typeof c === "string" ? c : c.id))
+        ]);
+
+        const candidatosIds = new Set<string>();
+        for (const res of [resParties, resQueue, resSel]) {
+          if (res.status === "fulfilled") {
+            for (const id of res.value) if (id) candidatosIds.add(id);
+          }
+        }
+
+        if (candidatosIds.size > 0 && window.TS?.creatures && typeof window.TS.creatures.getMoreInfo === "function") {
+          const infos = await window.TS.creatures.getMoreInfo(Array.from(candidatosIds));
+          const idLimpia = (typeof playerFragmentOrId === "string" ? playerFragmentOrId : playerFragmentOrId?.id || "").toLowerCase();
+
+          // Priorizar miniaturas donde el jugador figure en ownerIds
+          const minisAsignadas = (infos || []).filter(info =>
+            Array.isArray(info.ownerIds) && info.ownerIds.some(oId => oId.toLowerCase() === idLimpia)
+          );
+
+          if (minisAsignadas.length > 0) {
+            return minisAsignadas.map(m => ({ id: m.id }));
+          }
+
+          // Si ninguna tiene ownerIds asignado en TS pero provienen de la party/iniciativa,
+          // retornar todas las candidatas para que el resolutor de personajes pueda emparejar por nombre
+          return (infos || []).map(m => ({ id: m.id }));
+        }
+      } catch (errFallback) {
+        logger.warn("[TS Adapter] Error en fallback de criaturas del jugador:", errFallback);
+      }
+
       return [];
     },
 
@@ -319,8 +362,9 @@ class TaleSpireAdapter {
      * Obtiene información extendida sobre un listado de criaturas.
      */
     getMoreInfo: async (creatureFragmentOrIds: FragmentoOId[]): Promise<InfoCriatura[]> => {
-      if (window.TS?.creatures && typeof window.TS.creatures.getMoreInfo === "function") {
-        return await window.TS.creatures.getMoreInfo(creatureFragmentOrIds);
+      const tsObj = typeof window !== "undefined" ? window.TS : (globalThis as unknown as { TS?: TaleSpireAPI }).TS;
+      if (tsObj?.creatures && typeof tsObj.creatures.getMoreInfo === "function") {
+        return await tsObj.creatures.getMoreInfo(creatureFragmentOrIds);
       }
       return [];
     },
@@ -521,6 +565,31 @@ class TaleSpireAdapter {
   // ==========================================
   // --- CAMPAÑA (CAMPAIGNS API) ---
   // ==========================================
+
+  parties = {
+    getParties: async (): Promise<FragmentoParty[]> => {
+      if (window.TS?.parties && typeof window.TS.parties.getParties === "function") {
+        try {
+          return await window.TS.parties.getParties();
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en parties.getParties:", e);
+        }
+      }
+      return [];
+    },
+    getCreaturesInParty: async (partyFragmentOrId: FragmentoOId): Promise<string[]> => {
+      if (window.TS?.parties && typeof window.TS.parties.getCreaturesInParty === "function") {
+        try {
+          const id = typeof partyFragmentOrId === "string" ? partyFragmentOrId : partyFragmentOrId.id;
+          return await window.TS.parties.getCreaturesInParty(id);
+        } catch (e) {
+          logger.warn("[TS Adapter] Error en parties.getCreaturesInParty:", e);
+        }
+      }
+      return [];
+    }
+  };
+
 
   campaigns = {
     /**

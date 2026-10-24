@@ -8,6 +8,7 @@ import { SelectorSugerencias, type OpcionSugerencia } from "@/componentes/comune
 import { obtenerCatalogoEspecies, obtenerSubespeciesDeEspecie, obtenerEtiquetaSubespecie } from "@/servicios/gestorEspecies";
 import { SeccionMulticlase } from "./SeccionMulticlase";
 import { SeccionVinculacionMiniaturaTS } from "./SeccionVinculacionMiniaturaTS";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import estilos from "./ConfiguracionPersonaje.module.css";
 
 export interface PestanaIdentidadProps {
@@ -255,6 +256,9 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
           alActualizarCampo("idMiniaturaTS", idMini);
           if (pos) alActualizarCampo("ultimaPosicionTS", pos);
           if (boardId !== undefined) alActualizarCampo("ultimoBoardIdTS", boardId);
+          if (form.id) {
+            usarAlmacenDM.getState().vincularMiniaturaTSPersonaje(form.id, idMini, pos, boardId);
+          }
         }}
       />
     </>

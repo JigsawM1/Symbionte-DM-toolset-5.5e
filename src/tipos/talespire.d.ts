@@ -299,6 +299,10 @@ export interface TaleSpireAPI {
   clipboard?: {
     copyText: (text: string) => Promise<void>;
   };
+  parties?: {
+    getParties?: () => Promise<FragmentoParty[]>;
+    getCreaturesInParty?: (partyFragmentOrId: FragmentoOId) => Promise<string[]>;
+  };
   /** API de sincronización bidireccional entre Simbiotes */
   sync?: {
     send: (message: string, target?: string | FragmentoCliente) => Promise<void>;
@@ -309,6 +313,11 @@ export interface TaleSpireAPI {
     };
   };
 }
+
+export interface FragmentoParty {
+  id: string;
+}
+
 
 export interface PayloadMensajeSync {
   str: string;

@@ -97,4 +97,14 @@ describe("resolutorMiniaturasJugador", () => {
     // pj2 ahora no puede tomar mini-galahad porque ya fue tomada, no coincide con mini-lancelot
     expect(mapa.get("pj-2")).toBeNull();
   });
+  it('debe emparejar usando heurística coincidenNombresTaleSpire (sufijos, corchetes, #1) con múltiples criaturas', () => {
+    const pj1 = crearPJMock('pj-1', 'Larynda');
+    const pj2 = crearPJMock('pj-2', 'Arturo');
+    const c1 = crearCriaturaMock('mini-1', 'Larynda [PJ]');
+    const c2 = crearCriaturaMock('mini-2', 'Arturo #1');
+
+    const mapa = emparejarPersonajesConCriaturas([pj1, pj2], [c1, c2]);
+    expect(mapa.get('pj-1')?.id).toBe('mini-1');
+    expect(mapa.get('pj-2')?.id).toBe('mini-2');
+  });
 });

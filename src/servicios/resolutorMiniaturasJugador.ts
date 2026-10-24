@@ -46,7 +46,7 @@ export function emparejarPersonajesConCriaturas(
     if (!nombrePj) continue;
 
     const indice = criaturasDisponibles.findIndex(
-      (c) => normalizar(c.name) === nombrePj
+      (c) => normalizar(c.name) === nombrePj || coincidenNombresTaleSpire(pj.nombre, c.name)
     );
 
     if (indice !== -1) {
@@ -104,7 +104,11 @@ export async function autoResolverMiniaturasJugador(
     }
 
     // 2. Obtener las criaturas que pertenecen a este jugador
-    const fragmentos = await ts.creatures.getCreaturesOwnedByPlayer(playerId);
+    let fragmentos = await ts.creatures.getCreaturesOwnedByPlayer(playerId);
+    if (!fragmentos || fragmentos.length === 0) {
+      const seleccion = await ts.creatures.getSelectedCreatures();
+      fragmentos = seleccion || [];
+    }
     if (!fragmentos || fragmentos.length === 0) {
       logger.debug("[AutoResolutorMinis] El jugador no tiene criaturas asignadas en el tablero actual.");
       return;

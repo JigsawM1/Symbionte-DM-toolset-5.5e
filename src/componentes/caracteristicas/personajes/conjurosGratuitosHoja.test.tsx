@@ -151,7 +151,7 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
   };
 
   describe("SeccionNivelConjuros", () => {
-    it("muestra el botón 'Gratis' para 'Orden imperiosa' cuando Manto de la Majestad está activo", () => {
+    it("conserva Lanzar para Orden imperiosa: la alternativa de Manto se elige al lanzar", () => {
       const html = renderToStaticMarkup(
         <SeccionNivelConjuros
           titulo="Nivel 1"
@@ -177,11 +177,8 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
         />
       );
 
-      // Debe incluir el botón con el texto Gratis
-      expect(html).toContain("<span>Gratis</span>");
-      // Debe aparecer solo una vez (para Orden imperiosa, no para Curar heridas)
-      const conteoGratis = (html.match(/<span>Gratis<\/span>/g) || []).length;
-      expect(conteoGratis).toBe(1);
+      expect(html).not.toContain("<span>Gratis</span>");
+      expect(html).toContain("<span>Lanzar</span>");
     });
 
     it("muestra el botón 'Gratis' para 'Curar heridas' cuando proviene de un rasgo innato con usos disponibles", () => {
@@ -362,7 +359,7 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
   });
 
   describe("SeccionConjurosOcultos", () => {
-    it("muestra el botón 'Gratis' para un conjuro oculto si el personaje tiene lanzamiento gratuito activo", () => {
+    it("conserva Lanzar para un conjuro oculto de Manto: su alternativa se elige al lanzar", () => {
       const html = renderToStaticMarkup(
         <SeccionConjurosOcultos
           personaje={personajeConMantoMajestad}
@@ -389,7 +386,8 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
         />
       );
 
-      expect(html).toContain("<span>Gratis</span>");
+      expect(html).not.toContain("<span>Gratis</span>");
+      expect(html).toContain("<span>Lanzar</span>");
     });
 
     it("muestra el botón 'Gratis' para un conjuro oculto si proviene de un rasgo innato con usos disponibles", () => {

@@ -194,7 +194,7 @@ export interface SubSliceRasgos {
   alternarOcultarConjuro: (idPj: string, idConjuro: string) => void;
   desocultarTodosLosConjuros: (idPj: string) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
-  dispararRasgosIniciativaPersonaje: (idPj: string) => void;
+  dispararRasgosIniciativaPersonaje: (idPj: string, omitirRestauraciones?: boolean) => void;
   guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;
   consumirDadoGuardado: (idPj: string, idRasgo: string, indiceDado: number) => void;
   recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;

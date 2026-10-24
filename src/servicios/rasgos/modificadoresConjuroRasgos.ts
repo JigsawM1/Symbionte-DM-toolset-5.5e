@@ -7,6 +7,8 @@ import { normalizar } from "./utilidadesRasgos";
 import { clasesPropietariasConjuro } from "./listasConjurosRasgos";
 import { conjuroEnAmpliacion } from "./ampliacionesListaConjuros";
 import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
+import { seleccionesValidas } from "./seleccionesRasgos";
+import { obtenerSubclasePorNombre } from "../clases/catalogoClases";
 
 /** La procedencia es explícita o inequívoca; pertenecer a varias listas no elige una clase. */
 export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoBase, clase?: string): string | undefined {
@@ -16,9 +18,11 @@ export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoB
     && hechizo.nivel <= obtenerNivelMaximoConjuroPorTipoClase(c.tipoLanzador, c.nivel) && (!hechizo.clases?.length
     || conjuroEnAmpliacion(pj, hechizo, c.clase)
     || hechizo.clases.some(n => normalizar(n) === normalizar(c.clase) || normalizar(n) === normalizar(c.listaConjuros ?? ""))))
+    || (pj.clases ?? []).some(clase => normalizar(clase.nombre) === normalizar(c.clase)
+      && obtenerSubclasePorNombre(clase.nombre, clase.subclase)?.progresionConjuros?.some(p => p.nivelClase <= clase.nivel && [...(p.conjuros ?? []), ...(p.trucos ?? [])].some(id => coincideHechizoId(id, hechizo.id))))
     || pj.rasgos.some(r => normalizar(r.claseConjurosOtorgados ?? "") === normalizar(c.clase) && r.activo !== false
       && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r, pj.rasgos)
-      && r.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id))));
+      && (r.conjurosDesdeSelectores ? r.selectores?.some(s => seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(id => coincideHechizoId(id, hechizo.id))) : r.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id)))));
   if (clase) return candidatas.find(c => normalizar(c.clase) === normalizar(clase))?.clase;
   const adquiridas = candidatas.filter(c => propietarias.some(p => normalizar(p) === normalizar(c.clase)));
   if (adquiridas.length === 1) return adquiridas[0].clase;

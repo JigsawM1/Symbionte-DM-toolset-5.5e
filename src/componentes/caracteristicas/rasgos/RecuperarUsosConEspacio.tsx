@@ -40,7 +40,7 @@ export function RecuperarUsosConEspacio({ personaje, rasgo }: { personaje: Perso
   const usosFaltantes = Math.max(0, usosMaximos - usosActuales);
 
   // Detección de estrategia: Puntos de Conjuro vs. Espacios tradicionales
-  const esModoPuntos = sistemaMagia === "puntos" && (pj.puntosConjuroMaximos ?? 0) > 0;
+  const esModoPuntos = sistemaMagia === "puntos" && (pj.puntosConjuroMaximos ?? 0) > 0 && (r.nivelMinimoRecuperarUsosConEspacio ?? 1) <= 1;
   const puntosDisponibles = Math.max(0, (pj.puntosConjuroMaximos ?? 0) - (pj.puntosConjuroGastados ?? 0));
   const vecesPrevias = r.usosRecuperadosConPuntos ?? 0;
   const costeSiguienteUso = (vecesPrevias + 1) * 2;
@@ -52,14 +52,14 @@ export function RecuperarUsosConEspacio({ personaje, rasgo }: { personaje: Perso
     const lista: OpcionEspacio[] = Array.from({ length: 9 }, (_, i) => i + 1).flatMap(nivel => {
       const disp = Math.max(0, (pj.espaciosConjuroMaximos[nivel] ?? 0) - (pj.espaciosConjuroGastados[nivel] ?? 0))
         + (pj.espaciosConjuroAdicionales?.[nivel] ?? 0);
-      return disp > 0 ? [{ valor: String(nivel), etiqueta: `Nivel ${nivel} · ${disp} disponibles`, etiquetaCorta: `Nivel ${nivel}`, nivel, disponibles: disp, esPacto: false }] : [];
+      return disp > 0 && nivel >= (r.nivelMinimoRecuperarUsosConEspacio ?? 1) ? [{ valor: String(nivel), etiqueta: `Nivel ${nivel} · ${disp} disponibles`, etiquetaCorta: `Nivel ${nivel}`, nivel, disponibles: disp, esPacto: false }] : [];
     });
     const pacto = pj.espaciosPactoMaximos - pj.espaciosPactoGastados;
-    if (pacto > 0) {
+    if (pacto > 0 && pj.nivelEspacioPacto >= (r.nivelMinimoRecuperarUsosConEspacio ?? 1)) {
       lista.push({ valor: "pacto", etiqueta: `Pacto nivel ${pj.nivelEspacioPacto} · ${pacto} disponibles`, etiquetaCorta: `Pacto Nv. ${pj.nivelEspacioPacto}`, nivel: pj.nivelEspacioPacto, disponibles: pacto, esPacto: true });
     }
     return lista;
-  }, [pj.espaciosConjuroMaximos, pj.espaciosConjuroGastados, pj.espaciosConjuroAdicionales, pj.espaciosPactoMaximos, pj.espaciosPactoGastados, pj.nivelEspacioPacto]);
+  }, [pj.espaciosConjuroMaximos, pj.espaciosConjuroGastados, pj.espaciosConjuroAdicionales, pj.espaciosPactoMaximos, pj.espaciosPactoGastados, pj.nivelEspacioPacto, r.nivelMinimoRecuperarUsosConEspacio]);
 
   const opcionSeleccionada = opcionesEspacios.find(o => o.valor === eleccionEspacio) ?? opcionesEspacios[0];
   const proyeccion = Math.min(usosMaximos, usosActuales + (esModoPuntos ? cantidadPuntos : cantidadPorEspacio));
@@ -86,7 +86,7 @@ export function RecuperarUsosConEspacio({ personaje, rasgo }: { personaje: Perso
     else setError("El recurso o la reserva han cambiado. No se ha gastado ningún recurso.");
   };
 
-  const botonDeshabilitado = completa || r.activo === false || (
+  const botonDeshabilitado = completa || (r.activo === false && !r.esActivable) || (
     esModoPuntos ? puntosDisponibles < costeSiguienteUso : !opcionesEspacios.length
   );
 

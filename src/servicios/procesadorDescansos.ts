@@ -1,4 +1,5 @@
 import { finalizarRasgosAlDescansar } from "./rasgos/estadoCondicionesRasgos";
+import { reconciliarIntentoRasgo } from "./rasgos/resolucionesRasgos";
 import type { PersonajeJugador } from "@/tipos";
 import { aplicarHpTemporalPorEvento } from "./rasgos/eventosHpTemporal";
 import { recargarCargasItem } from "@/servicios/procesadorConsumibles";
@@ -63,6 +64,7 @@ export function ejecutarDescansoCorto(
   dadosAGastar: number,
   tiradasDados: number[] = []
 ): ResultadoDescanso {
+  personaje = reconciliarIntentoRasgo(personaje, true);
   const acciones: AccionDescanso[] = [];
   const dadosValidos = Math.max(0, Math.min(dadosAGastar, personaje.dadosGolpeRestantes));
 
@@ -219,6 +221,7 @@ export function ejecutarDescansoCorto(
  * 7. Limpia la concentración activa y condición de concentración.
  */
 export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDescanso {
+  personaje = reconciliarIntentoRasgo(personaje, true);
   const acciones: AccionDescanso[] = [];
 
   // 1. Restaurar HP

@@ -4,8 +4,11 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverRasgoRecurso, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evaluadorExpresionesRasgos";
 import { consumirRecursoConjuro } from "../consumidorRecursosConjuros";
+import { operarResolucionRasgo, type OperacionResolucionRasgo } from "./resolucionesRasgos";
+import { resolverIniciativaOpcional } from "./iniciativaOpcionalRasgos";
 
-export type OperacionRecursoRasgo = OperacionAvanzadaRasgo
+export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucionRasgo
+  | { tipo: "iniciativaOpcional"; idRasgo: string; recuperarAntes: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo?: "espacio"; nivel: number; pacto?: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo: "puntos"; puntos: number; cantidadUsos: number }
   | { tipo: "recargarUsoConPacto"; idRasgo: string }
@@ -65,13 +68,14 @@ function aplicarRecuperacion(
 
 /** Estrategia de recuperación mediante espacios de conjuro u origen de pacto */
 function ejecutarRecuperacionPorEspacio(pj: PersonajeJugador, r: RasgoPersonaje, op: { nivel: number; pacto?: boolean }): PersonajeJugador | undefined {
-  if (!Number.isInteger(op.nivel) || op.nivel < 1 || op.nivel > 9 || (op.pacto && op.nivel !== pj.nivelEspacioPacto)) return;
+  if (!Number.isInteger(op.nivel) || op.nivel < (r.nivelMinimoRecuperarUsosConEspacio ?? 1) || op.nivel > 9 || (op.pacto && op.nivel !== pj.nivelEspacioPacto)) return;
   const consumo = consumirRecursoConjuro(pj, { tipo: op.pacto ? "pacto" : "espacio", nivel: op.nivel });
   return consumo.permitido ? aplicarRecuperacion(r, consumo, r.recuperarUsosConEspacio ?? 1) : undefined;
 }
 
 /** Estrategia de recuperación mediante puntos de conjuro (coste escalonado 2, 4, 6, 8... pts) */
 function ejecutarRecuperacionPorPuntos(pj: PersonajeJugador, r: RasgoPersonaje, op: { puntos: number; cantidadUsos: number }): PersonajeJugador | undefined {
+  if ((r.nivelMinimoRecuperarUsosConEspacio ?? 1) > 1) return;
   const cantidad = op.cantidadUsos;
   const previos = r.usosRecuperadosConPuntos ?? 0;
   const costeEsperado = calcularCostePuntosRecuperacion(previos, cantidad);
@@ -92,9 +96,11 @@ function ejecutarRecuperacionPorPacto(pj: PersonajeJugador, r: RasgoPersonaje): 
 
 /** Toda validación y todo intercambio ocurren sobre el mismo estado vigente. */
 export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRasgo): PersonajeJugador | undefined {
+  if (op.tipo === "iniciativaOpcional") return resolverIniciativaOpcional(pj, op.idRasgo, op.recuperarAntes);
+  if (op.tipo === "reservarIntento" || op.tipo === "anotarIntento" || op.tipo === "resolverIntento" || op.tipo === "cancelarIntento") return operarResolucionRasgo(pj, op);
   if (op.tipo !== "crearEspacio" && op.tipo !== "convertirEspacio" && op.tipo !== "recuperarDescanso" && op.tipo !== "recuperarUsosConEspacio" && op.tipo !== "recargarUsoConPacto") return operarCapacidadRasgo(pj, op);
   const r = pj.rasgos.find(x => x.id === op.idRasgo);
-  if (!r || r.activo === false || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)
+  if (!r || (r.activo === false && !(op.tipo === "recuperarUsosConEspacio" && r.esActivable)) || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1)
     || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return;
   if (op.tipo === "recargarUsoConPacto") return ejecutarRecuperacionPorPacto(pj, r);
   if (op.tipo === "recuperarUsosConEspacio") {

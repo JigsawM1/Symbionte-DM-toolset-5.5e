@@ -184,7 +184,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         {/* Zona de Recursos y Botones Interactivos */}
         <div className={estilos.zonaAccionesTarjeta}>
           {/* Conmutador ON / OFF si el rasgo es activable */}
-          {rasgo.esActivable && alAlternarActivo && (
+          {rasgo.esActivable && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
             <button
               type="button"
               className={`${estilos.botonToggleRasgo} ${

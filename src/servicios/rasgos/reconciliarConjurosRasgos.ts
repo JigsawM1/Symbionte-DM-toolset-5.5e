@@ -5,6 +5,7 @@ import { obtenerConjurosSubclasePersonaje } from "../calculadorMagia";
 import { obtenerConjurosOtorgadosPorRasgos } from "./evaluadorConjurosRasgos";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
+import { seleccionesValidas } from "./seleccionesRasgos";
 
 function obtenerAportes(personaje: PersonajeJugador, rasgos: RasgoPersonaje[]): ListasConjurosSelector {
   let listas: ListasConjurosSelector = { siempre: [], preparados: [], conocidos: [], trucos: [] };
@@ -15,7 +16,7 @@ function obtenerAportes(personaje: PersonajeJugador, rasgos: RasgoPersonaje[]): 
       || obtenerNivelEfectivoParaRasgo(personaje, rasgo) < (rasgo.nivelRequerido ?? 1)) continue;
     for (const selector of rasgo.selectores || []) {
       if (esSelectorDeConjuros(selector)) {
-        listas = agregarValoresSelectorAListas(selector, selector.valorActual || [], listas);
+        listas = agregarValoresSelectorAListas(selector, selector.filtroConjuros ? seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), { ...personaje, rasgos }) : selector.valorActual || [], listas);
       }
     }
   }

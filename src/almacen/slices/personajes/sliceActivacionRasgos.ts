@@ -13,6 +13,7 @@ import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
 import { prepararEleccionesActivacion, activarOpcionales, costeActivacionRasgo } from "@/servicios/rasgos/activacionDeclarativa";
+import { restaurarUsosIniciativa } from "@/servicios/rasgos/iniciativaOpcionalRasgos";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
 alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
@@ -28,6 +29,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       if (!targetTrait) return original;
 
       const nuevoActivo = !targetTrait.activo;
+      if (nuevoActivo && targetTrait.lanzamientoConActivacion) return original;
       const coste = costeActivacionRasgo(targetTrait);
       const pagoAlternativo = nuevoActivo ? obtenerPagoActivacionAlternativa(pj, targetTrait) : undefined;
       if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return original;
@@ -235,7 +237,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
     }
   },
 
-  dispararRasgosIniciativaPersonaje: (idPj: string) => {
+  dispararRasgosIniciativaPersonaje: (idPj: string, omitirRestauraciones = false) => {
     mutarPersonaje(set, idPj, (pj) => {
       if (!Array.isArray(pj.rasgos) || pj.rasgos.length === 0) return pj;
 
@@ -243,6 +245,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const disparados = new Set<string>();
       const rasgosActualizados = pj.rasgos.map((r) => {
         if (!r.dispararAlTirarIniciativa) return r;
+        if (omitirRestauraciones && r.restaurarUsosAlActivar) return r;
 
         const estaHabilitado = r.activo !== false && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1)
           && esRasgoHabilitadoPorOpcion(r, pj.rasgos);
@@ -272,35 +275,8 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
 
       if (!huboCambios) return pj;
 
-      // Aplicar restauraciones declarativas de recursos para los rasgos que se dispararon
       const rasgosDisparados = pj.rasgos.filter(r => disparados.has(r.id) && r.restaurarUsosAlActivar);
-      for (const rd of rasgosDisparados) {
-        const cfg = rd.restaurarUsosAlActivar;
-        if (!cfg) continue;
-        if (cfg.siNoDisparado) {
-          const siNoNorm = cfg.siNoDisparado.toLowerCase().trim();
-          const otroDisparado = rasgosDisparados.some(
-            (x) => x.id.toLowerCase().trim() === siNoNorm || x.nombre.toLowerCase().trim() === siNoNorm
-          );
-          if (otroDisparado) continue;
-        }
-
-        const targetId = cfg.idRasgoObjetivo.toLowerCase().trim();
-        for (let i = 0; i < rasgosActualizados.length; i++) {
-          const tr = rasgosActualizados[i];
-          if (tr.id.toLowerCase().trim() === targetId || tr.nombre.toLowerCase().trim() === targetId) {
-            const actualesTr = tr.usosRestantes ?? tr.usosMaximos ?? 0;
-            if (typeof cfg.soloSiMenorOIgual === "number" && actualesTr > cfg.soloSiMenorOIgual) continue;
-            const max = typeof tr.usosMaximos === "number" ? tr.usosMaximos : (tr.usosRestantes ?? 1);
-            const cantRestaurar = typeof cfg.hastaCantidad === "number"
-              ? Math.min(max, Math.max(actualesTr, cfg.hastaCantidad))
-              : cfg.cantidad === "maximo" ? max : Math.min(max, actualesTr + (cfg.cantidad || 0));
-            rasgosActualizados[i] = { ...tr, usosRestantes: cantRestaurar };
-          }
-        }
-      }
-
-      return { ...pj, rasgos: rasgosActualizados };
+      return restaurarUsosIniciativa({ ...pj, rasgos: rasgosActualizados }, rasgosDisparados);
     });
   }
 });

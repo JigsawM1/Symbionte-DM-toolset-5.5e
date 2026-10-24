@@ -6,6 +6,8 @@ import { resolverEscaladosRasgo } from "../clases/escaladosRasgos";
 import { fusionarEstadoRasgo } from "./fusionarEstadoRasgo";
 import { habilidadElegible } from "./habilidadesSelectores";
 import { conjuroEnAmpliacion } from "./ampliacionesListaConjuros";
+import { normalizar } from "./utilidadesRasgos";
+import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
 
 export const materializaSelector = (s: SelectorRasgo): boolean => s.materializarRasgos === true || s.tipoSelector === "invocacion";
 
@@ -74,8 +76,13 @@ function opcionConjuroElegible(
 ): boolean {
   const filtro = selector.filtroConjuros;
   if (!filtro) return true;
-  const h = obtenerHechizoCatalogo(op.id);
+  const h = op.datosConjuro ? { id: op.id, ...op.datosConjuro } : obtenerHechizoCatalogo(op.id);
   if (!h) return false;
+  if (filtro.listas && !h.clases.some(c => filtro.listas!.some(lista => normalizar(lista) === normalizar(c)))) return false;
+  if (filtro.nivelMaximoPorClase) {
+    const clase = pj?.clasesLanzadoras.find(c => normalizar(c.clase) === normalizar(filtro.nivelMaximoPorClase));
+    if (!clase || h.nivel > obtenerNivelMaximoConjuroPorTipoClase(clase.tipoLanzador, clase.nivel)) return false;
+  }
 
   if (filtro.excluirPreparados) {
     const yaElegidoEnSelector = selector.valorActual.some(id => coincideHechizoId(id, h.id));
@@ -100,7 +107,7 @@ function opcionConjuroElegible(
 
   if (filtro.requiereDano && !h.dadosDaño) return false;
   if (filtro.requiereAtaque && !h.requiereAtaque) return false;
-  if (filtro.alcanceMinimo && (parseInt(h.alcance, 10) || 0) < filtro.alcanceMinimo) return false;
+  if (filtro.alcanceMinimo && (parseInt(h.alcance ?? "", 10) || 0) < filtro.alcanceMinimo) return false;
   return true;
 }
 

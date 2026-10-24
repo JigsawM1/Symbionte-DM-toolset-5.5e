@@ -7,6 +7,8 @@ import { obtenerCompetenciasExtraRasgos, sonHerramientasEquivalentes } from "@/s
 import { normalizarTextoClase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
 import { obtenerRasgosClaseYSubclase, obtenerConjurosSubclaseBuild } from "./constructorRasgosClase";
 import { reconciliarEleccionesConjuros } from "../rasgos/listasConjurosRasgos";
+import { reconciliarIntentoRasgo } from "../rasgos/resolucionesRasgos";
+import { normalizarCondicionesRasgos } from "../rasgos/estadoCondicionesRasgos";
 
 /**
  * Construye la estructura completa de build para una clase y subclase a un nivel dado.
@@ -190,40 +192,8 @@ export function aplicarBuildClaseAPersonaje(
     rasgosFinales = sincronizarRasgosAutomaticos(personajeIntermedio);
   }
 
-  // Fusión persistente de competencias otorgadas por subclases (ej. Colegio del Valor: armas marciales, armaduras medias, escudos)
-  let armasTextoPersistente = competenciasArmas;
-  let armadurasTextoPersistente = competenciasArmaduras;
+  // Equipo y habilidades de rasgos se calculan como aportaciones derivadas en sus consumidores.
   const compSubclase = obtenerCompetenciasExtraRasgos({ ...personajeIntermedio, rasgos: rasgosFinales });
-
-  if (compSubclase.armasGrupos.includes("marciales")) {
-    if (!armasTextoPersistente || armasTextoPersistente === "Ninguna") {
-      armasTextoPersistente = "Armas Marciales";
-    } else if (!armasTextoPersistente.toLowerCase().includes("marcial")) {
-      armasTextoPersistente = `${armasTextoPersistente}, Armas Marciales`;
-    }
-  }
-
-  const armadurasExtras: string[] = [];
-  if (compSubclase.armadurasGrupos.includes("medias") && !armadurasTextoPersistente?.toLowerCase().includes("media")) {
-    armadurasExtras.push("Armaduras Medias");
-  }
-  if (compSubclase.armadurasGrupos.includes("escudos") && !armadurasTextoPersistente?.toLowerCase().includes("escudo")) {
-    armadurasExtras.push("Escudos");
-  }
-  if (armadurasExtras.length > 0) {
-    if (!armadurasTextoPersistente || armadurasTextoPersistente === "Ninguna") {
-      armadurasTextoPersistente = armadurasExtras.join(", ");
-    } else {
-      armadurasTextoPersistente = `${armadurasTextoPersistente}, ${armadurasExtras.join(", ")}`;
-    }
-  }
-
-  const gruposArmadurasPersistentes = Array.from(
-    new Set([...(competenciasArmadurasGrupos || []), ...compSubclase.armadurasGrupos])
-  );
-  const gruposArmasPersistentes = Array.from(
-    new Set([...(competenciasArmasGrupos || []), ...compSubclase.armasGrupos])
-  );
 
   // Fusión de salvaciones procedentes de rasgos de clase o subclase (ej. Mente escurridiza)
   const salvacionesPersistentes: CompetenciasSalvacion = {
@@ -266,10 +236,10 @@ export function aplicarBuildClaseAPersonaje(
   const personajeConRasgos: PersonajeJugador = {
     ...personajeIntermedio,
     competenciasSalvacion: salvacionesPersistentes,
-    competenciasArmas: armasTextoPersistente,
-    competenciasArmaduras: armadurasTextoPersistente,
-    competenciasArmadurasGrupos: gruposArmadurasPersistentes,
-    competenciasArmasGrupos: gruposArmasPersistentes,
+    competenciasArmas,
+    competenciasArmaduras,
+    competenciasArmadurasGrupos,
+    competenciasArmasGrupos,
     herramientas: listaHerramientasActual.length > 0 ? listaHerramientasActual.join(", ") : (personaje.herramientas || "Ninguna"),
     herramientasLista: listaHerramientasActual,
     idiomas: listaIdiomasActual.length > 0 ? listaIdiomasActual.join(", ") : (personaje.idiomas || "Común"),
@@ -278,13 +248,6 @@ export function aplicarBuildClaseAPersonaje(
   };
 
   // 7. Sincronizar conjuros de subclase
-  if (opciones.sincronizarConjurosSubclase) {
-    const syncMagia = sincronizarConjurosSubclaseHelper(personajeConRasgos);
-    return reconciliarEleccionesConjuros({
-      ...syncMagia,
-      rasgos: rasgosFinales
-    });
-  }
-
-  return reconciliarEleccionesConjuros(personajeConRasgos);
+  const sincronizado = opciones.sincronizarConjurosSubclase ? sincronizarConjurosSubclaseHelper(personajeConRasgos) : personajeConRasgos;
+  return normalizarCondicionesRasgos(reconciliarIntentoRasgo(reconciliarEleccionesConjuros(sincronizado)));
 }

@@ -184,7 +184,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </h2>
 
               {/* Conmutador ON / OFF si es rasgo activable */}
-              {rasgo.esActivable && alAlternarActivo && (
+              {rasgo.esActivable && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
                 <button
                   type="button"
                   className={`${estilos.botonToggleRasgo} ${

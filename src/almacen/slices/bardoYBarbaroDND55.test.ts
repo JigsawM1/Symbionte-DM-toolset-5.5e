@@ -618,7 +618,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       expect(pjAumentado?.hpTemporal).toBe(12);
     });
 
-    it("permite lanzar Orden imperiosa de forma gratuita cuando Manto de Majestad está activo", () => {
+    it("reserva el lanzamiento gratuito de Manto de majestad a su alternativa declarada", () => {
       const pjManto: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         id: "pj-manto-majestad",
@@ -633,7 +633,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
 
       // 1. Validar función pura
       const esGratis = tieneConjuroGratuitoActivo(pjManto, "Orden imperiosa");
-      expect(esGratis).toBe(true);
+      expect(esGratis).toBe(false);
 
       // 2. Validar que otro conjuro NO sea gratis
       const otroGratis = tieneConjuroGratuitoActivo(pjManto, "Curar heridas");
@@ -685,12 +685,10 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
         sobrescribirCompetenciasEquipo: true
       });
 
-      // Comprobar competencias persistidas en el personaje
-      expect(pjValor.competenciasArmas).toContain("Armas Marciales");
-      expect(pjValor.competenciasArmaduras).toContain("Armaduras Medias");
-      expect(pjValor.competenciasArmaduras).toContain("Escudos");
-      expect(pjValor.competenciasArmadurasGrupos).toContain("medias");
-      expect(pjValor.competenciasArmadurasGrupos).toContain("escudos");
+      // Las concesiones derivadas no se escriben como competencias manuales.
+      expect(pjValor.competenciasArmasGrupos).not.toContain("marciales");
+      expect(pjValor.competenciasArmadurasGrupos).not.toContain("medias");
+      expect(pjValor.competenciasArmadurasGrupos).not.toContain("escudos");
 
       // Comprobar llamada directa a la función pura
       const compTextoDirecto = obtenerCompetenciasEfectivasTexto(pjValor);
@@ -845,7 +843,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
   });
 
   describe("Bardo Glamour: Sincronización Bidireccional de Condiciones (Manto de Majestad y Majestad Inquebrantable)", () => {
-    it("activa y desactiva Manto de Majestad agregando y quitando su condición de forma bidireccional", () => {
+    it("no permite activar Manto de majestad mediante un interruptor o una condición sin lanzar", () => {
       const idPj = "pj-bardo-glamour-sync";
       const pjBase: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
@@ -876,10 +874,10 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       alternarActivoRasgo(idPj, rasgoManto!.id);
       let pjActual = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj);
       let rasgoActual = pjActual?.rasgos.find((r) => r.id === rasgoManto!.id);
-      expect(rasgoActual?.activo).toBe(true);
-      expect(pjActual?.condicionesActivas.some((c) => c.toLowerCase().includes("manto de majestad"))).toBe(true);
+      expect(rasgoActual?.activo).toBe(false);
+      expect(pjActual?.condicionesActivas.some((c) => c.toLowerCase().includes("manto de majestad"))).toBe(false);
 
-      // 2. Desactivar el rasgo Manto de majestad
+      // Un segundo intento por interruptor tampoco lo activa.
       alternarActivoRasgo(idPj, rasgoManto!.id);
       pjActual = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj);
       rasgoActual = pjActual?.rasgos.find((r) => r.id === rasgoManto!.id);
@@ -890,7 +888,7 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       aplicarCondicionPersonaje(idPj, "Manto de Majestad (Mantle of Majesty)");
       pjActual = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj);
       rasgoActual = pjActual?.rasgos.find((r) => r.id === rasgoManto!.id);
-      expect(rasgoActual?.activo).toBe(true);
+      expect(rasgoActual?.activo).toBe(false);
 
       // 4. Quitar la condición manualmente desactiva el rasgo
       quitarCondicionPersonaje(idPj, "Manto de Majestad (Mantle of Majesty)");

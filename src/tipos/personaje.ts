@@ -212,8 +212,9 @@ export const EsquemaClaseLanzadora = z.object({
 export type ClaseLanzadora = z.infer<typeof EsquemaClaseLanzadora>;
 
 export const EsquemaConcentracionActiva = z.object({
-  hechizoId: z.string(),
-  nombreHechizo: z.string()
+  hechizoId: z.string().optional(),
+  nombreHechizo: z.string(),
+  idRasgoOrigen: z.string().optional()
 });
 export type ConcentracionActiva = z.infer<typeof EsquemaConcentracionActiva>;
 
@@ -447,6 +448,7 @@ export const EsquemaPersonajeJugador = z.object({
   esLanzador: z.boolean().default(false),
   clasesLanzadoras: z.array(EsquemaClaseLanzadora).default([]),
   concentracionActiva: EsquemaConcentracionActiva.nullable().default(null),
+  intentoRasgoPendiente: z.object({ id: z.string(), idRasgo: z.string(), idRecurso: z.string(), formula: z.string(), resultado: z.number().optional() }).optional(),
 
   // Trucos y Listas de Conjuros
   trucosConocidosIds: z.array(z.string()).default([]),

@@ -15,12 +15,14 @@ import { generarId } from "@/utiles/generarId";
 import { seleccionOpcionValida, descomponerSeleccion } from "@/servicios/rasgos/seleccionesRasgos";
 import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
 import { reconciliarConjurosRasgos } from "@/servicios/rasgos/reconciliarConjurosRasgos";
+import { hidratarSelectorConjuros } from "@/servicios/rasgos/catalogoSelectoresConjuros";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
 actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
     mutarPersonaje(set, idPj, (pj) => {
       const rasgoPedido = pj.rasgos.find(r => r.id === idRasgo);
-      const selectorPedido = rasgoPedido?.selectores?.find(s => s.id === idSelector);
+      const selectorBase = rasgoPedido?.selectores?.find(s => s.id === idSelector);
+      const selectorPedido = selectorBase && hidratarSelectorConjuros(selectorBase, get().baseDatosHechizos);
       if (selectorPedido?.momentoEleccion === "activacion") return pj;
       if (selectorPedido?.momentoEleccion === "descanso_largo" && selectorPedido.valorActual.length && !selectorPedido.cambioDisponible) return pj;
       const maxPedido = [...(selectorPedido?.escaladoMaxSelecciones ?? [])].sort((a, b) => b.nivelMinimo - a.nivelMinimo)
@@ -71,7 +73,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
               if (entrada) maxSel = entrada.valor;
             }
             return {
-              ...s,
+              ...selectorPedido,
               maxSelecciones: maxSel,
               valorActual
             };
@@ -349,7 +351,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
         conjurosPreparadosIds: conjurosPreparadosActualizados,
         conjurosConocidosIds: conjurosConocidosActualizados,
         ...(selectorPedido.tipoSelector === "dote" || esSelectorDeConjuros(selectorPedido)
-          ? reconciliarConjurosRasgos(pj, rasgosActualizados) : {}),
+        ? reconciliarConjurosRasgos(pj, rasgosActualizados) : {}),
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

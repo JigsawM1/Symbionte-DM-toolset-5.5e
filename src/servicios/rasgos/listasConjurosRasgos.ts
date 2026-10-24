@@ -6,7 +6,7 @@ import { coincideHechizoId } from "../comparadorHechizos";
 import { calcularMaximosConjurosYTrucos, obtenerNivelMaximoConjuroPorTipoClase } from "../calculadorMagia";
 import { normalizar } from "./utilidadesRasgos";
 
-export type CatalogoEleccionesConjuros = readonly Pick<HechizoBase, "id" | "nivel" | "clases">[];
+export type CatalogoEleccionesConjuros = readonly Pick<HechizoBase, "id" | "nombre" | "nivel" | "clases">[];
 type TipoEleccion = "trucos" | "conjuros" | "preparados";
 
 function claveEleccion(pj: PersonajeJugador, clase: string, tipo: TipoEleccion): TipoEleccion {

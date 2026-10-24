@@ -8,6 +8,7 @@ import { SelectorDotesAcordeon } from "./SelectorDotesAcordeon";
 import estilos from "./VistaRasgosJugador.module.css";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { opcionesElegiblesConjuros } from "@/servicios/rasgos/seleccionesRasgos";
+import { hidratarSelectorConjuros } from "@/servicios/rasgos/catalogoSelectoresConjuros";
 
 interface SeccionSelectoresModalRasgoProps {
   selectores: SelectorRasgo[];
@@ -26,9 +27,10 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
   const [busquedas, setBusquedas] = React.useState<Record<string, string>>({});
   const [paginas, setPaginas] = React.useState<Record<string, number>>({});
   const pj = usarAlmacenDM(s => s.personajes.find(p => p.id === s.idPersonajeActivo));
+  const catalogo = usarAlmacenDM(s => s.baseDatosHechizos);
   const selectoresElegibles = React.useMemo(() => selectores.map(sel => ({
-    ...sel, opciones: opcionesElegiblesConjuros(sel, pj)
-  })), [selectores, pj]);
+    ...sel, opciones: opcionesElegiblesConjuros(hidratarSelectorConjuros(sel, catalogo), pj)
+  })), [selectores, pj, catalogo]);
 
   return (
     <div className={estilos.seccionSelectoresModal}>

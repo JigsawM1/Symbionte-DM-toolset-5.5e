@@ -39,6 +39,13 @@ export type DefinicionSubtirada = z.infer<typeof EsquemaDefinicionSubtirada>;
 
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
+  nivelMinimoRecuperarUsosConEspacio: z.number().int().min(1).max(9).optional(),
+  iniciativaOpcional: z.boolean().optional(),
+  conjurosDesdeSelectores: z.boolean().optional(),
+  gastoSegunResultado: z.boolean().optional(),
+  multiplicadorResultadoManual: z.number().positive().optional(),
+  trasLanzarConjuro: z.object({ escuelas: z.array(z.string()).min(1) }).optional(),
+  lanzamientoConActivacion: z.object({ conjuroId: z.string().min(1), nivel: z.number().int().min(1).max(9) }).optional(),
   recuperarUsosConEspacio: z.number().int().positive().optional(),
   ampliacionListaConjuros: z.object({
     clase: z.string().min(1),

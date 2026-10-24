@@ -360,6 +360,8 @@ export const crearSliceSync: StateCreator<
           ? {
               hechizoId: dto.concentracion.hechizoId,
               nombreHechizo: dto.concentracion.nombreHechizo,
+              ...(dto.concentracion.hechizoId === pjExistente.concentracionActiva?.idRasgoOrigen
+                ? { hechizoId: undefined, idRasgoOrigen: dto.concentracion.hechizoId } : {}),
             }
           : null,
         espaciosConjuroGastados: locales?.conjuros?.espaciosGastados

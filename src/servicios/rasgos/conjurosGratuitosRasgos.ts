@@ -8,6 +8,7 @@ import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
 import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 import { resolverClaseLanzamiento } from "./modificadoresConjuroRasgos";
+import { seleccionesValidas } from "./seleccionesRasgos";
 
 export interface EvaluacionRecursosGratuito {
   elegible: boolean;
@@ -115,7 +116,7 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
     && obtenerNivelEfectivoParaRasgo(pj,r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r,pj.rasgos)
     && ((r.conjurosOtorgados ?? []).some(coincide) || (r.selectores ?? []).some(s => s.tipoSelector === "conjuro"
       && s.destinoConjuros !== "referencia" && s.destinoConjuros !== "libro"
-      && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && s.valorActual.some(coincide))))
+      && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(coincide))))
     .map(r => r.claseConjurosOtorgados!.toLocaleLowerCase("es")));
   const claseElegida = solicitud.modo !== "arcanoMistico" && solicitud.modo !== "gratuitoInnato"
     ? solicitud.claseLanzamiento?.toLocaleLowerCase("es") : undefined;

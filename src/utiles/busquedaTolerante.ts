@@ -210,8 +210,10 @@ export function calcularRelevanciaBusqueda(
   secundarios?: (string | undefined | null)[]
 ): number {
   if (!consulta || !consulta.trim()) return 0;
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return 0;
+  // Usar tokenización cacheada para evitar recalcular tokens en bucles de ordenación masivos
+  const tokens = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+  if (numTokens === 0) return 0;
 
   const consultaNorm = normalizarParaBusqueda(consulta);
   const tituloNorm = normalizarParaBusqueda(titulo || "");
@@ -221,17 +223,23 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
+    const tieneEnye = tituloNorm.includes("ñ");
+    const tituloNormSinEnye = tieneEnye ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
     let coincidencias = 0;
-    for (let i = 0; i < tokens.length; i++) {
+    for (let i = 0; i < numTokens; i++) {
       const t = tokens[i];
-      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
-      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+      // Evaluación perezosa: solo transformar 'ñ' a 'n' si la coincidencia directa falla
+      if (tituloNorm.includes(t)) {
         coincidencias++;
+      } else {
+        const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
+        if (tituloNormSinEnye.includes(tSinEnye)) {
+          coincidencias++;
+        }
       }
     }
 
-    if (coincidencias === tokens.length) return 400;
+    if (coincidencias === numTokens) return 400;
     if (coincidencias > 0) return 300;
   }
 
@@ -256,7 +264,16 @@ export function compararPorRelevanciaTitulo<T>(
   obtenerSecundarios?: (item: T) => (string | undefined | null)[]
 ): (a: T, b: T) => number {
   if (!consulta || !consulta.trim()) {
-    return desempate || (() => 0);
+    // Si no hay consulta, devolver directamente el comparador de desempate
+    // o el desempate por defecto alfabético sin instanciar Mapas ni closures innecesarios
+    return (
+      desempate ||
+      ((a: T, b: T) => {
+        const tituloA = obtenerTitulo(a);
+        const tituloB = obtenerTitulo(b);
+        return (tituloA || "").localeCompare(tituloB || "", "es");
+      })
+    );
   }
 
   const cacheRelevancia = new Map<T, number>();

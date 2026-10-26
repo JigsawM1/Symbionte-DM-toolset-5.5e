@@ -195,7 +195,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                   title={
                     deshabilitadoToggle
                       ? motivoDeshabilitado || "Acción no disponible"
-                      : rasgo.activo
+                  : rasgo.activo && rasgo.renovarActivacion ? "Rasgo activo (clic para renovar)" : rasgo.activo
                       ? "Rasgo activo (clic para desactivar)"
                       : "Rasgo inactivo (clic para activar)"
                   }
@@ -243,9 +243,9 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         </div>
 
         {/* Zona de Recursos y Tiradas */}
-        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo || rasgo.conversionEspacios || rasgo.lanzamientoConRecurso || rasgo.reservaDados || rasgo.tablaAleatoria || rasgo.varianteSinConcentracion || rasgo.usoGratuitoCondicionado) && (
+        {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo || rasgo.resolucionAsistida || rasgo.resolucionesCuracionPendientes?.length || rasgo.conversionEspacios || rasgo.lanzamientoConRecurso || rasgo.reservaDados || rasgo.tablaAleatoria || rasgo.varianteSinConcentracion || rasgo.usoGratuitoCondicionado) && (
           <div className={estilos.barraRecursosModal}>
-            {(tieneUsosPropios || tieneUsosPadre) && alGastarUso && alRecuperarUso && (
+            {(tieneUsosPropios || tieneUsosPadre) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && alGastarUso && alRecuperarUso && (
               <div className={estilos.controlUsosModal}>
                 <span className={estilos.etiquetaUsosModal}>
                   {tieneUsosPropios ? "Usos Disponibles:" : `Reserva (${usosPadre?.nombre || "Principal"}):`}
@@ -302,7 +302,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {formulaEfectiva && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && (
+            {formulaEfectiva && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}

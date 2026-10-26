@@ -5,6 +5,7 @@ import { calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
 import { consumirLanzamientoEstado } from "./rasgos/lanzamientoEstadoRasgo";
+import { registrarAutocuracionConjuro } from "./rasgos/curacionDeclarativa";
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
 
@@ -20,8 +21,9 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     case 'recursoRasgo': {
       const cfg = obtenerConcesionConRecurso(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel);
       const disponibles = cfg ? (cfg.recurso.usosRestantes ?? cfg.recurso.usosMaximos ?? calcularUsosMaximosRasgo(cfg.recurso, pj)) : 0;
-      if (!cfg || disponibles < cfg.coste) return insuficiente;
-      personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste } : r) };
+      if (!cfg || cfg.recurso.recuperacionDiferida || disponibles < cfg.coste) return insuficiente;
+      personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste,
+        recuperacionDiferida: cfg.formulaDescansos ? { estado: "pendiente", formula: cfg.formulaDescansos } : r.recuperacionDiferida } : r) };
       break;
     }
     case 'ninguno': break;
@@ -78,5 +80,13 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       break;
     }
   }
+  if (gasto.conjuroCuracion) personaje = registrarAutocuracionConjuro(personaje, gasto.conjuroCuracion,
+    gasto.tipo === "espacio" || gasto.tipo === "pacto" ? gasto.nivel : undefined, gasto.aptitudCuracion);
+  if (gasto.conjuroId) personaje = { ...personaje, rasgos: personaje.rasgos.map(r => {
+    const anteriores = r.conjurosTemporales?.filter(e => e.conjuroId !== gasto.conjuroId);
+    const duracion = gasto.tipo === "recursoRasgo" && r.id === gasto.idRasgo ? r.lanzamientoConRecurso?.duracionRondas : undefined;
+    return anteriores || duracion ? { ...r, conjurosTemporales: duracion
+      ? [...(anteriores ?? []), { conjuroId: gasto.conjuroId!, expiraRonda: (gasto.ronda ?? 1) + duracion }] : anteriores } : r;
+  }) };
   return { permitido: true, personaje };
 }

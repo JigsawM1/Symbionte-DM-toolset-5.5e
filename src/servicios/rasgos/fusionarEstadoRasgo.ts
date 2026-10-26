@@ -44,6 +44,10 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
     : existente?.usosRestantes;
   return {
     ...nuevo,
+    recuperacionDiferida: existente?.recuperacionDiferida,
+    conjurosTemporales: nuevo.lanzamientoConRecurso?.duracionRondas ? existente?.conjurosTemporales : undefined,
+    resolucionesCuracionPendientes: nuevo.curacionAlFinalizar || nuevo.curacionConjuros
+      ? existente?.resolucionesCuracionPendientes : undefined,
     dadosReserva: existente?.dadosReserva,
     resultadoTabla: existente?.resultadoTabla,
     resultadosTablaPendientes: existente?.resultadosTablaPendientes,

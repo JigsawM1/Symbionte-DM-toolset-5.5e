@@ -323,6 +323,12 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
   // 9. Recargar Todos los Usos de Rasgos (Descanso Corto y Largo)
   let rasgosRecargadosLargo = 0;
   const rasgosActualizadosLargo = (personaje.rasgos || []).map((rasgo) => {
+    if (rasgo.recuperacionDiferida) {
+      if (rasgo.recuperacionDiferida.estado === "pendiente") return rasgo;
+      const restantes = rasgo.recuperacionDiferida.restantes - 1;
+      return { ...rasgo, recuperacionDiferida: restantes > 0 ? { estado: "contando" as const, restantes } : undefined,
+        usosRestantes: restantes > 0 ? 0 : rasgo.usosMaximos ?? 1 };
+    }
     let rModificado = { ...rasgo };
     let huboCambio = false;
     if (rasgo.selectores?.some(s => s.momentoEleccion === "descanso_largo")) {
@@ -415,5 +421,5 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     inspiracion: inspiracionNueva
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado), "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado, "descanso_largo"), "descanso"), acciones };
 }

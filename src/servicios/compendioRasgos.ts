@@ -18,6 +18,7 @@ import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos"
 import { migrarMetadatosRasgos } from "./migradorRasgosHeredados";
 import { fusionarEstadoRasgo } from "./rasgos/fusionarEstadoRasgo";
 import { construirRasgosDesdeSelectores } from "./rasgos/seleccionesRasgos";
+import { evaluarRequisitoDote } from "./evaluadorRequisitosDotes";
 
 /**
  * Normaliza nombres para comparación tolerante e insensible a mayúsculas/acentos
@@ -236,6 +237,8 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     }
 
     nuevo = fusionarEstadoRasgo(nuevo, mapaExistentes.get(nuevo.id));
+    nuevo.selectores = nuevo.selectores?.map(s => s.tipoSelector === "dote" && s.requiereEleccionExplicita
+      ? { ...s, valorActual: s.valorActual.filter(id => s.opciones.some(o => o.id === id && evaluarRequisitoDote(o.requisito, personaje, personaje.nivel).cumple)) } : s);
     for (const sel of nuevo.selectores ?? []) if (sel.destinoConjuros === "arcano_mistico" && !mapaExistentes.get(nuevo.id)?.selectores?.some(s => s.id === sel.id)) {
       const previa = personaje.arcanoMisticoIds?.find(id => id.startsWith(`${sel.nivelConjuro}:`));
       if (previa) sel.valorActual = [previa.split(":")[1]];

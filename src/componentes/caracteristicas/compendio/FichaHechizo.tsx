@@ -16,6 +16,7 @@ import { obtenerOpcionesLanzamientoConjuro } from "@/servicios/calculadorMagia";
 import { SelectorDesplegable, TextoEnriquecidoDND } from "@/componentes/comunes";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import estilosClases from "./FichaHechizo.module.css";
+import { formulaCuracionConjuro } from "@/servicios/rasgos/curacionDeclarativa";
 
 interface FichaHechizoProps {
   hechizo: HechizoBase;
@@ -152,7 +153,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
     dadosBaseValidos !== "N/A" &&
     dadosBaseValidos !== "none";
 
-  const tieneMecanicasCombate = tieneAtaque || tieneCDSalvacion || tieneDano || esEscalable;
+  const tieneMecanicasCombate = tieneAtaque || tieneCDSalvacion || tieneDano || esEscalable || Boolean(hechizo.curacion);
 
   // Manejar el lanzamiento de dados en TaleSpire
   const manejarLanzamientoDados = async (e: React.MouseEvent) => {
@@ -348,6 +349,7 @@ export const FichaHechizo: React.FC<FichaHechizoProps> = React.memo(({
             </div>
             
             <div className={estilosClases.gridCombate}>
+              {hechizo.curacion && <div className={estilosClases.combateItem}>Curación ({hechizo.curacion.tipo}): {formulaCuracionConjuro(undefined, hechizo, nivelLanzamiento, modificadorHabilidad) ?? (hechizo.curacion.tipo === "completa" ? "Todos los PG" : "Mitad del daño causado")}. Los bonos condicionados se confirman al resolver.</div>}
               {tieneAtaque && (
                 <div className={estilosClases.combateItem}>
                   <span className={estilosClases.combateLabel}>Efecto/Ataque: </span>

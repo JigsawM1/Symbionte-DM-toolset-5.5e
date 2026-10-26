@@ -6,8 +6,16 @@ import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evalu
 import { consumirRecursoConjuro } from "../consumidorRecursosConjuros";
 import { operarResolucionRasgo, type OperacionResolucionRasgo } from "./resolucionesRasgos";
 import { resolverIniciativaOpcional } from "./iniciativaOpcionalRasgos";
+import { aplicarResolucionAsistida, type SolicitudResolucionAsistida } from "./resolucionAsistidaRasgos";
+import { establecerRecuperacionDiferida } from "./recuperacionDiferidaRasgos";
+import { resolverCuracionPendiente } from "./curacionDeclarativa";
+import { finalizarConjuroTemporal } from "./conjurosTemporalesRasgos";
 
 export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucionRasgo
+  | { tipo: "finalizarConjuroTemporal"; idRasgo: string; conjuroId: string }
+  | { tipo: "curacionPendiente"; idRasgo: string; id: string; propio: boolean; resultado?: number; enTurno?: boolean; dano?: number }
+  | { tipo: "resolverAsistida"; solicitud: SolicitudResolucionAsistida; resultado?: number }
+  | { tipo: "establecerRecuperacionDiferida"; idRasgo: string; resultado: number }
   | { tipo: "iniciativaOpcional"; idRasgo: string; recuperarAntes: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo?: "espacio"; nivel: number; pacto?: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo: "puntos"; puntos: number; cantidadUsos: number }
@@ -96,6 +104,10 @@ function ejecutarRecuperacionPorPacto(pj: PersonajeJugador, r: RasgoPersonaje): 
 
 /** Toda validación y todo intercambio ocurren sobre el mismo estado vigente. */
 export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRasgo): PersonajeJugador | undefined {
+  if (op.tipo === "finalizarConjuroTemporal") return finalizarConjuroTemporal(pj, op.idRasgo, op.conjuroId);
+  if (op.tipo === "curacionPendiente") return resolverCuracionPendiente(pj, op.idRasgo, op.id, op.propio, op.resultado, op.enTurno, op.dano);
+  if (op.tipo === "resolverAsistida") return aplicarResolucionAsistida(pj, op.solicitud, op.resultado);
+  if (op.tipo === "establecerRecuperacionDiferida") return establecerRecuperacionDiferida(pj, op.idRasgo, op.resultado);
   if (op.tipo === "iniciativaOpcional") return resolverIniciativaOpcional(pj, op.idRasgo, op.recuperarAntes);
   if (op.tipo === "reservarIntento" || op.tipo === "anotarIntento" || op.tipo === "resolverIntento" || op.tipo === "cancelarIntento") return operarResolucionRasgo(pj, op);
   if (op.tipo !== "crearEspacio" && op.tipo !== "convertirEspacio" && op.tipo !== "recuperarDescanso" && op.tipo !== "recuperarUsosConEspacio" && op.tipo !== "recargarUsoConPacto") return operarCapacidadRasgo(pj, op);

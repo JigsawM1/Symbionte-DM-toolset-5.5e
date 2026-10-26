@@ -134,6 +134,7 @@
   outline: none;
   padding: 0;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .inputIniciativaEditable::-webkit-outer-spin-button,
@@ -711,6 +712,7 @@
   padding: 0;
   margin-left: 2px;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .inputVidaMaximaEditable::-webkit-outer-spin-button,

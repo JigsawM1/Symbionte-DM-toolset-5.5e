@@ -711,8 +711,8 @@ export function obtenerConjurosSubclasePersonaje(
         subclase,
         nivel
       );
-      res.conjuros.forEach((c) => conjurosTotales.add(c));
-      res.trucos.forEach((t) => trucosTotales.add(t));
+      res.conjuros.forEach(c => { if (![...conjurosTotales].some(id => coincideHechizoId(id, c))) conjurosTotales.add(c); });
+      res.trucos.forEach(t => { if (![...trucosTotales].some(id => coincideHechizoId(id, t))) trucosTotales.add(t); });
     }
   }
 

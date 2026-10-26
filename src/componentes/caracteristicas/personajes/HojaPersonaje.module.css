@@ -1029,14 +1029,24 @@
 }
 
 .inputHpDirecto {
-  width: 28px;
-  padding: 0;
+  width: 3.8ch;
+  min-width: 3.2ch;
+  box-sizing: content-box;
+  padding: 0 1px;
   text-align: right;
   background: transparent;
   border: none;
   font: inherit;
   color: inherit;
   font-weight: inherit;
+  transition: background-color 0.15s ease, border-radius 0.15s ease;
+}
+
+.inputHpDirecto:hover,
+.inputHpDirecto:focus {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  outline: none;
 }
 
 .separadorHp {
@@ -1906,6 +1916,7 @@
   outline: none;
   box-sizing: border-box;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .inputMoneda::-webkit-outer-spin-button,

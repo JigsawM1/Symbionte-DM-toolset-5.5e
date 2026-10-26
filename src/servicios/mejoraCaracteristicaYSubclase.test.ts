@@ -14,6 +14,53 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
 
+describe("Actualización compartida de dotes vinculadas", () => {
+  const casos = [
+    ["Mejora de característica", "dote_asi_", "dote_alerta", "dote_duro"],
+    ["Don épico", "dote_don_", "dote_don_fortaleza", "dote_don_destino"],
+    ["Versátil", "dote_origen_", "dote_alerta", "dote_afortunado"],
+    ["Estilo de combate", "dote_estilo_", "dote_estilo_defensa", "dote_estilo_duelo"]
+  ] as const;
+
+  describe.each([false, true])("elección explícita: %s", explicita => {
+    it.each(casos)("%s: inserta, sustituye y conserva estado e identidades", (nombre, prefijo, primera, segunda) => {
+      const base: PersonajeJugador = { ...structuredClone(PERSONAJE_POR_DEFECTO), id: "dotes-compartidas",
+        clase: "Guerrero", especie: "Humano", nivel: 19, clases: [{ nombre: "Guerrero", nivel: 19, subclase: "" }], rasgos: [] };
+      const padre = sincronizarRasgosAutomaticos(base).find(r => r.nombre === nombre)!;
+      const selector = padre.selectores![0];
+      const ajeno = { ...padre, id: "rasgo_ajeno", nombre: "Rasgo independiente", selectores: undefined };
+      usarAlmacenDM.setState({ personajes: [{ ...base, rasgos: [
+        { ...padre, selectores: [{ ...selector, valorActual: [], requiereEleccionExplicita: explicita }] }, ajeno
+      ] }], idPersonajeActivo: base.id });
+      const actual = () => usarAlmacenDM.getState().personajes[0];
+      const elegir = (valores: string[]) => usarAlmacenDM.getState().actualizarSeleccionRasgo(base.id, padre.id, selector.id, valores);
+      const ligadas = () => actual().rasgos.filter(r => r.origen === "dote" && r.ligadoA === padre.id);
+
+      elegir([primera]);
+      expect(ligadas()).toHaveLength(1);
+      const id = `${prefijo}${padre.id.toLowerCase()}`;
+      expect(ligadas()[0]).toMatchObject({ id, ligadoA: padre.id, activo: true });
+      const nombrePrimera = ligadas()[0].nombre;
+      // Cubrir tanto la identidad canónica como una identidad antigua resuelta por el vínculo.
+      for (const [idPrevio, eleccion] of [[id, segunda], ["dote_heredada", primera]]) {
+        usarAlmacenDM.setState({ personajes: [{ ...actual(), rasgos: actual().rasgos.map(r => r.ligadoA === padre.id
+          ? { ...r, id: idPrevio, usosRestantes: 0, activo: false } : r) }] });
+        elegir([eleccion]);
+        expect(ligadas()).toHaveLength(1);
+        expect(ligadas()[0]).toMatchObject({ id, ligadoA: padre.id, usosRestantes: 0, activo: false });
+        expect(ligadas()[0].nombre === nombrePrimera).toBe(eleccion === primera);
+      }
+      const antes = actual().rasgos;
+      elegir(["dote_inexistente"]);
+      expect(actual().rasgos).toEqual(antes);
+      elegir([]);
+      expect(ligadas()).toHaveLength(explicita || nombre === "Estilo de combate" ? 0 : 1);
+      expect(actual().rasgos.find(r => r.id === ajeno.id)).toEqual(ajeno);
+      expect(actual().rasgos.find(r => r.id === padre.id)?.selectores?.[0].valorActual).toEqual([]);
+    });
+  });
+});
+
 describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característica (D&D 5.5e)", () => {
   describe("1. Ocultación y filtrado del rasgo marcador de subclase", () => {
     it("esRasgoPlaceholderSubclase reconoce correctamente todas las variantes de nombres de subclase genéricas", () => {
@@ -201,6 +248,7 @@ describe("Comportamiento Canónico de Rasgos: Subclase y Mejora de Característi
         ...PERSONAJE_POR_DEFECTO,
         id: "pj_store_asi",
         nombre: "Brujo Store",
+        especie: "",
         clase: "Brujo",
         nivel: 4,
         clases: [{ nombre: "Brujo", nivel: 4, subclase: "" }],

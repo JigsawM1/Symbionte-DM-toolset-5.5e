@@ -10,6 +10,7 @@ import { aplicarEventosActivacion } from "./activacionDeclarativa";
 import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "./listasConjurosRasgos";
 import { hidratarSelectoresConjuros } from "./catalogoSelectoresConjuros";
 import { reconciliarIntentoRasgo } from "./resolucionesRasgos";
+import { registrarCuracionAlFinalizar } from "./curacionDeclarativa";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
 export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
@@ -76,5 +77,5 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   const legado = actual.rasgos.find(r => r.recursoLegado === "puntos_hechiceria");
   if (legado) actual = { ...actual, puntosHechiceriaMaximos: legado.usosMaximos ?? 0,
     puntosHechiceriaActuales: legado.usosRestantes ?? legado.usosMaximos ?? 0 };
-  return reconciliarIntentoRasgo(reconciliarEleccionesConjuros(retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual))), catalogo));
+  return registrarCuracionAlFinalizar(anterior, reconciliarIntentoRasgo(reconciliarEleccionesConjuros(retirarConcentracionRestringida(normalizarMagiaRasgos(anterior, aplicarEventosActivacion(anterior, actual))), catalogo)));
 }

@@ -4,6 +4,27 @@
 - Usar `pnpm` para las dependencias y los comandos del proyecto JavaScript.
 - Conservar los cambios existentes ajenos a la tarea.
 
+## Tipado estricto y buenas prácticas
+
+- Al trabajar con React y TypeScript, asumir siempre la configuración más estricta (`strict: true`).
+- Evitar por completo el uso del tipo `any`.
+- Generar interfaces, tipos explícitos y genéricos para estructurar los datos, las propiedades y los estados de la aplicación.
+
+## Patrones de diseño y código limpio
+
+- Resolver los problemas estructurales aplicando metodologías de ingeniería de software establecidas y patrones de diseño clásicos (como Observer, Factory o Strategy) cuando la complejidad lo justifique.
+- Aplicar los principios SOLID, manteniendo las funciones pequeñas, puras y con una única responsabilidad.
+
+## Manejo de errores proactivo
+
+- Nunca silenciar un error ni dejar bloques `catch` vacíos.
+- Implementar un manejo de excepciones explícito que capture el problema, lo registre mediante `console.error` o el sistema de logs del proyecto y devuelva una respuesta controlada que no rompa la ejecución de la aplicación.
+
+## Modificaciones quirúrgicas
+
+- Al editar archivos existentes, no reescribir el documento completo salvo que sea estrictamente necesario.
+- Modificar, añadir o eliminar únicamente las líneas de código afectadas por la solicitud para evitar conflictos y mantener el historial de cambios limpio.
+
 ## Graphify
 
 Graphify es una herramienta externa de desarrollo instalada con `uv`; no forma parte del simbionte ni del build de Vite. La skill local está en `.agents/skills/graphify/SKILL.md`.

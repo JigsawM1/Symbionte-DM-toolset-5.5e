@@ -1,11 +1,11 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
-import { puedeElegirDoteEstilo } from "@/servicios/clases/dotesClase";
+import { puedeElegirDoteEstilo, puedeElegirDote } from "@/servicios/clases/dotesClase";
 import { construirDoteDeMejoraCaracteristica, construirDoteDeDonEpico, construirDoteDeEstiloCombate, obtenerNivelEfectivoParaRasgo } from "@/servicios/gestorClases";
 import { construirDoteDeVersatil } from "@/servicios/gestorEspecies";
 import { calcularBonoHPMaximoRasgos } from "@/servicios/rasgos/evaluadorVitalidadRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
-import { esSelectorDeConjuros, esSelectorSoloLibro, agregarValoresSelectorAListas, quitarValoresSelectorDeListas, type ListasConjurosSelector } from "@/utiles/selectoresConjuros";
+import { esSelectorDeConjuros, esSelectorSoloLibro } from "@/utiles/selectoresConjuros";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceRasgos } from "./slicePersonajesTipos";
@@ -30,6 +30,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       if (!selectorPedido || selectorPedido.modo === "consulta" || new Set(valorActual).size !== valorActual.length || valorActual.length > maxPedido
         || (!esSelectorDeConjuros(selectorPedido) && valorActual.some(id => !selectorPedido.opciones.some(o => o.id === id || o.id === descomponerSeleccion(id).base)))) return pj;
       if (selectorPedido.categoriaDote === "estilo_combate" && valorActual.some(id => !puedeElegirDoteEstilo(pj, idRasgo, id))) return pj;
+      if (selectorPedido.tipoSelector === "dote" && valorActual.some(id => !puedeElegirDote(pj, idRasgo, id))) return pj;
       if (selectorPedido.tipoSelector === "dote" && valorActual.some(id => !evaluarRequisitoDote(selectorPedido.opciones.find(o=>o.id===id)?.requisito,pj,pj.nivel).cumple)) return pj;
       if ((selectorPedido.tipoSelector === "invocacion" || selectorPedido.filtroHabilidades || selectorPedido.filtroConjuros || selectorPedido.destinoConjuros === "arcano_mistico")
         && valorActual.some(id => !seleccionOpcionValida(selectorPedido, id, valorActual, obtenerNivelEfectivoParaRasgo(pj, rasgoPedido!), pj))) return pj;
@@ -138,65 +139,15 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const esSelectorDoteOrigen = idSelector.includes("dote_origen") || (esVersatil && idSelector.toLowerCase().includes("dote"));
       const esSelectorDoteEstilo = selectorPedido.categoriaDote === "estilo_combate" || idSelector.includes("dote_estilo") || (esEstilo && idSelector.toLowerCase().includes("dote"));
 
-      if (esSelectorDoteASI && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
-        const idDoteElegida = valorActual[0];
-        const idDoteAsi = `dote_asi_${normalizarTextoSeguro(idRasgo)}`;
+      const construirDote = esSelectorDoteASI ? construirDoteDeMejoraCaracteristica
+        : esSelectorDoteDon ? construirDoteDeDonEpico
+        : esSelectorDoteOrigen ? construirDoteDeVersatil
+        : esSelectorDoteEstilo ? construirDoteDeEstiloCombate : undefined;
+      if (construirDote && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
+        const nuevaDote = construirDote(rasgoPadreMejora, valorActual[0]);
         const indexDoteExistente = rasgosActualizados.findIndex(
-          (r) => r.id === idDoteAsi || (r.origen === "dote" && r.ligadoA === idRasgo)
+          (r) => r.id === nuevaDote.id || (r.origen === "dote" && r.ligadoA === idRasgo)
         );
-
-        const nuevaDote = construirDoteDeMejoraCaracteristica(rasgoPadreMejora, idDoteElegida);
-        if (indexDoteExistente !== -1) {
-          rasgosActualizados[indexDoteExistente] = {
-            ...nuevaDote,
-            usosRestantes: rasgosActualizados[indexDoteExistente].usosRestantes ?? nuevaDote.usosRestantes,
-            activo: rasgosActualizados[indexDoteExistente].activo ?? true
-          };
-        } else {
-          rasgosActualizados.push(nuevaDote);
-        }
-      } else if (esSelectorDoteDon && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
-        const idDoteElegida = valorActual[0];
-        const idDoteDon = `dote_don_${normalizarTextoSeguro(idRasgo)}`;
-        const indexDoteExistente = rasgosActualizados.findIndex(
-          (r) => r.id === idDoteDon || (r.origen === "dote" && r.ligadoA === idRasgo)
-        );
-
-        const nuevaDote = construirDoteDeDonEpico(rasgoPadreMejora, idDoteElegida);
-        if (indexDoteExistente !== -1) {
-          rasgosActualizados[indexDoteExistente] = {
-            ...nuevaDote,
-            usosRestantes: rasgosActualizados[indexDoteExistente].usosRestantes ?? nuevaDote.usosRestantes,
-            activo: rasgosActualizados[indexDoteExistente].activo ?? true
-          };
-        } else {
-          rasgosActualizados.push(nuevaDote);
-        }
-      } else if (esSelectorDoteOrigen && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
-        const idDoteElegida = valorActual[0];
-        const idDoteOrigen = `dote_origen_${normalizarTextoSeguro(idRasgo)}`;
-        const indexDoteExistente = rasgosActualizados.findIndex(
-          (r) => r.id === idDoteOrigen || (r.origen === "dote" && r.ligadoA === idRasgo)
-        );
-
-        const nuevaDote = construirDoteDeVersatil(rasgoPadreMejora, idDoteElegida);
-        if (indexDoteExistente !== -1) {
-          rasgosActualizados[indexDoteExistente] = {
-            ...nuevaDote,
-            usosRestantes: rasgosActualizados[indexDoteExistente].usosRestantes ?? nuevaDote.usosRestantes,
-            activo: rasgosActualizados[indexDoteExistente].activo ?? true
-          };
-        } else {
-          rasgosActualizados.push(nuevaDote);
-        }
-      } else if (esSelectorDoteEstilo && rasgoPadreMejora && Array.isArray(valorActual) && valorActual.length > 0) {
-        const idDoteElegida = valorActual[0];
-        const idDoteEstilo = `dote_estilo_${normalizarTextoSeguro(idRasgo)}`;
-        const indexDoteExistente = rasgosActualizados.findIndex(
-          (r) => r.id === idDoteEstilo || (r.origen === "dote" && r.ligadoA === idRasgo)
-        );
-
-        const nuevaDote = construirDoteDeEstiloCombate(rasgoPadreMejora, idDoteElegida);
         if (indexDoteExistente !== -1) {
           rasgosActualizados[indexDoteExistente] = {
             ...nuevaDote,
@@ -211,36 +162,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       if ((esSelectorDoteEstilo || selectorPedido.requiereEleccionExplicita) && !valorActual.length) {
         for (let i = rasgosActualizados.length - 1; i >= 0; i--) if (rasgosActualizados[i].origen === "dote" && rasgosActualizados[i].ligadoA === idRasgo) rasgosActualizados.splice(i, 1);
       }
-      // Sincronizar trucosConocidosIds del personaje
-      let trucosConocidosActualizados = pj.trucosConocidosIds || [];
-
-      let conjurosSiempreActualizados = pj.conjurosSiemprePreparadosIds || [];
-      let conjurosPreparadosActualizados = pj.conjurosPreparadosIds || [];
-      let conjurosConocidosActualizados = pj.conjurosConocidosIds || [];
-
-      // Sincronizar selectores de trucos y conjuros (ej. Iniciado en la Magia, Lanzador Ritual, Erudito)
-      const rasgoPrevio = (pj.rasgos || []).find((r) => r.id === idRasgo);
-      const selectorPrevio = rasgoPrevio?.selectores?.find((s) => s.id === idSelector);
-      const rasgoActual = rasgosActualizados.find((r) => r.id === idRasgo);
-      const selectorActual = rasgoActual?.selectores?.find((s) => s.id === idSelector) || selectorPrevio;
-
-      if (selectorActual && esSelectorDeConjuros(selectorActual) && Array.isArray(valorActual)) {
-        const valoresViejos = selectorPrevio?.valorActual || [];
-        let listas: ListasConjurosSelector = {
-          siempre: conjurosSiempreActualizados,
-          preparados: conjurosPreparadosActualizados,
-          conocidos: conjurosConocidosActualizados,
-          trucos: trucosConocidosActualizados
-        };
-        listas = quitarValoresSelectorDeListas(selectorActual, valoresViejos, listas);
-        listas = agregarValoresSelectorAListas(selectorActual, valorActual, listas);
-        conjurosSiempreActualizados = listas.siempre;
-        conjurosPreparadosActualizados = listas.preparados;
-        conjurosConocidosActualizados = listas.conocidos;
-        trucosConocidosActualizados = listas.trucos;
-      }
-
-      // Sincronizar reactivamente estado activo, trucos y conjuros procedentes de rasgos hijos condicionados por requiereOpcion
+      // Sincronizar el estado activo de hijos antes de reconciliar sus aportaciones de conjuros.
       for (let i = 0; i < rasgosActualizados.length; i++) {
         let r = rasgosActualizados[i];
         if (r.requiereOpcion && r.ligadoA) {
@@ -254,27 +176,6 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
           if (nuevoActivo !== r.activo) {
             r = { ...r, activo: nuevoActivo };
             rasgosActualizados[i] = r;
-          }
-          if (Array.isArray(r.selectores)) {
-            for (const s of r.selectores) {
-              if (esSelectorDeConjuros(s) && Array.isArray(s.valorActual)) {
-                let listas: ListasConjurosSelector = {
-                  siempre: conjurosSiempreActualizados,
-                  preparados: conjurosPreparadosActualizados,
-                  conocidos: conjurosConocidosActualizados,
-                  trucos: trucosConocidosActualizados
-                };
-                if (estaHabilitado) {
-                  listas = agregarValoresSelectorAListas(s, s.valorActual, listas);
-                } else {
-                  listas = quitarValoresSelectorDeListas(s, s.valorActual, listas);
-                }
-                conjurosSiempreActualizados = listas.siempre;
-                conjurosPreparadosActualizados = listas.preparados;
-                conjurosConocidosActualizados = listas.conocidos;
-                trucosConocidosActualizados = listas.trucos;
-              }
-            }
           }
         }
       }
@@ -340,18 +241,17 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const hpMaximo = deltaBono !== 0 ? Math.max(1, (pj.hpMaximo || 1) + deltaBono) : pj.hpMaximo;
       const hpActual = deltaBono > 0 ? pj.hpActual + deltaBono : Math.min(pj.hpActual, hpMaximo || pj.hpActual);
 
+      const listasReconciliadas = reconciliarConjurosRasgos(pj, rasgosActualizados);
       return {
         ...pj,
         hpMaximoBase,
         hpMaximo,
         hpActual,
         tamano: tamanoActualizado,
-        trucosConocidosIds: trucosConocidosActualizados,
-        conjurosSiemprePreparadosIds: conjurosSiempreActualizados,
-        conjurosPreparadosIds: conjurosPreparadosActualizados,
-        conjurosConocidosIds: conjurosConocidosActualizados,
-        ...(selectorPedido.tipoSelector === "dote" || esSelectorDeConjuros(selectorPedido)
-        ? reconciliarConjurosRasgos(pj, rasgosActualizados) : {}),
+        trucosConocidosIds: listasReconciliadas.trucosConocidosIds,
+        conjurosSiemprePreparadosIds: listasReconciliadas.conjurosSiemprePreparadosIds,
+        conjurosPreparadosIds: listasReconciliadas.conjurosPreparadosIds,
+        conjurosConocidosIds: listasReconciliadas.conjurosConocidosIds,
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

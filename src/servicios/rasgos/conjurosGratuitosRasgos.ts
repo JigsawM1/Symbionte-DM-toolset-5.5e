@@ -8,6 +8,7 @@ import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
 import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 import { resolverClaseLanzamiento } from "./modificadoresConjuroRasgos";
+import { obtenerConcesionConRecurso } from "./lanzamientoRecursoRasgos";
 import { seleccionesValidas } from "./seleccionesRasgos";
 
 export interface EvaluacionRecursosGratuito {
@@ -109,6 +110,7 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
     const bc = Math.floor((Math.max(1, pj.nivel) - 1) / 4) + 2;
     return { ...solicitud, modificadorHabilidad: mod, bonoAtaqueMagico: bc + mod, cdSalvacionPersonaje: 8 + bc + mod };
   }
+  const recurso = solicitud.modo === "recursoRasgo" ? obtenerConcesionConRecurso(pj, solicitud.idRasgoOrigen, solicitud.hechizo, solicitud.nivelLanzamiento) : undefined;
   const r = solicitud.modo === "gratuitoInnato"
     ? buscarRasgoConjuroGratuito(pj, solicitud.hechizo.id) ?? buscarRasgoConjuroGratuito(pj, solicitud.hechizo.nombre) : undefined;
   const coincide = (id: string) => coincideHechizoId(id, solicitud.hechizo.id) || coincideHechizoId(id, solicitud.hechizo.nombre);
@@ -120,7 +122,7 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
     .map(r => r.claseConjurosOtorgados!.toLocaleLowerCase("es")));
   const claseElegida = solicitud.modo !== "arcanoMistico" && solicitud.modo !== "gratuitoInnato"
     ? solicitud.claseLanzamiento?.toLocaleLowerCase("es") : undefined;
-  const clase = claseElegida ?? (clases.size === 1 ? [...clases][0] : resolverClaseLanzamiento(pj, solicitud.hechizo));
+  const clase = recurso?.clase ?? claseElegida ?? (clases.size === 1 ? [...clases][0] : resolverClaseLanzamiento(pj, solicitud.hechizo));
   const aptitud = r?.aptitudConjuroGratuito ?? (clase
     ? pj.clasesLanzadoras.find(c => c.clase.toLocaleLowerCase("es") === clase)?.habilidadConjuro
       ?? obtenerClasePorNombre(clase)?.configuracionMagica?.habilidadConjuro : undefined);
@@ -129,7 +131,7 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
   if (!r && !aptitud && !variante) return solicitud;
   const modificador = aptitud ? obtenerModificadorAptitudMagica(pj, aptitud) : solicitud.modificadorHabilidad ?? 0;
   const competencia = Math.floor((Math.max(1, pj.nivel) - 1) / 4) + 2;
-  const hechizo: HechizoBase = r?.ignorarComponentesConjuro ? { ...solicitud.hechizo, componentesSeleccionados: { verbal: false, somatico: false, material: false }, materiales: "" } : variante ? { ...solicitud.hechizo, componentesSeleccionados: { ...solicitud.hechizo.componentesSeleccionados, material: false }, materiales: "" } : solicitud.hechizo;
+  const hechizo: HechizoBase = r?.ignorarComponentesConjuro ? { ...solicitud.hechizo, componentesSeleccionados: { verbal: false, somatico: false, material: false }, materiales: "" } : (variante || recurso?.rasgo.lanzamientoConRecurso?.ignorarMateriales) ? { ...solicitud.hechizo, componentesSeleccionados: { ...solicitud.hechizo.componentesSeleccionados, material: false }, materiales: "" } : solicitud.hechizo;
   return { ...solicitud, hechizo, claseLanzamiento: clase ?? solicitud.claseLanzamiento, ...(aptitud ? {
     modificadorHabilidad: modificador, bonoAtaqueMagico: competencia + modificador, cdSalvacionPersonaje: 8 + competencia + modificador
   } : {}) };

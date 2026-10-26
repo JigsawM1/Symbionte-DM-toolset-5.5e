@@ -1,5 +1,6 @@
 import { obtenerVarianteConjuro, obtenerOpcionesRecursoConjuro } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
 import { elegirVarianteConjuro, elegirOpcionLanzamiento } from "@/componentes/caracteristicas/rasgos/elegirVarianteConjuro";
+import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
 import { emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import { aplicarConfiguracionConjurosRasgos } from "@/servicios/rasgos/conjurosGratuitosRasgos";
@@ -31,6 +32,8 @@ import {
 import { opcionesLanzamientoEstado, obtenerLanzamientoEstado } from "@/servicios/rasgos/lanzamientoEstadoRasgo";
 import { rasgoMagicoHabilitado } from "@/servicios/rasgos/ampliacionesListaConjuros";
 import { normalizar } from "@/servicios/rasgos/utilidadesRasgos";
+import { nivelEspacioGastado } from "@/servicios/rasgos/curacionDeclarativa";
+
 export interface OpcionesLanzadorConjuros {
   personaje?: PersonajeJugador | null;
   claseLanzamiento?: string;
@@ -48,7 +51,7 @@ export interface ControlLanzadorConjuros {
   lanzar: (solicitud: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }) => Promise<boolean>;
 }
 
-const lanzamientosEnCurso = new Set<string>();
+import { operacionesMagicasEnCurso as lanzamientosEnCurso } from "@/servicios/rasgos/bloqueoOperacionesMagicas";
 
 function contextoVigente(contexto: ContextoMagicoPersonaje, personaje?: PersonajeJugador | null): ContextoMagicoPersonaje {
   const actual = personaje ? usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id) ?? personaje : undefined;
@@ -221,9 +224,10 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           ...estados.map(r => ({ id: r.id, texto: `Con ${r.nombre}`, detalle: `Acción adicional · ${r.activo ? "Repetir sin gastar usos" : "1 uso · Concentración, 1 minuto"}`,
             deshabilitado: !obtenerLanzamientoEstado(actual, r.id, solicitudIncompleta.hechizo, r.lanzamientoConActivacion!.nivel) })), ...alternativas.map(a => {
             const disponibles = a.recurso.usosRestantes ?? a.recurso.usosMaximos ?? 0;
-            return { id: a.rasgo.id, texto: `Con ${a.coste} ${a.coste === 1 ? "punto" : "puntos"} de ${a.recurso.nombre}`,
-              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} puntos disponibles.`,
-              deshabilitado: disponibles < a.coste };
+            const unidad = a.rasgo.lanzamientoConRecurso?.costeFijo ? "usos" : "puntos";
+            return { id: a.rasgo.id, texto: `Con ${a.coste} ${unidad} de ${a.recurso.nombre}`,
+              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} ${unidad} disponibles.`,
+              deshabilitado: disponibles < a.coste || Boolean(a.recurso.recuperacionDiferida) };
           })] });
         if (eleccion === undefined) return false;
         const elegida = alternativas.find(a => a.rasgo.id === eleccion);
@@ -282,7 +286,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       });
 
       // A. Preparar estrategia una sola vez y validar precondiciones
-      const preparado = prepararLanzamiento(solicitudCompleta, contextoEfectivo);
+      let preparado = prepararLanzamiento(solicitudCompleta, contextoEfectivo);
       const resultadoValidacion = validarLanzamiento(solicitudCompleta, contextoEfectivo, preparado);
       if (!resultadoValidacion.permitido) {
         if (resultadoValidacion.motivo) {
@@ -291,8 +295,20 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         return false;
       }
 
+      if (personaje && lanzamientosEnCurso.has(personaje.id)) return false;
       if (personaje) lanzamientosEnCurso.add(personaje.id);
       try {
+        const pjCuracion = contextoEfectivo.personajeActual;
+        if (pjCuracion && solicitudCompleta.hechizo.curacion?.tipo === "directa" && nivelEspacioGastado(preparado.gasto) !== undefined
+          && pjCuracion.rasgos.some(r => r.curacionConjuros?.bonoPorEspacio && rasgoMagicoHabilitado(pjCuracion, r))) {
+          const eleccion = await elegirOpcionLanzamiento(pjCuracion.id, { nombre: "Curación del conjuro", etiqueta: "Confirmar curación en el turno del lanzamiento",
+            descripcion: "El bono por espacio solo se aplica a criaturas que recuperen PG en el turno en que lanzas el conjuro.",
+            opciones: [{ id: "si", texto: "Sí, recuperan PG en este turno" }, { id: "no", texto: "Resolver sin el bono condicionado" }] });
+          if (eleccion === undefined) return false;
+          const contextoActual = contextoVigente(contexto, personaje);
+          preparado = prepararLanzamiento({ ...solicitudCompleta, curacionEnTurno: eleccion === "si" }, contextoActual);
+          if (!validarLanzamiento(solicitudCompleta, contextoActual, preparado).permitido) return false;
+        }
         const emitir = () => lanzarDadosTaleSpire(preparado.formula.formulaTaleSpire,
           preparado.formula.etiquetaLog, undefined, undefined, preparado.tipoTirada);
         const vigente = contextoEfectivo.personajeActual;
@@ -303,14 +319,17 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
               else estado.alternarActivoRasgo(vigente.id, id);
             }) : await emitir();
         if (!emitido) return false;
+        if (solicitudCompleta.hechizo.curacion?.tipo === "directa")
+          agregarNotificacion(`${solicitudCompleta.hechizo.nombre} · Curación: ${preparado.formula.formulaTaleSpire.split(":").at(-1)} PG por destinatario. Aplica el resultado a quienes hayan recuperado PG.`, "info");
         if (personaje) {
-          const consumo = consumirRecursoConjuro(personaje.id, preparado.gasto.tipo === "estadoRasgo" ? { ...preparado.gasto, ronda: usarAlmacenDM.getState().rondaActual } : preparado.gasto);
+          const consumo = consumirRecursoConjuro(personaje.id, { ...preparado.gasto, ronda: usarAlmacenDM.getState().rondaActual });
           if (!consumo.permitido) {
             agregarNotificacion(consumo.motivo ?? "Los recursos cambiaron durante el lanzamiento.", "advertencia");
             return false;
           }
           if (preparado.activarConcentracion && solicitudCompleta.hechizo.id)
             establecerConcentracion(personaje.id, solicitudCompleta.hechizo.id, solicitudCompleta.hechizo.nombre);
+          if (preparado.gasto.tipo === "recursoRasgo") await resolverRecuperacionDiferida(personaje.id, preparado.gasto.idRasgo);
         }
 
         if (personaje && (preparado.gasto.tipo === "espacio" || preparado.gasto.tipo === "pacto")) {

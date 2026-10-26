@@ -1,6 +1,8 @@
 import type { PersonajeJugador } from "@/tipos";
 import { normalizar, tieneArmaduraEquipada, resolverRasgoPadre } from "./utilidadesRasgos";
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import { normalizarConjurosTemporales } from "./conjurosTemporalesRasgos";
+import { registrarCuracionAlFinalizar } from "./curacionDeclarativa";
 
 export function claveEstado(texto: string): string {
   const base = normalizar(texto).split(" (")[0];
@@ -12,8 +14,8 @@ export function claveEstado(texto: string): string {
 }
 
 /** Los efectos breves pueden declarar su finalización al completar cualquier descanso. */
-export function finalizarRasgosAlDescansar(pj: PersonajeJugador): PersonajeJugador {
-  const rasgos = pj.rasgos.filter(r => r.finalizarAlDescansar);
+export function finalizarRasgosAlDescansar(pj: PersonajeJugador, tipo: "descanso_corto" | "descanso_largo" = "descanso_corto"): PersonajeJugador {
+  const rasgos = pj.rasgos.filter(r => r.finalizarAlDescansar === true || r.finalizarAlDescansar === tipo);
   if (!rasgos.length) return pj;
   const ids = new Set(rasgos.map(r => r.id));
   const condiciones = new Set(rasgos.flatMap(r => r.condicionAlActivar ? [claveEstado(r.condicionAlActivar)] : []));
@@ -25,6 +27,7 @@ export function finalizarRasgosAlDescansar(pj: PersonajeJugador): PersonajeJugad
 
 /** Finaliza estados por duración o condiciones declaradas, sin reglas por nombre del rasgo. */
 export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number): PersonajeJugador {
+  pj = normalizarConjurosTemporales(pj, ronda);
   const retirar = new Set<string>();
   let cambio = false;
   let rasgos = (pj.rasgos ?? []).map(r => {
@@ -62,8 +65,9 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
     retirar.add(claveEstado(pj.concentracionActiva!.nombreHechizo));
     for (const e of pj.efectosActivos ?? []) if (e.idRasgoOrigen === idConcentracion) retirar.add(claveEstado(e.nombre));
   }
-  return cambio || retirarConcentracion ? { ...pj, rasgos,
+  const resultado = cambio || retirarConcentracion ? { ...pj, rasgos,
     concentracionActiva: retirarConcentracion ? null : pj.concentracionActiva,
     condicionesActivas: (pj.condicionesActivas ?? []).filter(c => !retirar.has(claveEstado(c))),
     efectosActivos: (pj.efectosActivos ?? []).filter(e => !retirar.has(claveEstado(e.nombre))) } : pj;
+  return ronda === undefined ? resultado : registrarCuracionAlFinalizar(pj, resultado);
 }

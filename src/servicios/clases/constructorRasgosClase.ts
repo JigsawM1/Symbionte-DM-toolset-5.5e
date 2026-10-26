@@ -1,9 +1,22 @@
 import { fusionarExtensionRasgo } from "../rasgos/extensionesRasgos";
 import { copiarMecanicasRasgo } from "@/tipos/mecanicasRasgos";
-import type { RasgoPersonaje, EfectoMecanicoRasgo, SelectorRasgo, RecuperacionRasgo } from "@/tipos";
+import type { RasgoPersonaje, EfectoMecanicoRasgo, SelectorRasgo, RecuperacionRasgo, OpcionSelector } from "@/tipos";
 import { normalizarTextoClase, esRasgoPlaceholderSubclase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
-import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate, obtenerOpcionesDotesEstiloCombate } from "./dotesClase";
+import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate, obtenerOpcionesDotesEstiloCombate, obtenerOpcionesDotesParaSelector, obtenerOpcionesDotesDonEpicoParaSelector } from "./dotesClase";
 import { evaluarFormulaUsos, resolverEscaladosRasgo } from "./escaladosRasgos";
+
+function resolverOpcionesBaseSelector(s: SelectorRasgo, idClase?: string): OpcionSelector[] {
+  if (s.opciones.length > 0) return s.opciones;
+  if (s.categoriaDote === "estilo_combate") {
+    return obtenerOpcionesDotesEstiloCombate(idClase ?? "");
+  }
+  if (s.tipoSelector === "dote") {
+    return s.categoriaDote === "don_epico"
+      ? obtenerOpcionesDotesDonEpicoParaSelector("")
+      : obtenerOpcionesDotesParaSelector();
+  }
+  return s.opciones;
+}
 
 /**
  * Obtiene los rasgos de clase y subclase correspondientes a un nivel específico.
@@ -39,7 +52,8 @@ export function obtenerRasgosClaseYSubclase(
 
     const efectosBase: EfectoMecanicoRasgo[] = r.efectos ? [...r.efectos] : [];
     const selectoresBase: SelectorRasgo[] = (r.selectores ?? []).map(s => ({ ...s,
-      opciones: s.categoriaDote === "estilo_combate" && !s.opciones.length ? obtenerOpcionesDotesEstiloCombate(clase!.id) : s.opciones
+      opciones: resolverOpcionesBaseSelector(s, clase?.id)
+
     }));
 
     const escalados = resolverEscaladosRasgo(r, nivelSeguro, efectosBase, selectoresBase);

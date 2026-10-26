@@ -86,6 +86,7 @@ export interface GrupoTiradaSolicitud {
 export interface OpcionesSolicitudTirada {
   etiqueta: string;
   grupos: GrupoTiradaSolicitud[];
+  mostrarResultadoEnChat?: boolean;
   signal?: AbortSignal;
   azarLocal?: () => number;
 }
@@ -983,7 +984,7 @@ export async function solicitarResultadoTirada(opciones: OpcionesSolicitudTirada
       throw new Error(`No se pudieron generar descriptores de dados para "${formulaLimpia}".`);
     }
 
-    const rollId = await ts.dice.putDiceInTray(descriptores, true);
+    const rollId = await ts.dice.putDiceInTray(descriptores, !opciones.mostrarResultadoEnChat);
     if (signal?.aborted) throw new DOMException("Operación de tirada cancelada por el usuario.", "AbortError");
     if (!rollId) {
       throw new Error("TaleSpire no confirmó el rollId para la tirada.");

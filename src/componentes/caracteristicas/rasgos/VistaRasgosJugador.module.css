@@ -1768,3 +1768,5 @@
   flex-shrink: 0;
 }
 
+
+.controlesDeclarativosCuerpo { display: grid; gap: 8px; min-width: 0; }

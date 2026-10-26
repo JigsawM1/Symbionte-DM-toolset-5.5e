@@ -55,7 +55,51 @@ export const EsquemaMecanicasRasgo = z.object({
   escaladoConjurosOtorgados: z.array(z.object({ nivelMinimo: z.number().int().min(1).max(20), conjuros: z.array(z.string().min(1)) })).optional(),
   costeRecargaPadre: z.number().int().positive().optional(),
   costeActivacionPorSelector: z.object({ idSelector: z.string().min(1), costePorOpcion: z.number().int().positive() }).optional(),
-  lanzamientoConRecurso: z.object({ idRasgoConcesion: z.string().min(1), nivelMaximo: z.number().int().min(1).max(9) }).optional(),
+  lanzamientoConRecurso: z.object({
+    idRasgoConcesion: z.string().min(1).optional(),
+    lista: z.string().min(1).optional(),
+    conjuros: z.array(z.string().min(1)).min(1).optional(),
+    sinConcentracion: z.boolean().optional(),
+    duracionRondas: z.number().int().positive().optional(),
+    finalizarConCondiciones: z.array(z.string()).optional(),
+    finalizarAlMorir: z.boolean().optional(),
+    nivelMaximo: z.number().int().min(0).max(9),
+    costeFijo: z.number().int().positive().optional(),
+    excluirReacciones: z.boolean().optional(),
+    ignorarMateriales: z.boolean().optional(),
+    adicionales: z.array(z.object({ conjuroId: z.string().min(1), formulaDescansos: z.string().regex(/^\d+d\d+$/) })).optional()
+  }).refine(c => [c.idRasgoConcesion, c.lista, c.conjuros].filter(Boolean).length === 1, "Declara una concesión, lista o selección explícita de conjuros.").optional(),
+  curacionConjuros: z.object({
+    bonoPorEspacio: z.object({ fijo: z.number(), porNivel: z.number(), soloTurnoLanzamiento: z.boolean() }).optional(),
+    autocuracionPorEspacio: z.object({ fijo: z.number(), porNivel: z.number() }).optional(),
+    maximizarDados: z.boolean().optional(),
+    recursosMaximizables: z.array(z.string().min(1)).optional()
+  }).optional(),
+  curacionAlFinalizar: z.object({ formula: z.string().min(1) }).optional(),
+  resolucionesCuracionPendientes: z.array(z.object({
+    id: z.string().min(1), formula: z.string().min(1), etiqueta: z.string(), confirmacion: z.string(),
+    repetible: z.boolean().optional(), bonoEnTurno: z.number().optional(), derivadaDano: z.boolean().optional()
+  })).optional(),
+  renovarActivacion: z.boolean().optional(),
+  conjurosTemporales: z.array(z.object({ conjuroId: z.string(), expiraRonda: z.number().int() })).optional(),
+  recuperacionDiferida: z.discriminatedUnion("estado", [
+    z.object({ estado: z.literal("pendiente"), formula: z.string().regex(/^\d+d\d+$/) }),
+    z.object({ estado: z.literal("contando"), restantes: z.number().int().positive() })
+  ]).optional(),
+  resolucionAsistida: z.object({
+    opciones: z.array(z.object({
+      id: z.string().min(1), etiqueta: z.string().min(1),
+      tipo: z.enum(["curacion", "dano", "hp_temporal", "informativo", "modificador_tirada"]),
+      formula: z.string().optional(),
+      tipoAccion: z.enum(["especial", "reaccion"]).optional(),
+      tipoDano: z.string().optional(),
+      salvacion: EsquemaCaracteristica.optional()
+    })).min(1),
+    dadosOpcionales: z.boolean().optional(),
+    confirmacion: z.string().optional(),
+    permitePropio: z.boolean().optional(),
+    reparto: z.object({ limitePropioFraccion: z.number().positive().max(1) }).optional()
+  }).optional(),
   ignorarMaterialesConjuro: z.boolean().optional(),
   varianteSinConcentracion: z.boolean().optional(),
   reservaDados: z.object({ caras: z.number().int().min(2).max(100), maximo: z.number().int().positive(), costePorDado: z.number().int().positive() }).optional(),
@@ -99,7 +143,7 @@ export const EsquemaMecanicasRasgo = z.object({
   resultadoTabla: EsquemaResultadoTabla.optional(),
   resultadosTablaPendientes: z.array(EsquemaResultadoTabla).optional(),
   recursoLegado: z.literal("puntos_hechiceria").optional(),
-  finalizarAlDescansar: z.boolean().optional(),
+  finalizarAlDescansar: z.union([z.boolean(), z.literal("descanso_largo")]).optional(),
   conversionEspacios: z.object({
     tabla: z.array(z.object({ nivelEspacio: z.number().int().min(1).max(9), coste: z.number().int().positive(), nivelMinimo: z.number().int().min(1).max(20) })).min(1),
     permiteConvertir: z.boolean().default(true)

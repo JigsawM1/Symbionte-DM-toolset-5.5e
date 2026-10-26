@@ -20,7 +20,7 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
   useEffect(() => { if (abierto) dialogo.current?.showModal(); }, [abierto]);
   const pagoAlternativo = pj ? obtenerPagoActivacionAlternativa(pj, rasgo) : undefined;
   const alternar = () => {
-    if (rasgo.activo || (!selectores.length && !opcionales.length && !pagoAlternativo) || !pj) { alternarOriginal?.(); return; }
+    if ((rasgo.activo && !rasgo.renovarActivacion) || (!selectores.length && !opcionales.length && !pagoAlternativo) || !pj) { alternarOriginal?.(); return; }
     confirmando.current = false;
     setDecisiones({ selectores: {}, opcionales: [] }); setError(""); setAbierto(true);
   };

@@ -266,7 +266,7 @@ export function usarMagiaPersonaje(
 
         if (enLista && !idsTrucosVistos.has(hId)) {
           idsTrucosVistos.add(hId);
-          trucos.push(aplicarModificadoresInvocacionesAHechizo(h, personaje));
+          trucos.push(aplicarModificadoresInvocacionesAHechizo(h, personaje, claseLanzamiento));
         }
       } else if (h.nivel >= 1 && h.nivel <= 9) {
         const preparado = otorgado || chequeoEnSet(setPreparadosIds);
@@ -319,6 +319,7 @@ export function usarMagiaPersonaje(
     setPreparadosIds,
     setConocidosIds,
     maximos.modelo,
+    claseLanzamiento,
     personaje
   ]);
 

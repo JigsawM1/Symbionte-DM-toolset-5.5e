@@ -59,7 +59,8 @@ export function expandirSetHechizos(ids: string[] = []): Set<string> {
     const slugGuionesBajos = slug.replace(/-/g, "_");
     if (slugGuionesBajos !== slug) set.add(slugGuionesBajos);
 
-    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || [];
+    const nombreDesdeId = sinTildes.replace(/^h[_-]/, "").replace(/[-_]/g, " ");
+    const alias = MAPA_ALIAS_HECHIZOS[sinTildes] || MAPA_ALIAS_HECHIZOS[norm] || MAPA_ALIAS_HECHIZOS[nombreDesdeId] || [];
     for (const al of alias) {
       set.add(al);
       set.add(al.toLowerCase().trim());

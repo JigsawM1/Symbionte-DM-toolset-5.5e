@@ -156,8 +156,9 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
               )
             );
 
-          if (esSelectorTipoDano && sel.valorActual && sel.valorActual.length > 0) {
-            const val = sel.valorActual[0];
+          const valoresValidos = seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje);
+          if (esSelectorTipoDano && valoresValidos.length > 0) {
+            const val = valoresValidos[0];
             const opEncontrada = sel.opciones?.find(
               (o) => o.id.toLowerCase() === val.toLowerCase() || normalizar(o.nombre) === normalizar(val)
             );
@@ -169,6 +170,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
       }
 
       for (const efecto of efectosBase) {
+        if (rasgo.idSelectorTipoDano && !tipoDanoSelector && efecto.tipo === "dano_secundario") continue;
         if (efecto.selectorObjetivo) {
           const sel = rasgo.selectores?.find(s => s.id === efecto.selectorObjetivo);
           const valores = sel ? seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje) : [];

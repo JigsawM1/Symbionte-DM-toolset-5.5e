@@ -1,4 +1,6 @@
 import { aplicarModificadoresInvocacionesAHechizo } from "./rasgos/evaluadorCombateRasgos";
+import { formulaCuracionConjuro, nivelEspacioGastado } from "./rasgos/curacionDeclarativa";
+import { obtenerAtaquePosterior } from "./rasgos/conjurosTemporalesRasgos";
 import { obtenerConcesionConRecurso, obtenerVarianteConjuro } from "./rasgos/lanzamientoRecursoRasgos";
 import { normalizar } from "./rasgos/utilidadesRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "./rasgos/conversionRecursosRasgos";
@@ -42,9 +44,11 @@ export type ModoLanzamiento =
   | "gratuitoInnato"
   | "ataqueMagico"
   | "recursoRasgo"
-  | "estadoRasgo";
+  | "estadoRasgo"
+  | "continuarConjuro";
 
 export interface SolicitudLanzamiento {
+  curacionEnTurno?: boolean;
   sinConcentracion?: boolean;
   claseLanzamiento?: string;
   idRasgoOrigen?: string;
@@ -93,7 +97,7 @@ export interface FormulaConstruida {
   etiquetaLog: string;
 }
 
-export type InstruccionGasto =
+export type InstruccionGasto = (
   | { tipo: "estadoRasgo"; idRasgo: string; hechizo: HechizoBase; nivel: number; ronda?: number }
   | { tipo: "recursoRasgo"; idRasgo: string; hechizo: HechizoBase; nivel: number }
   | { tipo: "ninguno" }
@@ -102,7 +106,7 @@ export type InstruccionGasto =
   | { tipo: "pacto"; nivel: number }
   | { tipo: "cargasObjeto"; cantidad: number; objetoInstanciaId: string }
   | { tipo: "arcanoMistico"; nivel: number }
-  | { tipo: "gratuitoInnato"; hechizoId: string };
+  | { tipo: "gratuitoInnato"; hechizoId: string }) & { conjuroCuracion?: HechizoBase; aptitudCuracion?: number; conjuroId?: string; ronda?: number };
 
 export interface LanzamientoPreparado {
   cdSalvacion?: number;
@@ -122,6 +126,12 @@ export function validarLanzamiento(
   contexto: ContextoMagicoPersonaje,
   preparadoPrecalculado?: LanzamientoPreparado
 ): ResultadoValidacion {
+  if (solicitud.modo === "continuarConjuro") {
+    const origen = contexto.personajeActual && obtenerAtaquePosterior(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo);
+    if (!origen || (solicitud.nivelLanzamiento !== undefined && solicitud.nivelLanzamiento !== solicitud.hechizo.nivel)
+      || (solicitud.claseLanzamiento && normalizar(solicitud.claseLanzamiento) !== normalizar(origen.claseConjurosOtorgados)))
+      return { permitido: false, motivo: "El conjuro no está activo con esta procedencia y nivel." };
+  }
   if (solicitud.modo === "estadoRasgo") {
     const r = contexto.personajeActual && obtenerLanzamientoEstado(contexto.personajeActual, solicitud.idRasgoOrigen ?? "", solicitud.hechizo, solicitud.nivelLanzamiento);
     if (!r || (solicitud.claseLanzamiento && normalizar(r.claseConjurosOtorgados) !== normalizar(solicitud.claseLanzamiento))) return { permitido: false, motivo: "Esta alternativa no está disponible o no conserva su concentración." };
@@ -145,7 +155,7 @@ export function validarLanzamiento(
     if (origen?.clase && normalizar(origen.clase) !== normalizar(solicitud.claseLanzamiento))
       return { permitido: false, motivo: "La procedencia del conjuro la determina su concesión." };
   }
-  if (solicitud.idRasgoOrigen && solicitud.modo !== "recursoRasgo" && solicitud.modo !== "estadoRasgo" && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
+  if (solicitud.idRasgoOrigen && solicitud.modo !== "recursoRasgo" && solicitud.modo !== "estadoRasgo" && solicitud.modo !== "continuarConjuro" && (!contexto.personajeActual || solicitud.modo !== "ritual" || !solicitud.hechizo.ritual
     || !obtenerConcesionRitual(contexto.personajeActual, solicitud.idRasgoOrigen, solicitud.hechizo.id)))
     return { permitido: false, motivo: "Esta concesión solo permite sus rituales adquiridos." };
   // 1. Regla D&D 5.5e: Bloqueo total por vestir armadura o escudo sin competencia
@@ -472,6 +482,11 @@ export function prepararLanzamiento(
       break;
     }
 
+    case "continuarConjuro": {
+      formula = construirFormulaEspacio(solicitud.hechizo, solicitud.hechizo.nivel, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      gasto = { tipo: "ninguno" };
+      break;
+    }
     case "estadoRasgo": {
       formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · Acción adicional` };
@@ -577,9 +592,24 @@ export function prepararLanzamiento(
   }
 
   // Activar concentración si el hechizo lo requiere (aplica a todos los modos con concentración)
-  const activarConcentracion = Boolean(solicitud.hechizo.concentracion) && !solicitud.sinConcentracion;
+  const concesionRecurso = pj && solicitud.modo === "recursoRasgo"
+    ? obtenerConcesionConRecurso(pj, solicitud.idRasgoOrigen, solicitud.hechizo, nivelLanzamiento) : undefined;
+  const activarConcentracion = Boolean(solicitud.hechizo.concentracion) && !solicitud.sinConcentracion
+    && !concesionRecurso?.rasgo.lanzamientoConRecurso?.sinConcentracion && solicitud.modo !== "continuarConjuro";
   if (solicitud.sinConcentracion) formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · Sin concentración · 1 minuto` };
+  const nivelEspacio = nivelEspacioGastado(gasto);
+  if (solicitud.hechizo.curacion && solicitud.modo !== "ataqueMagico") {
+    gasto = { ...gasto, conjuroCuracion: solicitud.hechizo, aptitudCuracion: modificadorHabilidad };
+    const curacion = formulaCuracionConjuro(pj, solicitud.hechizo, nivelEspacio ?? nivelLanzamiento, modificadorHabilidad, nivelEspacio, solicitud.curacionEnTurno);
+    if (curacion && solicitud.hechizo.curacion.tipo === "directa") formula = {
+      formulaTaleSpire: `!Curación ${sanitizarEtiqueta(solicitud.hechizo.nombre)}:${curacion}`,
+      etiquetaLog: `${nombrePersonaje} - ${solicitud.hechizo.nombre} · Curación`
+    };
+  }
 
+  if (solicitud.modo !== "continuarConjuro" && solicitud.modo !== "ataqueMagico"
+    && (concesionRecurso?.rasgo.lanzamientoConRecurso?.duracionRondas || pj?.rasgos.some(r => r.conjurosTemporales?.some(e => e.conjuroId === solicitud.hechizo.id))))
+    gasto = { ...gasto, conjuroId: solicitud.hechizo.id };
   return {
     formula,
     gasto,

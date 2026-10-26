@@ -3,7 +3,8 @@
  * 
  */
 
-import type { ComponentesSeleccionados } from "@/tipos";
+import type { ComponentesSeleccionados, HechizoBase } from "@/tipos";
+import { formulaCuracionConjuro } from "@/servicios/rasgos/curacionDeclarativa";
 import { sanitizarEtiqueta } from "./lanzadorDados";
 
 interface ResultadoEscalado {
@@ -522,6 +523,7 @@ export function construirFormulaTaleSpireTruco(
  */
 export function construirFormulaTaleSpireEspacio(
   hechizo: {
+    curacion?: HechizoBase["curacion"];
     id?: string;
     nombre?: string;
     nivel?: number;
@@ -542,6 +544,10 @@ export function construirFormulaTaleSpireEspacio(
 ): { formulaTaleSpire: string; etiquetaLog: string } {
   const nombrePj = nombrePersonaje.trim() || "Personaje";
   const nombreLimpio = hechizo.nombre || "Conjuro";
+  if (hechizo.curacion?.tipo === "directa") {
+    const curacion = formulaCuracionConjuro(undefined, { nivel: hechizo.nivel ?? 1, curacion: hechizo.curacion }, nivelLanzamiento, modificadorHabilidad);
+    if (curacion) return { formulaTaleSpire: `!Curación ${sanitizarEtiqueta(nombreLimpio)}:${curacion}`, etiquetaLog: `${nombrePj} - ${nombreLimpio} · Curación` };
+  }
   const nivelBase = typeof hechizo.nivel === "number" ? hechizo.nivel : 1;
   const tipoDanoText = hechizo.tipoDaño && hechizo.tipoDaño !== "N/A" ? ` (${hechizo.tipoDaño})` : "";
   const bonoSigno = bonoAtaqueMagico >= 0 ? `+${bonoAtaqueMagico}` : `${bonoAtaqueMagico}`;

@@ -2,6 +2,33 @@
 .botonCompacto:hover:not(:disabled) { color: var(--pj-texto-acento); border-color: var(--pj-borde-acento); }
 .botonCompacto:disabled { opacity: .45; cursor: default; }
 .cd { display: inline-flex; align-items: center; min-height: 26px; padding: 3px 7px; box-sizing: border-box; font-size: var(--pj-fuente-badge); color: var(--pj-texto-cian-claro); background: var(--pj-acento-cian-fondo); border: 1px solid var(--pj-borde-cian-tenue); border-radius: var(--pj-radio-control); white-space: nowrap; }
+.badgeSalvacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  padding: 3px 9px;
+  box-sizing: border-box;
+  font-size: var(--pj-fuente-badge);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  border-radius: var(--pj-radio-control);
+  width: fit-content;
+}
+.iconoSalvacion {
+  color: var(--pj-texto-cian-claro);
+  flex-shrink: 0;
+}
+.valorCd {
+  font-weight: 700;
+  color: var(--pj-texto-cian-claro);
+}
+.separadorCd {
+  color: var(--pj-texto-terciario);
+}
+.aptitudCd {
+  color: var(--pj-texto-secundario);
+}
 .formulario { display: flex; flex-direction: column; min-height: 0; margin: 0; }
 .cantidadCabecera { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; justify-content: space-between; font-size: var(--pj-fuente-cuerpo); }
 .cantidadCabecera label { font-weight: 600; }

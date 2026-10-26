@@ -28,7 +28,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       if (!targetTrait) return original;
 
-      const nuevoActivo = !targetTrait.activo;
+      const nuevoActivo = targetTrait.renovarActivacion ? true : !targetTrait.activo;
       if (nuevoActivo && targetTrait.lanzamientoConActivacion) return original;
       const coste = costeActivacionRasgo(targetTrait);
       const pagoAlternativo = nuevoActivo ? obtenerPagoActivacionAlternativa(pj, targetTrait) : undefined;

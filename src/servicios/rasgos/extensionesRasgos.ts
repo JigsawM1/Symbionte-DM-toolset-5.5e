@@ -21,6 +21,8 @@ export function fusionarExtensionRasgo(
     if (r.formulaDados) padre.formulaDados = r.formulaDados;
     if (r.lanzamientoConRecurso) padre.lanzamientoConRecurso = structuredClone(r.lanzamientoConRecurso);
     if (r.resolucionAsistida) padre.resolucionAsistida = { ...padre.resolucionAsistida, ...structuredClone(r.resolucionAsistida) };
+    if (r.curacionAlFinalizar) padre.curacionAlFinalizar = structuredClone(r.curacionAlFinalizar);
+    if (r.curacionConjuros) padre.curacionConjuros = { ...padre.curacionConjuros, ...r.curacionConjuros };
     if (padre.sincronizarEfectosConFormula && padre.formulaDados) {
       padre.efectos = padre.efectos?.map(e => ["dado_extra_dano", "dano_secundario", "ataque_desarmado", "bono_dano_fuerza"].includes(e.tipo)
         ? { ...e, valor: padre.formulaDados! } : e);

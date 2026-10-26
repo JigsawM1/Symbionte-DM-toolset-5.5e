@@ -60,6 +60,8 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     usosMaximos: rasgo.usosMaximos,
     usosRestantes: rasgo.usosRestantes,
     recuperacionDiferida: rasgo.recuperacionDiferida,
+    resolucionesCuracionPendientes: rasgo.resolucionesCuracionPendientes,
+    conjurosTemporales: rasgo.conjurosTemporales,
     dadosReserva: rasgo.dadosReserva,
     resultadoTabla: rasgo.resultadoTabla,
     resultadosTablaPendientes: rasgo.resultadosTablaPendientes,

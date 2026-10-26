@@ -10,7 +10,7 @@ export interface EleccionesActivacionRasgo {
 
 /** Valida todas las decisiones antes de gastar o cambiar el estado del personaje. */
 export function prepararEleccionesActivacion(pj: PersonajeJugador, r: RasgoPersonaje, decisiones?: EleccionesActivacionRasgo): PersonajeJugador | undefined {
-  if (r.activo) return pj;
+  if (r.activo && !r.renovarActivacion) return pj;
   const selectores = (r.selectores ?? []).filter(s => s.momentoEleccion === "activacion");
   if (selectores.some(s => {
     const valores = decisiones?.selectores[s.id];

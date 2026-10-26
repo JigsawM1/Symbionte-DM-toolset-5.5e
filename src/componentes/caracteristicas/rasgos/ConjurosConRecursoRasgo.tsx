@@ -5,6 +5,8 @@ import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { obtenerConcesionConRecurso } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
+import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { Sparkles, Info, Check, Shield } from "lucide-react";
 import estilos from "./ConjurosConRecursoRasgo.module.css";
 
@@ -21,7 +23,7 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
     ? obtenerConcesionConRecurso(personaje, rasgo.id, h)
     : h.id === rasgo.conjuroGratuito), [personaje, rasgo]);
 
-  const hechizo = conjuros.find(h => h.id === id) ?? (rasgo.lanzamientoConRecurso?.lista ? undefined : conjuros[0]);
+  const hechizo = conjuros.find(h => h.id === id) ?? (rasgo.lanzamientoConRecurso?.lista || rasgo.lanzamientoConRecurso?.conjuros ? undefined : conjuros[0]);
   const cfg = hechizo && obtenerConcesionConRecurso(personaje, rasgo.id, hechizo);
   const solicitud = hechizo && {
     hechizo,
@@ -34,7 +36,8 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
     ? { ...solicitud, modo: "recursoRasgo" as const, idRasgoOrigen: rasgo.id }
     : { ...solicitud, modo: "gratuitoInnato" as const });
 
-  const usosRestantes = rasgo.usosRestantes ?? rasgo.usosMaximos ?? 0;
+  const recurso = rasgo.gastarDePadre ? resolverRasgoRecurso(rasgo, personaje.rasgos) : rasgo;
+  const usosRestantes = recurso?.usosRestantes ?? recurso?.usosMaximos ?? 0;
   const textoBoton = rasgo.lanzamientoConRecurso?.costeFijo
     ? `Lanzar · ${rasgo.lanzamientoConRecurso.costeFijo} uso`
     : rasgo.lanzamientoConRecurso
@@ -70,7 +73,7 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
             <span className={estilos.badgeNivel}>{hechizo.nivel === 0 ? "Truco" : `Nivel ${hechizo.nivel}`}</span>
             <span className={estilos.badgeEscuela}>{hechizo.escuela}</span>
             <span className={estilos.badgeTiempo}>{hechizo.tiempoLanzamiento}</span>
-            {hechizo.concentracion && <span className={estilos.badgeConcentracion}>Concentración</span>}
+            {hechizo.concentracion && <span className={estilos.badgeConcentracion}>{rasgo.lanzamientoConRecurso?.sinConcentracion ? "Sin concentración con este rasgo" : "Concentración"}</span>}
           </div>
         </div>
       )}
@@ -95,7 +98,8 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
         <div className={estilos.avisoRegla}>
           <Info size={14} className={estilos.iconoAviso} />
           <span>
-            {rasgo.lanzamientoConRecurso.lista
+            {rasgo.lanzamientoConRecurso.conjuros ? `Nivel base; componentes normales. No consume espacios.${rasgo.lanzamientoConRecurso.sinConcentracion ? " Sin concentración." : ""}${rasgo.lanzamientoConRecurso.duracionRondas ? ` Duración: ${rasgo.lanzamientoConRecurso.duracionRondas} rondas; fuera de iniciativa, finaliza el efecto cuando transcurra su duración.` : ""}`
+              : rasgo.lanzamientoConRecurso.lista
               ? "Nivel base; no consume espacios ni materiales. Mantiene los demás componentes y la concentración."
               : "Por puntos: nivel base, sin componentes verbales ni somáticos. Comprueba manualmente los materiales consumidos o con coste."}
           </span>
@@ -106,7 +110,7 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
         <div className={estilos.franjaRecurso}>
           <div className={estilos.estadoUsos}>
             <span className={`${estilos.puntoEstado} ${usosRestantes > 0 ? estilos.puntoDisponible : estilos.puntoAgotado}`} />
-            <span>Usos disponibles: <strong>{usosRestantes} / {rasgo.usosMaximos ?? 1}</strong></span>
+            <span>Usos disponibles: <strong>{usosRestantes} / {recurso?.usosMaximos ?? 1}</strong></span>
           </div>
           <div className={estilos.costeAccion}>
             Coste: <strong>{rasgo.lanzamientoConRecurso.costeFijo} {rasgo.lanzamientoConRecurso.costeFijo === 1 ? "uso" : "usos"}</strong>
@@ -135,6 +139,18 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
           <span>{textoBoton}</span>
         </button>
       </div>
+      {rasgo.conjurosTemporales?.map(e => {
+        const h = conjuros.find(h => h.id === e.conjuroId);
+        if (!h) return null;
+        return <div key={e.conjuroId}><p>{h.nombre} activo · termina en la ronda {e.expiraRonda}. Destinatario y desplazamiento manuales.</p>
+          {h.permiteAtaquePosterior && <button type="button" className={estilos.botonLanzarPrincipal} onClick={() => void lanzar({ hechizo: h, modo: "continuarConjuro", idRasgoOrigen: rasgo.id, claseLanzamiento: rasgo.claseConjurosOtorgados })}>Atacar con {h.nombre} · sin otro gasto</button>}
+          <button type="button" className={estilos.botonLanzarEspacio} onClick={() => {
+            const almacen = usarAlmacenDM.getState();
+            if (!almacen.operarRecursoRasgoPersonaje(personaje.id, { tipo: "finalizarConjuroTemporal", idRasgo: rasgo.id, conjuroId: h.id }))
+              almacen.agregarNotificacion("El efecto ya no está disponible.", "advertencia");
+          }}>Finalizar {h.nombre}</button>
+        </div>;
+      })}
     </section>
   );
 }

@@ -23,6 +23,18 @@ export interface DefinicionSubclaseConjuros {
  * entre nombres de D&D 2024 / 5.5e y compendios clásicos en español.
  */
 export const MAPA_ALIAS_HECHIZOS: Record<string, string[]> = {
+  "bendicion": ["bendecir"],
+  "guardia contra la muerte": ["guarda contra la muerte"],
+  "columna de llamas": ["golpe flamigero"],
+  "escrudinar": ["escudrinar"],
+  "saeta guiada": ["saeta guia"],
+  "el manto del cruzado": ["manto del cruzado"],
+  "bendecir": ["bendicion"],
+  "guarda contra la muerte": ["guardia contra la muerte"],
+  "golpe flamigero": ["columna de llamas"],
+  "escudrinar": ["escrudinar"],
+  "saeta guia": ["saeta guiada"],
+  "manto del cruzado": ["el manto del cruzado"],
   "susurros disonantes": ["susurros discordantes", "dissonant whispers"],
   "susurros discordantes": ["susurros disonantes", "dissonant whispers"],
   "risa espantosa de tasha": ["risa horrible de tasha", "tashas hideous laughter", "risa de tasha"],

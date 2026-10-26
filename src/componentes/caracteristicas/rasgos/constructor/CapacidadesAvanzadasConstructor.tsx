@@ -10,6 +10,10 @@ export function CapacidadesAvanzadasConstructor({ borrador: b, actualizarBorrado
 }) {
   return <div className={estilos.seccionCard}>
     <h3>Reservas, lanzamientos y tablas</h3>
+    <EditorCapacidadJSON etiqueta="Curación de conjuros" valor={b.curacionConjuros} esquema={EsquemaMecanicasRasgo.shape.curacionConjuros}
+      cambiar={v => cambiar("curacionConjuros", v)} />
+    <EditorCapacidadJSON etiqueta="Curación al finalizar" valor={b.curacionAlFinalizar} esquema={EsquemaMecanicasRasgo.shape.curacionAlFinalizar}
+      cambiar={v => cambiar("curacionAlFinalizar", v)} />
     <EditorCapacidadJSON etiqueta="Resolución asistida" valor={b.resolucionAsistida} esquema={EsquemaMecanicasRasgo.shape.resolucionAsistida}
       cambiar={v => cambiar("resolucionAsistida", v)} />
     <EditorCapacidadJSON etiqueta="Lanzamiento con recurso: configuración completa" valor={b.lanzamientoConRecurso} esquema={EsquemaMecanicasRasgo.shape.lanzamientoConRecurso}

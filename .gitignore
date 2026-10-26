@@ -74,3 +74,4 @@ respaldo.yaml
 
 !/scripts/probar-clerigo.mjs
 !/scripts/fixture-clerigo.mjs
+!/scripts/probar-clerigo-subclases.mjs

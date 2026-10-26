@@ -14,14 +14,14 @@ export function obtenerConcesionConRecurso(pj: PersonajeJugador, idRasgo: string
   // Validar contra el catálogo evita aceptar metadatos de lista o tiempo manipulados en una solicitud.
   const canonico = MAPA_HECHIZOS.get(hechizo.id);
   const adicional = cfg?.adicionales?.find(a => a.conjuroId === hechizo.id);
-  const pertenece = cfg?.lista ? canonico && (adicional || (canonico.nivel <= cfg.nivelMaximo
+  const pertenece = cfg?.conjuros ? canonico && cfg.conjuros.includes(canonico.id) : cfg?.lista ? canonico && (adicional || (canonico.nivel <= cfg.nivelMaximo
     && canonico.clases.some(c => normalizar(c) === normalizar(cfg.lista))))
     : concesion?.activo !== false && concesion?.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id));
   if (!r || !cfg || r.activo === false || !pertenece || !recurso?.tieneUsosLimitados || recurso.activo === false
     || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1) || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)
     || nivel !== hechizo.nivel || (canonico && canonico.nivel !== nivel) || nivel < (cfg.lista ? 0 : 1) || (!adicional && nivel > cfg.nivelMaximo)
     || (cfg.excluirReacciones && normalizar(canonico?.tiempoLanzamiento ?? hechizo.tiempoLanzamiento ?? "").includes("reaccion"))) return;
-  return { rasgo: r, recurso, coste: cfg.costeFijo ?? nivel, clase: cfg.lista ?? concesion?.claseConjurosOtorgados,
+  return { rasgo: r, recurso, coste: cfg.costeFijo ?? nivel, clase: cfg.lista ?? r.claseConjurosOtorgados ?? concesion?.claseConjurosOtorgados,
     formulaDescansos: adicional?.formulaDescansos };
 }
 

@@ -252,8 +252,16 @@ export const EsquemaHechizoBase = z.object({
   clases: z.array(z.string()).optional(),
   ataqueCd: z.enum(["ATAQUE", "CD", "N/A"]).optional(),
   requiereAtaque: z.boolean().optional(),
+  permiteAtaquePosterior: z.boolean().optional(),
   dadosDaño: z.string().optional(),
   dadosDañoNivelSuperior: z.string().optional(),
+  curacion: z.object({
+    tipo: z.enum(["directa", "diferida", "derivada_dano", "completa"]),
+    formula: z.string().optional(),
+    porNivel: z.string().optional(),
+    sumarAptitud: z.boolean().optional(),
+    posterior: z.string().optional()
+  }).optional(),
   cdSalvacion: z.string().optional(), // ej. "Destreza", "Sabiduría"
   agregarModificadorHabilidad: z.boolean().optional(),
   bonoModificadorRasgo: z.number().optional(),

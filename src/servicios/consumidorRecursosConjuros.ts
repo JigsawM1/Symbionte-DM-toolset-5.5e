@@ -5,6 +5,7 @@ import { calcularUsosMaximosRasgo } from "./evaluadorEfectosRasgos";
 import type { PersonajeJugador } from '@/tipos';
 import type { InstruccionGasto } from './servicioLanzamientoConjuros';
 import { consumirLanzamientoEstado } from "./rasgos/lanzamientoEstadoRasgo";
+import { registrarAutocuracionConjuro } from "./rasgos/curacionDeclarativa";
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
 
@@ -79,5 +80,13 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
       break;
     }
   }
+  if (gasto.conjuroCuracion) personaje = registrarAutocuracionConjuro(personaje, gasto.conjuroCuracion,
+    gasto.tipo === "espacio" || gasto.tipo === "pacto" ? gasto.nivel : undefined, gasto.aptitudCuracion);
+  if (gasto.conjuroId) personaje = { ...personaje, rasgos: personaje.rasgos.map(r => {
+    const anteriores = r.conjurosTemporales?.filter(e => e.conjuroId !== gasto.conjuroId);
+    const duracion = gasto.tipo === "recursoRasgo" && r.id === gasto.idRasgo ? r.lanzamientoConRecurso?.duracionRondas : undefined;
+    return anteriores || duracion ? { ...r, conjurosTemporales: duracion
+      ? [...(anteriores ?? []), { conjuroId: gasto.conjuroId!, expiraRonda: (gasto.ronda ?? 1) + duracion }] : anteriores } : r;
+  }) };
   return { permitido: true, personaje };
 }

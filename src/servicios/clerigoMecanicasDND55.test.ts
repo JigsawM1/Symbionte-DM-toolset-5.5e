@@ -345,7 +345,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const preservarVida = rasgosVidaNv3.find((r) => r.id === "rasgo_sub_vida_preservar_vida");
       expect(preservarVida).toBeDefined();
       expect(preservarVida?.nombre).toBe("Canalizar divinidad: Preservar vida");
-      expect(preservarVida?.ligadoA).toBe("Canalizar divinidad");
+      expect(preservarVida?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
       expect(preservarVida?.gastarDePadre).toBe(true);
       expect(preservarVida?.categoriaMecanica).toBe("curacion");
       expect(preservarVida?.formulaDados).toBe("5*nivel");
@@ -373,7 +373,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const resplandor = rasgosLuzNv3.find((r) => r.id === "rasgo_sub_luz_resplandor_del_alba");
       expect(resplandor).toBeDefined();
       expect(resplandor?.nombre).toBe("Canalizar divinidad: Resplandor del alba");
-      expect(resplandor?.ligadoA).toBe("Canalizar divinidad");
+      expect(resplandor?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
       expect(resplandor?.gastarDePadre).toBe(true);
       expect(resplandor?.formulaDados).toBe("2d10+nivel");
       expect(resplandor?.tipoAccion).toBe("accion");
@@ -416,7 +416,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const duplicidad = rasgosEnganoNv3.find((r) => r.id === "rasgo_sub_engano_invocar_duplicidad");
       expect(duplicidad).toBeDefined();
       expect(duplicidad?.nombre).toBe("Canalizar divinidad: Invocar duplicidad");
-      expect(duplicidad?.ligadoA).toBe("Canalizar divinidad");
+      expect(duplicidad?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
       expect(duplicidad?.gastarDePadre).toBe(true);
       expect(duplicidad?.tipoAccion).toBe("accion_adicional");
       expect(duplicidad?.categoriaMecanica).toBe("activable");
@@ -429,13 +429,13 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     it("Niveles 6 y 17: Transposición a nivel 6 y Duplicidad mejorada decora Invocar duplicidad a nivel 17", () => {
       const rasgosEnganoNv6 = obtenerRasgosClaseYSubclase("Clérigo", 6, "Dominio del Engaño");
       const transposicion = rasgosEnganoNv6.find((r) => r.id === "rasgo_sub_engano_transposicion_embaucador");
-      expect(transposicion).toBeDefined();
-      expect(transposicion?.tipoAccion).toBe("accion_adicional");
+      expect(transposicion).toBeUndefined();
+      expect(rasgosEnganoNv6.find(r => r.id === "rasgo_sub_engano_invocar_duplicidad")?.descripcion).toContain("Transposición del embaucador");
 
       const rasgosEnganoNv17 = obtenerRasgosClaseYSubclase("Clérigo", 17, "Dominio del Engaño");
       const duplicidadMejorada = rasgosEnganoNv17.find((r) => r.nombre.includes("Invocar duplicidad"));
       expect(duplicidadMejorada).toBeDefined();
-      expect(duplicidadMejorada?.formulaDados).toBe("nivel");
+      expect(duplicidadMejorada?.curacionAlFinalizar?.formula).toBe("nivel");
       expect(duplicidadMejorada?.descripcion).toContain("Duplicidad mejorada");
     });
   });
@@ -447,10 +447,10 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const golpeGuiado = rasgosGuerraNv3.find((r) => r.id === "rasgo_sub_guerra_golpe_guiado");
       expect(golpeGuiado).toBeDefined();
       expect(golpeGuiado?.nombre).toBe("Canalizar divinidad: Golpe guiado");
-      expect(golpeGuiado?.ligadoA).toBe("Canalizar divinidad");
+      expect(golpeGuiado?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
       expect(golpeGuiado?.gastarDePadre).toBe(true);
-      expect(golpeGuiado?.tipoAccion).toBe("reaccion");
-      expect(golpeGuiado?.categoriaMecanica).toBe("activable");
+      expect(golpeGuiado?.tipoAccion).toBe("especial");
+      expect(golpeGuiado?.categoriaMecanica).toBe("consumible");
 
       const sacerdote = rasgosGuerraNv3.find((r) => r.id === "rasgo_sub_guerra_sacerdote_guerrero");
       expect(sacerdote).toBeDefined();
@@ -466,9 +466,9 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const bendicion = rasgosGuerraNv6.find((r) => r.id === "rasgo_sub_guerra_bendicion_dios_guerra");
       expect(bendicion).toBeDefined();
       expect(bendicion?.nombre).toBe("Canalizar divinidad: Bendición del dios de la guerra");
-      expect(bendicion?.ligadoA).toBe("Canalizar divinidad");
+      expect(bendicion?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
       expect(bendicion?.gastarDePadre).toBe(true);
-      expect(bendicion?.categoriaMecanica).toBe("activable");
+      expect(bendicion?.categoriaMecanica).toBe("consumible");
 
       const rasgosGuerraNv17 = obtenerRasgosClaseYSubclase("Clérigo", 17, "Dominio de la Guerra");
       const avatar = rasgosGuerraNv17.find((r) => r.id === "rasgo_sub_guerra_avatar_batalla");
@@ -610,21 +610,18 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       }
     });
 
-    it("Fulgor protector contiene tabla de progresión apilable a nivel 6", () => {
+    it("Fulgor protector no anticipa su mejora como una tabla duplicada", () => {
       const rasgos = obtenerRasgosClaseYSubclase("Clérigo", 3, "Dominio de la Luz");
       const fulgor = rasgos.find((r) => r.id === "rasgo_sub_luz_fulgor_protector");
-      expect(fulgor?.tablaProgresion).toBeDefined();
-      expect(fulgor?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
-      expect(fulgor?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
-      expect(fulgor?.tablaProgresion?.filas[0].nivel).toBe(6);
-      expect(fulgor?.tablaProgresion?.filas[0].valores[0]).toContain("Recuperas todos los usos de tu Fulgor protector");
+      expect(fulgor?.tablaProgresion).toBeUndefined();
+      expect(fulgor?.resolucionAsistida?.opciones).toHaveLength(1);
     });
 
     it("Corona de luz (Dominio de la Luz Nv. 17) es un consumible activable de 10 turnos vinculado al efecto predefinido informativo", () => {
       const rasgosNv17 = obtenerRasgosClaseYSubclase("Clérigo", 17, "Dominio de la Luz");
       const corona = rasgosNv17.find((r) => r.id === "rasgo_sub_luz_corona_de_luz");
       expect(corona).toBeDefined();
-      expect(corona?.categoriaMecanica).toBe("consumible");
+      expect(corona?.categoriaMecanica).toBe("activable");
       expect(corona?.esActivable).toBe(true);
       expect(corona?.tieneUsosLimitados).toBe(true);
       expect(corona?.condicionAlActivar).toBe("Corona de luz");

@@ -1,5 +1,6 @@
 import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
 import { ResolucionAsistidaRasgo } from "./ResolucionAsistidaRasgo";
+import { CuracionesPendientesRasgo } from "./CuracionesPendientesRasgo";
 import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
 import { RecuperarUsosConEspacio } from "./RecuperarUsosConEspacio";
 import { ReservaDadosRasgo } from "./ReservaDadosRasgo";
@@ -16,7 +17,7 @@ import { logger } from "@/utiles/logger";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import modalEstilos from "./DialogoRasgo.module.css";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
-import { Dices, Hourglass, Minus, Plus, RotateCcw, Sparkles, X } from "lucide-react";
+import { Dices, Hourglass, Minus, Plus, RotateCcw, Shield, Sparkles, X } from "lucide-react";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { ConjurosRitualesRasgo } from "./ConjurosRitualesRasgo";
 import { emitirCuracionConDados } from "@/servicios/rasgos/tiradaCuracionDados";
@@ -76,6 +77,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
   };
   return <>
     {rasgo.resolucionAsistida && <ResolucionAsistidaRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
+    {!!rasgo.resolucionesCuracionPendientes?.length && <CuracionesPendientesRasgo idPersonaje={pj.id} rasgo={rasgo} />}
     {rasgo.recuperacionDiferida && <section className={estilos.rituales} aria-label="Recuperación pendiente">
       {rasgo.recuperacionDiferida.estado === "contando" ? (
         <div className={estilos.tarjetaEspera}>
@@ -121,9 +123,19 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
         onClick={e => usarOpcion(e, true)}>Usar gratis este turno</button>}
     </div>}
     <ConversionEspaciosRasgo rasgo={rasgo} idPersonaje={idPersonaje} />
-    {rasgo.salvacionObjetivo && <span className={estilos.cd}
-      title={`Salvación de ${rasgo.salvacionObjetivo.caracteristica}: CD ${cd}. Aplicación al objetivo manual.`}>
-      CD {cd} · {rasgo.salvacionObjetivo.caracteristica.slice(0, 3).toUpperCase()}</span>}
+    {rasgo.salvacionObjetivo && (
+      <div
+        className={estilos.badgeSalvacion}
+        title={`Salvación de ${rasgo.salvacionObjetivo.caracteristica}: CD ${cd}. Aplicación al objetivo manual.`}
+      >
+        <Shield size={12} className={estilos.iconoSalvacion} />
+        <span className={estilos.valorCd}>CD {cd}</span>
+        <span className={estilos.separadorCd}>·</span>
+        <span className={estilos.aptitudCd}>
+          Salvación de {rasgo.salvacionObjetivo.caracteristica.charAt(0).toUpperCase() + rasgo.salvacionObjetivo.caracteristica.slice(1)}
+        </span>
+      </div>
+    )}
     {vista === "detalle" && rasgo.conjurosRituales?.length ? <ConjurosRitualesRasgo personaje={pj} idRasgo={rasgo.id} /> : null}
     {rasgo.recargarUsoConPadre && <button type="button" className={estilos.botonCompacto}
       disabled={restantes >= (rasgo.usosMaximos ?? 1) || !padre || (padre.usosRestantes ?? padre.usosMaximos ?? 0) < costeRecarga}

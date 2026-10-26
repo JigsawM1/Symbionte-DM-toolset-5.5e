@@ -148,7 +148,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
   const esPreservarVida = (rasgo.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("preservar vida");
 
-  const controlesEnCuerpo = Boolean(rasgo.resolucionAsistida || rasgo.lanzamientoConRecurso?.lista || rasgo.recuperacionDiferida);
+  const controlesEnCuerpo = Boolean(rasgo.resolucionAsistida || rasgo.lanzamientoConRecurso?.lista || rasgo.lanzamientoConRecurso?.conjuros || rasgo.resolucionesCuracionPendientes?.length || rasgo.recuperacionDiferida);
 
   // Truncado de descripción para tarjeta compacta
   const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES_DESCRIPCION);
@@ -201,7 +201,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               title={
                 deshabilitadoToggle
                   ? motivoDeshabilitado || "Acción no disponible"
-                  : rasgo.activo
+                  : rasgo.activo && rasgo.renovarActivacion ? "Rasgo activo (clic para renovar)" : rasgo.activo
                   ? "Rasgo activo (clic para desactivar)"
                   : "Rasgo inactivo (clic para activar)"
               }
@@ -212,7 +212,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Contador de Usos (Propios, de Rasgo Padre o Espacios de Pacto) */}
-          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && (
+          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && (
             <div
               className={estilos.contadorUsos}
               title={

@@ -421,5 +421,5 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     inspiracion: inspiracionNueva
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado), "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado, "descanso_largo"), "descanso"), acciones };
 }

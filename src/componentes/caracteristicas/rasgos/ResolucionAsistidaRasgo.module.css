@@ -12,17 +12,17 @@
 }
 
 .botonResolver {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 4px 10px;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 34px;
+  padding: 6px 12px;
   font-size: var(--pj-fuente-boton);
   font-weight: 600;
-  white-space: nowrap;
-  color: var(--pj-texto-secundario);
+  color: var(--pj-texto-primario);
   background: var(--pj-fondo-panel);
   border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
@@ -34,11 +34,97 @@
   color: var(--pj-texto-acento-brillante);
   background: var(--pj-fondo-tarjeta-hover);
   border-color: var(--pj-borde-acento);
+  box-shadow: var(--pj-sombra-brillo-acento);
 }
 
 .botonResolver:disabled {
   opacity: 0.45;
   cursor: default;
+}
+
+.contenidoBotonResolver {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.iconoBotonResolver {
+  color: var(--pj-texto-acento-brillante);
+  flex-shrink: 0;
+}
+
+.badgeCosteBoton {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-cian-claro);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+
+/* Tarjeta táctica de última resolución en tarjeta */
+.tarjetaResultado {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-acento-tenue);
+  border-left: 3px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  box-sizing: border-box;
+}
+
+.cabeceraResultado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.etiquetaResultado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-acento);
+}
+
+.iconoCheckResultado {
+  color: var(--pj-texto-exito);
+  flex-shrink: 0;
+}
+
+.botonDescartarResultado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--pj-texto-terciario);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonDescartarResultado:hover {
+  color: var(--pj-texto-primario);
+  background: var(--pj-fondo-tarjeta-hover);
+}
+
+.textoResultado {
+  margin: 0;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+  line-height: 1.45;
 }
 
 .iconoCabecera {

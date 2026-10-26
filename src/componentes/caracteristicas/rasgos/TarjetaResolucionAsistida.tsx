@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Sun, Zap, Sparkles, Heart, Flame, Shield } from "lucide-react";
+import { Check, Sun, Zap, Sparkles, Heart, Flame, Shield, CheckCircle2, X } from "lucide-react";
 import estilos from "./ResolucionAsistidaRasgo.module.css";
 
 export function IconoCabeceraRasgo({ nombre }: { nombre: string }) {
@@ -78,6 +78,35 @@ export function TarjetaStat({
         {valor}
       </div>
       <div className={estilos.detalleStat}>{detalle}</div>
+    </div>
+  );
+}
+
+export function TarjetaResultadoResolucion({
+  mensaje,
+  alDescartar
+}: {
+  mensaje: string;
+  alDescartar: () => void;
+}) {
+  return (
+    <div className={estilos.tarjetaResultado} role="status">
+      <div className={estilos.cabeceraResultado}>
+        <div className={estilos.etiquetaResultado}>
+          <CheckCircle2 size={13} className={estilos.iconoCheckResultado} />
+          <span>Última resolución</span>
+        </div>
+        <button
+          type="button"
+          className={estilos.botonDescartarResultado}
+          aria-label="Descartar resultado"
+          title="Descartar resultado"
+          onClick={alDescartar}
+        >
+          <X size={12} />
+        </button>
+      </div>
+      <p className={estilos.textoResultado}>{mensaje}</p>
     </div>
   );
 }

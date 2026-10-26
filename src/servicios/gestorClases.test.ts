@@ -89,14 +89,14 @@ describe("Servicio Gestor de Clases y Subclases D&D 5.5e (2024)", () => {
   it("debe retornar los conjuros siempre preparados de subclases según el nivel", () => {
     // Clérigo Dominio de la Vida nivel 3
     const magiaNv3 = obtenerConjurosSubclaseBuild("Clérigo", "Dominio de la Vida", 3);
-    expect(magiaNv3.conjuros).toContain("Bendición");
-    expect(magiaNv3.conjuros).toContain("Curar heridas");
-    expect(magiaNv3.conjuros).not.toContain("Revivir"); // Nivel 5
+    expect(magiaNv3.conjuros).toContain("h_bendecir");
+    expect(magiaNv3.conjuros).toContain("h_curar-heridas");
+    expect(magiaNv3.conjuros).not.toContain("h_revivir"); // Nivel 5
 
     // Clérigo Dominio de la Vida nivel 5
     const magiaNv5 = obtenerConjurosSubclaseBuild("Clérigo", "Dominio de la Vida", 5);
-    expect(magiaNv5.conjuros).toContain("Revivir");
-    expect(magiaNv5.conjuros).toContain("Palabra de curación en masa");
+    expect(magiaNv5.conjuros).toContain("h_revivir");
+    expect(magiaNv5.conjuros).toContain("h_palabra-de-curacion-en-masa");
   });
 
   it("debe construir una build completa y calcular todas las métricas de clase", () => {

@@ -29,26 +29,26 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
   describe("1. Clérigo (Dominios Divinos)", () => {
     it("Dominio de la Vida: otorga conjuros acumulativos por nivel", () => {
       const nv3 = obtenerConjurosSiemprePreparadosSubclase("Clérigo", "Dominio de la Vida", 3);
-      expect(nv3.conjuros).toEqual(["Auxilio", "Bendición", "Curar heridas", "Restablecimiento menor"]);
+      expect(nv3.conjuros).toEqual(["h_auxilio", "h_bendecir", "h_curar-heridas", "h_restablecimiento-menor"]);
 
       const nv5 = obtenerConjurosSiemprePreparadosSubclase("Clérigo", "Dominio de la Vida", 5);
-      expect(nv5.conjuros).toContain("Palabra de curación en masa");
-      expect(nv5.conjuros).toContain("Revivir");
+      expect(nv5.conjuros).toContain("h_palabra-de-curacion-en-masa");
+      expect(nv5.conjuros).toContain("h_revivir");
       expect(nv5.conjuros.length).toBe(6);
 
       const nv9 = obtenerConjurosSiemprePreparadosSubclase("Clérigo", "Dominio de la Vida", 9);
-      expect(nv9.conjuros).toContain("Restablecimiento mayor");
-      expect(nv9.conjuros).toContain("Curar heridas en masa");
+      expect(nv9.conjuros).toContain("h_restablecimiento-mayor");
+      expect(nv9.conjuros).toContain("h_curar-heridas-en-masa");
       expect(nv9.conjuros.length).toBe(10);
     });
 
     it("Dominio de la Luz: otorga Bola de fuego a Nv 5 y Columna de llamas a Nv 9", () => {
       const nv9 = obtenerConjurosSiemprePreparadosSubclase("Clérigo", "Dominio de la Luz", 9);
-      expect(nv9.conjuros).toContain("Manos ardientes");
-      expect(nv9.conjuros).toContain("Bola de fuego");
-      expect(nv9.conjuros).toContain("Muro de fuego");
-      expect(nv9.conjuros).toContain("Columna de llamas");
-      expect(nv9.conjuros).toContain("Escrudiñar");
+      expect(nv9.conjuros).toContain("h_manos-ardientes");
+      expect(nv9.conjuros).toContain("h_bola-de-fuego");
+      expect(nv9.conjuros).toContain("h_muro-de-fuego");
+      expect(nv9.conjuros).toContain("h_golpe-flamigero");
+      expect(nv9.conjuros).toContain("h_escudrinar");
     });
   });
 
@@ -193,9 +193,9 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
         { nombre: "Paladín", subclase: "Juramento de Gloria", nivel: 3 }
       ]);
 
-      expect(multi.conjuros).toContain("Auxilio");
-      expect(multi.conjuros).toContain("Curar heridas");
-      expect(multi.conjuros).toContain("Bendición");
+      expect(multi.conjuros).toContain("h_auxilio");
+      expect(multi.conjuros).toContain("h_curar-heridas");
+      expect(multi.conjuros).toContain("h_bendecir");
       expect(multi.conjuros).toContain("Saeta guía");
       expect(multi.conjuros).toContain("Saeta guía");
       expect(multi.trucos).toContain("Luz");

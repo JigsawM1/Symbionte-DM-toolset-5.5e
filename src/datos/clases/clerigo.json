@@ -759,7 +759,14 @@
           "descripcion": "Cuando uses un espacio de conjuro para lanzar un conjuro que haga recuperar puntos de golpe a una criatura, esa criatura recuperará puntos de golpe adicionales en el turno en que lances el conjuro. La cantidad de puntos de golpe adicionales es igual a 2 más el nivel del espacio de conjuro.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Vida"
+          "subclase": "Dominio de la Vida",
+          "curacionConjuros": {
+            "bonoPorEspacio": {
+              "fijo": 2,
+              "porNivel": 1,
+              "soloTurnoLanzamiento": true
+            }
+          }
         },
         {
           "id": "rasgo_sub_vida_preservar_vida",
@@ -768,10 +775,24 @@
           "descripcion": "Como acción de magia, muestras tu símbolo sagrado y gastas un uso de Canalizar divinidad para generar una energía curativa capaz de restaurar una cantidad de puntos de golpe igual a cinco veces tu nivel de clérigo. Elige criaturas malheridas a 30 pies o menos de ti (lo que puede incluirte a ti) y divide estos puntos de golpe entre ellas. Este rasgo no puede hacer que una criatura pase a tener más de la mitad de sus puntos de golpe máximos.",
           "tipoAccion": "accion",
           "categoriaMecanica": "curacion",
-          "ligadoA": "Canalizar divinidad",
+          "ligadoA": "rasgo_cls_clerigo_canalizar_divinidad",
           "gastarDePadre": true,
           "formulaDados": "5*nivel",
-          "subclase": "Dominio de la Vida"
+          "subclase": "Dominio de la Vida",
+          "resolucionAsistida": {
+            "opciones": [
+              {
+                "id": "curacion",
+                "etiqueta": "Repartir curación",
+                "tipo": "curacion"
+              }
+            ],
+            "permitePropio": true,
+            "reparto": {
+              "limitePropioFraccion": 0.5
+            },
+            "confirmacion": "Elige criaturas malheridas a 30 pies o menos. Ningún destinatario puede superar la mitad de sus PG máximos."
+          }
         },
         {
           "id": "rasgo_sub_vida_sanador_bendito",
@@ -780,7 +801,13 @@
           "descripcion": "Los conjuros de curación que lances sobre otros también te sanan a ti. Inmediatamente después de usar un espacio de conjuro para lanzar un conjuro que haga recuperar puntos de golpe a una o más criaturas que no seas tú, recuperarás una cantidad de puntos de golpe igual a 2 más el nivel del espacio de conjuro.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Vida"
+          "subclase": "Dominio de la Vida",
+          "curacionConjuros": {
+            "autocuracionPorEspacio": {
+              "fijo": 2,
+              "porNivel": 1
+            }
+          }
         },
         {
           "id": "rasgo_sub_vida_sanacion_suprema",
@@ -789,38 +816,42 @@
           "descripcion": "En vez de tirar uno o más dados para hacer que una criatura recupere puntos de golpe con un conjuro o con Canalizar divinidad, no tirarás estos dados para la curación, sino que utilizarás el número más alto de cada dado. Por ejemplo, en lugar de hacer que una criatura recupere 2d6 puntos de golpe con un conjuro, harás que recupere 12.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Vida"
+          "subclase": "Dominio de la Vida",
+          "curacionConjuros": {
+            "maximizarDados": true,
+            "recursosMaximizables": ["rasgo_cls_clerigo_canalizar_divinidad"]
+          }
         }
       ],
       "progresionConjuros": [
         {
           "nivelClase": 3,
           "conjuros": [
-            "Auxilio",
-            "Bendición",
-            "Curar heridas",
-            "Restablecimiento menor"
+            "h_auxilio",
+            "h_bendecir",
+            "h_curar-heridas",
+            "h_restablecimiento-menor"
           ]
         },
         {
           "nivelClase": 5,
           "conjuros": [
-            "Palabra de curación en masa",
-            "Revivir"
+            "h_palabra-de-curacion-en-masa",
+            "h_revivir"
           ]
         },
         {
           "nivelClase": 7,
           "conjuros": [
-            "Aura de vida",
-            "Guarda contra la muerte"
+            "h_aura-de-vida",
+            "h_guarda-contra-la-muerte"
           ]
         },
         {
           "nivelClase": 9,
           "conjuros": [
-            "Restablecimiento mayor",
-            "Curar heridas en masa"
+            "h_restablecimiento-mayor",
+            "h_curar-heridas-en-masa"
           ]
         }
       ]
@@ -880,11 +911,27 @@
           "nombre": "Canalizar divinidad: Resplandor del alba",
           "descripcion": "Como acción de magia, muestras tu símbolo sagrado y gastas un uso de Canalizar divinidad para emitir un destello de luz en una emanación de 30 pies originada en ti. Cualquier oscuridad mágica —como la creada por el conjuro oscuridad— en esa área se disipa. Además, cada criatura de tu elección en esa área debe hacer una tirada de salvación de Constitución, sufriendo una cantidad de daño radiante igual a 2d10 más tu nivel de clérigo si falla la tirada o la mitad de daño si la supera.",
           "tipoAccion": "accion",
-          "categoriaMecanica": "activable",
-          "ligadoA": "Canalizar divinidad",
+          "categoriaMecanica": "consumible",
+          "ligadoA": "rasgo_cls_clerigo_canalizar_divinidad",
           "gastarDePadre": true,
           "formulaDados": "2d10+nivel",
-          "subclase": "Dominio de la Luz"
+          "subclase": "Dominio de la Luz",
+          "salvacionObjetivo": {
+            "aptitud": "sabiduria",
+            "caracteristica": "constitucion"
+          },
+          "claseConjurosOtorgados": "Clérigo",
+          "resolucionAsistida": {
+            "opciones": [
+              {
+                "id": "radiante",
+                "etiqueta": "Resplandor radiante",
+                "tipo": "dano",
+                "tipoDano": "Radiante",
+                "salvacion": "constitucion"
+              }
+            ]
+          }
         },
         {
           "id": "rasgo_sub_luz_fulgor_protector",
@@ -902,20 +949,16 @@
             "minimo": 1
           },
           "subclase": "Dominio de la Luz",
-          "tablaProgresion": {
-            "columnas": [
-              "Nivel",
-              "Descripción"
-            ],
-            "filas": [
+          "resolucionAsistida": {
+            "opciones": [
               {
-                "nivel": 6,
-                "valores": [
-                  "Recuperas todos los usos de tu Fulgor protector tras finalizar un descanso corto o largo. Puedes conceder al objetivo del ataque al que reaccionas una cantidad de PG temporales igual a 2d6 más tu MOD de SAB"
-                ]
+                "id": "desventaja",
+                "etiqueta": "Imponer desventaja",
+                "tipo": "informativo",
+                "formula": ""
               }
             ],
-            "notaPie": "Se apilan los niveles"
+            "confirmacion": "La criatura atacante es visible y está a 30 pies o menos. Reacciona antes de conocer si acierta o falla."
           }
         },
         {
@@ -925,10 +968,26 @@
           "descripcion": "Recuperas todos los usos gastados de tu Fulgor protector tras finalizar un descanso corto o largo.\nAdemás, siempre que utilices Fulgor protector, puedes otorgarle al objetivo del ataque desencadenante una cantidad de puntos de golpe temporales igual a 2d6 más tu modificador por Sabiduría.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "extension",
-          "ligadoA": "Fulgor protector",
+          "ligadoA": "rasgo_sub_luz_fulgor_protector",
           "recuperacion": "descanso_corto",
           "formulaDados": "2d6+sabiduria",
-          "subclase": "Dominio de la Luz"
+          "subclase": "Dominio de la Luz",
+          "resolucionAsistida": {
+            "opciones": [
+              {
+                "id": "desventaja",
+                "etiqueta": "Solo imponer desventaja",
+                "tipo": "informativo",
+                "formula": ""
+              },
+              {
+                "id": "proteccion",
+                "etiqueta": "Desventaja y PG temporales al objetivo del ataque",
+                "tipo": "hp_temporal"
+              }
+            ],
+            "permitePropio": true
+          }
         },
         {
           "id": "rasgo_sub_luz_corona_de_luz",
@@ -936,7 +995,7 @@
           "nombre": "Corona de luz",
           "descripcion": "Como acción de magia, haces que emitas un aura de luz solar que dura 1 minuto o hasta que la disipes (no requiere acción). Emites luz brillante en un radio de 60 pies y luz tenue durante otros 30 pies. Tus enemigos en la luz brillante tienen desventaja en las tiradas de salvación contra tu Resplandor del alba y cualquier conjuro que cause daño de fuego o radiante.\n\nPuedes usar este rasgo una cantidad de veces igual a tu modificador por Sabiduría (mínimo una vez), y recuperas todos los usos gastados tras finalizar un descanso largo.",
           "tipoAccion": "accion",
-          "categoriaMecanica": "consumible",
+          "categoriaMecanica": "activable",
           "tieneUsosLimitados": true,
           "esActivable": true,
           "condicionAlActivar": "Corona de luz",
@@ -955,31 +1014,31 @@
         {
           "nivelClase": 3,
           "conjuros": [
-            "Manos ardientes",
-            "Fuego feérico",
-            "Rayo abrasador",
-            "Ver invisibilidad"
+            "h_manos-ardientes",
+            "h_fuego-feerico",
+            "h_rayo-abrasador",
+            "h_ver-invisibilidad"
           ]
         },
         {
           "nivelClase": 5,
           "conjuros": [
-            "Luz del día",
-            "Bola de fuego"
+            "h_luz-del-dia",
+            "h_bola-de-fuego"
           ]
         },
         {
           "nivelClase": 7,
           "conjuros": [
-            "Ojo arcano",
-            "Muro de fuego"
+            "h_ojo-arcano",
+            "h_muro-de-fuego"
           ]
         },
         {
           "nivelClase": 9,
           "conjuros": [
-            "Columna de llamas",
-            "Escrudiñar"
+            "h_golpe-flamigero",
+            "h_escudrinar"
           ]
         }
       ]
@@ -1039,8 +1098,46 @@
           "nombre": "Bendición del embaucador",
           "descripcion": "Como acción de magia, puedes escogerte a ti o a una criatura voluntaria a 30 pies o menos de ti para que tenga ventaja en las pruebas de Destreza (Sigilo). Esta bendición dura hasta que finalices un descanso largo o hasta que vuelvas a usar este rasgo.",
           "tipoAccion": "accion",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio del Engaño"
+          "categoriaMecanica": "activable",
+          "subclase": "Dominio del Engaño",
+          "esActivable": true,
+          "renovarActivacion": true,
+          "finalizarAlDescansar": "descanso_largo",
+          "selectores": [
+            {
+              "id": "destinatario_bendicion",
+              "tipo": "unico",
+              "etiqueta": "Destinatario de la bendición",
+              "tipoSelector": "general",
+              "maxSelecciones": 1,
+              "visualizacion": "lista",
+              "ubicacion": "tarjeta",
+              "modo": "seleccion",
+              "momentoEleccion": "activacion",
+              "requiereEleccionExplicita": true,
+              "valorActual": [],
+              "opciones": [
+                {
+                  "id": "propio",
+                  "nombre": "Mi personaje",
+                  "descripcion": "Ventaja en tus pruebas de Destreza (Sigilo).",
+                  "efectos": [
+                    {
+                      "id": "bendicion_sigilo",
+                      "tipo": "ventaja",
+                      "objetivo": "habilidad.sigilo",
+                      "valor": "ventaja"
+                    }
+                  ]
+                },
+                {
+                  "id": "externo",
+                  "nombre": "Otra criatura",
+                  "descripcion": "Criatura voluntaria a 30 pies o menos. Aplica manualmente su ventaja; finaliza la bendición anterior."
+                }
+              ]
+            }
+          ]
         },
         {
           "id": "rasgo_sub_engano_invocar_duplicidad",
@@ -1049,18 +1146,25 @@
           "descripcion": "Como acción adicional, puedes gastar un uso de Canalizar divinidad para crear una ilusión visual perfecta de ti mismo en un espacio sin ocupar que puedas ver a 30 pies o menos de ti. La ilusión es intangible y no ocupa su espacio. Dura 1 minuto, pero termina antes si la disipas (no requiere acción) o si tienes el estado de incapacitado. La ilusión está animada e imita tus expresiones y gestos. Mientras persista, obtienes los siguientes beneficios.\n\n***Lanzar conjuros.*** Puedes lanzar conjuros como si estuvieras en el espacio de la ilusión, pero debes utilizar tus propios sentidos.\n\n***Distraer.*** Cuando tanto tú como tu ilusión estéis a 5 pies o menos de una criatura que pueda ver la ilusión, tienes ventaja en las tiradas de ataque contra esa criatura, dada la distracción que supone la ilusión para el objetivo.\n\n***Mover.*** Como acción adicional, puedes mover la ilusión hasta 30 pies a un espacio sin ocupar que puedas ver y que esté a 120 pies o menos de ti.",
           "tipoAccion": "accion_adicional",
           "categoriaMecanica": "activable",
-          "ligadoA": "Canalizar divinidad",
+          "ligadoA": "rasgo_cls_clerigo_canalizar_divinidad",
           "gastarDePadre": true,
-          "subclase": "Dominio del Engaño"
+          "subclase": "Dominio del Engaño",
+          "esActivable": true,
+          "condicionAlActivar": "Ilusión de duplicidad",
+          "duracionEfectoAlActivar": 10,
+          "desactivarConCondiciones": [
+            "Incapacitado"
+          ]
         },
         {
           "id": "rasgo_sub_engano_transposicion_embaucador",
           "nivel": 6,
           "nombre": "Transposición del embaucador",
           "descripcion": "Siempre que realices la acción adicional para crear o mover la ilusión de tu Invocar duplicidad, puedes teletransportarte, intercambiando posiciones con la ilusión.",
-          "tipoAccion": "accion_adicional",
-          "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio del Engaño"
+          "tipoAccion": "pasivo",
+          "categoriaMecanica": "extension",
+          "subclase": "Dominio del Engaño",
+          "ligadoA": "rasgo_sub_engano_invocar_duplicidad"
         },
         {
           "id": "rasgo_sub_engano_duplicidad_mejorada",
@@ -1069,40 +1173,42 @@
           "descripcion": "La ilusión de tu Invocar duplicidad se vuelve más poderosa de las siguientes maneras.\n\n***Distracción compartida.*** Cuando tú y tus aliados hagáis tiradas de ataque contra una criatura a 5 pies o menos de la ilusión, las tiradas de ataque tienen ventaja.\n\n***Ilusión curativa.*** Cuando la ilusión termina, tú o una criatura de tu elección a 5 pies o menos de ella recuperáis una cantidad de puntos de golpe igual a tu nivel de clérigo.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "extension",
-          "ligadoA": "Canalizar divinidad: Invocar duplicidad",
-          "formulaDados": "nivel",
-          "subclase": "Dominio del Engaño"
+          "ligadoA": "rasgo_sub_engano_invocar_duplicidad",
+          "subclase": "Dominio del Engaño",
+          "curacionAlFinalizar": {
+            "formula": "nivel"
+          }
         }
       ],
       "progresionConjuros": [
         {
           "nivelClase": 3,
           "conjuros": [
-            "Hechizar persona",
-            "Disfrazarse",
-            "Invisibilidad",
-            "Pasar sin rastro"
+            "h_hechizar-persona",
+            "h_disfrazarse",
+            "h_invisibilidad",
+            "h_pasar-sin-rastro"
           ]
         },
         {
           "nivelClase": 5,
           "conjuros": [
-            "Patrón hipnótico",
-            "Indetectable"
+            "h_patron-hipnotico",
+            "h_indetectable"
           ]
         },
         {
           "nivelClase": 7,
           "conjuros": [
-            "Confusión",
-            "Puerta dimensional"
+            "h_confusion",
+            "h_puerta-dimensional"
           ]
         },
         {
           "nivelClase": 9,
           "conjuros": [
-            "Dominar persona",
-            "Alterar los recuerdos"
+            "h_dominar-persona",
+            "h_alterar-los-recuerdos"
           ]
         }
       ]
@@ -1171,29 +1277,73 @@
             "modificador": "sabiduria",
             "minimo": 1
           },
-          "subclase": "Dominio de la Guerra"
+          "subclase": "Dominio de la Guerra",
+          "resolucionAsistida": {
+            "opciones": [
+              {
+                "id": "ataque",
+                "etiqueta": "Realizar ataque adicional",
+                "tipo": "informativo"
+              }
+            ],
+            "confirmacion": "Gasta tu acción adicional y realiza un ataque con arma o sin armas desde los controles de ataques."
+          }
         },
         {
           "id": "rasgo_sub_guerra_golpe_guiado",
           "nivel": 3,
           "nombre": "Canalizar divinidad: Golpe guiado",
           "descripcion": "Cuando tú o una criatura a 30 pies o menos de ti falléis una tirada de ataque, podrás gastar un uso de Canalizar divinidad y conceder un bonificador de +10 a la tirada, lo que podría hacer que acierte. Cuando utilices este rasgo para mejorar la tirada de ataque de otra criatura, deberás llevar a cabo una reacción para ello.",
-          "tipoAccion": "reaccion",
-          "categoriaMecanica": "activable",
-          "ligadoA": "Canalizar divinidad",
+          "tipoAccion": "especial",
+          "categoriaMecanica": "consumible",
+          "ligadoA": "rasgo_cls_clerigo_canalizar_divinidad",
           "gastarDePadre": true,
-          "subclase": "Dominio de la Guerra"
+          "subclase": "Dominio de la Guerra",
+          "formulaDados": "10",
+          "resolucionAsistida": {
+            "opciones": [
+              {
+                "id": "propio",
+                "etiqueta": "Ataque propio",
+                "tipo": "modificador_tirada",
+                "tipoAccion": "especial"
+              },
+              {
+                "id": "externo",
+                "etiqueta": "Ataque de otra criatura",
+                "tipo": "modificador_tirada",
+                "tipoAccion": "reaccion"
+              }
+            ],
+            "confirmacion": "El ataque ya ha fallado. Otra criatura debe estar a 30 pies o menos y requiere tu reacción. Modifica únicamente esta tirada."
+          }
         },
         {
           "id": "rasgo_sub_guerra_bendicion_dios_guerra",
           "nivel": 6,
           "nombre": "Canalizar divinidad: Bendición del dios de la guerra",
           "descripcion": "Puedes gastar un uso de Canalizar divinidad para lanzar *escudo de fe* o *arma espiritual* en lugar de gastar un espacio de conjuro. Cuando lances cualquiera de estos conjuros de esta forma, el conjuro no requiere concentración. En su lugar, el conjuro dura 1 minuto, pero termina antes si vuelves a lanzar ese conjuro, tienes el estado de incapacitado o mueres.",
-          "tipoAccion": "pasivo",
-          "categoriaMecanica": "activable",
-          "ligadoA": "Canalizar divinidad",
+          "tipoAccion": "accion_adicional",
+          "categoriaMecanica": "consumible",
+          "ligadoA": "rasgo_cls_clerigo_canalizar_divinidad",
           "gastarDePadre": true,
-          "subclase": "Dominio de la Guerra"
+          "subclase": "Dominio de la Guerra",
+          "claseConjurosOtorgados": "Clérigo",
+          "lanzamientoConRecurso": {
+            "conjuros": [
+              "h_escudo-de-fe",
+              "h_arma-espiritual"
+            ],
+            "nivelMaximo": 2,
+            "costeFijo": 1,
+            "sinConcentracion": true,
+            "duracionRondas": 10,
+            "finalizarAlMorir": true,
+            "finalizarConCondiciones": [
+              "Incapacitado",
+              "Muerto"
+            ]
+          }
         },
         {
           "id": "rasgo_sub_guerra_avatar_batalla",
@@ -1202,38 +1352,61 @@
           "descripcion": "Obtienes resistencia al daño contundente, perforante y cortante.",
           "tipoAccion": "pasivo",
           "categoriaMecanica": "pasivo_permanente",
-          "subclase": "Dominio de la Guerra"
+          "subclase": "Dominio de la Guerra",
+          "efectos": [
+            {
+              "id": "avatar_contundente",
+              "tipo": "resistencia_dano",
+              "objetivo": "Contundente",
+              "valor": "resistencia",
+              "tipoDano": "Contundente"
+            },
+            {
+              "id": "avatar_perforante",
+              "tipo": "resistencia_dano",
+              "objetivo": "Perforante",
+              "valor": "resistencia",
+              "tipoDano": "Perforante"
+            },
+            {
+              "id": "avatar_cortante",
+              "tipo": "resistencia_dano",
+              "objetivo": "Cortante",
+              "valor": "resistencia",
+              "tipoDano": "Cortante"
+            }
+          ]
         }
       ],
       "progresionConjuros": [
         {
           "nivelClase": 3,
           "conjuros": [
-            "Saeta guía",
-            "Arma mágica",
-            "Escudo de fe",
-            "Arma espiritual"
+            "h_saeta-guia",
+            "h_arma-magica",
+            "h_escudo-de-fe",
+            "h_arma-espiritual"
           ]
         },
         {
           "nivelClase": 5,
           "conjuros": [
-            "Manto del cruzado",
-            "Espíritus guardianes"
+            "h_manto-del-cruzado",
+            "h_espiritus-guardianes"
           ]
         },
         {
           "nivelClase": 7,
           "conjuros": [
-            "Escudo de fuego",
-            "Libertad de movimiento"
+            "h_escudo-de-fuego",
+            "h_libertad-de-movimiento"
           ]
         },
         {
           "nivelClase": 9,
           "conjuros": [
-            "Inmovilizar monstruo",
-            "Golpe de viento acerado"
+            "h_inmovilizar-monstruo",
+            "h_golpe-de-viento-acerado"
           ]
         }
       ]

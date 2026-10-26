@@ -290,18 +290,18 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       });
 
       const pj = usarAlmacenDM.getState().personajes[0];
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Auxilio");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Bendición");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Curar heridas");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Restablecimiento menor");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Palabra de curación en masa");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Revivir");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Aura de vida");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Guarda contra la muerte");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_auxilio");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_bendecir");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_curar-heridas");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_restablecimiento-menor");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_palabra-de-curacion-en-masa");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_revivir");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_aura-de-vida");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_guarda-contra-la-muerte");
 
       // También deben estar presentes en conjurosPreparadosIds
-      expect(pj.conjurosPreparadosIds).toContain("Auxilio");
-      expect(pj.conjurosPreparadosIds).toContain("Guarda contra la muerte");
+      expect(pj.conjurosPreparadosIds).toContain("h_auxilio");
+      expect(pj.conjurosPreparadosIds).toContain("h_guarda-contra-la-muerte");
     });
 
     it("al bajar de nivel (7 -> 3), limpia los conjuros de subclase superiores y permite desmarcar/alternar libremente", () => {
@@ -316,7 +316,7 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       });
 
       let pj = usarAlmacenDM.getState().personajes[0];
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Guarda contra la muerte");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_guarda-contra-la-muerte");
 
       // 2. Bajar a nivel 3
       actualizarPersonaje("test-pj", {
@@ -328,13 +328,13 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
 
       pj = usarAlmacenDM.getState().personajes[0];
       // Conjuros de nivel 3 siguen presentes
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Auxilio");
-      expect(pj.conjurosSiemprePreparadosIds).toContain("Bendición");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_auxilio");
+      expect(pj.conjurosSiemprePreparadosIds).toContain("h_bendecir");
       // Conjuros de niveles 5 y 7 fueron depurados automáticamente
-      expect(pj.conjurosSiemprePreparadosIds).not.toContain("Guarda contra la muerte");
-      expect(pj.conjurosSiemprePreparadosIds).not.toContain("Aura de vida");
-      expect(pj.conjurosSiemprePreparadosIds).not.toContain("Revivir");
-      expect(pj.conjurosPreparadosIds).not.toContain("Guarda contra la muerte");
+      expect(pj.conjurosSiemprePreparadosIds).not.toContain("h_guarda-contra-la-muerte");
+      expect(pj.conjurosSiemprePreparadosIds).not.toContain("h_aura-de-vida");
+      expect(pj.conjurosSiemprePreparadosIds).not.toContain("h_revivir");
+      expect(pj.conjurosPreparadosIds).not.toContain("h_guarda-contra-la-muerte");
 
       // 3. Preparar un conjuro libre y luego desmarcarlo
       alternarConjuroPreparado("test-pj", "h_escudo-de-la-fe");

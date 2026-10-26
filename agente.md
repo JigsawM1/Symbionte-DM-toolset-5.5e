@@ -1,3 +1,25 @@
+## [2026-10-26] Rediseño Visual Táctico de Tarjeta de Rasgo: Botón Resolver, Resultado y Salvación CD (/frontend-design)
+
+- **Contexto y Diagnóstico**:
+  - En la vista compacta de la lista de rasgos (`TarjetaRasgo`), los controles de resolución asistida lucían desarticulados: el botón `Resolver` era un bloque genérico centrado sin contexto de coste, los mensajes de tiradas confirmadas se volcaban en un `<p role="status">` crudo sin jerarquía ni opción de descarte, y la salvación de dificultad flotaba como un texto plano `CD 16 · CON`.
+- **Transformación de Diseño y Arquitectura**:
+  1. *Botón Táctico de Resolución (`.botonResolver`)*:
+     - Estructurado a ancho completo con `justify-content: space-between`, integrando icono `Sparkles` con resplandor suave, texto `"Resolver capacidad"` y píldora cian luminosa indicando el coste exacto de recursos (`1 uso`).
+     - Conservado el selector `aria-label={`Resolver ${rasgo.nombre}`}` para total compatibilidad con Puppeteer.
+  2. *Tarjeta Táctica de Última Resolución ([`TarjetaResultadoResolucion`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/TarjetaResolucionAsistida.tsx))*:
+     - Se sustituyó el `<p>` crudo por un panel hundido con borde izquierdo de acento luminoso violeta, cabecera con icono `CheckCircle2` en verde éxito, etiqueta en versalitas `"ÚLTIMA RESOLUCIÓN"` y botón táctico de descarte (`X`).
+  3. *Cápsula HUD de Salvación CD ([`ControlesRecursosDeclarativos.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/ControlesRecursosDeclarativos.tsx))*:
+     - Transformado el span plano `.cd` en una cápsula HUD `.badgeSalvacion` con icono `Shield`, valor `CD 16` destacado en cian brillante y habilidad completa formateada (`Salvación de Constitución`).
+  4. *Modularidad y Límite de Líneas*:
+     - `TarjetaResolucionAsistida.tsx` aloja `TarjetaResultadoResolucion` (112 líneas), manteniendo `ResolucionAsistidaRasgo.tsx` en 294 líneas (`[CORRECTO]`).
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `vitest run`: 172 suites y 2.544 pruebas aprobadas al 100%.
+  - `pnpm run test:clerigo-ui`: 10 recorridos UI aprobados en Chromium a 599px y 433px (0 errores).
+  - `node scripts/verificar-limite-lineas.js`: 200 archivos auditados, todos los componentes `< 300` líneas.
+  - `vite build`: Build de producción completado en 12.25s.
+
 ## [2026-10-26] Rediseño Visual Táctico de Conjuros con Recurso y Recuperación Diferida (/frontend-design)
 
 - **Contexto y Diagnóstico**:
@@ -14510,3 +14532,25 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - pnpm run test:bardo-subclases-ui y pnpm run test:bardo-ui: salida 0; 26 y 18 recorridos respectivamente, a 599/433 px, sin errores JavaScript. Evidencias: scratch/bardo-ponytail-subclases-ui.log y scratch/bardo-ponytail-base-ui.log. Chromium local con App real, dados locales y serialización; no certifica TaleSpire real ni multicliente.
 - Graphify update y cluster-only --no-label completados: 3226 nodos, 13414 relaciones y 114 comunidades. Persisten los avisos del extractor sobre dos suites anteriores. Evidencia: scratch/bardo-ponytail-graphify.log.
 - pnpm run ci: salida 0; 170 suites y 2499 pruebas aprobadas, TypeScript, ESLint, comprobación de tamaño y build correctos. git diff --check: salida 0. Evidencia: scratch/bardo-ponytail-ci.log. El build mantiene el aviso de tamaño de chunks.
+
+## [2026-10-26] Clérigo PHB 2024: cuatro dominios
+
+- Actualizados Vida, Luz, Engaño y Guerra en clerigo.json, con IDs conservados y tablas de conjuros canónicas. Comparación estructural contra HEAD: rasgos de la clase base idénticos. Se conservaron los seis cambios preparados anteriores.
+- Curación declarativa separada del daño: fórmula y escalado, aptitud efectiva, espacio ordinario/pacto, bono condicionado al turno, autocuración confirmada y maximización de conjuros o recursos referenciados explícitamente. Los conjuros elegibles del catálogo reciben metadatos; no se deduce curación por nombre ni descripción.
+- Preservar vida permite reparto propio limitado por reserva y mitad de PG; Fulgor integra PG temporales opcionales en un solo gasto; Bendición permite renovar el destinatario y termina en descanso largo; Duplicidad crea una resolución persistente única por finalización real.
+- Guerra lanza los dos conjuros autorizados por el servicio central, con componentes normales, sin concentración y estados independientes. Arma espiritual permite ataques posteriores sin otro gasto; recast, rondas, incapacitación y muerte registrada finalizan los estados correspondientes. Hay finalización manual fuera de iniciativa.
+- Nuevas capacidades propagadas por Zod, copia, construcción, editor, fusión, serialización e hidratación. Reconstrucción conserva usos gastados, elecciones y pendientes válidas. El DTO de sincronización de combate mantiene su alcance anterior. Sin dependencias nuevas.
+- pnpm run ci: salida 0; 174 suites y 2647 pruebas, TypeScript, ESLint, tamaño y build correctos. Suites nuevas: 91 casos de dominios y 12 de curación; incluyen los cuatro dominios en niveles 1–20, multiclase, recursos, retirada, finalización y persistencia. Evidencia: scratch/clerigo-subclases-ci-cierre.log. Persiste el aviso de tamaño de chunks.
+- pnpm run test:clerigo-subclases-ui: salida 0; diez recorridos y diez medidas a 599/433 px, sin errores de página ni desbordamiento. Incluye cancelación/Escape, doble clic, fallo de emisión simulado sin consumo, curación desde Acciones, renovación, pendientes, conjuros simultáneos, ataque posterior y finalización individual. pnpm run test:clerigo-ui: salida 0. Evidencias: scratch/clerigo-subclases-ui.log y .json; scratch/clerigo-base-ui-regresion.log.
+- Verificación de UI en Chromium local con App, almacén y serializador reales; dados locales y fallo de API simulado. El inspector CEF localhost:9222 rechazó la conexión; no se certifican TaleSpire real, almacenamiento nativo ni multicliente.
+- Límites: destinatarios y condiciones espaciales externos asistidos; curaciones diferidas necesitan confirmar eventos y descartar al terminar el conjuro. Curaciones dinámicas como Vigor arcano y dados de golpe multiclase siguen requiriendo resolución manual; no se afirma automatización universal de Vida.
+- Graphify update y cluster-only --no-label: salida 0; 3319 nodos, 13937 relaciones y 129 comunidades. Persisten dos avisos del extractor sobre suites previas que pasan CI. git diff --check: salida 0. Matriz de 20 rasgos, contratos, inventario y limitaciones en informes/clerigo-subclases-2024.md.
+
+## [2026-10-26] Resplandor del alba: etiqueta nativa de daño
+
+- Corregida la solicitud de dados de resoluciones asistidas: el nombre nativo antepone el tipo de daño y se habilita explícitamente la tarjeta de resultado de TaleSpire. Las demás solicitudes conservan por defecto su política silenciosa. No se repite la tirada, la evaluación ni la publicación del resultado.
+- Verificación en TaleSpire real mediante inspector CEF y control de su ventana: compilación index-DOtDcqUK cargada, tirada física 2d10+20 realizada con ayuda del usuario para el arrastre final, etiqueta Dano radiante visible, resultado 31, mitad 15 y reserva de Canalizar de 1/4 a 0/4: un único gasto. El usuario confirmó que la etiqueta apareció. Esta evidencia solo certifica este flujo local, no multicliente.
+- Compilación copiada al simbionte local conservando los assets anteriores y su índice previo en scratch/cef-resplandor-index-anterior.html. La recarga mostró temporalmente Failed parsing of manifest json; el manifiesto era válido y no se modificó su contenido. Se solicitó su redetección y el panel se recuperó con los datos de la ficha.
+- pnpm run ci: salida 0, 175 suites y 2650 pruebas. Nueva suite lanzadorDadosSolicitud.test.ts: tres casos de visibilidad nativa, etiqueta, resultado único y ausencia de publicación duplicada. pnpm run test:clerigo-subclases-ui: salida 0, sin errores de página. git diff --check: salida 0. Evidencias: scratch/resplandor-etiqueta-ci.log, scratch/resplandor-etiqueta-ui.log y scratch/cef-resplandor-resultado.log.
+- Graphify update y cluster-only --no-label: salida 0; 3320 nodos, 13945 relaciones y 110 comunidades.
+- Tras verificar el gasto de la prueba real, se restituyó exclusivamente ese uso mediante el control existente: reserva final 1/4, igual que antes de la prueba.

@@ -15,6 +15,8 @@ const hechizoBase: HechizoBase = {
   nombre: "Bola de fuego",
   nivel: 3,
   escuela: "Evocación",
+  tiempoLanzamiento: "1 acción",
+  alcance: "150 pies",
   descripcion: "Una brillante chispa brota de tu dedo hacia un punto...",
   concentracion: false,
   requiereAtaque: false,

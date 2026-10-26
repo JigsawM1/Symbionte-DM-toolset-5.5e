@@ -1,10 +1,9 @@
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import { rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { claveEstado } from "./estadoCondicionesRasgos";
-import HECHIZOS from "@/utiles/compendios/all.json";
 
 export function obtenerAtaquePosterior(pj: PersonajeJugador, idRasgo: string | undefined, h: HechizoBase) {
-  if (!HECHIZOS.some(c => c.id === h.id && c.nivel === h.nivel && "permiteAtaquePosterior" in c && c.permiteAtaquePosterior)) return;
+  if (!h.permiteAtaquePosterior) return;
   return pj.rasgos.find(r => r.id === idRasgo && rasgoMagicoHabilitado(pj, r)
     && r.conjurosTemporales?.some(e => e.conjuroId === h.id));
 }

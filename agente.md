@@ -1,3 +1,25 @@
+## [2026-10-26] Auditoría Exhaustiva Pre-Merge de Clérigo Base y Poda Ponytail (/ponytail)
+
+- **Contexto y Diagnóstico**:
+  - Se solicitó una auditoría exhaustiva de la rama `clerigo-base` previa a su fusión en `main`, aplicando el filtro y disciplina de `/ponytail` para cazar sobreingeniería, comprobaciones $O(N)$ innecesarias y asegurar la integridad de la rama.
+  - La rama `clerigo-base` incorpora el Clérigo D&D 5.5e (PHB 2024) 1-20, sus 4 subclases canónicas (*Dominio de la Vida*, *Dominio de la Luz*, *Dominio de la Guerra* y *Dominio del Engaño*), resolución asistida de rasgos, recuperación diferida, autocuración declarativa y bonos por espacio de conjuro.
+  - La base git divergente demostró ser estrictamente lineal respecto a `main` (cero commits por delante en `main`, 5 commits en `clerigo-base`, sin riesgo de conflicto alguno).
+- **Poda Ponytail Aplicada**:
+  - *Eliminación de Escaneo Lineal O(N) e Importación Pesada (`conjurosTemporalesRasgos.ts`)*:
+    - `obtenerAtaquePosterior` importaba `HECHIZOS` completo desde `all.json` (~1.5 MB) y ejecutaba `HECHIZOS.some(...)` en cada consulta.
+    - Se podó dicha importación y se sustituyó por la evaluación directa del campo tipado `Boolean(h.permiteAtaquePosterior)`, reduciendo la presión sobre el recolector de basura (GC) y optimizando el bundle en CEF/TaleSpire.
+  - *Verificación de Invariantes y Persistencia*:
+    - Comprobado que `serializadorPersonaje.ts` (`deshidratarRasgo`), `fusionarEstadoRasgo.ts` y `compendioRasgos.ts` (`sincronizarRasgosAutomaticos`) conservan fielmente `recuperacionDiferida`, `conjurosTemporales` y `resolucionesCuracionPendientes` sin alterar el wire format DTO del simbiote de TaleSpire.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `vitest run`: 175 suites y 2.650 pruebas aprobadas (100% éxito).
+  - `node scripts/verificar-limite-lineas.js`: 202 archivos conformes (0 archivos > 500 líneas, todos los componentes React < 300 líneas).
+  - `vite build`: Compilación de producción exitosa en 15.91s.
+  - `pnpm run test:clerigo-ui`: 10 recorridos completos en Chromium (599px y 433px) superados con 0 errores.
+  - `pnpm run test:clerigo-subclases-ui`: 10 recorridos completos en Chromium (599px y 433px) para las 4 subclases superados con 0 errores.
+  - La rama queda 100% limpia, probada y lista para la fusión manual a `main` por parte del usuario.
+
 ## [2026-10-26] Rediseño Táctico HUD: 'PG para mi personaje', Directiva de Mesa y Ancho de Vida 3 Dígitos (/frontend-design)
 
 - **Contexto y Diagnóstico**:

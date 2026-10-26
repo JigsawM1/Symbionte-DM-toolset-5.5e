@@ -3,6 +3,7 @@ import type { PersonajeJugador, RasgoPersonaje, OrigenRasgo } from "@/tipos";
 import {
   ChevronDown,
   ChevronRight,
+  PawPrint,
   User,
   Sparkles,
   Award,
@@ -40,6 +41,33 @@ export const SeccionesRasgosActivos: React.FC<SeccionesRasgosActivosProps> = ({
 }) => {
   return (
     <>
+      {/* BLOQUE 0: FORMA SALVAJE (BESTIA ACTIVA) */}
+      {datosJerarquicos.formaSalvaje && datosJerarquicos.formaSalvaje.rasgos.length > 0 && (
+        <div className={estilos.seccionPrincipal}>
+          <div
+            className={estilos.cabeceraSeccionPrincipal}
+            onClick={() => alternarColapso("formaSalvaje")}
+          >
+            <div className={estilos.ladoIzquierdoCabecera}>
+              {seccionesColapsadas.formaSalvaje ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
+              <PawPrint size={14} color="#22c55e" />
+              <span className={estilos.tituloSeccion}>
+                Forma salvaje: {datosJerarquicos.formaSalvaje.nombreBestia}
+              </span>
+              <span className={estilos.badgeConteoSeccion}>
+                {datosJerarquicos.formaSalvaje.rasgos.length}
+              </span>
+            </div>
+          </div>
+
+          {!seccionesColapsadas.formaSalvaje && (
+            <div className={estilos.cuerpoSeccionPrincipal}>
+              {datosJerarquicos.formaSalvaje.rasgos.map(renderizarTarjetaRasgo)}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* BLOQUE 1A: ESPECIE / RAZA */}
       {datosJerarquicos.especie.length > 0 && (
         <div className={estilos.seccionPrincipal}>

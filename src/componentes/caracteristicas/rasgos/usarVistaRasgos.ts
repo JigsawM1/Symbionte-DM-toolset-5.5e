@@ -25,6 +25,11 @@ import {
 } from "./utilidadesProgresionRasgos";
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/evaluadorEfectosRasgos";
 import { esRasgoPlaceholderSubclase } from "@/servicios/gestorClases";
+import {
+  obtenerBestiaFormaActiva,
+  filtrarRasgosFormaSalvaje,
+  extraerRasgosBestia
+} from "@/servicios/reglasFormaSalvaje";
 
 export type { SeccionesColapsadas, GrupoClaseJerarquico, DatosJerarquicosRasgos };
 
@@ -184,11 +189,19 @@ export function usarVistaRasgos() {
 
   const totalRasgosPj = (personajeActivo?.rasgos?.length || 0) + dotesInvocacion.length;
 
+  const bestiaActiva = useMemo(() => {
+    return personajeActivo ? obtenerBestiaFormaActiva(personajeActivo) : null;
+  }, [personajeActivo]);
+
   const rasgosFiltrados = useMemo(() => {
     if (!personajeActivo || !Array.isArray(personajeActivo.rasgos)) return [];
 
     const nivelPj = personajeActivo.nivel || 1;
-    const todosLosRasgos = [...personajeActivo.rasgos, ...dotesInvocacion];
+    // Si está en Forma salvaje, filtrar estrictamente: rasgos de la bestia + rasgos de druida
+    const rasgosBase = bestiaActiva
+      ? filtrarRasgosFormaSalvaje(personajeActivo.rasgos, bestiaActiva)
+      : [...personajeActivo.rasgos, ...dotesInvocacion];
+    const todosLosRasgos = rasgosBase;
 
     let lista = todosLosRasgos.filter((r) => {
       if (esRasgoPlaceholderSubclase(r.nombre)) {
@@ -226,8 +239,11 @@ export function usarVistaRasgos() {
   }, [personajeActivo, dotesInvocacion, filtroAccion, consultaBusqueda]);
 
   const datosJerarquicos = useMemo<DatosJerarquicosRasgos>(() => {
-    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos);
-  }, [rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos]);
+    const formaSalvajeInfo = bestiaActiva
+      ? { nombreBestia: bestiaActiva.nombre, rasgos: extraerRasgosBestia(bestiaActiva) }
+      : undefined;
+    return agruparRasgosJerarquicos(rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos, formaSalvajeInfo);
+  }, [rasgosFiltrados, clasesPersonaje, personajeActivo?.rasgos, bestiaActiva]);
 
   const abrirModalCreacion = (origen: OrigenRasgo = "personalizado") => {
     setRasgoParaEditar(null);

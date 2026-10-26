@@ -6,7 +6,9 @@ import {
   esBestiaValidaParaDruida,
   calcularHpTemporalFormaSalvaje,
   obtenerBestiaFormaActiva,
-  puedeLanzarConjuroEnFormaSalvaje
+  puedeLanzarConjuroEnFormaSalvaje,
+  filtrarRasgosFormaSalvaje,
+  extraerRasgosBestia
 } from "./reglasFormaSalvaje";
 import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
@@ -342,6 +344,207 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
 
       // Al estar incapacitado, obtenerBestiaFormaActiva devuelve null
       expect(obtenerBestiaFormaActiva(pjTransformado)).toBeNull();
+    });
+
+    it("No se pueden usar armas ni armadura: se ocultan armas/ataques humanoides y solo quedan los ataques de la bestia", () => {
+      const pjEquipado: any = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        nivel: 5, // PB = +3
+        caracteristicas: {
+          fuerza: 10,
+          destreza: 14,
+          constitucion: 14,
+          inteligencia: 10,
+          sabiduria: 16,
+          carisma: 10
+        },
+        inventario: [
+          {
+            idInstancia: "arma-1",
+            nombre: "Cimitarra",
+            categoria: "armas",
+            equipado: true,
+            cantidad: 1
+          },
+          {
+            idInstancia: "arma-2",
+            nombre: "Arco corto",
+            categoria: "armas",
+            equipado: true,
+            cantidad: 1
+          },
+          {
+            idInstancia: "armadura-1",
+            nombre: "Cota de malla", // Armadura pesada con desventaja en sigilo
+            categoria: "armaduras",
+            equipado: true,
+            caBase: 16,
+            desventajaSigilo: true,
+            cantidad: 1
+          },
+          {
+            idInstancia: "escudo-1",
+            nombre: "Escudo",
+            categoria: "escudos",
+            equipado: true,
+            caBase: 2,
+            cantidad: 1
+          }
+        ],
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 5
+        },
+        condicionesActivas: ["Forma salvaje"]
+      };
+
+      const stats = calcularEstadisticasPersonaje(pjEquipado);
+
+      // CA usa puramente la bestia (Lobo = 12), ignora la cota de malla y el escudo
+      expect(stats.claseArmadura.total).toBe(12);
+      expect(stats.claseArmadura.base).toBe(12);
+      expect(stats.claseArmadura.bonoEscudo).toBe(0);
+      expect(stats.claseArmadura.tipoArmadura).toBe("Sin Armadura");
+      expect(stats.claseArmadura.armaduraEquipadaNombre).toBeNull();
+      expect(stats.claseArmadura.escudoEquipadoNombre).toBeNull();
+      // No sufre desventaja en sigilo por armadura pesada humanoide
+      expect(stats.desventajaSigiloArmadura).toBe(false);
+      // No sufre penalización por falta de competencia
+      expect(stats.penalizacionArmadura.sinCompetencia).toBe(false);
+
+      // Generación de ataques
+      const ataques = generarListaAtaquesFisicos({
+        personajeActivo: pjEquipado,
+        statsCalculadas: stats,
+        baseDatosObjetos: [],
+        caracteristicasArmas: {}
+      });
+
+      // Solo contiene los ataques de la bestia (Mordisco)
+      expect(ataques).toHaveLength(1);
+      const mordisco = ataques[0];
+      expect(mordisco.nombre).toBe("Mordisco (Lobo)");
+      expect(mordisco.subtipo).toBe("Forma Salvaje");
+
+      // No contiene armas equipadas ni ataques humanoides
+      expect(ataques.some((a) => a.nombre.includes("Cimitarra"))).toBe(false);
+      expect(ataques.some((a) => a.nombre.includes("Arco corto"))).toBe(false);
+      expect(ataques.some((a) => a.nombre.includes("Improvisada"))).toBe(false);
+      expect(ataques.some((a) => a.nombre.includes("Desarmado"))).toBe(false);
+
+      // Escalado D&D 2024: PB = 3, FUE del lobo = 14 (mod +2) -> Bono impacto = +5 (mayor que el +4 del compendio)
+      expect(mordisco.bonoAtaque).toBe(5);
+      expect(mordisco.dadoDano).toBe("1d6 + 2");
+
+      // Rasgos tácticos de la bestia integrados en el ataque
+      expect(mordisco.propiedades).toContain("Atacar en manada (Ventaja con aliado a 5 ft)");
+      expect(mordisco.propiedades).toContain("Efecto: Derribo");
+      expect(mordisco.notas).toContain("Atacar en manada");
+    });
+
+    it("Círculo de la Luna: la CA en Forma salvaje es igual a la CA de la bestia + mod de Sabiduría (sin sumar nada más)", () => {
+      const pjLuna: any = {
+        ...PERSONAJE_POR_DEFECTO,
+        clase: "Druida",
+        subclase: "Círculo de la Luna",
+        nivel: 3,
+        caracteristicas: {
+          fuerza: 10,
+          destreza: 12,
+          constitucion: 14,
+          inteligencia: 10,
+          sabiduria: 16, // mod +3
+          carisma: 10
+        },
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 9
+        },
+        condicionesActivas: ["Forma salvaje"]
+      };
+
+      const stats = calcularEstadisticasPersonaje(pjLuna);
+      // Lobo tiene CA 12. En Círculo de la Luna: 12 + 3 (SAB) = 15.
+      expect(stats.claseArmadura.total).toBe(15);
+      expect(stats.claseArmadura.base).toBe(15);
+      expect(stats.claseArmadura.bonoEscudo).toBe(0);
+      expect(stats.claseArmadura.bonosMagicos).toBe(0);
+      expect(stats.claseArmadura.desglose).toContain("Lobo 12");
+      expect(stats.claseArmadura.desglose).toContain("SAB +3");
+    });
+
+    it("Filtrado estricto de rasgos: solo conserva rasgos de la bestia + rasgos de Druida", () => {
+      const rasgosPersonaje: any[] = [
+        {
+          id: "rasgo_druida_forma_salvaje",
+          nombre: "Forma salvaje",
+          origen: "clase",
+          fuente: "Druida PHB 2024",
+          tipoAccion: "accion_adicional",
+          activo: true,
+          tieneUsosLimitados: true,
+          recuperacion: "descanso_dinamico"
+        },
+        {
+          id: "rasgo_druida_conjuros",
+          nombre: "Lanzamiento de conjuros",
+          origen: "clase",
+          fuente: "Druida PHB 2024",
+          tipoAccion: "pasivo",
+          activo: true,
+          tieneUsosLimitados: false,
+          recuperacion: "ninguno"
+        },
+        {
+          id: "rasgo_especie_elfo",
+          nombre: "Linaje élfico",
+          origen: "especie",
+          fuente: "Especie: Elfo",
+          tipoAccion: "pasivo",
+          activo: true,
+          tieneUsosLimitados: false,
+          recuperacion: "ninguno"
+        },
+        {
+          id: "rasgo_dote_alerta",
+          nombre: "Alerta",
+          origen: "dote",
+          fuente: "Dote general",
+          tipoAccion: "pasivo",
+          activo: true,
+          tieneUsosLimitados: false,
+          recuperacion: "ninguno"
+        },
+        {
+          id: "rasgo_barbaro_furia",
+          nombre: "Furia",
+          origen: "clase",
+          fuente: "Bárbaro",
+          tipoAccion: "accion_adicional",
+          activo: false,
+          tieneUsosLimitados: true,
+          recuperacion: "descanso_largo"
+        }
+      ];
+
+      expect(extraerRasgosBestia(lobo).length).toBeGreaterThan(0);
+      const rasgosFiltrados = filtrarRasgosFormaSalvaje(rasgosPersonaje, lobo);
+
+      // Debe contener el rasgo de la bestia (Atacar en manada)
+      const tieneManada = rasgosFiltrados.some((r) => r.nombre.includes("Atacar en manada"));
+      expect(tieneManada).toBe(true);
+
+      // Debe contener los rasgos de Druida
+      expect(rasgosFiltrados.some((r) => r.nombre === "Forma salvaje")).toBe(true);
+      expect(rasgosFiltrados.some((r) => r.nombre === "Lanzamiento de conjuros")).toBe(true);
+
+      // No debe contener especie, dotes ni otras clases
+      expect(rasgosFiltrados.some((r) => r.nombre === "Linaje élfico")).toBe(false);
+      expect(rasgosFiltrados.some((r) => r.nombre === "Alerta")).toBe(false);
+      expect(rasgosFiltrados.some((r) => r.nombre === "Furia")).toBe(false);
     });
   });
 });

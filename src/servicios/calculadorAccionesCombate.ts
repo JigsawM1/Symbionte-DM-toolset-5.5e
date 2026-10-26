@@ -1,3 +1,4 @@
+import { obtenerBestiaFormaActiva, filtrarRasgosFormaSalvaje } from "@/servicios/reglasFormaSalvaje";
 import type {
   PersonajeJugador,
   HechizoBase,
@@ -219,10 +220,15 @@ export function resolverRasgosAcciones(
 ): RasgoAccionCombate[] {
   if (!personajeActivo) return [];
 
-  const declarados =
+  const bestiaActiva = obtenerBestiaFormaActiva(personajeActivo);
+  let declarados =
     Array.isArray(personajeActivo.rasgos) && personajeActivo.rasgos.length > 0
       ? personajeActivo.rasgos
       : sincronizarRasgosAutomaticos(personajeActivo);
+
+  if (bestiaActiva) {
+    declarados = filtrarRasgosFormaSalvaje(declarados, bestiaActiva);
+  }
 
   if (!Array.isArray(declarados) || declarados.length === 0) return [];
   const listaRasgos = resolverExtensionesRasgos(construirRasgosDesdeSelectores({ ...personajeActivo, rasgos: declarados }), personajeActivo.nivel);

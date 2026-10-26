@@ -1,6 +1,7 @@
 import type { RasgoPersonaje } from "@/tipos";
 
 export interface SeccionesColapsadas {
+  formaSalvaje?: boolean;
   especie: boolean;
   subespecie?: boolean;
   dotes: boolean;
@@ -24,6 +25,10 @@ export interface GrupoClaseJerarquico {
 }
 
 export interface DatosJerarquicosRasgos {
+  formaSalvaje?: {
+    nombreBestia: string;
+    rasgos: RasgoPersonaje[];
+  };
   especie: RasgoPersonaje[];
   subespecie: RasgoPersonaje[];
   dotes: RasgoPersonaje[];

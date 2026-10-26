@@ -154,7 +154,8 @@ export function calcularProgresionClases(
 export function agruparRasgosJerarquicos(
   rasgosFiltrados: RasgoPersonaje[],
   clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>,
-  rasgosCompletos: RasgoPersonaje[] = rasgosFiltrados
+  rasgosCompletos: RasgoPersonaje[] = rasgosFiltrados,
+  formaSalvajeInfo?: { nombreBestia: string; rasgos: RasgoPersonaje[] }
 ): DatosJerarquicosRasgos {
   const especie: RasgoPersonaje[] = [];
   const subespecie: RasgoPersonaje[] = [];
@@ -253,7 +254,15 @@ export function agruparRasgosJerarquicos(
     }
   }
 
-  return { especie, subespecie, dotes, personalizados, clases: mapClases, otrosClase };
+  return {
+    formaSalvaje: formaSalvajeInfo,
+    especie,
+    subespecie,
+    dotes,
+    personalizados,
+    clases: mapClases,
+    otrosClase
+  };
 }
 
 /**

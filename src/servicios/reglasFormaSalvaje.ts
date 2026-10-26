@@ -1,4 +1,4 @@
-import type { PersonajeJugador, MonstruoBase } from "@/tipos";
+import type { PersonajeJugador, MonstruoBase, RasgoPersonaje } from "@/tipos";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
 
 /**
@@ -335,4 +335,132 @@ export function puedeLanzarConjuroEnFormaSalvaje(
   }
 
   return false;
+}
+
+
+/**
+ * Normaliza una cadena eliminando acentos, mayúsculas y espacios sobrantes.
+ */
+function normalizarTexto(s?: string): string {
+  return (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+/**
+ * Determina si un rasgo pertenece a la clase o subclase de Druida.
+ */
+export function esRasgoDeDruida(rasgo: RasgoPersonaje): boolean {
+  const f = normalizarTexto(rasgo.fuente);
+  const id = normalizarTexto(rasgo.id);
+  const nom = normalizarTexto(rasgo.nombre);
+  const sub = normalizarTexto(rasgo.subclase);
+
+  if (f.includes("druida") || f.includes("circulo")) return true;
+  if (id.includes("druida") || id.includes("forma_salvaje")) return true;
+  if (sub.includes("luna") || sub.includes("tierra") || sub.includes("estrellas") || sub.includes("esporas") || sub.includes("mar")) return true;
+  if (nom.includes("forma salvaje") || nom.includes("druidico") || nom.includes("druida") || nom.includes("luna")) return true;
+
+  // Si origen es clase o subclase y no pertenece a otra clase identificable
+  if (rasgo.origen === "clase" || rasgo.origen === "subclase") {
+    const otrasClases = [
+      "barbaro",
+      "bardo",
+      "clerigo",
+      "guerrero",
+      "monje",
+      "paladin",
+      "explorador",
+      "picaro",
+      "hechicero",
+      "brujo",
+      "mago"
+    ];
+    const esDeOtra = otrasClases.some((c) => f.includes(c) || id.includes(`_${c}_`));
+    if (!esDeOtra) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Convierte los rasgos y acciones especiales de una bestia en objetos RasgoPersonaje listos para la hoja.
+ */
+export function extraerRasgosBestia(bestia: MonstruoBase): RasgoPersonaje[] {
+  if (!bestia) return [];
+  const rasgosExtraidos: RasgoPersonaje[] = [];
+
+  if (Array.isArray(bestia.rasgos)) {
+    bestia.rasgos.forEach((r, idx) => {
+      const limpio = normalizarTexto(r.nombre).replace(/\s+/g, "_");
+      rasgosExtraidos.push({
+        id: `rasgo_bestia_${bestia.id}_${idx}_${limpio}`,
+        nombre: r.nombre,
+        descripcion: r.descripcion || "",
+        origen: "personalizado",
+        fuente: `Forma salvaje: ${bestia.nombre}`,
+        tipoAccion: "pasivo",
+        personalizado: false,
+        activo: true,
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        notas: `Rasgo de ${bestia.nombre}.`
+      });
+    });
+  }
+
+  if (Array.isArray(bestia.accionesAdicionales)) {
+    bestia.accionesAdicionales.forEach((acc, idx) => {
+      const limpio = normalizarTexto(acc.nombre).replace(/\s+/g, "_");
+      rasgosExtraidos.push({
+        id: `acc_adic_bestia_${bestia.id}_${idx}_${limpio}`,
+        nombre: acc.nombre,
+        descripcion: acc.descripcion || "",
+        origen: "personalizado",
+        fuente: `Forma salvaje: ${bestia.nombre}`,
+        tipoAccion: "accion_adicional",
+        personalizado: false,
+        activo: true,
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        notas: `Acción adicional de ${bestia.nombre}.`
+      });
+    });
+  }
+
+  if (Array.isArray(bestia.reacciones)) {
+    bestia.reacciones.forEach((reac, idx) => {
+      const limpio = normalizarTexto(reac.nombre).replace(/\s+/g, "_");
+      rasgosExtraidos.push({
+        id: `reac_bestia_${bestia.id}_${idx}_${limpio}`,
+        nombre: reac.nombre,
+        descripcion: reac.descripcion || "",
+        origen: "personalizado",
+        fuente: `Forma salvaje: ${bestia.nombre}`,
+        tipoAccion: "reaccion",
+        personalizado: false,
+        activo: true,
+        tieneUsosLimitados: false,
+        recuperacion: "ninguno",
+        notas: `Reacción de ${bestia.nombre}.`
+      });
+    });
+  }
+
+  return rasgosExtraidos;
+}
+
+/**
+ * Filtra los rasgos del personaje para Forma salvaje según la regla estricta:
+ * Solo rasgos de la bestia en la que se transforma + rasgos de Druida (clase y subclase).
+ */
+export function filtrarRasgosFormaSalvaje(
+  rasgosPersonaje: RasgoPersonaje[],
+  bestia: MonstruoBase
+): RasgoPersonaje[] {
+  const rasgosBestia = extraerRasgosBestia(bestia);
+  const rasgosDruida = (rasgosPersonaje || []).filter(esRasgoDeDruida);
+  return [...rasgosBestia, ...rasgosDruida];
 }

@@ -657,13 +657,32 @@ export function calcularEstadisticasPersonaje(
   let totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
   if (bestiaActiva) {
     const esLuna = pj ? esDruidaCirculoLuna(pj) : false;
-    const modSab = modificadores.sabiduria;
-    const caLuna = 13 + modSab;
+    const modSab = modificadores.sabiduria || 0;
     const caBestia = bestiaActiva.ca || 10;
-    const caEfectivaBestia = esLuna ? Math.max(caBestia, caLuna) : caBestia;
-    totalCA = caEfectivaBestia + bonosCARasgos.bonoTotal;
-    caBase = caEfectivaBestia;
-    desglosePartes.splice(0, desglosePartes.length, esLuna && caLuna > caBestia ? `Armadura de la Luna (${caLuna})` : `${bestiaActiva.nombre} (${caBestia})`);
+    // En Círculo de la Luna, la CA de la bestia es igual a su CA + mod de Sabiduría,
+    // y no se le vuelve a sumar la de la bestia ni nada más (sin bonos de armaduras, escudos ni otros rasgos).
+    const caFinal = esLuna ? caBestia + modSab : caBestia;
+
+    totalCA = caFinal;
+    caBase = caFinal;
+    modDesAplicado = 0;
+    bonoEscudo = 0;
+    bonosMagicos = 0;
+    armaduraNombre = null;
+    escudoNombre = null;
+    tipoArmadura = "Sin Armadura";
+    desventajaSigiloArmadura = false;
+
+    if (esLuna && modSab !== 0) {
+      desglosePartes.splice(
+        0,
+        desglosePartes.length,
+        `${bestiaActiva.nombre} ${caBestia}`,
+        `SAB ${modSab >= 0 ? `+${modSab}` : modSab}`
+      );
+    } else {
+      desglosePartes.splice(0, desglosePartes.length, `${bestiaActiva.nombre} (${caBestia})`);
+    }
   }
 
   const claseArmadura: InformacionCA = {
@@ -713,6 +732,11 @@ export function calcularEstadisticasPersonaje(
     if (!esCompEscudo) {
       escudoNoCompetente = escudoObj.nombre;
     }
+  }
+
+  if (bestiaActiva) {
+    armaduraNoCompetente = null;
+    escudoNoCompetente = null;
   }
 
   const penalizacionArmadura: PenalizacionArmadura = {

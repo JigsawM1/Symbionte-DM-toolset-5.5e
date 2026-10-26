@@ -539,7 +539,7 @@
         {
           "nivel": 3,
           "nombre": "Formas de círculo",
-          "descripcion": "Puedes canalizar magia lunar cuando asumes una Forma salvaje, otorgándote los siguientes beneficios.\n\n***Valor de desafío.*** El valor de desafío máximo para la forma es igual a tu nivel de druida dividido entre 3 (redondeando hacia abajo).\n\n***Clase de Armadura.*** Hasta que abandones la forma, tu CA es igual a 13 más tu modificador por Sabiduría si ese total es mayor que la CA de la bestia.\n\n***Puntos de golpe temporales.*** Obtienes una cantidad de puntos de golpe temporales igual al triple de tu nivel de druida.",
+          "descripcion": "Puedes canalizar magia lunar cuando asumes una Forma salvaje, otorgándote los siguientes beneficios.\n\n***Valor de desafío.*** El valor de desafío máximo para la forma es igual a tu nivel de druida dividido entre 3 (redondeando hacia abajo).\n\n***Clase de Armadura.*** Hasta que abandones la forma, tu CA es igual a la CA de la bestia más tu modificador por Sabiduría.\n\n***Puntos de golpe temporales.*** Obtienes una cantidad de puntos de golpe temporales igual al triple de tu nivel de druida.",
           "tipoAccion": "pasivo",
           "subclase": "Círculo de la Luna",
           "categoriaMecanica": "pasivo_permanente",
@@ -547,8 +547,8 @@
             {
               "tipo": "modificador_ca",
               "objetivo": "forma_salvaje",
-              "valor": "13_mas_sabiduria",
-              "descripcion": "CA igual a 13 + Sabiduría mientras estés en Forma salvaje si supera la CA de la bestia."
+              "valor": "ca_bestia_mas_sabiduria",
+              "descripcion": "CA igual a la CA de la bestia + Sabiduría mientras estés en Forma salvaje."
             },
             {
               "tipo": "hp_temporal",

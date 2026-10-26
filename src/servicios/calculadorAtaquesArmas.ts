@@ -403,7 +403,115 @@ export function generarListaAtaquesFisicos(
     yaIncluyeFuriaEnEfectos
   };
 
-  // 1. Armas Equipadas
+  // 0. Si el personaje está en Forma salvaje:
+  // No puede usar armas ni armadura; los ataques físicos pasan a ser exclusivamente los ataques de la bestia.
+  const bestiaActiva = obtenerBestiaFormaActiva(personajeActivo);
+  if (bestiaActiva) {
+    if (Array.isArray(bestiaActiva.acciones)) {
+      const esLuna = esDruidaCirculoLuna(personajeActivo);
+      const nivelDruida = obtenerNivelDruida(personajeActivo);
+      const tieneResplandorLunar = esLuna && nivelDruida >= 6;
+
+      const rasgosBestia = bestiaActiva.rasgos || [];
+      const tieneVentajaManada = rasgosBestia.some(
+        (r) =>
+          r.nombre.toLowerCase().includes("manada") ||
+          (r.descripcion && r.descripcion.toLowerCase().includes("ventaja en las tiradas de ataque"))
+      );
+
+      for (const acc of bestiaActiva.acciones) {
+        const desc = acc.descripcion || "";
+        const esAtaque =
+          desc.toLowerCase().includes("ataque") ||
+          desc.toLowerCase().includes("weapon attack") ||
+          desc.toLowerCase().includes("a impactar") ||
+          Boolean((acc as any).bonoAtaque || (acc as any).bonificadorAtaque || (acc as any).dano || (acc as any).daño);
+
+        if (esAtaque) {
+          const esDistancia = desc.toLowerCase().includes("a distancia") || desc.toLowerCase().includes("ranged");
+          const modFue = statsCalculadas.modificadores.fuerza || 0;
+          const modDes = statsCalculadas.modificadores.destreza || 0;
+          const caracUsada: Caracteristica = esDistancia
+            ? "destreza"
+            : (modDes > modFue ? "destreza" : "fuerza");
+          const modFisico = statsCalculadas.modificadores[caracUsada] || 0;
+
+          // Reglas D&D 2024: Bono de ataque = Bono de competencia del Druida + Modificador físico de la bestia
+          const bonoCalculado2024 = statsCalculadas.bonoCompetencia + modFisico;
+          const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
+          const bonoFijo =
+            (acc as any).bonoAtaque ??
+            (acc as any).bonificadorAtaque ??
+            (bonoMatch ? parseInt(bonoMatch[1], 10) : 0);
+          const bonoAtk = Math.max(bonoCalculado2024, bonoFijo);
+
+          // Extraer dados de daño base y componer fórmula D&D 2024
+          const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
+          const formulaOriginal = (acc as any).dano || (acc as any).daño || (danoMatch ? danoMatch[1] : "1d6");
+          const dadoBase = formulaOriginal.split(/[+-]/)[0].trim();
+          const formulaDano2024 = modFisico !== 0
+            ? `${dadoBase} ${modFisico >= 0 ? `+ ${modFisico}` : `- ${Math.abs(modFisico)}`}`
+            : dadoBase;
+
+          const alcanceMatch = desc.match(/alcance ([^,.]+)/i);
+          const alcance = alcanceMatch ? alcanceMatch[1].trim() : (esDistancia ? "30/120 pies" : "5 pies");
+
+          const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
+          const tipoDanoBase = (acc as any).tipoDano || (tipoDanoMatch ? tipoDanoMatch[1] : "perforante");
+          const tipoDano = tieneResplandorLunar ? `${tipoDanoBase} / radiante` : tipoDanoBase;
+
+          const propiedades = ["Arma Natural", "Forma Salvaje"];
+          if (tieneResplandorLunar) {
+            propiedades.push("Resplandor lunar (Radiante)");
+          }
+          if (tieneVentajaManada) {
+            propiedades.push("Atacar en manada (Ventaja con aliado a 5 ft)");
+          }
+          if (desc.toLowerCase().includes("derribad") || desc.toLowerCase().includes("prone")) {
+            propiedades.push("Efecto: Derribo");
+          }
+          if (desc.toLowerCase().includes("veneno") || desc.toLowerCase().includes("poison")) {
+            propiedades.push("Efecto: Veneno");
+          }
+          if (desc.toLowerCase().includes("agarrad") || desc.toLowerCase().includes("grappled")) {
+            propiedades.push("Efecto: Presa");
+          }
+
+          let notasAtaque = desc;
+          if (tieneVentajaManada) {
+            notasAtaque += "\n• Atacar en manada: Tienes ventaja en la tirada de ataque si al menos un aliado no incapacitado está a 5 pies del objetivo.";
+          }
+
+          ataques.push({
+            id: `bestia-${bestiaActiva.id}-${acc.nombre.toLowerCase().replace(/\s+/g, '-')}`,
+            nombre: `${acc.nombre} (${bestiaActiva.nombre})`,
+            tipo: "Arma",
+            subtipo: "Forma Salvaje",
+            tipoAccion: "accion",
+            caracteristicaUsada: caracUsada,
+            bonoAtaque: bonoAtk,
+            dadoDano: formulaDano2024,
+            dadoDanoBase: dadoBase,
+            modificadorDano: modFisico,
+            esDanoFijo: false,
+            tipoDano,
+            alcance,
+            propiedades,
+            esMagico: tieneResplandorLunar,
+            tieneTiradaAtaque: true,
+            esCompetenteConArma: true,
+            esSutil: caracUsada === "destreza",
+            esDistancia,
+            notas: notasAtaque
+          });
+        }
+      }
+    }
+
+    return ataques;
+  }
+
+  // 1. Armas Equipadas (Forma humanoide)
   const armasEquipadas = inventario.filter(
     (obj) => obj.equipado && obj.categoria === "armas"
   );
@@ -515,61 +623,6 @@ export function generarListaAtaquesFisicos(
       esSutil,
       esDistancia
     });
-  }
-
-  // 5. Ataques de Forma Salvaje (si el personaje está transformado)
-  const bestiaActiva = obtenerBestiaFormaActiva(personajeActivo);
-  if (bestiaActiva && Array.isArray(bestiaActiva.acciones)) {
-    const esLuna = esDruidaCirculoLuna(personajeActivo);
-    const nivelDruida = obtenerNivelDruida(personajeActivo);
-    const tieneResplandorLunar = esLuna && nivelDruida >= 6;
-
-    for (const acc of bestiaActiva.acciones) {
-      const desc = acc.descripcion || "";
-      const esAtaque =
-        desc.toLowerCase().includes("ataque") ||
-        desc.toLowerCase().includes("weapon attack") ||
-        desc.toLowerCase().includes("a impactar") ||
-        Boolean((acc as any).bonoAtaque || (acc as any).bonificadorAtaque || (acc as any).dano || (acc as any).daño);
-      if (esAtaque) {
-        const alcanceMatch = desc.match(/alcance ([^,.]+)/i);
-        const alcance = alcanceMatch ? alcanceMatch[1] : "5 pies";
-        const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
-        const tipoDanoBase = tipoDanoMatch ? tipoDanoMatch[1] : "contundente";
-        const tipoDano = tieneResplandorLunar ? `${tipoDanoBase} / radiante` : tipoDanoBase;
-        const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
-        const bonoAtk = (acc as any).bonoAtaque ?? (bonoMatch ? parseInt(bonoMatch[1], 10) : (statsCalculadas.modificadores.fuerza + statsCalculadas.bonoCompetencia));
-        const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
-        const formulaDano = (acc as any).dano || (danoMatch ? danoMatch[1] : "1d6");
-
-        const propiedades = ["Arma Natural", "Forma Salvaje"];
-        if (tieneResplandorLunar) {
-          propiedades.push("Resplandor lunar (Radiante)");
-        }
-
-        ataques.unshift({
-          id: `bestia-${bestiaActiva.id}-${acc.nombre.toLowerCase().replace(/\s+/g, '-')}`,
-          nombre: `${acc.nombre} (${bestiaActiva.nombre})`,
-          tipo: "Arma",
-          subtipo: "Forma Salvaje",
-          tipoAccion: "accion",
-          caracteristicaUsada: "fuerza",
-          bonoAtaque: bonoAtk,
-          dadoDano: formulaDano,
-          dadoDanoBase: formulaDano,
-          modificadorDano: statsCalculadas.modificadores.fuerza,
-          esDanoFijo: false,
-          tipoDano,
-          alcance,
-          propiedades,
-          esMagico: tieneResplandorLunar,
-          tieneTiradaAtaque: true,
-          esCompetenteConArma: true,
-          esSutil: false,
-          esDistancia: desc.toLowerCase().includes("a distancia")
-        });
-      }
-    }
   }
 
   return ataques;

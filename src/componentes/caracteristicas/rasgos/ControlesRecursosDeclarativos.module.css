@@ -24,6 +24,96 @@
 .botonMagiaSalvaje:hover:not(:disabled) { border-color: var(--pj-borde-acento-fuerte); color: var(--pj-texto-acento); background: var(--pj-fondo-tarjeta-hover); }
 .botonMagiaSalvaje:focus-visible { outline: 2px solid var(--pj-borde-acento-fuerte); outline-offset: 3px; }
 
-.formularioResolucion { display: grid; gap: 12px; }
-.formularioResolucion label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--pj-fuente-cuerpo); }
-.formularioResolucion p { margin: 0; line-height: 1.5; font-size: var(--pj-fuente-cuerpo); }
+
+/* Recuperación diferida (espera de descansos largos) */
+.tarjetaEspera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-oro);
+  border-radius: var(--pj-radio-control);
+  box-sizing: border-box;
+}
+
+.tarjetaEsperaPendiente {
+  border-color: var(--pj-borde-peligro);
+  background: var(--pj-acento-peligro-fondo);
+}
+
+.iconoEspera {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro-brillante);
+  flex-shrink: 0;
+}
+
+.iconoEsperaPendiente {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-acento-peligro-oscuro);
+  color: var(--pj-texto-alerta-brillante);
+  flex-shrink: 0;
+}
+
+.cuerpoEspera {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.etiquetaEspera {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-oro);
+}
+
+.tarjetaEsperaPendiente .etiquetaEspera {
+  color: var(--pj-texto-alerta);
+}
+
+.textoEspera {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+  margin: 0;
+}
+
+.textoEspera strong {
+  color: var(--pj-texto-primario);
+}
+
+.botonDeterminarEspera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-alerta-brillante);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.botonDeterminarEspera:hover:not(:disabled) {
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-texto-alerta);
+}

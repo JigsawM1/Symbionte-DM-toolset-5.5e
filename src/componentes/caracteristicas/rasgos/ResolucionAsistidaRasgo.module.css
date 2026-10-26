@@ -1,0 +1,387 @@
+/* ==========================================================================
+   ResolucionAsistidaRasgo.module.css
+   Estilos tácticos para el diálogo de resolución asistida de rasgos (D&D 5.5e)
+   Optimizado para el visor TaleSpire (CEF) y tema de Jugador
+   ========================================================================== */
+
+.seccionRitual {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.botonResolver {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 4px 10px;
+  font-size: var(--pj-fuente-boton);
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--pj-texto-secundario);
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonResolver:hover:not(:disabled) {
+  color: var(--pj-texto-acento-brillante);
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+}
+
+.botonResolver:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.iconoCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--pj-radio-control);
+  background: var(--pj-acento-primario-fondo);
+  border: 1px solid var(--pj-borde-acento-tenue);
+  color: var(--pj-texto-acento-brillante);
+  flex-shrink: 0;
+}
+
+.cabeceraTitulo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.subtituloRasgo {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-acento);
+  line-height: 1;
+}
+
+.tituloPrincipal {
+  margin: 0;
+  font-size: var(--pj-fuente-titulo);
+  font-weight: 700;
+  color: var(--pj-texto-primario);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.franjaRecurso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+}
+
+.insigniaAccion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-cian-claro);
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.estadoRecurso {
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-secundario);
+}
+
+.estadoRecurso strong {
+  color: var(--pj-texto-primario);
+}
+
+.cuerpoResolucion {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bloqueSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.etiquetaCampo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--pj-fuente-label);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-terciario);
+}
+
+.seccionToggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tarjetaToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tarjetaToggle:hover {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+}
+
+.tarjetaToggleActiva {
+  background: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento-fuerte);
+  box-shadow: var(--pj-sombra-brillo-acento);
+}
+
+.checkboxOculto {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.checkboxOculto:focus-visible + .indicadorCheck {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+
+.indicadorCheck {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid var(--pj-borde-medio);
+  background: var(--pj-fondo-hundido);
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  z-index: 1;
+}
+
+.tarjetaToggleActiva .indicadorCheck {
+  background: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-acento-fuerte);
+}
+
+.iconoToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-acento);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.tarjetaToggleActiva .iconoToggle {
+  color: var(--pj-texto-acento-brillante);
+  background: var(--pj-acento-primario-activo);
+}
+
+.iconoToggleAlerta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  background: var(--pj-fondo-hundido);
+  color: var(--pj-texto-oro);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.tarjetaToggleActiva .iconoToggleAlerta {
+  color: var(--pj-texto-oro-brillante);
+  background: var(--pj-acento-oro-fondo);
+}
+
+.contenidoToggle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
+}
+
+.tituloToggle {
+  font-size: var(--pj-fuente-cuerpo);
+  font-weight: 600;
+  color: var(--pj-texto-primario);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+
+.descripcionToggle {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+  line-height: 1.35;
+}
+
+.rejillaEstadisticas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.tarjetaStat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+}
+
+.cabeceraStat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-terciario);
+}
+
+.valorStatDificultad {
+  font-size: var(--pj-fuente-numero-lg);
+  font-weight: 800;
+  color: var(--pj-texto-cian-claro);
+  line-height: 1.15;
+}
+
+.valorStatFormula {
+  font-size: var(--pj-fuente-numero-lg);
+  font-weight: 800;
+  color: var(--pj-texto-acento-brillante);
+  line-height: 1.15;
+}
+
+.detalleStat {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-secundario);
+}
+
+.avisoDirectiva {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.45;
+  color: var(--pj-texto-secundario);
+}
+
+.iconoAviso {
+  color: var(--pj-texto-cian);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.alertaMensaje {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-cuerpo);
+  line-height: 1.4;
+}
+
+.alertaError {
+  background: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta-brillante);
+}
+
+.alertaInfo {
+  background: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian-tenue);
+  color: var(--pj-texto-cian-claro);
+}
+
+.botonCancelar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 8px 14px;
+  color: var(--pj-texto-secundario);
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonCancelar:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
+}
+
+.botonConfirmar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}

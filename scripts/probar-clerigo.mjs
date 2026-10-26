@@ -92,6 +92,7 @@ try {
     assert.equal(await pagina.evaluate(() => window.pj().hpActual), salud);
     await abrirResolucion("Canalizar divinidad: Expulsar muertos vivientes");
     await click('dialog[open] input[type="checkbox"]');
+    await pagina.screenshot({ path: `scratch/clerigo-expulsar-${ancho}.png` });
     await boton("Confirmar resolución", 'dialog[open]');
     await pagina.waitForFunction(() => window.rasgo("canalizar_divinidad").usosRestantes === 1);
     await dimension(ancho, "Resoluciones y gasto"); await pagina.screenshot({ path: `scratch/clerigo-recursos-${ancho}.png` });

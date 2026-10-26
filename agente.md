@@ -1,3 +1,50 @@
+## [2026-10-26] Rediseño Visual Táctico de Conjuros con Recurso y Recuperación Diferida (/frontend-design)
+
+- **Contexto y Diagnóstico**:
+  - En la vista de detalle y tarjeta del rasgo *Intercesión divina* (Nv 10 y Nv 20 de Clérigo), los controles de recurso y conjuros presentaban una apariencia rudimentaria: un botón plano de recuperación diferida sin jerarquía ni aviso de descansos pendientes, y un bloque plano de selección de conjuro (`ConjurosConRecursoRasgo.tsx`) con un desplegable genérico y botón sin contraste táctico.
+- **Transformación de Diseño y Arquitectura**:
+  1. *Banner Táctico de Recuperación Diferida (`ControlesRecursosDeclarativos.tsx` + `.module.css`)*:
+     - Diseñada la tarjeta de estado diferido (`.tarjetaEspera`, `.tarjetaEsperaPendiente`) con paleta de aviso ámbar/dorada y borde con resplandor HUD.
+     - Integración de icono semántico `Hourglass` (para descansos restantes) y `Dices` (para tirada pendiente), conservando intacto el texto y atributos del botón `"Determinar espera"` para compatibilidad con suites de Puppeteer.
+  2. *Lanzador Táctico de Conjuros Concedidos (`ConjurosConRecursoRasgo.tsx` + `.module.css`)*:
+     - Cabecera táctica con icono semántico (`Wand2`), etiqueta en versalitas y badge del nivel de conjuro.
+     - Selector desplegable integrado con estilo Tabletop HUD y chevron personalizado.
+     - Rejilla de chips de metadatos (`Nivel`, `Escuela`, `Tiempo de lanzamiento`, `Concentración`) que ofrece lectura inmediata sin abrir fichas adicionales.
+     - Callout hundido de reglas de lanzamiento (`Regla de lanzamiento: Nivel base; no consume espacios ni materiales...`).
+     - Franja inferior de recursos con indicador luminoso de estado (disponible / agotado) y botón de lanzamiento prominente (`"Lanzar · X usos"`) con estado deshabilitado accesible.
+  3. *Arquitectura Limpia y Modularidad*:
+     - Archivos CSS Modules independientes (`ConjurosConRecursoRasgo.module.css`), respetando `< 150` líneas por archivo y 0 advertencias de ESLint / TypeScript.
+     - Poda Ponytail pre-commit: eliminación de 20 líneas de CSS no referenciado (`.insigniaFormula`, `.iconoGiratorio`, `@keyframes animGirar` y `.formularioResolucion`), dejando un diff estrictamente magro.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `vitest run`: 172 suites y 2.544 pruebas aprobadas al 100%.
+  - `pnpm run test:clerigo-ui`: 10 recorridos UI aprobados en Chromium a 599px y 433px (0 errores de consola, cero desbordamientos visuales).
+  - `node scripts/verificar-limite-lineas.js`: 200 archivos auditados, 0 archivos > 500 líneas, todos los componentes `< 300` líneas.
+  - `vite build`: Build de producción completado en 8.73s.
+
+## [2026-10-26] Rediseño Visual Táctico y Modularización del Diálogo de Resolución Asistida (/frontend-design)
+
+- **Contexto y Diagnóstico**:
+  - El modal de resolución asistida (`ResolucionAsistidaRasgo.tsx`) presentaba una apariencia básica y no estructurada: cabecera plana con botón texto "Cerrar", checkboxes HTML sin estilizar, textos de dificultad/tirada sin jerarquía y ausencia de previsión de costes de recursos en combate.
+- **Transformación de Diseño y Arquitectura**:
+  1. *Estructura y Jerarquía de Diálogo Modal*:
+     - Cabecera táctica con icono contextual temático (`Sun` para muertos vivientes/expulsar, `Zap` para ataques/lanzamientos, `Sparkles` para capacidades divinas), jerarquía tipográfica discriminando la categoría superior (`CANALIZAR DIVINIDAD` o `RESOLUCIÓN ASISTIDA`) del título específico, y botón accesible de cierre (`X`) con clase `modal.cerrar`.
+     - Franja táctica de recursos: Muestra el tipo de acción (`⚡ Acción`, `⚡ Pasivo`, etc.) junto al estado de gasto de usos en vivo (`Coste: 1 uso · Restantes: X / Y`).
+  2. *Tarjetas Interactivas de Opciones (Checkboxes Tácticos)*:
+     - Diseñado el componente `TarjetaToggle` en `TarjetaResolucionAsistida.tsx` con estilos tácticos de selección, resplandor violeta en estado activo, indicador de verificación animado (`Check`) e icono semántico (`Dices`, `CheckCircle2`, `User`), preservando el input nativo accesible absolutamente posicionado para máxima compatibilidad con accesibilidad por teclado y pruebas automatizadas de Puppeteer.
+  3. *Rejilla Táctica de Estadísticas*:
+     - Diseñado el componente `TarjetaStat` estructurando en bloques de alto impacto la salvación de dificultad (`CD 15` en cian brillante + habilidad) y las tiradas de dados/efecto (`4d8` en acento brillante + tipo de daño o PG).
+  4. *Separación Limpia de Responsabilidades (SRP) y Cumplimiento CI*:
+     - Se extrajeron componentes React puros a `TarjetaResolucionAsistida.tsx` (114 líneas) y utilidades a `utilidadesRasgosResolucion.ts` (34 líneas), manteniendo `ResolucionAsistidaRasgo.tsx` en 292 líneas (conforme con el umbral `< 300` de `verificar:lineas`).
+     - Resuelta la directiva `react-refresh/only-export-components` separando funciones de componentes.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `pnpm test`: 172 suites y 2.544 pruebas aprobadas (100%).
+  - `pnpm run test:clerigo-ui`: 10 recorridos completos en Chromium a 599px y 433px superados con 0 errores y diálogos adaptados al viewport.
+  - `vite build`: Build de producción completado con éxito en 12.35s.
+
 ## [2026-10-25] Auditoría Pre-Commit y Refactorización Quirúrgica del Clérigo PHB 2024
 
 - **Optimización Algorítmica $O(N^2) \rightarrow O(1)$ en Conjuros**: `obtenerConcesionConRecurso` indexa estáticamente `HECHIZOS` en un `Map<string, Hechizo>` de tiempo constante a nivel de módulo en lugar de escanear el compendio completo con `.find()`. En `ConjurosConRecursoRasgo.tsx`, se envolvió la lista filtrada de conjuros en `useMemo([personaje, rasgo])` para evitar recalcular 160.000 operaciones en cada re-renderizado de UI.

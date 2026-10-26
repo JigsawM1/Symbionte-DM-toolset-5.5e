@@ -16,7 +16,7 @@ import { logger } from "@/utiles/logger";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import modalEstilos from "./DialogoRasgo.module.css";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
-import { Dices, Minus, Plus, RotateCcw, Sparkles, X } from "lucide-react";
+import { Dices, Hourglass, Minus, Plus, RotateCcw, Sparkles, X } from "lucide-react";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { ConjurosRitualesRasgo } from "./ConjurosRitualesRasgo";
 import { emitirCuracionConDados } from "@/servicios/rasgos/tiradaCuracionDados";
@@ -77,9 +77,37 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
   return <>
     {rasgo.resolucionAsistida && <ResolucionAsistidaRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
     {rasgo.recuperacionDiferida && <section className={estilos.rituales} aria-label="Recuperación pendiente">
-      {rasgo.recuperacionDiferida.estado === "contando" ? <p>Faltan {rasgo.recuperacionDiferida.restantes} descansos largos.</p>
-        : <><p>El uso está gastado. Falta determinar la espera de recuperación.</p><button type="button" className={estilos.botonCompacto}
-          onClick={() => void resolverRecuperacionDiferida(pj.id, rasgo.id)}>Determinar espera</button></>}
+      {rasgo.recuperacionDiferida.estado === "contando" ? (
+        <div className={estilos.tarjetaEspera}>
+          <div className={estilos.iconoEspera}>
+            <Hourglass size={15} />
+          </div>
+          <div className={estilos.cuerpoEspera}>
+            <span className={estilos.etiquetaEspera}>Recuperación diferida</span>
+            <p className={estilos.textoEspera}>
+              Faltan <strong>{rasgo.recuperacionDiferida.restantes}</strong> {rasgo.recuperacionDiferida.restantes === 1 ? "descanso largo." : "descansos largos."}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className={`${estilos.tarjetaEspera} ${estilos.tarjetaEsperaPendiente}`}>
+          <div className={estilos.iconoEsperaPendiente}>
+            <Dices size={15} />
+          </div>
+          <div className={estilos.cuerpoEspera}>
+            <span className={estilos.etiquetaEspera}>Espera pendiente</span>
+            <p className={estilos.textoEspera}>El uso está gastado. Falta determinar la espera de recuperación.</p>
+          </div>
+          <button
+            type="button"
+            className={estilos.botonDeterminarEspera}
+            onClick={() => void resolverRecuperacionDiferida(pj.id, rasgo.id)}
+          >
+            <Dices size={13} />
+            <span>Determinar espera</span>
+          </button>
+        </div>
+      )}
     </section>}
     {rasgo.recuperarUsosConEspacio && <RecuperarUsosConEspacio personaje={pj} rasgo={rasgo} />}
     {(rasgo.lanzamientoConRecurso || (vista === "detalle" && rasgo.varianteSinConcentracion)) && <ConjurosConRecursoRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}

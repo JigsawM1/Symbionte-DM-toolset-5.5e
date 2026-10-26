@@ -33,6 +33,7 @@
      - Franja táctica de recursos: Muestra el tipo de acción (`⚡ Acción`, `⚡ Pasivo`, etc.) junto al estado de gasto de usos en vivo (`Coste: 1 uso · Restantes: X / Y`).
   2. *Tarjetas Interactivas de Opciones (Checkboxes Tácticos)*:
      - Diseñado el componente `TarjetaToggle` en `TarjetaResolucionAsistida.tsx` con estilos tácticos de selección, resplandor violeta en estado activo, indicador de verificación animado (`Check`) e icono semántico (`Dices`, `CheckCircle2`, `User`), preservando el input nativo accesible absolutamente posicionado para máxima compatibilidad con accesibilidad por teclado y pruebas automatizadas de Puppeteer.
+     - Evaluación dinámica de fórmulas en toggles opcionales: se integra `resolverFormulaDinamica` para evaluar expresiones matemáticas declarativas (ej. `max(1, sabiduria)d8`), mostrando al usuario la fórmula procesada en vivo (`4d8`) en lugar del dato crudo, garantizando total consonancia con la tarjeta de estadística inferior.
   3. *Rejilla Táctica de Estadísticas*:
      - Diseñado el componente `TarjetaStat` estructurando en bloques de alto impacto la salvación de dificultad (`CD 15` en cian brillante + habilidad) y las tiradas de dados/efecto (`4d8` en acento brillante + tipo de daño o PG).
   4. *Separación Limpia de Responsabilidades (SRP) y Cumplimiento CI*:

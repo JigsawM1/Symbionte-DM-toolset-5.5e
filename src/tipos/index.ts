@@ -256,6 +256,7 @@ export const EsquemaHechizoBase = z.object({
   dadosDañoNivelSuperior: z.string().optional(),
   cdSalvacion: z.string().optional(), // ej. "Destreza", "Sabiduría"
   agregarModificadorHabilidad: z.boolean().optional(),
+  bonoModificadorRasgo: z.number().optional(),
   tipoDaño: z.string().optional()
 });
 export type HechizoBase = z.infer<typeof EsquemaHechizoBase>;

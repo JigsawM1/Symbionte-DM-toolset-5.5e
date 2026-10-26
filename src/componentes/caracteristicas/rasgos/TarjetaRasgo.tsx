@@ -148,12 +148,14 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
   const esHomebrewOPersonalizado = rasgo.personalizado || rasgo.origen === "personalizado" || rasgo.origen === "dote";
   const esPreservarVida = (rasgo.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("preservar vida");
 
+  const controlesEnCuerpo = Boolean(rasgo.resolucionAsistida || rasgo.lanzamientoConRecurso?.lista || rasgo.recuperacionDiferida);
+
   // Truncado de descripción para tarjeta compacta
   const textoTruncado = limpiarYTruncarTextoMarkdown(rasgo.descripcion, LIMITE_CARACTERES_DESCRIPCION);
   const esLargo = (rasgo.descripcion || "").length > LIMITE_CARACTERES_DESCRIPCION;
 
   return (
-    <article className={`${estilos.tarjetaRasgo} ${claseOrigen}`}>
+    <article data-rasgo-id={rasgo.id} data-personaje-id={idPersonaje} className={`${estilos.tarjetaRasgo} ${claseOrigen}`}>
       {/* Fila Superior: Título, Badges y Acciones */}
       <div className={estilos.filaSuperiorTarjeta}>
         <div
@@ -210,7 +212,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Contador de Usos (Propios, de Rasgo Padre o Espacios de Pacto) */}
-          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && (
+          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && (
             <div
               className={estilos.contadorUsos}
               title={
@@ -298,7 +300,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación regular */}
-          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && (
+          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
             <button
               type="button"
               className={estilos.botonTirarDados}
@@ -378,7 +380,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
             </button>
           )}
 
-          {activacion.modal}<ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />
+          {activacion.modal}{!controlesEnCuerpo && <ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} />}
           {/* Botón para expandir modal */}
           <button
             type="button"
@@ -438,6 +440,8 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
         </div>
       </div>
+
+      {controlesEnCuerpo && <div className={estilos.controlesDeclarativosCuerpo}><ControlesRecursosDeclarativos rasgo={rasgo} idPersonaje={idPersonaje} /></div>}
 
       {/* Descripción Compacta con opción de ver más */}
       {rasgo.descripcion && (

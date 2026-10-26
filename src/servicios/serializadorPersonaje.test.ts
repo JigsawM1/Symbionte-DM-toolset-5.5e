@@ -116,6 +116,7 @@ describe("Módulo de Serialización, Deshidratación e Hidratación de Personaje
       ...PERSONAJE_POR_DEFECTO,
       id: "pj_prueba_deshidratacion",
       nombre: "Elendir",
+      caracteristicas: { ...PERSONAJE_POR_DEFECTO.caracteristicas, carisma: 14 },
       especie: "Elfo",
       subespecie: "Alto elfo",
       clase: "Bardo",

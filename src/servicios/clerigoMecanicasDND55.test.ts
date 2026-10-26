@@ -28,14 +28,14 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     const protector = rasgosNv1.find((r) => r.nombre === "Orden divina: Protector");
     expect(protector).toBeDefined();
-    expect(protector?.ligadoA).toBe("Orden divina");
+    expect(protector?.ligadoA).toBe("rasgo_cls_clerigo_orden_divina");
     expect(protector?.requiereOpcion).toBe("protector");
     expect(protector?.efectos?.some((e) => e.objetivo === "armas_marciales")).toBe(true);
     expect(protector?.efectos?.some((e) => e.objetivo === "armaduras_pesadas")).toBe(true);
 
     const taumaturgo = rasgosNv1.find((r) => r.nombre === "Orden divina: Taumaturgo");
     expect(taumaturgo).toBeDefined();
-    expect(taumaturgo?.ligadoA).toBe("Orden divina");
+    expect(taumaturgo?.ligadoA).toBe("rasgo_cls_clerigo_orden_divina");
     expect(taumaturgo?.requiereOpcion).toBe("taumaturgo");
     expect(taumaturgo?.efectos?.some((e) => e.tipo === "bono_habilidad" && e.objetivo === "conocimiento_arcano")).toBe(true);
     expect(taumaturgo?.efectos?.some((e) => e.tipo === "bono_habilidad" && e.objetivo === "religion")).toBe(true);
@@ -105,13 +105,13 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     const chispa = rasgosNv2.find((r) => r.nombre.includes("Chispa divina"));
     expect(chispa).toBeDefined();
-    expect(chispa?.ligadoA).toBe("Canalizar divinidad");
+    expect(chispa?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
     expect(chispa?.gastarDePadre).toBe(true);
     expect(chispa?.formulaDados).toBe("1d8+sabiduria");
 
     const expulsar = rasgosNv2.find((r) => r.nombre.includes("Expulsar muertos vivientes"));
     expect(expulsar).toBeDefined();
-    expect(expulsar?.ligadoA).toBe("Canalizar divinidad");
+    expect(expulsar?.ligadoA).toBe("rasgo_cls_clerigo_canalizar_divinidad");
     expect(expulsar?.gastarDePadre).toBe(true);
   });
 
@@ -141,7 +141,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     const golpeDivino = rasgosNv7.find((r) => r.nombre.includes("Golpe divino"));
     expect(golpeDivino).toBeDefined();
-    expect(golpeDivino?.ligadoA).toBe("Golpes benditos");
+    expect(golpeDivino?.ligadoA).toBe("rasgo_cls_clerigo_golpes_benditos");
     expect(golpeDivino?.requiereOpcion).toBe("golpe_divino");
     expect(golpeDivino?.esActivable).toBe(true);
     expect(golpeDivino?.autoDesactivarAlTirarDano).toBe(true);
@@ -150,7 +150,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     const lanzamientoPotente = rasgosNv7.find((r) => r.nombre.includes("Lanzamiento potente"));
     expect(lanzamientoPotente).toBeDefined();
-    expect(lanzamientoPotente?.ligadoA).toBe("Golpes benditos");
+    expect(lanzamientoPotente?.ligadoA).toBe("rasgo_cls_clerigo_golpes_benditos");
     expect(lanzamientoPotente?.requiereOpcion).toBe("lanzamiento_potente");
     expect(lanzamientoPotente?.esActivable).toBe(false);
     expect(lanzamientoPotente?.efectos?.some((e) => e.tipo === "bono_dano_conjuro")).toBe(true);
@@ -223,7 +223,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     expect(canalizar?.usosMaximos).toBe(3);
   });
 
-  it("Nivel 14: Golpes benditos mejorados extiende Golpe divino (2d8) y Lanzamiento potente (informativo)", () => {
+  it("Nivel 14: Golpes benditos mejorados mejora Golpe divino (2d8) y añade vitalidad asistida", () => {
     const rasgosNv14 = obtenerRasgosClaseYSubclase("Clérigo", 14);
 
     const golpeDivino = rasgosNv14.find((r) => r.nombre.includes("Golpe divino"));
@@ -232,7 +232,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     const lanzamientoPotente = rasgosNv14.find((r) => r.nombre.includes("Lanzamiento potente"));
     expect(lanzamientoPotente).toBeDefined();
-    expect(lanzamientoPotente?.descripcion).toContain("Golpes benditos mejorados (Lanzamiento potente)");
+    expect(rasgosNv14.find(r => r.id === "rasgo_cls_clerigo_golpes_benditos_mejorados_lanzamiento")?.resolucionAsistida?.permitePropio).toBe(true);
     // Comprobar que no tiene efectos secundarios mecánicos de daño/hp_temporal que alteren los cálculos
     expect(lanzamientoPotente?.efectos?.some((e) => e.tipo === "hp_temporal")).toBe(false);
     expect(lanzamientoPotente?.efectos?.length).toBe(1);
@@ -249,12 +249,13 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
     expect(chispa?.formulaDados).toBe("4d8+sabiduria");
   });
 
-  it("Nivel 20: Intercesión divina mayor extiende Intercesión divina con formulaDados 2d4", () => {
+  it("Nivel 20: Intercesión divina mayor añade Deseo con recuperación diferida", () => {
     const rasgosNv20 = obtenerRasgosClaseYSubclase("Clérigo", 20);
 
     const intercesion = rasgosNv20.find((r) => r.nombre === "Intercesión divina");
     expect(intercesion).toBeDefined();
-    expect(intercesion?.formulaDados).toBe("2d4");
+    expect(intercesion?.formulaDados).toBeUndefined();
+    expect(intercesion?.lanzamientoConRecurso?.adicionales).toEqual([{ conjuroId: "h_deseo", formulaDescansos: "2d4" }]);
     expect(intercesion?.descripcion).toContain("Intercesión divina mayor");
   });
 
@@ -546,9 +547,9 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(canalizar?.tablaProgresion?.columnas).toEqual(["Nivel", "Descripción"]);
       expect(canalizar?.tablaProgresion?.notaPie).toBe("Cada nivel reemplaza al anterior");
       expect(canalizar?.tablaProgresion?.filas).toEqual([
-        { nivel: 2, valores: ["2/descanso"] },
-        { nivel: 6, valores: ["3/descanso"] },
-        { nivel: 18, valores: ["4/descanso"] }
+        { nivel: 2, valores: ["2 usos; +1 corto / todos largo"] },
+        { nivel: 6, valores: ["3 usos; +1 corto / todos largo"] },
+        { nivel: 18, valores: ["4 usos; +1 corto / todos largo"] }
       ]);
     });
 
@@ -586,7 +587,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       expect(lanzamiento?.tablaProgresion?.notaPie).toBe("Se apilan los niveles");
       expect(lanzamiento?.tablaProgresion?.filas).toEqual([
         { nivel: 7, valores: ["Trucos + Sabiduría"] },
-        { nivel: 14, valores: ["Trucos recuperan PG Temporales"] }
+        { nivel: 14, valores: ["Permite conceder PG temporales tras causar daño con un truco"] }
       ]);
     });
 
@@ -666,7 +667,9 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       const rasgoOrden = sincronizados.find((r) => r.id === "rasgo_cls_clerigo_orden_divina")!;
       expect(rasgoOrden).toBeDefined();
 
-      // 1. Estado inicial: Orden divina por defecto es Protector
+      // 1. La elección inicial está vacía; el jugador elige Protector explícitamente.
+      expect(rasgoOrden.selectores?.[0].valorActual).toEqual([]);
+      store.actualizarSeleccionRasgo("pj-clerigo-selector-test", rasgoOrden.id, "selector_orden_divina", ["protector"]);
       let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-selector-test")!;
       expect(estaRasgoActivo(pj, "Orden divina: Protector")).toBe(true);
       expect(estaRasgoActivo(pj, "Orden divina: Taumaturgo")).toBe(false);
@@ -741,6 +744,7 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
       efectos = evaluarEfectosRasgosActivos(pj);
       expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(false);
 
+      store.actualizarSeleccionRasgo("pj-clerigo-golpes-test", "rasgo_cls_clerigo_golpe_divino", "selector_tipo_dano_golpe_divino", ["radiante"]);
       // Activar Golpe Divino con alternarActivoRasgo y verificar daño secundario
       store.alternarActivoRasgo("pj-clerigo-golpes-test", "rasgo_cls_clerigo_golpe_divino");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === "pj-clerigo-golpes-test")!;

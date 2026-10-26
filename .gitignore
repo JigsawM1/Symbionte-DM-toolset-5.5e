@@ -71,3 +71,6 @@ respaldo.yaml
 !/scripts/probar-subclases-barbaro.mjs
 
 !/scripts/probar-hoja-personaje.mjs
+
+!/scripts/probar-clerigo.mjs
+!/scripts/fixture-clerigo.mjs

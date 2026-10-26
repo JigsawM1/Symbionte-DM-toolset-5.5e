@@ -1,18 +1,19 @@
-import { useState } from "react";
 import { CampoNumerico } from "@/componentes/comunes";
 import { EsquemaMecanicasRasgo } from "@/tipos/mecanicasRasgos";
-import { logger } from "@/utiles/logger";
 import type { BorradorRasgo } from "@/servicios/rasgos/borradorRasgo";
 import type { ActualizarBorradorRasgo } from "./usarConstructorRasgo";
 import estilos from "../ConstructorRasgoDote.module.css";
+import { EditorCapacidadJSON } from "./EditorCapacidadJSON";
 
 export function CapacidadesAvanzadasConstructor({ borrador: b, actualizarBorrador: cambiar }: {
   borrador: BorradorRasgo; actualizarBorrador: ActualizarBorradorRasgo;
 }) {
-  const [tabla, editarTabla] = useState(JSON.stringify(b.tablaAleatoria ?? { dado: 100, tiradas: 1, modo: "aleatoria", filas: [{ id: "resultado", desde: 1, hasta: 100, texto: "Efecto" }] }, null, 2));
-  const [error, informar] = useState("");
   return <div className={estilos.seccionCard}>
     <h3>Reservas, lanzamientos y tablas</h3>
+    <EditorCapacidadJSON etiqueta="Resolución asistida" valor={b.resolucionAsistida} esquema={EsquemaMecanicasRasgo.shape.resolucionAsistida}
+      cambiar={v => cambiar("resolucionAsistida", v)} />
+    <EditorCapacidadJSON etiqueta="Lanzamiento con recurso: configuración completa" valor={b.lanzamientoConRecurso} esquema={EsquemaMecanicasRasgo.shape.lanzamientoConRecurso}
+      cambiar={v => cambiar("lanzamientoConRecurso", v)} />
     <label>Coste de recarga con la reserva padre<CampoNumerico min={1} value={b.costeRecargaPadre ?? 1} alConfirmar={v => cambiar("costeRecargaPadre", v)} /></label>
     <label className={estilos.filaToggle}>Cobrar por cada opción elegida al activar<input type="checkbox" checked={!!b.costeActivacionPorSelector}
       onChange={e => cambiar("costeActivacionPorSelector", e.target.checked ? { idSelector: b.selectores[0]?.id ?? "", costePorOpcion: 1 } : undefined)} /></label>
@@ -30,7 +31,7 @@ export function CapacidadesAvanzadasConstructor({ borrador: b, actualizarBorrado
     <label className={estilos.filaToggle}>Lanzar conjuros concedidos pagando su nivel en la reserva<input type="checkbox" checked={!!b.lanzamientoConRecurso}
       onChange={e => cambiar("lanzamientoConRecurso", e.target.checked ? { idRasgoConcesion: "", nivelMaximo: 5 } : undefined)} /></label>
     {b.lanzamientoConRecurso && <>
-      <label>ID del rasgo que concede los conjuros<input className={estilos.inputControl} value={b.lanzamientoConRecurso.idRasgoConcesion}
+      <label>ID del rasgo que concede los conjuros<input className={estilos.inputControl} value={b.lanzamientoConRecurso.idRasgoConcesion ?? ""}
         onChange={e => cambiar("lanzamientoConRecurso", { ...b.lanzamientoConRecurso!, idRasgoConcesion: e.target.value })} /></label>
       <label>Nivel máximo de conjuro<CampoNumerico min={1} max={9} value={b.lanzamientoConRecurso.nivelMaximo}
         alConfirmar={nivelMaximo => cambiar("lanzamientoConRecurso", { ...b.lanzamientoConRecurso!, nivelMaximo })} /></label>
@@ -46,22 +47,9 @@ export function CapacidadesAvanzadasConstructor({ borrador: b, actualizarBorrado
       <label>Nivel mínimo<CampoNumerico min={1} max={20} value={b.usoGratuitoCondicionado.nivelMinimo}
         alConfirmar={nivelMinimo => cambiar("usoGratuitoCondicionado", { ...b.usoGratuitoCondicionado!, nivelMinimo })} /></label>
     </>}
-    <details><summary>Tabla aleatoria editable</summary>
-      <p>Define dado, tiradas (1 o 2), modo (aleatoria, elegir, recargar o consultar), filas con desde/hasta/texto y subtiradas con formula y siResultado opcional. Para compartir una tabla usa idRasgoTabla. Consultar ejecuta la tabla referenciada sin gastar ni recargar el rasgo de acceso. presentacion: "magia_salvaje" abre la vista de percentiles y requiere dado: 100. excluirUltima impide elegir la última fila declarada.</p>
-      <label>Configuración de tabla<textarea aria-label="Configuración de tabla aleatoria" className={estilos.inputControl} rows={10} value={tabla} onChange={e => editarTabla(e.target.value)} /></label>
-      <button type="button" onClick={() => {
-        try {
-          const resultado = EsquemaMecanicasRasgo.shape.tablaAleatoria.parse(JSON.parse(tabla));
-          cambiar("tablaAleatoria", resultado);
-          informar("Tabla aplicada al borrador.");
-        } catch (err) {
-          logger.warn("[CapacidadesAvanzadasConstructor] Configuración de tabla inválida:", err);
-          const detalle = err instanceof Error ? `: ${err.message}` : "";
-          informar(`Configuración inválida${detalle}. Corrige la estructura antes de aplicarla.`);
-        }
-      }}>Aplicar tabla</button>
-      <button type="button" onClick={() => { cambiar("tablaAleatoria", undefined); informar("Tabla retirada del borrador."); }}>Retirar tabla</button>
-      {error && <p role="status">{error}</p>}
-    </details>
+    <EditorCapacidadJSON etiqueta="Tabla aleatoria editable" valor={b.tablaAleatoria} esquema={EsquemaMecanicasRasgo.shape.tablaAleatoria}
+      plantillaInicial={{ dado: 100, tiradas: 1, modo: "aleatoria", filas: [{ id: "resultado", desde: 1, hasta: 100, texto: "Efecto" }] }}
+      ayuda={'Define dado, tiradas (1 o 2), modo (aleatoria, elegir, recargar o consultar), filas con desde/hasta/texto y subtiradas con formula y siResultado opcional. Para compartir una tabla usa idRasgoTabla. Consultar ejecuta la tabla referenciada sin gastar ni recargar el rasgo de acceso. presentacion: "magia_salvaje" abre la vista de percentiles y requiere dado: 100. excluirUltima impide elegir la última fila declarada.'}
+      cambiar={v => cambiar("tablaAleatoria", v)} />
   </div>;
 }

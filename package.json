@@ -19,6 +19,7 @@
     "test:brujo-ui": "node scripts/probar-brujo.mjs",
     "test:barbaro-ui": "node scripts/probar-barbaro.mjs",
     "test:bardo-ui": "node scripts/probar-bardo.mjs",
+    "test:clerigo-ui": "node scripts/probar-clerigo.mjs",
     "test:bardo-subclases-ui": "node scripts/probar-bardo-subclases.mjs",
     "test:hechicero-ui": "node scripts/probar-hechicero.mjs"
   },

@@ -1,4 +1,6 @@
 import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
+import { ResolucionAsistidaRasgo } from "./ResolucionAsistidaRasgo";
+import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
 import { RecuperarUsosConEspacio } from "./RecuperarUsosConEspacio";
 import { ReservaDadosRasgo } from "./ReservaDadosRasgo";
 import { TablaAleatoriaRasgo } from "./TablaAleatoriaRasgo";
@@ -73,8 +75,14 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
     } finally { queueMicrotask(() => { bloqueado.current = false; }); }
   };
   return <>
+    {rasgo.resolucionAsistida && <ResolucionAsistidaRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
+    {rasgo.recuperacionDiferida && <section className={estilos.rituales} aria-label="Recuperación pendiente">
+      {rasgo.recuperacionDiferida.estado === "contando" ? <p>Faltan {rasgo.recuperacionDiferida.restantes} descansos largos.</p>
+        : <><p>El uso está gastado. Falta determinar la espera de recuperación.</p><button type="button" className={estilos.botonCompacto}
+          onClick={() => void resolverRecuperacionDiferida(pj.id, rasgo.id)}>Determinar espera</button></>}
+    </section>}
     {rasgo.recuperarUsosConEspacio && <RecuperarUsosConEspacio personaje={pj} rasgo={rasgo} />}
-    {vista === "detalle" && rasgo.varianteSinConcentracion && <ConjurosConRecursoRasgo personaje={pj} rasgo={rasgo} />}
+    {(rasgo.lanzamientoConRecurso || (vista === "detalle" && rasgo.varianteSinConcentracion)) && <ConjurosConRecursoRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
     {rasgo.reservaDados && <ReservaDadosRasgo personaje={pj} rasgo={rasgo} />}
     {rasgo.tablaAleatoria && <TablaAleatoriaRasgo personaje={pj} rasgo={rasgo} />}
     {gratis && <div className={estilos.botonesRituales}>

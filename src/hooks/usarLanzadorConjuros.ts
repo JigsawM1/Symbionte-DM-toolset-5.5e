@@ -1,5 +1,6 @@
 import { obtenerVarianteConjuro, obtenerOpcionesRecursoConjuro } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
 import { elegirVarianteConjuro, elegirOpcionLanzamiento } from "@/componentes/caracteristicas/rasgos/elegirVarianteConjuro";
+import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
 import { emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import { aplicarConfiguracionConjurosRasgos } from "@/servicios/rasgos/conjurosGratuitosRasgos";
@@ -201,9 +202,10 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           ...estados.map(r => ({ id: r.id, texto: `Con ${r.nombre}`, detalle: `Acción adicional · ${r.activo ? "Repetir sin gastar usos" : "1 uso · Concentración, 1 minuto"}`,
             deshabilitado: !obtenerLanzamientoEstado(actual, r.id, solicitudIncompleta.hechizo, r.lanzamientoConActivacion!.nivel) })), ...alternativas.map(a => {
             const disponibles = a.recurso.usosRestantes ?? a.recurso.usosMaximos ?? 0;
-            return { id: a.rasgo.id, texto: `Con ${a.coste} ${a.coste === 1 ? "punto" : "puntos"} de ${a.recurso.nombre}`,
-              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} puntos disponibles.`,
-              deshabilitado: disponibles < a.coste };
+            const unidad = a.rasgo.lanzamientoConRecurso?.costeFijo ? "usos" : "puntos";
+            return { id: a.rasgo.id, texto: `Con ${a.coste} ${unidad} de ${a.recurso.nombre}`,
+              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} ${unidad} disponibles.`,
+              deshabilitado: disponibles < a.coste || Boolean(a.recurso.recuperacionDiferida) };
           })] });
         if (eleccion === undefined) return false;
         const elegida = alternativas.find(a => a.rasgo.id === eleccion);
@@ -291,6 +293,7 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           }
           if (preparado.activarConcentracion && solicitudCompleta.hechizo.id)
             establecerConcentracion(personaje.id, solicitudCompleta.hechizo.id, solicitudCompleta.hechizo.nombre);
+          if (preparado.gasto.tipo === "recursoRasgo") await resolverRecuperacionDiferida(personaje.id, preparado.gasto.idRasgo);
         }
 
         if (personaje && (preparado.gasto.tipo === "espacio" || preparado.gasto.tipo === "pacto")) {

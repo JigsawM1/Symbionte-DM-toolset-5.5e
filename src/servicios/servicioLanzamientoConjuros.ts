@@ -1,3 +1,4 @@
+import { aplicarModificadoresInvocacionesAHechizo } from "./rasgos/evaluadorCombateRasgos";
 import { obtenerConcesionConRecurso, obtenerVarianteConjuro } from "./rasgos/lanzamientoRecursoRasgos";
 import { normalizar } from "./rasgos/utilidadesRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "./rasgos/conversionRecursosRasgos";
@@ -398,7 +399,8 @@ export function prepararLanzamiento(
   const claseConcedida = pj && solicitud.modo === "recursoRasgo"
     ? obtenerConcesionConRecurso(pj, solicitud.idRasgoOrigen, solicitud.hechizo, solicitud.nivelLanzamiento)?.clase : undefined;
   const clase = pj && (!solicitud.idRasgoOrigen || solicitud.modo === "recursoRasgo") && solicitud.modo !== "objetoMagico" && solicitud.modo !== "gratuitoInnato"
-    ? resolverClaseLanzamiento(pj, solicitud.hechizo, claseConcedida ?? solicitud.claseLanzamiento) : undefined;
+    ? claseConcedida ?? resolverClaseLanzamiento(pj, solicitud.hechizo, solicitud.claseLanzamiento) : undefined;
+  if (pj) solicitud = { ...solicitud, hechizo: aplicarModificadoresInvocacionesAHechizo(solicitud.hechizo, pj, clase) };
   const modificadoresRasgo = pj ? obtenerModificadoresConjuroRasgos(pj, clase) : { bonoCD: 0, ventaja: false };
   const nombrePersonaje = solicitud.nombrePersonaje || "Personaje";
   const nivelPersonaje = solicitud.nivelPersonaje || 1;
@@ -477,7 +479,8 @@ export function prepararLanzamiento(
       break;
     }
     case "recursoRasgo": {
-      formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      formula = nivelLanzamiento === 0 ? construirFormulaTruco(solicitud.hechizo, nivelPersonaje, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad)
+        : construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       gasto = { tipo: "recursoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };
       break;
     }

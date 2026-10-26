@@ -1,3 +1,37 @@
+## [2026-10-25] Auditoría Pre-Commit y Refactorización Quirúrgica del Clérigo PHB 2024
+
+- **Optimización Algorítmica $O(N^2) \rightarrow O(1)$ en Conjuros**: `obtenerConcesionConRecurso` indexa estáticamente `HECHIZOS` en un `Map<string, Hechizo>` de tiempo constante a nivel de módulo en lugar de escanear el compendio completo con `.find()`. En `ConjurosConRecursoRasgo.tsx`, se envolvió la lista filtrada de conjuros en `useMemo([personaje, rasgo])` para evitar recalcular 160.000 operaciones en cada re-renderizado de UI.
+- **Poda de Sobreingeniería Ciclomática**: En `constructorRasgosClase.ts`, se eliminó el operador ternario anidado a 4 niveles extrayendo la función pura `resolverOpcionesBaseSelector` estructurada con cláusulas de guarda (`guard clauses`), mejorando la legibilidad y adhesión a SRP.
+- **Principio DRY en Fórmulas de Conjuros**: En `utilesConjuros.ts`, se unificó la resolución de modificador de habilidad de hechizo mediante el helper puro `resolverBonoModificadorHabilidad`, eliminando 4 repeticiones idénticas en trucos y espacios.
+- **Higiene y Convenciones en Zustand**: Se reemplazó el patrón no idiomático `const estado = usarAlmacenDM.getState; estado()` por invocaciones explícitas y canónicas a `usarAlmacenDM.getState()` en `emitirRecuperacionDiferida.ts` y `ResolucionAsistidaRasgo.tsx`.
+- **Sincronización Reactiva de Props**: En `EditorCapacidadJSON.tsx`, se implementó `useEffect` con `useRef` para sincronizar el estado local `texto` ante cambios en la prop `valor` sin disparar advertencias de dependencias exhaustivas (`react-hooks/exhaustive-deps`).
+- **Certificación CI y Pruebas**: Salida 0 en `pnpm exec tsc --noEmit` (`strict: true`), 0 errores y 0 advertencias en `pnpm run lint` (`--max-warnings=0`), 198 archivos conformes en `scripts/verificar-limite-lineas.js`, 172 suites y 2.544 pruebas aprobadas en `pnpm test`, 10 recorridos UI aprobados a 599/433 px en `pnpm run test:clerigo-ui` y `vite build` en producción completado en 13.29s.
+
+## [2026-10-25] Simplificaciones demostradas por ponytail-audit del Clérigo
+
+- Unificado el bloque de actualización de dotes de Mejora de característica, Don épico, Origen y Estilo de combate. Conserva prioridad de constructores, identidad canónica, resolución por vínculo de identidades antiguas, usos restantes (incluido 0), estado activo (incluido false) y condiciones de retirada.
+- Eliminadas las listas temporales de conjuros descartadas. Se conserva la actualización de hijos por requiereOpcion y la reconciliación final de procedencias, sin modificar el reconciliador.
+- Las tablas reutilizan EditorCapacidadJSON con plantillaInicial y ayuda opcionales; se conservan plantilla, ayuda, esquema Zod y último valor aplicado ante errores. Los otros dos editores mantienen sus valores predeterminados.
+- Recorte medido respecto del índice preparado anterior a esta fase: 115 líneas netas de producción; 142 líneas añadidas de regresiones y recorrido UI. Cero dependencias nuevas; cambios preparados y AGENTS.md previo conservados.
+- Regresiones focalizadas: salida 0, 207 pruebas en seis suites. Añadidos ocho casos de dotes y dos de cambios de trucos, activación de hijos, reconstrucción y recarga con procedencias independientes.
+- pnpm run ci: salida 0, 172 suites y 2544 pruebas; TypeScript, ESLint, control de 198 archivos y build correctos. Persiste el aviso de chunks grandes. Evidencia: scratch/clerigo-ponytail-ci.log.
+- pnpm run test:clerigo-ui: salida 0, 10 recorridos a 599/433 px, 16 mediciones y cero errores de página. Constructor real: plantilla, aplicación válida, rechazo de JSON y estructura Zod inválidos, conservación del último valor válido, tres capacidades, guardado, reapertura y retirada persistida. Se cierra el aviso de Intercesión simulado antes del recorrido para que no intercepte los clics. Evidencias: scratch/clerigo-ponytail-ui.log y scratch/clerigo-ui.json. Chromium local con serializador real; no certifica CEF/TaleSpire ni multicliente.
+- Graphify update y cluster-only --no-label: salida 0, 3268 nodos, 13642 relaciones y 116 comunidades. Persisten los dos avisos del extractor sobre suites anteriores; CI las valida. git diff --check: salida 0. Evidencias: scratch/clerigo-ponytail-graphify.log y scratch/clerigo-ponytail-cluster.log.
+
+## [2026-10-25] Clérigo base PHB 2024: resolución asistida e Intercesión
+
+- Alcance ejecutado: clase base 1–20. El bloque de las cuatro subclases en clerigo.json conserva exactamente su contenido original; AGENTS.md previo se preservó.
+- Orden divina, Taumaturgo, Golpes benditos, mejoras y Don épico exigen elecciones explícitas. Hidratación dinámica del truco, requisitos y repetibilidad de dotes; reconciliación preserva aportaciones independientes.
+- Chispa y Expulsar son consumibles del padre. Nueva resolución asistida: tipos de resultado, CD, dados opcionales de Abrasar y gasto único. Vitalidad de nivel 14 tiene confirmación y PG temporales propios por máximo, o resultado manual externo.
+- Golpe divino sincroniza efecto y fórmula tras fusionar su mejora, usa referencia explícita de selector de daño y se limita a armas. Lanzamiento potente usa Sabiduría y procedencia efectiva de Clérigo sin duplicar bonos; se conserva compatibilidad de Descarga agónica y Hechicería psiónica.
+- lanzamientoConRecurso admite lista y coste fijo. Intercesión usa catálogo, sin espacios ni materiales ni aprendizaje permanente. Deseo añade recuperación diferida pendiente/contador, persistencia, decremento por descanso largo y reintento sin otro lanzamiento o gasto.
+- Guardado y reconstrucción conservan estado. El DTO de combate DM/PJ y su wire format permanecen sin cambios.
+- Verificado: pnpm run ci, salida 0; 172 suites, 2534/2534 pruebas; TypeScript, ESLint, control de 198 archivos y build correctos. pnpm run test:clerigo-ui, salida 0; 8 recorridos a 599/433 px, 12 mediciones, cero errores de página. Fallo de recuperación y concurrencia simulados de forma explícita.
+- Verificación UI en Chromium local con aplicación y serializador reales; dados locales y una simulación de fallo de API. Inspector CEF localhost:9222 rechazó conexión; no hubo despliegue ni certificación TaleSpire/multicliente. Se mantiene el aviso de chunks grandes.
+- Límites: aplicación a otras criaturas, impacto, límites por turno y confirmación del disparador de vitalidad manuales. Beneficios de dotes conservan el alcance de sus catálogos; no se automatizó reparto de atributos ni todos los beneficios de Don del Destino.
+- Graphify actualizado sin LLM y cluster-only --no-label completado: 3268 nodos, 13654 relaciones, 120 comunidades. Advertencias del extractor en dos tests ajenos; CI del código vigente pasó.
+- Informe y matriz por rasgo: informes/clerigo-base-2024.md. Evidencias: scratch/clerigo-ci.log, scratch/clerigo-ui.json y capturas clerigo-*.
+
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
 ## [2026-10-23] Integración Certificada de Bardo PHB 2024 y Recuperación de Recursos en Main
@@ -963,9 +997,11 @@
    - Incorporación de :focus-within { border-color: var(--color-borde-cian); } para feedback de foco unificado.
    - Ambos .inputBrutal configurados con lex: 1; min-width: 0; width: 100%;, eliminando espacios muertos y haciendo el layout perfectamente elástico.
 2. **Botón Táctil Brutalista Cyberpunk (SelectorJugadorRapido.module.css):**
-   - .botonAñadir rediseñado a 20x20px con fondo cian translúcido (gba(var(--dm-rgb-cian, 0, 245, 212), 0.1)), borde cian sutil y hover reactivo, convirtiéndolo en un botón de acción claro e integrado.
+   - .botonAñadir rediseñado a 20x20px con fondo cian translúcido (
+gba(var(--dm-rgb-cian, 0, 245, 212), 0.1)), borde cian sutil y hover reactivo, convirtiéndolo en un botón de acción claro e integrado.
 3. **Anclaje Inteligente de Menús Flotantes:**
-   - En SelectorJugadorRapido.module.css, sugerenciasContenedor se ancla a la derecha (ight: 0; left: auto; max-width: 320px;), garantizando que se despliegue hacia el centro de la pantalla sin desbordar el borde del viewport de TaleSpire.
+   - En SelectorJugadorRapido.module.css, sugerenciasContenedor se ancla a la derecha (
+ight: 0; left: auto; max-width: 320px;), garantizando que se despliegue hacia el centro de la pantalla sin desbordar el borde del viewport de TaleSpire.
    - En BuscadorMonstruos.module.css, sugerenciasContenedor se ancla a la izquierda (left: 0; right: auto;).
 4. **Sintaxis y Placeholder Unificado:**
    - En SelectorJugadorRapido.tsx, placeholder cambiado a "Añadir jugador...", logrando balance perfecto con "Buscar monstruo...".
@@ -1292,7 +1328,8 @@
 - **Build de Producción:** `pnpm exec vite build` completado exitosamente en 22.70s con empaquetado optimizado.
 
 ---
-## [2026-10-06] Visualización de Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva en las Tarjetas de Jugador del Tracker de Iniciativa del DM
+
+## [2026-10-06] Visualización de Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva en las Tarjetas de Jugador del Tracker de Iniciativa del DM
 
 **Contexto del Requerimiento:**
 - El Dungeon Master solicitó modificar las tarjetas de jugador en el tracker de iniciativa (`GestorIniciativa.tsx` / `TarjetaCriaturaIniciativa.tsx`) para que muestren de forma visible y táctica la Percepción Pasiva (`PP`), la Investigación Pasiva (`INV`) y la Perspicacia Pasiva (`PERS`), evitando que el DM tenga que abrir manualmente las fichas de los personajes durante el combate.

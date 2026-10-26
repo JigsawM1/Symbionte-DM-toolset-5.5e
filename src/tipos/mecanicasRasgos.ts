@@ -55,7 +55,30 @@ export const EsquemaMecanicasRasgo = z.object({
   escaladoConjurosOtorgados: z.array(z.object({ nivelMinimo: z.number().int().min(1).max(20), conjuros: z.array(z.string().min(1)) })).optional(),
   costeRecargaPadre: z.number().int().positive().optional(),
   costeActivacionPorSelector: z.object({ idSelector: z.string().min(1), costePorOpcion: z.number().int().positive() }).optional(),
-  lanzamientoConRecurso: z.object({ idRasgoConcesion: z.string().min(1), nivelMaximo: z.number().int().min(1).max(9) }).optional(),
+  lanzamientoConRecurso: z.object({
+    idRasgoConcesion: z.string().min(1).optional(),
+    lista: z.string().min(1).optional(),
+    nivelMaximo: z.number().int().min(0).max(9),
+    costeFijo: z.number().int().positive().optional(),
+    excluirReacciones: z.boolean().optional(),
+    ignorarMateriales: z.boolean().optional(),
+    adicionales: z.array(z.object({ conjuroId: z.string().min(1), formulaDescansos: z.string().regex(/^\d+d\d+$/) })).optional()
+  }).refine(c => Boolean(c.idRasgoConcesion) !== Boolean(c.lista), "Declara una concesión o una lista de conjuros.").optional(),
+  recuperacionDiferida: z.discriminatedUnion("estado", [
+    z.object({ estado: z.literal("pendiente"), formula: z.string().regex(/^\d+d\d+$/) }),
+    z.object({ estado: z.literal("contando"), restantes: z.number().int().positive() })
+  ]).optional(),
+  resolucionAsistida: z.object({
+    opciones: z.array(z.object({
+      id: z.string().min(1), etiqueta: z.string().min(1),
+      tipo: z.enum(["curacion", "dano", "hp_temporal", "informativo"]),
+      tipoDano: z.string().optional(),
+      salvacion: EsquemaCaracteristica.optional()
+    })).min(1),
+    dadosOpcionales: z.boolean().optional(),
+    confirmacion: z.string().optional(),
+    permitePropio: z.boolean().optional()
+  }).optional(),
   ignorarMaterialesConjuro: z.boolean().optional(),
   varianteSinConcentracion: z.boolean().optional(),
   reservaDados: z.object({ caras: z.number().int().min(2).max(100), maximo: z.number().int().positive(), costePorDado: z.number().int().positive() }).optional(),

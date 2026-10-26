@@ -556,7 +556,7 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
   });
 
   describe("Propagación y Selección de Tipo de Daño Secundario (Golpe Divino y Devorador de Vida)", () => {
-    it("debe resolver daño secundario de Golpe Divino como Radiante por defecto y reaccionar al selector Necrótico", () => {
+    it("debe resolver daño secundario tras elegir Golpe divino y su tipo Radiante o Necrótico", () => {
       const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Clérigo", 7);
       const rasgoGolpe = pj.rasgos?.find((r) => r.id === "rasgo_cls_clerigo_golpe_divino");
       expect(rasgoGolpe).toBeDefined();
@@ -565,7 +565,10 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
       }
       const stats = calcularEstadisticasPersonaje(pj);
 
-      // 1. Selector por defecto en Radiante
+      const padre = pj.rasgos.find(r => r.id === "rasgo_cls_clerigo_golpes_benditos");
+      if (padre?.selectores?.[0]) padre.selectores[0].valorActual = ["golpe_divino"];
+      if (rasgoGolpe?.selectores?.[0]) rasgoGolpe.selectores[0].valorActual = ["radiante"];
+      // 1. El jugador elige Radiante explícitamente.
       const resRadiante = resolverBonosYDadosExtraCombate({
         personajeActivo: pj,
         statsCalculadas: stats,

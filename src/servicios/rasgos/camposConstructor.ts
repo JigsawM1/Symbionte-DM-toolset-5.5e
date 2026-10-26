@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const EsquemaCamposConstructor = EsquemaRasgoPersonaje.pick({
   escaladoConjurosOtorgados: true,
+  resolucionAsistida: true,
   costeRecargaPadre: true, costeActivacionPorSelector: true, lanzamientoConRecurso: true,
   ignorarMaterialesConjuro: true, varianteSinConcentracion: true, reservaDados: true,
   usoGratuitoCondicionado: true, gastarUsoTrasTirada: true, tablaAleatoria: true,

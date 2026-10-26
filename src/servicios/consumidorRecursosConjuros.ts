@@ -20,8 +20,9 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     case 'recursoRasgo': {
       const cfg = obtenerConcesionConRecurso(pj, gasto.idRasgo, gasto.hechizo, gasto.nivel);
       const disponibles = cfg ? (cfg.recurso.usosRestantes ?? cfg.recurso.usosMaximos ?? calcularUsosMaximosRasgo(cfg.recurso, pj)) : 0;
-      if (!cfg || disponibles < cfg.coste) return insuficiente;
-      personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste } : r) };
+      if (!cfg || cfg.recurso.recuperacionDiferida || disponibles < cfg.coste) return insuficiente;
+      personaje = { ...pj, rasgos: pj.rasgos.map(r => r.id === cfg.recurso.id ? { ...r, usosRestantes: disponibles - cfg.coste,
+        recuperacionDiferida: cfg.formulaDescansos ? { estado: "pendiente", formula: cfg.formulaDescansos } : r.recuperacionDiferida } : r) };
       break;
     }
     case 'ninguno': break;

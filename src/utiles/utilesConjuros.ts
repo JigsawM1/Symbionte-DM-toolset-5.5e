@@ -337,6 +337,13 @@ export function aplicarBonoNumericoAFormulaDados(formula: string, bono: number):
   return `${fLimpia}${signo}`;
 }
 
+export function resolverBonoModificadorHabilidad(
+  hechizo: { agregarModificadorHabilidad?: boolean; bonoModificadorRasgo?: number },
+  modificadorHabilidad: number
+): number {
+  return hechizo.agregarModificadorHabilidad ? (hechizo.bonoModificadorRasgo ?? modificadorHabilidad) : 0;
+}
+
 /**
  * Calcula la información completa de escalado para cualquier truco según el nivel del personaje.
  * - Trucos con mejora (ej. Toque helado 1d10 -> 2d10 a nv 5, con cláusula "Mejora de truco").
@@ -353,6 +360,7 @@ export function calcularInfoTruco(
     tipoDaño?: string;
     ataqueCd?: string;
     agregarModificadorHabilidad?: boolean;
+    bonoModificadorRasgo?: number;
   },
   nivelPersonaje: number,
   bonoDanoMagico: number = 0,
@@ -381,7 +389,7 @@ export function calcularInfoTruco(
   const match = dadosBase.replace(/\s+/g, "").match(regexDados);
   const caras = match ? match[2] : "10";
 
-  const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+  const modHab = resolverBonoModificadorHabilidad(hechizo, modificadorHabilidad);
   const bonoTotal = bonoDanoMagico + modHab;
 
   if (esMultiple) {
@@ -430,6 +438,7 @@ export function construirFormulaTaleSpireTruco(
     requiereAtaque?: boolean;
     ataqueCd?: string;
     agregarModificadorHabilidad?: boolean;
+    bonoModificadorRasgo?: number;
   },
   nivelPersonaje: number,
   bonoAtaqueMagico?: number,
@@ -452,7 +461,7 @@ export function construirFormulaTaleSpireTruco(
     for (let i = 1; i <= info.cantidadAtaques; i++) {
       // Si agregarModificadorHabilidad es true, se suma a cada proyectil.
       // bonoDanoMagico (ej. Revelación celestial) es una vez por turno (primer rayo).
-      const modHabRayo = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+      const modHabRayo = resolverBonoModificadorHabilidad(hechizo, modificadorHabilidad);
       const bonoRayo = modHabRayo + (i === 1 ? bonoDanoMagico : 0);
       const formulaRayo = bonoRayo !== 0
         ? aplicarBonoNumericoAFormulaDados(info.formula, bonoRayo)
@@ -522,6 +531,7 @@ export function construirFormulaTaleSpireEspacio(
     requiereAtaque?: boolean;
     ataqueCd?: string;
     agregarModificadorHabilidad?: boolean;
+    bonoModificadorRasgo?: number;
     [key: string]: unknown;
   },
   nivelLanzamiento: number,
@@ -542,7 +552,7 @@ export function construirFormulaTaleSpireEspacio(
     const grupos: string[] = [];
     for (let i = 1; i <= infoProyectiles.cantidadProyectiles; i++) {
       // Modificador de habilidad si aplica + bono una vez por turno al primer proyectil
-      const modHabProyectil = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+      const modHabProyectil = resolverBonoModificadorHabilidad(hechizo, modificadorHabilidad);
       const bonoProyectil = modHabProyectil + (i === 1 ? bonoDanoMagico : 0);
       const formulaProyectil = bonoProyectil !== 0
         ? aplicarBonoNumericoAFormulaDados(infoProyectiles.formulaPorProyectil, bonoProyectil)
@@ -577,7 +587,7 @@ export function construirFormulaTaleSpireEspacio(
       ? calcularFormulaEscalada(dadosBaseValidos, formulaAdicional, nivelBase, nivelLanzamiento).formula
       : dadosBaseValidos;
 
-  const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+  const modHab = resolverBonoModificadorHabilidad(hechizo, modificadorHabilidad);
   const bonoTotalDano = bonoDanoMagico + modHab;
 
   if (formulaFinalDano && bonoTotalDano !== 0) {

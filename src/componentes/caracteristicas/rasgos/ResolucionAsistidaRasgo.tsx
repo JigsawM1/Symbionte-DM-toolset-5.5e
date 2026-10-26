@@ -9,8 +9,8 @@ import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificado
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { logger } from "@/utiles/logger";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import { Sparkles, X, Zap, Shield, Dices, CheckCircle2, User, Info, AlertCircle } from "lucide-react";
-import { TarjetaToggle, TarjetaStat, IconoCabeceraRasgo, IconoOpcionResolucion, TarjetaResultadoResolucion } from "./TarjetaResolucionAsistida";
+import { Sparkles, X, Zap, Shield, Dices, CheckCircle2, User, AlertCircle } from "lucide-react";
+import { TarjetaToggle, TarjetaStat, IconoCabeceraRasgo, IconoOpcionResolucion, TarjetaResultadoResolucion, AvisoDirectivaMesa } from "./TarjetaResolucionAsistida";
 import { separarTituloRasgo, formatearHabilidad, resolverColorOpcion } from "./utilidadesRasgosResolucion";
 import modal from "./DialogoRasgo.module.css";
 import estilos from "./ResolucionAsistidaRasgo.module.css";
@@ -258,10 +258,7 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
               </div>
             )}
 
-            <div className={estilos.avisoDirectiva}>
-              <Info size={15} className={estilos.iconoAviso} />
-              <span>Resuelve manualmente el alcance, los destinatarios y las condiciones indicadas en el rasgo.</span>
-            </div>
+            <AvisoDirectivaMesa texto="Resuelve manualmente el alcance, los destinatarios y las condiciones indicadas en el rasgo." />
 
             {mensaje && (
               <div

@@ -1,3 +1,30 @@
+## [2026-10-26] Rediseño Táctico HUD: 'PG para mi personaje', Directiva de Mesa y Ancho de Vida 3 Dígitos (/frontend-design)
+
+- **Contexto y Diagnóstico**:
+  - En el diálogo de resolución asistida de rasgos (como *Preservar vida* del Dominio de la Vida), el campo 'PG para mi personaje' era un <label> plano con un <CampoNumerico> crudo, carente de jerarquía y sin controles rápidos de paso.
+  - El mensaje de información ('Resuelve manualmente el alcance...') y el aviso de reglas de conjuros con recurso presentaban una apariencia monocromática de caja plana sin estética HUD táctica.
+  - En la barra de vitalidad de la hoja de personaje (`PanelVitalidadPersonaje.tsx`), los campos de vida actual y máxima (`.inputHpDirecto`) tenían un ancho estático de 28px con tipografía de 18px en negrita, cortando visualmente el tercer dígito (ej. 100/100 PV).
+- **Transformación de Diseño y Arquitectura**:
+  1. *Panel Táctico de Reparto y Modificador de Tirada ([CamposResolucionAdicionales.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/CamposResolucionAdicionales.tsx) + [CamposResolucionAdicionales.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/CamposResolucionAdicionales.module.css))*:
+     - Diseñado un panel táctico HUD con fondo hundido, borde con resplandor esmeralda suave (`rgba(52, 211, 153, 0.28)`) para curación y ámbar (`rgba(251, 191, 36, 0.28)`) para tiradas.
+     - Cabecera estructurada con icono semántico (`HeartHandshake` o `Target`), etiqueta principal destacada y subtítulo explicativo ('El resto se reparte manualmente en mesa').
+     - Stepper numérico de precisión: botones accesibles de decremento (`-`) e incremento (`+`) con micro-interacciones hover/active, input central `CampoNumerico` con tipografía tabular monospace e insignia de unidad ('PG' / 'D20'), manteniendo selectores compatibles con suites Puppeteer.
+  2. *Callout Táctico de Directiva de Mesa ([TarjetaResolucionAsistida.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/TarjetaResolucionAsistida.tsx) + [ResolucionAsistidaRasgo.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/rasgos/ResolucionAsistidaRasgo.module.css))*:
+     - Componente modular `AvisoDirectivaMesa` con borde de acento cian luminoso (`#38bdf8`), icono `Info` en contenedor translúcido con sombra de brillo, título de directiva en versalitas y cuerpo en contraste suave, manteniendo `ResolucionAsistidaRasgo.tsx` en 296 líneas (`[CORRECTO]`).
+     - Homogeneizado y jerarquizado el aviso de reglas en `ConjurosConRecursoRasgo.tsx` y `.module.css` con icono en cápsula, versalitas 'REGLA DE LANZAMIENTO' y texto contrastado.
+     - Diseñado el panel táctico de efecto activo (`.tarjetaEfectoActivo`) para conjuros temporales en mesa (ej. *Arma espiritual* de Bendición del dios de la guerra): cabecera con icono `Flame`, badges de estado luminoso 'Activo' y 'Termina en ronda X', directiva de movimiento manual y botones tácticos de ataque/finalización con selectores compatibles.
+     - Refinada la tarjeta de confirmación de curaciones pendientes (`CuracionesPendientesRasgo.tsx`).
+  3. *Corrección de Dimensionamiento Tipográfico de Vitalidad y Compatibilidad CSS ([HojaPersonaje.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/personajes/HojaPersonaje.module.css) + [TarjetaCriaturaIniciativa.module.css](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/iniciativa/TarjetaCriaturaIniciativa.module.css))*:
+     - Reemplazado `width: 28px` en `.inputHpDirecto` por `width: 3.8ch; min-width: 3.2ch; padding: 0 1px; box-sizing: content-box;` con feedback interactivo suave en `:hover` y `:focus`, acomodando con total holgura valores de 3 o más dígitos sin recortes.
+     - Resuelta la advertencia del analizador CSS `css(vendorPrefix)`: añadida la propiedad estándar `appearance: textfield;` junto a `-moz-appearance: textfield;` en `.inputMoneda`, `.inputIniciativaEditable` e `.inputVidaMaximaEditable`.
+- **Certificación CI y Pruebas**:
+  - `pnpm exec tsc --noEmit`: 0 errores con `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias con `--max-warnings=0`.
+  - `node scripts/verificar-limite-lineas.js`: 202 archivos auditados, todos los componentes conformes (< 300 líneas).
+  - `vitest run`: 175 suites y 2.650 pruebas aprobadas (100%).
+  - `pnpm run test:clerigo-subclases-ui` y `pnpm run test:clerigo-ui`: Recorridos en Chromium a 599px y 433px aprobados con 0 errores.
+  - `vite build`: Compilación de producción completada con éxito en 9.20s.
+
 ## [2026-10-26] Rediseño Visual Táctico de Tarjeta de Rasgo: Botón Resolver, Resultado y Salvación CD (/frontend-design)
 
 - **Contexto y Diagnóstico**:

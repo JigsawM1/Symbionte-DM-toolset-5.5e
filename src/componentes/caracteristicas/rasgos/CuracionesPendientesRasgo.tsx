@@ -37,10 +37,10 @@ export function CuracionesPendientesRasgo({ idPersonaje, rasgo }: { idPersonaje:
   };
   return <section className={estilos.seccionLanzador} aria-label={`Curaciones pendientes de ${rasgo.nombre}`}>
     {rasgo.resolucionesCuracionPendientes?.map(p => <div className={estilos.tarjetaResumenConjuro} key={p.id}>
-      <p>{p.etiqueta} · {p.derivadaDano ? "Mitad del daño causado" : p.formula} PG</p>
-      {p.derivadaDano && <label>Daño efectivamente causado<CampoNumerico min={0} value={dano} alConfirmar={cambiarDano} /></label>}
-      {p.bonoEnTurno !== undefined && <label><input type="checkbox" checked={enTurno} disabled={ocupado} onChange={e => cambiarTurno(e.target.checked)} />Ocurre en el turno original del lanzamiento (+{p.bonoEnTurno} PG)</label>}
-      <label><input type="checkbox" disabled={ocupado} checked={confirmada === p.id}
+      <p className={estilos.cabeceraCuracionPendiente}>{p.etiqueta} · {p.derivadaDano ? "Mitad del daño causado" : p.formula} PG</p>
+      {p.derivadaDano && <label className={estilos.labelCheckCuracion}>Daño efectivamente causado<CampoNumerico min={0} value={dano} alConfirmar={cambiarDano} /></label>}
+      {p.bonoEnTurno !== undefined && <label className={estilos.labelCheckCuracion}><input type="checkbox" className={estilos.checkCuracionInput} checked={enTurno} disabled={ocupado} onChange={e => cambiarTurno(e.target.checked)} />Ocurre en el turno original del lanzamiento (+{p.bonoEnTurno} PG)</label>}
+      <label className={estilos.labelCheckCuracion}><input type="checkbox" className={estilos.checkCuracionInput} disabled={ocupado} checked={confirmada === p.id}
         onChange={e => confirmar(e.target.checked ? p.id : undefined)} />{p.confirmacion}</label>
       <div className={estilos.filaBotones}>
         <button className={estilos.botonLanzarPrincipal} disabled={ocupado || confirmada !== p.id} onClick={() => void resolver(p.id, true)}>Aplicar curación propia</button>

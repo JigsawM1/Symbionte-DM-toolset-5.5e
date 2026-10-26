@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Sun, Zap, Sparkles, Heart, Flame, Shield, CheckCircle2, X } from "lucide-react";
+import { Check, Sun, Zap, Sparkles, Heart, Flame, Shield, CheckCircle2, X, Info } from "lucide-react";
 import estilos from "./ResolucionAsistidaRasgo.module.css";
 
 export function IconoCabeceraRasgo({ nombre }: { nombre: string }) {
@@ -107,6 +107,20 @@ export function TarjetaResultadoResolucion({
         </button>
       </div>
       <p className={estilos.textoResultado}>{mensaje}</p>
+    </div>
+  );
+}
+
+export function AvisoDirectivaMesa({ texto }: { texto: string }) {
+  return (
+    <div className={estilos.avisoDirectiva}>
+      <div className={estilos.iconoContenedorAviso} aria-hidden="true">
+        <Info size={15} className={estilos.iconoAviso} />
+      </div>
+      <div className={estilos.cuerpoAvisoDirectiva}>
+        <span className={estilos.tituloAvisoDirectiva}>Directiva de resolución</span>
+        <span className={estilos.textoAvisoDirectiva}>{texto}</span>
+      </div>
     </div>
   );
 }

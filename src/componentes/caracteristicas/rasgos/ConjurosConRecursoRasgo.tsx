@@ -7,7 +7,7 @@ import { SelectorDesplegable } from "@/componentes/comunes";
 import { obtenerConcesionConRecurso } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { Sparkles, Info, Check, Shield } from "lucide-react";
+import { Sparkles, Info, Check, Shield, Flame } from "lucide-react";
 import estilos from "./ConjurosConRecursoRasgo.module.css";
 
 export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: PersonajeJugador; rasgo: RasgoPersonaje }) {
@@ -96,13 +96,18 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
 
       {rasgo.lanzamientoConRecurso && (
         <div className={estilos.avisoRegla}>
-          <Info size={14} className={estilos.iconoAviso} />
-          <span>
-            {rasgo.lanzamientoConRecurso.conjuros ? `Nivel base; componentes normales. No consume espacios.${rasgo.lanzamientoConRecurso.sinConcentracion ? " Sin concentración." : ""}${rasgo.lanzamientoConRecurso.duracionRondas ? ` Duración: ${rasgo.lanzamientoConRecurso.duracionRondas} rondas; fuera de iniciativa, finaliza el efecto cuando transcurra su duración.` : ""}`
-              : rasgo.lanzamientoConRecurso.lista
-              ? "Nivel base; no consume espacios ni materiales. Mantiene los demás componentes y la concentración."
-              : "Por puntos: nivel base, sin componentes verbales ni somáticos. Comprueba manualmente los materiales consumidos o con coste."}
-          </span>
+          <div className={estilos.iconoContenedorAviso} aria-hidden="true">
+            <Info size={14} className={estilos.iconoAviso} />
+          </div>
+          <div className={estilos.cuerpoAvisoRegla}>
+            <span className={estilos.tituloAvisoRegla}>Regla de lanzamiento</span>
+            <span className={estilos.textoAvisoRegla}>
+              {rasgo.lanzamientoConRecurso.conjuros ? `Nivel base; componentes normales. No consume espacios.${rasgo.lanzamientoConRecurso.sinConcentracion ? " Sin concentración." : ""}${rasgo.lanzamientoConRecurso.duracionRondas ? ` Duración: ${rasgo.lanzamientoConRecurso.duracionRondas} rondas; fuera de iniciativa, finaliza el efecto cuando transcurra su duración.` : ""}`
+                : rasgo.lanzamientoConRecurso.lista
+                ? "Nivel base; no consume espacios ni materiales. Mantiene los demás componentes y la concentración."
+                : "Por puntos: nivel base, sin componentes verbales ni somáticos. Comprueba manualmente los materiales consumidos o con coste."}
+            </span>
+          </div>
         </div>
       )}
 
@@ -140,16 +145,53 @@ export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: Perso
         </button>
       </div>
       {rasgo.conjurosTemporales?.map(e => {
-        const h = conjuros.find(h => h.id === e.conjuroId);
+        const h = conjuros.find(c => c.id === e.conjuroId);
         if (!h) return null;
-        return <div key={e.conjuroId}><p>{h.nombre} activo · termina en la ronda {e.expiraRonda}. Destinatario y desplazamiento manuales.</p>
-          {h.permiteAtaquePosterior && <button type="button" className={estilos.botonLanzarPrincipal} onClick={() => void lanzar({ hechizo: h, modo: "continuarConjuro", idRasgoOrigen: rasgo.id, claseLanzamiento: rasgo.claseConjurosOtorgados })}>Atacar con {h.nombre} · sin otro gasto</button>}
-          <button type="button" className={estilos.botonLanzarEspacio} onClick={() => {
-            const almacen = usarAlmacenDM.getState();
-            if (!almacen.operarRecursoRasgoPersonaje(personaje.id, { tipo: "finalizarConjuroTemporal", idRasgo: rasgo.id, conjuroId: h.id }))
-              almacen.agregarNotificacion("El efecto ya no está disponible.", "advertencia");
-          }}>Finalizar {h.nombre}</button>
-        </div>;
+        return (
+          <div key={e.conjuroId} className={estilos.tarjetaEfectoActivo}>
+            <div className={estilos.cabeceraEfectoActivo}>
+              <div className={estilos.infoEfectoActivo}>
+                <div className={estilos.iconoEfectoActivo} aria-hidden="true">
+                  <Flame size={14} />
+                </div>
+                <div className={estilos.textosEfectoActivo}>
+                  <div className={estilos.filaTituloEfecto}>
+                    <span className={estilos.nombreEfectoActivo}>{h.nombre}</span>
+                    <span className={estilos.badgeEfectoActivo}>Activo</span>
+                    <span className={estilos.badgeRondaExpira}>Termina en ronda {e.expiraRonda}</span>
+                  </div>
+                  <span className={estilos.subtituloEfectoActivo}>
+                    Destinatario y desplazamiento manuales
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className={estilos.filaBotonesEfecto}>
+              {h.permiteAtaquePosterior && (
+                <button
+                  type="button"
+                  className={estilos.botonLanzarPrincipal}
+                  onClick={() => void lanzar({ hechizo: h, modo: "continuarConjuro", idRasgoOrigen: rasgo.id, claseLanzamiento: rasgo.claseConjurosOtorgados })}
+                >
+                  <Sparkles size={13} />
+                  <span>Atacar con {h.nombre} · sin otro gasto</span>
+                </button>
+              )}
+              <button
+                type="button"
+                className={estilos.botonLanzarEspacio}
+                onClick={() => {
+                  const almacen = usarAlmacenDM.getState();
+                  if (!almacen.operarRecursoRasgoPersonaje(personaje.id, { tipo: "finalizarConjuroTemporal", idRasgo: rasgo.id, conjuroId: h.id }))
+                    almacen.agregarNotificacion("El efecto ya no está disponible.", "advertencia");
+                }}
+              >
+                Finalizar {h.nombre}
+              </button>
+            </div>
+          </div>
+        );
       })}
     </section>
   );

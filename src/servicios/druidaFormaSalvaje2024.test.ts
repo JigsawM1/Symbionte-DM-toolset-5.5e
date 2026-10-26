@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+import type { PersonajeJugador, RasgoPersonaje, ObjetoInventario } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import {
@@ -267,7 +268,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("Círculo de la Luna nivel 6+ imbuye Resplandor Lunar (daño Radiante)", () => {
-      const pjLuna: any = {
+      const pjLuna: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         subclase: "Círculo de la Luna",
@@ -296,7 +297,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("Restricción canónica de conjuros: Druida base bloqueado, Luna permite su lista, Nv 18 desbloquea", () => {
-      const pjBase: any = {
+      const pjBase: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         nivel: 5,
@@ -313,7 +314,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(puedeLanzarConjuroEnFormaSalvaje(pjBase, "Rayo lunar")).toBe(false);
 
       // Círculo de la Luna sí puede lanzar los conjuros preparados de su subclase
-      const pjLuna: any = {
+      const pjLuna: PersonajeJugador = {
         ...pjBase,
         subclase: "Círculo de la Luna"
       };
@@ -322,7 +323,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Bola de fuego")).toBe(false);
 
       // Druida Nivel 18 (Bestia lanzadora) puede lanzar conjuros en forma salvaje
-      const pjArchidruida: any = {
+      const pjArchidruida: PersonajeJugador = {
         ...pjBase,
         nivel: 18
       };
@@ -330,7 +331,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("Condición Incapacitado finaliza la Forma Salvaje automáticamente", () => {
-      const pjTransformado: any = {
+      const pjTransformado: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         nivel: 3,
@@ -347,7 +348,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("No se pueden usar armas ni armadura: se ocultan armas/ataques humanoides y solo quedan los ataques de la bestia", () => {
-      const pjEquipado: any = {
+      const pjEquipado: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         nivel: 5, // PB = +3
@@ -391,7 +392,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
             caBase: 2,
             cantidad: 1
           }
-        ],
+        ] as unknown as ObjetoInventario[],
         formaSalvaje: {
           formasConocidasIds: ["m_lobo"],
           formaActivaId: "m_lobo",
@@ -445,7 +446,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("Círculo de la Luna: la CA en Forma salvaje es igual a la CA de la bestia + mod de Sabiduría (sin sumar nada más)", () => {
-      const pjLuna: any = {
+      const pjLuna: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         subclase: "Círculo de la Luna",
@@ -477,7 +478,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
     });
 
     it("Filtrado estricto de rasgos: solo conserva rasgos de la bestia + rasgos de Druida", () => {
-      const rasgosPersonaje: any[] = [
+      const rasgosPersonaje = [
         {
           id: "rasgo_druida_forma_salvaje",
           nombre: "Forma salvaje",
@@ -528,7 +529,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
           tieneUsosLimitados: true,
           recuperacion: "descanso_largo"
         }
-      ];
+      ] as unknown as RasgoPersonaje[];
 
       expect(extraerRasgosBestia(lobo).length).toBeGreaterThan(0);
       const rasgosFiltrados = filtrarRasgosFormaSalvaje(rasgosPersonaje, lobo);

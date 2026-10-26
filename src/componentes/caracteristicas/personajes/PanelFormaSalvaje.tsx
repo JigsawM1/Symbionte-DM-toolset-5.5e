@@ -36,10 +36,9 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
     [personaje]
   );
 
-  const formasConocidasIds = personaje.formaSalvaje?.formasConocidasIds || [];
-
+  const formasConocidasIds = personaje.formaSalvaje?.formasConocidasIds;
   const bestiasConocidas = useMemo(() => {
-    return formasConocidasIds
+    return (formasConocidasIds || [])
       .map((id) => MONSTRUOS_INICIALES.find((m) => m.id === id))
       .filter((m): m is MonstruoBase => Boolean(m));
   }, [formasConocidasIds]);
@@ -61,7 +60,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
   }, [bestiasDisponibles, filtroTexto]);
 
   const abrirModalGestion = () => {
-    setSeleccionBorrador([...formasConocidasIds]);
+    setSeleccionBorrador([...(personaje.formaSalvaje?.formasConocidasIds || [])]);
     setFiltroTexto("");
     setModalGestionAbierto(true);
   };
@@ -99,7 +98,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
           className={estilos.botonGestionarPool}
           onClick={abrirModalGestion}
         >
-          Gestionar Formas ({formasConocidasIds.length}/{reglas.maxFormasConocidas})
+          Gestionar Formas ({(formasConocidasIds?.length || 0)}/{reglas.maxFormasConocidas})
         </button>
       </div>
 
@@ -147,7 +146,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
       <div className={estilos.seccionPool}>
         <div className={estilos.subtituloPool}>Formas Conocidas en Reserva</div>
         {bestiasConocidas.length === 0 ? (
-          <p style={{ color: "var(--pj-texto-terciario)", fontSize: "0.9rem", margin: 0 }}>
+          <p className={estilos.textoSinFormas}>
             No has seleccionado formas de bestia para tu reserva. Haz clic en "Gestionar Formas" para elegir hasta {reglas.maxFormasConocidas} bestias elegibles.
           </p>
         ) : (
@@ -172,7 +171,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
                     <div>CA {bestia.ca}</div>
                   </div>
 
-                  <div style={{ fontSize: "0.8rem", color: "var(--pj-texto-secundario)" }}>
+                  <div className={estilos.velocidadBestia}>
                     Velocidad: {velocidadStr}
                   </div>
 
@@ -191,7 +190,6 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
                       type="button"
                       className={estilos.botonRevertir}
                       onClick={alRevertir}
-                      style={{ marginTop: "auto" }}
                     >
                       Revertir
                     </button>
@@ -224,7 +222,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
               <button
                 type="button"
                 onClick={() => setModalGestionAbierto(false)}
-                style={{ background: "transparent", border: "none", color: "white", cursor: "pointer" }}
+                className={estilos.botonCerrarModal}
               >
                 <X size={20} />
               </button>
@@ -248,9 +246,8 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
                   return (
                     <div
                       key={bestia.id}
-                      className={`${estilos.itemOpcionPool} ${seleccionada ? estilos.seleccionado : ""}`}
+                      className={`${estilos.itemOpcionPool} ${seleccionada ? estilos.seleccionado : ""} ${deshabilitada ? estilos.deshabilitada : ""}`}
                       onClick={() => !deshabilitada && alternarSeleccionBestia(bestia.id)}
-                      style={{ opacity: deshabilitada ? 0.4 : 1, cursor: deshabilitada ? "not-allowed" : "pointer" }}
                     >
                       <div>
                         <strong>{bestia.nombre}</strong> (VD {bestia.desafio}) • FUE {bestia.caracteristicas?.fuerza} DES {bestia.caracteristicas?.destreza} CA {bestia.ca}

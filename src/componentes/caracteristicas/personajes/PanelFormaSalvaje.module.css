@@ -113,6 +113,10 @@
   transition: border-color 0.2s;
 }
 
+.tarjetaBestia .botonRevertir {
+  margin-top: auto;
+}
+
 .tarjetaBestia.activa {
   border-color: #22c55e;
   background: rgba(34, 197, 94, 0.05);
@@ -283,4 +287,31 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+.textoSinFormas {
+  color: var(--pj-texto-terciario, #64748b);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.velocidadBestia {
+  font-size: 0.8rem;
+  color: var(--pj-texto-secundario, #94a3b8);
+}
+
+.botonCerrarModal {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.itemOpcionPool.deshabilitada {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

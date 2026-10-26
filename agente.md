@@ -1,5 +1,38 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-10-26] Subsanación Quirúrgica de ESLint/TypeScript y Certificación Completa de CI en Main (Druida / Forma Salvaje)
+
+**Contexto y Diagnóstico:**
+- Al ejecutar `pnpm run ci`, el pipeline falló en el paso de ESLint (`--max-warnings=0`) con 29 incidencias (28 errores y 1 advertencia) introducidas en las implementaciones recientes de Druida / Forma Salvaje:
+  1. *Bifurcaciones prohibidas por nombre/clase (`no-restricted-syntax`)* en `HojaPersonaje.tsx` (líneas 91-92: `personajeActivo.clase?.toLowerCase().includes("druida")`) y `calculadorAtaquesArmas.ts` (línea 418: `r.nombre.toLowerCase().includes("manada")`).
+  2. *Estilos inline prohibidos (`react/forbid-dom-props`)* en `PanelFormaSalvaje.tsx` (5 ocurrencias en textos, tarjetas, botones y modales).
+  3. *Dependencia inestable en Hook (`react-hooks/exhaustive-deps`)* en `PanelFormaSalvaje.tsx` por instanciación de `formasConocidasIds = ... || []` en cada render.
+  4. *Tipado permisivo `any` (`@typescript-eslint/no-explicit-any`)* en `calculadorAtaquesArmas.ts` (9 usos en `acc as any`), `reglasFormaSalvaje.ts` (3 usos en velocidad/sentidos) y `druidaFormaSalvaje2024.test.ts` (8 usos).
+
+**Correcciones Quirúrgicas Aplicadas:**
+1. **Identificadores Canónicos y Metadatos (`identificadoresDND.ts`):**
+   - Incorporado el conjunto inmutable `CLASES_DRUIDA: ReadonlySet<string>` y la función canónica `esClaseDruida(nombreOIdClase)`.
+   - En `HojaPersonaje.tsx`, se refactorizó la comprobación de acceso a Forma Salvaje utilizando `esClaseDruida(personajeActivo.clase)`, `cls => esClaseDruida(cls.nombre)` y `coincideIdRasgo(r, "forma_salvaje")`.
+2. **Modularización CSS y Hooks en Presentación (`PanelFormaSalvaje.tsx` + `.module.css`):**
+   - Extraídos los 5 estilos inline a clases modulares: `.textoSinFormas`, `.velocidadBestia`, `.botonCerrarModal` e `.itemOpcionPool.deshabilitada`.
+   - Poda Ponytail: Eliminada la clase monouso `.botonRevertirTarjeta` en favor de la regla anidada `.tarjetaBestia .botonRevertir { margin-top: auto; }`.
+   - Poda Ponytail: Eliminado el hook intermedio `useMemo` de `formasConocidasIds`, consumiendo directamente `personaje.formaSalvaje?.formasConocidasIds` con referencia estable en `bestiasConocidas`.
+   - `PanelFormaSalvaje.tsx` se redujo a **284 líneas** (`[CORRECTO] < 300`).
+3. **Tipado Estricto de Dominio y Poda Ponytail:**
+   - En `calculadorAtaquesArmas.ts`: interfaz `AccionBestiaExtendida` extendiendo `AccionMonstruo` sin duplicar campos existentes y eliminando el doble casteo `as unknown as`.
+   - En `identificadoresDND.ts`: poda de la comprobación redundante `CLASES_DRUIDA.has(norm)` previa a la iteración en `esClaseDruida`.
+   - En `reglasFormaSalvaje.ts`: definida la interfaz `VelocidadBestiaObjeto` (extendiendo `Partial<VelocidadEstructurada>`) y tipados los sentidos con `Partial<SentidosEstructurados>`.
+   - En `druidaFormaSalvaje2024.test.ts`: tipados estrictamente los objetos y colecciones de prueba con `PersonajeJugador`, `RasgoPersonaje[]` y `ObjetoInventario[]`.
+
+**Certificación del Pipeline de CI (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm exec eslint src --max-warnings=0` completado con 0 errores y 0 advertencias.
+- **Vitest:** 177 suites ejecutadas, **2.681 / 2.681 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 204 archivos auditados vía `node scripts/verificar-limite-lineas.js` (0 archivos > 500 líneas, `PanelFormaSalvaje.tsx` en 284 líneas).
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 9.29s.
+
+---
+
 ## [2026-10-26] Integración Certificada de Clérigo PHB 2024, Subclases y Resolución Asistida en Main
 
 **Alcance de la Fusión en `main`:**

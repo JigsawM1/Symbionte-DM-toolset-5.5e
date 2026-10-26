@@ -4,10 +4,12 @@ import type {
   ObjetoInventario,
   Caracteristica,
   PersonajeJugador,
-  AtaquePersonajeCalculado
+  AtaquePersonajeCalculado,
+  AccionMonstruo
 } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import { esCompetenteConArma } from "@/constantes/competenciasConstantes";
+import { normalizarIdentificador } from "@/constantes";
 import { resolverEstadoMunicionArma } from "@/servicios/gestorMunicion";
 import {
   evaluarEfectosRasgosActivos,
@@ -37,6 +39,13 @@ export interface ParametrosCalculoAtaquesFisicos {
   statsCalculadas: EstadisticasCalculadasPersonaje;
   baseDatosObjetos: ObjetoJuego[];
   caracteristicasArmas: Record<string, Caracteristica>;
+}
+
+interface AccionBestiaExtendida extends AccionMonstruo {
+  bonoAtaque?: number;
+  dano?: string;
+  tipoDano?: string;
+  tipoDaño?: string;
 }
 
 const normalizar = (s: string): string =>
@@ -415,17 +424,18 @@ export function generarListaAtaquesFisicos(
       const rasgosBestia = bestiaActiva.rasgos || [];
       const tieneVentajaManada = rasgosBestia.some(
         (r) =>
-          r.nombre.toLowerCase().includes("manada") ||
+          normalizarIdentificador(r.nombre).includes("manada") ||
           (r.descripcion && r.descripcion.toLowerCase().includes("ventaja en las tiradas de ataque"))
       );
 
       for (const acc of bestiaActiva.acciones) {
-        const desc = acc.descripcion || "";
+        const accion = acc as AccionBestiaExtendida;
+        const desc = accion.descripcion || "";
         const esAtaque =
           desc.toLowerCase().includes("ataque") ||
           desc.toLowerCase().includes("weapon attack") ||
           desc.toLowerCase().includes("a impactar") ||
-          Boolean((acc as any).bonoAtaque || (acc as any).bonificadorAtaque || (acc as any).dano || (acc as any).daño);
+          Boolean(accion.bonoAtaque || accion.bonificadorAtaque || accion.dano || accion.daño);
 
         if (esAtaque) {
           const esDistancia = desc.toLowerCase().includes("a distancia") || desc.toLowerCase().includes("ranged");
@@ -440,14 +450,14 @@ export function generarListaAtaquesFisicos(
           const bonoCalculado2024 = statsCalculadas.bonoCompetencia + modFisico;
           const bonoMatch = desc.match(/\+([0-9]+)\s*(?:a impactar|to hit)/i);
           const bonoFijo =
-            (acc as any).bonoAtaque ??
-            (acc as any).bonificadorAtaque ??
+            accion.bonoAtaque ??
+            accion.bonificadorAtaque ??
             (bonoMatch ? parseInt(bonoMatch[1], 10) : 0);
           const bonoAtk = Math.max(bonoCalculado2024, bonoFijo);
 
           // Extraer dados de daño base y componer fórmula D&D 2024
           const danoMatch = desc.match(/\(([0-9]+d[0-9]+(?:\s*[+-]\s*[0-9]+)?)\)/i);
-          const formulaOriginal = (acc as any).dano || (acc as any).daño || (danoMatch ? danoMatch[1] : "1d6");
+          const formulaOriginal = accion.dano || accion.daño || (danoMatch ? danoMatch[1] : "1d6");
           const dadoBase = formulaOriginal.split(/[+-]/)[0].trim();
           const formulaDano2024 = modFisico !== 0
             ? `${dadoBase} ${modFisico >= 0 ? `+ ${modFisico}` : `- ${Math.abs(modFisico)}`}`
@@ -457,7 +467,7 @@ export function generarListaAtaquesFisicos(
           const alcance = alcanceMatch ? alcanceMatch[1].trim() : (esDistancia ? "30/120 pies" : "5 pies");
 
           const tipoDanoMatch = desc.match(/daño ([a-záéíóú]+)/i);
-          const tipoDanoBase = (acc as any).tipoDano || (tipoDanoMatch ? tipoDanoMatch[1] : "perforante");
+          const tipoDanoBase = accion.tipoDano || (tipoDanoMatch ? tipoDanoMatch[1] : "perforante");
           const tipoDano = tieneResplandorLunar ? `${tipoDanoBase} / radiante` : tipoDanoBase;
 
           const propiedades = ["Arma Natural", "Forma Salvaje"];

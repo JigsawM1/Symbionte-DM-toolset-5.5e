@@ -12,6 +12,7 @@ import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarHojaPersonaje } from "./usarHojaPersonaje";
 import { Swords, Sparkles, PawPrint } from "lucide-react";
+import { esClaseDruida, coincideIdRasgo } from "@/constantes";
 import { PanelFormaSalvaje } from "./PanelFormaSalvaje";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -88,9 +89,9 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   }
 
   const esDruida = Boolean(
-    personajeActivo.clase?.toLowerCase().includes("druida") ||
-    personajeActivo.clases?.some((cls) => cls.nombre.toLowerCase().includes("druida")) ||
-    personajeActivo.rasgos?.some((r) => r.nombre.toLowerCase().trim() === "forma salvaje")
+    esClaseDruida(personajeActivo.clase) ||
+    personajeActivo.clases?.some((cls) => esClaseDruida(cls.nombre)) ||
+    personajeActivo.rasgos?.some((r) => coincideIdRasgo(r, "forma_salvaje"))
   );
 
   return (

@@ -116,6 +116,14 @@ export const CLASES_BARBARO: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Conjunto declarativo de clases e identificadores asociados a Druida.
+ */
+export const CLASES_DRUIDA: ReadonlySet<string> = new Set([
+  ID_CLASE.DRUIDA,
+  "druid"
+]);
+
+/**
  * Determina si una clase pertenece al sistema de Magia de Pacto (Brujo / Warlock).
  */
 export function esClasePacto(nombreOIdClase: string = ""): boolean {
@@ -185,6 +193,18 @@ export function esClaseBarbaro(nombreOIdClase: string = ""): boolean {
   if (!norm) return false;
   if (CLASES_BARBARO.has(norm)) return true;
   for (const clase of CLASES_BARBARO) {
+    if (norm.includes(clase)) return true;
+  }
+  return false;
+}
+
+/**
+ * Determina si una clase corresponde a Druida.
+ */
+export function esClaseDruida(nombreOIdClase: string = ""): boolean {
+  const norm = normalizarIdentificador(nombreOIdClase);
+  if (!norm) return false;
+  for (const clase of CLASES_DRUIDA) {
     if (norm.includes(clase)) return true;
   }
   return false;

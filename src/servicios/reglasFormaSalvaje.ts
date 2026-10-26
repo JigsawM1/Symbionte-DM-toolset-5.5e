@@ -1,5 +1,16 @@
-import type { PersonajeJugador, MonstruoBase, RasgoPersonaje } from "@/tipos";
+import type {
+  PersonajeJugador,
+  MonstruoBase,
+  RasgoPersonaje,
+  VelocidadEstructurada,
+  SentidosEstructurados
+} from "@/tipos";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
+
+interface VelocidadBestiaObjeto extends Partial<VelocidadEstructurada> {
+  volando?: number;
+  trepar?: number;
+}
 
 /**
  * Convierte un string de desafío (VD) como "0", "1/8", "1/4", "1/2", "1", "2" a número decimal.
@@ -23,7 +34,7 @@ export function bestiaTieneVuelo(bestia: MonstruoBase): boolean {
     return s.includes("vuelo") || s.includes("volar") || s.includes("fly");
   }
   if (bestia.velocidad && typeof bestia.velocidad === "object") {
-    const v = bestia.velocidad as any;
+    const v = bestia.velocidad as VelocidadBestiaObjeto;
     return (v.volar ?? v.volando ?? 0) > 0;
   }
   return false;
@@ -64,7 +75,7 @@ export function extraerVelocidadesBestia(bestia: MonstruoBase): {
     const excavarMatch = s.match(/excavar\s*(\d+)/i);
     if (excavarMatch) excavar = parseInt(excavarMatch[1], 10);
   } else if (bestia.velocidad && typeof bestia.velocidad === "object") {
-    const v = bestia.velocidad as any;
+    const v = bestia.velocidad as VelocidadBestiaObjeto;
     caminar = v.caminar ?? 30;
     nadar = v.nadar;
     volar = v.volar ?? v.volando;
@@ -89,7 +100,7 @@ export function extraerSentidosBestia(bestia: MonstruoBase): {
   let percepcionPasiva: number | undefined;
 
   if (bestia.sentidos && typeof bestia.sentidos === "object") {
-    const s = bestia.sentidos as any;
+    const s = bestia.sentidos as Partial<SentidosEstructurados>;
     visionOscuridad = s.visionOscuridad;
     visionCiega = s.visionCiega;
     percepcionPasiva = s.percepcionPasiva;

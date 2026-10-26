@@ -1,3 +1,22 @@
+# agente.md — Aprendizaje Autónomo del Simbionte DM
+
+## [2026-10-26] Integración Certificada de Clérigo PHB 2024, Subclases y Resolución Asistida en Main
+
+**Alcance de la Fusión en `main`:**
+- Integración completa y limpia de la rama `clerigo-base` en `main` sin conflictos (77 archivos modificados, +4.736 / -473 líneas).
+- **Clérigo PHB 2024 y 4 Subclases Declarativas (`src/datos/clases/clerigo.json`):** Niveles 1 a 20 estandarizados según D&D 5.5e (2024), con Orden Divina (Protector / Taumaturgo), Canalizar Divinidad (Chispa Divina y Expulsar Muertos Vivientes), Golpes Benditos (Golpe Divino / Lanzamiento Potente) e Intercesión Divina (Deseo a Nv 20 con recuperación diferida de 2d4 descansos largos). Cuatro dominios canónicos: Vida, Luz, Guerra y Engaño.
+- **Sistema de Resolución Asistida y Lanzador Táctico (`ResolucionAsistidaRasgo.tsx`, `CamposResolucionAdicionales.tsx`, `ConjurosConRecursoRasgo.tsx`):** Diálogos tácticos para resolver capacidades divinas, cálculo de CD de salvación en vivo, reparto de PG y seguimiento de esperas diferidas.
+- **Poda Ponytail y Rendimiento:** Eliminación del escaneo lineal en `conjurosTemporalesRasgos.ts`, indexación $O(1)$ en `obtenerConcesionConRecurso`, y ancho fluido en la barra de vitalidad de la hoja de personaje para acomodar 3 dígitos sin recortes.
+
+**Certificación del Pipeline de CI en `main` (100% Exitoso):**
+- **TypeScript:** `pnpm exec tsc --noEmit` completado con 0 errores bajo `strict: true`.
+- **ESLint:** `pnpm run lint` completado con 0 errores y 0 advertencias (`--max-warnings=0`).
+- **Vitest:** 175 suites ejecutadas, **2.650 / 2.650 pruebas aprobadas** (100% de éxito).
+- **Límites de Líneas:** 202 archivos auditados vía `pnpm run verificar:lineas`, 0 componentes > 300 líneas y 0 archivos > 500 líneas.
+- **Build de Producción:** `pnpm exec vite build` completado exitosamente en 18.84s (2.153 módulos procesados).
+
+---
+
 ## [2026-10-26] Auditoría Exhaustiva Pre-Merge de Clérigo Base y Poda Ponytail (/ponytail)
 
 - **Contexto y Diagnóstico**:
@@ -150,8 +169,6 @@
 - Límites: aplicación a otras criaturas, impacto, límites por turno y confirmación del disparador de vitalidad manuales. Beneficios de dotes conservan el alcance de sus catálogos; no se automatizó reparto de atributos ni todos los beneficios de Don del Destino.
 - Graphify actualizado sin LLM y cluster-only --no-label completado: 3268 nodos, 13654 relaciones, 120 comunidades. Advertencias del extractor en dos tests ajenos; CI del código vigente pasó.
 - Informe y matriz por rasgo: informes/clerigo-base-2024.md. Evidencias: scratch/clerigo-ci.log, scratch/clerigo-ui.json y capturas clerigo-*.
-
-# agente.md — Aprendizaje Autónomo del Simbionte DM
 
 ## [2026-10-23] Integración Certificada de Bardo PHB 2024 y Recuperación de Recursos en Main
 

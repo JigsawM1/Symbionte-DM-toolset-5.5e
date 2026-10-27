@@ -19,16 +19,13 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
+            if (id.includes('react')) {
               return 'vendor-react';
-            }
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
             }
             if (id.includes('zod')) {
               return 'vendor-zod';
             }
-            if (id.includes('zustand') || id.includes('@tanstack/react-virtual')) {
+            if (id.includes('zustand')) {
               return 'vendor-state';
             }
           }

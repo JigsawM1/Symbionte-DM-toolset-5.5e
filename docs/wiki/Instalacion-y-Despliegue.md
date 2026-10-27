@@ -104,3 +104,5 @@ La función `crearDescriptoresManualmente` construye descriptores `{ name, roll 
 ### El manifiesto no se carga
 
 Comprueba que `manifest.json` esté en la raíz de `dist` después de la compilación y que `entryPoint` sea `/index.html`. El manifiesto declara la API `0.1` y las suscripciones de eventos necesarias para el puente del Symbiote.
+
+Edita únicamente `public/manifest.json`, la fuente canónica. Vite lo sirve en desarrollo y lo copia a la raíz de `dist` y de la salida de empaquetado; la raíz del repositorio no mantiene otra copia.

@@ -60,6 +60,8 @@ pnpm lint
 
 `pnpm dev` inicia Vite para desarrollo local. Fuera de TaleSpire, el adaptador proporciona los fallbacks de desarrollo definidos en `src/utiles/TaleSpireAdapter.ts` y `src/utiles/lanzadorDados.ts`.
 
+El transformador local se ejecuta con `pnpm run transformar-hechizos <entrada-cruda.json> <salida.json>`, indicando dos archivos distintos. Solo acepta el formato crudo de migración; `src/utiles/compendios/all.json` ya es canónico y se rechaza como entrada.
+
 ## Compilación y despliegue en TaleSpire
 
 La carpeta de salida se define en `build_folder_name.json`:
@@ -83,6 +85,8 @@ pnpm deploy
 - Linux: la instalación de Steam de TaleSpire bajo `~/.local/share/Steam/steamapps/compatdata/720620/pfx/drive_c/users/steamuser/AppData/LocalLow/BouncyRock Entertainment/TaleSpire/Symbiotes/ToolSet_Es_5.5`.
 
 El script limpia `assets`, `index.html` y `manifest.json` de la compilación anterior y copia `dist`. Si TaleSpire mantiene un archivo abierto, puede aparecer `EBUSY` o `EPERM`; cierra TaleSpire o recarga/cierra el Symbiote y vuelve a ejecutar el comando. El script intenta renombrar archivos bloqueados antes de abortar.
+
+La fuente canónica del manifiesto es `public/manifest.json`. Vite lo sirve en desarrollo y lo copia a la raíz de `dist` o del directorio de empaquetado; esa salida compilada es la que se instala en TaleSpire.
 
 Para crear el paquete que se sube a mod.io:
 

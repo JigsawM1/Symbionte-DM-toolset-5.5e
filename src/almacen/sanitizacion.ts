@@ -134,10 +134,6 @@ export function sanearObjetoHomebrew(o: unknown): ObjetoHomebrew {
       rarezaSaneada = "Legendario";
     } else if (rarezaLower.includes("artifact")) {
       rarezaSaneada = "Artefacto";
-    } else if (rarezaLower === "uncommon") {
-      rarezaSaneada = "Poco Común";
-    } else if (rarezaLower === "very_rare") {
-      rarezaSaneada = "Muy Raro";
     }
   }
 
@@ -841,9 +837,7 @@ export function sanearHechizoCD(h: HechizoBase): HechizoBase {
     else if (valorOriginal === "INT" || valorOriginal.includes("INTELIGENCIA")) cdSalv = "Inteligencia";
     else if (valorOriginal === "SAB" || valorOriginal === "WIS" || valorOriginal.includes("SABIDURÍA") || valorOriginal.includes("SABIDURIA")) cdSalv = "Sabiduría";
     else if (valorOriginal === "CAR" || valorOriginal === "CHA" || valorOriginal.includes("CARISMA")) cdSalv = "Carisma";
-    else if (["Fuerza", "Destreza", "Constitución", "Inteligencia", "Sabiduría", "Carisma"].includes(h.cdSalvacion as string)) {
-      cdSalv = h.cdSalvacion as string;
-    } else {
+    else {
       cdSalv = aplanarValor(h.cdSalvacion);
     }
   }

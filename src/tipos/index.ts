@@ -1,49 +1,11 @@
 import { z } from "zod";
 import {
-  EsquemaCaracteristica,
-  type Caracteristica,
   EsquemaCaracteristicas,
-  type Caracteristicas,
   EsquemaVelocidad,
-  type VelocidadEstructurada,
   EsquemaSentidos,
-  type SentidosEstructurados,
   EsquemaEfectoPasivo,
-  type EfectoPasivo,
-  EsquemaHechizoVinculado,
-  type HechizoVinculado,
-  EsquemaPosicionTS,
-  type PosicionTS,
-  EsquemaTipoTerreno,
-  type TipoTerreno,
-  MULTIPLICADOR_POR_TERRENO,
-  INFORMACION_TERRENO,
-  EsquemaRegistroMovimiento,
-  type RegistroMovimiento
+  EsquemaHechizoVinculado
 } from "./personaje";
-
-export {
-  EsquemaCaracteristica,
-  type Caracteristica,
-  EsquemaCaracteristicas,
-  type Caracteristicas,
-  EsquemaVelocidad,
-  type VelocidadEstructurada,
-  EsquemaSentidos,
-  type SentidosEstructurados,
-  EsquemaEfectoPasivo,
-  type EfectoPasivo,
-  EsquemaHechizoVinculado,
-  type HechizoVinculado,
-  EsquemaPosicionTS,
-  type PosicionTS,
-  EsquemaTipoTerreno,
-  type TipoTerreno,
-  MULTIPLICADOR_POR_TERRENO,
-  INFORMACION_TERRENO,
-  EsquemaRegistroMovimiento,
-  type RegistroMovimiento
-};
 
 // ==========================================
 // 1. CARACTERÍSTICAS Y CAPACIDADES DE D&D 2024
@@ -81,44 +43,12 @@ export const EsquemaHabilidades = z.object({
 });
 export type Habilidades = z.infer<typeof EsquemaHabilidades>;
 
-export const EsquemaHabilidad = z.enum([
-  "acrobacias",
-  "manejoAnimales",
-  "arcanos",
-  "atletismo",
-  "engaño",
-  "historia",
-  "perspicacia",
-  "intimidacion",
-  "investigacion",
-  "medicina",
-  "naturaleza",
-  "percepcion",
-  "interpretacion",
-  "persuasion",
-  "religion",
-  "juegoManos",
-  "sigilo",
-  "supervivencia"
-]);
+export const EsquemaHabilidad = EsquemaHabilidades.keyof();
 export type Habilidad = z.infer<typeof EsquemaHabilidad>;
 
 // ==========================================
 // 2. ENUMERACIONES CORE EN ESPAÑOL (D&D 5.5e)
 // ==========================================
-
-export const EsquemaTipoDaño = z.enum([
-  "Ácido", "Contundente", "Frío", "Fuego", "Fuerza", "Relámpago",
-  "Necrótico", "Perforante", "Veneno", "Psíquico", "Radiante", "Cortante", "Trueno"
-]);
-export type TipoDaño = z.infer<typeof EsquemaTipoDaño>;
-
-export const EsquemaCondicion = z.enum([
-  "Apresado", "Asustado", "Cegado", "Derribado", "Envenenado", "Ensordecido",
-  "Hechizado", "Incapacitado", "Inconsciente", "Invisible", "Paralizado",
-  "Petrificado", "Restringido", "Aturdido", "Agotamiento"
-]);
-export type Condicion = z.infer<typeof EsquemaCondicion>;
 
 export const EsquemaTipoMonstruo = z.enum([
   "Aberración", "Bestia", "Celestial", "Constructo", "Dragón", "Elemental",
@@ -145,7 +75,6 @@ import { CATEGORIAS_EQUIPO, type CategoriaEquipo } from "@/constantes/categorias
 export const EsquemaCategoriaEquipo = z.enum(CATEGORIAS_EQUIPO);
 export type { CategoriaEquipo };
 
-export const EsquemaSubcategoriaEquipo = z.string();
 export type SubcategoriaEquipo = string;
 
 export type TipoMoneda = "PC" | "PP" | "PE" | "PO" | "PPT";

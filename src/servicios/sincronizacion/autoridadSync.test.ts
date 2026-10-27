@@ -1,4 +1,4 @@
-import { EsquemaWireMensajeSync } from "@/tipos/sync";
+import { EsquemaWireMensajeSync, type WireChunkIniciativa } from "@/tipos/sync";
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ts } from '@/utiles/TaleSpireAdapter';
 import { autorizarMensaje as autorizarVerificado, invalidarAutoridadSync } from './autoridadSync';
@@ -30,6 +30,32 @@ describe('Autoridad nativa de sincronización', () => {
   it('acepta el DM confirmado por getMoreInfo', async () => {
     expect(await autorizarMensaje({ v: 2, s: 'sesion', t: 'DM', d: { c: [], t: 0, r: 2, v: true, mv: 'maximo' } }, dm)).toBe(true);
   });
+  it.each([{ remitente: dm, aceptado: true }, { remitente: jugador, aceptado: false }])(
+    'conserva la recepción de DM_CHUNK fuera de orden según la autoridad nativa (aceptado=$aceptado)',
+    async ({ remitente, aceptado }) => {
+      usarAlmacenDM.setState({ personajes: [], colaIniciativa: [], indiceTurnoActivo: 0 });
+      const fragmentos = [1, 2].map((chunk): WireChunkIniciativa => ({
+        sid: 150, chunk, total: 2, t: 1, r: 3, v: true, mv: 'maximo', ts: 10,
+        c: [{ id: `monstruo-${chunk}`, n: `Enemigo ${chunk}`, i: chunk, va: 7, vm: 7, vt: 0, m: true, c: [] }],
+      }));
+      const recibir = (fragmento: WireChunkIniciativa): void | Promise<void> => {
+        const datos = { v: 2, s: 'compatibilidad', t: 'DM_CHUNK', d: fragmento };
+        return procesarMensajeSyncEntrante({ datos, strCrudo: JSON.stringify(datos), fromClient: remitente });
+      };
+
+      await recibir({ ...fragmentos[0], chunk: 0 });
+      await recibir(fragmentos[1]);
+      expect(usarAlmacenDM.getState().colaIniciativa).toEqual([]);
+      expect(usarAlmacenDM.getState().rondaActual).toBe(1);
+      await recibir(fragmentos[0]);
+
+      const estado = usarAlmacenDM.getState();
+      expect(estado.colaIniciativa.map(c => c.id)).toEqual(aceptado ? ['monstruo-1', 'monstruo-2'] : []);
+      expect(estado.rondaActual).toBe(aceptado ? 3 : 1);
+      expect(estado.indiceTurnoActivo).toBe(aceptado ? 1 : 0);
+      expect(estado.aplicandoSync).toBe(false);
+    }
+  );
   it('rechaza una ficha con mini ajena y un acompañante ajeno', async () => {
     const mensaje = { v: 2 as const, s: 'sesion', t: 'PJ' as const, d: { id: 'pj', m: 'ajena', n: 'Pj', i: 0, va: 10, vm: 10 } };
     expect(await autorizarMensaje(mensaje, jugador)).toBe(false);

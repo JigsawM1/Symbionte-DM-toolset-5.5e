@@ -14,7 +14,6 @@ import { logger } from "@/utiles/logger";
 
 export interface SliceSync {
   aplicandoSync: boolean;
-  ultimoSyncRecibido: number | null;
   idClienteDM: string | null;
   timestampsModificacionLocal: Record<string, number>;
   borradoresSync: Record<string, BorradorCombatePJ>;
@@ -22,7 +21,6 @@ export interface SliceSync {
   descartarBorradorSync: (id: string) => void;
   reaplicarBorradorSync: (id: string) => boolean;
 
-  establecerAplicandoSync: (aplicando: boolean) => void;
   establecerIdClienteDM: (id: string | null) => void;
   registrarModificacionLocalPJ: (id: string, ts?: number) => void;
   confirmarACKPJ: (id: string, ts: number) => void;
@@ -39,7 +37,6 @@ export const crearSliceSync: StateCreator<
   SliceSync
 > = (set, get) => ({
   aplicandoSync: false,
-  ultimoSyncRecibido: null,
   idClienteDM: null,
   timestampsModificacionLocal: {},
   borradoresSync: {},
@@ -61,10 +58,6 @@ export const crearSliceSync: StateCreator<
     s.actualizarPersonajeDesdeSync(borrador, 'borrador');
     get().descartarBorradorSync(id);
     return true;
-  },
-
-  establecerAplicandoSync: (aplicando: boolean) => {
-    set({ aplicandoSync: aplicando });
   },
 
   establecerIdClienteDM: (id: string | null) => {
@@ -223,7 +216,6 @@ export const crearSliceSync: StateCreator<
       rondaActual: datos.rondaActual,
       mostrarPorcentajeVidaAJugadores: datos.mostrarPorcentajeVidaAJugadores,
       metodoVidaMonstruo: datos.metodoVidaMonstruo as "estandar" | "maximo" | "azar",
-      ultimoSyncRecibido: Date.now(),
     });
 
     // Liberar flag en el siguiente microtask tras disparar listeners de Zustand
@@ -238,6 +230,14 @@ export const crearSliceSync: StateCreator<
     const { personajes, colaIniciativa, timestampsModificacionLocal } = get();
     const ahora = Date.now();
     const locales = origen === 'borrador' ? dto : undefined;
+    const tieneEdicionReciente = (id: string): boolean => {
+      const tsLocal = timestampsModificacionLocal[id];
+      return Boolean(
+        origen === 'remoto' && tsLocal &&
+          ahora - tsLocal < VENTANA_PROTECCION_MUTACION_MS &&
+          (!dto.ts || dto.ts < tsLocal)
+      );
+    };
 
     // 1. Localizar personaje en la colección del DM
     const indexPj = personajes.findIndex((p) => {
@@ -266,12 +266,7 @@ export const crearSliceSync: StateCreator<
           idsProcesados.add(acompDTO.id);
           const local = locales?.acompanantes?.find(a => a.id === acompDTO.id);
 
-          const tsModAcompDM = timestampsModificacionLocal[acompExistente.id];
-          const edicionRecienteAcompDM = Boolean(
-            origen === 'remoto' && tsModAcompDM &&
-              ahora - tsModAcompDM < VENTANA_PROTECCION_MUTACION_MS &&
-              (!dto.ts || dto.ts < tsModAcompDM)
-          );
+          const edicionRecienteAcompDM = tieneEdicionReciente(acompExistente.id);
 
           return {
             ...acompExistente,
@@ -335,12 +330,7 @@ export const crearSliceSync: StateCreator<
         acompSincronizados = [...actualizados, ...nuevosAcomps];
       }
 
-      const tsModPjDM = timestampsModificacionLocal[pjExistente.id];
-      const edicionRecientePjDM = Boolean(
-        origen === 'remoto' && tsModPjDM &&
-          ahora - tsModPjDM < VENTANA_PROTECCION_MUTACION_MS &&
-          (!dto.ts || dto.ts < tsModPjDM)
-      );
+      const edicionRecientePjDM = tieneEdicionReciente(pjExistente.id);
 
       const pjActualizado = {
         ...pjExistente,
@@ -399,12 +389,7 @@ export const crearSliceSync: StateCreator<
           criatura.idPersonajeDuenio === dto.id ||
           (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, dto.nombre));
       if (coincidePorIdPJ) {
-        const tsModColaDM = timestampsModificacionLocal[criatura.id];
-        const edicionRecienteColaDM = Boolean(
-          origen === 'remoto' && tsModColaDM &&
-            ahora - tsModColaDM < VENTANA_PROTECCION_MUTACION_MS &&
-            (!dto.ts || dto.ts < tsModColaDM)
-        );
+        const edicionRecienteColaDM = tieneEdicionReciente(criatura.id);
 
         return {
           ...criatura,
@@ -439,12 +424,7 @@ export const crearSliceSync: StateCreator<
 
         if (acompCoincidente) {
           const local = locales?.acompanantes?.find(a => a.id === acompCoincidente.id);
-          const tsModAcompColaDM = timestampsModificacionLocal[criatura.id];
-          const edicionRecienteAcompColaDM = Boolean(
-            origen === 'remoto' && tsModAcompColaDM &&
-              ahora - tsModAcompColaDM < VENTANA_PROTECCION_MUTACION_MS &&
-              (!dto.ts || dto.ts < tsModAcompColaDM)
-          );
+          const edicionRecienteAcompColaDM = tieneEdicionReciente(criatura.id);
 
           return {
             ...criatura,
@@ -505,7 +485,6 @@ export const crearSliceSync: StateCreator<
       aplicandoSync: origen === 'remoto',
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,
-      ultimoSyncRecibido: Date.now(),
     });
 
     if (origen === 'remoto') queueMicrotask(() => {

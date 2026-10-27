@@ -193,7 +193,6 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     }
 
     if (acompAsociado && pjDuenioAcomp) {
-      let bonificadorIniciativa = 0;
       let plantillaProyectada: MonstruoBase | undefined = undefined;
 
       if (acompAsociado.idPlantilla && esIdInvocacionEscalable(acompAsociado.idPlantilla)) {
@@ -206,15 +205,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
             contextoLanzador,
             acompAsociado.subtipoInvocacion
           );
-          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
         }
       } else if (acompAsociado.idPlantilla) {
         plantillaProyectada = indiceMonstruos.porId.get(acompAsociado.idPlantilla);
-        if (plantillaProyectada) {
-          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
-        }
       }
 
+      const bonificadorIniciativa = plantillaProyectada?.iniciativaBonificador ?? 0;
       const caFinal = acompAsociado.ca || plantillaProyectada?.ca || 10;
       const vidaMaxFinal = acompAsociado.vidaMaxima || plantillaProyectada?.vidaMaxima || 10;
       const vidaActFinal = acompAsociado.vidaActual !== undefined ? acompAsociado.vidaActual : vidaMaxFinal;

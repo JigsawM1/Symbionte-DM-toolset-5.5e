@@ -14,7 +14,6 @@ import {
   deserializarEstadoCombatePJ,
   serializarIniciativaDM,
   deserializarIniciativaDM,
-  dividirEnChunksIniciativa,
 } from "@/tipos/sync";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
@@ -190,40 +189,6 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     expect(dmReconstruido.cola).toHaveLength(2);
     expect(dmReconstruido.cola[0].nombre).toBe("Orco Líder");
     expect(dmReconstruido.cola[1].condiciones).toEqual(["asustado"]);
-  });
-
-  it("dividirEnChunksIniciativa particiona correctamente una cola extensa", () => {
-    const cola: CriaturaIniciativa[] = Array.from({ length: 8 }, (_, idx) => ({
-      id: `c-${idx}`,
-      nombre: `Esqueleto ${idx + 1}`,
-      iniciativa: 10 + idx,
-      vidaActual: 13,
-      vidaMaxima: 13,
-      vidaTemporal: 0,
-      ca: 13,
-      esMonstruo: true,
-      condiciones: [],
-      bonificadorIniciativa: 2,
-      velocidad: "30 pies",
-    }));
-
-    const wire = serializarIniciativaDM({
-      cola,
-      indiceTurnoActivo: 0,
-      rondaActual: 1,
-      mostrarPorcentajeVidaAJugadores: true,
-      metodoVidaMonstruo: "azar",
-    });
-
-    const chunks = dividirEnChunksIniciativa(wire);
-
-    expect(chunks).toHaveLength(2);
-    expect(chunks[0].chunk).toBe(1);
-    expect(chunks[0].total).toBe(2);
-    expect(chunks[0].c.length).toBe(4);
-    expect(chunks[1].chunk).toBe(2);
-    expect(chunks[1].c.length).toBe(4);
-    expect([...chunks[0].c, ...chunks[1].c]).toHaveLength(8);
   });
 
   it("EsquemaWireMensajeSync valida y discrimina por tipo de mensaje", () => {

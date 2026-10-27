@@ -40,7 +40,25 @@ export function evaluarFiltrosHechizo(
   filtroResolucion: "todos" | "ataque" | "salvacion" | "utilidad",
   filtroComponentes: FiltroComponentesConjuro
 ): boolean {
-  // 1. Filtro de búsqueda por texto (evalúa campos cortos antes de la descripción larga en una sola llamada)
+  // OPTIMIZACIÓN DE RENDIMIENTO: Cortocircuito O(1) evaluando primero filtros simples de propiedades
+  // antes de la búsqueda tolerante de texto (que normaliza cadenas y tokeniza descripciones largas).
+
+  // 1. Filtro de Concentración (O(1))
+  if (filtroConcentracion === "sin" && hechizo.concentracion) return false;
+  if (filtroConcentracion === "con" && !hechizo.concentracion) return false;
+
+  // 2. Filtro de Resolución (O(1))
+  if (filtroResolucion === "ataque" && !esConjuroAtaque(hechizo)) return false;
+  if (filtroResolucion === "salvacion" && !esConjuroSalvacion(hechizo)) return false;
+  if (filtroResolucion === "utilidad" && !esConjuroUtilidad(hechizo)) return false;
+
+  // 3. Filtro de Componentes (O(1))
+  if (filtroComponentes.sinV && tieneComponente(hechizo.componentesSeleccionados, "V")) return false;
+  if (filtroComponentes.sinS && tieneComponente(hechizo.componentesSeleccionados, "S")) return false;
+  if (filtroComponentes.sinM && tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
+  if (filtroComponentes.soloM && !tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
+
+  // 4. Filtro de búsqueda por texto (se evalúa al final solo si superó los filtros inmediatos O(1))
   if (busqueda.trim()) {
     const coincide = coincideBusquedaTolerante(
       [hechizo.nombre, hechizo.escuela, hechizo.descripcion],
@@ -48,21 +66,6 @@ export function evaluarFiltrosHechizo(
     );
     if (!coincide) return false;
   }
-
-  // 2. Filtro de Concentración
-  if (filtroConcentracion === "sin" && hechizo.concentracion) return false;
-  if (filtroConcentracion === "con" && !hechizo.concentracion) return false;
-
-  // 3. Filtro de Resolución (Ataque vs Salvación CD vs Utilidad)
-  if (filtroResolucion === "ataque" && !esConjuroAtaque(hechizo)) return false;
-  if (filtroResolucion === "salvacion" && !esConjuroSalvacion(hechizo)) return false;
-  if (filtroResolucion === "utilidad" && !esConjuroUtilidad(hechizo)) return false;
-
-  // 4. Filtro de Componentes
-  if (filtroComponentes.sinV && tieneComponente(hechizo.componentesSeleccionados, "V")) return false;
-  if (filtroComponentes.sinS && tieneComponente(hechizo.componentesSeleccionados, "S")) return false;
-  if (filtroComponentes.sinM && tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
-  if (filtroComponentes.soloM && !tieneComponente(hechizo.componentesSeleccionados, "M")) return false;
 
   return true;
 }

@@ -15,15 +15,11 @@ import type {
   InfoCampania,
   ColaIniciativaTS,
   FragmentoCriatura,
-  SeleccionCriaturas,
   DescriptorTirada,
   GrupoResultadosTirada,
   FragmentoOId,
   FragmentoJugador,
   InfoCriatura,
-  EventoIniciativaActualizada,
-  PaqueteContenidoTS,
-  InfoObjetoTableroTS,
   TaleSpireAPI,
   EventoClienteTS,
   FragmentoCliente,
@@ -245,18 +241,6 @@ class TaleSpireAdapter {
       return null;
     },
 
-    /**
-     * Suscribe un callback para eventos de cambio en la iniciativa.
-     */
-    suscribirAEvento: (callback: (evento?: EventoIniciativaActualizada) => void): { desuscribir: () => void } => {
-      if (window.TS?.initiative?.onInitiativeEvent && typeof window.TS.initiative.onInitiativeEvent.subscribe === "function") {
-        const sub = window.TS.initiative.onInitiativeEvent.subscribe((datos) => {
-          callback(datos);
-        });
-        return { desuscribir: () => limpiarSuscripcionNativa(sub) };
-      }
-      return { desuscribir: () => {} };
-    }
   };
 
   // ==========================================
@@ -272,19 +256,6 @@ class TaleSpireAdapter {
         return await window.TS.creatures.getSelectedCreatures();
       }
       return [];
-    },
-
-    /**
-     * Suscribe un callback para cambios en la selección física de miniaturas.
-     */
-    suscribirASeleccion: (callback: (datos: SeleccionCriaturas) => void): { desuscribir: () => void } => {
-      if (window.TS?.creatures?.onCreatureSelectionChange && typeof window.TS.creatures.onCreatureSelectionChange.subscribe === "function") {
-        const sub = window.TS.creatures.onCreatureSelectionChange.subscribe((datos) => {
-          callback(datos);
-        });
-        return { desuscribir: () => limpiarSuscripcionNativa(sub) };
-      }
-      return { desuscribir: () => {} };
     },
 
     /**
@@ -414,111 +385,6 @@ class TaleSpireAdapter {
   };
 
   // ==========================================
-  // --- CONTENT PACKS (ASSETS & THUMBNAILS API) ---
-  // ==========================================
-
-  contentPacks = {
-    /**
-     * Obtiene la lista de fragmentos de paquetes de contenido cargados en TaleSpire.
-     */
-    getContentPacks: async (): Promise<PaqueteContenidoTS[]> => {
-      const cp = window.TS?.contentPacks;
-      if (cp && typeof cp.getContentPacks === "function") {
-        try {
-          const resultado = await cp.getContentPacks();
-          logger.debug("[TS Adapter contentPacks] getContentPacks retorno:", resultado);
-          return resultado || [];
-        } catch (e) {
-          logger.error("[TS Adapter contentPacks] Error al obtener getContentPacks:", e);
-        }
-      } else {
-        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.getContentPacks no está disponible");
-      }
-      return [];
-    },
-
-    /**
-     * Obtiene metadatos e información extendida sobre los paquetes de contenido.
-     */
-    getMoreInfo: async (packs: PaqueteContenidoTS[] | unknown[]): Promise<PaqueteContenidoTS[]> => {
-      const cp = window.TS?.contentPacks;
-      if (cp && typeof cp.getMoreInfo === "function") {
-        try {
-          const resultado = await cp.getMoreInfo(packs);
-          logger.debug("[TS Adapter contentPacks] getMoreInfo retorno:", resultado?.length, "paquetes con información");
-          return resultado || [];
-        } catch (e) {
-          logger.error("[TS Adapter contentPacks] Error al obtener getMoreInfo de contentPacks:", e);
-        }
-      } else {
-        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.getMoreInfo no está disponible");
-      }
-      return [];
-    },
-
-    /**
-     * Busca un objeto del tablero (miniatura/prop/tile) dentro de los paquetes de contenido.
-     */
-    findBoardObjectInPacks: async (boardObjectId: string, packsInfos: PaqueteContenidoTS[] | unknown[]): Promise<InfoObjetoTableroTS | null> => {
-      const cp = window.TS?.contentPacks;
-      if (cp && typeof cp.findBoardObjectInPacks === "function") {
-        try {
-          const resultado = await cp.findBoardObjectInPacks(boardObjectId, packsInfos);
-          logger.debug(`[TS Adapter contentPacks] findBoardObjectInPacks para '${boardObjectId}':`, resultado);
-          return resultado;
-        } catch (e) {
-          logger.warn(`[TS Adapter contentPacks] Error al buscar objeto '${boardObjectId}' en contentPacks:`, e);
-        }
-      } else {
-        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.findBoardObjectInPacks no está disponible");
-      }
-      return null;
-    },
-
-    /**
-     * Crea un elemento DOM (canvas/img) con la miniatura renderizada del catálogo 3D de TaleSpire.
-     */
-    createThumbnailElementForBoardObject: async (boardObjectInfo: InfoObjetoTableroTS | unknown, size?: number): Promise<HTMLElement | null> => {
-      const cp = window.TS?.contentPacks;
-      if (cp && typeof cp.createThumbnailElementForBoardObject === "function") {
-        // Probamos tanto el objeto interno (.boardObject) como la envoltura completa
-        const objInfo = boardObjectInfo as InfoObjetoTableroTS | undefined;
-        const candidatos = [
-          objInfo?.boardObject,
-          boardObjectInfo
-        ].filter(Boolean);
-
-        for (const candidato of candidatos) {
-          if (size !== undefined) {
-            try {
-              const el = await cp.createThumbnailElementForBoardObject(candidato, size);
-              if (el) {
-                logger.debug("[TS Adapter contentPacks] Thumbnail creado con tamaño especificado:", el);
-                return el;
-              }
-            } catch (e1) {
-              logger.debug("[TS Adapter contentPacks] Intento con tamaño falló:", e1);
-            }
-          }
-
-          try {
-            const el = await cp.createThumbnailElementForBoardObject(candidato);
-            if (el) {
-              logger.debug("[TS Adapter contentPacks] Thumbnail creado con tamaño por defecto:", el);
-              return el;
-            }
-          } catch (e2) {
-            logger.debug("[TS Adapter contentPacks] Intento sin tamaño falló:", e2);
-          }
-        }
-      } else {
-        logger.warn("[TS Adapter contentPacks] window.TS.contentPacks.createThumbnailElementForBoardObject no está disponible");
-      }
-      return null;
-    }
-  };
-
-  // ==========================================
   // --- CAMPAÑA (CAMPAIGNS API) ---
   // ==========================================
 
@@ -580,12 +446,6 @@ class TaleSpireAdapter {
       }
     },
 
-    /**
-     * Retorna de forma síncrona el valor en caché de numberPerTile o 5 por defecto.
-     */
-    obtenerNumberPerTileCache: (): number => {
-      return this.cacheUnidadesDistancia?.datos?.numberPerTile ?? 5;
-    }
   };
 
   // ==========================================
@@ -1100,38 +960,6 @@ class TaleSpireAdapter {
       }
       this.colaEnvioSync = restantes;
       return descartados;
-    },
-
-    /**
-     * Envía un mensaje a una lista de clientes específicos (máximo 20).
-     */
-    multiSend: async (message: string, targets: string[]): Promise<boolean> => {
-      const ts = this.tsGlobal;
-      if (ts?.sync && typeof ts.sync.multiSend === "function") {
-        try {
-          await ts.sync.multiSend(message, targets);
-          return true;
-        } catch (error) {
-          logger.error("[TS Adapter] Error en sync.multiSend nativo:", error);
-          return false;
-        }
-      }
-      return false;
-    },
-
-    /**
-     * Retorna el listado de clientes actualmente conectados al canal de sync.
-     */
-    getClientsConnected: async (): Promise<FragmentoCliente[]> => {
-      const ts = this.tsGlobal;
-      if (ts?.sync && typeof ts.sync.getClientsConnected === "function") {
-        try {
-          return await ts.sync.getClientsConnected();
-        } catch (error) {
-          logger.error("[TS Adapter] Error en sync.getClientsConnected nativo:", error);
-        }
-      }
-      return [];
     },
 
     /**

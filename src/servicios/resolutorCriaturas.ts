@@ -83,10 +83,6 @@ export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: str
   const normB = normalizarNombreTaleSpire(nombreB);
 
   return (
-    normA.completo === normB.completo ||
-    normA.base === normB.base ||
-    normA.completo === normB.base ||
-    normA.base === normB.completo ||
     normA.completoSinTildes === normB.completoSinTildes ||
     normA.baseSinTildes === normB.baseSinTildes ||
     normA.completoSinTildes === normB.baseSinTildes ||
@@ -143,34 +139,16 @@ export function resolverPlantillaPorCriatura(
   let plantillaGanadora: MonstruoBase | undefined = undefined;
   let longitudMaxima = 0;
 
-  if (indice.entradasPrefijo && indice.entradasPrefijo.length > 0) {
-    for (const entrada of indice.entradasPrefijo) {
-      if (
-        completo.startsWith(entrada.nombreLower) ||
-        base.startsWith(entrada.nombreLower) ||
-        completoSinTildes.startsWith(entrada.nombreSinTildes) ||
-        baseSinTildes.startsWith(entrada.nombreSinTildes)
-      ) {
-        if (entrada.longitud > longitudMaxima) {
-          longitudMaxima = entrada.longitud;
-          plantillaGanadora = entrada.monstruo;
-        }
-      }
-    }
-  } else {
-    for (const m of indice.listaCompleta) {
-      const nombrePlantilla = m.nombre.toLowerCase().trim();
-      const pSinTildes = quitarDiacriticos(nombrePlantilla);
-      if (
-        completo.startsWith(nombrePlantilla) ||
-        base.startsWith(nombrePlantilla) ||
-        completoSinTildes.startsWith(pSinTildes) ||
-        baseSinTildes.startsWith(pSinTildes)
-      ) {
-        if (nombrePlantilla.length > longitudMaxima) {
-          longitudMaxima = nombrePlantilla.length;
-          plantillaGanadora = m;
-        }
+  for (const entrada of indice.entradasPrefijo) {
+    if (
+      completo.startsWith(entrada.nombreLower) ||
+      base.startsWith(entrada.nombreLower) ||
+      completoSinTildes.startsWith(entrada.nombreSinTildes) ||
+      baseSinTildes.startsWith(entrada.nombreSinTildes)
+    ) {
+      if (entrada.longitud > longitudMaxima) {
+        longitudMaxima = entrada.longitud;
+        plantillaGanadora = entrada.monstruo;
       }
     }
   }

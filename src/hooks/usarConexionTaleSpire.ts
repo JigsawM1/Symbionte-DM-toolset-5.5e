@@ -307,19 +307,7 @@ export function usarConexionTaleSpire() {
               personajeVinculado = personajes.find((p) => p.id === idStr);
             }
 
-            // 3. Fallback: Si el personaje activo está vinculado a esta miniatura
-            if (!personajeVinculado && estado.idPersonajeActivo) {
-              const pjActivo = personajes.find((p) => p.id === estado.idPersonajeActivo);
-              if (
-                pjActivo &&
-                pjActivo.idMiniaturaTS &&
-                pjActivo.idMiniaturaTS.toLowerCase() === idStr.toLowerCase()
-              ) {
-                personajeVinculado = pjActivo;
-              }
-            }
-
-            // 4. Búsqueda en acompañantes de personajes
+            // 3. Búsqueda en acompañantes de personajes
             let acompananteVinculado: { personajeId: string; acompId: string; multiplicadorTerreno: number } | null = null;
             if (!personajeVinculado) {
               for (const p of personajes) {
@@ -578,48 +566,30 @@ export function usarConexionTaleSpire() {
       }
     };
 
-    // Intentar suscripción inmediata (si estamos dentro de TaleSpire y ya inyectó)
-    if (suscribirAPIs()) {
-      return () => {
-        activo = false;
-        clearInterval(timerTiradas); limpiarRegistrosTiradas();
-        if (typeof window !== "undefined") {
-          window.removeEventListener("beforeunload", ejecutarFlushEmergencia);
-          window.removeEventListener("pagehide", ejecutarFlushEmergencia);
+    // ponytail: una sola limpieza para la suscripción inmediata y el sondeo.
+    let intervalo: ReturnType<typeof setInterval> | null = null;
+    if (!suscribirAPIs()) {
+      // 16 intentos x 250ms = 4 segundos de espera máxima para inyección CEF.
+      let intentos = 0;
+      const maxIntentos = 16;
+      intervalo = setInterval(() => {
+        intentos++;
+        if (suscribirAPIs()) {
+          if (intervalo !== null) clearInterval(intervalo);
+        } else if (intentos >= maxIntentos) {
+          if (intervalo !== null) clearInterval(intervalo);
+          logger.warn("[TaleSpire Simbionte] La API nativa de TaleSpire no apareció. Operando en modo desconectado o navegador estándar. Cargando datos desde almacenamiento local...");
+          if (activo) {
+            cargarDatosPersistidos();
+          }
         }
-        if (timerInicializacion) clearTimeout(timerInicializacion);
-        if (desuscribirSeleccion) desuscribirSeleccion();
-        if (desuscribirIniciativa) desuscribirIniciativa();
-        if (desuscribirCliente) desuscribirCliente();
-        if (desuscribirSync) desuscribirSync();
-        if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();
-        if (desuscribirEstadoSimbionte) desuscribirEstadoSimbionte();
-        if (desuscribirObservadoresSync) desuscribirObservadoresSync();
-        puenteTaleSpire.destruir();
-      };
+      }, 250);
     }
-
-    // Si no está listo, sondeamos periódicamente con intervalo equilibrado de 250ms (4/s).
-    let intentos = 0;
-    const maxIntentos = 16; // 16 intentos x 250ms = 4 segundos de espera máxima para inyección CEF
-    
-    const intervalo = setInterval(() => {
-      intentos++;
-      if (suscribirAPIs()) {
-        clearInterval(intervalo);
-      } else if (intentos >= maxIntentos) {
-        clearInterval(intervalo);
-        logger.warn("[TaleSpire Simbionte] La API nativa de TaleSpire no apareció. Operando en modo desconectado o navegador estándar. Cargando datos desde almacenamiento local...");
-        if (activo) {
-          cargarDatosPersistidos();
-        }
-      }
-    }, 250);
 
     return () => {
       activo = false;
       clearInterval(timerTiradas); limpiarRegistrosTiradas();
-      clearInterval(intervalo);
+      if (intervalo !== null) clearInterval(intervalo);
       if (typeof window !== "undefined") {
         window.removeEventListener("beforeunload", ejecutarFlushEmergencia);
         window.removeEventListener("pagehide", ejecutarFlushEmergencia);

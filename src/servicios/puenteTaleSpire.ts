@@ -306,11 +306,6 @@ class PuenteTaleSpireClass {
         }
       }
 
-      // Si tenemos datos como objeto que aún no se parsearon pero tenemos str
-      if (!datos && str) {
-        datos = parsearJsonSeguro(str, "fallback final con str");
-      }
-
       if (datos) {
         this.emit("mensajeSync", { datos, strCrudo: str, fromClient });
       } else {

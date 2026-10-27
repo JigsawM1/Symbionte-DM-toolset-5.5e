@@ -51,18 +51,21 @@ export const ListaHechizos: React.FC = () => {
   // Filtrar y ordenar hechizos priorizando el título
   const hechizosFiltrados = useMemo(() => {
     const filtrados = baseDatosHechizos.filter((hechizo) => {
+      // OPTIMIZACIÓN: Cortocircuito O(1) con filtros de nivel y escuela antes de la búsqueda por texto
+      const coincideNivel =
+        nivelFiltro === "todos" ? true : hechizo.nivel === nivelFiltro;
+      if (!coincideNivel) return false;
+
+      const coincideEscuela =
+        escuelaFiltro === "todas" ? true : hechizo.escuela === escuelaFiltro;
+      if (!coincideEscuela) return false;
+
       const coincideTexto = coincideBusquedaTolerante(
         [hechizo.nombre, hechizo.descripcion, hechizo.escuela],
         busqueda
       );
 
-      const coincideNivel =
-        nivelFiltro === "todos" ? true : hechizo.nivel === nivelFiltro;
-
-      const coincideEscuela =
-        escuelaFiltro === "todas" ? true : hechizo.escuela === escuelaFiltro;
-
-      return coincideTexto && coincideNivel && coincideEscuela;
+      return coincideTexto;
     });
 
     return filtrados.sort(

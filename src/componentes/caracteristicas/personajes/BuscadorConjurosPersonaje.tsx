@@ -39,23 +39,24 @@ export const BuscadorConjurosPersonaje: React.FC<BuscadorConjurosPersonajeProps>
   const resultados = useMemo(() => {
     const busqLimpia = busquedaDiferida.trim();
     const filtrados = baseDatosHechizos.filter((h) => {
-      // Filtro de texto tolerante
+      // ⚡ Cortocircuito O(1): Filtros escalares primero antes de la búsqueda de texto O(n)
+      // Filtro de nivel (O(1))
+      if (filtroNivel !== "todos") {
+        if (h.nivel !== Number(filtroNivel)) return false;
+      }
+
+      // Filtro de escuela (O(1))
+      if (filtroEscuela !== "todas") {
+        if (h.escuela?.toLowerCase() !== filtroEscuela.toLowerCase()) return false;
+      }
+
+      // Filtro de texto tolerante (O(n))
       if (busqLimpia) {
         const coincide = coincideBusquedaTolerante(
           [h.nombre, h.escuela, h.descripcion],
           busqLimpia
         );
         if (!coincide) return false;
-      }
-
-      // Filtro de nivel
-      if (filtroNivel !== "todos") {
-        if (h.nivel !== Number(filtroNivel)) return false;
-      }
-
-      // Filtro de escuela
-      if (filtroEscuela !== "todas") {
-        if (h.escuela?.toLowerCase() !== filtroEscuela.toLowerCase()) return false;
       }
 
       return true;

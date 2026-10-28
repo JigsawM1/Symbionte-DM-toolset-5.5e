@@ -16,7 +16,6 @@ const HECHIZO_BASE_PRUEBA: HechizoBase = {
   escuela: "Evocación",
   tiempoLanzamiento: "1 acción",
   alcance: "150 pies",
-  componentes: "V, S, M",
   duracion: "Instantánea",
   descripcion: "Una explosión brillante despliega un resplandor de fuego en una esfera de 20 pies.",
   concentracion: false,
@@ -50,7 +49,12 @@ describe("filtrosConjuros - Utilidades y evaluador de filtros de conjuro", () =>
 
     it("maneja objetos sin componentesSeleccionados o undefined de forma segura", () => {
       expect(tieneComponente(undefined, "V")).toBe(false);
-      expect(tieneComponente({}, "V")).toBe(false);
+      expect(
+        tieneComponente(
+          { componentesSeleccionados: undefined as unknown as HechizoBase["componentesSeleccionados"] },
+          "V"
+        )
+      ).toBe(false);
     });
   });
 

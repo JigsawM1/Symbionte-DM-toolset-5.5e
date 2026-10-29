@@ -7,7 +7,12 @@
 const cacheNormalizacion = new Map<string, string>();
 const LIMITE_CACHE_NORMALIZACION = 5000;
 
-const cacheTokenizacion = new Map<string, string[]>();
+interface TokensConsultaCache {
+  tokens: string[];
+  tokensSinEnye: string[];
+}
+
+const cacheTokenizacion = new Map<string, TokensConsultaCache>();
 const LIMITE_CACHE_TOKENIZACION = 1000;
 
 /**
@@ -52,14 +57,16 @@ export function tokenizarBusqueda(consulta: string): string[] {
 }
 
 /**
- * Obtiene o calcula de forma cacheada los tokens normalizados de la consulta.
- * ponytail: NFD ya convierte 'ñ' en 'n'; no se guardan variantes duplicadas.
+ * Obtiene o calcula de forma cacheada los tokens normalizados de la consulta
+ * así como sus variantes sin 'ñ' precalculadas para evitar transformaciones repetidas en bucles.
  */
-function obtenerTokensConsulta(consulta: string): string[] {
+function obtenerTokensConsulta(consulta: string): TokensConsultaCache {
   const enCache = cacheTokenizacion.get(consulta);
   if (enCache) return enCache;
 
   const tokens = tokenizarBusqueda(consulta);
+  const tokensSinEnye = tokens.map((t) => (t.includes("ñ") ? t.replace(/ñ/g, "n") : t));
+  const objetoCache: TokensConsultaCache = { tokens, tokensSinEnye };
 
   if (cacheTokenizacion.size >= LIMITE_CACHE_TOKENIZACION) {
     let eliminados = 0;
@@ -69,8 +76,8 @@ function obtenerTokensConsulta(consulta: string): string[] {
       if (eliminados >= 200) break;
     }
   }
-  cacheTokenizacion.set(consulta, tokens);
-  return tokens;
+  cacheTokenizacion.set(consulta, objetoCache);
+  return objetoCache;
 }
 
 /**
@@ -93,7 +100,7 @@ export function coincideBusquedaTolerante(
   if (!consulta || !consulta.trim()) return true;
   if (!objetivos) return false;
 
-  const tokens = obtenerTokensConsulta(consulta);
+  const { tokens } = obtenerTokensConsulta(consulta);
   const numTokens = tokens.length;
   if (numTokens === 0) return true;
 
@@ -210,8 +217,13 @@ export function calcularRelevanciaBusqueda(
   secundarios?: (string | undefined | null)[]
 ): number {
   if (!consulta || !consulta.trim()) return 0;
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return 0;
+
+  // Optimizacion de rendimiento: Usar la caché de tokenización 'obtenerTokensConsulta'
+  // para evitar dividir/normalizar el string de consulta y generar arrays intermedios
+  // en cada una de las miles de llamadas en bucles de filtrado/ordenamiento.
+  const { tokens, tokensSinEnye } = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+  if (numTokens === 0) return 0;
 
   const consultaNorm = normalizarParaBusqueda(consulta);
   const tituloNorm = normalizarParaBusqueda(titulo || "");
@@ -223,15 +235,14 @@ export function calcularRelevanciaBusqueda(
 
     const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
     let coincidencias = 0;
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
-      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+
+    for (let i = 0; i < numTokens; i++) {
+      if (tituloNorm.includes(tokens[i]) || tituloNormSinEnye.includes(tokensSinEnye[i])) {
         coincidencias++;
       }
     }
 
-    if (coincidencias === tokens.length) return 400;
+    if (coincidencias === numTokens) return 400;
     if (coincidencias > 0) return 300;
   }
 

@@ -8,7 +8,6 @@
     "beneficios": [
       "Tratar resultados de 1 y 2 en dados de daño como un 3 con armas a dos manos o versátiles a dos manos"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -21,7 +20,6 @@
     "beneficios": [
       "+2 al daño en ataques a distancia con armas con propiedad arrojadiza"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -43,7 +41,6 @@
     "beneficios": [
       "Sumar modificador por característica al daño del ataque extra con arma ligera"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -57,7 +54,6 @@
       "Ataque desarmado inflige 1d6 + FUE (o 1d8 + FUE sin armas ni escudo)",
       "1d4 de daño contundente a criatura agarrada al inicio de cada turno"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -85,7 +81,6 @@
     "beneficios": [
       "+1 a la Clase de Armadura mientras lleves puesta armadura"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -107,7 +102,6 @@
     "beneficios": [
       "+2 al daño al empuñar un arma cuerpo a cuerpo a una mano (no aplica a dos manos)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "esActivable": true,
     "categoriaMecanica": "activable",
@@ -130,7 +124,6 @@
     "beneficios": [
       "2 trucos de clérigo a tu elección como conjuros de Paladín (Carisma)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "selector_informativo",
     "selectores": [
@@ -154,7 +147,6 @@
     "beneficios": [
       "2 trucos de druida a tu elección como conjuros de Explorador (Sabiduría)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "selector_informativo",
     "selectores": [
@@ -178,7 +170,6 @@
     "beneficios": [
       "Reacción para reducir el daño en 1d10 + PB a un aliado a 5 pies con escudo o arma"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "reaccion",
     "categoriaMecanica": "activable",
     "formulaDados": "1d10 + bono_competencia"
@@ -192,7 +183,6 @@
     "beneficios": [
       "Visión ciega con un alcance de 10 pies"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -205,7 +195,6 @@
     "beneficios": [
       "Reacción para imponer desventaja a ataques contra un aliado a 5 pies embrazando escudo"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "reaccion",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -218,7 +207,6 @@
     "beneficios": [
       "+2 a tiradas de ataque con armas a distancia"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [

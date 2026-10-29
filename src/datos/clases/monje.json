@@ -987,7 +987,6 @@
             {
               "id": "tecnica_mano_abierta_opcion",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Técnica de Mano Abierta",
               "opciones": [
                 {
@@ -1006,7 +1005,6 @@
                   "descripcion": "Tirada de salvación de Destreza o quedar con el estado de Derribado"
                 }
               ],
-              "maxSelecciones": 1,
               "valorActual": [
                 "confundir"
               ],

@@ -181,14 +181,12 @@
           "tipoSelector": "general",
           "etiqueta": "Pericia de nivel 2",
           "maxSelecciones": 2,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "habilidades_pericia",
           "filtroHabilidades": {
             "soloCompetentes": true,
             "excluirPericia": true
-          },
-          "opciones": []
+          }
         }
       ]
     },
@@ -224,15 +222,11 @@
       "selectores": [
         {
           "id": "selector_dote_asi_bardo_nv4",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles",
-          "visualizacion": "normal",
-          "opciones": []
+          "visualizacion": "normal"
         }
       ]
     },
@@ -268,15 +262,11 @@
       "selectores": [
         {
           "id": "selector_dote_asi_bardo_nv8",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles",
-          "visualizacion": "normal",
-          "opciones": []
+          "visualizacion": "normal"
         }
       ]
     },
@@ -294,14 +284,12 @@
           "tipoSelector": "general",
           "etiqueta": "Pericia de nivel 9",
           "maxSelecciones": 2,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "habilidades_pericia",
           "filtroHabilidades": {
             "soloCompetentes": true,
             "excluirPericia": true
-          },
-          "opciones": []
+          }
         }
       ]
     },
@@ -330,15 +318,11 @@
       "selectores": [
         {
           "id": "selector_dote_asi_bardo_nv12",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles",
-          "visualizacion": "normal",
-          "opciones": []
+          "visualizacion": "normal"
         }
       ]
     },
@@ -358,15 +342,11 @@
       "selectores": [
         {
           "id": "selector_dote_asi_bardo_nv16",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles",
-          "visualizacion": "normal",
-          "opciones": []
+          "visualizacion": "normal"
         }
       ]
     },
@@ -392,15 +372,11 @@
       "selectores": [
         {
           "id": "selector_dote_don_epico_bardo_nv19",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles",
-          "visualizacion": "normal",
-          "opciones": []
+          "visualizacion": "normal"
         }
       ]
     },
@@ -631,8 +607,6 @@
               "tipoSelector": "general",
               "etiqueta": "Habilidades adicionales",
               "maxSelecciones": 3,
-              "valorActual": [],
-              "opciones": [],
               "claveOpcionesDinamicas": "habilidades_competencia",
               "visualizacion": "normal"
             }
@@ -666,7 +640,6 @@
               "tipoSelector": "conjuro",
               "etiqueta": "Descubrimientos mágicos",
               "maxSelecciones": 2,
-              "valorActual": [],
               "visualizacion": "lista",
               "claveOpcionesDinamicas": "conjuros_catalogo",
               "destinoConjuros": "siempre_preparados",
@@ -677,8 +650,7 @@
                   "Mago"
                 ],
                 "nivelMaximoPorClase": "Bardo"
-              },
-              "opciones": []
+              }
             }
           ]
         },

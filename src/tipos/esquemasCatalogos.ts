@@ -48,21 +48,14 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
 
   // Mecánicas estructuradas
   esActivable: z.boolean().optional(),
-  autoDesactivar: z.boolean().optional(),
-  autoDesactivarAlTirarDano: z.boolean().optional(),
   dispararAlTirarIniciativa: z.boolean().optional(),
   requiereSinMovimiento: z.boolean().optional(),
-  ligadoA: z.string().optional(),
   requiereOpcion: z.string().optional(),
-  gastarDePadre: z.boolean().optional(),
-  heredarDadosPadre: z.boolean().optional(),
   reducirDadosPadre: z.boolean().optional(),
-  condicionAlActivar: z.string().optional(),
   duracionEfectoAlActivar: z.number().int().optional(),
   conjurosOtorgados: z.array(z.string()).optional(),
   conjuroGratuito: z.string().optional(),
   recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
-  noGastarAlTirarDados: z.boolean().optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
     cantidad: z.union([z.literal("maximo"), z.number().int().min(1)]).optional(),
@@ -314,13 +307,6 @@ export const EsquemaMaestriaArmaJSON = z.object({
 
 export type MaestriaArmaJSON = z.infer<typeof EsquemaMaestriaArmaJSON>;
 
-export const EsquemaPropiedadArmaJSON = z.object({
-  id: z.string().min(1),
-  titulo: z.string().min(1),
-  etiquetaSelector: z.string().optional(),
-  aliases: z.array(z.string()).min(1),
-  descripcion: z.string().min(1),
-  explicacionSelector: z.string().optional()
-});
+export const EsquemaPropiedadArmaJSON = EsquemaMaestriaArmaJSON;
 
 export type PropiedadArmaJSON = z.infer<typeof EsquemaPropiedadArmaJSON>;

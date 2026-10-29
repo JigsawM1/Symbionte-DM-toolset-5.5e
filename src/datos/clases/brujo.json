@@ -54,9 +54,6 @@
           "tipo": "multiple",
           "tipoSelector": "invocacion",
           "etiqueta": "Invocaciones Sobrenaturales Elegidas",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "invocaciones_brujo",
           "escaladoMaxSelecciones": [
@@ -193,12 +190,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_brujo_nv4",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles"
@@ -221,12 +214,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_brujo_nv8",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles"
@@ -300,12 +289,8 @@
       "selectores": [
         {
           "id": "arcano_mistico_nivel_6",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Arcano de nivel 6",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "conjuros6_brujo",
           "destinoConjuros": "arcano_mistico",
@@ -323,12 +308,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_brujo_nv12",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles"
@@ -344,12 +325,8 @@
       "selectores": [
         {
           "id": "arcano_mistico_nivel_7",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Arcano de nivel 7",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "conjuros7_brujo",
           "destinoConjuros": "arcano_mistico",
@@ -374,12 +351,8 @@
       "selectores": [
         {
           "id": "arcano_mistico_nivel_8",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Arcano de nivel 8",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "conjuros8_brujo",
           "destinoConjuros": "arcano_mistico",
@@ -397,12 +370,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_brujo_nv16",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles"
@@ -418,12 +387,8 @@
       "selectores": [
         {
           "id": "arcano_mistico_nivel_9",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Arcano de nivel 9",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "claveOpcionesDinamicas": "conjuros9_brujo",
           "destinoConjuros": "arcano_mistico",
@@ -441,12 +406,8 @@
       "selectores": [
         {
           "id": "selector_dote_don_epico_brujo_nv19",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Don épico u otra dote",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "requiereEleccionExplicita": true,
           "claveOpcionesDinamicas": "dotes_elegibles"
@@ -858,7 +819,6 @@
             {
               "id": "resiliencia_infernal_tipo",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Resistencia elegida",
               "opciones": [
                 {
@@ -1030,8 +990,6 @@
                   ]
                 }
               ],
-              "maxSelecciones": 1,
-              "valorActual": [],
               "visualizacion": "normal"
             }
           ]

@@ -61,6 +61,21 @@ describe("factoriaInvocaciones (DND 5.5e / PHB 2024)", () => {
       expect(vida).toBe(25);
     });
 
+    it("proyecta reacciones no vacías filtrando subtipo, sustituyendo variables y sin alterar la plantilla", () => {
+      const plantilla = { ...plantillaCorcel, reacciones: [
+        { nombre: "Respuesta", subtipoRequerido: "Celestial", uso: "Reacción", recarga: "1/día", descripcion: "tu CD de conjuros; el nivel del conjuro" },
+        { nombre: "Común", descripcion: "Sin restricciones" },
+        { nombre: "Excluida", subtipoRequerido: "Infernal", descripcion: "No corresponde" }
+      ] };
+      const copia = structuredClone(plantilla);
+      const resultado = proyectarInvocacionAMonstruo(plantilla, 3, contextoLanzadorPrueba, "Celestial");
+      expect(resultado.reacciones).toEqual([
+        { nombre: "Respuesta", uso: "Reacción", recarga: "1/día", descripcion: "CD 15; 3" },
+        { nombre: "Común", uso: "", recarga: "", descripcion: "Sin restricciones" }
+      ]);
+      expect(plantilla).toEqual(copia);
+    });
+
     it("calcula CA y Vida exactas a nivel 7 coincidiendo con 5e.tools (CA 17, HP 75)", () => {
       const ca = calcularCAInvocacion(plantillaCorcel, 7);
       const vida = calcularVidaInvocacion(plantillaCorcel, 7);

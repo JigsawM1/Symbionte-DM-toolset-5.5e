@@ -218,6 +218,9 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
   }
 
   const dotesAsiGeneradas: RasgoPersonaje[] = [];
+  const agregarDoteGenerada = (dote: RasgoPersonaje): void => {
+    dotesAsiGeneradas.push(fusionarEstadoRasgo(dote, mapaExistentes.get(dote.id)));
+  };
 
   const canonicosFusionados = canonicosNuevosUnicos.map((nuevoRaw) => {
     let nuevo = nuevoRaw;
@@ -249,32 +252,20 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     if (esRasgoMejoraCaracteristica(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_asi"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_mejora_caracteristica";
-      let doteConstruida = construirDoteDeMejoraCaracteristica(nuevo, idDoteSeleccionada);
-
-      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
-      dotesAsiGeneradas.push(doteConstruida);
+      agregarDoteGenerada(construirDoteDeMejoraCaracteristica(nuevo, idDoteSeleccionada));
     } else if (esRasgoDonEpico(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_don_epico") || s.id.includes("don_epico"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0];
-      let doteConstruida = construirDoteDeDonEpico(nuevo, idDoteSeleccionada);
-
-      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
-      dotesAsiGeneradas.push(doteConstruida);
+      agregarDoteGenerada(construirDoteDeDonEpico(nuevo, idDoteSeleccionada));
     } else if (nuevo.origen === "especie" && esRasgoVersatil(nuevo.nombre, nuevo.origen)) {
       const selectorDote = nuevo.selectores?.find((s) => s.id.includes("dote_origen") || s.id.includes("versatil"));
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_alerta";
-      let doteConstruida = construirDoteDeVersatil(nuevo, idDoteSeleccionada);
-
-      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
-      dotesAsiGeneradas.push(doteConstruida);
+      agregarDoteGenerada(construirDoteDeVersatil(nuevo, idDoteSeleccionada));
     } else if (nuevo.selectores?.some(s => s.categoriaDote === "estilo_combate") || esRasgoEstiloCombate(nuevo.nombre)) {
       const selectorDote = nuevo.selectores?.find((s) => s.categoriaDote === "estilo_combate" || s.id.includes("dote_estilo") || s.id.includes("estilo_combate"));
       if (selectorDote?.categoriaDote && !selectorDote.valorActual.length) return nuevo;
       const idDoteSeleccionada = selectorDote?.valorActual?.[0] || "dote_estilo_defensa";
-      let doteConstruida = construirDoteDeEstiloCombate(nuevo, idDoteSeleccionada);
-
-      doteConstruida = fusionarEstadoRasgo(doteConstruida, mapaExistentes.get(doteConstruida.id));
-      dotesAsiGeneradas.push(doteConstruida);
+      agregarDoteGenerada(construirDoteDeEstiloCombate(nuevo, idDoteSeleccionada));
     }
 
     return nuevo;
@@ -284,8 +275,7 @@ export function sincronizarRasgosAutomaticos(personaje: PersonajeJugador): Rasgo
     const selector = padre.selectores?.find(s => s.categoriaDote === "estilo_combate");
     const elegida = selector?.valorActual[0];
     if (elegida) {
-      const dote = construirDoteDeEstiloCombate(padre, elegida);
-      dotesAsiGeneradas.push(fusionarEstadoRasgo(dote, mapaExistentes.get(dote.id)));
+      agregarDoteGenerada(construirDoteDeEstiloCombate(padre, elegida));
     }
   }
   // 4. Garantizar deduplicación estricta por ID único en el array consolidado final

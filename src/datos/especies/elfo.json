@@ -38,7 +38,6 @@
         {
           "id": "selector_aptitud_magica_elfo",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Aptitud Mágica del Linaje",
           "opciones": [
             {
@@ -57,7 +56,6 @@
               "descripcion": "Usas Carisma como aptitud mágica para los conjuros de tu linaje."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "inteligencia"
           ],
@@ -148,7 +146,6 @@
           "hechizoId": "fuego_feerico",
           "nombreHechizo": "Fuego feérico",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -157,7 +154,6 @@
           "hechizoId": "oscuridad",
           "nombreHechizo": "Oscuridad",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -182,10 +178,7 @@
             {
               "id": "selector_truco_alto_elfo",
               "tipoSelector": "conjuro",
-              "tipo": "unico",
               "etiqueta": "Truco de Mago (Sustituible tras descanso largo)",
-              "maxSelecciones": 1,
-              "opciones": [],
               "valorActual": [
                 "prestidigitacion"
               ],
@@ -232,7 +225,6 @@
           "hechizoId": "detectar_magia",
           "nombreHechizo": "Detectar magia",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -241,7 +233,6 @@
           "hechizoId": "paso_brumoso",
           "nombreHechizo": "Paso brumoso",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -311,7 +302,6 @@
           "hechizoId": "zancada_prodigiosa",
           "nombreHechizo": "Zancada prodigiosa",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -320,7 +310,6 @@
           "hechizoId": "pasar_sin_rastro",
           "nombreHechizo": "Pasar sin rastro",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"

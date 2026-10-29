@@ -41,23 +41,13 @@ export const TablaProgresionRasgo: React.FC<TablaProgresionRasgoProps> = ({
       <table className={`${estilos.tablaEstilizada} ${esTablaDosColumnas ? estilos.tablaConjurosSubclase : ""}`}>
         <thead className={estilos.encabezadoTabla}>
           <tr>
-            {tabla.columnas.map((col, idx) => {
-              if (esTablaDosColumnas) {
-                return (
-                  <th
-                    key={idx}
-                    className={idx === 0 ? estilos.thNivelConjuros : estilos.thConjuros}
-                  >
-                    {col}
-                  </th>
-                );
-              }
-              return (
-                <th key={idx} className={estilos.thGenerico}>
-                  {col}
-                </th>
-              );
-            })}
+            {tabla.columnas.map((col, idx) => (
+              <th key={idx} className={esTablaDosColumnas
+                ? idx === 0 ? estilos.thNivelConjuros : estilos.thConjuros
+                : estilos.thGenerico}>
+                {col}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>

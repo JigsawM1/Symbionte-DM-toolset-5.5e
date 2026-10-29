@@ -580,9 +580,7 @@
             {
               "id": "selector_dones_parajes_feericos",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Don de los Parajes Feéricos",
-              "maxSelecciones": 1,
               "valorActual": [
                 "don_mariposas"
               ],
@@ -947,9 +945,7 @@
             {
               "id": "selector_presa_cazador",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Presa del cazador",
-              "maxSelecciones": 1,
               "valorActual": [
                 "asesino_colosos"
               ],
@@ -1020,9 +1016,7 @@
             {
               "id": "selector_tacticas_defensivas",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Tácticas defensivas",
-              "maxSelecciones": 1,
               "valorActual": [
                 "escapar_horda"
               ],

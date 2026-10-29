@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type {
-  Caracteristica,
   TamanoPersonaje
 } from "./index";
 import type { PlantillaRasgoEspecie } from "./rasgos";
@@ -8,16 +7,7 @@ import type { PlantillaRasgoEspecie } from "./rasgos";
 /**
  * Representación de un conjuro o truco innato otorgado por una especie o linaje.
  */
-export interface ConjuroInnatoEspecie {
-  hechizoId: string;
-  nombreHechizo: string;
-  caracteristica: Caracteristica | "elegir";
-  esTruco: boolean;
-  nivelRequerido?: number;
-  usosGratis?: number | "ilimitado" | "bono_competencia";
-  recuperacion?: "descanso_largo" | "descanso_corto" | "ninguno";
-  descripcion?: string;
-}
+export type ConjuroInnatoEspecie = z.infer<typeof EsquemaConjuroInnatoEspecie>;
 
 export const EsquemaConjuroInnatoEspecie = z.object({
   hechizoId: z.string(),

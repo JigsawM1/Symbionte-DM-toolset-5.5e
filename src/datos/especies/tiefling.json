@@ -27,7 +27,6 @@
         {
           "id": "selector_tamano_especie",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Tamaño",
           "opciones": [
             {
@@ -41,7 +40,6 @@
               "descripcion": "Tu personaje es de tamaño Pequeño (entre 3 y 4 pies de altura)."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "mediano"
           ],
@@ -73,7 +71,6 @@
         {
           "id": "selector_aptitud_magica_tiefling",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Aptitud Mágica del Legado",
           "opciones": [
             {
@@ -92,7 +89,6 @@
               "descripcion": "Usas Carisma como aptitud mágica para los conjuros de tu legado."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "carisma"
           ],
@@ -162,7 +158,6 @@
           "hechizoId": "rayo_nauseabundo",
           "nombreHechizo": "Rayo nauseabundo",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -171,7 +166,6 @@
           "hechizoId": "inmovilizar_persona",
           "nombreHechizo": "Inmovilizar persona",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -241,7 +235,6 @@
           "hechizoId": "falsa_vida",
           "nombreHechizo": "Falsa vida",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -250,7 +243,6 @@
           "hechizoId": "rayo_debilitador",
           "nombreHechizo": "Rayo debilitador",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -320,7 +312,6 @@
           "hechizoId": "reprension_infernal",
           "nombreHechizo": "Reprensión infernal",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 3,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"
@@ -329,7 +320,6 @@
           "hechizoId": "oscuridad",
           "nombreHechizo": "Oscuridad",
           "caracteristica": "elegir",
-          "esTruco": false,
           "nivelRequerido": 5,
           "usosGratis": 1,
           "recuperacion": "descanso_largo"

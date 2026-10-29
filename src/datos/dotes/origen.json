@@ -9,7 +9,6 @@
       "Ventaja propia o desventaja al atacante (1 punto)",
       "Recuperación en descanso largo"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "reaccion",
     "tieneUsosLimitados": true,
     "usosMaximos": 2,
@@ -26,7 +25,6 @@
       "+PB a iniciativa",
       "Intercambio de iniciativa con un aliado"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -46,7 +44,6 @@
     "beneficios": [
       "Tirar dos veces dados de daño de arma 1 vez/turno"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -58,7 +55,6 @@
     "beneficios": [
       "+2 HP máximos por nivel de personaje"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -80,7 +76,6 @@
       "20% de descuento en objetos no mágicos",
       "Fabricación rápida tras descanso largo"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -93,7 +88,6 @@
       "Competencia en 3 habilidades o herramientas a elección",
       "Repetible"
     ],
-    "fuente": "PHB 2024",
     "repetible": true,
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
@@ -108,7 +102,6 @@
       "1 conjuro de nivel 1 de Clérigo (1 gratis/descanso largo o con espacios)",
       "Aptitud mágica a elegir (INT, SAB o CAR)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -119,40 +112,26 @@
       {
         "id": "selector_truco_1_iniciado_clerigo",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Primer Truco de Clérigo",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_clerigo"
       },
       {
         "id": "selector_truco_2_iniciado_clerigo",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Segundo Truco de Clérigo",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_clerigo"
       },
       {
         "id": "selector_conjuro_nv1_iniciado_clerigo",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Clérigo",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "conjuros1_clerigo"
       },
       {
         "id": "selector_aptitud_iniciado_clerigo",
         "tipoSelector": "general",
-        "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
-        "maxSelecciones": 1,
         "opciones": [
           {
             "id": "inteligencia",
@@ -186,7 +165,6 @@
       "1 conjuro de nivel 1 de Druida (1 gratis/descanso largo o con espacios)",
       "Aptitud mágica a elegir (INT, SAB o CAR)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -197,40 +175,26 @@
       {
         "id": "selector_truco_1_iniciado_druida",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Primer Truco de Druida",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_druida"
       },
       {
         "id": "selector_truco_2_iniciado_druida",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Segundo Truco de Druida",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_druida"
       },
       {
         "id": "selector_conjuro_nv1_iniciado_druida",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Druida",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "conjuros1_druida"
       },
       {
         "id": "selector_aptitud_iniciado_druida",
         "tipoSelector": "general",
-        "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
-        "maxSelecciones": 1,
         "opciones": [
           {
             "id": "inteligencia",
@@ -264,7 +228,6 @@
       "1 conjuro de nivel 1 de Mago (1 gratis/descanso largo o con espacios)",
       "Aptitud mágica a elegir (INT, SAB o CAR)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -275,40 +238,26 @@
       {
         "id": "selector_truco_1_iniciado_mago",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Primer Truco de Mago",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_mago"
       },
       {
         "id": "selector_truco_2_iniciado_mago",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "etiqueta": "Segundo Truco de Mago",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "trucos_mago"
       },
       {
         "id": "selector_conjuro_nv1_iniciado_mago",
         "tipoSelector": "conjuro",
-        "tipo": "unico",
         "visualizacion": "lista",
         "etiqueta": "1 Conjuro de Nivel 1 de Mago",
-        "maxSelecciones": 1,
-        "opciones": [],
-        "valorActual": [],
         "claveOpcionesDinamicas": "conjuros1_mago"
       },
       {
         "id": "selector_aptitud_iniciado_mago",
         "tipoSelector": "general",
-        "tipo": "unico",
         "etiqueta": "Aptitud Mágica",
-        "maxSelecciones": 1,
         "opciones": [
           {
             "id": "inteligencia",
@@ -343,7 +292,6 @@
       "Relanzar 1s en daño desarmado",
       "Empujar 5 pies al golpear desarmado (1/turno)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -370,7 +318,6 @@
       "Competencia con 3 instrumentos musicales",
       "Canción alentadora (Inspiración heroica a PB aliados tras descanso)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -383,7 +330,6 @@
       "Médico de batalla (curar dado de golpe + PB con estuche)",
       "Relanzar 1s en tiradas de curación"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "accion",
     "categoriaMecanica": "pasivo_permanente"
   }

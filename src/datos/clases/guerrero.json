@@ -51,12 +51,9 @@
       "selectores": [
         {
           "id": "selector_dote_estilo_combate_guerrero_nv1",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "categoriaDote": "estilo_combate",
           "etiqueta": "Dote de Estilo de combate elegida",
-          "opciones": [],
-          "maxSelecciones": 1,
           "valorActual": [
             "dote_estilo_defensa"
           ]
@@ -176,7 +173,6 @@
             }
           ],
           "maxSelecciones": 3,
-          "valorActual": [],
           "visualizacion": "normal",
           "escaladoMaxSelecciones": [
             {
@@ -605,9 +601,7 @@
               "visualizacion": "lista",
               "ubicacion": "seccion",
               "modo": "seleccion",
-              "opciones": [],
               "maxSelecciones": 3,
-              "valorActual": [],
               "escaladoMaxSelecciones": [
                 {
                   "nivelMinimo": 3,
@@ -736,13 +730,9 @@
           "selectores": [
             {
               "id": "selector_dote_estilo_combate_guerrero_nv7",
-              "tipo": "unico",
               "tipoSelector": "dote",
               "categoriaDote": "estilo_combate",
-              "etiqueta": "Dote de Estilo de combate elegida",
-              "opciones": [],
-              "maxSelecciones": 1,
-              "valorActual": []
+              "etiqueta": "Dote de Estilo de combate elegida"
             }
           ]
         },
@@ -1003,7 +993,6 @@
               "ubicacion": "seccion",
               "modo": "consulta",
               "maxSelecciones": 3,
-              "valorActual": [],
               "opciones": [
                 {
                   "id": "poder_campo_protector",
@@ -1071,7 +1060,6 @@
               "etiqueta": "Opciones de poder psiónico",
               "tipo": "multiple",
               "maxSelecciones": 5,
-              "valorActual": [],
               "opciones": [
                 {
                   "id": "poder_salto_psionico",

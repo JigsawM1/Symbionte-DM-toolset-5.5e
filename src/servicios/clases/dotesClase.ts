@@ -56,25 +56,12 @@ export function obtenerOpcionesDotesParaSelector(): import("@/tipos").OpcionSele
     .filter((d) => d.id !== "dote_mejora_caracteristica")
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-  if (doteMejora) {
-    opciones.push({
-      id: doteMejora.id,
-      nombre: doteMejora.nombre,
-      descripcion: doteMejora.descripcion,
-      requisito: doteMejora.requisito,
-      categoria: doteMejora.categoria
-    });
-  }
-  for (const d of otras) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito,
-      categoria: d.categoria
-    });
-  }
+  const opciones: import("@/tipos").OpcionSelector[] = [
+    ...(doteMejora ? [doteMejora] : []),
+    ...otras
+  ].map(({ id, nombre, descripcion, requisito, categoria }) => ({
+    id, nombre, descripcion, requisito, categoria
+  }));
   cacheOpcionesDotesSelector = opciones;
   return opciones;
 }
@@ -198,36 +185,13 @@ export function obtenerOpcionesDotesDonEpicoParaSelector(doteRecomendadaId: stri
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   const otrasOrdenadas = otrasDotes.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-
-  if (doteRecomendada) {
-    opciones.push({
-      id: doteRecomendada.id,
-      nombre: doteRecomendada.nombre,
-      descripcion: doteRecomendada.descripcion,
-      requisito: doteRecomendada.requisito
-    });
-  }
-
-  for (const d of otrosDones) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito
-    });
-  }
-
-  for (const d of otrasOrdenadas) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito
-    });
-  }
-
-  return opciones;
+  return [
+    ...(doteRecomendada ? [doteRecomendada] : []),
+    ...otrosDones,
+    ...otrasOrdenadas
+  ].map(({ id, nombre, descripcion, requisito }) => ({
+    id, nombre, descripcion, requisito
+  }));
 }
 
 /**
@@ -324,26 +288,12 @@ export function obtenerOpcionesDotesEstiloCombate(claseId: string): import("@/ti
     .filter((d) => d.id !== dotePorDefectoId)
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-  if (primera) {
-    opciones.push({
-      id: primera.id,
-      nombre: primera.nombre,
-      descripcion: primera.descripcion,
-      requisito: primera.requisito,
-      categoria: primera.categoria
-    });
-  }
-  for (const d of resto) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito,
-      categoria: d.categoria
-    });
-  }
-
+  const opciones: import("@/tipos").OpcionSelector[] = [
+    ...(primera ? [primera] : []),
+    ...resto
+  ].map(({ id, nombre, descripcion, requisito, categoria }) => ({
+    id, nombre, descripcion, requisito, categoria
+  }));
   cacheOpcionesDotesEstiloSelector[normClase] = opciones;
   return opciones;
 }

@@ -254,14 +254,7 @@ export function proyectarInvocacionAMonstruo(
     })
   );
 
-  const reaccionesFiltradas = filtrarPorSubtipo(plantilla.reacciones).map(
-    (r: { nombre: string; uso: string; recarga: string; descripcion: string }) => ({
-      nombre: r.nombre,
-      uso: r.uso,
-      recarga: r.recarga,
-      descripcion: r.descripcion
-    })
-  );
+  const reaccionesFiltradas = filtrarPorSubtipo(plantilla.reacciones);
 
   const nombreCompleto = subtipoActivo
     ? `${plantilla.nombre} (${subtipoActivo}, Nv. ${nivelConjuro})`

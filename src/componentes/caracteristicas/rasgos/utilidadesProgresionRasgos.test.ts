@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import {
+  calcularProgresionClases,
   obtenerNivelEfectivoParaRasgo,
   resolverDotesDesdeInvocaciones,
   agruparRasgosJerarquicos,
@@ -9,9 +10,28 @@ import {
   resolverRecursosPadre
 } from "./utilidadesProgresionRasgos";
 
+it("conserva identidad, niveles futuros y selectores independientes en la progresión de clase y subclase", () => {
+  const clases = [{ nombre: "Guerrero", subclase: "Campeón", nivel: 3 }];
+  const items = calcularProgresionClases(PERSONAJE_POR_DEFECTO, clases)[0].items;
+  expect(items.find(r => r.nombre === "Crítico mejorado")).toMatchObject({
+    id: "prog_sub_3_critico mejorado", origen: "subclase",
+    fuente: "Campeón (Nivel 3)", nivel: 3, alcanzado: true
+  });
+  expect(items.find(r => r.nombre === "Estilo de combate adicional")).toMatchObject({
+    origen: "subclase", nivel: 7, alcanzado: false
+  });
+  const estilo = items.find(r => r.nombre === "Estilo de combate")!;
+  expect(estilo.id).toBe("prog_cls_1_estilo de combate");
+  expect(estilo.selectores?.[0]).toBeDefined();
+  estilo.selectores![0].valorActual.push("opcion_de_prueba");
+  const nuevaProgresion = calcularProgresionClases(PERSONAJE_POR_DEFECTO, clases)[0].items;
+  expect(nuevaProgresion.find(r => r.nombre === "Estilo de combate")?.selectores?.[0].valorActual)
+    .not.toContain("opcion_de_prueba");
+});
+
 describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel general (Multiclase)", () => {
   const personajeMulticlaseBardoBarbaro: PersonajeJugador = {
-    ...PERSONAJE_POR_DEFECTO,
+    ...structuredClone(PERSONAJE_POR_DEFECTO),
     id: "pj_multiclase_test",
     nombre: "Bardo Bárbaro",
     jugador: "Tester",
@@ -22,92 +42,26 @@ describe("obtenerNivelEfectivoParaRasgo - Nivel contextual de clase vs nivel gen
       { nombre: "Bárbaro", subclase: "Berserker", nivel: 15 }
     ],
     nivel: 20, // Nivel total general del personaje
-    especie: "Humano",
-    subespecie: "",
-    tamano: "Mediano",
-    tipoCriatura: "Humanoide",
-    trasfondo: "Personalizado",
-    alineacion: "Neutral",
     experiencia: 355000,
-    avatarUrl: "",
-    idMiniaturaTS: null,
-    inspiracion: false,
     caracteristicas: { fuerza: 18, destreza: 14, constitucion: 16, inteligencia: 10, sabiduria: 12, carisma: 16 },
-    overridesFijos: { fuerza: null, destreza: null, constitucion: null, inteligencia: null, sabiduria: null, carisma: null },
-    personalizacionesCaracteristicas: {},
     competenciasSalvacion: { fuerza: true, destreza: false, constitucion: true, inteligencia: false, sabiduria: false, carisma: false },
     gradosHabilidades: {
-      acrobacias: "ninguna",
-      manejoAnimales: "ninguna",
-      arcanos: "ninguna",
+      ...PERSONAJE_POR_DEFECTO.gradosHabilidades,
       atletismo: "competente",
-      engaño: "ninguna",
-      historia: "ninguna",
-      perspicacia: "ninguna",
       intimidacion: "competente",
-      investigacion: "ninguna",
-      medicina: "ninguna",
-      naturaleza: "ninguna",
       percepcion: "competente",
       interpretacion: "competente",
-      persuasion: "competente",
-      religion: "ninguna",
-      juegoManos: "ninguna",
-      sigilo: "ninguna",
-      supervivencia: "ninguna"
+      persuasion: "competente"
     },
-    personalizacionesHabilidades: {},
     hpMaximoBase: 160,
     hpMaximo: 160,
     hpActual: 160,
-    hpTemporal: 0,
     tipoDadoGolpe: "d12",
     dadosGolpeTotal: 20,
     dadosGolpeRestantes: 20,
-    salvacionesMuerte: { exitos: 0, fallos: 0 },
-    cansancio: 0,
-    condicionesActivas: [],
-    efectosActivos: [],
     ca: 15,
-    caNotas: "",
     iniciativaBono: 2,
-    velocidad: "30 pies",
-    sentidos: "",
-    competenciasArmas: "",
-    competenciasArmasGrupos: [],
-    competenciasArmasLista: [],
-    competenciasArmaduras: "",
-    competenciasArmadurasGrupos: [],
-    competenciasArmadurasLista: [],
-    idiomas: "Común",
-    idiomasLista: ["Común"],
-    herramientas: "",
-    herramientasLista: [],
-    esLanzador: true,
-    clasesLanzadoras: [],
-    concentracionActiva: null,
-    trucosConocidosIds: [],
-    conjurosConocidosIds: [],
-    conjurosPreparadosIds: [],
-    conjurosSiemprePreparadosIds: [],
-    espaciosConjuroMaximos: {},
-    espaciosConjuroGastados: {},
-    puntosConjuroMaximos: 0,
-    puntosConjuroGastados: 0,
-    nivelConjuroMaximo: 0,
-    espaciosPactoMaximos: 0,
-    espaciosPactoGastados: 0,
-    nivelEspacioPacto: 0,
-    arcanoMisticoIds: [],
-    arcanoMisticoGastados: [],
-    puntosHechiceriaMaximos: 0,
-    puntosHechiceriaActuales: 0,
-    overrideEspaciosConjuro: null,
-    overridePuntosConjuro: null,
-    inventario: [],
-    bolsaMonedas: { pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 },
-    rasgos: [],
-    dotes: []
+    esLanzador: true
   };
 
   it("resuelve el nivel de clase propio (5) para rasgos de Bardo en multiclase 5/15", () => {

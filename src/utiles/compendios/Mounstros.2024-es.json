@@ -27005,7 +27005,7 @@
     {
       "id": "m_horror_acorazado",
       "nombre": "Horror acorazado",
-      "tipo": "Autómata",
+      "tipo": "Constructo",
       "ca": 20,
       "caNotas": "",
       "vidaMaxima": 67,
@@ -27048,12 +27048,24 @@
         "envenenado",
         "aturdido"
       ],
-      "accionesRapidas": [],
+      "accionesRapidas": [
+        {
+          "nombre": "Espada Arcana",
+          "bonificadorAtaque": "+6",
+          "dadosDaño": "1d8+4 / 1d10",
+          "tipoDaño": "cortante / fuerza"
+        }
+      ],
       "rasgos": [
         {
           "nombre": "Resistencia mágica",
           "uso": "",
-          "descripcion": "Inmunidad a conjuros."
+          "descripcion": "El horror con casco tiene ventaja en tiradas de salvación contra hechizos y otros efectos mágicos."
+        },
+        {
+          "nombre": "Inmunidad a hechizos",
+          "uso": "",
+          "descripcion": "El horror con casco es inmune a tres hechizos elegidos por su creador. Las opciones típicas incluyen Calor Metálico, Rayo y Misil Mágico"
         }
       ],
       "acciones": [
@@ -27063,7 +27075,15 @@
           "daño": "",
           "uso": "",
           "recarga": "",
-          "descripcion": "Espada arcana."
+          "descripcion": "El horror con casco hace dos ataques con Espada Arcana."
+        },
+        {
+          "nombre": "Espada Arcana",
+          "bonificadorAtaque": "+6",
+          "daño": "1d8+4 / 1d10",
+          "uso": "",
+          "recarga": "",
+          "descripcion": "Tirada de ataque cuerpo a cuerpo: +6, alcanza 5 pies. Impacto: 8 (1d8 + 4) daño cortante más 5 (1d10) de daño por fuerza."
         }
       ],
       "accionesAdicionales": [],

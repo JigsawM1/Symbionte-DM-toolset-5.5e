@@ -136,9 +136,6 @@ export function obtenerNivelDruida(pj: PersonajeJugador): number {
     );
     if (claseDruida) return Math.max(1, claseDruida.nivel || 1);
   }
-  if (pj.clase?.toLowerCase().trim() === "druida") {
-    return Math.max(1, pj.nivel || 1);
-  }
   return Math.max(1, pj.nivel || 1);
 }
 
@@ -146,19 +143,12 @@ export function obtenerNivelDruida(pj: PersonajeJugador): number {
  * Determina si el druida pertenece al Círculo de la Luna (Circle of the Moon).
  */
 export function esDruidaCirculoLuna(pj: PersonajeJugador): boolean {
-  const normalizar = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-
-  const sub = normalizar(pj.subclase || "");
+  const sub = normalizarTexto(pj.subclase);
   if (sub.includes("luna") || sub.includes("moon")) return true;
 
   if (Array.isArray(pj.clases)) {
     return pj.clases.some((c) => {
-      const s = normalizar(c.subclase || "");
+      const s = normalizarTexto(c.subclase);
       return s.includes("luna") || s.includes("moon");
     });
   }
@@ -190,7 +180,6 @@ export function calcularReglasFormaSalvaje(
     maxFormasConocidas = 6;
     vdMaximo = 0.5;
     vdMaximoTexto = "1/2";
-    puedeVolar = false;
   }
 
   // Círculo de la Luna (2024): VD máx = floor(nivel / 3) a partir de nv 3 (ej. Nv 3 -> VD 1, Nv 6 -> VD 2, Nv 9 -> VD 3)
@@ -403,62 +392,34 @@ export function extraerRasgosBestia(bestia: MonstruoBase): RasgoPersonaje[] {
   if (!bestia) return [];
   const rasgosExtraidos: RasgoPersonaje[] = [];
 
-  if (Array.isArray(bestia.rasgos)) {
-    bestia.rasgos.forEach((r, idx) => {
-      const limpio = normalizarTexto(r.nombre).replace(/\s+/g, "_");
+  const agregarRasgos = (
+    entradas: MonstruoBase["rasgos"],
+    prefijo: string,
+    tipoAccion: RasgoPersonaje["tipoAccion"],
+    etiqueta: string
+  ): void => {
+    if (!Array.isArray(entradas)) return;
+    entradas.forEach((entrada, idx) => {
+      const limpio = normalizarTexto(entrada.nombre).replace(/\s+/g, "_");
       rasgosExtraidos.push({
-        id: `rasgo_bestia_${bestia.id}_${idx}_${limpio}`,
-        nombre: r.nombre,
-        descripcion: r.descripcion || "",
+        id: `${prefijo}_bestia_${bestia.id}_${idx}_${limpio}`,
+        nombre: entrada.nombre,
+        descripcion: entrada.descripcion || "",
         origen: "personalizado",
         fuente: `Forma salvaje: ${bestia.nombre}`,
-        tipoAccion: "pasivo",
+        tipoAccion,
         personalizado: false,
         activo: true,
         tieneUsosLimitados: false,
         recuperacion: "ninguno",
-        notas: `Rasgo de ${bestia.nombre}.`
+        notas: `${etiqueta} de ${bestia.nombre}.`
       });
     });
-  }
+  };
 
-  if (Array.isArray(bestia.accionesAdicionales)) {
-    bestia.accionesAdicionales.forEach((acc, idx) => {
-      const limpio = normalizarTexto(acc.nombre).replace(/\s+/g, "_");
-      rasgosExtraidos.push({
-        id: `acc_adic_bestia_${bestia.id}_${idx}_${limpio}`,
-        nombre: acc.nombre,
-        descripcion: acc.descripcion || "",
-        origen: "personalizado",
-        fuente: `Forma salvaje: ${bestia.nombre}`,
-        tipoAccion: "accion_adicional",
-        personalizado: false,
-        activo: true,
-        tieneUsosLimitados: false,
-        recuperacion: "ninguno",
-        notas: `Acción adicional de ${bestia.nombre}.`
-      });
-    });
-  }
-
-  if (Array.isArray(bestia.reacciones)) {
-    bestia.reacciones.forEach((reac, idx) => {
-      const limpio = normalizarTexto(reac.nombre).replace(/\s+/g, "_");
-      rasgosExtraidos.push({
-        id: `reac_bestia_${bestia.id}_${idx}_${limpio}`,
-        nombre: reac.nombre,
-        descripcion: reac.descripcion || "",
-        origen: "personalizado",
-        fuente: `Forma salvaje: ${bestia.nombre}`,
-        tipoAccion: "reaccion",
-        personalizado: false,
-        activo: true,
-        tieneUsosLimitados: false,
-        recuperacion: "ninguno",
-        notas: `Reacción de ${bestia.nombre}.`
-      });
-    });
-  }
+  agregarRasgos(bestia.rasgos, "rasgo", "pasivo", "Rasgo");
+  agregarRasgos(bestia.accionesAdicionales, "acc_adic", "accion_adicional", "Acción adicional");
+  agregarRasgos(bestia.reacciones, "reac", "reaccion", "Reacción");
 
   return rasgosExtraidos;
 }

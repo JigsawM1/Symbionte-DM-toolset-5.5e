@@ -295,7 +295,7 @@
   border-color: var(--pj-borde-acento-fuerte);
 }
 
-.iconoToggle {
+.iconoToggle, .iconoToggleAlerta {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -303,9 +303,12 @@
   height: 28px;
   border-radius: 4px;
   background: var(--pj-fondo-hundido);
-  color: var(--pj-texto-acento);
   flex-shrink: 0;
   z-index: 1;
+}
+
+.iconoToggle {
+  color: var(--pj-texto-acento);
 }
 
 .tarjetaToggleActiva .iconoToggle {
@@ -314,16 +317,7 @@
 }
 
 .iconoToggleAlerta {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 4px;
-  background: var(--pj-fondo-hundido);
   color: var(--pj-texto-oro);
-  flex-shrink: 0;
-  z-index: 1;
 }
 
 .tarjetaToggleActiva .iconoToggleAlerta {

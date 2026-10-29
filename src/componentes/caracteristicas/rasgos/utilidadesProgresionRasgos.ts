@@ -1,4 +1,4 @@
-import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import type { RasgoPersonaje } from "@/tipos";
 import type { PlantillaRasgoClase } from "@/tipos/rasgos";
 import {
   obtenerClasePorNombre,
@@ -63,7 +63,6 @@ function calcularUsosItemProgresion(r: import("@/tipos/rasgos").PlantillaRasgoCl
  * Calcula la progresión de niveles 1 a 20 para todas las clases y subclases del personaje.
  */
 export function calcularProgresionClases(
-  _personaje: PersonajeJugador,
   clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>
 ): BloqueProgresionClase[] {
   const lista: BloqueProgresionClase[] = [];

@@ -1,5 +1,5 @@
 import React from "react";
-import { Shield, Zap, Clock, Sparkles, Layers } from "lucide-react";
+import { ICONO_POR_ACCION, ETIQUETA_ACCION } from "./TarjetaRasgo.constantes";
 import type { FiltroTipoAccion } from "./CabeceraRasgosJugador";
 import estilos from "./VistaRasgosJugador.module.css";
 
@@ -9,6 +9,10 @@ interface FiltrosAccionRasgosProps {
   hayFiltrosActivos: boolean;
   alLimpiarFiltros: () => void;
 }
+
+const TIPOS_ACCION: readonly Exclude<FiltroTipoAccion, "todos">[] = [
+  "pasivo", "accion", "accion_adicional", "reaccion", "especial"
+];
 
 export const FiltrosAccionRasgos: React.FC<FiltrosAccionRasgosProps> = ({
   filtroAccion,
@@ -28,56 +32,19 @@ export const FiltrosAccionRasgos: React.FC<FiltrosAccionRasgosProps> = ({
       >
         Todos
       </button>
-      <button
-        type="button"
-        className={`${estilos.chipFiltroMini} ${
-          filtroAccion === "pasivo" ? estilos.chipFiltroMiniActivo : ""
-        }`}
-        onClick={() => alCambiarFiltroAccion("pasivo")}
-      >
-        <Shield size={10} />
-        <span>Pasivo</span>
-      </button>
-      <button
-        type="button"
-        className={`${estilos.chipFiltroMini} ${
-          filtroAccion === "accion" ? estilos.chipFiltroMiniActivo : ""
-        }`}
-        onClick={() => alCambiarFiltroAccion("accion")}
-      >
-        <Zap size={10} />
-        <span>Acción</span>
-      </button>
-      <button
-        type="button"
-        className={`${estilos.chipFiltroMini} ${
-          filtroAccion === "accion_adicional" ? estilos.chipFiltroMiniActivo : ""
-        }`}
-        onClick={() => alCambiarFiltroAccion("accion_adicional")}
-      >
-        <Clock size={10} />
-        <span>Adicional</span>
-      </button>
-      <button
-        type="button"
-        className={`${estilos.chipFiltroMini} ${
-          filtroAccion === "reaccion" ? estilos.chipFiltroMiniActivo : ""
-        }`}
-        onClick={() => alCambiarFiltroAccion("reaccion")}
-      >
-        <Sparkles size={10} />
-        <span>Reacción</span>
-      </button>
-      <button
-        type="button"
-        className={`${estilos.chipFiltroMini} ${
-          filtroAccion === "especial" ? estilos.chipFiltroMiniActivo : ""
-        }`}
-        onClick={() => alCambiarFiltroAccion("especial")}
-      >
-        <Layers size={10} />
-        <span>Especial</span>
-      </button>
+      {TIPOS_ACCION.map((tipo) => (
+        <button
+          key={tipo}
+          type="button"
+          className={`${estilos.chipFiltroMini} ${
+            filtroAccion === tipo ? estilos.chipFiltroMiniActivo : ""
+          }`}
+          onClick={() => alCambiarFiltroAccion(tipo)}
+        >
+          {ICONO_POR_ACCION[tipo]}
+          <span>{tipo === "accion_adicional" ? "Adicional" : ETIQUETA_ACCION[tipo]}</span>
+        </button>
+      ))}
 
       {hayFiltrosActivos && (
         <button

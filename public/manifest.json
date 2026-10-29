@@ -48,5 +48,9 @@
     "interop": {
       "id": "5b8d96e5-4d22-48f8-b391-768a44b584d9"
     }
+},
+  "controls": { 
+    "reload": "true" 
   }
 }
+

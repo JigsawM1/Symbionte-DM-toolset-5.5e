@@ -79,7 +79,8 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     valorHpTemporalCalculado,
     manejarTirarDados,
     manejarAplicarHpTemporal,
-    manejarTirarDadosGuardados
+    manejarTirarDadosGuardados,
+    manejarConfirmarRecuperacion
   } = usarAccionesTarjetaRasgo({
     rasgo,
     nombrePersonaje,
@@ -95,37 +96,6 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
     React.useCallback((s) => s.personajes.find((p) => p.id === idPersonaje), [idPersonaje])
   );
 
-  const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number) => {
-    if (!idPersonaje) return;
-    const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
-    let totalRanuras = 0;
-    for (const [lvlStr, cant] of Object.entries(espacios)) {
-      const lvl = Number(lvlStr);
-      const cantidad = cant || 0;
-      for (let i = 0; i < cantidad; i++) {
-        recuperarEspacioConjuro(idPersonaje, lvl);
-        totalRanuras++;
-      }
-    }
-    const puntos = puntosConjuro || 0;
-    if (puntos > 0) {
-      recuperarPuntosConjuro(idPersonaje, puntos);
-    }
-    if (totalRanuras > 0 || puntos > 0) {
-      gastarUsoRasgoPersonaje(idPersonaje, rasgo.id, 1);
-      const partesMensaje: string[] = [];
-      if (totalRanuras > 0) {
-        partesMensaje.push(`${totalRanuras} ${totalRanuras === 1 ? "espacio de conjuro" : "espacios de conjuro"}`);
-      }
-      if (puntos > 0) {
-        partesMensaje.push(`${puntos} ${puntos === 1 ? "punto de conjuro" : "puntos de conjuro"}`);
-      }
-      agregarNotificacion(
-        `¡${rasgo.nombre}! Se han recuperado ${partesMensaje.join(" y ")}.`,
-        "exito"
-      );
-    }
-  };
 
   const manejarConfirmarRecargaEspacio = (nivelEspacio: number) => {
     if (!idPersonaje) return;

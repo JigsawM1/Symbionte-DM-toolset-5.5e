@@ -1,7 +1,6 @@
 .botonCompacto { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 32px; min-height: 32px; padding: 4px 8px; flex: 0 0 auto; font-size: var(--pj-fuente-boton); white-space: nowrap; color: var(--pj-texto-secundario); background: var(--pj-fondo-panel); border: 1px solid var(--pj-borde-medio); border-radius: var(--pj-radio-control); }
 .botonCompacto:hover:not(:disabled) { color: var(--pj-texto-acento); border-color: var(--pj-borde-acento); }
 .botonCompacto:disabled { opacity: .45; cursor: default; }
-.cd { display: inline-flex; align-items: center; min-height: 26px; padding: 3px 7px; box-sizing: border-box; font-size: var(--pj-fuente-badge); color: var(--pj-texto-cian-claro); background: var(--pj-acento-cian-fondo); border: 1px solid var(--pj-borde-cian-tenue); border-radius: var(--pj-radio-control); white-space: nowrap; }
 .badgeSalvacion {
   display: inline-flex;
   align-items: center;
@@ -69,28 +68,24 @@
   background: var(--pj-acento-peligro-fondo);
 }
 
-.iconoEspera {
+.iconoEspera, .iconoEsperaPendiente {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: var(--pj-radio-control);
-  background: var(--pj-acento-oro-fondo);
-  color: var(--pj-texto-oro-brillante);
   flex-shrink: 0;
 }
 
+.iconoEspera {
+  background: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro-brillante);
+}
+
 .iconoEsperaPendiente {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--pj-radio-control);
   background: var(--pj-acento-peligro-oscuro);
   color: var(--pj-texto-alerta-brillante);
-  flex-shrink: 0;
 }
 
 .cuerpoEspera {

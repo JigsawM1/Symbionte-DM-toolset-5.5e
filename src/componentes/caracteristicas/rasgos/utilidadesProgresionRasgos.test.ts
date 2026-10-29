@@ -12,7 +12,7 @@ import {
 
 it("conserva identidad, niveles futuros y selectores independientes en la progresión de clase y subclase", () => {
   const clases = [{ nombre: "Guerrero", subclase: "Campeón", nivel: 3 }];
-  const items = calcularProgresionClases(PERSONAJE_POR_DEFECTO, clases)[0].items;
+  const items = calcularProgresionClases(clases)[0].items;
   expect(items.find(r => r.nombre === "Crítico mejorado")).toMatchObject({
     id: "prog_sub_3_critico mejorado", origen: "subclase",
     fuente: "Campeón (Nivel 3)", nivel: 3, alcanzado: true
@@ -24,7 +24,7 @@ it("conserva identidad, niveles futuros y selectores independientes en la progre
   expect(estilo.id).toBe("prog_cls_1_estilo de combate");
   expect(estilo.selectores?.[0]).toBeDefined();
   estilo.selectores![0].valorActual.push("opcion_de_prueba");
-  const nuevaProgresion = calcularProgresionClases(PERSONAJE_POR_DEFECTO, clases)[0].items;
+  const nuevaProgresion = calcularProgresionClases(clases)[0].items;
   expect(nuevaProgresion.find(r => r.nombre === "Estilo de combate")?.selectores?.[0].valorActual)
     .not.toContain("opcion_de_prueba");
 });

@@ -84,20 +84,12 @@ describe("D&D 5.5e (PHB 2024) - Mecánicas Declarativas de la Clase Brujo y Subc
       expect(arcano11?.usosMaximos).toBeUndefined();
       expect(arcano11?.selectores?.[0].nivelConjuro).toBe(6);
 
-      const buildNv13 = construirBuildClase("Brujo", 13);
-      const arcano13 = buildNv13?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano13?.usosMaximos).toBeUndefined();
-      expect(arcano13?.selectores?.[0].nivelConjuro).toBe(6);
-
-      const buildNv15 = construirBuildClase("Brujo", 15);
-      const arcano15 = buildNv15?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano15?.usosMaximos).toBeUndefined();
-      expect(arcano15?.selectores?.[0].nivelConjuro).toBe(6);
-
-      const buildNv17 = construirBuildClase("Brujo", 17);
-      const arcano17 = buildNv17?.rasgos.find((r) => r.nombre === "Arcano místico");
-      expect(arcano17?.usosMaximos).toBeUndefined();
-      expect(arcano17?.selectores?.[0].nivelConjuro).toBe(6);
+      for (const nivel of [13, 15, 17]) {
+        const build = construirBuildClase("Brujo", nivel);
+        const arcano = build?.rasgos.find(r => r.nombre === "Arcano místico");
+        expect(arcano?.usosMaximos, `Nivel ${nivel}`).toBeUndefined();
+        expect(arcano?.selectores?.[0].nivelConjuro, `Nivel ${nivel}`).toBe(6);
+      }
     });
 
     it("Niveles 13, 15, 17: Arcano místico II, III y IV conservan elecciones independientes de Arcano místico", () => {

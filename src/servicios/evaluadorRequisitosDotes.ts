@@ -1,21 +1,12 @@
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { Caracteristica } from "@/tipos/personaje";
+import { normalizar } from "./rasgos/utilidadesRasgos";
 
 export interface ResultadoRequisitoDote {
   cumple: boolean;
   motivo?: string;
 }
 
-/**
- * Normaliza cadenas de texto para comparaciones tolerantes (sin acentos, minúsculas, espacios recortados).
- */
-function normalizar(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim();
-}
 
 /**
  * Extrae la puntuación efectiva de una característica del personaje,
@@ -63,13 +54,7 @@ const REGEX_REQUISITO_CARACTERISTICAS =
   /(?:(?:fuerza|destreza|constitucion|inteligencia|sabiduria|carisma)(?:,\s*|\s+o\s+)?)+\s*(\d+)\s*o\s*mas/gi;
 
 function extraerCaracteristicasDeTexto(texto: string): Caracteristica[] {
-  const encontradas: Caracteristica[] = [];
-  for (const c of CARACTERISTICAS_CANONICAS) {
-    if (new RegExp(`\\b${c}\\b`, "i").test(texto)) {
-      encontradas.push(c);
-    }
-  }
-  return encontradas;
+  return CARACTERISTICAS_CANONICAS.filter(c => new RegExp(`\\b${c}\\b`, "i").test(texto));
 }
 
 interface RequisitoArmaduraDef {
@@ -236,7 +221,7 @@ export function evaluarRequisitoDote(
   }
 
   // 5. Verificación de Rasgo Estilo de Combate
-  if (reqNorm.includes("rasgo estilo de combate") || reqNorm.includes("estilo de combate")) {
+  if (reqNorm.includes("estilo de combate")) {
     const tieneRasgoEstilo = (personaje.rasgos || []).some((r) =>
       normalizar(r.nombre).includes("estilo de combate") || normalizar(r.id).includes("estilo_combate")
     );

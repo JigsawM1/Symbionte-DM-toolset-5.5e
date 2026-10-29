@@ -166,9 +166,7 @@ export function estaAtaqueTemerarioActivo(personaje: PersonajeJugador): boolean 
       nomNorm.includes("reckless")
     );
   });
-  if (rasgoActivo) return true;
-
-  return estaRasgoActivo(personaje, "ataque temerario");
+  return rasgoActivo;
 }
 
 /**
@@ -212,9 +210,7 @@ export function estaRevelacionCelestialActiva(personaje: PersonajeJugador): bool
       nomNorm.includes("revelacion_celestial")
     );
   });
-  if (rasgoActivo) return true;
-
-  return estaRasgoActivo(personaje, "revelacion celestial");
+  return rasgoActivo;
 }
 
 /**

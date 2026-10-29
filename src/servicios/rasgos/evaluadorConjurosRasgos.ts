@@ -106,8 +106,8 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
     const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
     const condActiva = Boolean(
       condActivarNorm &&
-      (condicionesNorm.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c)) ||
-       efectosNorm.some((e) => e === condActivarNorm || e.includes(condActivarNorm) || condActivarNorm.includes(e)))
+      (condicionesNorm.some((c) => c.includes(condActivarNorm) || condActivarNorm.includes(c)) ||
+       efectosNorm.some((e) => e.includes(condActivarNorm) || condActivarNorm.includes(e)))
     );
 
     // Determinar si el rasgo está activo:
@@ -209,7 +209,7 @@ export function obtenerNombresConjurosGratuitosActivos(personaje: PersonajeJugad
         const condActivarNorm = r.condicionAlActivar ? normalizar(r.condicionAlActivar) : null;
         const estaActivoPorCondicion = Boolean(
           condActivarNorm &&
-          condiciones.some((c) => c === condActivarNorm || c.includes(condActivarNorm) || condActivarNorm.includes(c))
+          condiciones.some((c) => c.includes(condActivarNorm) || condActivarNorm.includes(c))
         );
         const estaActivo = !condActivarNorm || estaActivoPorCondicion;
         if (!estaActivo) continue;
@@ -245,7 +245,7 @@ export function tieneConjuroGratuitoActivo(personaje: PersonajeJugador, nombreCo
   const conjurosGratuitos = obtenerNombresConjurosGratuitosActivos(personaje);
   return conjurosGratuitos.some((cg) => {
     const cgNorm = normalizar(cg);
-    return cgNorm === nomNorm || nomNorm.includes(cgNorm) || cgNorm.includes(nomNorm);
+    return nomNorm.includes(cgNorm) || cgNorm.includes(nomNorm);
   });
 }
 

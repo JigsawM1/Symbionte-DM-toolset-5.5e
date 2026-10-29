@@ -224,43 +224,22 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
         descripcion: ""
       };
       const hechizoMatar: HechizoBase = {
+        ...hechizoSanar,
         id: "h-palabra-de-poder-matar",
         nombre: "Palabra de poder: matar",
-        nivel: 9,
-        escuela: "Encantamiento",
-        tiempoLanzamiento: "1 Accion",
-        alcance: "60 pies",
-        componentesSeleccionados: { verbal: true, somatico: false, material: false },
-        duracion: "Instantaneo",
-        concentracion: false,
-        ritual: false,
-        descripcion: ""
+        escuela: "Encantamiento"
       };
       const hechizoAturdir: HechizoBase = {
+        ...hechizoMatar,
         id: "h-palabra-de-poder-aturdir",
         nombre: "Palabra de poder: aturdir",
-        nivel: 8,
-        escuela: "Encantamiento",
-        tiempoLanzamiento: "1 Accion",
-        alcance: "60 pies",
-        componentesSeleccionados: { verbal: true, somatico: false, material: false },
-        duracion: "Instantaneo",
-        concentracion: false,
-        ritual: false,
-        descripcion: ""
+        nivel: 8
       };
       const hechizoFortalecer: HechizoBase = {
+        ...hechizoMatar,
         id: "h-palabra-de-poder-fortalecer",
         nombre: "Palabra de poder: fortalecer",
-        nivel: 7,
-        escuela: "Encantamiento",
-        tiempoLanzamiento: "1 Accion",
-        alcance: "60 pies",
-        componentesSeleccionados: { verbal: true, somatico: false, material: false },
-        duracion: "Instantaneo",
-        concentracion: false,
-        ritual: false,
-        descripcion: ""
+        nivel: 7
       };
 
       expect(resolutor(hechizoSanar)).toBe("clase");
@@ -358,10 +337,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
 
         // 2. Activo con usosRestantes = 0 (uso diario consumido al activarse) -> SÍ otorga Orden imperiosa gratis
         const pjActivo: PersonajeJugador = {
-          ...PERSONAJE_POR_DEFECTO,
-          clase: "Bardo",
-          subclase: "Colegio del Glamour",
-          nivel: 6,
+          ...pjInactivo,
           rasgos: [{ ...majestadBase, activo: true, usosRestantes: 0 }]
         };
         expect(majestadBase.lanzamientoConActivacion?.nivel).toBe(1);
@@ -369,10 +345,7 @@ describe("Bardo D&D 5.5e (PHB 2024) - Mecánicas Declarativas y Subclases Canón
 
         // Una condición aislada no sustituye el lanzamiento con activación y concentración.
         const pjPorCondicion: PersonajeJugador = {
-          ...PERSONAJE_POR_DEFECTO,
-          clase: "Bardo",
-          subclase: "Colegio del Glamour",
-          nivel: 6,
+          ...pjInactivo,
           condicionesActivas: ["Manto de Majestad (Mantle of Majesty)"],
           rasgos: [{ ...majestadBase, activo: false, usosRestantes: 0 }]
         };

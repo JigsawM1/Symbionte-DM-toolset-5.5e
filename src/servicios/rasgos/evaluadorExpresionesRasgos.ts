@@ -77,13 +77,13 @@ export function cumpleCondicionEfecto(
       (r) =>
         r.activo !== false &&
         (r.selectores || []).some((sel) =>
-          (sel.valorActual || []).some((v) => normalizar(v) === claveOpcion || normalizar(v).includes(claveOpcion))
+          (sel.valorActual || []).some((v) => normalizar(v).includes(claveOpcion))
         )
     );
   }
 
   // Si coincide con alguna condición activa del personaje
-  if ((personaje.condicionesActivas || []).some((c) => normalizar(c) === condNorm || normalizar(c).includes(condNorm))) {
+  if ((personaje.condicionesActivas || []).some((c) => normalizar(c).includes(condNorm))) {
     return true;
   }
 
@@ -276,8 +276,7 @@ export function evaluarEfectosRasgosActivos(personaje: PersonajeJugador): Efecto
                   efectoFinal = { ...efOp, tipoDano: tipoDanoResuelto };
                 } else if (
                   efOp.tipo === "bono_dano_conjuro" &&
-                  (normalizar(efOp.objetivo) === "agregar_modificador_habilidad" ||
-                    normalizar(efOp.objetivo).includes("modificador_habilidad"))
+                  normalizar(efOp.objetivo).includes("modificador_habilidad")
                 ) {
                   if (opId.includes(":")) {
                     const trucoTarget = opId.split(":")[1].trim();

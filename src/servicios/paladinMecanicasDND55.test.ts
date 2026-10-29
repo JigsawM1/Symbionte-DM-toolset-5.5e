@@ -707,33 +707,19 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
     });
 
     it("Arma sagrada y Nimbo sagrado están registrados en el catálogo de efectos predefinidos con duración 100", () => {
-      const efectoArmaSagrada = (efectosPredefinidos as Array<{ nombre: string; duracionEstandar: number; aliases?: string[] }>).find(
-        (e) => e.nombre.toLowerCase() === "arma sagrada"
-      );
-      expect(efectoArmaSagrada).toBeDefined();
-      expect(efectoArmaSagrada?.duracionEstandar).toBe(100);
-      expect(efectoArmaSagrada?.aliases).toContain("sacred weapon");
-
-      const efectoNimbo = (efectosPredefinidos as Array<{ nombre: string; duracionEstandar: number; aliases?: string[] }>).find(
-        (e) => e.nombre.toLowerCase() === "nimbo sagrado"
-      );
-      expect(efectoNimbo).toBeDefined();
-      expect(efectoNimbo?.duracionEstandar).toBe(100);
-      expect(efectoNimbo?.aliases).toContain("holy nimbus");
-
-      const efectoAtleta = (efectosPredefinidos as Array<{ nombre: string; duracionEstandar: number; aliases?: string[] }>).find(
-        (e) => e.nombre.toLowerCase() === "atleta sin par"
-      );
-      expect(efectoAtleta).toBeDefined();
-      expect(efectoAtleta?.duracionEstandar).toBe(100);
-      expect(efectoAtleta?.aliases).toContain("peerless athlete");
-
-      const efectoLeyenda = (efectosPredefinidos as Array<{ nombre: string; duracionEstandar: number; aliases?: string[] }>).find(
-        (e) => e.nombre.toLowerCase() === "leyenda viviente"
-      );
-      expect(efectoLeyenda).toBeDefined();
-      expect(efectoLeyenda?.duracionEstandar).toBe(100);
-      expect(efectoLeyenda?.aliases).toContain("living legend");
+      for (const { nombre, alias } of [
+        { nombre: "arma sagrada", alias: "sacred weapon" },
+        { nombre: "nimbo sagrado", alias: "holy nimbus" },
+        { nombre: "atleta sin par", alias: "peerless athlete" },
+        { nombre: "leyenda viviente", alias: "living legend" }
+      ]) {
+        const efecto = (efectosPredefinidos as Array<{ nombre: string; duracionEstandar: number; aliases?: string[] }>).find(
+          (e) => e.nombre.toLowerCase() === nombre
+        );
+        expect(efecto).toBeDefined();
+        expect(efecto?.duracionEstandar).toBe(100);
+        expect(efecto?.aliases).toContain(alias);
+      }
     });
   });
 
@@ -745,25 +731,18 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(subGloria).toBeDefined();
       expect(subGloria?.progresionConjuros).toHaveLength(5);
 
-      const nv3Spells = subGloria?.progresionConjuros?.find((p) => p.nivelClase === 3)?.conjuros;
-      expect(nv3Spells).toContain("Saeta guía");
-      expect(nv3Spells).toContain("Heroísmo");
-
-      const nv5Spells = subGloria?.progresionConjuros?.find((p) => p.nivelClase === 5)?.conjuros;
-      expect(nv5Spells).toContain("Arma mágica");
-      expect(nv5Spells).toContain("Potenciar característica");
-
-      const nv9Spells = subGloria?.progresionConjuros?.find((p) => p.nivelClase === 9)?.conjuros;
-      expect(nv9Spells).toContain("Acelerar");
-      expect(nv9Spells).toContain("Faro de esperanza");
-
-      const nv13Spells = subGloria?.progresionConjuros?.find((p) => p.nivelClase === 13)?.conjuros;
-      expect(nv13Spells).toContain("Compulsión");
-      expect(nv13Spells).toContain("Libertad de movimiento");
-
-      const nv17Spells = subGloria?.progresionConjuros?.find((p) => p.nivelClase === 17)?.conjuros;
-      expect(nv17Spells).toContain("Comunión");
-      expect(nv17Spells).toContain("Golpe de viento acerado");
+      const casos = [
+        { nivel: 3, primero: "Saeta guía", segundo: "Heroísmo" },
+        { nivel: 5, primero: "Arma mágica", segundo: "Potenciar característica" },
+        { nivel: 9, primero: "Acelerar", segundo: "Faro de esperanza" },
+        { nivel: 13, primero: "Compulsión", segundo: "Libertad de movimiento" },
+        { nivel: 17, primero: "Comunión", segundo: "Golpe de viento acerado" }
+      ];
+      for (const { nivel, primero, segundo } of casos) {
+        const conjuros = subGloria?.progresionConjuros?.find((p) => p.nivelClase === nivel)?.conjuros;
+        expect(conjuros).toContain(primero);
+        expect(conjuros).toContain(segundo);
+      }
     });
 
     it("Castigo inspirador a nivel 3 es consumible, delega en Canalizar divinidad y escala su fórmula de dados a '2d8 + nivel'", () => {
@@ -921,25 +900,18 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(subAntiguos).toBeDefined();
       expect(subAntiguos?.progresionConjuros).toHaveLength(5);
 
-      const nv3Spells = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === 3)?.conjuros;
-      expect(nv3Spells).toContain("Golpe atrapador");
-      expect(nv3Spells).toContain("Hablar con los animales");
-
-      const nv5Spells = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === 5)?.conjuros;
-      expect(nv5Spells).toContain("Rayo lunar");
-      expect(nv5Spells).toContain("Paso brumoso");
-
-      const nv9Spells = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === 9)?.conjuros;
-      expect(nv9Spells).toContain("Crecimiento vegetal");
-      expect(nv9Spells).toContain("Protección contra la energía");
-
-      const nv13Spells = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === 13)?.conjuros;
-      expect(nv13Spells).toContain("Tormenta de hielo");
-      expect(nv13Spells).toContain("Piel pétrea");
-
-      const nv17Spells = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === 17)?.conjuros;
-      expect(nv17Spells).toContain("Comunión con la naturaleza");
-      expect(nv17Spells).toContain("Ola destructiva");
+      const casos = [
+        { nivel: 3, primero: "Golpe atrapador", segundo: "Hablar con los animales" },
+        { nivel: 5, primero: "Rayo lunar", segundo: "Paso brumoso" },
+        { nivel: 9, primero: "Crecimiento vegetal", segundo: "Protección contra la energía" },
+        { nivel: 13, primero: "Tormenta de hielo", segundo: "Piel pétrea" },
+        { nivel: 17, primero: "Comunión con la naturaleza", segundo: "Ola destructiva" }
+      ];
+      for (const { nivel, primero, segundo } of casos) {
+        const conjuros = subAntiguos?.progresionConjuros?.find((p) => p.nivelClase === nivel)?.conjuros;
+        expect(conjuros).toContain(primero);
+        expect(conjuros).toContain(segundo);
+      }
     });
 
     it("Ira de la naturaleza a nivel 3 es consumible, gasta de Canalizar divinidad y se agrupa en su sección colapsable", () => {
@@ -1054,25 +1026,18 @@ describe("Paladín D&D 5.5 (2024) - Fase 2: Subclase Juramento de Entrega (Oath 
       expect(subVenganza).toBeDefined();
       expect(subVenganza?.progresionConjuros).toHaveLength(5);
 
-      const nv3Spells = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === 3)?.conjuros;
-      expect(nv3Spells).toContain("Perdición");
-      expect(nv3Spells).toContain("Marca del cazador");
-
-      const nv5Spells = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === 5)?.conjuros;
-      expect(nv5Spells).toContain("Inmovilizar persona");
-      expect(nv5Spells).toContain("Paso brumoso");
-
-      const nv9Spells = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === 9)?.conjuros;
-      expect(nv9Spells).toContain("Acelerar");
-      expect(nv9Spells).toContain("Protección contra la energía");
-
-      const nv13Spells = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === 13)?.conjuros;
-      expect(nv13Spells).toContain("Destierro");
-      expect(nv13Spells).toContain("Puerta dimensional");
-
-      const nv17Spells = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === 17)?.conjuros;
-      expect(nv17Spells).toContain("Inmovilizar monstruo");
-      expect(nv17Spells).toContain("Escrudiñar");
+      const casos = [
+        { nivel: 3, primero: "Perdición", segundo: "Marca del cazador" },
+        { nivel: 5, primero: "Inmovilizar persona", segundo: "Paso brumoso" },
+        { nivel: 9, primero: "Acelerar", segundo: "Protección contra la energía" },
+        { nivel: 13, primero: "Destierro", segundo: "Puerta dimensional" },
+        { nivel: 17, primero: "Inmovilizar monstruo", segundo: "Escrudiñar" }
+      ];
+      for (const { nivel, primero, segundo } of casos) {
+        const conjuros = subVenganza?.progresionConjuros?.find((p) => p.nivelClase === nivel)?.conjuros;
+        expect(conjuros).toContain(primero);
+        expect(conjuros).toContain(segundo);
+      }
     });
 
     it("Voto de enemistad a nivel 3 es consumible, gasta de Canalizar divinidad y se agrupa en su sección colapsable", () => {

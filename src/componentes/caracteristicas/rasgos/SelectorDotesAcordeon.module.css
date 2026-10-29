@@ -299,32 +299,3 @@
   font-size: var(--pj-fuente-cuerpo);
   line-height: 1.5;
 }
-
-.seccionBeneficiosDote {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 4px;
-}
-
-.tituloBeneficios {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-acento);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.listaBeneficiosDote {
-  margin: 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.itemBeneficioDote {
-  color: var(--pj-texto-primario-suave);
-  font-size: var(--pj-fuente-cuerpo);
-  line-height: 1.4;
-}

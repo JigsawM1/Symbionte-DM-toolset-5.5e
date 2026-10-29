@@ -13,7 +13,6 @@ import { hidratarSelectorConjuros } from "@/servicios/rasgos/catalogoSelectoresC
 interface SeccionSelectoresModalRasgoProps {
   selectores: SelectorRasgo[];
   nivelPersonaje?: number;
-  opcionesTrucosMago?: unknown[];
   alActualizarSeleccion?: (idSelector: string, valores: string[]) => void;
 }
 
@@ -156,6 +155,25 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
           }
         };
 
+        const estadoOpcion = (op: SelectorRasgo["opciones"][number]) => {
+          const estaActiva = seleccionados.includes(op.id);
+          const cumpleNivel =
+            op.nivelMinimo === undefined ||
+            nivelPersonaje === undefined ||
+            nivelPersonaje >= op.nivelMinimo;
+          const cumpleInvocacionPrevia =
+            !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
+          const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
+
+          let avisoBloqueo = "";
+          if (!cumpleNivel) {
+            avisoBloqueo = `[Bloqueado: Requiere nivel ${op.nivelMinimo}] `;
+          } else if (!cumpleInvocacionPrevia) {
+            avisoBloqueo = `[Bloqueado: Requiere requisito previo] `;
+          }
+          return { estaActiva, bloqueada, avisoBloqueo };
+        };
+
         // Renderizado del selector: modo Lista o modo Normal (cuadrícula/chips)
         return (
           <div key={sel.id} className={estilos.tarjetaSelectorModal}>
@@ -198,21 +216,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
                   <>
                     <div className={estilos.listaOpcionesSelectorModal}>
                       {opcionesListaRender.map((op) => {
-                        const estaActiva = seleccionados.includes(op.id);
-                        const cumpleNivel =
-                          op.nivelMinimo === undefined ||
-                          nivelPersonaje === undefined ||
-                          nivelPersonaje >= op.nivelMinimo;
-                        const cumpleInvocacionPrevia =
-                          !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
-                        const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
-
-                        let avisoBloqueo = "";
-                        if (!cumpleNivel) {
-                          avisoBloqueo = `[Bloqueado: Requiere nivel ${op.nivelMinimo}] `;
-                        } else if (!cumpleInvocacionPrevia) {
-                          avisoBloqueo = `[Bloqueado: Requiere requisito previo] `;
-                        }
+                        const { estaActiva, bloqueada, avisoBloqueo } = estadoOpcion(op);
 
                         return (
                           <button
@@ -263,21 +267,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
             ) : (
               <div className={estilos.gridOpcionesSelectorModal}>
                 {opcionesFiltradas.map((op) => {
-                  const estaActiva = seleccionados.includes(op.id);
-                  const cumpleNivel =
-                    op.nivelMinimo === undefined ||
-                    nivelPersonaje === undefined ||
-                    nivelPersonaje >= op.nivelMinimo;
-                  const cumpleInvocacionPrevia =
-                    !op.requisitoInvocacion || seleccionados.includes(op.requisitoInvocacion);
-                  const bloqueada = !estaActiva && (!cumpleNivel || !cumpleInvocacionPrevia);
-
-                  let avisoBloqueo = "";
-                  if (!cumpleNivel) {
-                    avisoBloqueo = `[Bloqueado: Requiere nivel ${op.nivelMinimo}] `;
-                  } else if (!cumpleInvocacionPrevia) {
-                    avisoBloqueo = `[Bloqueado: Requiere requisito previo] `;
-                  }
+                  const { estaActiva, bloqueada, avisoBloqueo } = estadoOpcion(op);
 
                   const tituloTooltip = bloqueada ? `${avisoBloqueo}${op.nombre}` : op.nombre;
                   const contenidoTooltip = bloqueada

@@ -240,60 +240,39 @@ describe("Guerrero: clase general declarativa", () => {
     expect(resultado.find(r => r.nombre === "Indómito")!.usosRestantes).toBe(1);
   });
   it("expone las tablas de progresión canónicas del Guerrero (Tomar aliento, Maestría con armas, Acción súbita, Ataque adicional, Indómito)", () => {
-    const tomarAliento = obtener(1, "Tomar aliento");
-    expect(tomarAliento.tablaProgresion).toEqual({
-      columnas: ["Nivel", "Descripción"],
-      filas: [
+    for (const [nivel, nombre, filas] of [
+      [1, "Tomar aliento", [
         { nivel: 1, valores: ["2 usos"] },
         { nivel: 4, valores: ["3 usos"] },
         { nivel: 10, valores: ["4 usos"] }
-      ],
-      notaPie: "Cada nivel reemplaza al anterior"
-    });
-
-    const maestria = obtener(1, "Maestría con armas");
-    expect(maestria.tablaProgresion).toEqual({
-      columnas: ["Nivel", "Descripción"],
-      filas: [
+      ]],
+      [1, "Maestría con armas", [
         { nivel: 1, valores: ["3 maestrías"] },
         { nivel: 4, valores: ["4 maestrías"] },
         { nivel: 10, valores: ["5 maestrías"] },
         { nivel: 16, valores: ["6 maestrías"] }
-      ],
-      notaPie: "Cada nivel reemplaza al anterior"
-    });
-
-    const accionSubita = obtener(2, "Acción súbita");
-    expect(accionSubita.tablaProgresion).toEqual({
-      columnas: ["Nivel", "Descripción"],
-      filas: [
+      ]],
+      [2, "Acción súbita", [
         { nivel: 2, valores: ["1 vez / descanso"] },
         { nivel: 17, valores: ["2 veces / descanso. Máximo uno por turno"] }
-      ],
-      notaPie: "Cada nivel reemplaza al anterior"
-    });
-
-    const ataqueAdicional = obtener(5, "Ataque adicional");
-    expect(ataqueAdicional.tablaProgresion).toEqual({
-      columnas: ["Nivel", "Descripción"],
-      filas: [
+      ]],
+      [5, "Ataque adicional", [
         { nivel: 5, valores: ["2 ataques"] },
         { nivel: 11, valores: ["3 ataques"] },
         { nivel: 20, valores: ["4 ataques"] }
-      ],
-      notaPie: "Cada nivel reemplaza al anterior"
-    });
-
-    const indomito = obtener(9, "Indómito");
-    expect(indomito.tablaProgresion).toEqual({
-      columnas: ["Nivel", "Descripción"],
-      filas: [
+      ]],
+      [9, "Indómito", [
         { nivel: 9, valores: ["1 vez / descanso"] },
         { nivel: 13, valores: ["2 veces / descanso"] },
         { nivel: 17, valores: ["3 veces / descanso"] }
-      ],
-      notaPie: "Cada nivel reemplaza al anterior"
-    });
+      ]]
+    ] as const) {
+      expect(obtener(nivel, nombre).tablaProgresion, `${nombre} (nivel ${nivel})`).toEqual({
+        columnas: ["Nivel", "Descripción"],
+        filas,
+        notaPie: "Cada nivel reemplaza al anterior"
+      });
+    }
   });
 
   it("expone las tablas de progresión canónicas de las subclases (Caballero Arcano, Maestro del Combate, Guerrero Psiónico)", () => {

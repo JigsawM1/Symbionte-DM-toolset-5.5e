@@ -190,14 +190,15 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
         if (selVal.includes("fulgor")) nuevoNombreEfecto = "Fulgor Interior";
         else if (selVal.includes("mortaja")) nuevoNombreEfecto = "Mortaja Necrótica";
 
-        const efectoPrevio = efectosActualizados.find((e) => {
-          const eNorm = normalizarTextoSeguro(e.nombre);
+        const esEstadoRevelacion = (nombre: string): boolean => {
+          const normalizado = normalizarTextoSeguro(nombre);
           return (
-            eNorm.includes("alas celestiales") ||
-            eNorm.includes("fulgor interior") ||
-            eNorm.includes("mortaja necrotica")
+            normalizado.includes("alas celestiales") ||
+            normalizado.includes("fulgor interior") ||
+            normalizado.includes("mortaja necrotica")
           );
-        });
+        };
+        const efectoPrevio = efectosActualizados.find(e => esEstadoRevelacion(e.nombre));
 
         const rondaActual = get().rondaActual || 1;
         const expiraRonda =
@@ -206,23 +207,9 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
             : rondaActual + 10;
 
         // Purgar efectos y condiciones previos de revelación
-        efectosActualizados = efectosActualizados.filter((e) => {
-          const eNorm = normalizarTextoSeguro(e.nombre);
-          return (
-            !eNorm.includes("alas celestiales") &&
-            !eNorm.includes("fulgor interior") &&
-            !eNorm.includes("mortaja necrotica")
-          );
-        });
+        efectosActualizados = efectosActualizados.filter(e => !esEstadoRevelacion(e.nombre));
 
-        condicionesActualizadas = condicionesActualizadas.filter((c) => {
-          const cNorm = normalizarTextoSeguro(c);
-          return (
-            !cNorm.includes("alas celestiales") &&
-            !cNorm.includes("fulgor interior") &&
-            !cNorm.includes("mortaja necrotica")
-          );
-        });
+        condicionesActualizadas = condicionesActualizadas.filter(c => !esEstadoRevelacion(c));
 
         efectosActualizados.push({
           id: generarId(nuevoNombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20)),

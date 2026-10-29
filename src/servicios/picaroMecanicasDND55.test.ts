@@ -123,14 +123,8 @@ describe("Pícaro D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
 
     // 2. El jugador ENCIENDE el activable Golpe astuto (activo: true) con la opción "Veneno" (coste 1d6)
     const golpeEncendidoConVeneno: RasgoPersonaje = {
-      ...golpeAstuto!,
-      activo: true,
-      selectores: [
-        {
-          ...(golpeAstuto!.selectores![0]),
-          valorActual: ["veneno"]
-        }
-      ]
+      ...golpeApagadoConOpcion,
+      activo: true
     };
 
     const pjConGolpeActivo: PersonajeJugador = {

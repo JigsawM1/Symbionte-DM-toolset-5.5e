@@ -46,58 +46,34 @@ describe("Competencias en Herramientas otorgadas por Dotes", () => {
   });
 
   describe("Extracción de herramientas desde dotes", () => {
-    it("debe extraer Útiles de cocinero del dote Chef", () => {
-      const rasgoChef = crearRasgo({
-        id: "dote_chef",
-        nombre: "Chef",
+    it.each([
+      { id: "dote_chef", nombre: "Chef", herramienta: "Útiles de cocinero", descripcion: "Competencia con útiles de cocinero" },
+      { id: "dote_envenenador", nombre: "Envenenador", herramienta: "Útiles de envenenador", descripcion: "Competencia con útiles de envenenador" }
+    ])("debe extraer $herramienta del dote $nombre", ({ id, nombre, herramienta, descripcion }) => {
+      const rasgo = crearRasgo({
+        id,
+        nombre,
         efectos: [
           {
             tipo: "competencia",
             objetivo: "herramientas",
-            valor: "Útiles de cocinero",
-            descripcion: "Competencia con útiles de cocinero"
+            valor: herramienta,
+            descripcion
           }
         ]
       });
 
       const pj: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
-        rasgos: [rasgoChef]
+        rasgos: [rasgo]
       };
 
       const extra = obtenerCompetenciasExtraRasgos(pj);
-      expect(extra.herramientas).toContain("Útiles de cocinero");
+      expect(extra.herramientas).toContain(herramienta);
 
       const efectivas = obtenerCompetenciasEfectivasTexto(pj);
-      expect(efectivas.herramientasLista).toContain("Útiles de cocinero");
-      expect(efectivas.herramientasTexto).toContain("Útiles de cocinero");
-    });
-
-    it("debe extraer Útiles de envenenador del dote Envenenador", () => {
-      const rasgoEnvenenador = crearRasgo({
-        id: "dote_envenenador",
-        nombre: "Envenenador",
-        efectos: [
-          {
-            tipo: "competencia",
-            objetivo: "herramientas",
-            valor: "Útiles de envenenador",
-            descripcion: "Competencia con útiles de envenenador"
-          }
-        ]
-      });
-
-      const pj: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        rasgos: [rasgoEnvenenador]
-      };
-
-      const extra = obtenerCompetenciasExtraRasgos(pj);
-      expect(extra.herramientas).toContain("Útiles de envenenador");
-
-      const efectivas = obtenerCompetenciasEfectivasTexto(pj);
-      expect(efectivas.herramientasLista).toContain("Útiles de envenenador");
-      expect(efectivas.herramientasTexto).toContain("Útiles de envenenador");
+      expect(efectivas.herramientasLista).toContain(herramienta);
+      expect(efectivas.herramientasTexto).toContain(herramienta);
     });
 
     it("no debe duplicar herramientas si el personaje ya tenía una variante sinónima", () => {

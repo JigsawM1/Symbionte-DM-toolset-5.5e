@@ -54,7 +54,6 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
     const html = renderToStaticMarkup(
       <SeccionSelectoresModalRasgo
         selectores={[selectorMultipleLista]}
-        opcionesTrucosMago={[]}
         alActualizarSeleccion={vi.fn()}
       />
     );
@@ -84,7 +83,6 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
     const html = renderToStaticMarkup(
       <SeccionSelectoresModalRasgo
         selectores={[selectorCorto]}
-        opcionesTrucosMago={[]}
         alActualizarSeleccion={vi.fn()}
       />
     );
@@ -108,7 +106,6 @@ describe("SeccionSelectoresModalRasgo - Paginación en Modo Lista", () => {
     const html = renderToStaticMarkup(
       <SeccionSelectoresModalRasgo
         selectores={[selectorUnicoLista]}
-        opcionesTrucosMago={[]}
         alActualizarSeleccion={vi.fn()}
       />
     );

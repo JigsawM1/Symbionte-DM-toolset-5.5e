@@ -288,7 +288,7 @@ export function obtenerBonoDanoConjuroExtra(
   for (const ef of efectos) {
     if (ef.tipo === "bono_dano_conjuro") {
       const objNorm = normalizar(ef.objetivo || "");
-      if (objNorm === "agregar_modificador_habilidad" || objNorm.includes("modificador_habilidad")) {
+      if (objNorm.includes("modificador_habilidad")) {
         continue;
       }
 
@@ -555,9 +555,7 @@ export function aplicarModificadoresInvocacionesAHechizo(
       : !hechizo.clases?.some(c => normalizar(c) === normalizar(ef.claseConjuro)))) return false;
     if (ef.tipo !== "bono_dano_conjuro") return false;
     const objNorm = normalizar(ef.objetivo || "");
-    if (objNorm !== "agregar_modificador_habilidad" && !objNorm.includes("modificador_habilidad")) {
-      return false;
-    }
+    if (!objNorm.includes("modificador_habilidad")) return false;
 
     const aplNorm = normalizar(ef.aplicaA || "");
     // Si aplica a todos los trucos/conjuros o sin restricción
@@ -568,7 +566,7 @@ export function aplicarModificadoresInvocacionesAHechizo(
     // Si aplica a trucos específicos de una clase
     if (aplNorm === "trucos_clerigo") {
       const clasesNorm = (hechizo.clases || []).map(normalizar);
-      return clasesNorm.length === 0 || clasesNorm.includes("clerigo") || clasesNorm.includes("clérigo");
+      return clasesNorm.length === 0 || clasesNorm.includes("clerigo");
     }
     if (aplNorm === "trucos_brujo") {
       const clasesNorm = (hechizo.clases || []).map(normalizar);

@@ -200,20 +200,13 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
     });
 
     it("escala la fórmula de dados según el nivel de pacto del brujo (4d8 en nv 5-6, 5d8 en nv 7-8, 6d8 en nv 9+)", () => {
-      const pjNv5 = crearBrujoConInvocaciones(5, ["castigo_arcano"]);
-      const accionesNv5 = resolverRasgosAcciones(pjNv5);
-      const castigoNv5 = accionesNv5.find((a) => a.rasgo.nombre.toLowerCase().includes("castigo arcano"));
-      expect(castigoNv5?.rasgo.formulaDados).toBe("4d8");
-
-      const pjNv7 = crearBrujoConInvocaciones(7, ["castigo_arcano"]);
-      const accionesNv7 = resolverRasgosAcciones(pjNv7);
-      const castigoNv7 = accionesNv7.find((a) => a.rasgo.nombre.toLowerCase().includes("castigo arcano"));
-      expect(castigoNv7?.rasgo.formulaDados).toBe("5d8");
-
-      const pjNv9 = crearBrujoConInvocaciones(9, ["castigo_arcano"]);
-      const accionesNv9 = resolverRasgosAcciones(pjNv9);
-      const castigoNv9 = accionesNv9.find((a) => a.rasgo.nombre.toLowerCase().includes("castigo arcano"));
-      expect(castigoNv9?.rasgo.formulaDados).toBe("6d8");
+      const casos = [[5, "4d8"], [7, "5d8"], [9, "6d8"]] as const;
+      for (const [nivel, esperado] of casos) {
+        const pj = crearBrujoConInvocaciones(nivel, ["castigo_arcano"]);
+        const acciones = resolverRasgosAcciones(pj);
+        const castigo = acciones.find((a) => a.rasgo.nombre.toLowerCase().includes("castigo arcano"));
+        expect(castigo?.rasgo.formulaDados, `nivel ${nivel}`).toBe(esperado);
+      }
     });
 
     it("refleja fielmente los espacios de pacto gastados en sus usos disponibles", () => {
@@ -533,45 +526,27 @@ describe("D&D 5.5e - Mecánicas de Invocaciones Sobrenaturales del Brujo", () =>
     it("sustituye el tipo de daño según el selector: propio, necrótico, psíquico o radiante", () => {
       const stats = calcularEstadisticasPersonaje(crearBrujoVinculado(3, ["pacto_del_filo"]));
 
-      // Necrótico
-      const pjNecrotico = crearBrujoVinculado(3, ["pacto_del_filo:necrotico"]);
-      expect(obtenerConfiguracionPactoDelFilo(pjNecrotico)).toMatchObject({ activo: true, tipoDano: "necrotico" });
-      const atqNec = calcularAtaqueArmaEquipada(armaInstancia, {
-        personajeActivo: pjNecrotico,
-        statsCalculadas: stats,
-        baseDatosObjetos: baseDatosMock,
-        caracteristicasArmas: {},
-        gruposArmasConsolidados: [],
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-      expect(atqNec.tipoDano).toBe("Necrótico");
-
-      // Psíquico
-      const pjPsiquico = crearBrujoVinculado(3, ["pacto_del_filo:psiquico"]);
-      const atqPsi = calcularAtaqueArmaEquipada(armaInstancia, {
-        personajeActivo: pjPsiquico,
-        statsCalculadas: stats,
-        baseDatosObjetos: baseDatosMock,
-        caracteristicasArmas: {},
-        gruposArmasConsolidados: [],
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-      expect(atqPsi.tipoDano).toBe("Psíquico");
-
-      // Radiante
-      const pjRadiante = crearBrujoVinculado(3, ["pacto_del_filo:radiante"]);
-      const atqRad = calcularAtaqueArmaEquipada(armaInstancia, {
-        personajeActivo: pjRadiante,
-        statsCalculadas: stats,
-        baseDatosObjetos: baseDatosMock,
-        caracteristicasArmas: {},
-        gruposArmasConsolidados: [],
-        furiaEstaActiva: false,
-        yaIncluyeFuriaEnEfectos: false
-      });
-      expect(atqRad.tipoDano).toBe("Radiante");
+      const casos = [
+        ["necrotico", "Necrótico"],
+        ["psiquico", "Psíquico"],
+        ["radiante", "Radiante"]
+      ] as const;
+      for (const [tipo, esperado] of casos) {
+        const pj = crearBrujoVinculado(3, [`pacto_del_filo:${tipo}`]);
+        if (tipo === "necrotico") {
+          expect(obtenerConfiguracionPactoDelFilo(pj)).toMatchObject({ activo: true, tipoDano: "necrotico" });
+        }
+        const ataque = calcularAtaqueArmaEquipada(armaInstancia, {
+          personajeActivo: pj,
+          statsCalculadas: stats,
+          baseDatosObjetos: baseDatosMock,
+          caracteristicasArmas: {},
+          gruposArmasConsolidados: [],
+          furiaEstaActiva: false,
+          yaIncluyeFuriaEnEfectos: false
+        });
+        expect(ataque.tipoDano, tipo).toBe(esperado);
+      }
     });
   });
 

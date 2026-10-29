@@ -109,6 +109,23 @@ export type EfectoMecanicoRasgo = z.infer<typeof EsquemaEfectoMecanicoRasgo>;
 export const EsquemaRecursoGastado = z.enum(["espacio_pacto", "uso_rasgo", "ninguno"]);
 export type RecursoGastado = z.infer<typeof EsquemaRecursoGastado>;
 
+const EsquemaCategoriaMecanicaRasgo = z.enum([
+  "consumible",
+  "activable",
+  "selector_informativo",
+  "pasivo_permanente",
+  "extension",
+  "curacion"
+]);
+type CategoriaMecanicaRasgo = z.infer<typeof EsquemaCategoriaMecanicaRasgo>;
+
+/** Escalado de fórmula de dados por nivel mínimo (e.g. Inspiración Bárdica, Frenesí) */
+export const EsquemaEscaladoFormulaDados = z.array(z.object({
+  nivelMinimo: z.number().int().min(1).max(20),
+  valor: z.string()
+}));
+export type EscaladoFormulaDados = z.infer<typeof EsquemaEscaladoFormulaDados>;
+
 export const EsquemaOpcionSelector = z.object({
   datosConjuro: z.object({ nivel: z.number().int().min(0).max(9), clases: z.array(z.string()), alcance: z.string().optional(), dadosDaño: z.string().optional(), requiereAtaque: z.boolean().optional() }).optional(),
   costeFijo: z.number().int().positive().optional(),
@@ -123,21 +140,11 @@ export const EsquemaOpcionSelector = z.object({
   requisitoInvocacion: z.string().optional(),
   repetible: z.boolean().optional(),
   tipoAccion: EsquemaTipoAccionRasgo.optional(),
-  categoriaMecanica: z.enum([
-    "consumible",
-    "activable",
-    "selector_informativo",
-    "pasivo_permanente",
-    "extension",
-    "curacion"
-  ]).optional(),
+  categoriaMecanica: EsquemaCategoriaMecanicaRasgo.optional(),
   costeDados: z.number().int().min(1).optional(),
   recursoGastado: EsquemaRecursoGastado.optional(),
   formulaDados: z.string().optional(),
-  escaladoFormulaDados: z.array(z.object({
-    nivelMinimo: z.number().int().min(1).max(20),
-    valor: z.string()
-  })).optional(),
+  escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(z.any()).optional(),
   tieneUsosLimitados: z.boolean().optional(),
@@ -161,7 +168,7 @@ export interface InvocacionSobrenatural extends MecanicasRasgo {
   requisitoInvocacion?: string;
   tipoAccion: "pasivo" | "accion" | "accion_adicional" | "reaccion" | "especial";
   repetible: boolean;
-  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  categoriaMecanica?: CategoriaMecanicaRasgo;
   recursoGastado?: RecursoGastado;
   formulaDados?: string;
   escaladoFormulaDados?: EscaladoFormulaDados;
@@ -179,13 +186,6 @@ export interface InvocacionSobrenatural extends MecanicasRasgo {
 // ESQUEMAS DE ESCALADO GENÉRICO POR NIVEL
 // Eliminan la necesidad de bifurcaciones por nombre en el builder
 // ==========================================
-
-/** Escalado de fórmula de dados por nivel mínimo (e.g. Inspiración Bárdica, Frenesí) */
-export const EsquemaEscaladoFormulaDados = z.array(z.object({
-  nivelMinimo: z.number().int().min(1).max(20),
-  valor: z.string()
-}));
-export type EscaladoFormulaDados = z.infer<typeof EsquemaEscaladoFormulaDados>;
 
 /** Escalado de usos máximos por tabla de nivel o por modificador de stat */
 export const EsquemaEscaladoUsos = z.object({
@@ -296,7 +296,7 @@ export interface PlantillaRasgoClase extends MecanicasRasgo {
   formulaDados?: string;
 
   // Escalados genéricos
-  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  escaladoFormulaDados?: EscaladoFormulaDados;
   escaladoUsos?: {
     tipo: "por_nivel" | "por_modificador";
     tabla?: Array<{ nivelMinimo: number; valor: number }>;
@@ -304,31 +304,19 @@ export interface PlantillaRasgoClase extends MecanicasRasgo {
     minimo?: number;
     formula?: string;
   };
-  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: RecuperacionRasgo }>;
-  escaladoEfectos?: Array<{
-    tipo: TipoEfectoMecanico;
-    objetivo?: string;
-    escalones: Array<{ nivelMinimo: number; valor: string | number }>;
-  }>;
+  escaladoRecuperacion?: EscaladoRecuperacion;
+  escaladoEfectos?: EscaladoEfectos;
   sincronizarEfectosConFormula?: boolean;
 
   // Mecánicas estructuradas
   esActivable?: boolean;
-  autoDesactivar?: boolean;
-  autoDesactivarAlTirarDano?: boolean;
   dispararAlTirarIniciativa?: boolean;
   requiereSinMovimiento?: boolean;
-  ligadoA?: string;
   requiereOpcion?: string;
-  gastarDePadre?: boolean;
-  heredarDadosPadre?: boolean;
   reducirDadosPadre?: boolean;
-  condicionAlActivar?: string;
-  duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
   conjuroGratuito?: string;
   recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
-  noGastarAlTirarDados?: boolean;
   restaurarUsosAlActivar?: {
     idRasgoObjetivo: string;
     cantidad?: number | "maximo";
@@ -336,7 +324,7 @@ export interface PlantillaRasgoClase extends MecanicasRasgo {
     soloSiMenorOIgual?: number;
     siNoDisparado?: string;
   };
-  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  categoriaMecanica?: CategoriaMecanicaRasgo;
   formulaEscalado?: string;
   costeFijo?: number;
   efectos?: EfectoMecanicoRasgo[];
@@ -365,7 +353,7 @@ export interface PlantillaRasgoEspecie {
   formulaDados?: string;
   
   // Escalados genéricos
-  escaladoFormulaDados?: Array<{ nivelMinimo: number; valor: string }>;
+  escaladoFormulaDados?: EscaladoFormulaDados;
   escaladoUsos?: {
     tipo: "por_nivel" | "por_modificador";
     tabla?: Array<{ nivelMinimo: number; valor: number }>;
@@ -373,7 +361,7 @@ export interface PlantillaRasgoEspecie {
     minimo?: number;
     formula?: string;
   };
-  escaladoRecuperacion?: Array<{ nivelMinimo: number; valor: RecuperacionRasgo }>;
+  escaladoRecuperacion?: EscaladoRecuperacion;
   sincronizarEfectosConFormula?: boolean;
   
   // Mecánicas estructuradas
@@ -388,7 +376,7 @@ export interface PlantillaRasgoEspecie {
   duracionEfectoAlActivar?: number;
   conjurosOtorgados?: string[];
   escaladoConjurosOtorgados?: Array<{ nivelMinimo: number; conjuros: string[] }>;
-  categoriaMecanica?: "consumible" | "activable" | "selector_informativo" | "pasivo_permanente" | "extension" | "curacion";
+  categoriaMecanica?: CategoriaMecanicaRasgo;
   formulaEscalado?: string;
   efectos?: EfectoMecanicoRasgo[];
   selectores?: SelectorRasgo[];
@@ -448,13 +436,13 @@ export const EsquemaRasgoPersonaje = z.object({
   autoDesactivarAlTirarDano: z.boolean().default(false).optional(), // Si es true, vuelve a activo: false tras tirar daño con arma
   dispararAlTirarIniciativa: z.boolean().default(false).optional(), // Si es true, ejecuta su efecto al tirar iniciativa
   requiereSinMovimiento: z.boolean().default(false).optional(), // Si es true, solo se puede activar si movimientoGastado === 0
-  ligadoA: z.string().optional(), // ID o nombre de rasgo padre requerido activo
+  // ligadoA: ID o nombre de rasgo padre requerido activo
   requiereOpcion: z.string().optional(), // ID de la opción del selector del rasgo padre requerida
   gastarDePadre: z.boolean().default(false).optional(), // Descuenta uso de la reserva del rasgo padre
   heredarDadosPadre: z.boolean().default(false).optional(), // Hereda formulaDados del rasgo padre
   reducirDadosPadre: z.boolean().default(false).optional(), // Descuenta dados de daño de la fórmula del rasgo padre según opciones elegidas
-  condicionAlActivar: z.string().optional(), // Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
-  duracionEfectoAlActivar: z.number().int().min(1).optional(), // Duración en asaltos para el efecto activo generado (ej. 100 asaltos para Afinidad con la piedra)
+  // condicionAlActivar: Condición táctica a sincronizar en condicionesActivas (ej. "Furia (Rage)")
+  // duracionEfectoAlActivar: Duración en asaltos para el efecto activo generado (ej. 100 asaltos para Afinidad con la piedra)
   conjurosOtorgados: z.array(z.string()).default([]).optional(), // Conjuros siempre preparados otorgados por el rasgo
   conjuroGratuito: z.string().optional(),
   recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
@@ -466,14 +454,7 @@ export const EsquemaRasgoPersonaje = z.object({
     soloSiMenorOIgual: z.number().int().min(0).optional(),
     siNoDisparado: z.string().optional()
   }).optional(),
-  categoriaMecanica: z.enum([
-    "consumible",
-    "activable",
-    "selector_informativo",
-    "pasivo_permanente",
-    "extension",
-    "curacion"
-  ]).optional(),
+  categoriaMecanica: EsquemaCategoriaMecanicaRasgo.optional(),
   costeFijo: z.number().int().min(1).optional(),
   formulaEscalado: z.string().optional(),
   formulaUsos: z.string().nullable().optional(),
@@ -513,14 +494,7 @@ const EsquemaDotePersonajeBase = z.object({
   formulaDados: z.string().optional(),
   recuperacion: EsquemaRecuperacionRasgo.optional(),
   recargaDescansoCorto: z.number().int().min(1).optional(),
-  categoriaMecanica: z.enum([
-    "consumible",
-    "activable",
-    "selector_informativo",
-    "pasivo_permanente",
-    "extension",
-    "curacion"
-  ]).optional(),
+  categoriaMecanica: EsquemaCategoriaMecanicaRasgo.optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(EsquemaSelectorRasgo).optional(),
   repetible: z.boolean().optional(),

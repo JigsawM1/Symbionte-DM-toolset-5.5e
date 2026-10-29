@@ -28,8 +28,6 @@ export function evaluarRecuperacionInspiracionEnDescanso(
     if (ef.tipo === "restaurar_recurso") {
       const objNorm = normalizar(ef.objetivo);
       const esInspiracion =
-        objNorm === "inspiracion" ||
-        objNorm === "inspiracion_heroica" ||
         objNorm.includes("inspiracion heroica") ||
         (objNorm.includes("inspiracion") && !objNorm.includes("bardica"));
 
@@ -64,9 +62,7 @@ export function evaluarReduccionCansancioDescansoCorto(personaje: PersonajeJugad
     const objNorm = normalizar(ef.objetivo || "");
     const esReduccionCansancio =
       (ef.tipo === "personalizado" || ef.tipo === "restaurar_recurso") &&
-      (objNorm === "reducir_cansancio_descanso_corto" ||
-        objNorm === "reducir_agotamiento_descanso_corto" ||
-        (objNorm.includes("cansancio") && objNorm.includes("corto")) ||
+      ((objNorm.includes("cansancio") && objNorm.includes("corto")) ||
         (objNorm.includes("agotamiento") && objNorm.includes("corto")));
 
     if (esReduccionCansancio) {
@@ -183,8 +179,7 @@ export function evaluarVentajasDeRasgosEnTirada(
           objNorm === `prueba_${subtipoNorm}` ||
           objNorm === `caracteristica.${subtipoNorm}` ||
           objNorm === subtipoNorm ||
-          (habilidadNorm !== "" && (objNorm === habilidadNorm || objNorm === `habilidad.${habilidadNorm}` || objNorm === `prueba.${habilidadNorm}` || objNorm === `prueba_${habilidadNorm}`)) ||
-          (objNorm === "prueba.fuerza" && subtipoNorm === "fuerza")
+          (habilidadNorm !== "" && (objNorm === habilidadNorm || objNorm === `habilidad.${habilidadNorm}` || objNorm === `prueba.${habilidadNorm}` || objNorm === `prueba_${habilidadNorm}`))
         ) {
           tieneVentaja = true;
           razones.push(ef.descripcion || `Ventaja en pruebas de ${subtipoNorm}`);
@@ -322,7 +317,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
       if (texto.includes("fuego")) armas.add("fuego");
       if (texto.includes("improvisad")) armasImprovisadas = true;
 
-      if (texto.includes("media") || texto.includes("mediana")) armaduras.add("medias");
+      if (texto.includes("media")) armaduras.add("medias");
       if (texto.includes("escudo")) armaduras.add("escudos");
       if (texto.includes("pesada")) armaduras.add("pesadas");
       if (texto.includes("ligera")) armaduras.add("ligeras");
@@ -357,7 +352,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
           if (valNorm === "pericia") pericias.add(habCanonica);
         }
       }
-      if (valNorm in MAPA_OBJETIVO_A_HABILIDAD && (objNorm.includes("habilidad") || texto.includes("habilidad"))) {
+      if (valNorm in MAPA_OBJETIVO_A_HABILIDAD && (texto.includes("habilidad"))) {
         const habCanonica = MAPA_OBJETIVO_A_HABILIDAD[valNorm];
         if (habCanonica && habCanonica in MAPA_HABILIDAD_A_CARACTERISTICA) {
           habilidades.add(habCanonica);
@@ -371,12 +366,12 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
           salvaciones.add(statLimpia);
         }
       }
-      if (posiblesStats.includes(valNorm as Caracteristica) && (objNorm.includes("salvacion") || texto.includes("salvacion"))) {
+      if (posiblesStats.includes(valNorm as Caracteristica) && (texto.includes("salvacion"))) {
         salvaciones.add(valNorm as Caracteristica);
       }
 
       // Idiomas adicionales otorgados por rasgos (ej. Jerga de ladrones)
-      if (objNorm === "idioma" || objNorm === "idiomas" || objNorm.startsWith("idioma.") || texto.includes("idioma")) {
+      if (texto.includes("idioma")) {
         if (ef.valor && ef.valor !== "idioma" && ef.valor !== "idiomas" && ef.valor !== "competente") {
           idiomas.add(String(ef.valor).trim());
         }

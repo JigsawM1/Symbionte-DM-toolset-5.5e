@@ -153,28 +153,16 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
       if (String(ef.valor).includes("velocidad_caminar")) continue;
       const objetivo = String(ef.objetivo || "").toLowerCase();
       if (objetivo.includes("nadar")) {
-        const velNadar =
-          ef.valor === "nadar" || ef.valor === "caminar" || ef.valor === "velocidad_caminar"
-            ? caminar
-            : (Number(ef.valor) || caminar);
+        const velNadar = Number(ef.valor) || caminar;
         nadar = Math.max(nadar || 0, velNadar);
       } else if (objetivo.includes("volar")) {
-        const velVolar =
-          ef.valor === "volar" || ef.valor === "caminar"
-            ? caminar
-            : (Number(ef.valor) || caminar);
+        const velVolar = Number(ef.valor) || caminar;
         volar = Math.max(volar || 0, velVolar);
       } else if (objetivo.includes("escalar") || objetivo.includes("trepar")) {
-        const velEscalar =
-          ef.valor === "escalar" || ef.valor === "trepar" || ef.valor === "caminar" || ef.valor === "velocidad_caminar"
-            ? caminar
-            : (Number(ef.valor) || caminar);
+        const velEscalar = Number(ef.valor) || caminar;
         escalar = Math.max(escalar || 0, velEscalar);
       } else if (objetivo.includes("excavar")) {
-        const velExcavar =
-          ef.valor === "excavar" || ef.valor === "caminar" || ef.valor === "velocidad_caminar"
-            ? caminar
-            : (Number(ef.valor) || caminar);
+        const velExcavar = Number(ef.valor) || caminar;
         excavar = Math.max(excavar || 0, velExcavar);
       }
     }
@@ -274,7 +262,7 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
       forzarVelocidadCero = true;
     } else if (ef.tipo === "fijar_velocidad") {
       const valNum = Number(ef.valor);
-      if (valNum === 0 || ef.valor === "0") {
+      if (valNum === 0) {
         forzarVelocidadCero = true;
       } else if (!Number.isNaN(valNum)) {
         fijarValorCaminar = valNum;

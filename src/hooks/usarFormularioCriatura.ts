@@ -44,7 +44,9 @@ export const estadoInicialCriatura = {
 };
 
 const rasgoInicial: RasgoBase = { nombre: "", descripcion: "", uso: "", recarga: "" };
-const accionInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string } = {
+type AccionFormulario = Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string };
+
+const accionInicial: AccionFormulario = {
   nombre: "",
   descripcion: "",
   bonificadorAtaque: "",
@@ -52,16 +54,6 @@ const accionInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAt
   uso: "",
   recarga: ""
 };
-const accionAdicionalInicial: Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string } = {
-  nombre: "",
-  descripcion: "",
-  bonificadorAtaque: "",
-  daño: "",
-  uso: "",
-  recarga: ""
-};
-const reaccionInicial: RasgoBase = { nombre: "", descripcion: "", uso: "", recarga: "" };
-const legendariaInicial: RasgoBase = { nombre: "", descripcion: "", uso: "", recarga: "" };
 const quickActionInicial: AccionRapida = {
   nombre: "",
   bonificadorAtaque: "+0",
@@ -70,6 +62,28 @@ const quickActionInicial: AccionRapida = {
   recarga: "",
   uso: ""
 };
+
+function accionAFormulario(a: AccionMonstruo): AccionFormulario {
+  return {
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
+    daño: a.daño || "",
+    uso: a.uso || a.recarga || "",
+    recarga: a.recarga || a.uso || ""
+  };
+}
+
+function accionAModelo(a: AccionFormulario): AccionMonstruo {
+  return {
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
+    daño: a.daño || undefined,
+    uso: a.uso || undefined,
+    recarga: a.recarga || a.uso || undefined
+  };
+}
 
 export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew } = usarAccionesHomebrew();
@@ -84,27 +98,13 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     setMonstruoForm((prev) => ({ ...prev, rasgos: nuevosRasgos }));
   }, []);
 
-  const setAccionesForm = useCallback((nuevasAccionesRaw: Array<Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string }>) => {
-    const accionesSaneadas = nuevasAccionesRaw.map((a) => ({
-      nombre: a.nombre,
-      descripcion: a.descripcion,
-      bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
-      daño: a.daño || undefined,
-      uso: a.uso || undefined,
-      recarga: a.recarga || a.uso || undefined
-    }));
+  const setAccionesForm = useCallback((nuevasAccionesRaw: AccionFormulario[]) => {
+    const accionesSaneadas = nuevasAccionesRaw.map(accionAModelo);
     setMonstruoForm((prev) => ({ ...prev, acciones: accionesSaneadas }));
   }, []);
 
-  const setAccionesAdicionalesForm = useCallback((nuevasAccionesRaw: Array<Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string }>) => {
-    const accionesSaneadas = nuevasAccionesRaw.map((a) => ({
-      nombre: a.nombre,
-      descripcion: a.descripcion,
-      bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
-      daño: a.daño || undefined,
-      uso: a.uso || undefined,
-      recarga: a.recarga || a.uso || undefined
-    }));
+  const setAccionesAdicionalesForm = useCallback((nuevasAccionesRaw: AccionFormulario[]) => {
+    const accionesSaneadas = nuevasAccionesRaw.map(accionAModelo);
     setMonstruoForm((prev) => ({ ...prev, accionesAdicionales: accionesSaneadas }));
   }, []);
 
@@ -124,28 +124,14 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
   const listaRasgos = usarListaDinamica(rasgoInicial, setRasgosForm, monstruoForm.rasgos || []);
   
   // Para acciones convertimos temporalmente bonificadorAtaque a string en el estado del subformulario
-  const accionesRaw = (monstruoForm.acciones || []).map((a) => ({
-    nombre: a.nombre,
-    descripcion: a.descripcion,
-    bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
-    daño: a.daño || "",
-    uso: a.uso || a.recarga || "",
-    recarga: a.recarga || a.uso || ""
-  }));
+  const accionesRaw = (monstruoForm.acciones || []).map(accionAFormulario);
   const listaAcciones = usarListaDinamica(accionInicial, setAccionesForm, accionesRaw);
 
-  const accionesAdicionalesRaw = (monstruoForm.accionesAdicionales || []).map((a) => ({
-    nombre: a.nombre,
-    descripcion: a.descripcion,
-    bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
-    daño: a.daño || "",
-    uso: a.uso || a.recarga || "",
-    recarga: a.recarga || a.uso || ""
-  }));
-  const listaAccionesAdicionales = usarListaDinamica(accionAdicionalInicial, setAccionesAdicionalesForm, accionesAdicionalesRaw);
+  const accionesAdicionalesRaw = (monstruoForm.accionesAdicionales || []).map(accionAFormulario);
+  const listaAccionesAdicionales = usarListaDinamica(accionInicial, setAccionesAdicionalesForm, accionesAdicionalesRaw);
 
-  const listaReacciones = usarListaDinamica(reaccionInicial, setReaccionesForm, monstruoForm.reacciones || []);
-  const listaLegendarias = usarListaDinamica(legendariaInicial, setLegendariasForm, monstruoForm.accionesLegendarias || []);
+  const listaReacciones = usarListaDinamica(rasgoInicial, setReaccionesForm, monstruoForm.reacciones || []);
+  const listaLegendarias = usarListaDinamica(rasgoInicial, setLegendariasForm, monstruoForm.accionesLegendarias || []);
   const listaQuickActions = usarListaDinamica(quickActionInicial, setQuickActionsForm, monstruoForm.accionesRapidas || []);
 
   // --- Manejo reactivo de múltiples daños en Ataques Rápidos ---

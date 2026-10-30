@@ -66,7 +66,6 @@ export function ActivacionConstructor({ borrador, actualizarBorrador, opcionesRa
                 opciones={opcionesRasgosPadre}
                 alCambiar={(val) => actualizarBorrador("ligadoA", val)}
                 placeholder="-- Ninguno (Totalmente Independiente) --"
-                tamano="normal"
               />
               <p className={estilos.pistaCampo}>
                 Si defines un padre (ej. Furia), este rasgo estará bloqueado hasta que el padre se active, y si el padre se apaga, se apagará automáticamente en cascada.

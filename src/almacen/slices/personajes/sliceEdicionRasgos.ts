@@ -37,7 +37,6 @@ agregarRasgoPersonaje: (idPj, rasgo) => {
         };
       }
       const rasgosActuales = migrarMetadatosRasgos([...(pj.rasgos || []), rasgoAjustado]);
-      rasgoAjustado = rasgosActuales[rasgosActuales.length - 1];
       const pjTemp = { ...pj, rasgos: rasgosActuales };
       const bonoPrevio = calcularBonoHPMaximoRasgos(pj);
       const bonoNuevo = calcularBonoHPMaximoRasgos(pjTemp);

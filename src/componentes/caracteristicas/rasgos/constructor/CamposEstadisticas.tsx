@@ -53,7 +53,6 @@ export function CamposEstadisticas({
                     setNuevoCondicion("");
                 }
             }}
-                      tamano="normal"
                     />
                   </div>
                   {nuevoObjetivo === "defensa_sin_armadura" ? (<div className={estilos.campoGrupo}>
@@ -64,7 +63,6 @@ export function CamposEstadisticas({
                         valor={nuevoValor}
                         opciones={OPCIONES_ATRIBUTO_CA}
                         alCambiar={(val) => setNuevoValor(val)}
-                        tamano="normal"
                       />
                     </div>) : (<div className={estilos.campoGrupo}>
                       <label className={estilos.labelCampo}>
@@ -98,7 +96,6 @@ export function CamposEstadisticas({
                       valor={nuevoCondicion || "con_armadura"}
                       opciones={OPCIONES_CONDICION_CA}
                       alCambiar={(val) => setNuevoCondicion(val === "siempre" ? "" : val)}
-                      tamano="normal"
                     />
                   </div>)}
               </div>)}
@@ -111,7 +108,6 @@ export function CamposEstadisticas({
                     valor={nuevoObjetivo}
                     opciones={OPCIONES_CARACTERISTICAS}
                     alCambiar={(val) => setNuevoObjetivo(val)}
-                    tamano="normal"
                   />
                 </div>
 
@@ -169,7 +165,6 @@ export function CamposEstadisticas({
                 { valor: "velocidad.nadar", etiqueta: "Nado" }
             ]}
                     alCambiar={(val) => setNuevoObjetivo(val)}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -230,7 +225,6 @@ export function CamposEstadisticas({
                 { valor: "Grande", etiqueta: "Grande" }
             ]}
                     alCambiar={(val) => setNuevoValor(val)}
-                    tamano="normal"
                   />
                   <p className={estilos.pistaCampo}>
                     Tamaño adoptado por la criatura mientras el rasgo o efecto esté activo.
@@ -262,7 +256,6 @@ export function CamposEstadisticas({
                 { valor: "99", etiqueta: "Sin límite de Destreza (Todo el mod DES)" }
             ]}
                     alCambiar={(val) => setNuevoValor(val)}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>

@@ -170,7 +170,7 @@ export const FormularioHechizo: React.FC<Props> = ({
           <label className={estilos.labelForm}>Escuela:</label>
           <SelectorDesplegable
             valor={hEscuela}
-            alCambiar={(val) => setHEscuela(val)}
+            alCambiar={setHEscuela}
             opciones={Escuelas_Magia}
             placeholder="Seleccionar escuela..."
           />
@@ -212,7 +212,7 @@ export const FormularioHechizo: React.FC<Props> = ({
           <label className={estilos.labelForm}>Concentración:</label>
           <SelectorDesplegable
             valor={hConcentracion}
-            alCambiar={(val) => setHConcentracion(val)}
+            alCambiar={setHConcentracion}
             opciones={OPCIONES_SI_NO}
           />
         </div>
@@ -220,7 +220,7 @@ export const FormularioHechizo: React.FC<Props> = ({
           <label className={estilos.labelForm}>Ritual:</label>
           <SelectorDesplegable
             valor={hRitual}
-            alCambiar={(val) => setHRitual(val)}
+            alCambiar={setHRitual}
             opciones={OPCIONES_SI_NO}
           />
         </div>
@@ -310,7 +310,7 @@ export const FormularioHechizo: React.FC<Props> = ({
             <label className={estilos.labelForm}>Ataque o CD:</label>
             <SelectorDesplegable
               valor={hAtaqueCd}
-              alCambiar={(val) => setHAtaqueCd(val)}
+              alCambiar={setHAtaqueCd}
               opciones={OPCIONES_ATAQUE_CD}
             />
           </div>
@@ -318,7 +318,7 @@ export const FormularioHechizo: React.FC<Props> = ({
             <label className={estilos.labelForm}>CD de Salvación (Atributo):</label>
             <SelectorDesplegable
               valor={hCdSalvacion}
-              alCambiar={(val) => setHCdSalvacion(val)}
+              alCambiar={setHCdSalvacion}
               opciones={OPCIONES_SALVACION_ATTR}
             />
           </div>
@@ -352,7 +352,7 @@ export const FormularioHechizo: React.FC<Props> = ({
             <label className={estilos.labelForm}>Tipo de Daño:</label>
             <SelectorDesplegable
               valor={hTipoDaño}
-              alCambiar={(val) => setHTipoDaño(val)}
+              alCambiar={setHTipoDaño}
               opciones={OPCIONES_TIPO_DANO_HECHIZO}
             />
           </div>
@@ -360,7 +360,7 @@ export const FormularioHechizo: React.FC<Props> = ({
             <label className={estilos.labelForm}>Sumar Mod. Habilidad al Daño:</label>
             <SelectorDesplegable
               valor={hAgregarModificador}
-              alCambiar={(val) => setHAgregarModificador(val)}
+              alCambiar={setHAgregarModificador}
               opciones={OPCIONES_SI_NO}
             />
           </div>

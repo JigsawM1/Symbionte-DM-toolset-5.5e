@@ -34,8 +34,6 @@ export function usarConstructorRasgo({ personaje, rasgoInicial, origenPredetermi
                 const adicionales: RasgoPersonaje[] = dote.rasgosAdicionales.map((rad) => ({
                     ...structuredClone(rad),
                     id: rad.id || generarId("rasgo_hb"),
-                    nombre: rad.nombre,
-                    descripcion: rad.descripcion,
                     origen: "dote",
                     fuente: rad.fuente || "PHB 2024",
                     tipoAccion: rad.tipoAccion || "accion_adicional",

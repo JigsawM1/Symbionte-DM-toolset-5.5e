@@ -90,7 +90,7 @@ export const SeccionArma: React.FC<Props> = ({
           <div className={`${estilos.tooltipContenedor} ${estilos.anchoCompleto}`}>
             <SelectorDesplegable
               valor={oMaestria}
-              alCambiar={(val) => setOMaestria(val)}
+              alCambiar={setOMaestria}
               opciones={OPCIONES_MAESTRIAS}
               placeholder="Seleccionar maestría..."
             />
@@ -120,7 +120,7 @@ export const SeccionArma: React.FC<Props> = ({
           <label className={estilos.labelForm}>Tipo de Daño:</label>
           <SelectorDesplegable
             valor={oTipoDano}
-            alCambiar={(val) => setOTipoDano(val)}
+            alCambiar={setOTipoDano}
             opciones={OPCIONES_TIPO_DANO_ARMA}
           />
         </div>

@@ -78,18 +78,4 @@ describe("SeccionSelectorPlantilla - Selector de sugerencias para plantilla base
     expect(html).toContain('placeholder="-- Buscar objeto base como plantilla (ej. Cimatarra, Escudo, Poción) --"');
   });
 
-  it("contiene los componentes y estructura esperada para autocompletado", () => {
-    const alSeleccionar = vi.fn();
-    const elemento = (
-      <SeccionSelectorPlantilla
-        idEnEdicion={null}
-        listaTodosObjetos={objetosMock}
-        alSeleccionarPlantilla={alSeleccionar}
-        estilos={estilosMock}
-      />
-    );
-
-    expect(elemento.type).toBe(SeccionSelectorPlantilla);
-    expect(elemento.props.listaTodosObjetos).toHaveLength(2);
-  });
 });

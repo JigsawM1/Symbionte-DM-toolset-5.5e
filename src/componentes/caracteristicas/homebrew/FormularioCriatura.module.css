@@ -47,21 +47,7 @@
   padding: 4px 0;
 }
 
-.seccionContenidoListas {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 440px;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.filaDobleForm {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-
+.filaDobleForm,
 .filaTripleForm {
   display: flex;
   flex-direction: row;
@@ -150,27 +136,6 @@
   font-weight: bold;
   color: var(--color-borde-cian);
   margin-top: 1px;
-}
-
-.selectForm {
-  font-size: 13px;
-  padding: 6px 28px 6px 10px;
-  height: 34px;
-  width: 100%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectForm:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .cabeceraMiniSeccion {
@@ -319,14 +284,6 @@
   letter-spacing: 0.07em;
 }
 
-.filaAgregarRapido {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .inputDinamicoMini {
   font-size: 13px;
   padding: 6px 7px;
@@ -370,27 +327,6 @@
 
 .inputDinamicoLargo:focus {
   border-color: var(--color-borde-cian);
-}
-
-.selectDinamicoMini {
-  font-size: 12.5px;
-  padding: 0px 22px 0px 6px;
-  height: 30px;
-  width: 95px;
-  background-color: var(--color-fondo-profundo);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 4px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectDinamicoMini:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .botonAgregarDinamico {
@@ -490,56 +426,6 @@
 
 .botonAgregarCompleto:hover {
   filter: brightness(1.15);
-}
-
-.grupoBotonesAccion {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-  width: 100%;
-}
-
-.botonEnviarBrutal {
-  background: linear-gradient(135deg, var(--dm-primario-hover, var(--color-primario-brillante)) 0%, var(--color-primario) 100%);
-  border: 1px solid var(--color-borde-cian);
-  color: var(--dm-texto-principal, #ffffff);
-  padding: 11px;
-  font-size: 13.5px;
-  font-weight: 700;
-  margin-top: 10px;
-  width: 100%;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-radius: var(--dm-radio-control, 6px);
-  box-shadow: 0 3px 12px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
-}
-
-.botonEnviarBrutal:hover {
-  filter: brightness(1.15);
-  box-shadow: 0 3px 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
-}
-
-.botonCancelarBrutal {
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  padding: 9px;
-  font-size: 12.5px;
-  font-weight: 600;
-  width: 100%;
-  cursor: pointer;
-  text-transform: uppercase;
-  text-align: center;
-  border-radius: var(--dm-radio-control, 6px);
-  letter-spacing: 0.04em;
-}
-
-.botonCancelarBrutal:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
-  border-color: var(--color-borde-cian);
-  color: var(--color-borde-cian);
 }
 
 .notaAyuda {
@@ -836,19 +722,6 @@
   color: var(--pj-borde-cian-fuerte);
 }
 
-:global([data-tema="jugador"]) .selectForm {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectForm:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 :global([data-tema="jugador"]) .cabeceraMiniSeccion {
   font-size: var(--pj-fuente-label);
   color: var(--pj-borde-cian-fuerte);
@@ -962,19 +835,6 @@
   border-color: var(--pj-borde-cian-fuerte);
 }
 
-:global([data-tema="jugador"]) .selectDinamicoMini {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-base);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectDinamicoMini:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 :global([data-tema="jugador"]) .botonAgregarDinamico {
   background-color: var(--pj-acento-primario-solido);
   border: 1px solid var(--pj-borde-cian-fuerte);
@@ -1023,33 +883,6 @@
   color: var(--pj-texto-primario);
   font-size: var(--pj-fuente-boton);
   border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .botonEnviarBrutal {
-  background: linear-gradient(135deg, var(--pj-acento-primario-solido-hover) 0%, var(--pj-acento-primario-solido) 100%);
-  border: 1px solid var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .botonEnviarBrutal:hover {
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .botonCancelarBrutal {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .botonCancelarBrutal:hover {
-  background-color: rgba(var(--pj-rgb-cian), 0.12);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-borde-cian-fuerte);
 }
 
 :global([data-tema="jugador"]) .notaAyuda {

@@ -44,7 +44,6 @@ export const SeccionSelectorPlantilla: React.FC<Props> = ({
       )?.id;
 
     if (idObjetivo) {
-      setBusquedaPlantilla(opcion.etiqueta || opcion.valor);
       alSeleccionarPlantilla(idObjetivo);
     }
   };

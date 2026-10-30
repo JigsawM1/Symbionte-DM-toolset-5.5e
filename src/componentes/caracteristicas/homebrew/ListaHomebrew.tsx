@@ -164,7 +164,7 @@ export const ListaHomebrew: React.FC<Props> = ({
   );
 
   // Ordenamiento dinámico priorizando el título
-  const monstruosOrdenados = [...monstruosHomebrew].sort(
+  const monstruosOrdenados = monstruosHomebrew.sort(
     compararPorRelevanciaTitulo(
       (m) => m.nombre,
       filtroBusqueda,
@@ -188,7 +188,7 @@ export const ListaHomebrew: React.FC<Props> = ({
     )
   );
 
-  const hechizosOrdenados = [...hechizosHomebrew].sort(
+  const hechizosOrdenados = hechizosHomebrew.sort(
     compararPorRelevanciaTitulo(
       (h) => h.nombre,
       filtroBusqueda,
@@ -202,7 +202,7 @@ export const ListaHomebrew: React.FC<Props> = ({
     )
   );
 
-  const objetosOrdenados = [...objetosHomebrewFiltrados].sort(
+  const objetosOrdenados = objetosHomebrewFiltrados.sort(
     compararPorRelevanciaTitulo(
       (o) => o.nombre,
       filtroBusqueda,
@@ -833,14 +833,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                           <span className={estilos.textoEtiquetaMecanica}>Munición: </span>
                           {(() => {
                             const idDestino = arma.ammunition.index;
-                            const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
-                            if (existeDestino) {
+                            const destino = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
+                            if (destino) {
                               return (
                                 <strong
-                                  onClick={() => {
-                                    const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(arma.ammunition!.name));
-                                    if (found) navegarAObjeto(found.id);
-                                  }}
+                                  onClick={() => navegarAObjeto(destino.id)}
                                   className={estilos.enlaceObjetoCompendio}
                                 >
                                   {arma.ammunition.name}
@@ -1025,14 +1022,11 @@ export const ListaHomebrew: React.FC<Props> = ({
                         <span className={estilos.textoEtiquetaMecanica}>Almacenamiento: </span>
                         {(() => {
                           const idDestino = objeto.storage.index;
-                          const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
-                          if (existeDestino) {
+                          const destino = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
+                          if (destino) {
                             return (
                               <strong
-                                onClick={() => {
-                                  const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(objeto.storage!.name));
-                                  if (found) navegarAObjeto(found.id);
-                                }}
+                                onClick={() => navegarAObjeto(destino.id)}
                                 className={estilos.enlaceObjetoCompendio}
                               >
                                 {objeto.storage.name}
@@ -1188,20 +1182,17 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <div className="u-flex u-flex-col u-gap-xs">
                     {objeto.contents.map((c: { item: { index: string; name: string }; quantity: number }, idx: number) => {
                       const idDestino = c.item.index;
-                      const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
+                      const destino = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
                       
                       return (
                         <div key={idx} className={estilos.filaContenidoPaquete}>
                           <span className={estilos.textoItemPaquete}>
                             {c.quantity}x {c.item.name}
                           </span>
-                          {existeDestino ? (
+                          {destino ? (
                             <button
                               type="button"
-                              onClick={() => {
-                                const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.item.name));
-                                if (found) navegarAObjeto(found.id);
-                              }}
+                              onClick={() => navegarAObjeto(destino.id)}
                               className={estilos.botonVerObjetoContenido}
                             >
                               Ver Objeto 
@@ -1225,17 +1216,14 @@ export const ListaHomebrew: React.FC<Props> = ({
                   <div className="u-flex u-flex-wrap u-gap-xs">
                     {objeto.craft.map((c: { index: string; name: string }, idx: number) => {
                       const idDestino = c.index;
-                      const existeDestino = objetosHomebrew.some(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
+                      const destino = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
                       
-                      if (existeDestino) {
+                      if (destino) {
                         return (
                           <button
                             key={idx}
                             type="button"
-                            onClick={() => {
-                              const found = objetosHomebrew.find(o => o.id === idDestino || normalizarTexto(o.nombre) === normalizarTexto(c.name));
-                              if (found) navegarAObjeto(found.id);
-                            }}
+                            onClick={() => navegarAObjeto(destino.id)}
                             className={estilos.botonCraftDisponible}
                           >
                              {c.name}

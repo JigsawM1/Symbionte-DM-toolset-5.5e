@@ -284,7 +284,7 @@ export const SeccionEfectosPasivos: React.FC<Props> = ({
                 {OPCIONES_ATRIBUTOS[oNuevoBonoCategoria] ? (
                   <SelectorDesplegable
                     valor={oNuevoBonoBono}
-                    alCambiar={(val) => setONuevoBonoBono(val)}
+                    alCambiar={setONuevoBonoBono}
                     opciones={OPCIONES_ATRIBUTOS[oNuevoBonoCategoria].map((op) => ({ valor: op, etiqueta: op }))}
                   />
                 ) : (

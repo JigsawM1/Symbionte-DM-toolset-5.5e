@@ -463,14 +463,6 @@
 }
 
 /* 6. Previsualización */
-.contenedorPrevisualizacion {
-  border-top: 1px solid var(--pj-borde-sutil);
-  padding-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .tituloPrevisualizacion {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;

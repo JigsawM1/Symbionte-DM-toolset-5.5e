@@ -49,7 +49,6 @@ export function CamposCombate({
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
-                    tamano="normal"
                   />
                 </div>
               </div>)}
@@ -89,7 +88,6 @@ export function CamposCombate({
                     valor={nuevoAplicaA}
                     opciones={OPCIONES_APLICA_A_ATAQUE}
                     alCambiar={(val) => setNuevoAplicaA(val)}
-                    tamano="normal"
                   />
                 </div>
               </div>)}
@@ -106,7 +104,6 @@ export function CamposCombate({
                 { valor: "carisma", etiqueta: "Carisma" }
             ]}
                     alCambiar={(val) => setNuevoObjetivo(val)}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -132,7 +129,6 @@ export function CamposCombate({
                     valor={nuevoCondicion}
                     opciones={OPCIONES_CONDICION_DESARMADO}
                     alCambiar={(val) => setNuevoCondicion(val)}
-                    tamano="normal"
                   />
                   <p className={estilos.pistaCampo}>
                     Permite limitar el dado especial a situaciones como no portar escudo o no vestir armadura.
@@ -156,7 +152,6 @@ export function CamposCombate({
                 setNuevoAplicaA(val);
                 setNuevoObjetivo(`dano_${val}`);
             }}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -171,7 +166,6 @@ export function CamposCombate({
                 { valor: "3", etiqueta: "+3 Dados de daño adicionales" }
             ]}
                     alCambiar={(val) => setNuevoValor(val)}
-                    tamano="normal"
                   />
                 </div>
               </div>)}

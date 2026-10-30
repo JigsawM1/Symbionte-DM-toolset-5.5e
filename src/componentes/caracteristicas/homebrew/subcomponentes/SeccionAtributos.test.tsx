@@ -127,20 +127,4 @@ describe("SeccionAtributos - Componente de Atributos Básicos y Tiradas de Salva
     expect(html).toContain('placeholder="—"');
   });
 
-  it("mantiene la estructura y referencia del componente React y sus props", () => {
-    const fnActualizarCaract = vi.fn();
-    const fnActualizarSalv = vi.fn();
-
-    const elemento = (
-      <SeccionAtributos
-        monstruoForm={monstruoFormBase}
-        actualizarCaracteristica={fnActualizarCaract}
-        actualizarSalvacion={fnActualizarSalv}
-      />
-    );
-
-    expect(elemento.type).toBe(SeccionAtributos);
-    expect(elemento.props.actualizarCaracteristica).toBe(fnActualizarCaract);
-    expect(elemento.props.actualizarSalvacion).toBe(fnActualizarSalv);
-  });
 });

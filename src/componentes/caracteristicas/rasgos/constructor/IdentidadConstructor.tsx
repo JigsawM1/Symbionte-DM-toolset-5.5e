@@ -56,7 +56,6 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
               valor={origen}
               opciones={OPCIONES_ORIGEN}
               alCambiar={(val) => actualizarBorrador("origen", val)}
-              tamano="normal"
             />
           </div>
         </div>
@@ -70,7 +69,6 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
               valor={tipoAccion}
               opciones={OPCIONES_TIPO_ACCION}
               alCambiar={(val) => actualizarBorrador("tipoAccion", val)}
-              tamano="normal"
             />
           </div>
 
@@ -114,7 +112,6 @@ export function IdentidadConstructor({ borrador, actualizarBorrador, errores }: 
             valor={categoriaMecanica}
             opciones={OPCIONES_CATEGORIA_MECANICA}
             alCambiar={(val) => actualizarBorrador("categoriaMecanica", val)}
-            tamano="normal"
           />
           <p className={estilos.pistaCampo}>
             Determina cómo clasifica la ficha y el combate este rasgo (consumible con usos, activable táctico, pasivo permanente, etc.).

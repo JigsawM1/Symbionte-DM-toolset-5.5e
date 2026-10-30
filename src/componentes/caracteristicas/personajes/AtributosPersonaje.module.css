@@ -425,9 +425,7 @@
 }
 
 @media (max-width: 480px) {
-  .gridAtributos {
-    grid-template-columns: minmax(0, 1fr);
-  }
+  .gridAtributos,
   .panelCompetencias {
     grid-template-columns: minmax(0, 1fr);
   }

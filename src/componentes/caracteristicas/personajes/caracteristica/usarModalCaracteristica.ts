@@ -133,23 +133,17 @@ export const usarModalCaracteristica = ({
 
   const manejarGuardar = (e: React.FormEvent) => {
     e.preventDefault();
-    const baseNum = Number(valorBaseForm);
-    const baseFinal = !isNaN(baseNum) && baseNum >= 1 && baseNum <= 30 ? baseNum : valorBaseActual;
-    const overrideNum = overrideForm.trim() !== "" ? Number(overrideForm) : null;
-    const overrideFinal = overrideNum !== null && !isNaN(overrideNum) && overrideNum >= 1 && overrideNum <= 30 ? overrideNum : null;
-    const modExtraFinal = Number(modExtraForm) || 0;
-    const bonoSalvExtraFinal = Number(bonoSalvacionExtraForm) || 0;
 
     alGuardar(caracteristicaClave, {
-      valorBase: baseFinal,
-      overrideFijo: overrideFinal,
+      valorBase: baseValidaPreview,
+      overrideFijo: overrideValidoPreview,
       competenteSalvacion: competenteSalvacionForm,
       personalizacion: {
         nombrePersonalizado: nombreForm.trim() !== "" ? nombreForm.trim() : undefined,
         descripcionPersonalizada: descForm.trim() !== "" ? descForm.trim() : undefined,
-        modificadorExtra: modExtraFinal,
-        valorFijo: overrideFinal,
-        bonoSalvacionExtra: bonoSalvExtraFinal,
+        modificadorExtra: modExtraNumPreview,
+        valorFijo: overrideValidoPreview,
+        bonoSalvacionExtra: bonoSalvExtraNumPreview,
         notas: notasForm
       }
     });

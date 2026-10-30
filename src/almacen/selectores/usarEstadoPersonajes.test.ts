@@ -28,30 +28,33 @@ describe("calcularEstadisticasPersonaje - Efectos Pasivos de Objetos", () => {
     inventario: []
   });
 
+  const crearAnilloProteccion = (cambios: Partial<ObjetoInventario> = {}): ObjetoInventario => ({
+    idInstancia: "inv_anillo_1",
+    idObjeto: "anillo_proteccion",
+    nombre: "Anillo de Protección",
+    categoria: "objetos-magicos",
+    esConsumible: false,
+    subcategoria: "Maravilloso",
+    pesoLb: 0,
+    cantidad: 1,
+    equipable: true,
+    equipado: true,
+    sintonizacionRequerida: true,
+    sintonizado: true,
+    esMagico: true,
+    rareza: "Raro",
+    notas: "",
+    efectosPasivos: [
+          { tipo: "CA", bono: "CA", valor: 1, descripcion: "+1 a la CA" },
+          { tipo: "SALVACIÓN", bono: "Todas", valor: 1, descripcion: "+1 a todas las salvaciones" }
+        ],
+    ...cambios
+  });
+
   it("debe aplicar bonos a CA de objetos mágicos equipados y sintonizados", () => {
     const pj = crearPersonajeBase();
     pj.inventario = [
-      {
-        idInstancia: "inv_anillo_1",
-        idObjeto: "anillo_proteccion",
-        nombre: "Anillo de Protección",
-        categoria: "objetos-magicos",
-        esConsumible: false,
-        subcategoria: "Maravilloso",
-        pesoLb: 0,
-        cantidad: 1,
-        equipable: true,
-        equipado: true,
-        sintonizacionRequerida: true,
-        sintonizado: true,
-        esMagico: true,
-        rareza: "Raro",
-        notas: "",
-        efectosPasivos: [
-          { tipo: "CA", bono: "CA", valor: 1, descripcion: "+1 a la CA" },
-          { tipo: "SALVACIÓN", bono: "Todas", valor: 1, descripcion: "+1 a todas las salvaciones" }
-        ]
-      } as ObjetoInventario
+      crearAnilloProteccion()
     ];
 
     const stats = calcularEstadisticasPersonaje(pj);
@@ -65,27 +68,7 @@ describe("calcularEstadisticasPersonaje - Efectos Pasivos de Objetos", () => {
   it("NO debe aplicar efectos pasivos si el objeto requiere sintonización pero no está sintonizado", () => {
     const pj = crearPersonajeBase();
     pj.inventario = [
-      {
-        idInstancia: "inv_anillo_1",
-        idObjeto: "anillo_proteccion",
-        nombre: "Anillo de Protección",
-        categoria: "objetos-magicos",
-        esConsumible: false,
-        subcategoria: "Maravilloso",
-        pesoLb: 0,
-        cantidad: 1,
-        equipable: true,
-        equipado: true,
-        sintonizacionRequerida: true,
-        sintonizado: false, // No sintonizado
-        esMagico: true,
-        rareza: "Raro",
-        notas: "",
-        efectosPasivos: [
-          { tipo: "CA", bono: "CA", valor: 1, descripcion: "+1 a la CA" },
-          { tipo: "SALVACIÓN", bono: "Todas", valor: 1, descripcion: "+1 a todas las salvaciones" }
-        ]
-      } as ObjetoInventario
+      crearAnilloProteccion({ sintonizado: false })
     ];
 
     const stats = calcularEstadisticasPersonaje(pj);
@@ -97,27 +80,7 @@ describe("calcularEstadisticasPersonaje - Efectos Pasivos de Objetos", () => {
   it("NO debe aplicar efectos pasivos si el objeto está sintonizado pero no equipado", () => {
     const pj = crearPersonajeBase();
     pj.inventario = [
-      {
-        idInstancia: "inv_anillo_1",
-        idObjeto: "anillo_proteccion",
-        nombre: "Anillo de Protección",
-        categoria: "objetos-magicos",
-        esConsumible: false,
-        subcategoria: "Maravilloso",
-        pesoLb: 0,
-        cantidad: 1,
-        equipable: true,
-        equipado: false, // Guardado en la mochila
-        sintonizacionRequerida: true,
-        sintonizado: true,
-        esMagico: true,
-        rareza: "Raro",
-        notas: "",
-        efectosPasivos: [
-          { tipo: "CA", bono: "CA", valor: 1, descripcion: "+1 a la CA" },
-          { tipo: "SALVACIÓN", bono: "Todas", valor: 1, descripcion: "+1 a todas las salvaciones" }
-        ]
-      } as ObjetoInventario
+      crearAnilloProteccion({ equipado: false })
     ];
 
     const stats = calcularEstadisticasPersonaje(pj);

@@ -18,7 +18,6 @@
   line-height: 1.45;
   color: var(--pj-texto-secundario-claro);
   background-color: var(--pj-fondo-tarjeta);
-  border-left: 3px solid var(--pj-borde-fuerte);
   border: 1px solid var(--pj-borde-acento);
 }
 
@@ -61,39 +60,23 @@
   background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
-.valorModCaracPositivo {
+.valorModCaracPositivo,
+.valorCompetenciaConBono,
+.valorCompetenciaSinBono,
+.valorModAdicionalPositivo {
   font-weight: 700;
   font-family: monospace;
   color: var(--pj-texto-acento);
 }
 
-.valorModCaracNegativo {
+.valorModCaracNegativo,
+.valorModAdicionalNegativo {
   font-weight: 700;
   font-family: monospace;
   color: var(--pj-texto-alerta);
 }
 
-.filaCompetenciaHab {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 12px;
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-secundario-claro);
-  border-top: 1px solid var(--pj-borde-acento);
-}
-
-.valorCompetenciaConBono {
-  font-weight: 700;
-  font-family: monospace;
-  color: var(--pj-texto-acento);
-}
-
-.valorCompetenciaSinBono {
-  font-weight: 700;
-  font-family: monospace;
-  color: var(--pj-texto-acento);
-}
-
+.filaCompetenciaHab,
 .filaModAdicionalHab {
   display: flex;
   justify-content: space-between;
@@ -101,18 +84,6 @@
   font-size: var(--pj-fuente-cuerpo);
   color: var(--pj-texto-secundario-claro);
   border-top: 1px solid var(--pj-borde-acento);
-}
-
-.valorModAdicionalPositivo {
-  font-weight: 700;
-  font-family: monospace;
-  color: var(--pj-texto-acento);
-}
-
-.valorModAdicionalNegativo {
-  font-weight: 700;
-  font-family: monospace;
-  color: var(--pj-texto-alerta);
 }
 
 .filaTotalHabilidad {

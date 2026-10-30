@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionNivelConjuros } from "./SeccionNivelConjuros";
@@ -151,29 +152,33 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
   };
 
   describe("SeccionNivelConjuros", () => {
+    const crearPropsNivel = (): Omit<ComponentProps<typeof SeccionNivelConjuros>, "titulo" | "nivel" | "conjurosVisibles" | "conjurosFiltrados" | "personaje"> => ({
+      estaAbierta: true,
+      alAlternar: vi.fn(),
+      hayFiltrosActivos: false,
+      bonoAtaqueMagico: 6,
+      estaPreparado: () => true,
+      esHechizoDeSubclase: () => false,
+      requierePreparacion: false,
+      esLanzadorPacto: false,
+      nivelEspacioPacto: 1,
+      sistemaMagia: "espacios",
+      estaBloqueadoPorArmadura: false,
+      alAlternarOcultar: vi.fn(),
+      alQuitarDeLista: vi.fn(),
+      alAbrirDetalleCompleto: vi.fn(),
+      alLanzar: vi.fn()
+    });
+
     it("conserva Lanzar para Orden imperiosa: la alternativa de Manto se elige al lanzar", () => {
       const html = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 1"
           nivel={1}
           conjurosVisibles={[hechizoOrdenImperiosa, hechizoCurarHeridas]}
           conjurosFiltrados={[hechizoOrdenImperiosa, hechizoCurarHeridas]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={personajeConMantoMajestad}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -184,26 +189,12 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("muestra el botón 'Gratis' para 'Curar heridas' cuando proviene de un rasgo innato con usos disponibles", () => {
       const html = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 1"
           nivel={1}
           conjurosVisibles={[hechizoCurarHeridas]}
           conjurosFiltrados={[hechizoCurarHeridas]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={personajeConRasgoInnato}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -213,26 +204,12 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("NO muestra el botón 'Gratis' si no hay Manto ni rasgo gratuito activo", () => {
       const html = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 1"
           nivel={1}
           conjurosVisibles={[hechizoOrdenImperiosa, hechizoCurarHeridas]}
           conjurosFiltrados={[hechizoOrdenImperiosa, hechizoCurarHeridas]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={personajeSinGratuito}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -275,26 +252,12 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
 
       const html = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 1"
           nivel={1}
           conjurosVisibles={[hechizoOrdenImperiosa]}
           conjurosFiltrados={[hechizoOrdenImperiosa]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={pjConRasgoReal}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -304,26 +267,12 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("NO muestra el botón 'Gratis' para 'Hechizar persona' ni 'Imagen múltiple' con Magia cautivadora", () => {
       const htmlNivel1 = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 1"
           nivel={1}
           conjurosVisibles={[hechizoHechizarPersona]}
           conjurosFiltrados={[hechizoHechizarPersona]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={personajeConMagiaCautivadora}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -331,26 +280,12 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
 
       const htmlNivel2 = renderToStaticMarkup(
         <SeccionNivelConjuros
+          {...crearPropsNivel()}
           titulo="Nivel 2"
           nivel={2}
           conjurosVisibles={[hechizoImagenMultiple]}
           conjurosFiltrados={[hechizoImagenMultiple]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
           personaje={personajeConMagiaCautivadora}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
-          estaBloqueadoPorArmadura={false}
-          alAlternarOcultar={vi.fn()}
-          alQuitarDeLista={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
         />
       );
 
@@ -359,30 +294,34 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
   });
 
   describe("SeccionConjurosOcultos", () => {
+    const crearPropsOcultos = (): Omit<ComponentProps<typeof SeccionConjurosOcultos>, "personaje" | "todosConjurosOcultos" | "conjurosOcultosFiltrados"> => ({
+      estaAbierta: true,
+      alAlternar: vi.fn(),
+      hayFiltrosActivos: false,
+      desocultarTodos: vi.fn(),
+      alternarOculto: vi.fn(),
+      bonoAtaqueMagico: 6,
+      estaPreparado: () => true,
+      esHechizoDeSubclase: () => false,
+      requierePreparacion: false,
+      estaBloqueadoPorArmadura: false,
+      alAlternarPreparado: vi.fn(),
+      alQuitarTruco: vi.fn(),
+      alQuitarConjuro: vi.fn(),
+      alAbrirDetalleCompleto: vi.fn(),
+      alLanzar: vi.fn(),
+      esLanzadorPacto: false,
+      nivelEspacioPacto: 1,
+      sistemaMagia: "espacios"
+    });
+
     it("conserva Lanzar para un conjuro oculto de Manto: su alternativa se elige al lanzar", () => {
       const html = renderToStaticMarkup(
         <SeccionConjurosOcultos
+          {...crearPropsOcultos()}
           personaje={personajeConMantoMajestad}
           todosConjurosOcultos={[hechizoOrdenImperiosa]}
           conjurosOcultosFiltrados={[hechizoOrdenImperiosa]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
-          desocultarTodos={vi.fn()}
-          alternarOculto={vi.fn()}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          estaBloqueadoPorArmadura={false}
-          alAlternarPreparado={vi.fn()}
-          alQuitarTruco={vi.fn()}
-          alQuitarConjuro={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
         />
       );
 
@@ -393,27 +332,10 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("muestra el botón 'Gratis' para un conjuro oculto si proviene de un rasgo innato con usos disponibles", () => {
       const html = renderToStaticMarkup(
         <SeccionConjurosOcultos
+          {...crearPropsOcultos()}
           personaje={personajeConRasgoInnato}
           todosConjurosOcultos={[hechizoCurarHeridas]}
           conjurosOcultosFiltrados={[hechizoCurarHeridas]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
-          desocultarTodos={vi.fn()}
-          alternarOculto={vi.fn()}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          estaBloqueadoPorArmadura={false}
-          alAlternarPreparado={vi.fn()}
-          alQuitarTruco={vi.fn()}
-          alQuitarConjuro={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
         />
       );
 
@@ -423,27 +345,10 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("NO muestra el botón 'Gratis' para conjuros ocultos sin beneficio gratuito", () => {
       const html = renderToStaticMarkup(
         <SeccionConjurosOcultos
+          {...crearPropsOcultos()}
           personaje={personajeSinGratuito}
           todosConjurosOcultos={[hechizoCurarHeridas]}
           conjurosOcultosFiltrados={[hechizoCurarHeridas]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
-          desocultarTodos={vi.fn()}
-          alternarOculto={vi.fn()}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          estaBloqueadoPorArmadura={false}
-          alAlternarPreparado={vi.fn()}
-          alQuitarTruco={vi.fn()}
-          alQuitarConjuro={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
         />
       );
 
@@ -453,27 +358,10 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
     it("NO muestra el botón 'Gratis' para conjuros otorgados como preparados en Magia cautivadora", () => {
       const html = renderToStaticMarkup(
         <SeccionConjurosOcultos
+          {...crearPropsOcultos()}
           personaje={personajeConMagiaCautivadora}
           todosConjurosOcultos={[hechizoHechizarPersona, hechizoImagenMultiple]}
           conjurosOcultosFiltrados={[hechizoHechizarPersona, hechizoImagenMultiple]}
-          estaAbierta={true}
-          alAlternar={vi.fn()}
-          hayFiltrosActivos={false}
-          desocultarTodos={vi.fn()}
-          alternarOculto={vi.fn()}
-          bonoAtaqueMagico={6}
-          estaPreparado={() => true}
-          esHechizoDeSubclase={() => false}
-          requierePreparacion={false}
-          estaBloqueadoPorArmadura={false}
-          alAlternarPreparado={vi.fn()}
-          alQuitarTruco={vi.fn()}
-          alQuitarConjuro={vi.fn()}
-          alAbrirDetalleCompleto={vi.fn()}
-          alLanzar={vi.fn()}
-          esLanzadorPacto={false}
-          nivelEspacioPacto={1}
-          sistemaMagia="espacios"
         />
       );
 

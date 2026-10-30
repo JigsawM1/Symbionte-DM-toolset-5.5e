@@ -344,7 +344,6 @@ export const ModalDetalleHabilidad: React.FC<ModalDetalleHabilidadProps> = ({
                 valor={gradoForm}
                 alCambiar={(val) => setGradoForm(val as GradoCompetencia)}
                 opciones={opcionesCompetenciaDropdown}
-                tamano="normal"
               />
             </div>
 

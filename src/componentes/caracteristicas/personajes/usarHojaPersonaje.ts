@@ -35,7 +35,7 @@ export function usarHojaPersonaje() {
     reiniciarSalvacionesMuertePersonaje, modificarCansancioPersonaje,
     modificarCaracteristicaBasePersonaje, alternarSalvacionPersonaje,
     ciclarGradoHabilidadPersonaje, aplicarCondicionPersonaje,
-    quitarCondicionPersonaje, vincularMiniaturaTSPersonaje,
+    quitarCondicionPersonaje,
     establecerPosicionInicialTSPersonaje, gastarEspacioConjuro,
     recuperarEspacioConjuro,
     gastarPuntosConjuro, recuperarPuntosConjuro,
@@ -68,7 +68,7 @@ export function usarHojaPersonaje() {
     ts.creatures
       .getMoreInfo([personajeActivo.idMiniaturaTS])
       .then((infos) => {
-        if (infos && infos.length > 0 && infos[0]?.position) {
+        if (infos?.[0]?.position) {
           logger.info(`[HojaPersonaje] Posición física inicial detectada para '${personajeActivo.nombre}':`, infos[0].position);
           establecerPosicionInicialTSPersonaje(personajeActivo.id, infos[0].position, infos[0].boardId);
         }
@@ -87,10 +87,7 @@ export function usarHojaPersonaje() {
     [personajeActivo, objetosHomebrew]
   );
 
-  const modoTirada: ModoTirada = useMemo(
-    () => (tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano"),
-    [tipoTirada]
-  );
+  const modoTirada: ModoTirada = tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano";
 
   const manejarCambioModoTirada = useCallback((modo: ModoTirada) => {
     establecerTipoTirada(modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano");
@@ -262,7 +259,7 @@ export function usarHojaPersonaje() {
     setSubPestanaActiva, totalConjurosYTrucos, actualizarPersonaje,
     alternarInspiracionPersonaje, aplicarCondicionPersonaje, quitarCondicionPersonaje,
     quitarEfectoPersonaje, romperConcentracion,
-    establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje, vincularMiniaturaTSPersonaje,
+    establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje,
     manejarCambioModoTirada, manejarDescansoCorto,
     manejarDescansoLargo, manejarTirarCaracteristica, manejarTirarSalvacion,
     manejarTirarHabilidad, manejarTirarIniciativa, manejarTirarSalvacionMuerte3D,

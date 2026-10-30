@@ -145,35 +145,7 @@ export const EsquemaSalvacionesMuerte = z.object({
 });
 export type SalvacionesMuerte = z.infer<typeof EsquemaSalvacionesMuerte>;
 
-export const GRADOS_HABILIDADES_DEFECTO: GradosHabilidades = {
-  acrobacias: "ninguna",
-  manejoAnimales: "ninguna",
-  arcanos: "ninguna",
-  atletismo: "ninguna",
-  engaño: "ninguna",
-  historia: "ninguna",
-  perspicacia: "ninguna",
-  intimidacion: "ninguna",
-  investigacion: "ninguna",
-  medicina: "ninguna",
-  naturaleza: "ninguna",
-  percepcion: "ninguna",
-  interpretacion: "ninguna",
-  persuasion: "ninguna",
-  religion: "ninguna",
-  juegoManos: "ninguna",
-  sigilo: "ninguna",
-  supervivencia: "ninguna"
-};
-
-export const EsquemaPersonalizacionHabilidad = z.object({
-  nombrePersonalizado: z.string().optional(),
-  descripcionPersonalizada: z.string().optional(),
-  modificadorExtra: z.number().default(0),
-  valorFijo: z.number().nullable().default(null),
-  notas: z.string().default("")
-});
-export type PersonalizacionHabilidad = z.infer<typeof EsquemaPersonalizacionHabilidad>;
+export const GRADOS_HABILIDADES_DEFECTO: GradosHabilidades = EsquemaGradosHabilidades.parse({});
 
 export const EsquemaPersonalizacionCaracteristica = z.object({
   nombrePersonalizado: z.string().optional(),
@@ -184,6 +156,9 @@ export const EsquemaPersonalizacionCaracteristica = z.object({
   notas: z.string().default("")
 });
 export type PersonalizacionCaracteristica = z.infer<typeof EsquemaPersonalizacionCaracteristica>;
+
+export const EsquemaPersonalizacionHabilidad = EsquemaPersonalizacionCaracteristica.omit({ bonoSalvacionExtra: true });
+export type PersonalizacionHabilidad = z.infer<typeof EsquemaPersonalizacionHabilidad>;
 
 export const EsquemaClasePersonaje = z.object({
   nombre: z.string().default("Guerrero"),
@@ -373,33 +348,12 @@ export const EsquemaPersonajeJugador = z.object({
   inspiracion: z.boolean().default(false),
 
   // Características y Modificadores (Apartado B)
-  caracteristicas: EsquemaCaracteristicas.default({
-    fuerza: 10,
-    destreza: 10,
-    constitucion: 10,
-    inteligencia: 10,
-    sabiduria: 10,
-    carisma: 10
-  }),
-  overridesFijos: EsquemaOverridesFijos.default({
-    fuerza: null,
-    destreza: null,
-    constitucion: null,
-    inteligencia: null,
-    sabiduria: null,
-    carisma: null
-  }),
+  caracteristicas: EsquemaCaracteristicas.prefault({}),
+  overridesFijos: EsquemaOverridesFijos.prefault({}),
   personalizacionesCaracteristicas: z.record(z.string(), EsquemaPersonalizacionCaracteristica).default({}),
 
   // Salvaciones y Habilidades (Apartado B)
-  competenciasSalvacion: EsquemaCompetenciasSalvacion.default({
-    fuerza: false,
-    destreza: false,
-    constitucion: false,
-    inteligencia: false,
-    sabiduria: false,
-    carisma: false
-  }),
+  competenciasSalvacion: EsquemaCompetenciasSalvacion.prefault({}),
   gradosHabilidades: EsquemaGradosHabilidades.default(GRADOS_HABILIDADES_DEFECTO),
   personalizacionesHabilidades: z.record(z.string(), EsquemaPersonalizacionHabilidad).default({}),
 
@@ -411,7 +365,7 @@ export const EsquemaPersonajeJugador = z.object({
   tipoDadoGolpe: z.enum(["d6", "d8", "d10", "d12"]).default("d10"),
   dadosGolpeTotal: z.number().int().min(1).default(1),
   dadosGolpeRestantes: z.number().int().min(0).default(1),
-  salvacionesMuerte: EsquemaSalvacionesMuerte.default({ exitos: 0, fallos: 0 }),
+  salvacionesMuerte: EsquemaSalvacionesMuerte.prefault({}),
   cansancio: z.number().int().min(0).max(6).default(0),
 
   // Condiciones y Efectos Activos
@@ -495,7 +449,7 @@ export const EsquemaPersonajeJugador = z.object({
 
   // Inventario y Equipo (Apartado E)
   inventario: z.array(EsquemaObjetoInventario).default([]),
-  bolsaMonedas: EsquemaBolsaMonedas.default({ pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 }),
+  bolsaMonedas: EsquemaBolsaMonedas.prefault({}),
 
   // Rasgos, Dotes y Personalizaciones (Apartado F)
   rasgos: z.array(EsquemaRasgoPersonaje).default([]),

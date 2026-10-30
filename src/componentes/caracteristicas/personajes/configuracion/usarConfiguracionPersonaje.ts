@@ -126,27 +126,9 @@ export function usarConfiguracionPersonaje(
     });
   };
 
-  const manejarCambioEspecie = (nuevaEspecie: string) => {
-    setForm((prev) => {
-      const nuevo: PersonajeJugador = {
-        ...prev,
-        especie: nuevaEspecie
-      };
-      nuevo.rasgos = sincronizarRasgosAutomaticos(nuevo);
-      return nuevo;
-    });
-  };
+  const manejarCambioEspecie = (nuevaEspecie: string) => actualizarCampo("especie", nuevaEspecie);
 
-  const manejarCambioSubespecie = (nuevaSubespecie: string) => {
-    setForm((prev) => {
-      const nuevo: PersonajeJugador = {
-        ...prev,
-        subespecie: nuevaSubespecie
-      };
-      nuevo.rasgos = sincronizarRasgosAutomaticos(nuevo);
-      return nuevo;
-    });
-  };
+  const manejarCambioSubespecie = (nuevaSubespecie: string) => actualizarCampo("subespecie", nuevaSubespecie);
 
   const manejarDetectarJugadorTaleSpire = async () => {
     try {
@@ -324,11 +306,7 @@ export function usarConfiguracionPersonaje(
     setForm((prev) => ({
       ...prev,
       clasesLanzadoras: nuevasClases,
-      espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-      puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-      nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-      espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-      nivelEspacioPacto: recursos.nivelEspacioPacto
+      ...recursos
     }));
   };
 
@@ -348,11 +326,7 @@ export function usarConfiguracionPersonaje(
     setForm((prev) => ({
       ...prev,
       clasesLanzadoras: nuevas,
-      espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-      puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-      nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-      espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-      nivelEspacioPacto: recursos.nivelEspacioPacto
+      ...recursos
     }));
   };
 
@@ -367,11 +341,7 @@ export function usarConfiguracionPersonaje(
     setForm((prev) => ({
       ...prev,
       clasesLanzadoras: nuevas,
-      espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-      puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-      nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-      espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-      nivelEspacioPacto: recursos.nivelEspacioPacto
+      ...recursos
     }));
   };
 

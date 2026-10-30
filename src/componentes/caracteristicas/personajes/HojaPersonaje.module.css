@@ -88,23 +88,10 @@
    1. CABECERA E IDENTIDAD (APARTADO A)
    ========================================= */
 
-.avatarImg,
 .avatarImagen {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.nombrePersonaje {
-  font-family: var(--fuente-principal);
-  font-size: var(--pj-fuente-titulo-grande);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-  letter-spacing: 0.2px;
 }
 
 .botonConfigurarPj {
@@ -237,7 +224,8 @@
   text-transform: uppercase;
 }
 
-.iconoRonda {
+.iconoRonda,
+.iconoMetricaCian {
   color: var(--pj-texto-cian);
   flex-shrink: 0;
 }
@@ -346,7 +334,8 @@
   justify-content: center;
 }
 
-.etiquetaMetricaCian {
+.etiquetaMetricaCian,
+.valorMetricaCian {
   color: var(--pj-texto-cian) !important;
 }
 
@@ -354,18 +343,9 @@
   color: var(--pj-texto-oro) !important;
 }
 
-.iconoMetricaCian {
-  color: var(--pj-texto-cian);
-  flex-shrink: 0;
-}
-
 .iconoMetricaOro {
   color: var(--pj-texto-oro);
   flex-shrink: 0;
-}
-
-.valorMetricaCian {
-  color: var(--pj-texto-cian) !important;
 }
 
 .subtituloMetrica {
@@ -774,8 +754,7 @@
   letter-spacing: 0.5px;
 }
 
-.tituloTerreno,
-.etiquetaCabeceraTerreno {
+.tituloTerreno {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -888,11 +867,6 @@
   color: var(--pj-texto-secundario);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-}
-
-.textoHpBase {
-  font-size: 11px;
-  color: var(--pj-texto-terciario);
 }
 
 .controlesHpMod {
@@ -1161,10 +1135,7 @@
 }
 
 .filaDadosGolpeValores {
-  display: flex;
-  align-items: baseline;
   justify-content: center;
-  gap: 4px;
   font-family: var(--fuente-codigo, monospace);
 }
 
@@ -1211,7 +1182,8 @@
   cursor: not-allowed;
 }
 
-.cuerpoSalvacionesMuerte {
+.cuerpoSalvacionesMuerte,
+.cuerpoCansancio {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1242,11 +1214,6 @@
   min-height: 0 !important;
   width: 18px;
   height: 18px;
-  background: transparent;
-  border: none;
-  color: var(--pj-texto-terciario);
-  cursor: pointer;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1294,7 +1261,8 @@
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
 
-.circuloSalvacionFalloActivo {
+.circuloSalvacionFalloActivo,
+.circuloCansancioActivo {
   background-color: #ef4444 !important;
   border-color: #f87171 !important;
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
@@ -1314,14 +1282,6 @@
   font-size: 12px;
   font-weight: 800;
   color: var(--pj-texto-alerta);
-}
-
-.cuerpoCansancio {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: center;
-  width: 100%;
 }
 
 .matrizCansancio2x3 {
@@ -1351,12 +1311,6 @@
   transition: none;
 }
 
-.circuloCansancioActivo {
-  background-color: #ef4444 !important;
-  border-color: #f87171 !important;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
-}
-
 .pieCansancioTexto {
   font-size: 10px;
   font-weight: 600;
@@ -1370,8 +1324,6 @@
    ========================================= */
 
 /* Inputs numéricos sin flechas */
-.badgePuntuacionBase::-webkit-outer-spin-button,
-.badgePuntuacionBase::-webkit-inner-spin-button,
 .inputHpDirecto::-webkit-outer-spin-button,
 .inputHpDirecto::-webkit-inner-spin-button,
 .inputDadosGolpeDirecto::-webkit-outer-spin-button,
@@ -1382,7 +1334,6 @@
   margin: 0;
 }
 
-.badgePuntuacionBase,
 .inputHpDirecto,
 .inputDadosGolpeDirecto,
 .inputHpMod {
@@ -1393,12 +1344,6 @@
 /* ==========================================
    6. HABILIDADES Y COMPETENCIAS (APARTADO B)
    ========================================= */
-
-.nombreHabilidad {
-  font-size: var(--pj-fuente-cuerpo);
-  font-weight: 600;
-  color: var(--pj-texto-primario-suave);
-}
 
 /* Indicador de 4 Estados de Grado de Habilidad */
 
@@ -1490,12 +1435,14 @@
   flex-wrap: wrap;
 }
 
-.botonAccionGestor[data-copiado="true"] {
+.botonAccionGestor[data-copiado="true"],
+.botonVerFicha {
   border-color: var(--pj-borde-cian-fuerte);
   color: var(--pj-borde-cian-fuerte);
 }
 
-.botonNuevoPersonaje {
+.botonNuevoPersonaje,
+.botonAccionPrimarioModal {
   background-color: var(--pj-acento-primario-solido);
   color: var(--pj-texto-primario);
   border-color: var(--pj-borde-cian-fuerte);
@@ -1532,12 +1479,6 @@
   overflow: hidden;
 }
 
-.avatarImagen {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .seccionSaludPj {
   display: flex;
   flex-direction: column;
@@ -1564,11 +1505,6 @@
   top: 0;
   bottom: 0;
   background-color: var(--pj-acento-primario-solido);
-}
-
-.botonVerFicha {
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-borde-cian-fuerte);
 }
 
 .botonEliminarPj {
@@ -1599,7 +1535,11 @@
   max-height: 85vh;
 }
 
-.cabeceraModalJSON {
+.cabeceraModalJSON,
+.cabeceraMonedas,
+.cabeceraCarga,
+.cabeceraSintonizacion,
+.cabeceraPreviewObjeto {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1631,7 +1571,8 @@
   color: var(--pj-texto-terciario);
 }
 
-.textareaCodigoJSON {
+.textareaCodigoJSON,
+.textareaPegarJSON {
   width: 100%;
   background-color: var(--pj-fondo-panel);
   border: 1px solid var(--pj-borde-medio);
@@ -1650,12 +1591,6 @@
   gap: 8px;
 }
 
-.botonAccionPrimarioModal {
-  background-color: var(--pj-acento-primario-solido);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-cian-fuerte);
-}
-
 .filaBotonesPegar {
   display: flex;
   gap: 8px;
@@ -1663,19 +1598,6 @@
 
 .botonFlex1 {
   flex: 1;
-}
-
-.textareaPegarJSON {
-  width: 100%;
-  background-color: var(--pj-fondo-panel);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario-suave);
-  font-size: var(--pj-fuente-label);
-  font-family: monospace;
-  padding: 8px;
-  resize: vertical;
-  box-sizing: border-box;
 }
 
 .textareaPegarJSON[data-error="true"] {
@@ -1841,13 +1763,9 @@
 
 /* --- SECCIÓN 1: BOLSA DE MONEDAS --- */
 
-.cabeceraMonedas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tituloMonedas {
+.tituloMonedas,
+.tituloCarga,
+.tituloSintonizacion {
   font-size: var(--pj-fuente-micro);
   font-weight: 800;
   color: var(--pj-texto-secundario-claro);
@@ -1869,7 +1787,8 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.cuadriculaMonedas {
+.cuadriculaMonedas,
+.gridCajasMovilizacion {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
@@ -1932,23 +1851,6 @@
 }
 
 /* --- SECCIÓN 2: CAPACIDAD DE CARGA --- */
-
-.cabeceraCarga {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tituloCarga {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 800;
-  color: var(--pj-texto-secundario-claro);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
 
 .detalleCalculoCarga {
   font-size: var(--pj-fuente-micro);
@@ -2020,23 +1922,6 @@
 }
 
 /* --- SECCIÓN 3: SINTONIZACIÓN --- */
-
-.cabeceraSintonizacion {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tituloSintonizacion {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 800;
-  color: var(--pj-texto-secundario-claro);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
 
 .filaSlotsSintonizacion {
   display: grid;
@@ -2191,7 +2076,8 @@
   user-select: none;
 }
 
-.cabeceraSubseccionMochila:hover {
+.cabeceraSubseccionMochila:hover,
+.cabeceraColapsableInventario:hover {
   background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
@@ -2209,10 +2095,6 @@
 .cabeceraColapsableInventario {
   cursor: pointer;
   user-select: none;
-}
-
-.cabeceraColapsableInventario:hover {
-  background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
 .iconoChevronColapso {
@@ -2406,7 +2288,8 @@
   border-radius: 3px;
 }
 
-.badgeBonoMagico {
+.badgeBonoMagico,
+.badgeDesventajaSigilo {
   background-color: var(--pj-acento-peligro-fondo);
   color: var(--pj-texto-alerta);
   border: 1px solid var(--pj-borde-peligro);
@@ -2431,13 +2314,6 @@
   background-color: var(--pj-acento-primario-fondo);
   color: var(--pj-texto-acento);
   border: 1px solid var(--pj-borde-acento);
-  cursor: help;
-}
-
-.badgeDesventajaSigilo {
-  background-color: var(--pj-acento-peligro-fondo);
-  color: var(--pj-texto-alerta);
-  border: 1px solid var(--pj-borde-peligro);
   cursor: help;
 }
 
@@ -2650,7 +2526,8 @@
   color: var(--pj-texto-acento);
 }
 
-.grupoModificadorCantidad {
+.grupoModificadorCantidad,
+.grupoTrackerCargas {
   display: inline-flex;
   align-items: center;
   gap: 2px;
@@ -2663,13 +2540,6 @@
   min-width: 16px;
   text-align: center;
   color: var(--pj-texto-primario);
-}
-
-.grupoTrackerCargas {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 4px;
 }
 
 .valorCargasItem {
@@ -2962,12 +2832,6 @@
   gap: 5px;
 }
 
-.gridCajasMovilizacion {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-}
-
 .cajaMovilizacionRapida {
   display: flex;
   flex-direction: column;
@@ -3033,30 +2897,23 @@
   background: var(--pj-acento-cian-fondo);
 }
 
-.cajaMovilizacionRapida[data-caja="almacen"] {
+.cajaMovilizacionRapida[data-caja="almacen"],
+.cajaMovilizacionRapida[data-caja="equipados"] {
   border-color: var(--pj-borde-acento);
   background: var(--pj-acento-primario-fondo);
 }
 .cajaMovilizacionRapida[data-caja="almacen"] .nombreCajaMovilizacion {
   color: var(--pj-texto-acento);
 }
-.cajaMovilizacionRapida[data-caja="almacen"].cajaMovilizacionSobrevolada {
-  border-color: var(--pj-borde-acento);
-  background: var(--pj-acento-primario-activo);
-}
-
-.cajaMovilizacionRapida[data-caja="equipados"] {
-  border-color: var(--pj-borde-acento);
-  background: var(--pj-acento-primario-fondo);
-}
-.cajaMovilizacionRapida[data-caja="equipados"] .nombreCajaMovilizacion {
-  color: var(--pj-texto-acento);
-}
+.cajaMovilizacionRapida[data-caja="almacen"].cajaMovilizacionSobrevolada,
 .cajaMovilizacionRapida[data-caja="equipados"].cajaMovilizacionSobrevolada {
   border-color: var(--pj-borde-acento);
   background: var(--pj-acento-primario-activo);
 }
 
+.cajaMovilizacionRapida[data-caja="equipados"] .nombreCajaMovilizacion {
+  color: var(--pj-texto-acento);
+}
 .iconoCajaMovilizacion {
   display: flex;
   align-items: center;
@@ -3095,7 +2952,6 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  background-color: var(--pj-fondo-panel);
   border: 1px solid var(--pj-borde-acento);
   border-radius: var(--pj-radio-control);
   cursor: pointer;
@@ -3212,7 +3068,6 @@
 
 /* Reglas temáticas de selectores de destino en Modal */
 .botonSelectorDestino {
-  border-color: var(--pj-borde-acento);
   background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
@@ -3240,7 +3095,8 @@
   color: var(--pj-texto-cian);
 }
 
-.botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo {
+.botonSelectorDestino[data-caja="almacen"].botonSelectorDestinoActivo,
+.botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo {
   border-color: var(--pj-borde-acento);
   background-color: var(--pj-acento-primario-fondo);
 }
@@ -3248,21 +3104,11 @@
   color: var(--pj-texto-acento);
 }
 
-.botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo {
-  border-color: var(--pj-borde-acento);
-  background-color: var(--pj-acento-primario-fondo);
-}
 .botonSelectorDestino[data-caja="equipados"].botonSelectorDestinoActivo .nombreSelectorDestino {
   color: var(--pj-texto-acento);
 }
 
 /* Vista previa de objeto seleccionado */
-.cabeceraPreviewObjeto {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .nombrePreviewObjeto {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
@@ -3453,48 +3299,34 @@
 .tituloGrupoInventario[data-caja="montura"] {
   color: var(--pj-texto-cian);
 }
-.tituloGrupoInventario[data-caja="almacen"] {
-  color: var(--pj-texto-acento);
-}
+.tituloGrupoInventario[data-caja="almacen"],
 .tituloGrupoInventario[data-caja="equipados"] {
   color: var(--pj-texto-acento);
 }
-
 /* Colores temáticos de subsecciones de mochila por data-subseccion */
 .tituloSubseccionMochila[data-subseccion="consumibles"] {
   color: var(--pj-texto-exito);
 }
-.tituloSubseccionMochila[data-subseccion="municion"] {
-  color: var(--pj-texto-cian);
-}
-.tituloSubseccionMochila[data-subseccion="armas"] {
-  color: var(--pj-texto-alerta);
-}
-.tituloSubseccionMochila[data-subseccion="armaduras"] {
-  color: var(--pj-texto-acento);
-}
+.tituloSubseccionMochila[data-subseccion="municion"],
 .tituloSubseccionMochila[data-subseccion="escudos"] {
   color: var(--pj-texto-cian);
 }
-.tituloSubseccionMochila[data-subseccion="herramientas"] {
-  color: var(--pj-texto-oro);
-}
-.tituloSubseccionMochila[data-subseccion="focos-magicos"] {
-  color: var(--pj-texto-magia);
-}
-.tituloSubseccionMochila[data-subseccion="contenedores"] {
-  color: var(--pj-texto-oro);
-}
-.tituloSubseccionMochila[data-subseccion="paquetes-equipo"] {
-  color: var(--pj-texto-magia);
-}
+.tituloSubseccionMochila[data-subseccion="armas"],
 .tituloSubseccionMochila[data-subseccion="magicos"] {
   color: var(--pj-texto-alerta);
 }
+.tituloSubseccionMochila[data-subseccion="armaduras"],
 .tituloSubseccionMochila[data-subseccion="equipo"] {
   color: var(--pj-texto-acento);
 }
-
+.tituloSubseccionMochila[data-subseccion="herramientas"],
+.tituloSubseccionMochila[data-subseccion="contenedores"] {
+  color: var(--pj-texto-oro);
+}
+.tituloSubseccionMochila[data-subseccion="focos-magicos"],
+.tituloSubseccionMochila[data-subseccion="paquetes-equipo"] {
+  color: var(--pj-texto-magia);
+}
 .alertaSinCompetenciaArmadura {
   margin-left: 3px;
   vertical-align: middle;
@@ -3576,21 +3408,8 @@
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "dados" "muerte" "cansancio";
   }
-  .contenedorPrincipal .cajaHpTemporal {
-    width: auto;
-  }
 }
 
 .contenedorPrincipal .seccionBarraTactica {
   flex-direction: column;
-}
-.contenedorPrincipal .columnaCondicionesActivas {
-  min-height: 0;
-  background: transparent;
-  padding: 4px 0 0;
-  border: 0;
-  border-top: 1px solid var(--pj-borde-sutil);
-}
-.contenedorPrincipal .filaDescansosVentaja {
-  flex-wrap: wrap;
 }

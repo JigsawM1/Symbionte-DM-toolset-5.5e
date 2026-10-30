@@ -155,15 +155,15 @@ export const PanelConfiguracionPersonaje: React.FC<PanelConfiguracionPersonajePr
         {pestanaActiva === "atributos" && (
           <PestanaAtributos
             form={form}
-            alAbrirDetalleCaracteristica={(carac) => setCaracteristicaEnDetalle(carac)}
+            alAbrirDetalleCaracteristica={setCaracteristicaEnDetalle}
           />
         )}
 
         {pestanaActiva === "competencias" && (
           <PestanaCompetencias
             form={form}
-            alAbrirModalCompetencias={(cat) => setModalCompetencias(cat)}
-            alAbrirDetalleHabilidad={(info) => setHabilidadEnDetalle(info)}
+            alAbrirModalCompetencias={setModalCompetencias}
+            alAbrirDetalleHabilidad={setHabilidadEnDetalle}
           />
         )}
 

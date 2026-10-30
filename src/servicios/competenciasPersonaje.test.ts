@@ -12,6 +12,24 @@ import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPe
 import type { PersonajeJugador } from "@/tipos";
 
 describe("Competencias y Diccionarios D&D 5.5e", () => {
+  const armaduraEquipada: PersonajeJugador["inventario"][number] = {
+    idInstancia: "item-1",
+    idObjeto: "placas-1",
+    nombre: "Armadura de placas",
+    categoria: "armaduras",
+    esConsumible: false,
+    subcategoria: "Pesada",
+    cantidad: 1,
+    equipado: true,
+    sintonizado: false,
+    notas: "",
+    pesoLb: 65,
+    esMagico: false,
+    rareza: "Común",
+    equipable: true,
+    sintonizacionRequerida: false
+  };
+
   describe("formatearResumenCompetenciasArmas", () => {
     it("debe resumir grupos maestros de armas simples y marciales", () => {
       const resumen = formatearResumenCompetenciasArmas(["sencillas", "marciales"], ["Daga", "Espada larga"]);
@@ -161,21 +179,10 @@ describe("Competencias y Diccionarios D&D 5.5e", () => {
         competenciasArmadurasGrupos: ["ligeras"],
         inventario: [
           {
-            idInstancia: "item-1",
+            ...armaduraEquipada,
             idObjeto: "cota-malla",
             nombre: "Cota de malla",
-            categoria: "armaduras",
-            esConsumible: false,
-            subcategoria: "Pesada",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 55,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            pesoLb: 55
           }
         ]
       };
@@ -192,21 +199,13 @@ describe("Competencias y Diccionarios D&D 5.5e", () => {
         competenciasArmadurasGrupos: ["ligeras", "medias"],
         inventario: [
           {
+            ...armaduraEquipada,
             idInstancia: "item-2",
             idObjeto: "escudo-1",
             nombre: "Escudo",
             categoria: "escudos",
-            esConsumible: false,
             subcategoria: "Escudo",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 6,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            pesoLb: 6
           }
         ]
       };
@@ -222,38 +221,16 @@ describe("Competencias y Diccionarios D&D 5.5e", () => {
         competenciasArmadurasGrupos: ["pesadas", "escudos"],
         inventario: [
           {
-            idInstancia: "item-1",
-            idObjeto: "placas-1",
-            nombre: "Armadura de placas",
-            categoria: "armaduras",
-            esConsumible: false,
-            subcategoria: "Pesada",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 65,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            ...armaduraEquipada
           },
           {
+            ...armaduraEquipada,
             idInstancia: "item-2",
             idObjeto: "escudo-1",
             nombre: "Escudo",
             categoria: "escudos",
-            esConsumible: false,
             subcategoria: "Escudo",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 6,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            pesoLb: 6
           }
         ]
       };
@@ -271,21 +248,7 @@ describe("Competencias y Diccionarios D&D 5.5e", () => {
         ...PERSONAJE_POR_DEFECTO,
         inventario: [
           {
-            idInstancia: "item-1",
-            idObjeto: "placas-1",
-            nombre: "Armadura de placas",
-            categoria: "armaduras",
-            esConsumible: false,
-            subcategoria: "Pesada",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 65,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            ...armaduraEquipada
           }
         ]
       };
@@ -300,21 +263,11 @@ describe("Competencias y Diccionarios D&D 5.5e", () => {
         ...PERSONAJE_POR_DEFECTO,
         inventario: [
           {
-            idInstancia: "item-1",
+            ...armaduraEquipada,
             idObjeto: "coraza-1",
             nombre: "Coraza",
-            categoria: "armaduras",
-            esConsumible: false,
             subcategoria: "Mediana",
-            cantidad: 1,
-            equipado: true,
-            sintonizado: false,
-            notas: "",
-            pesoLb: 20,
-            esMagico: false,
-            rareza: "Común",
-            equipable: true,
-            sintonizacionRequerida: false
+            pesoLb: 20
           }
         ]
       };

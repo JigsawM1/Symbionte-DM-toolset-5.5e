@@ -102,25 +102,15 @@ export const usarSelectorCompetencias = ({
     }
 
     const nuevosGrupos = [...armasGrupos];
-    const todasSencillas = TODAS_ARMAS_SENCILLAS.every((a) => nuevaLista.includes(a));
-    if (todasSencillas && !nuevosGrupos.includes("sencillas")) nuevosGrupos.push("sencillas");
-    else if (!todasSencillas && nuevosGrupos.includes("sencillas")) {
-      const idx = nuevosGrupos.indexOf("sencillas");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
-    }
-
-    const todasMarciales = TODAS_ARMAS_MARCIALES.every((a) => nuevaLista.includes(a));
-    if (todasMarciales && !nuevosGrupos.includes("marciales")) nuevosGrupos.push("marciales");
-    else if (!todasMarciales && nuevosGrupos.includes("marciales")) {
-      const idx = nuevosGrupos.indexOf("marciales");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
-    }
-
-    const todasFuego = ARMAS_DE_FUEGO.every((a) => nuevaLista.includes(a));
-    if (todasFuego && !nuevosGrupos.includes("fuego")) nuevosGrupos.push("fuego");
-    else if (!todasFuego && nuevosGrupos.includes("fuego")) {
-      const idx = nuevosGrupos.indexOf("fuego");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
+    for (const [grupo, armas] of [
+      ["sencillas", TODAS_ARMAS_SENCILLAS],
+      ["marciales", TODAS_ARMAS_MARCIALES],
+      ["fuego", ARMAS_DE_FUEGO]
+    ] as const) {
+      const completo = armas.every((arma) => nuevaLista.includes(arma));
+      const indice = nuevosGrupos.indexOf(grupo);
+      if (completo && indice === -1) nuevosGrupos.push(grupo);
+      else if (!completo && indice !== -1) nuevosGrupos.splice(indice, 1);
     }
 
     setArmasGrupos(nuevosGrupos);
@@ -163,32 +153,16 @@ export const usarSelectorCompetencias = ({
     }
 
     const nuevosGrupos = [...armadurasGrupos];
-    const todasLigeras = ARMADURAS_LIGERAS.every((a) => nuevaLista.includes(a));
-    if (todasLigeras && !nuevosGrupos.includes("ligeras")) nuevosGrupos.push("ligeras");
-    else if (!todasLigeras && nuevosGrupos.includes("ligeras")) {
-      const idx = nuevosGrupos.indexOf("ligeras");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
-    }
-
-    const todasMedias = ARMADURAS_MEDIAS.every((a) => nuevaLista.includes(a));
-    if (todasMedias && !nuevosGrupos.includes("medias")) nuevosGrupos.push("medias");
-    else if (!todasMedias && nuevosGrupos.includes("medias")) {
-      const idx = nuevosGrupos.indexOf("medias");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
-    }
-
-    const todasPesadas = ARMADURAS_PESADAS.every((a) => nuevaLista.includes(a));
-    if (todasPesadas && !nuevosGrupos.includes("pesadas")) nuevosGrupos.push("pesadas");
-    else if (!todasPesadas && nuevosGrupos.includes("pesadas")) {
-      const idx = nuevosGrupos.indexOf("pesadas");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
-    }
-
-    const todosEscudos = ESCUDOS.every((a) => nuevaLista.includes(a));
-    if (todosEscudos && !nuevosGrupos.includes("escudos")) nuevosGrupos.push("escudos");
-    else if (!todosEscudos && nuevosGrupos.includes("escudos")) {
-      const idx = nuevosGrupos.indexOf("escudos");
-      if (idx !== -1) nuevosGrupos.splice(idx, 1);
+    for (const [grupo, armaduras] of [
+      ["ligeras", ARMADURAS_LIGERAS],
+      ["medias", ARMADURAS_MEDIAS],
+      ["pesadas", ARMADURAS_PESADAS],
+      ["escudos", ESCUDOS]
+    ] as const) {
+      const completo = armaduras.every((armadura) => nuevaLista.includes(armadura));
+      const indice = nuevosGrupos.indexOf(grupo);
+      if (completo && indice === -1) nuevosGrupos.push(grupo);
+      else if (!completo && indice !== -1) nuevosGrupos.splice(indice, 1);
     }
 
     setArmadurasGrupos(nuevosGrupos);

@@ -576,9 +576,7 @@ export function calcularEstadisticasPersonaje(
       if (match) {
         const b = parseInt(match[1], 10);
         // Si caBaseEscudo ya contempla el bono mágico (> 2 y >= 2 + b), no duplicar
-        if (caBaseEscudo > 2 && caBaseEscudo >= 2 + b) {
-          // Ya contemplado en caBaseEscudo
-        } else {
+        if (!(caBaseEscudo > 2 && caBaseEscudo >= 2 + b)) {
           bonoMagicoEscudoPorNombre = b;
         }
       }

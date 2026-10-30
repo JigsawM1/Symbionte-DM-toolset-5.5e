@@ -64,16 +64,10 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
       ? "PLENO"
       : "Herido";
 
-  const manejarAplicarCuracion = () => {
+  const manejarAplicarHP = (signo: 1 | -1) => {
     const cantidad = Number(valorDeltaHp);
     if (!Number.isFinite(cantidad) || cantidad <= 0) return;
-    alModificarHP(Math.abs(cantidad));
-  };
-
-  const manejarAplicarDano = () => {
-    const cantidad = Number(valorDeltaHp);
-    if (!Number.isFinite(cantidad) || cantidad <= 0) return;
-    alModificarHP(-Math.abs(cantidad));
+    alModificarHP(signo * cantidad);
   };
 
   const alternarSalvacion = (tipo: "exitos" | "fallos", indice: number) => {
@@ -99,7 +93,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               <BotonNumerico
                 type="button"
                 className={estilos.botonModHpDano}
-                onClick={manejarAplicarDano}
+                onClick={() => manejarAplicarHP(-1)}
                 title="Infligir daño por la cantidad (-)"
               >
                 <Minus size={13} />
@@ -111,7 +105,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 alConfirmar={(valor) => setValorDeltaHp(String(valor))}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    manejarAplicarDano();
+                    manejarAplicarHP(-1);
                   }
                 }}
                 className={estilos.inputHpMod}
@@ -124,7 +118,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               <BotonNumerico
                 type="button"
                 className={estilos.botonModHpCurar}
-                onClick={manejarAplicarCuracion}
+                onClick={() => manejarAplicarHP(1)}
                 title="Curar cantidad (+)"
               >
                 <Plus size={13} />

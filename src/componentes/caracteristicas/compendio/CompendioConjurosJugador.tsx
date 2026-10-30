@@ -191,18 +191,19 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   const conjurosFiltrados = useMemo(() => {
     const busqLimpia = busquedaDiferida.trim();
     const filtrados = conjurosPestaña.filter((h) => {
+      // Cortocircuito O(1): Evaluar nivel y escuela antes de la búsqueda de texto
+      if (nivelFiltro !== "todos" && h.nivel !== Number(nivelFiltro)) {
+        return false;
+      }
+      if (escuelaFiltro !== "todas" && h.escuela !== escuelaFiltro) {
+        return false;
+      }
       if (busqLimpia) {
         const coincide = coincideBusquedaTolerante(
           [h.nombre, h.escuela, h.descripcion],
           busqLimpia
         );
         if (!coincide) return false;
-      }
-      if (nivelFiltro !== "todos" && h.nivel !== Number(nivelFiltro)) {
-        return false;
-      }
-      if (escuelaFiltro !== "todas" && h.escuela !== escuelaFiltro) {
-        return false;
       }
       return true;
     });

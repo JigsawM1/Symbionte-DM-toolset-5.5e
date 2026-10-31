@@ -1,5 +1,5 @@
 import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificadoresConjuroRasgos";
-import { useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { PersonajeJugador, HechizoBase, Caracteristica, ModeloConjuros } from "@/tipos";
 import {
@@ -179,12 +179,7 @@ export function usarMagiaPersonaje(
     ]
   );
 
-  const obtenerOrigenConjuro = useCallback(
-    (hechizo: HechizoBase): OrigenConjuroBadge | null => {
-      return resolutorOrigen(hechizo);
-    },
-    [resolutorOrigen]
-  );
+  const obtenerOrigenConjuro: EstadoMagiaPersonaje["obtenerOrigenConjuro"] = resolutorOrigen;
 
   // 6. Límites máximos
   const maximos = useMemo(() => {
@@ -205,25 +200,7 @@ export function usarMagiaPersonaje(
     });
   }, [setsPertenencia, clavesLookupPorHechizo, maximos.modelo, resolutorOrigen]);
 
-  const esHechizoDeSubclase = useCallback(
-    (hechizo: HechizoBase): boolean => predicados.esHechizoDeSubclase(hechizo),
-    [predicados]
-  );
-
-  const esHechizoOtorgado = useCallback(
-    (hechizo: HechizoBase): boolean => predicados.esHechizoOtorgado(hechizo),
-    [predicados]
-  );
-
-  const estaPreparado = useCallback(
-    (hechizo: HechizoBase): boolean => predicados.estaPreparado(hechizo),
-    [predicados]
-  );
-
-  const estaEnLista = useCallback(
-    (hechizo: HechizoBase): boolean => predicados.estaEnLista(hechizo),
-    [predicados]
-  );
+  const { esHechizoDeSubclase, esHechizoOtorgado, estaPreparado, estaEnLista } = predicados;
 
   // 7 y 8. Recorrido unificado O(N) que agrupa conjuros por nivel, trucos conocidos y calcula el conteo efectivo
   const { conjurosPorNivel, trucosConocidos, conteoEfectivo } = useMemo(() => {
@@ -272,18 +249,10 @@ export function usarMagiaPersonaje(
         const preparado = otorgado || chequeoEnSet(setPreparadosIds);
         const enLista = esModeloPreparacion ? preparado : (chequeoEnSet(setConocidosIds) || preparado);
 
-        if (esModeloPreparacion) {
-          if (otorgado) {
-            cSubclase++;
-          } else if (preparado) {
-            cLibres++;
-          }
-        } else {
-          if (otorgado) {
-            cSubclase++;
-          } else if (enLista) {
-            cLibres++;
-          }
+        if (otorgado) {
+          cSubclase++;
+        } else if (enLista) {
+          cLibres++;
         }
 
         if (enLista) {

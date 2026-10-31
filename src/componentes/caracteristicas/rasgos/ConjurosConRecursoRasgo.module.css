@@ -29,7 +29,8 @@
   color: var(--pj-texto-secundario);
 }
 
-.contadorConjuros {
+.contadorConjuros,
+.badgeTiempo {
   font-size: var(--pj-fuente-micro);
   color: var(--pj-texto-terciario);
 }
@@ -47,7 +48,8 @@
   border-radius: var(--pj-radio-control);
 }
 
-.insigniasMetadatos {
+.insigniasMetadatos,
+.filaTituloEfecto {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -70,10 +72,6 @@
   color: var(--pj-texto-secundario);
 }
 
-.badgeTiempo {
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-}
 
 .badgeConcentracion {
   font-size: var(--pj-fuente-micro);
@@ -116,7 +114,8 @@
   filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.35));
 }
 
-.cuerpoAvisoRegla {
+.cuerpoAvisoRegla,
+.textosEfectoActivo {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -394,19 +393,7 @@
   box-shadow: 0 0 8px rgba(139, 92, 246, 0.25);
 }
 
-.textosEfectoActivo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
 
-.filaTituloEfecto {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
 
 .nombreEfectoActivo {
   font-size: var(--pj-fuente-cuerpo, 13px);

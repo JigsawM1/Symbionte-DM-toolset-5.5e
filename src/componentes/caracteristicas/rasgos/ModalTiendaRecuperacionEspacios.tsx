@@ -58,23 +58,14 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
     return lista;
   }, [personaje.espaciosConjuroGastados, personaje.espaciosConjuroMaximos, nivelMaximoPermitido]);
 
-  // Cálculo de coste y presupuesto restante para Espacios
-  const presupuestoGastadoEspacios = useMemo(() => {
-    return Object.entries(seleccionadosEspacios).reduce((total, [lvlStr, cantidad]) => {
+  // Cálculo de coste y presupuesto restante para el modo seleccionado
+  const seleccionActual = modo === "puntos" ? seleccionadosPuntos : seleccionadosEspacios;
+  const presupuestoGastadoActual = useMemo(() => {
+    return Object.entries(seleccionActual).reduce((total, [lvlStr, cantidad]) => {
       const lvl = Number(lvlStr);
       return total + lvl * (cantidad || 0);
     }, 0);
-  }, [seleccionadosEspacios]);
-
-  // Cálculo de coste y presupuesto restante para Puntos
-  const presupuestoGastadoPuntos = useMemo(() => {
-    return Object.entries(seleccionadosPuntos).reduce((total, [lvlStr, cantidad]) => {
-      const lvl = Number(lvlStr);
-      return total + lvl * (cantidad || 0);
-    }, 0);
-  }, [seleccionadosPuntos]);
-
-  const presupuestoGastadoActual = modo === "puntos" ? presupuestoGastadoPuntos : presupuestoGastadoEspacios;
+  }, [seleccionActual]);
   const presupuestoRestante = presupuestoTotal - presupuestoGastadoActual;
 
   const totalEspaciosARecuperar = useMemo(() => {
@@ -102,11 +93,13 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
     }));
   };
 
-  const manejarDecrementarEspacio = (nivel: number) => {
-    const actual = seleccionadosEspacios[nivel] || 0;
+  const manejarDecrementar = (nivel: number) => {
+    const seleccion = modo === "puntos" ? seleccionadosPuntos : seleccionadosEspacios;
+    const cambiarSeleccion = modo === "puntos" ? setSeleccionadosPuntos : setSeleccionadosEspacios;
+    const actual = seleccion[nivel] || 0;
     if (actual <= 0) return;
 
-    setSeleccionadosEspacios((prev) => {
+    cambiarSeleccion((prev) => {
       const nueva = { ...prev };
       if (actual === 1) {
         delete nueva[nivel];
@@ -127,21 +120,6 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
       ...prev,
       [nivel]: actual + 1
     }));
-  };
-
-  const manejarDecrementarPuntos = (nivel: number) => {
-    const actual = seleccionadosPuntos[nivel] || 0;
-    if (actual <= 0) return;
-
-    setSeleccionadosPuntos((prev) => {
-      const nueva = { ...prev };
-      if (actual === 1) {
-        delete nueva[nivel];
-      } else {
-        nueva[nivel] = actual - 1;
-      }
-      return nueva;
-    });
   };
 
   const manejarConfirmar = () => {
@@ -281,7 +259,7 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
                       <button
                         type="button"
                         className={estilos.botonControl}
-                        onClick={() => manejarDecrementarPuntos(lvl)}
+                        onClick={() => manejarDecrementar(lvl)}
                         disabled={!puedeRestar}
                         title={`Quitar paquete de nivel ${lvl}`}
                         aria-label={`Quitar paquete nivel ${lvl}`}
@@ -347,7 +325,7 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
                       <button
                         type="button"
                         className={estilos.botonControl}
-                        onClick={() => manejarDecrementarEspacio(r.nivel)}
+                        onClick={() => manejarDecrementar(r.nivel)}
                         disabled={!puedeRestar}
                         title={`Quitar 1 espacio de nivel ${r.nivel}`}
                         aria-label={`Quitar espacio nivel ${r.nivel}`}

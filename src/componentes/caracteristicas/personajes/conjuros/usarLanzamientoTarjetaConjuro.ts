@@ -109,32 +109,17 @@ export function usarLanzamientoTarjetaConjuro({
       }
 
       const nombrePj = nombrePersonaje.trim() || "Personaje";
-      let formulaTaleSpire = "";
-      let etiquetaLog = "";
-
-      if (esTruco) {
-        const resultadoTruco = construirFormulaTaleSpireTruco(
-          hechizo,
-          nivelPersonaje,
-          bonoAtaqueMagico,
-          nombrePj,
-          bonoDanoMagico,
-          modificadorHabilidad
-        );
-        formulaTaleSpire = resultadoTruco.formulaTaleSpire;
-        etiquetaLog = resultadoTruco.etiquetaLog;
-      } else {
-        const resultadoEspacio = construirFormulaTaleSpireEspacio(
-          hechizo,
-          nivelUpcast,
-          bonoAtaqueMagico,
-          nombrePj,
-          bonoDanoMagico,
-          modificadorHabilidad
-        );
-        formulaTaleSpire = resultadoEspacio.formulaTaleSpire;
-        etiquetaLog = resultadoEspacio.etiquetaLog;
-      }
+      const construirFormula = esTruco
+        ? construirFormulaTaleSpireTruco
+        : construirFormulaTaleSpireEspacio;
+      const { formulaTaleSpire, etiquetaLog } = construirFormula(
+        hechizo,
+        esTruco ? nivelPersonaje : nivelUpcast,
+        bonoAtaqueMagico,
+        nombrePj,
+        bonoDanoMagico,
+        modificadorHabilidad
+      );
 
       const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
       if (emitida === false) return;

@@ -33,15 +33,15 @@ function sincronizarConcentracionEnIniciativa(
       if (!coincide) return c;
       huboCambio = true;
 
-      if (nombreHechizo) {
-        // La concentración es un efecto de conjuro, se limpia de condiciones para evitar duplicación
-        const nuevasCondiciones = (c.condiciones || []).filter(
-          (cond) => !cond.toLowerCase().includes("concentra")
-        );
+      // La concentración es un efecto de conjuro, se limpia de condiciones para evitar duplicación
+      const nuevasCondiciones = (c.condiciones || []).filter(
+        (cond) => !cond.toLowerCase().includes("concentra")
+      );
+      const efectosSinConcentracion = (c.efectos || []).filter(
+        (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
+      );
 
-        const efectosSinConcentracion = (c.efectos || []).filter(
-          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
-        );
+      if (nombreHechizo) {
         const nuevoEfecto: EfectoActivo = {
           id: "ef_concentracion",
           nombre: `Concentración: ${nombreHechizo}`,
@@ -54,16 +54,10 @@ function sincronizarConcentracionEnIniciativa(
           efectos: [...efectosSinConcentracion, nuevoEfecto]
         };
       } else {
-        const nuevasCondiciones = (c.condiciones || []).filter(
-          (cond) => !cond.toLowerCase().includes("concentra")
-        );
-        const nuevosEfectos = (c.efectos || []).filter(
-          (e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra")
-        );
         return {
           ...c,
           condiciones: nuevasCondiciones,
-          efectos: nuevosEfectos
+          efectos: efectosSinConcentracion
         };
       }
     });

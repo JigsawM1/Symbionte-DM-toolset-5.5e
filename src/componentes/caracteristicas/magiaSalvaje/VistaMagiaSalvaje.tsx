@@ -43,9 +43,7 @@ export const VistaMagiaSalvaje: React.FC = () => {
 
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      abortControllerRef.current?.abort();
     };
   }, [personajeActivo?.id, contextoTabla?.idRasgo]);
 

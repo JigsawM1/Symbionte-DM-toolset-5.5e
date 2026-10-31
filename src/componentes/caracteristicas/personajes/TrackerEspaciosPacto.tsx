@@ -34,8 +34,7 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
       gastados: espaciosPactoGastados,
       alGastar: alGastarEspacioPacto,
       alRecuperar: alRecuperarEspaciosPacto,
-      colorTema: "var(--pj-texto-magia)",
-      colorTemaFondo: "var(--pj-acento-magia-solido)"
+      colorTema: "var(--pj-texto-magia)"
     }
   ];
 
@@ -46,7 +45,6 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
       grupos={grupos}
       soloLectura={soloLectura}
       modoGrid={false}
-      colorBordeContenedor="var(--pj-borde-magia)"
       pieDePagina={`Ranuras fijas de nivel ${nivelEspacioPacto} • Recuperación en descanso corto`}
     />
   );

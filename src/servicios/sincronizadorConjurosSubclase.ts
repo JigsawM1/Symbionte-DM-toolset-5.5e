@@ -90,7 +90,7 @@ export function sincronizarConjurosSubclaseHelper(
 
   // Limpiar trucos espurios derivados de placeholders de texto (ej. "2 trucos de Mago a elección")
   const trucosSaneados = trucos.filter(
-    (t) => !t.toLowerCase().includes("a elecci") && !t.toLowerCase().includes("a elección")
+    (t) => !t.toLowerCase().includes("a elecci")
   );
 
   const sonIgualesArrays = (a?: string[], b?: string[]) => {

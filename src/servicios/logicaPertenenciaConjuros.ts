@@ -190,25 +190,6 @@ export function crearPredicadosPertenencia(params: ParametrosPertenencia): Predi
     return resolutorOrigen(hechizo) !== null || esHechizoDeSubclase(hechizo);
   };
 
-  const estaPreparado = (hechizo: HechizoBase): boolean => {
-    if (hechizo.nivel === 0) {
-      return (
-        verificarEnSet(sets.setTrucosIds, hechizo.id, clavesLookup) ||
-        esHechizoOtorgado(hechizo)
-      );
-    }
-    if (esHechizoOtorgado(hechizo)) return true;
-    if (modelo === "conocidos") {
-      return (
-        verificarEnSet(sets.setConocidosIds, hechizo.id, clavesLookup) ||
-        verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup)
-      );
-    }
-    // Para modelos "preparados" y "grimorio" (Mago):
-    // Únicamente están preparados los conjuros incluidos en sets.setPreparadosIds
-    return verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup);
-  };
-
   const estaEnLista = (hechizo: HechizoBase): boolean => {
     if (hechizo.nivel === 0) {
       return (
@@ -221,6 +202,13 @@ export function crearPredicadosPertenencia(params: ParametrosPertenencia): Predi
       verificarEnSet(sets.setConocidosIds, hechizo.id, clavesLookup) ||
       verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup)
     );
+  };
+
+  const estaPreparado = (hechizo: HechizoBase): boolean => {
+    if (hechizo.nivel === 0 || modelo === "conocidos") return estaEnLista(hechizo);
+    if (esHechizoOtorgado(hechizo)) return true;
+    // Para preparados y grimorio, solo cuenta la selección diaria.
+    return verificarEnSet(sets.setPreparadosIds, hechizo.id, clavesLookup);
   };
 
   return {

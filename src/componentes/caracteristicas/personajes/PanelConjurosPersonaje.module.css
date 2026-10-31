@@ -16,17 +16,20 @@
   gap: 8px;
 }
 
-.concentracionIzquierda {
+.concentracionIzquierda,
+.ladoDerechoCabeceraPuntos {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.concentracionIcono {
+.concentracionIcono,
+.iconoAlertaArmaduraShrink {
   flex-shrink: 0;
 }
 
-.concentracionTextos {
+.concentracionTextos,
+.infoResultadoConjuro {
   display: flex;
   flex-direction: column;
 }
@@ -226,7 +229,8 @@
   padding: 8px 12px;
 }
 
-.filaPrincipalFiltros {
+.filaPrincipalFiltros,
+.filaGrupoFiltro {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -260,11 +264,6 @@
 }
 
 .botonLimpiarBusqueda {
-  background: none;
-  border: none;
-  color: var(--pj-texto-terciario);
-  cursor: pointer;
-  padding: 0;
   display: flex;
   align-items: center;
 }
@@ -288,7 +287,8 @@
   transition: none;
 }
 
-.botonToggleFiltros:hover {
+.botonToggleFiltros:hover,
+.chipFiltro:hover {
   border-color: var(--pj-borde-acento);
   color: var(--pj-texto-primario);
 }
@@ -338,12 +338,6 @@
   border-top: 1px dashed var(--pj-borde-sutil);
 }
 
-.filaGrupoFiltro {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
 
 .etiquetaGrupoFiltro {
   font-size: var(--pj-fuente-label);
@@ -375,10 +369,6 @@
   transition: none;
 }
 
-.chipFiltro:hover {
-  border-color: var(--pj-borde-acento);
-  color: var(--pj-texto-primario);
-}
 
 .chipFiltroActivo {
   background-color: var(--pj-acento-magia-fondo);
@@ -419,7 +409,12 @@
   margin: 0;
 }
 
-.tituloNivelFila {
+.tituloNivelFila,
+.tituloBuscadorFila,
+.tituloArcanoFila,
+.accionesArcanoFila,
+.tituloPuntosFila,
+.grupoGastoManualPuntos {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -580,9 +575,6 @@
 }
 
 /* CabeceraYRecursosMagicos */
-.iconoAlertaArmaduraShrink {
-  flex-shrink: 0;
-}
 
 /* TarjetasMetricasMagia */
 .gridMetricasMagiaLibres {
@@ -603,7 +595,8 @@
   justify-content: center;
 }
 
-.etiquetaMetricaMagia {
+.etiquetaMetricaMagia,
+.subtextoMetricaMagia {
   font-size: var(--pj-fuente-label);
   font-weight: 700;
   color: var(--pj-texto-acento);
@@ -635,13 +628,6 @@
   padding: 1px 5px;
 }
 
-.subtextoMetricaMagia {
-  font-size: var(--pj-fuente-label);
-  font-weight: 700;
-  color: var(--pj-texto-acento);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
 
 /* BuscadorConjurosPersonaje */
 .contenedorBuscadorConjuros {
@@ -660,11 +646,6 @@
   align-items: center;
 }
 
-.tituloBuscadorFila {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
 .tituloBuscadorTexto {
   font-size: var(--pj-fuente-subtitulo);
@@ -750,18 +731,16 @@
   padding: 5px 8px;
 }
 
-.infoResultadoConjuro {
-  display: flex;
-  flex-direction: column;
-}
 
-.nombreResultadoConjuro {
+.nombreResultadoConjuro,
+.nombreConjuroArcano {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 600;
   color: var(--pj-texto-primario);
 }
 
-.metaResultadoConjuro {
+.metaResultadoConjuro,
+.metaEscuelaArcano {
   font-size: var(--pj-fuente-badge);
   color: var(--pj-texto-acento);
 }
@@ -815,13 +794,9 @@
   padding-bottom: 8px;
 }
 
-.tituloArcanoFila {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
-.tituloArcanoTexto {
+.tituloArcanoTexto,
+.tituloPuntosTexto {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -878,7 +853,8 @@
   background-color: var(--pj-fondo-tarjeta-elevada);
 }
 
-.cajaContenidoArcanoAsignado {
+.cajaContenidoArcanoAsignado,
+.cajaArcanoSinAsignar {
   display: flex;
   align-items: center;
   flex: 1;
@@ -893,27 +869,13 @@
   cursor: pointer;
 }
 
-.nombreConjuroArcano {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 600;
-  color: var(--pj-texto-primario);
-}
 
 .nombreConjuroArcano[data-gastado="true"] {
   color: var(--pj-texto-acento);
   text-decoration: line-through;
 }
 
-.metaEscuelaArcano {
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-acento);
-}
 
-.accionesArcanoFila {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
 .grupoEstadoGastadoArcano {
   display: flex;
@@ -930,7 +892,8 @@
   padding: 2px 6px;
 }
 
-.botonRestaurarArcano {
+.botonRestaurarArcano,
+.botonQuitarArcano {
   background: transparent;
   border: none;
   color: var(--pj-texto-acento);
@@ -964,25 +927,11 @@
   opacity: 0.5;
 }
 
-.botonQuitarArcano {
-  background: transparent;
-  border: none;
-  color: var(--pj-texto-acento);
-  cursor: pointer;
-  padding: 2px;
-}
 
 .botonQuitarArcano:hover {
   color: var(--pj-texto-alerta);
 }
 
-.cajaArcanoSinAsignar {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  justify-content: space-between;
-  gap: 8px;
-}
 
 .contenedorSelectorArcano {
   flex: 1;
@@ -1014,32 +963,18 @@
   padding-bottom: 8px;
 }
 
-.tituloPuntosFila {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
-.tituloPuntosTexto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--pj-texto-primario);
-}
 
-.ladoDerechoCabeceraPuntos {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
 
-.textoNivelMaxPuntos {
+.textoNivelMaxPuntos,
+.etiquetaReservaMana {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-acento);
 }
 
-.resaltadoNivelMax {
+.resaltadoNivelMax,
+.puntosDisponiblesPositivos,
+.valorCosteResaltado {
   color: var(--pj-texto-cian);
 }
 
@@ -1050,10 +985,6 @@
   margin-bottom: 6px;
 }
 
-.etiquetaReservaMana {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-}
 
 .marcadorNumericoPuntos {
   font-family: "JetBrains Mono", monospace;
@@ -1061,9 +992,6 @@
   font-weight: 700;
 }
 
-.puntosDisponiblesPositivos {
-  color: var(--pj-texto-cian);
-}
 
 .puntosDisponiblesAgotados {
   color: var(--pj-texto-alerta);
@@ -1099,11 +1027,6 @@
   border-top: 1px solid var(--pj-borde-acento);
 }
 
-.grupoGastoManualPuntos {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
 .inputGastoManualPuntos {
   width: 55px;
@@ -1167,9 +1090,6 @@
   justify-content: space-between;
 }
 
-.valorCosteResaltado {
-  color: var(--pj-texto-cian);
-}
 
 .tarjetaConcentracion {
   display: flex;
@@ -1203,14 +1123,12 @@
   font-size: 11px;
   text-align: center;
 }
-.contenedor .gridMetricasMagiaLibres {
+.contenedor .gridMetricasMagiaLibres,
+.contenedor .contenedorTrackers {
   gap: 8px;
 }
 .contenedor .numeroMetricaMagia {
   font-size: 14px;
-}
-.contenedor .contenedorTrackers {
-  gap: 8px;
 }
 .contenedor :is(button, input) {
   min-height: 32px;

@@ -1,15 +1,12 @@
 import { CATALOGO_CLASES_DND55 } from "./clasesDND55";
+import type { ProgresionConjurosNivel } from "@/tipos/clases";
+export type { ProgresionConjurosNivel };
 
 /**
  * Catálogo maestro de conjuros siempre preparados y otorgados por subclase
  * en las reglas oficiales de D&D 5.5e (2024).
  */
 
-export interface ProgresionConjurosNivel {
-  nivelClase: number;
-  conjuros?: string[];
-  trucos?: string[];
-}
 
 export interface DefinicionSubclaseConjuros {
   clase: string;

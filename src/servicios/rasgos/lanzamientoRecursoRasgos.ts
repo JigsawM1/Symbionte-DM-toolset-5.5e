@@ -1,6 +1,7 @@
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import { coincideHechizoId } from "../comparadorHechizos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
+import { rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { esRasgoHabilitadoPorOpcion, resolverRasgoRecurso, normalizar } from "./utilidadesRasgos";
 import HECHIZOS from "@/utiles/compendios/all.json";
 
@@ -35,7 +36,6 @@ export function obtenerOpcionesRecursoConjuro(pj: PersonajeJugador, hechizo: Hec
 }
 
 export function obtenerVarianteConjuro(pj: PersonajeJugador, hechizo: HechizoBase) {
-  return pj.rasgos.find(r => r.varianteSinConcentracion && r.activo !== false
-    && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r, pj.rasgos)
+  return pj.rasgos.find(r => r.varianteSinConcentracion && rasgoMagicoHabilitado(pj, r)
     && r.conjuroGratuito && coincideHechizoId(r.conjuroGratuito, hechizo.id));
 }

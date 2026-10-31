@@ -134,7 +134,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroConcentracion === "con" ? estilos.chipFiltroPeligroActivo : ""
                 }`}
               >
-                <Flame size={11} color={filtroConcentracion === "con" ? "var(--pj-texto-alerta)" : "var(--pj-texto-alerta)"} />
+                <Flame size={11} color="var(--pj-texto-alerta)" />
                 Con Concentración
               </button>
             </div>
@@ -160,7 +160,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
                   filtroResolucion === "ataque" ? estilos.chipFiltroActivo : ""
                 }`}
               >
-                <Zap size={11} color={filtroResolucion === "ataque" ? "var(--pj-texto-magia)" : "var(--pj-texto-magia)"} />
+                <Zap size={11} color="var(--pj-texto-magia)" />
                 Tirada de Ataque
               </button>
               <button

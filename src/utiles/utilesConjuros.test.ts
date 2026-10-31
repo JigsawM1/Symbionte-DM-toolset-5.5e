@@ -444,29 +444,21 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
     });
 
     describe("agregarModificadorHabilidad en Trucos y Espacios de Conjuro", () => {
+      const curarHeridas = {
+        id: "curar-heridas",
+        nombre: "Curar heridas",
+        nivel: 1,
+        dadosDaño: "2d8",
+        tipoDaño: "curacion",
+        agregarModificadorHabilidad: true
+      };
       it("aplica modificador de habilidad a Curar heridas cuando agregarModificadorHabilidad es true", () => {
-        const curarHeridas = {
-          id: "curar-heridas",
-          nombre: "Curar heridas",
-          nivel: 1,
-          dadosDaño: "2d8",
-          tipoDaño: "curacion",
-          agregarModificadorHabilidad: true
-        };
         // Modificador de sabiduría +3
         const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo", 0, 3);
         expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+3");
       });
 
       it("combina bonoDanoMagico y modificadorHabilidad cuando ambos aplican", () => {
-        const curarHeridas = {
-          id: "curar-heridas",
-          nombre: "Curar heridas",
-          nivel: 1,
-          dadosDaño: "2d8",
-          tipoDaño: "curacion",
-          agregarModificadorHabilidad: true
-        };
         // bonoDanoMagico = 2, modificadorHabilidad = 3 -> Total bono +5
         const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo Asimar", 2, 3);
         expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+5");

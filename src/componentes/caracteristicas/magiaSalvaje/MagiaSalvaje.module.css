@@ -131,7 +131,10 @@
   text-align: left;
 }
 
-.botonOleadaDomada:hover:not(:disabled) {
+.botonOleadaDomada:hover:not(:disabled),
+.botonEnviarChat:hover:not(:disabled),
+.botonActivarFila:hover:not(:disabled),
+.botonOpcionCaos:hover {
   background: var(--pj-fondo-tarjeta-hover);
   border-color: var(--pj-borde-acento-fuerte);
 }
@@ -239,10 +242,6 @@
   font-weight: 700;
 }
 
-.botonEnviarChat:hover:not(:disabled) {
-  background: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-acento-fuerte);
-}
 
 .badgeEfecto, .badgeDuracion, .badgePropiedad, .badgeEnviado, .badgeActual {
   display: inline-flex;
@@ -301,7 +300,8 @@
   margin-top: 8px;
 }
 
-.seccionTabla {
+.seccionTabla,
+.listaSobrecargas {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -428,12 +428,6 @@
   font-size: var(--pj-fuente-boton);
 }
 
-.listaSobrecargas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
 
 .filaItem {
   display: flex;
@@ -487,10 +481,6 @@
   font-weight: 700;
 }
 
-.botonActivarFila:hover:not(:disabled) {
-  border-color: var(--pj-borde-acento-fuerte);
-  background: var(--pj-fondo-tarjeta-hover);
-}
 
 .columnaContenido {
   display: flex;
@@ -622,10 +612,6 @@
   text-align: center;
 }
 
-.botonOpcionCaos:hover {
-  background: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-acento-fuerte);
-}
 
 .resultadosSubtiradas {
   padding: 8px 10px;

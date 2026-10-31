@@ -197,7 +197,6 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
       expect(multi.conjuros).toContain("h_curar-heridas");
       expect(multi.conjuros).toContain("h_bendecir");
       expect(multi.conjuros).toContain("Saeta guía");
-      expect(multi.conjuros).toContain("Saeta guía");
       expect(multi.trucos).toContain("Luz");
       expect(multi.trucos).toContain("Llama sagrada");
     });

@@ -92,11 +92,10 @@ export async function resolverSubtiradasDeFila(
   azar = Math.random
 ): Promise<ResultadoSubtirada[]> {
   const resultados: ResultadoSubtirada[] = [];
-  if (!entrada.subtiradas || entrada.subtiradas.length === 0) return resultados;
 
   let valorPrimerResultado: number | undefined;
 
-  for (const sub of entrada.subtiradas) {
+  for (const sub of entrada.subtiradas ?? []) {
     // Si la subtirada depende de un resultado anterior condicional (ej. fila 97)
     if (sub.siResultado !== undefined && sub.siResultado !== valorPrimerResultado) {
       continue;
@@ -112,11 +111,7 @@ export async function resolverSubtiradasDeFila(
     const total = res.totales[0] ?? 1;
     valorPrimerResultado ??= total;
 
-    let opcionElegida: string | undefined;
-    if (sub.opciones && sub.opciones.length > 0) {
-      const encontrada = sub.opciones.find((o) => o.numero === total);
-      opcionElegida = encontrada?.texto;
-    }
+    const opcionElegida = sub.opciones?.find((o) => o.numero === total)?.texto;
 
     resultados.push({
       formula: sub.formula,

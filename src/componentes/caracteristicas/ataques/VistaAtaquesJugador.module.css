@@ -67,7 +67,8 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.accionesCabeceraDerecha {
+.accionesCabeceraDerecha,
+.grupoPestanasPrincipales {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -117,13 +118,6 @@
   flex-wrap: wrap;
 }
 
-.grupoPestanasPrincipales {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
 .botonFiltro {
   flex: 0 0 auto;
   background: transparent;
@@ -143,7 +137,8 @@
   transition: none;
 }
 
-.botonFiltro:hover {
+.botonFiltro:hover,
+.selectorFiltroWrapper button:hover {
   background-color: var(--pj-fondo-tarjeta-hover);
   color: var(--pj-texto-primario);
 }
@@ -184,11 +179,6 @@
   border: 1px solid var(--pj-borde-acento);
   color: var(--pj-texto-secundario);
   padding: 4px 10px;
-}
-
-.selectorFiltroWrapper button:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
 }
 
 .selectorFiltroActivo button {
@@ -291,7 +281,8 @@
   box-shadow: var(--pj-sombra-tarjeta);
 }
 
-.tarjetaAtaque:hover {
+.tarjetaAtaque:hover,
+.tarjetaAtaqueCompacta:hover {
   border-color: var(--pj-borde-acento);
   box-shadow: var(--pj-sombra-tarjeta);
 }
@@ -304,7 +295,8 @@
   border-left-color: var(--pj-borde-oro);
 }
 
-.tarjetaAtaqueReaccion {
+.tarjetaAtaqueReaccion,
+.tarjetaHechizoObjeto {
   border-left-color: var(--pj-borde-magia);
 }
 
@@ -397,18 +389,6 @@
   align-items: center;
 }
 
-.selectAtributoMini {
-  background-color: var(--pj-fondo-hundido-profundo);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: 3px;
-  color: var(--pj-texto-secundario);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  padding: 1px 3px;
-  cursor: pointer;
-}
-
 .bloqueDano {
   display: flex;
   flex-direction: column;
@@ -470,65 +450,6 @@
   color: var(--pj-texto-primario);
 }
 
-.botonTirarDano {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta-brillante);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  white-space: nowrap;
-  user-select: none;
-}
-
-.botonTirarDano:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-peligro);
-  box-shadow: var(--pj-sombra-tarjeta);
-  color: var(--pj-texto-primario);
-}
-
-.botonTirarCritico {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  user-select: none;
-}
-
-.botonTirarCritico:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-}
-
-.filaPropiedadesAtaque {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-wrap: wrap;
-  font-size: var(--pj-fuente-label);
-}
-
 .badgePropiedad {
   font-size: var(--pj-fuente-badge);
   padding: 1px 4px;
@@ -582,13 +503,9 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.bloqueIzquierdoConsumible {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.bloqueDerechoConsumible {
+.bloqueIzquierdoConsumible,
+.bloqueDerechoConsumible,
+.bloqueCuracionConsumible {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -600,12 +517,6 @@
   gap: 6px;
   flex: 1 1 0%;
   min-width: 0;
-}
-
-.bloqueCuracionConsumible {
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .filaMetricasConsumible {
@@ -664,10 +575,6 @@
 /* ==========================================
    HECHIZOS DE OBJETOS MÁGICOS Y MUNICIÓN
    ========================================= */
-
-.tarjetaHechizoObjeto {
-  border-left-color: var(--pj-borde-magia);
-}
 
 .nombreFuenteObjeto {
   font-size: var(--pj-fuente-subtitulo);
@@ -746,13 +653,6 @@
   flex-shrink: 0;
 }
 
-.subtextoMochilaExcedente {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-oro);
-  font-weight: 600;
-  margin-left: 2px;
-}
-
 .badgeNoCompetente {
   font-size: var(--pj-fuente-badge);
   font-weight: 700;
@@ -797,36 +697,12 @@
   margin-top: 1px;
 }
 
-.subtextoContenedorMunicion {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  font-weight: 500;
-  margin-left: 2px;
-}
-
 .textoAlcance {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-acento);
   display: flex;
   align-items: center;
   gap: 2px;
-}
-
-.textoDanoVersatilBadge {
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-oro);
-  font-weight: 700;
-}
-
-.botonTirarDano2M {
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-panel) 100%) !important;
-  border-color: var(--pj-borde-oro) !important;
-  color: var(--pj-texto-oro) !important;
-}
-
-.botonTirarCritico2M {
-  border-color: var(--pj-borde-oro) !important;
-  color: var(--pj-texto-oro) !important;
 }
 
 /* Modal de Hechizo */
@@ -1024,11 +900,6 @@
   transition: none;
 }
 
-.tarjetaAtaqueCompacta:hover {
-  border-color: var(--pj-borde-acento);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 .ladoIzquierdoAtaque {
   display: flex;
   flex-direction: column;
@@ -1168,5 +1039,4 @@
   border-color: var(--pj-borde-oro);
   color: var(--pj-texto-primario);
 }
-
 

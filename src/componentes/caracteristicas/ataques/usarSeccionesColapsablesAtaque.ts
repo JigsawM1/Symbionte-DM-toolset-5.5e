@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { usarEstadoPersistido } from "@/hooks";
 
 export const SECCIONES_COMBATE_POR_DEFECTO: Readonly<Record<string, boolean>> = {
@@ -20,15 +20,6 @@ export const SECCIONES_COMBATE_POR_DEFECTO: Readonly<Record<string, boolean>> = 
   consumibles: true,
   hechizosObjetos: true
 };
-
-const SECCIONES_PRINCIPALES_COMBATE = [
-  "recursos",
-  "fisicos",
-  "magicos",
-  "rasgos",
-  "consumibles",
-  "hechizosObjetos"
-] as const;
 
 /**
  * Hook modularizado para la gestión del estado colapsable persistente
@@ -70,24 +61,10 @@ export function usarSeccionesColapsablesAtaque() {
     });
   }, [setSeccionesAbiertas]);
 
-  const estanTodasSeccionesColapsadas = useMemo(() => {
-    return SECCIONES_PRINCIPALES_COMBATE.every((sec) => seccionesAbiertas[sec] === false);
-  }, [seccionesAbiertas]);
-
-  const alternarTodasSecciones = useCallback(() => {
-    if (estanTodasSeccionesColapsadas) {
-      expandirTodasSecciones();
-    } else {
-      colapsarTodasSecciones();
-    }
-  }, [estanTodasSeccionesColapsadas, expandirTodasSecciones, colapsarTodasSecciones]);
-
   return {
     seccionesAbiertas,
     alternarSeccion,
     colapsarTodasSecciones,
     expandirTodasSecciones,
-    estanTodasSeccionesColapsadas,
-    alternarTodasSecciones
   };
 }

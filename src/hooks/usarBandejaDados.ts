@@ -11,17 +11,19 @@ export interface DadosBandeja {
   d100: number;
 }
 
+const DADOS_INICIALES: DadosBandeja = {
+  d4: 0,
+  d6: 0,
+  d8: 0,
+  d10: 0,
+  d12: 0,
+  d20: 0,
+  d100: 0,
+};
+
 export function usarBandejaDados() {
   const [minimizado, setMinimizado] = useState(true);
-  const [dados, setDados] = useState<DadosBandeja>({
-    d4: 0,
-    d6: 0,
-    d8: 0,
-    d10: 0,
-    d12: 0,
-    d20: 0,
-    d100: 0,
-  });
+  const [dados, setDados] = useState<DadosBandeja>(DADOS_INICIALES);
   const [modificador, setModificador] = useState<number>(0);
   const [nombreTirada, setNombreTirada] = useState<string>("");
 
@@ -43,15 +45,7 @@ export function usarBandejaDados() {
   };
 
   const limpiarBandeja = () => {
-    setDados({
-      d4: 0,
-      d6: 0,
-      d8: 0,
-      d10: 0,
-      d12: 0,
-      d20: 0,
-      d100: 0,
-    });
+    setDados(DADOS_INICIALES);
     setModificador(0);
     setNombreTirada("");
   };
@@ -88,7 +82,6 @@ export function usarBandejaDados() {
     minimizado,
     setMinimizado,
     dados,
-    setDados,
     modificador,
     setModificador,
     nombreTirada,

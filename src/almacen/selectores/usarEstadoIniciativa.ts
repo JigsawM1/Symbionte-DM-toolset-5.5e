@@ -55,8 +55,6 @@ export function usarAccionesIniciativa() {
       ejecutarSalvacionEnArea:           s.ejecutarSalvacionEnArea,
       importarIniciativaTaleSpire:       s.importarIniciativaTaleSpire,
       autoLanzarIniciativaMonstruos:     s.autoLanzarIniciativaMonstruos,
-      actualizarColaIniciativaDesdeTaleSpire: s.actualizarColaIniciativaDesdeTaleSpire,
-      actualizarSeleccionCriaturas:      s.actualizarSeleccionCriaturas,
       establecerTipoTirada:              s.establecerTipoTirada,
     }))
   );

@@ -29,6 +29,57 @@ import {
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
+function coincidePersonajeEnIniciativa(pj: PersonajeJugador, criatura: CriaturaIniciativa | undefined, id: string, nombre: string): boolean {
+  return Boolean(
+    !criatura?.esAcompanante &&
+    !criatura?.idAcompanante &&
+    (pj.id === id ||
+      pj.idMiniaturaTS === id ||
+      (criatura?.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio) ||
+      coincidenNombresTaleSpire(pj.nombre, nombre))
+  );
+}
+
+function coincideAcompananteEnIniciativa(acomp: PersonajeJugador["acompanantes"][number], criatura: CriaturaIniciativa | undefined, id: string, nombre: string): boolean {
+  return Boolean(
+    acomp.id === id ||
+    (criatura?.idAcompanante && acomp.id === criatura.idAcompanante) ||
+    (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
+    coincidenNombresTaleSpire(acomp.nombre, nombre)
+  );
+}
+
+function aplicarEfectoAPersonaje(pj: PersonajeJugador, nombreEfecto: string, nuevoEfecto: EfectoActivo, esConcentracion: boolean): PersonajeJugador {
+  const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
+  const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
+    if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
+      return false;
+    }
+    return e.id !== nuevoEfecto.id;
+  });
+
+  let conds = pj.condicionesActivas || [];
+  if (esConcentracion) {
+    if (!conds.includes("Concentración")) {
+      conds = [...conds, "Concentración"];
+    }
+  } else {
+    conds = aplicarCondicion(conds, nombreEfecto);
+  }
+
+  const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
+
+  return {
+    ...pj,
+    condicionesActivas: conds,
+    efectosActivos: [...efectosPjPrevios, nuevoEfecto],
+    concentracionActiva: esConcentracion
+      ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
+      : pj.concentracionActiva,
+    rasgos: rasgosActualizados
+  };
+}
+
 function esCondicionDerribado(texto: string): boolean {
   const tNorm = (texto || "").toLowerCase().trim();
   return tNorm.includes("derribad") || tNorm.includes("prone") || tNorm === "caido" || tNorm === "caído";
@@ -460,13 +511,7 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === id ||
-          pj.idMiniaturaTS === id ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
 
       if (coincidePj) {
         return {
@@ -481,11 +526,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === id ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
         if (coincideAcomp) {
           acompModificado = true;
           return {
@@ -530,13 +571,7 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === id ||
-          pj.idMiniaturaTS === id ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
 
       if (coincidePj) {
         return {
@@ -552,11 +587,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === id ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
         if (coincideAcomp) {
           acompModificado = true;
           return {
@@ -597,13 +628,7 @@ export const crearSliceIniciativa: StateCreator<
     const esDerribado = esCondicionDerribado(condicion);
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincide =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === id ||
-          pj.idMiniaturaTS === id ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
 
       if (coincide) {
         let nuevoTipoTerreno = pj.tipoTerreno || "normal";
@@ -640,11 +665,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === id ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
 
         if (coincideAcomp) {
           acompModificado = true;
@@ -697,13 +718,7 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincide =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === id ||
-          pj.idMiniaturaTS === id ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
 
       if (coincide) {
         const condsRestantes = quitarCondicion(pj.condicionesActivas || [], condicion);
@@ -743,11 +758,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === id ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
 
         if (coincideAcomp) {
           acompModificado = true;
@@ -814,43 +825,10 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincide =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === idCriatura ||
-          pj.idMiniaturaTS === idCriatura ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
 
       if (coincide) {
-        const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
-        const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
-          if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
-            return false;
-          }
-          return e.id !== nuevoEfecto.id;
-        });
-
-        let conds = pj.condicionesActivas || [];
-        if (esConcentracion) {
-          if (!conds.includes("Concentración")) {
-            conds = [...conds, "Concentración"];
-          }
-        } else {
-          conds = aplicarCondicion(conds, nombreEfecto);
-        }
-
-        const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
-
-        return {
-          ...pj,
-          condicionesActivas: conds,
-          efectosActivos: [...efectosPjPrevios, nuevoEfecto],
-          concentracionActiva: esConcentracion
-            ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
-            : pj.concentracionActiva,
-          rasgos: rasgosActualizados
-        };
+        return aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion);
       }
 
       if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
@@ -859,11 +837,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === idCriatura ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
 
         if (coincideAcomp) {
           acompModificado = true;
@@ -923,13 +897,7 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincide =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === idCriatura ||
-          pj.idMiniaturaTS === idCriatura ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
 
       if (coincide && efectoEliminado) {
         const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
@@ -960,11 +928,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === idCriatura ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
 
         if (coincideAcomp && efectoEliminado) {
           acompModificado = true;
@@ -1113,13 +1077,7 @@ export const crearSliceIniciativa: StateCreator<
     }
 
     const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj =
-        !criaturaObjetivo?.esAcompanante &&
-        !criaturaObjetivo?.idAcompanante &&
-        (pj.id === idCriatura ||
-          pj.idMiniaturaTS === idCriatura ||
-          (criaturaObjetivo?.idPersonajeDuenio && pj.id === criaturaObjetivo.idPersonajeDuenio) ||
-          coincidenNombresTaleSpire(pj.nombre, criaturaAfectadaNombre));
+      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
 
       if (coincidePj) {
         return { ...pj, hpTemporal: vidaTempSegura };
@@ -1131,11 +1089,7 @@ export const crearSliceIniciativa: StateCreator<
 
       let acompModificado = false;
       const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp =
-          acomp.id === idCriatura ||
-          (criaturaObjetivo?.idAcompanante && acomp.id === criaturaObjetivo.idAcompanante) ||
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === idCriatura) ||
-          coincidenNombresTaleSpire(acomp.nombre, criaturaAfectadaNombre);
+        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
         if (coincideAcomp) {
           acompModificado = true;
           return { ...acomp, vidaTemporal: vidaTempSegura };
@@ -1538,7 +1492,6 @@ export const crearSliceIniciativa: StateCreator<
     const esConcentracion = opciones?.concentracion ||
       nombreEfecto.toLowerCase().trim() === "concentración" ||
       nombreEfecto.toLowerCase().trim() === "concentracion";
-    const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
 
     const targets = obtenerIdsObjetivoMasivo(
       state.colaIniciativa,
@@ -1579,33 +1532,7 @@ export const crearSliceIniciativa: StateCreator<
         );
       });
       if (coincide) {
-        const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
-          if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
-            return false;
-          }
-          return e.id !== nuevoEfecto.id;
-        });
-
-        let conds = pj.condicionesActivas || [];
-        if (esConcentracion) {
-          if (!conds.includes("Concentración")) {
-            conds = [...conds, "Concentración"];
-          }
-        } else {
-          conds = aplicarCondicion(conds, nombreEfecto);
-        }
-
-        const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
-
-        return {
-          ...pj,
-          condicionesActivas: conds,
-          efectosActivos: [...efectosPjPrevios, nuevoEfecto],
-          concentracionActiva: esConcentracion
-            ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
-            : pj.concentracionActiva,
-          rasgos: rasgosActualizados
-        };
+        return aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion);
       }
       return pj;
     });

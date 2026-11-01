@@ -1,7 +1,6 @@
 import React from "react";
 import { Swords, AlertTriangle, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { SelectorDesplegable } from "@/componentes/comunes";
-import type { PersonajeJugador } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { FiltroAccion } from "./usarCalculoAtaquesJugador";
 import estilos from "./VistaAtaquesJugador.module.css";
@@ -15,9 +14,6 @@ interface CabeceraAtaquesJugadorProps {
   conteoActivables: number;
   filtro: FiltroAccion;
   alCambiarFiltro: (nuevoFiltro: FiltroAccion) => void;
-  personajes?: PersonajeJugador[];
-  personajeActivo?: PersonajeJugador;
-  alSeleccionarPersonaje?: (id: string) => void;
   statsCalculadas: EstadisticasCalculadasPersonaje | null;
   alColapsarTodas?: () => void;
   alExpandirTodas?: () => void;

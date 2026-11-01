@@ -100,26 +100,23 @@ export function calcularAtaqueDesarmado(contexto: {
     };
   }
 
+  const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
+    personajeActivo,
+    statsCalculadas,
+    contextoAtaque: contextoDesarmadoBase,
+    caracUsada: caracDesarmado,
+    modAtributo: modDesarmado,
+    bonoMagico: 0,
+    furiaEstaActiva,
+    yaIncluyeFuriaEnEfectos
+  });
+  const tipoDanoComun =
+    tiposDanoSecundarios.length > 0
+      ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
+      : "Contundente";
+
   // 2. Ataque desarmado especial (Bardo, Matón de Taberna, Combate sin armas u otro)
   if (ataqueDesarmadoEsp.aplica) {
-    const contextoDesarmadoEsp: ContextoAtaquePersonaje = {
-      tipo: "desarmado",
-      caracteristica: caracDesarmado,
-      esCuerpoACuerpo: true,
-      esDistancia: false
-    };
-
-    const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
-      personajeActivo,
-      statsCalculadas,
-      contextoAtaque: contextoDesarmadoEsp,
-      caracUsada: caracDesarmado,
-      modAtributo: modDesarmado,
-      bonoMagico: 0,
-      furiaEstaActiva,
-      yaIncluyeFuriaEnEfectos
-    });
-
     const { dadoDanoTotalBase, formulaDano } = componerFormulasDano(
       ataqueDesarmadoEsp.dadoDanoBase || "1d6",
       modDanoTotal,
@@ -129,10 +126,6 @@ export function calcularAtaqueDesarmado(contexto: {
 
     const propiedades = ataqueDesarmadoEsp.propiedades || ["Golpe sin Armas Especial"];
     const tienePropiedadSutil = propiedades.includes("Sutil");
-    const tipoDanoEsp =
-      tiposDanoSecundarios.length > 0
-        ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
-        : "Contundente";
 
     return {
       id: "ataque-desarmado",
@@ -146,7 +139,7 @@ export function calcularAtaqueDesarmado(contexto: {
       dadoDanoBase: dadoDanoTotalBase,
       modificadorDano: modDanoTotal,
       esDanoFijo: false,
-      tipoDano: tipoDanoEsp,
+      tipoDano: tipoDanoComun,
       alcance: "5 ft",
       propiedades,
       tieneTiradaAtaque: true,
@@ -157,32 +150,11 @@ export function calcularAtaqueDesarmado(contexto: {
   }
 
   // 3. Golpe Desarmado Estándar
-  const contextoDesarmado: ContextoAtaquePersonaje = {
-    tipo: "desarmado",
-    caracteristica: caracDesarmado,
-    esCuerpoACuerpo: true,
-    esDistancia: false
-  };
-
-  const { modDanoTotal, dadosExtra, danosSecundarios, tiposDanoSecundarios } = resolverBonosYDadosExtraCombate({
-    personajeActivo,
-    statsCalculadas,
-    contextoAtaque: contextoDesarmado,
-    caracUsada: caracDesarmado,
-    modAtributo: modDesarmado,
-    bonoMagico: 0,
-    furiaEstaActiva,
-    yaIncluyeFuriaEnEfectos
-  });
-
   const hayDanoSec = danosSecundarios.length > 0;
   let formulaDesarmado: string;
   let dadoBaseDesarmado: string;
   let esDanoFijoDesarmado: boolean;
-  let tipoDanoDesarmado =
-    tiposDanoSecundarios.length > 0
-      ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
-      : "Contundente";
+  const tipoDanoDesarmado = tipoDanoComun;
   let modDanoDesarmadoFinal = modDanoTotal;
 
   if (hayDanoSec || dadosExtra.length > 0) {

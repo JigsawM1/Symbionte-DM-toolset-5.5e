@@ -58,31 +58,14 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
   // Selector inteligente de características (D&D 5.5e):
   // - Solo muestra Destreza si el arma es sutil o a distancia.
   // - En armas cuerpo a cuerpo no sutiles, muestra Fuerza y las aptitudes mágicas (INT, SAB, CAR).
-  const opcionesAtributo: { valor: Caracteristica; etiqueta: string }[] = React.useMemo(() => {
-    if (esSutil) {
-      return [
-        { valor: "fuerza", etiqueta: "FUE" },
-        { valor: "destreza", etiqueta: "DES" },
-        { valor: "inteligencia", etiqueta: "INT" },
-        { valor: "sabiduria", etiqueta: "SAB" },
-        { valor: "carisma", etiqueta: "CAR" }
-      ];
-    }
-    if (esDistancia) {
-      return [
-        { valor: "destreza", etiqueta: "DES" },
-        { valor: "inteligencia", etiqueta: "INT" },
-        { valor: "sabiduria", etiqueta: "SAB" },
-        { valor: "carisma", etiqueta: "CAR" }
-      ];
-    }
-    return [
-      { valor: "fuerza", etiqueta: "FUE" },
+  const opcionesAtributo = React.useMemo<{ valor: Caracteristica; etiqueta: string }[]>(
+    () => [
+      ...(esSutil || !esDistancia ? [{ valor: "fuerza" as const, etiqueta: "FUE" }] : []),
+      ...(esSutil || esDistancia ? [{ valor: "destreza" as const, etiqueta: "DES" }] : []),
       { valor: "inteligencia", etiqueta: "INT" },
       { valor: "sabiduria", etiqueta: "SAB" },
       { valor: "carisma", etiqueta: "CAR" }
-    ];
-  }, [esSutil, esDistancia]);
+    ], [esSutil, esDistancia]);
 
   const textoBadgeAccion =
     ataque.tipoAccion === "accionAdicional"

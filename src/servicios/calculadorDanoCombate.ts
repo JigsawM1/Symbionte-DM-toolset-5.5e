@@ -51,11 +51,7 @@ export function resolverBonosYDadosExtraCombate(params: {
 
   const modDanoTotal = modAtributo + bonoMagico + bonoFuria + bonoDanoExtraRasgos;
 
-  const dadosExtra: string[] = [];
-  const dadosExtraEfectos = obtenerDadosExtraAtaque(personajeActivo, contextoAtaque);
-  for (const d of dadosExtraEfectos) {
-    dadosExtra.push(d.dados);
-  }
+  const dadosExtra = obtenerDadosExtraAtaque(personajeActivo, contextoAtaque).map((d) => d.dados);
 
   // Soporte genérico para rasgos activables con formulaDados que no definan efectos mecánicos explícitos
   // y que no sean consumibles ni gasten recursos de ranuras/pacto por impacto

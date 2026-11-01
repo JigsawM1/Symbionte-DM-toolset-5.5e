@@ -276,11 +276,10 @@ export function extraerDatosAtaqueParaAtaqueRapido(
     }
 
     // Caso B: Extraer dados de 'daño' o de 'descripcion'
-    const coincidenciasDano: string[] = [];
-    let matchD: RegExpExecArray | null;
-    while ((matchD = REGEX_DADOS.exec(textoDano)) !== null) {
-      coincidenciasDano.push(matchD[1].replace(/\s+/g, ""));
-    }
+    const coincidenciasDano: string[] = Array.from(
+      textoDano.matchAll(REGEX_DADOS),
+      (match) => match[1].replace(/\s+/g, "")
+    );
 
     const componentesExtraidos: ComponenteDano[] = [];
 
@@ -304,36 +303,30 @@ export function extraerDatosAtaqueParaAtaqueRapido(
 
       // Si solo había 1 dado en el daño, comprobar si la descripción añade más daños (ej. veneno)
       if (coincidenciasDano.length === 1 && textoDesc) {
-        const todosDadosDesc: Array<{ dados: string; indice: number }> = [];
-        REGEX_DADOS.lastIndex = 0;
-        let matchDesc: RegExpExecArray | null;
-        while ((matchDesc = REGEX_DADOS.exec(textoDesc)) !== null) {
-          todosDadosDesc.push({
-            dados: matchDesc[1].replace(/\s+/g, ""),
-            indice: matchDesc.index
-          });
-        }
+        const todosDadosDesc: Array<{ dados: string; indice: number }> = Array.from(
+          textoDesc.matchAll(REGEX_DADOS),
+          (match) => ({
+            dados: match[1].replace(/\s+/g, ""),
+            indice: match.index
+          })
+        );
 
-        if (todosDadosDesc.length > 1) {
-          for (let j = 1; j < todosDadosDesc.length; j++) {
-            const dadoExtra = todosDadosDesc[j];
-            const fragmento = textoDesc.slice(dadoExtra.indice, dadoExtra.indice + 60);
-            const tipoExtra = normalizarTipoDanoTexto(fragmento) || "fuerza";
-            componentesExtraidos.push({ dados: dadoExtra.dados, tipo: tipoExtra });
-          }
+        for (let j = 1; j < todosDadosDesc.length; j++) {
+          const dadoExtra = todosDadosDesc[j];
+          const fragmento = textoDesc.slice(dadoExtra.indice, dadoExtra.indice + 60);
+          const tipoExtra = normalizarTipoDanoTexto(fragmento) || "fuerza";
+          componentesExtraidos.push({ dados: dadoExtra.dados, tipo: tipoExtra });
         }
       }
     } else {
       // Buscar en descripción si 'daño' está vacío
-      const todosDadosDesc: Array<{ dados: string; indice: number }> = [];
-      REGEX_DADOS.lastIndex = 0;
-      let matchDesc: RegExpExecArray | null;
-      while ((matchDesc = REGEX_DADOS.exec(textoDesc)) !== null) {
-        todosDadosDesc.push({
-          dados: matchDesc[1].replace(/\s+/g, ""),
-          indice: matchDesc.index
-        });
-      }
+      const todosDadosDesc: Array<{ dados: string; indice: number }> = Array.from(
+        textoDesc.matchAll(REGEX_DADOS),
+        (match) => ({
+          dados: match[1].replace(/\s+/g, ""),
+          indice: match.index
+        })
+      );
 
       if (todosDadosDesc.length > 0) {
         for (let k = 0; k < todosDadosDesc.length; k++) {
@@ -352,16 +345,12 @@ export function extraerDatosAtaqueParaAtaqueRapido(
       }
     }
 
-    const dadosPrincipal = componentesExtraidos[0]?.dados || "1d6";
-    const tipoPrincipal = componentesExtraidos[0]?.tipo || "fuerza";
-    const danosAdicionales = componentesExtraidos.slice(1);
-
     return {
       nombre: nombreLimpio,
       bonificadorAtaque: bonoResultado,
-      dadosDaño: dadosPrincipal,
-      tipoDaño: tipoPrincipal,
-      danosAdicionales
+      dadosDaño: componentesExtraidos[0]?.dados || "1d6",
+      tipoDaño: componentesExtraidos[0]?.tipo || "fuerza",
+      danosAdicionales: componentesExtraidos.slice(1)
     };
   } catch (error) {
     logger.error("[ProcesadorAtaques] Error al extraer datos de ataque rápido:", error);

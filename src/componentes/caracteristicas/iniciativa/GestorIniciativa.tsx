@@ -275,13 +275,6 @@ export const GestorIniciativa: React.FC = () => {
     }
   }, [actualizarVidaTemporal, modificarVidaCriaturaIniciativa]);
 
-  const alCambiarTempHPCriatura = useCallback((id: string, cant: number) => actualizarVidaTemporal(id, cant), [actualizarVidaTemporal]);
-  const alAñadirCondicionCriatura = useCallback((id: string, cond: string) => agregarCondicionACriatura(id, cond), [agregarCondicionACriatura]);
-  const alQuitarCondicionCriatura = useCallback((id: string, cond: string) => quitarCondicionDeCriatura(id, cond), [quitarCondicionDeCriatura]);
-  const alAñadirEfectoCriatura = useCallback((id: string, nom: string, dur: number, opciones?: { concentracion?: boolean }) => agregarEfectoACriatura(id, nom, dur, opciones), [agregarEfectoACriatura]);
-  const alQuitarEfectoCriatura = useCallback((id: string, efId: string) => quitarEfectoDeCriatura(id, efId), [quitarEfectoDeCriatura]);
-  const alEstablecerIniciativaCriatura = useCallback((id: string, nuevaInic: number) => establecerIniciativaCriatura(id, nuevaInic), [establecerIniciativaCriatura]);
-  const alEstablecerVidaMaximaCriatura = useCallback((id: string, nuevaMax: number) => modificarVidaMaximaCriaturaIniciativa(id, nuevaMax), [modificarVidaMaximaCriaturaIniciativa]);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;
@@ -372,16 +365,16 @@ export const GestorIniciativa: React.FC = () => {
                     onSeleccionar={alSeleccionarCriatura}
                     onCurar={alCurarCriatura}
                     onDañar={alDañarCriatura}
-                    onCambiarTempHP={alCambiarTempHPCriatura}
-                    onAñadirCondicion={alAñadirCondicionCriatura}
-                    onQuitarCondicion={alQuitarCondicionCriatura}
-                    onAñadirEfecto={alAñadirEfectoCriatura}
-                    onQuitarEfecto={alQuitarEfectoCriatura}
+                    onCambiarTempHP={actualizarVidaTemporal}
+                    onAñadirCondicion={agregarCondicionACriatura}
+                    onQuitarCondicion={quitarCondicionDeCriatura}
+                    onAñadirEfecto={agregarEfectoACriatura}
+                    onQuitarEfecto={quitarEfectoDeCriatura}
                     onLanzarIniciativa={alLanzarIniciativaCriatura}
                     onLanzarAtaqueRapido={lanzarAtaqueRapido}
                     obtenerPercepcionPasiva={obtenerPercepcionPasiva}
-                    onEstablecerIniciativa={alEstablecerIniciativaCriatura}
-                    onEstablecerVidaMaxima={alEstablecerVidaMaximaCriatura}
+                    onEstablecerIniciativa={establecerIniciativaCriatura}
+                    onEstablecerVidaMaxima={modificarVidaMaximaCriaturaIniciativa}
                     onAlternarRol={alternarRolCriatura}
                     refTarjetaActiva={refTarjetaActiva}
                   />

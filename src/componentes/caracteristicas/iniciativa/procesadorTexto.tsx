@@ -98,13 +98,8 @@ export const procesarTextoFicha = (
     }
 
     // Convertimos todo de vuelta a nodos de React
-    textosAIterar.forEach((item) => {
-      if (item.componente) {
-        nodosFinales.push(item.componente);
-      } else {
-        nodosFinales.push(item.texto || "");
-      }
-    });
+    textosAIterar.forEach(item => nodosFinales.push(item.componente || item.texto || ""));
+
   });
 
   return nodosFinales;

@@ -57,37 +57,31 @@ export const SelectorCondiciones: React.FC = () => {
   );
   const numSeleccionadas = seleccionadasEnCola.length;
 
+  const modoEfectivo = targetModo === "AUTO"
+    ? (numSeleccionadas > 0 ? "SELECCION" : "ACTIVO")
+    : targetModo;
+
   // Determinar los IDs de las criaturas objetivo
   const resolverIdsObjetivo = (): string[] | undefined => {
-    if (targetModo === "AUTO") {
-      if (numSeleccionadas > 0) {
-        return seleccionadasEnCola.map((s) => s.id);
-      }
-      const act = colaIniciativa[indiceTurnoActivo];
-      return act ? [act.id] : undefined;
-    }
-    if (targetModo === "SELECCION") {
+    if (modoEfectivo === "SELECCION") {
       return seleccionadasEnCola.map((s) => s.id);
     }
-    if (targetModo === "ACTIVO") {
+    if (modoEfectivo === "ACTIVO") {
       const act = colaIniciativa[indiceTurnoActivo];
       return act ? [act.id] : undefined;
     }
-    return [targetModo];
+    return [modoEfectivo];
   };
 
   // Etiqueta para el botón de objetivo
   const obtenerEtiquetaTarget = (): string => {
-    if (targetModo === "AUTO") {
-      return numSeleccionadas > 0 ? `SELECCIÓN (${numSeleccionadas})` : "[ACTIVO]";
-    }
-    if (targetModo === "SELECCION") {
+    if (modoEfectivo === "SELECCION") {
       return `SELECCIÓN (${numSeleccionadas})`;
     }
-    if (targetModo === "ACTIVO") {
+    if (modoEfectivo === "ACTIVO") {
       return "[ACTIVO]";
     }
-    const cri = colaIniciativa.find((c) => c.id === targetModo);
+    const cri = colaIniciativa.find((c) => c.id === modoEfectivo);
     return cri ? (cri.nombre.length > 13 ? cri.nombre.substring(0, 13) + "..." : cri.nombre) : "[ACTIVO]";
   };
 

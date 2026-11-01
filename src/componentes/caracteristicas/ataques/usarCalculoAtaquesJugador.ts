@@ -60,10 +60,9 @@ export type FiltroAccion =
 export type { HechizoObjetoMagicoAccion, ConjuroAccionElemento, RasgoAccionCombate, CategoriaCombateRasgo };
 
 export function usarCalculoAtaquesJugador() {
-  const { personajes, personajeActivo } = usarEstadoPersonajes();
+  const { personajeActivo } = usarEstadoPersonajes();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const {
-    seleccionarPersonajeActivo,
     gastarEspacioConjuro,
     recuperarEspacioConjuro,
     gastarPuntosConjuro,
@@ -95,8 +94,6 @@ export function usarCalculoAtaquesJugador() {
     alternarSeccion,
     colapsarTodasSecciones,
     expandirTodasSecciones,
-    estanTodasSeccionesColapsadas,
-    alternarTodasSecciones
   } = usarSeccionesColapsablesAtaque();
 
   // Modal de detalle de conjuro y de rasgo
@@ -337,16 +334,9 @@ export function usarCalculoAtaquesJugador() {
   const conteoAccionAdicional = useMemo(() => contarPorTipoAccion("accionAdicional"), [contarPorTipoAccion]);
   const conteoReaccion = useMemo(() => contarPorTipoAccion("reaccion"), [contarPorTipoAccion]);
 
-  const conteoConsumibles = useMemo(() => {
-    return (
-      listaConsumibles.length +
-      listaRasgosCombate.filter((r) => r.categoriasCombate.includes("consumible")).length
-    );
-  }, [listaConsumibles, listaRasgosCombate]);
+  const conteoConsumibles = listaConsumibles.length + rasgosConsumibles.length;
 
-  const conteoActivables = useMemo(() => {
-    return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("activable")).length;
-  }, [listaRasgosCombate]);
+  const conteoActivables = rasgosActivables.length;
 
   const conteoTotal =
     listaAtaquesFisicos.length +
@@ -361,7 +351,6 @@ export function usarCalculoAtaquesJugador() {
   const tienePacto = (personajeActivo?.espaciosPactoMaximos || 0) > 0 || esClasePacto(personajeActivo?.clase);
 
   return {
-    personajes,
     personajeActivo,
     statsCalculadas,
     sistemaMagia,
@@ -371,13 +360,10 @@ export function usarCalculoAtaquesJugador() {
     alternarSeccion,
     colapsarTodasSecciones,
     expandirTodasSecciones,
-    estanTodasSeccionesColapsadas,
-    alternarTodasSecciones,
     hechizoDetalle,
     setHechizoDetalle,
     rasgoDetalle,
     setRasgoDetalle,
-    habilidadMagica,
     bonoAtaqueMagico,
     cdSalvacionConjuros,
     estaBloqueadoPorArmadura,
@@ -387,7 +373,6 @@ export function usarCalculoAtaquesJugador() {
     conjurosPorNivel,
     consumiblesFiltrados,
     hechizosObjetosFiltrados,
-    listaRasgosCombate,
     rasgosFiltrados,
     rasgosAcciones,
     rasgosAccionesAdicionales,
@@ -404,7 +389,6 @@ export function usarCalculoAtaquesJugador() {
     tienePacto,
     esHechizoDeSubclase,
     lanzar,
-    seleccionarPersonajeActivo,
     gastarEspacioConjuro,
     recuperarEspacioConjuro,
     gastarPuntosConjuro,

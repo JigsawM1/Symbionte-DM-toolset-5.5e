@@ -124,7 +124,6 @@ export const usarDetalleObjetoInventario = ({
     esEscudo,
     armaObj,
     armaduraObj,
-    escudoObj,
     caEscudoEfectiva,
     descripcion,
     notasTemp,

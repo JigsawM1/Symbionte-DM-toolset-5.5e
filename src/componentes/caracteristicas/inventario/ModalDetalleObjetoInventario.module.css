@@ -188,24 +188,8 @@
   color: var(--pj-texto-primario);
 }
 
-.valorMetricaOro {
-  color: var(--pj-texto-oro);
-}
-
-.valorMetricaAzul {
-  color: var(--pj-texto-cian);
-}
-
 .valorMetricaRojo {
   color: var(--pj-texto-alerta);
-}
-
-.valorMetricaVerde {
-  color: var(--pj-texto-exito);
-}
-
-.valorMetricaMorado {
-  color: var(--pj-texto-magia);
 }
 
 .subtextoMetrica {
@@ -234,10 +218,6 @@
   border-color: var(--pj-borde-acento);
 }
 
-.seccionMagico {
-  border-color: var(--pj-borde-magia);
-}
-
 .filaBadges {
   display: flex;
   flex-wrap: wrap;
@@ -249,20 +229,6 @@
   background-color: var(--pj-acento-peligro-fondo);
   color: var(--pj-texto-alerta);
   border: 1px solid var(--pj-borde-peligro);
-}
-
-.badgeArmaVersatil {
-  background-color: var(--pj-acento-oro-fondo);
-  color: var(--pj-texto-oro);
-  border: 1px solid var(--pj-borde-oro);
-  cursor: help;
-}
-
-.badgeArmaAlcance {
-  background-color: var(--pj-acento-cian-fondo);
-  color: var(--pj-texto-cian);
-  border: 1px solid var(--pj-borde-cian);
-  cursor: help;
 }
 
 .badgeArmaMaestria {
@@ -279,17 +245,11 @@
   cursor: help;
 }
 
+.badgeArmaVersatil,
 .badgeArmaduraFue {
   background-color: var(--pj-acento-oro-fondo);
   color: var(--pj-texto-oro);
   border: 1px solid var(--pj-borde-oro);
-  cursor: help;
-}
-
-.badgeArmaduraSigilo {
-  background-color: var(--pj-acento-peligro-fondo);
-  color: var(--pj-texto-alerta);
-  border: 1px solid var(--pj-borde-peligro);
   cursor: help;
 }
 
@@ -337,10 +297,6 @@
   color: var(--pj-texto-acento);
 }
 
-.textoInteractivaActivo {
-  color: var(--pj-texto-magia);
-}
-
 .botonAccionModal {
   padding: 4px 10px;
   border-radius: var(--pj-radio-control);
@@ -362,11 +318,6 @@
   color: var(--pj-texto-magia);
 }
 
-.botonSintonizar:hover:not(:disabled) {
-  background-color: var(--pj-acento-magia-fondo);
-  color: var(--pj-texto-primario);
-}
-
 .botonDesintonizar {
   background-color: var(--pj-acento-peligro-fondo);
   border-color: var(--pj-borde-peligro);
@@ -384,12 +335,6 @@
 }
 
 /* Selector de Contenedores */
-.seccionContenedor {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .tituloSeccion {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
@@ -399,22 +344,6 @@
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.tituloSeccionDescripcion {
-  color: var(--pj-texto-cian);
-}
-
-.tituloSeccionContents {
-  color: var(--pj-texto-exito);
-}
-
-.tituloSeccionPasivos {
-  color: var(--pj-texto-magia);
-}
-
-.tituloSeccionHechizos {
-  color: var(--pj-texto-magia);
 }
 
 .gridContenedores {
@@ -447,19 +376,11 @@
   border-color: var(--pj-borde-acento);
 }
 
-.botonContenedor:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.botonContenedorActivo {
-  color: var(--pj-texto-primario);
-}
-
 .botonContenedor[data-caja="mochila"].botonContenedorActivo {
   background-color: var(--pj-acento-oro-fondo);
   border-color: var(--pj-borde-oro);
 }
+.valorMetricaOro,
 .botonContenedor[data-caja="mochila"].botonContenedorActivo .nombreContenedor {
   color: var(--pj-texto-oro);
 }
@@ -468,18 +389,10 @@
   background-color: var(--pj-acento-magia-fondo);
   border-color: var(--pj-borde-magia);
 }
-.botonContenedor[data-caja="bolsa_contencion"].botonContenedorActivo .nombreContenedor {
-  color: var(--pj-texto-magia);
-}
-
 .botonContenedor[data-caja="montura"].botonContenedorActivo {
   background-color: var(--pj-acento-cian-fondo);
   border-color: var(--pj-borde-cian);
 }
-.botonContenedor[data-caja="montura"].botonContenedorActivo .nombreContenedor {
-  color: var(--pj-texto-cian);
-}
-
 .botonContenedor[data-caja="almacen"].botonContenedorActivo {
   background-color: var(--pj-acento-primario-fondo);
   border-color: var(--pj-borde-acento);
@@ -499,27 +412,12 @@
   color: var(--pj-texto-acento);
 }
 
-.subtextoContenedorExento {
-  color: var(--pj-texto-exito);
-}
-
-.explicacionContenedor {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  padding: 0 4px;
-}
-
 /* Efectos Pasivos y Hechizos */
+.seccionContenedor,
 .seccionBloque {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.cabeceraContents {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 
 .listaItemsVertical {
@@ -540,6 +438,9 @@
   color: var(--pj-texto-primario);
 }
 
+.valorMetricaAzul,
+.tituloSeccionDescripcion,
+.botonContenedor[data-caja="montura"].botonContenedorActivo .nombreContenedor,
 .cantidadItemContenido {
   color: var(--pj-texto-cian);
 }
@@ -591,6 +492,7 @@
   transition: none;
 }
 
+.botonSintonizar:hover:not(:disabled),
 .botonLanzarHechizoModal:hover:not(:disabled) {
   background-color: var(--pj-acento-magia-fondo);
   color: var(--pj-texto-primario);
@@ -637,6 +539,7 @@
   white-space: pre-wrap;
 }
 
+.cabeceraContents,
 .cabeceraNotas {
   display: flex;
   justify-content: space-between;
@@ -752,6 +655,8 @@
 }
 
 /* Nuevas Secciones Avanzadas de Objetos */
+.tituloSeccionContents,
+.subtextoContenedorExento,
 .tituloSeccionVeneno {
   color: var(--pj-texto-exito);
 }
@@ -766,12 +671,6 @@
   gap: 6px;
 }
 
-.badgeVenenoTipo {
-  background-color: var(--pj-acento-exito-fondo);
-  color: var(--pj-texto-exito);
-  border: 1px solid var(--pj-borde-exito);
-}
-
 .cajaTextoVeneno {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-exito);
@@ -782,6 +681,10 @@
   border-left: 3px solid var(--pj-borde-exito);
 }
 
+.textoInteractivaActivo,
+.tituloSeccionPasivos,
+.tituloSeccionHechizos,
+.botonContenedor[data-caja="bolsa_contencion"].botonContenedorActivo .nombreContenedor,
 .tituloSeccionArtesania {
   color: var(--pj-texto-magia);
 }
@@ -808,15 +711,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-}
-
-.chipComponente {
-  font-size: var(--pj-fuente-badge);
-  background-color: var(--pj-acento-magia-fondo);
-  border: 1px solid var(--pj-borde-magia);
-  color: var(--pj-texto-primario);
-  padding: 2px 6px;
-  border-radius: 4px;
 }
 
 .chipHerramientaCraft {
@@ -868,11 +762,13 @@
   border-color: var(--pj-borde-oro);
 }
 
+.botonContenedor:disabled,
 .botonRecargarCargasModal:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
+.badgeArmaduraSigilo,
 .badgeMagicoBono {
   background-color: var(--pj-acento-peligro-fondo);
   color: var(--pj-texto-alerta);
@@ -886,17 +782,12 @@
   border: 1px solid var(--pj-borde-acento);
 }
 
+.badgeArmaAlcance,
 .badgeAmmunition {
   background-color: var(--pj-acento-cian-fondo);
   color: var(--pj-texto-cian);
   border: 1px solid var(--pj-borde-cian);
   cursor: help;
-}
-
-.badgeStorage {
-  background-color: var(--pj-acento-oro-fondo);
-  color: var(--pj-texto-oro);
-  border: 1px solid var(--pj-borde-oro);
 }
 
 .explicacionMaestria {
@@ -945,6 +836,7 @@
   line-height: 1.35;
 }
 
+.botonContenedorActivo,
 .valorArtesaniaTaller {
   color: var(--pj-texto-primario);
 }
@@ -988,6 +880,7 @@
   border: 1px solid var(--pj-borde-acento);
 }
 
+.badgeVenenoTipo,
 .badgeCapacidadContenedor {
   background-color: var(--pj-acento-exito-fondo);
   color: var(--pj-texto-exito);

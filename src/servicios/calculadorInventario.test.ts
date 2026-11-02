@@ -16,6 +16,26 @@ import {
 import type { ObjetoInventario, BolsaMonedas } from "@/tipos";
 
 describe("calculadorInventario", () => {
+  const crearObj = (datos: Partial<ObjetoInventario>): ObjetoInventario => ({
+    idInstancia: "i1",
+    idObjeto: "obj_item",
+    nombre: "Item",
+    categoria: "equipo-aventurero",
+    esConsumible: false,
+    subcategoria: "",
+    pesoLb: 5,
+    cantidad: 1,
+    equipable: false,
+    equipado: false,
+    sintonizado: false,
+    esMagico: false,
+    rareza: "Común",
+    sintonizacionRequerida: false,
+    notas: "",
+    contenedor: "mochila",
+    ...datos
+  });
+
   describe("calcularCapacidadCarga", () => {
     it("debe calcular FUE × 15 lb para criaturas Medianas", () => {
       expect(calcularCapacidadCarga(10)).toBe(150);
@@ -45,26 +65,6 @@ describe("calculadorInventario", () => {
   });
 
   describe("calcularPesoInventario y Contenedores", () => {
-    const crearObj = (datos: Partial<ObjetoInventario>): ObjetoInventario => ({
-      idInstancia: "i1",
-      idObjeto: "obj_item",
-      nombre: "Item",
-      categoria: "equipo-aventurero",
-      esConsumible: false,
-      subcategoria: "",
-      pesoLb: 5,
-      cantidad: 1,
-      equipable: false,
-      equipado: false,
-      sintonizado: false,
-      esMagico: false,
-      rareza: "Común",
-      sintonizacionRequerida: false,
-      notas: "",
-      contenedor: "mochila",
-      ...datos
-    });
-
     it("debe sumar el peso de los objetos en mochila y equipados", () => {
       const inventario = [
         crearObj({ pesoLb: 10, cantidad: 1, contenedor: "mochila" }),
@@ -191,24 +191,13 @@ describe("calculadorInventario", () => {
       ];
 
       const invInicial: ObjetoInventario[] = [
-        {
+        crearObj({
           idInstancia: "inst_paquete_1",
           idObjeto: "paquete_explorador",
           nombre: "Paquete de Explorador",
           categoria: "paquetes-equipo",
-          esConsumible: false,
-          subcategoria: "",
-          cantidad: 1,
-          pesoLb: 15,
-          equipado: false,
-          sintonizado: false,
-          notas: "",
-          contenedor: "mochila",
-          esMagico: false,
-          rareza: "Común",
-          equipable: false,
-          sintonizacionRequerida: false
-        }
+          pesoLb: 15
+        })
       ];
 
       const invFinal = desempaquetarPaqueteInventario(invInicial, "inst_paquete_1", db as unknown as import("@/tipos").ObjetoJuego[]);
@@ -251,7 +240,7 @@ describe("calculadorInventario", () => {
       ];
 
       const invInicial: ObjetoInventario[] = [
-        {
+        crearObj({
           idInstancia: "inst_flechas_previa",
           idObjeto: "flechas",
           nombre: "Flechas",
@@ -259,34 +248,15 @@ describe("calculadorInventario", () => {
           esConsumible: true,
           subcategoria: "Munición",
           cantidad: 5,
-          pesoLb: 1,
-          equipado: false,
-          sintonizado: false,
-          notas: "",
-          contenedor: "mochila",
-          esMagico: false,
-          rareza: "Común",
-          equipable: false,
-          sintonizacionRequerida: false
-        },
-        {
+          pesoLb: 1
+        }),
+        crearObj({
           idInstancia: "inst_carcaj_1",
           idObjeto: "carcaj_flechas",
           nombre: "Carcaj con Flechas",
           categoria: "paquetes-equipo",
-          esConsumible: false,
-          subcategoria: "",
-          cantidad: 1,
-          pesoLb: 2,
-          equipado: false,
-          sintonizado: false,
-          notas: "",
-          contenedor: "mochila",
-          esMagico: false,
-          rareza: "Común",
-          equipable: false,
-          sintonizacionRequerida: false
-        }
+          pesoLb: 2
+        })
       ];
 
       const invFinal = desempaquetarPaqueteInventario(invInicial, "inst_carcaj_1", db as unknown as import("@/tipos").ObjetoJuego[]);

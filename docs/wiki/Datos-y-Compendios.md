@@ -7,7 +7,7 @@ Los datos incluidos en el repositorio viven en `src/utiles/compendios/`:
 - `Equipo es.json`: equipo y objetos en español.
 - `Mounstros.2024-es.json`: monstruos de la revisión 2024.
 - `all.json`: compendio de hechizos.
-- `venenos.json`: catálogo de venenos.
+- Los venenos están incluidos en `Equipo es.json`.
 - `tabla criticos.md`: tabla textual de críticos y pifias.
 
 `src/utiles/datosIniciales.ts` importa y transforma los datos iniciales en `MONSTRUOS_INICIALES`, `HECHIZOS_INICIALES` y `OBJETOS_INICIALES`.

@@ -32,7 +32,6 @@ export const VistaInventarioJugador: React.FC = () => {
     reordenarInventario,
     desempaquetarPaquete,
     establecerMonedas,
-    modificarMoneda,
     aplicarCuracionPersonaje
   } = usarAccionesPersonajes();
 
@@ -124,7 +123,6 @@ export const VistaInventarioJugador: React.FC = () => {
           agregarNotificacion("¡Paquete desempaquetado con éxito en tu mochila!", "exito");
         }}
         alEstablecerMonedas={(monedas) => establecerMonedas(personajeActivo.id, monedas)}
-        alModificarMoneda={(tipo, delta) => modificarMoneda(personajeActivo.id, tipo, delta)}
         alUsarObjeto={manejarUsarConsumible}
       />
     </div>

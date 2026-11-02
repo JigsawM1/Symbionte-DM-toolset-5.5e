@@ -74,13 +74,7 @@ export const SeccionContenedoresEspeciales: React.FC<SeccionContenedoresEspecial
 
               {abierta && (
                 <div className={estilos.listaItemsInventario}>
-                  {itemsContenedor.length === 0 ? (
-                    <div className={estilos.mensajeVacioInventario}>
-                      No hay objetos en este compartimento. Arrastra objetos aquí para transferirlos.
-                    </div>
-                  ) : (
-                    itemsContenedor.map(renderizarTarjeta)
-                  )}
+                  {itemsContenedor.map(renderizarTarjeta)}
                 </div>
               )}
             </div>

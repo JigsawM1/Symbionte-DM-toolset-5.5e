@@ -37,12 +37,10 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
   alReordenarInventario,
   alDesempaquetarPaquete,
   alEstablecerMonedas,
-  alModificarMoneda: _alModificarMoneda,
   alUsarObjeto
 }) => {
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const [modalAgregarAbierto, setModalAgregarAbierto] = useState(false);
-  const [tabModalAgregar, setTabModalAgregar] = useState<"compendio" | "otrasPosesiones">("compendio");
   const [objetoInspeccionadoId, setObjetoInspeccionadoId] = useState<string | null>(null);
 
   // Estadísticas mágicas del personaje para herencia de CD y Ataque en objetos mágicos
@@ -129,7 +127,6 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
       alEliminar={() => alQuitarObjeto(obj.idInstancia)}
       alUsar={alUsarObjeto}
       alDesempaquetar={() => alDesempaquetarPaquete?.(obj.idInstancia)}
-      alCambiarContenedor={(c) => alCambiarContenedor?.(obj.idInstancia, c)}
       alSoltarReordenar={manejarReordenarItems}
       alIniciarArrastre={() => setArrastrandoItem(true)}
       alFinalizarArrastre={() => {
@@ -184,7 +181,6 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
         alExpandirTodas={expandirTodasSecciones}
         alColapsarTodas={colapsarTodasSecciones}
         alAbrirModalAgregar={() => {
-          setTabModalAgregar("compendio");
           setModalAgregarAbierto(true);
         }}
         seccionesAbiertas={seccionesAbiertas}
@@ -222,7 +218,6 @@ export const PanelInventarioPersonaje: React.FC<PanelInventarioPersonajeProps> =
       {modalAgregarAbierto && (
         <ModalAgregarObjeto
           key={personaje.id}
-          tabInicial={tabModalAgregar}
           baseDatosObjetos={baseDatosObjetos}
           alAgregarObjeto={alAgregarObjeto}
           alCerrar={() => setModalAgregarAbierto(false)}

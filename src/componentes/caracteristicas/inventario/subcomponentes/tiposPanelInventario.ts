@@ -3,7 +3,6 @@ import type {
   ObjetoJuego,
   ObjetoInventario,
   BolsaMonedas,
-  TipoMonedaClave,
   TipoContenedor
 } from "@/tipos";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
@@ -24,6 +23,5 @@ export interface PanelInventarioPersonajeProps {
   alReordenarInventario?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
   alDesempaquetarPaquete?: (idInstancia: string) => void;
   alEstablecerMonedas: (monedas: Partial<BolsaMonedas>) => void;
-  alModificarMoneda: (tipo: TipoMonedaClave, delta: number) => void;
   alUsarObjeto?: (objeto: ObjetoInventario) => void;
 }

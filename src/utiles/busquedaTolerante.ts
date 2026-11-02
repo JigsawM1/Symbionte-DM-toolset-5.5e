@@ -210,8 +210,11 @@ export function calcularRelevanciaBusqueda(
   secundarios?: (string | undefined | null)[]
 ): number {
   if (!consulta || !consulta.trim()) return 0;
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return 0;
+
+  // Optimización Bolt: reutilizar tokens cacheados para evitar split/regex repetitivo en cada invocación
+  const tokens = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+  if (numTokens === 0) return 0;
 
   const consultaNorm = normalizarParaBusqueda(consulta);
   const tituloNorm = normalizarParaBusqueda(titulo || "");
@@ -221,17 +224,16 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
+    // Optimización Bolt: normalizarParaBusqueda ya reduce diacríticos y 'ñ' a 'n' vía NFD,
+    // por lo que comparar directamente los tokens evita asignaciones innecesarias de cadenas intermedias.
     let coincidencias = 0;
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
-      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+    for (let i = 0; i < numTokens; i++) {
+      if (tituloNorm.includes(tokens[i])) {
         coincidencias++;
       }
     }
 
-    if (coincidencias === tokens.length) return 400;
+    if (coincidencias === numTokens) return 400;
     if (coincidencias > 0) return 300;
   }
 

@@ -211,5 +211,15 @@ describe("busquedaTolerante - Búsqueda insensible a tildes, mayúsculas y orden
 
       expect(ordenados.map((i) => i.nombre)).toEqual(["Alfa", "Beta", "Gamma"]);
     });
+
+    it("evalúa relevancia tolerante con diacríticos, 'ñ' y orden sin distorsión de puntajes", () => {
+      const relEnye = calcularRelevanciaBusqueda("Leñador Experto", "lenador");
+      const relEnyeExacta = calcularRelevanciaBusqueda("Leñador", "lenador");
+      const relMultitoken = calcularRelevanciaBusqueda("Poción de Curación Mayor", "curacion pocion");
+
+      expect(relEnyeExacta).toBe(1000);
+      expect(relEnye).toBe(800);
+      expect(relMultitoken).toBe(400);
+    });
   });
 });

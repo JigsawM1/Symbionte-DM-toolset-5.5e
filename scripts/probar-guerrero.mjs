@@ -37,7 +37,7 @@ window.equipar=()=>{
   window.estado().actualizarPersonaje(window.pj().id,{inventario:[EsquemaObjetoInventario.parse({idInstancia:'espada-prueba',idObjeto:arma.id,nombre:arma.nombre,categoria:'armas',equipado:true})]});
 };
 window.sembrar(9);
-createRoot(document.getElementById('root')).render(React.createElement(App));window.listo=true;
+createRoot(document.getElementById('root')).render(React.createElement(App));
 </script></body></html>`;
 const servidor = await createServer({ server: { host: "127.0.0.1", port: 0 }, logLevel: "error", plugins: [{
   name: "prueba-guerrero", configureServer(s) { s.middlewares.use(async (req, res, next) => {

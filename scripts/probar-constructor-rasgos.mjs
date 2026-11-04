@@ -25,7 +25,6 @@ const inicial = { id:'rasgo_hb_prueba', nombre:'Don activo', descripcion:'', ori
   recuperacion:'descanso_largo', personalizado:true, activo:true, esActivable:true, notas:'',
   requiereSinMovimiento:true, dadosGuardados:[18] };
 let clave = 0;
-globalThis.guardados = [];
 globalThis.montar = (editar = true) => {
   globalThis.guardados = [];
   root.render(React.createElement(ConstructorRasgoDote, { key:++clave, personaje,

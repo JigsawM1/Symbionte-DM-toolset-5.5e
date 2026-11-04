@@ -212,17 +212,11 @@ describe("Auditoría Fase 3: Reglas Canónicas D&D 5.5, Combate, Magia y Descans
         sintonizado: false,
         notas: ""
       } as unknown as ObjetoInventario;
-      const objB = {
+      const objB: ObjetoInventario = {
+        ...objA,
         idInstancia: "i-2",
-        idObjeto: "pocion-curacion",
-        nombre: "Poción de curación",
-        cantidad: 3,
-        categoria: "pociones",
-        pesoLb: 0.5,
-        equipado: false,
-        sintonizado: false,
-        notas: ""
-      } as unknown as ObjetoInventario;
+        cantidad: 3
+      };
       expect(sonObjetosApilables(objA, objB)).toBe(true);
 
       const objDistinto = {

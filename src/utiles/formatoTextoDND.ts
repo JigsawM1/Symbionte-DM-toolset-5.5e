@@ -8,8 +8,6 @@
  */
 export function limpiarYTruncarTextoMarkdown(texto: string = "", limite = 115): string {
   const textoLimpio = texto
-    .replace(/\*\*\*/g, "")
-    .replace(/\*\*/g, "")
     .replace(/\*/g, "")
     .trim();
 

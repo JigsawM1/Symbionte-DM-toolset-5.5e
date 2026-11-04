@@ -12,11 +12,7 @@ export const NotasDM: React.FC = () => {
   const [textoLocal, setTextoLocal] = useState(notasDM);
   const estadoPersistencia = usarAlmacenDM(s => s.estadoGuardado);
   const estadoGuardado = estadoPersistencia === "guardado" ? "guardado" : estadoPersistencia === "error" ? "modificado" : "guardando";
-  const [confirmarAccion, setConfirmarAccion] = useState<{
-    titulo: string;
-    mensaje: string;
-    onConfirmar: () => void;
-  } | null>(null);
+  const [confirmarLimpieza, setConfirmarLimpieza] = useState(false);
   
   // Sincronizar estado local si cambia externamente (ej: al cargar datos de persistencia)
   useEffect(() => {
@@ -33,17 +29,6 @@ export const NotasDM: React.FC = () => {
     guardarNotasDM(textoLocal);
     void forzarFlushPersistencia(usarAlmacenDM.getState()).then(exito => {
       usarAlmacenDM.setState({ estadoGuardado: exito ? 'guardado' : 'error' });
-    });
-  };
-
-  const alLimpiarNotas = () => {
-    setConfirmarAccion({
-      titulo: "Limpiar Notas",
-      mensaje: "¿Estás seguro de que deseas borrar todas tus notas? Esta acción no se puede deshacer.",
-      onConfirmar: () => {
-        setTextoLocal("");
-        guardarNotasDM("");
-      }
     });
   };
 
@@ -88,7 +73,7 @@ export const NotasDM: React.FC = () => {
           </button>
           
           <button
-            onClick={alLimpiarNotas}
+            onClick={() => setConfirmarLimpieza(true)}
             className={estilos.botonLimpiar}
             title="Limpiar Bloc de Notas"
           >
@@ -120,16 +105,17 @@ export const NotasDM: React.FC = () => {
       </div>
       {/* Modal de confirmación personalizado de alta calidad */}
       <ConfirmDialog
-        abierto={confirmarAccion !== null}
-        titulo={confirmarAccion?.titulo || ""}
-        mensaje={confirmarAccion?.mensaje || ""}
+        abierto={confirmarLimpieza}
+        titulo="Limpiar Notas"
+        mensaje="¿Estás seguro de que deseas borrar todas tus notas? Esta acción no se puede deshacer."
         onConfirmar={() => {
-          if (confirmarAccion) {
-            confirmarAccion.onConfirmar();
-            setConfirmarAccion(null);
+          if (confirmarLimpieza) {
+            setTextoLocal("");
+            guardarNotasDM("");
+            setConfirmarLimpieza(false);
           }
         }}
-        onCancelar={() => setConfirmarAccion(null)}
+        onCancelar={() => setConfirmarLimpieza(false)}
       />
     </div>
   );

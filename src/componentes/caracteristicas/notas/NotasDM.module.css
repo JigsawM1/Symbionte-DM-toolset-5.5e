@@ -68,18 +68,23 @@
   display: inline-block;
 }
 
-.boton {
+.boton,
+.botonGuardarDestacado,
+.botonLimpiar {
   height: 22px;
   padding: 0 6px;
   font-size: var(--dm-fuente-minima, 10px);
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
   cursor: pointer;
   border-radius: var(--dm-radio-control, 4px);
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+.boton {
+  background-color: var(--color-fondo-tarjeta);
+  border: 1px solid var(--color-borde-brutal);
+  color: var(--color-texto-secundario);
 }
 
 .boton:hover {
@@ -88,32 +93,16 @@
 }
 
 .botonGuardarDestacado {
-  height: 22px;
-  padding: 0 6px;
-  font-size: var(--dm-fuente-minima, 10px);
   background-color: var(--color-fondo-tarjeta);
   border: 1px solid var(--color-borde-cian);
   color: var(--color-borde-cian);
-  cursor: pointer;
-  border-radius: var(--dm-radio-control, 4px);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   box-shadow: 0 0 6px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
 }
 
 .botonLimpiar {
-  height: 22px;
-  padding: 0 6px;
-  font-size: var(--dm-fuente-minima, 10px);
   background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
   border: 1px solid var(--color-peligro);
   color: var(--dm-texto-peligro, var(--color-peligro));
-  cursor: pointer;
-  border-radius: var(--dm-radio-control, 4px);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .botonLimpiar:hover {

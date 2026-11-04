@@ -52,25 +52,6 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
-.contenedorBotonesDerecha {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.botonDesplegableEstatico {
-  position: static;
-  transform: none;
-}
-
-.botonDesplegableEstatico.botonDesplegableAbierto {
-  transform: rotate(180deg);
-}
-
 .dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -233,7 +214,8 @@
   border-radius: var(--pj-radio-control);
 }
 
-:global([data-tema="jugador"]) .nombreOpcion {
+:global([data-tema="jugador"]) .nombreOpcion,
+:global([data-tema="jugador"]) .opcion {
   font-size: var(--pj-fuente-boton);
   color: var(--pj-texto-primario);
 }
@@ -241,11 +223,6 @@
 :global([data-tema="jugador"]) .subtituloOpcion {
   font-size: var(--pj-fuente-boton);
   color: var(--pj-texto-terciario);
-}
-
-:global([data-tema="jugador"]) .opcion {
-  font-size: var(--pj-fuente-boton);
-  color: var(--pj-texto-primario);
 }
 
 :global([data-tema="jugador"]) .opcion:hover {

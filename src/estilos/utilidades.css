@@ -21,30 +21,13 @@
   flex-direction: column;
 }
 
-.u-flex-fila {
-  display: flex;
-  flex-direction: row;
-}
-
 .u-flex-wrap {
   flex-wrap: wrap;
-}
-
-.u-flex-nowrap {
-  flex-wrap: nowrap;
 }
 
 .u-flex-1 {
   flex: 1 1 0%;
   min-width: 0;
-}
-
-.u-flex-auto {
-  flex: 1 1 auto;
-}
-
-.u-flex-none {
-  flex: none;
 }
 
 .u-flex-shrink-0 {
@@ -57,43 +40,9 @@
   align-items: center;
 }
 
-.u-alinear-inicio {
-  align-items: flex-start;
-}
-
-.u-alinear-fin {
-  align-items: flex-end;
-}
-
-.u-alinear-estirar {
-  align-items: stretch;
-}
-
-.u-justificar-centro {
-  justify-content: center;
-}
-
 .u-justificar-entre,
 .u-justify-between {
   justify-content: space-between;
-}
-
-.u-justificar-inicio {
-  justify-content: flex-start;
-}
-
-.u-justificar-fin {
-  justify-content: flex-end;
-}
-
-.u-justificar-alrededor {
-  justify-content: space-around;
-}
-
-.u-centrado {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* === ESPACIADO / GAPS === */
@@ -114,56 +63,12 @@
   gap: 8px;
 }
 
-.u-gap-xl {
-  gap: 12px;
-}
-
-.u-gap-2xl {
-  gap: 16px;
-}
-
 /* === DIMENSIONAMIENTO === */
 .u-w-full {
   width: 100%;
 }
 
-.u-w-auto {
-  width: auto;
-}
-
-.u-h-full {
-  height: 100%;
-}
-
-.u-min-w-0 {
-  min-width: 0;
-}
-
 /* === TIPOGRAFÍA Y ALINEACIÓN DE TEXTO === */
-.u-texto-centro {
-  text-align: center;
-}
-
-.u-texto-derecha {
-  text-align: right;
-}
-
-.u-texto-izquierda {
-  text-align: left;
-}
-
-.u-texto-negrita {
-  font-weight: 700;
-}
-
-.u-texto-seminegrita {
-  font-weight: 600;
-}
-
-.u-texto-normal {
-  font-weight: 400;
-}
-
 /* === COLORES SEMÁNTICOS DE TEXTO === */
 .u-texto-cian {
   color: var(--color-borde-cian);
@@ -185,16 +90,8 @@
   color: var(--dm-texto-exito, var(--color-exito));
 }
 
-.u-texto-apagado {
-  color: var(--color-texto-apagado);
-}
-
 .u-texto-secundario {
   color: var(--color-texto-secundario);
-}
-
-.u-texto-principal {
-  color: var(--color-texto-principal);
 }
 
 .u-texto-acento {
@@ -206,18 +103,6 @@
   position: relative;
 }
 
-.u-cursor-pointer {
-  cursor: pointer;
-}
-
-.u-cursor-not-allowed {
-  cursor: not-allowed;
-}
-
-.u-overflow-y-auto {
-  overflow-y: auto;
-}
-
 /* Superficie opaca del elemento que desplaza una lista en TaleSpire/CEF.
    Validada en CEF 137 sin will-change. Para otro fondo opaco,
    definir --fondo-scroll-cef en el panel. */
@@ -227,18 +112,6 @@
 
 :where([data-tema="jugador"]) .u-scroll-cef {
   background-color: var(--fondo-scroll-cef, var(--pj-fondo-base));
-}
-
-.u-overflow-hidden {
-  overflow: hidden;
-}
-
-.u-sin-borde {
-  border: none;
-}
-
-.u-sin-fondo {
-  background: transparent;
 }
 
 

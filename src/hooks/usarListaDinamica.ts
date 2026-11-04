@@ -16,10 +16,6 @@ export function usarListaDinamica<T extends ItemConNombre>(
     setItemForm((prev) => ({ ...prev, [campo]: valor }));
   }, []);
 
-  const establecerItemForm = useCallback((valores: T) => {
-    setItemForm(valores);
-  }, []);
-
   const limpiarItemForm = useCallback(() => {
     setItemForm(valoresIniciales);
     setEdicionIdx(null);
@@ -51,11 +47,6 @@ export function usarListaDinamica<T extends ItemConNombre>(
     setEdicionIdx(idx);
   }, [listaActual]);
 
-  const cancelarEdicion = useCallback(() => {
-    setItemForm(valoresIniciales);
-    setEdicionIdx(null);
-  }, [valoresIniciales]);
-
   const eliminarItem = useCallback((idx: number) => {
     const nuevaLista = listaActual.filter((_, i) => i !== idx);
     actualizarListaPadre(nuevaLista);
@@ -79,11 +70,10 @@ export function usarListaDinamica<T extends ItemConNombre>(
     edicionIdx,
     setEdicionIdx,
     actualizarCampoItem,
-    establecerItemForm,
     limpiarItemForm,
     agregarItem,
     iniciarEdicion,
-    cancelarEdicion,
+    cancelarEdicion: limpiarItemForm,
     eliminarItem
   };
 }

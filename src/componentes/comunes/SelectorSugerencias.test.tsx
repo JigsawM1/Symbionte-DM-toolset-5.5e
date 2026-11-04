@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SelectorSugerencias } from "./SelectorSugerencias";
 
@@ -9,14 +9,6 @@ describe("SelectorSugerencias - Debounce y Filtrado D&D 5.5e", () => {
     { valor: "espada-larga", etiqueta: "Espada Larga", grupo: "Armas" },
     { valor: "pergamino-fuego", etiqueta: "Pergamino de Bola de Fuego", grupo: "Pergaminos" }
   ];
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
 
   it("renderiza el componente con placeholder y sin errores", () => {
     const alCambiar = vi.fn();
@@ -44,19 +36,6 @@ describe("SelectorSugerencias - Debounce y Filtrado D&D 5.5e", () => {
     );
 
     expect(html).toContain('value="Espada Larga"');
-  });
-
-  it("acepta configuración personalizada de tiempoEsperaDebounce", () => {
-    const alCambiar = vi.fn();
-    const elemento = (
-      <SelectorSugerencias
-        valor="Curación"
-        alCambiar={alCambiar}
-        opciones={opcionesEjemplo}
-        tiempoEsperaDebounce={300}
-      />
-    );
-    expect(elemento.props.tiempoEsperaDebounce).toBe(300);
   });
 
   it("acepta callback alSeleccionar y opciones con clave", () => {

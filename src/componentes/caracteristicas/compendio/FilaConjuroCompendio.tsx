@@ -25,7 +25,6 @@ interface FilaConjuroCompendioProps {
   estaPreparado: boolean;
   esDeSubclase?: boolean;
   origenBadge?: OrigenConjuroBadge | null;
-  requierePreparacion: boolean;
   esModeloConocidos?: boolean;
   mostrarEstrella?: boolean;
   alAlternarEnLista: () => void;
@@ -49,7 +48,6 @@ function obtenerIconoEscuela(escuela?: string) {
 
 function formatearNivel(nivel: number): string {
   if (nivel === 0) return "Truco";
-  if (nivel === 1) return "Nivel 1";
   return `Nivel ${nivel}`;
 }
 
@@ -59,7 +57,6 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   estaPreparado,
   esDeSubclase = false,
   origenBadge,
-  requierePreparacion: _requierePreparacion,
   esModeloConocidos = false,
   mostrarEstrella = true,
   alAlternarEnLista,

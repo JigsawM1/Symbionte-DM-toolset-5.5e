@@ -12,23 +12,17 @@ const LIMITE_CACHE_TOKENIZACION = 1000;
 
 /**
  * Normaliza una cadena de texto eliminando tildes, diéresis, mayúsculas y caracteres diacríticos.
- * También normaliza opcionalmente 'ñ' a 'n' para usuarios sin teclado en español.
  */
-export function normalizarParaBusqueda(texto: string, normalizarEnye: boolean = false): string {
+export function normalizarParaBusqueda(texto: string): string {
   if (!texto) return "";
-  const clave = normalizarEnye ? `${texto}__enye` : texto;
-  const enCache = cacheNormalizacion.get(clave);
+  const enCache = cacheNormalizacion.get(texto);
   if (enCache !== undefined) return enCache;
 
-  let resultado = texto
+  const resultado = texto
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .trim();
-
-  if (normalizarEnye) {
-    resultado = resultado.replace(/ñ/g, "n");
-  }
 
   if (cacheNormalizacion.size >= LIMITE_CACHE_NORMALIZACION) {
     let eliminados = 0;
@@ -38,7 +32,7 @@ export function normalizarParaBusqueda(texto: string, normalizarEnye: boolean = 
       if (eliminados >= 1000) break;
     }
   }
-  cacheNormalizacion.set(clave, resultado);
+  cacheNormalizacion.set(texto, resultado);
   return resultado;
 }
 
@@ -221,12 +215,10 @@ export function calcularRelevanciaBusqueda(
     if (tituloNorm.startsWith(consultaNorm)) return 800;
     if (tituloNorm.includes(consultaNorm)) return 600;
 
-    const tituloNormSinEnye = tituloNorm.includes("ñ") ? tituloNorm.replace(/ñ/g, "n") : tituloNorm;
     let coincidencias = 0;
     for (let i = 0; i < tokens.length; i++) {
       const t = tokens[i];
-      const tSinEnye = t.includes("ñ") ? t.replace(/ñ/g, "n") : t;
-      if (tituloNorm.includes(t) || tituloNormSinEnye.includes(tSinEnye)) {
+      if (tituloNorm.includes(t)) {
         coincidencias++;
       }
     }

@@ -33,8 +33,7 @@ export const BarraControl: React.FC = () => {
 
   // Auto Roll para TODOS los monstruos de la iniciativa que tengan vida actual > 0
   const manejarAutoRollIniciativaMonstruos = () => {
-    const monstruos = colaIniciativa.filter((c) => c.esMonstruo);
-    if (monstruos.length === 0) return;
+    if (!colaIniciativa.some((c) => c.esMonstruo)) return;
 
     autoLanzarIniciativaMonstruos();
     

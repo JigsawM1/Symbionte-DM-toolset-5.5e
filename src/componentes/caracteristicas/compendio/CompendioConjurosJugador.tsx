@@ -236,28 +236,15 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
       } else {
         agregarTrucoConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
       }
-    } else {
-      if (esModeloConocidos) {
-        // En modelo de conocidos: el control marca o desmarca directamente como conocido
-        if (estaEnLista(hechizo)) {
-          quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-        } else {
-          agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-        }
-      } else if (esPreparadorSinGrimorio) {
-        // En preparadores divinos sin libro (Clérigo/Druida/Paladín): prepara o desprepara para el día
+    } else if (!esModeloConocidos && esPreparadorSinGrimorio) {
+      alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
+    } else if (estaEnLista(hechizo)) {
+      if (!esModeloConocidos && estaPreparado(hechizo)) {
         alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-      } else {
-        // Mago / Grimorio (con libro de conjuros): agrega o quita del libro
-        if (estaEnLista(hechizo)) {
-          if (estaPreparado(hechizo)) {
-            alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-          }
-          quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-        } else {
-          agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
-        }
       }
+      quitarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
+    } else {
+      agregarConjuroConocido(personajeActivo.id, hechizo.id, claseEleccion || undefined);
     }
   };
 
@@ -454,7 +441,6 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
                 estaPreparado={preparado}
                 esDeSubclase={esSubclase}
                 origenBadge={origenBadge}
-                requierePreparacion={requierePreparacion}
                 esModeloConocidos={esModeloConocidos}
                 mostrarEstrella={mostrarEstrella}
                 alAlternarEnLista={() => manejarAlternarEnLista(hechizo)}

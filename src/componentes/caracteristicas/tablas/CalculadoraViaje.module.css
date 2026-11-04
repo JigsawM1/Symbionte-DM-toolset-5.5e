@@ -42,21 +42,6 @@
   color: var(--color-texto-secundario);
 }
 
-.selectForm {
-  font-size: var(--dm-fuente-minima, 12px);
-  height: 32px;
-  padding: 4px 6px;
-  width: 200px;
-  background-color: var(--color-fondo-profundo);
-  color: var(--color-texto-principal);
-  border: 1px solid var(--color-borde-brutal);
-}
-
-.selectForm:focus {
-  outline: none;
-  border-color: var(--dm-borde-cian, var(--color-borde-cian));
-}
-
 .inputForm {
   font-size: var(--dm-fuente-minima, 12px);
   height: 32px;
@@ -96,10 +81,6 @@
   color: var(--dm-texto-cian, var(--color-borde-cian));
   font-family: var(--fuente-codigo);
   font-weight: bold;
-}
-
-.resultadoCalculoValorAdvertencia {
-  color: var(--dm-texto-advertencia, var(--color-advertencia)) !important;
 }
 
 .resultadoCalculoEfecto {

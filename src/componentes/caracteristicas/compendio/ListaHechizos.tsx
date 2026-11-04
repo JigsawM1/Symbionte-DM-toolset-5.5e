@@ -11,15 +11,7 @@ const CONJUROS_POR_PAGINA_MASTER = 50;
 const OPCIONES_NIVEL_FILTRO = [
   { valor: "todos", etiqueta: "Todos los Niveles" },
   { valor: "0", etiqueta: "Nivel 0 (Truco)" },
-  { valor: "1", etiqueta: "Nivel 1" },
-  { valor: "2", etiqueta: "Nivel 2" },
-  { valor: "3", etiqueta: "Nivel 3" },
-  { valor: "4", etiqueta: "Nivel 4" },
-  { valor: "5", etiqueta: "Nivel 5" },
-  { valor: "6", etiqueta: "Nivel 6" },
-  { valor: "7", etiqueta: "Nivel 7" },
-  { valor: "8", etiqueta: "Nivel 8" },
-  { valor: "9", etiqueta: "Nivel 9" }
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => ({ valor: String(n), etiqueta: `Nivel ${n}` }))
 ];
 
 export const ListaHechizos: React.FC = () => {

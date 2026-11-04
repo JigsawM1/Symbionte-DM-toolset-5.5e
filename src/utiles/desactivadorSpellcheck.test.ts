@@ -40,12 +40,6 @@ describe("desactivadorSpellcheck - Prevención global de corrector nativo", () =
         setAttribute(nombre: string, valor: string): void {
           this.atributos[nombre] = valor;
         }
-        getAttribute(nombre: string): string | undefined {
-          return this.atributos[nombre];
-        }
-        getAttributeNames(): string[] {
-          return Object.keys(this.atributos);
-        }
       }
       class MockHTMLInputElement extends MockHTMLElement {
         spellcheck = true;

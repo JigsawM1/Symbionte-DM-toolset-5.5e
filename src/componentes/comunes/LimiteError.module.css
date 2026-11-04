@@ -190,7 +190,8 @@
   border: 2px solid var(--pj-borde-peligro);
 }
 
-:global([data-tema="jugador"]) .icono {
+:global([data-tema="jugador"]) .icono,
+:global([data-tema="jugador"]) .iconoModular {
   color: var(--pj-texto-alerta);
 }
 
@@ -199,7 +200,8 @@
   color: var(--pj-texto-alerta);
 }
 
-:global([data-tema="jugador"]) .descripcion {
+:global([data-tema="jugador"]) .descripcion,
+:global([data-tema="jugador"]) .advertencia {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-terciario);
 }
@@ -233,20 +235,11 @@
   background-color: rgba(var(--pj-rgb-peligro), 0.2);
 }
 
-:global([data-tema="jugador"]) .advertencia {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-terciario);
-}
-
 :global([data-tema="jugador"]) .contenedorModular {
   background-color: rgba(var(--pj-rgb-peligro), 0.08);
   border: 1px solid rgba(var(--pj-rgb-peligro), 0.3);
   border-radius: var(--pj-radio-panel);
   color: var(--pj-texto-acento);
-}
-
-:global([data-tema="jugador"]) .iconoModular {
-  color: var(--pj-texto-alerta);
 }
 
 :global([data-tema="jugador"]) .tituloModular {

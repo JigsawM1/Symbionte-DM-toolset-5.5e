@@ -33,16 +33,10 @@ export function generarIdSlug(prefijo: string, nombre: string): string {
   const prefijoGuion = `${prefijo}-`.toLowerCase();
 
   // Limpieza de prefijos preexistentes para garantizar idempotencia
-  let removiendo = true;
-  while (removiendo) {
+  while (true) {
     const lower = entrada.toLowerCase();
-    if (lower.startsWith(prefijoBajo)) {
-      entrada = entrada.substring(prefijoBajo.length).trim();
-    } else if (lower.startsWith(prefijoGuion)) {
-      entrada = entrada.substring(prefijoGuion.length).trim();
-    } else {
-      removiendo = false;
-    }
+    if (!lower.startsWith(prefijoBajo) && !lower.startsWith(prefijoGuion)) break;
+    entrada = entrada.substring(prefijoBajo.length).trim();
   }
 
   const slug = entrada

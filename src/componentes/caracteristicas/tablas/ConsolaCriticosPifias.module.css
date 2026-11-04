@@ -289,10 +289,7 @@
     overflow-y: auto;
     padding-bottom: 48px;
   }
-  .consolaTiradorCard {
-    flex-shrink: 0;
-    overflow: visible;
-  }
+  .consolaTiradorCard,
   .diccionarioConsultadorCard {
     flex-shrink: 0;
     overflow: visible;

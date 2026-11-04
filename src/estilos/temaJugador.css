@@ -269,12 +269,6 @@
   color: var(--pj-texto-magia) !important;
 }
 
-[data-tema="jugador"] .chip-condicion-permanente {
-  background-color: var(--pj-fondo-tarjeta-elevada) !important;
-  border-color: var(--pj-borde-medio) !important;
-  color: var(--pj-texto-secundario) !important;
-}
-
 [data-tema="jugador"] .chip-condicion-badge-expiracion {
   font-size: var(--pj-fuente-micro);
 }
@@ -292,12 +286,3 @@
    Eliminación estricta de transiciones y animaciones
    para evitar caídas de fotogramas y repaints.
    ========================================== */
-*,
-*::before,
-*::after {
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
-  animation-duration: 0s !important;
-  animation-delay: 0s !important;
-}
-

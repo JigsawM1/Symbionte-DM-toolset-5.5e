@@ -48,7 +48,12 @@ interface TarjetaConjuroCompactaProps {
   alLanzarGratis?: () => Promise<void>;
 }
 
-export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
+/**
+ * Componente de tarjeta compacta de conjuro/truco en la hoja de personaje y combat tracker.
+ * Optimizado con React.memo para evitar re-renderizados innecesarios de decenas de instancias
+ * al actualizar otros estados del personaje (vitalidad, iniciativa, movimiento, dados).
+ */
+export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = React.memo(({
   hechizo,
   nombrePersonaje,
   nivelPersonaje = 1,
@@ -337,4 +342,4 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = ({
       </div>
     </div>
   );
-};
+});

@@ -24,7 +24,6 @@ export interface CajaMovilizacionRapida {
   id: string;
   titulo: string;
   subtitulo: string;
-  color: string;
   icono: ReactNode;
 }
 

@@ -28,8 +28,7 @@
   flex-shrink: 0;
 }
 
-.concentracionTextos,
-.infoResultadoConjuro {
+.concentracionTextos {
   display: flex;
   flex-direction: column;
 }
@@ -266,6 +265,11 @@
 .botonLimpiarBusqueda {
   display: flex;
   align-items: center;
+  background: none;
+  border: none;
+  color: var(--pj-texto-acento);
+  cursor: pointer;
+  padding: 0;
 }
 
 .botonLimpiarBusqueda:hover {
@@ -410,7 +414,6 @@
 }
 
 .tituloNivelFila,
-.tituloBuscadorFila,
 .tituloArcanoFila,
 .accionesArcanoFila,
 .tituloPuntosFila,
@@ -628,150 +631,15 @@
   padding: 1px 5px;
 }
 
-
-/* BuscadorConjurosPersonaje */
-.contenedorBuscadorConjuros {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-panel);
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.cabeceraBuscadorConjuros {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-
-.tituloBuscadorTexto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--pj-texto-primario);
-}
-
-.botonCerrarBuscador {
-  background: none;
-  border: none;
-  color: var(--pj-texto-acento);
-  cursor: pointer;
-  padding: 2px;
-}
-
-.filaControlesBuscador {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.cajaInputBuscador {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  padding: 4px 8px;
-  flex: 1 1 180px;
-}
-
-.inputTextoBuscador {
-  background: none;
-  border: none;
-  outline: none;
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-label);
-  width: 100%;
-}
-
-.botonLimpiarBusqueda {
-  background: none;
-  border: none;
-  color: var(--pj-texto-acento);
-  cursor: pointer;
-  padding: 0;
-}
-
-.filtroNivelAncho {
-  width: 140px;
-}
-
-.filtroEscuelaAncho {
-  width: 150px;
-}
-
-.listaResultadosScroll {
-  max-height: 240px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-right: 4px;
-}
-
-.mensajeSinResultados {
-  padding: 16px;
-  text-align: center;
-  color: var(--pj-texto-acento);
-  font-size: var(--pj-fuente-label);
-}
-
-.tarjetaResultadoConjuro {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  padding: 5px 8px;
-}
-
-
-.nombreResultadoConjuro,
 .nombreConjuroArcano {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 600;
   color: var(--pj-texto-primario);
 }
 
-.metaResultadoConjuro,
 .metaEscuelaArcano {
   font-size: var(--pj-fuente-badge);
   color: var(--pj-texto-acento);
-}
-
-.badgeYaAnadido {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-exito);
-  font-weight: 600;
-}
-
-.botonAnadirConjuroBuscador {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-acento);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 600;
-  padding: 2px 6px;
-  cursor: pointer;
-}
-
-.textoAvisoLimiteResultados {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  text-align: center;
 }
 
 /* SeccionArcanoMistico */

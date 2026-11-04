@@ -1,5 +1,40 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-04] Consolidación Final de la Auditoría Ponytail (Fase 15), Resolución de Cruces (`F10-X001`, `F10-X003`, `F05-Constructores`, `F12-X001`), Corrección de `F14-O003`/`F14-O005` y Certificación en CEF/TaleSpire (`localhost:9222`)
+
+**Contexto y Alcance:**
+- Tras completar la auditoría incremental por lotes de las 14 fases (`F01` a `F14`, 116 lotes, 932 rutas inventariadas), se consolidó `informes/auditoria-ponytail/RESUMEN.md` y se resolvieron todos los pendientes abiertos:
+  1. Aplicación de las 4 propuestas transversales procedentes de cruces verificados en F15 (`F10-X001`, `F10-X003`, `F05-Constructores` Alternativa A y `F12-X001`), conservando intacto `F05-H001` (`src/datos/trasfondos.json`, 184 líneas) por decisión expresa del usuario.
+  2. Corrección de las discrepancias en los scripts de verificación de F14 (`F14-O003` en `scripts/simulacion-sync-6pj-20monstruos.ts` y `F14-O005` en `scripts/probar-guerrero.mjs`).
+  3. Compilación, despliegue a TaleSpire (`pnpm run build` + `node deploy_to_ts.js`) y verificación real e interactiva en el motor CEF embebido de TaleSpire (`localhost:9222`, `Chrome/137.0.7151.104`) para **F08, F09, F10, F11, F12 y F13**.
+
+**Decisiones Arquitectónicas y Correcciones Aplicadas (`−485` líneas netas adicionales sobre `d3caee9`):**
+1. **`F10-X001` — Retirada de `BuscadorConjurosPersonaje.tsx` y CSS exclusivo (`−357` líneas netas):**
+   - Eliminado `src/componentes/caracteristicas/personajes/BuscadorConjurosPersonaje.tsx` (225 líneas, sin consumidores tras la migración a `CompendioConjurosJugador.tsx`) y su reexportación en `src/componentes/caracteristicas/personajes/index.ts`.
+   - Retirados los 15 bloques CSS exclusivos en `src/componentes/caracteristicas/personajes/PanelConjurosPersonaje.module.css`.
+   - *Lección técnica crítica:* `.botonLimpiarBusqueda` estaba partido en dos declaraciones dentro de `PanelConjurosPersonaje.module.css` (líneas 266–274 y 692–698 tras `F10-H018`). Antes de eliminar el tramo del buscador antiguo (líneas 632–770), se fusionaron las 5 propiedades de la línea 692 (`background: none; border: none; color: #a5b4fc; cursor: pointer; padding: 0;`) en la declaración viva de la línea 266, preservando intacto el estilo del botón `title="Borrar búsqueda"` en `BarraFiltrosConjuros.tsx` (comprobado en CEF).
+2. **`F10-X003` — Retirada de `calcularFormulaTruco` (`−84` líneas netas):**
+   - Eliminada la función histórica sin consumidores en producción `calcularFormulaTruco` de `src/utiles/utilesConjuros.ts` (34 líneas) y su bloque `describe("calcularFormulaTruco")` en `src/utiles/utilesConjuros.test.ts` (50 líneas), conservando `calcularInfoTruco`.
+3. **`F05-Constructores` (Alternativa A) — Proyección común en `dotesClase.ts` (`−18` líneas netas):**
+   - Extraída la función privada pura `proyectarDoteDeRasgo` en `src/servicios/clases/dotesClase.ts` para unificar la construcción de `RasgoPersonaje` entre `construirDoteDeMejoraCaracteristica`, `construirDoteDeDonEpico` y `construirDoteDeEstiloCombate`, evitando acoplar `gestorEspecies.ts`.
+4. **`F12-X001` — Unificación de tipos de inventario (`−21` líneas netas):**
+   - Retirada la propiedad huérfana `color: string;` de `CajaMovilizacionRapida` en `src/tipos/inventario.ts` y sustituidas las 4 declaraciones duplicadas de tipos en `src/componentes/caracteristicas/inventario/inventarioConstantes.ts` por la importación y reexportación canónica desde `@/tipos`.
+5. **Resolución de `F14-O003` y `F14-O005` (`−5` líneas netas):**
+   - En `scripts/simulacion-sync-6pj-20monstruos.ts` (`F14-O003`), el caso 12 se actualizó del protocolo retirado `DM_CHUNK` al protocolo vigente `FRAG`, verificando la emisión fragmentada y la convergencia de reensamblado (**12/12 escenarios aprobados**, 260/260 turnos convergentes).
+   - En `scripts/probar-guerrero.mjs:124` (`F14-O005`), se actualizó el selector de salvación de muerte a `button[title^="Tirar Salvación de Muerte"]`.
+
+**Aprendizaje sobre Persistencia y Ciclo de Vida del WebView CEF en TaleSpire:**
+- TaleSpire almacena `TS.localStorage.global` en `C:\Users\zamor\AppData\LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5\.localStorage\global` (archivo JSON con clave `"data"` que contiene el string serializado; `143.336` bytes en disco).
+- `deploy_to_ts.js` solo reemplaza `assets/`, `index.html` y `manifest.json`, por lo que **nunca toca `.localStorage\global`**.
+- Sin embargo, cuando `deploy_to_ts.js` elimina y recrea `index.html` y `manifest.json` con TaleSpire abierto, el `FileSystemWatcher` de TaleSpire desmonta el `IWebView` activo (`Symbiote passed shutdown deadline` en `Player.log`), mientras el proceso CEF de Vuplex (`localhost:9222`) y el servidor HTTP interno (`localhost:64072`) permanecen activos. Para auditar en vivo sin riesgo para los datos del usuario, se respalda `.localStorage\global` y se hidrata `window.TS` en memoria vía `Page.addScriptToEvaluateOnNewDocument` en CDP.
+
+**Balance Global Acumulado y Certificación:**
+- **Reducción total acumulada sin duplicados (F01–F15):** **−20.138 líneas netas en Git** (`310 files changed, 2754 insertions(+), 22892 deletions(-)`) + **−1 línea neta en script local** = **−20.139 líneas netas en el árbol**, y **2 dependencias directas eliminadas** (`@tanstack/react-virtual` y `terser`).
+- **Cobertura final:** **807 rutas activas revisadas** (`802` `V` y `5` `L`), **7 rutas retiradas con motivo** y **118 exclusiones justificadas** = **932 rutas inventariadas**.
+- **Calidad y CEF/TaleSpire:** `tsc --noEmit` (0 errores), `eslint --max-warnings=0` (0 errores/warnings), `verificar:lineas` (203 archivos, 0 críticos), `simulacion-sync` (12/12) y **18 capturas PNG verificadas en CEF/TaleSpire (`localhost:9222`)** en `320px`, `480px`, `599px` y `1366px` con `0` errores de consola/runtime y `0` desbordes horizontales.
+
+---
+
 ## [2026-10-26] Subsanación Quirúrgica de ESLint/TypeScript y Certificación Completa de CI en Main (Druida / Forma Salvaje)
 
 **Contexto y Diagnóstico:**

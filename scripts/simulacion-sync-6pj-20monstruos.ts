@@ -355,8 +355,8 @@ El proceso devuelve código 0 si todas las comprobaciones pasan, o 1 si alguna f
     await iniciarMesa();
     const j = jugadores()[0]; const ronda = j.store.getState().rondaActual;
     const mensaje = { v: 1, t: 'DM', d: { c: [], t: 0, r: 99, v: true, mv: 'maximo' } };
-    await j.motor.procesarMensajeSyncEntrante({ datos: mensaje, strCrudo: JSON.stringify(mensaje), fromClient: { id: 'DM', player: { id: 'DM', name: 'DM' } } });
-    concluir(j.store.getState().rondaActual === ronda && j.store.getState().notificaciones.some(n => n.mensaje.includes('actualicen')), 'El cliente informa incompatibilidad y conserva el combate vigente');
+    await j.motor.procesarMensajeSyncEntrante({ datos: { ...mensaje, v: 3 }, strCrudo: JSON.stringify({ ...mensaje, v: 3 }), fromClient: { id: 'DM', player: { id: 'DM', name: 'DM' } } });
+    concluir(j.store.getState().rondaActual === ronda && j.store.getState().notificaciones.some(n => n.mensaje.includes('desactualizada')), 'El cliente informa incompatibilidad y conserva el combate vigente');
   });
 
 });

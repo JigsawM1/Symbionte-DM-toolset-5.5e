@@ -120,41 +120,6 @@ export function calcularMultiplicadorTruco(nivelPersonaje: number): number {
 }
 
 /**
- * Calcula la fórmula de dados escalada automáticamente para un truco según el nivel del personaje.
- * Ejemplo: Toque helado ("1d10") a nivel 5 devuelve "2d10" con multiplicador 2.
- */
-export function calcularFormulaTruco(
-  formulaBase: string,
-  nivelPersonaje: number
-): { formula: string; multiplicador: number; cantDados: number; caras: string; base: string } {
-  const baseLimpia = formulaBase ? formulaBase.trim() : "";
-  const mult = calcularMultiplicadorTruco(nivelPersonaje);
-
-  if (!baseLimpia || baseLimpia === "N/A") {
-    return { formula: "", multiplicador: mult, cantDados: 0, caras: "", base: "" };
-  }
-
-  const regexDados = /^(\d+)[dD](\d+)(.*)$/;
-  const match = baseLimpia.replace(/\s+/g, "").match(regexDados);
-
-  if (match) {
-    const cantBase = parseInt(match[1], 10);
-    const caras = match[2];
-    const resto = match[3] || "";
-    const cantTotal = cantBase * mult;
-    return {
-      formula: `${cantTotal}d${caras}${resto}`,
-      multiplicador: mult,
-      cantDados: cantTotal,
-      caras,
-      base: baseLimpia
-    };
-  }
-
-  return { formula: baseLimpia, multiplicador: mult, cantDados: 1, caras: "", base: baseLimpia };
-}
-
-/**
  * Determina si un truco escala por nivel de personaje (D&D 5.5e / 5e).
  * En las reglas oficiales, todo truco con dados de daño estructurados en la base de datos
  * escala automáticamente a los niveles 5, 11 y 17 (salvo excepciones de arma como Garrote/Shillelagh).

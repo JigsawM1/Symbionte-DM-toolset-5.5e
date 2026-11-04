@@ -1,5 +1,10 @@
 import React from "react";
-import type { ObjetoInventario } from "@/tipos";
+import type {
+  CriterioOrdenMochila,
+  CajaMovilizacionRapida,
+  ContenedorEspecialConfig,
+  SubseccionMochilaTipo
+} from "@/tipos";
 import type { OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import {
   Backpack,
@@ -9,14 +14,12 @@ import {
   Swords
 } from "lucide-react";
 
-export type CriterioOrdenMochila =
-  | "tipo"
-  | "personalizado"
-  | "reciente"
-  | "peso-desc"
-  | "peso-asc"
-  | "nombre-asc"
-  | "valor-desc";
+export type {
+  CriterioOrdenMochila,
+  CajaMovilizacionRapida,
+  ContenedorEspecialConfig,
+  SubseccionMochilaTipo
+};
 
 export const OPCIONES_ORDEN_MOCHILA: OpcionDesplegable<CriterioOrdenMochila>[] = [
   { valor: "tipo", etiqueta: "Por Tipo (Secciones)" },
@@ -27,13 +30,6 @@ export const OPCIONES_ORDEN_MOCHILA: OpcionDesplegable<CriterioOrdenMochila>[] =
   { valor: "nombre-asc", etiqueta: "Nombre (A - Z)" },
   { valor: "valor-desc", etiqueta: "Mayor Valor" }
 ];
-
-export interface CajaMovilizacionRapida {
-  id: string;
-  titulo: string;
-  subtitulo: string;
-  icono: React.ReactNode;
-}
 
 export const CAJAS_MOVILIZACION_RAPIDA: CajaMovilizacionRapida[] = [
   {
@@ -68,13 +64,6 @@ export const CAJAS_MOVILIZACION_RAPIDA: CajaMovilizacionRapida[] = [
   }
 ];
 
-export interface ContenedorEspecialConfig {
-  id: "bolsa_contencion" | "montura" | "almacen";
-  titulo: string;
-  icono: React.ReactNode;
-  color: string;
-}
-
 export const CONTENEDORES_ESPECIALES_CONFIG: ContenedorEspecialConfig[] = [
   {
     id: "bolsa_contencion",
@@ -95,13 +84,3 @@ export const CONTENEDORES_ESPECIALES_CONFIG: ContenedorEspecialConfig[] = [
     color: "var(--pj-texto-terciario)"
   }
 ];
-
-export interface SubseccionMochilaTipo {
-  id: string;
-  titulo: string;
-  icono: React.ReactNode;
-  color: string;
-  items: ObjetoInventario[];
-  pesoTotal: number;
-  esContenedorEspecial: boolean;
-}

@@ -121,7 +121,7 @@ try {
     const acrobacias = await pagina.$('[title^="Prueba de Acrobacias"]');
     assert.doesNotMatch(await acrobacias.evaluate(el => el.title), /VENTAJA/);
     desde = tiradas.length;
-    const muerte = await pagina.$('button[title^="Haz clic para tirar Salvación de Muerte"]');
+    const muerte = await pagina.$('button[title^="Tirar Salvación de Muerte"]');
     await muerte.scrollIntoView(); await muerte.click();
     assert(tiradas.slice(desde).some(t => t.includes("Muerte") && t.includes("Tipo original: ventaja")),
       `Salvación de muerte del Campeón sin ventaja en ${width}px: ${tiradas.slice(desde)}`);

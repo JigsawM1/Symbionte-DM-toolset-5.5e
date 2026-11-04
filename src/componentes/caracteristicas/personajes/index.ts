@@ -13,7 +13,6 @@ export * from "./TrackerEspaciosConjuro";
 export * from "./TrackerEspaciosPacto";
 export * from "./TrackerPuntosConjuro";
 export * from "./TarjetaConjuroCompacta";
-export * from "./BuscadorConjurosPersonaje";
 export * from "./PanelConjurosPersonaje";
 export * from "./SeccionArcanoMistico";
 export * from "./BannerConcentracionActiva";

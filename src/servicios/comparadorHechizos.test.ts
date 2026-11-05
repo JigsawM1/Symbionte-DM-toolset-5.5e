@@ -39,6 +39,27 @@ describe("comparadorHechizos", () => {
       expect(coincideHechizoId("Bola de fuego", "Rayo de escarcha")).toBe(false);
       expect(coincideHechizoId("Escudo", "Armadura de mago")).toBe(false);
     });
+
+    it("debe gestionar correctamente cadenas vacías, nulas o no definidas", () => {
+      expect(coincideHechizoId("", "Bendición")).toBe(false);
+      expect(coincideHechizoId("Bendición", "")).toBe(false);
+      expect(coincideHechizoId("", "")).toBe(false);
+    });
+
+    it("debe mantener consistencia y rendimiento con múltiples consultas repetidas (cache hits)", () => {
+      for (let i = 0; i < 50; i++) {
+        expect(coincideHechizoId("h_bendicion", "Bendición")).toBe(true);
+        expect(coincideHechizoId("Bola de fuego", "Rayo de escarcha")).toBe(false);
+      }
+    });
+
+    it("debe soportar un gran volumen de IDs distintos sin desbordar el caché FIFO", () => {
+      for (let i = 0; i < 2500; i++) {
+        expect(coincideHechizoId(`h_hechizo_${i}`, `Hechizo ${i}`)).toBe(true);
+      }
+      // Re-verificar que un identificador canónico sigue funcionando tras la rotación
+      expect(coincideHechizoId("h_bendicion", "Bendición")).toBe(true);
+    });
   });
 
   describe("deduplicarListaIds", () => {

@@ -1,5 +1,24 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-05] Evaluación Técnica y Viabilidad de las Ramas de Optimización de Bolt
+
+**Resumen Ejecutivo:**
+Se auditaron las 6 ramas remotas generadas por Bolt (`origin/bolt-*` y `origin/bolt/*`), además de la rama asociada `origin/perf/short-circuit-spell-filters-*`. Se identificaron 3 áreas funcionales clave:
+1. **Memoización de Componentes de Conjuros:** (`origin/bolt-memo-tarjeta-conjuro-compacta-1595942205829254266`) — **Viabilidad: 10/10**. 0 conflictos con `main`. Aplica `React.memo` a `TarjetaConjuroCompacta` y añade 6 pruebas unitarias (`TarjetaConjuroCompacta.test.tsx`).
+2. **Cortocircuito O(1) en Filtros de Conjuros:** 3 ramas concurrentes (`opt-filtros-hechizos`, `optimizacion-orden-filtros-conjuros`, `optimizar-filtrado-conjuros`).
+   - La rama ganadora y limpia es `origin/bolt/opt-filtros-hechizos-1881523312407930382` (**Viabilidad: 10/10**), ya que aísla los cambios estrictamente a `src/utiles/filtrosConjuros.ts` y `filtrosConjuros.test.ts` sin colisionar con componentes extirpados.
+   - Las otras dos ramas intentan modificar el archivo eliminado `BuscadorConjurosPersonaje.tsx` (purgado en la Fase 15), provocando conflictos `modify/delete`.
+3. **Optimización de Relevancia en Búsqueda Tolerante:** (`optimizar-scoring-busqueda` y `optimizar-calculo-relevancia-busqueda`).
+   - La auditoría Ponytail en `main` ya eliminó el manejo redundante de la `ñ` (la descomposición NFD ya convierte `ñ` en `n`).
+   - El remanente útil de estas ramas es el reemplazo de `tokenizarBusqueda(consulta)` por la versión cacheada `obtenerTokensConsulta(consulta)` en `calcularRelevanciaBusqueda`.
+
+**Certificación de Fusión Combinada (Ramas Viables 1 y 2):**
+- Fusión combinada de `bolt-memo-tarjeta-conjuro-compacta` + `opt-filtros-hechizos`:
+  - `tsc --noEmit`: 0 errores.
+  - `vitest run`: **178 archivos probados y 2.688 pruebas aprobadas al 100% (+17 tests nuevos, 0 fallos)**.
+
+---
+
 ## [2026-11-05] Fusión Definitiva y Certificación CI: Rama `auditoria-refactos` Integrada en `main`
 
 **Resumen Ejecutivo:**

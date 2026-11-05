@@ -98,7 +98,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nuevasCriaturasNativas = colaTSItems.map((cTS) => {
     // Reemplaza el .find() lento por una lectura directa
     const existente = mapaLocal.get(cTS.id);
-    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number; maxHp?: number; hp?: number };
+    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number };
     
     // Simplificado usando Nullish Coalescing (??)
     const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0);
@@ -268,8 +268,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         id: cTS.id,
         nombre: cTS.name,
         iniciativa: iniciativaFisica,
-        vidaMaxima: cTSConPropiedades.maxHp || 10,
-        vidaActual: cTSConPropiedades.hp !== undefined ? cTSConPropiedades.hp : (cTSConPropiedades.maxHp || 10),
+        vidaMaxima: 10,
+        vidaActual: 10,
         ca: 10,
         condiciones: [],
         efectos: [],
@@ -308,9 +308,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     // Criatura nueva que viene de TaleSpire
     const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
       plantillaMonstruo,
-      metodoVidaMonstruo,
-      cTSConPropiedades.maxHp,
-      cTSConPropiedades.hp
+      metodoVidaMonstruo
     );
 
     return {

@@ -1,5 +1,102 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-05] Resolución y Consolidación de los 9 Hallazgos de Sincronización, Retirada del Sync Viejo (v2) y Pipeline CI 100%
+
+**Resumen Ejecutivo:**
+Se completaron e implementaron con éxito las correcciones y la suite de regresión permanente para los 9 hallazgos (P1 y P2) detectados en la sincronización de combate, respetando la arquitectura estricta sin `any`, con validación real de identidad/autorización y unificación coherente del flujo de red. Siguiendo la confirmación expresa del usuario de erradicar código muerto para no acumular deuda técnica, se purgó completamente el transporte obsoleto de snapshots v2 (`t: 'DM'`), retirando los archivos de test redundantes del protocolo anterior y consolidando un único protocolo canónico de micro-eventos atómicos v3 (`MensajeSyncV2`).
+
+**Correcciones Quirúrgicas Implementadas por Hallazgo:**
+
+1. **P1 — Mensajes sin identidad rechazados (`motorEventosSync.ts`):**
+   - `procesarEventoSyncV2` incorpora una guardia de seguridad estricta al inicio: exige `fromClient?.id` y `fromClient.player?.id`. Si cualquiera falta o está vacío, descarta inmediatamente el evento con registro de advertencia (`logger.warn`) y retorna `false` sin mutar ningún estado del almacén Zustand.
+   - Probado: Mensajes `META_COMBATE` v3 sin remitente o con identidad incompleta intentando alterar la ronda a 99 son rechazados y la ronda permanece intacta.
+
+2. **P1 — HOLA con validación obligatoria de propiedad de ficha (`autoridadSync.ts`):**
+   - En `autorizarMensajeSyncV2`, se eliminó la comprobación parcial `if (mensaje.pj?.m)` sustituyéndola por `if (mensaje.pj) return autorizarPersonaje(mensaje.pj, remitente);`. Si un mensaje `HOLA` adjunta una ficha, se exige obligatoriamente validar su propiedad mediante `autorizarPersonaje`.
+   - Si no posee miniatura (`!wire.m`) o la miniatura no pertenece al jugador remitente en TaleSpire, la autorización retorna `false`. El saludo sin ficha (`pj: undefined`) se autoriza únicamente para clientes no espectadores.
+   - Probado: Intentos de sobrescribir PJs ajenos o enviar fichas sin miniatura son bloqueados; el saludo sin ficha de jugadores activos es admitido y los espectadores son rechazados.
+
+3. **P1 — Flujo único coherente, erradicación de protocolos concurrentes y purga de Sync v2 (`sincronizacionSimbiote.ts`, `motorEventosSync.ts`):**
+   - Se unificó el flujo de emisión: los observadores reactivos en modo GM emiten micro-eventos v3 atómicos (`META_COMBATE` y `CRIATURA_ESTADO`), y en modo Jugador emiten `PJ_ESTADO` mediante `programarEmisionEstadoPJSync`.
+   - Se eliminó la emisión de snapshots v2 (`t: 'DM'`) masivos que causaban duplicación de daño al coexistir con deltas relativos.
+   - Se retiraron del código de producción las funciones huérfanas, temporizadores de debounce y generadores de paquetes del protocolo viejo (`purgarEstado`, `enviarPaquetes`, `nuevaRevision`, `timerDebounceGM`, `ultimaRevisionEmitida`).
+   - Se eliminaron las suites de pruebas obsoletas que asumían el transporte anterior (`causalidadSync.test.ts` y `recuperacionSync.test.ts`), las cuales fallaban al no recibir paquetes masivos v2.
+   - La solicitud inicial y reconexión invoca exclusivamente `emitirHolaSync` (protocolo v3) con gestión de reintentos mediante `gestorReintentos.cancelarReintentosREQ()` al recibir `LOTE_INICIAL`. Se conserva la deduplicación por `cmdId` y clave de mensaje.
+
+4. **P1 — Aislamiento estricto entre PJ y acompañantes (`accionesSyncV2.ts`):**
+   - En `aplicarDeltaVidaDesdeSync` y `resolverDiscrepanciaVitalidad`, se discriminó explícitamente entre el PJ y sus acompañantes:
+     - El impacto al PJ dueño se restringe a `!c.esAcompanante && !c.idAcompanante && (c.id === idObjetivo || c.idPersonajeDuenio === idObjetivo)`.
+     - El impacto a un acompañante se dirige a `(c.esAcompanante || c.idAcompanante) && (c.id === idObjetivo || c.idAcompanante === idObjetivo)`.
+   - Probado: Daño, curación, vida temporal y resolución de discrepancias sobre el PJ no alteran en lo absoluto a sus acompañantes (ni en cola ni en ficha), y viceversa.
+
+5. **P1 — Presupuesto estricto <= 400 caracteres UTF-16, fragmentación robusta y tolerancia a fallos (`motorEventosSync.ts`):**
+   - Se implementó `fragmentarTextoSyncV2` mediante búsqueda binaria de corte para garantizar que cada sobre `t: 'FRAG', v: 3` no supere bajo ninguna circunstancia el presupuesto preventivo (`LIMITE_SEGURO_PAQUETE_SYNC = 400` caracteres UTF-16), respetando el límite duro de 500 del transporte.
+   - `enviarMensajeSeguroV2` fragmenta automáticamente payloads grandes (incluso si una sola entidad con UUIDs, URLs de avatar largas, caracteres escapados y múltiples efectos excede 500 caracteres) y `procesarEventoSyncV2` reensambla reactivamente los fragmentos en el receptor con TTL de limpieza.
+   - Se añadió captura defensiva con bloque `try / catch` en el envío nativo `ts.sync.send` para registrar y retornar `false` ante caídas o rechazos del transporte sin propagar excepciones no controladas.
+
+6. **P2 — Reensamblado de páginas de lote fuera de orden (`accionesSyncV2.ts`):**
+   - `aplicarLoteInicialDesdeSync` implementa un buffer de sesión (`sesionLoteActiva`) que recolecta todas las páginas de 1 a `total` antes de reemplazar la cola.
+   - Si las partes llegan desordenadas (ej. parte 2/2 antes de parte 1/2), el reemplazo atómico se pospone hasta que todas las partes estén reunidas. Se deduplican páginas repetidas y se aíslan lotes provenientes de sesiones distintas.
+
+7. **P2 — Concentración calculada con daño íntegro y absorción autoritativa (`sliceIniciativa.ts`, `absorbenteDeltasVida.ts`):**
+   - Se creó `dañarCriaturaIniciativa(id, cantidad)` en el almacén de iniciativa, encargada de transportar el golpe completo en una sola emisión `DELTA_VIDA` y realizar el descuento autoritativo.
+   - `alDañarCriatura` en `GestorIniciativa.tsx` invoca directamente `dañarCriaturaIniciativa`, erradicando la descomposición prematura en dos mensajes separados (temporal y daño restante).
+   - Probado: Golpe de 30 con 20 PV temporales absorbe 20 temporales, descuenta 10 de vida actual y solicita CD 15 (la mitad del daño íntegro). Golpe de 15 con 20 temporales (daño totalmente absorbido) emite alerta solicitando CD 10 según reglas D&D 5.5e.
+
+8. **P2 — Detección y resolución de discrepancias de vida temporal (`accionesSyncV2.ts`):**
+   - La comprobación de discrepancia en `LOTE_INICIAL` compara tanto `vidaActual` como `vidaTemporal` (`remotaPJ.vidaTemporal !== pj.hpTemporal`).
+   - Si la vida actual coincide pero difiere la vida temporal, se activa `discrepanciaVitalidadPendiente` y se permite elegir entre conservar los temporales locales o adoptar los del DM sin alterar acompañantes ni fichas ajenas.
+
+9. **P2 — Eliminación de confirmación duplicada desde React (`DialogoDiscrepanciaVitalidad.tsx`):**
+   - Se eliminó la llamada redundante `emitirEstadoPJSync` en el manejador `manejarDecision('conservar_local')` del componente modal, delegando la emisión exclusivamente en la acción centralizada `resolverDiscrepanciaVitalidad` del store Zustand.
+
+**Verificación y Calidad del Pipeline de CI (`pnpm run ci`):**
+- **TypeScript:** `tsc --noEmit` pasa con 0 errores en configuración estricta (`strict: true`, sin uso de `any`).
+- **ESLint:** `eslint src --max-warnings=0` pasa con 0 errores y 0 advertencias.
+- **Suites de Pruebas:** 176 suites y **2.671 pruebas aprobadas al 100%** con Vitest. La suite permanente `src/servicios/sincronizacion/syncV2.test.ts` valida los 9 hallazgos con 18 tests exhaustivos sobre la lógica de producción real (sin mocks permisivos que simulen autorización como `true`).
+- **Auditoría de Líneas:** 203 archivos auditados vía `node scripts/verificar-limite-lineas.js`, 0 componentes > 300 líneas y 0 archivos > 500 líneas.
+- **Vite Build:** Compilación y empaquetado de producción ejecutado exitosamente en 8.03 segundos.
+- **Graphify:** Índice estructural y mapa de conocimiento actualizado con `graphify update .` y `graphify cluster-only . --no-label` (3.393 nodos, 14.195 aristas, 118 comunidades).
+
+> [!NOTE]
+> **Delimitación de Entornos:** Las validaciones automatizadas han sido ejecutadas rigurosamente mediante el harness de Vitest y mocks de transporte en Node/Chromium. Como estipula `AGENTS.md`, el grafo y los tests de unidad/integración local no certifican la ejecución nativa en el motor CEF embebido de TaleSpire ni la sincronización multicliente en red real, las cuales requerirán la sesión de prueba interactiva en juego con jugadores conectados.
+
+---
+
+**Contexto Histórico y Decisiones Previas Consensuadas:**
+1. **El Simbionte como Única Fuente de la Verdad de Vida y Estadísticas:**
+   - La API nativa de TaleSpire (`v0.1`) es de solo lectura para criaturas e iniciativa, y todas las peanas 3D recién colocadas reportan `hp: { value: 10, max: 10 }` por defecto.
+   - Se acordó **ignorar por completo `c.hp.value`, `c.hp.max`, `maxHpTS`, `hpTS` y `creatureHpChanged`** de las miniaturas de TaleSpire. La vida de los monstruos proviene 100% de la plantilla del compendio del Simbionte (`indiceMonstruos`), y la vida de los PJs y acompañantes proviene 100% de la Ficha de Personaje del Simbionte.
+2. **Mínimo Tráfico por `TS.sync` (Aprovechamiento Nativo de `TS.initiative`):**
+   - Tanto DM como Jugadores reciben `onInitiativeEvent` / `TS.initiative.getQueue()` directamente desde TaleSpire para obtener el orden de miniaturas físicas y el turno activo (`activeItemIndex`).
+   - Por `TS.sync` (límite duro de 500 caracteres UTF-16 en TaleSpire, margen preventivo fijado en `LIMITE_SEGURO_PAQUETE_SYNC = 400`) **solo viajan micro-eventos atómicos** de lo que cambia en el Simbionte, eliminando el reenvío masivo de snapshots de toda la cola en cada edición.
+3. **Soberanía del Jugador + Deltas Relativos de Vida (`DELTA_VIDA`) + Diálogo de Discrepancias:**
+   - El jugador es dueño exclusivo de la vitalidad de su PJ y acompañantes. Si el DM aplica daño o curación a un PJ en el Combat Tracker, emite un delta relativo (`DELTA_VIDA`), que la ficha del jugador absorbe matemáticamente (descontando `hpTemporal` primero, luego `hpActual` y calculando la CD de concentración `max(10, floor(daño / 2))`).
+   - Si al reconectar (`LOTE_INICIAL`) la vida en la cola del DM difiere de la ficha del jugador, `DialogoDiscrepanciaVitalidad.tsx` permite elegir entre conservar la ficha local o aceptar la vida de la mesa del DM.
+
+**Archivos Creados/Actualizados en la Fase 1 (Gemini 4 Argon):**
+- `src/tipos/protocoloSync.ts`: Contratos y esquemas Zod (`EsquemaMensajeSyncV2` discriminado por `t`: `HOLA`, `PJ_ESTADO`, `DELTA_VIDA`, `CRIATURA_ESTADO`, `META_COMBATE`, `LOTE_INICIAL`) y empaquetadores wire.
+- `src/servicios/sincronizacion/absorbenteDeltasVida.ts`: Motor puro `calcularAbsorcionDeltaVida` y `calcularCDConcentracion`.
+- `src/servicios/sincronizacion/motorEventosSync.ts`: Despachadores atómicos sobre `ts.sync.send` y receptor `procesarEventoSyncV2`.
+- `src/almacen/slices/accionesSyncV2.ts` y extensión quirúrgica de `src/almacen/slices/sliceSync.ts`: Estado y acciones `AccionesSyncV2` integradas en Zustand.
+- `src/componentes/caracteristicas/sincronizacion/DialogoDiscrepanciaVitalidad.tsx` (+ `.module.css`): Modal táctico HUD sin estilos inline.
+
+**Estado de Integración y Hallazgos Detectados en Revisión:**
+- La integración inicial no estaba completa ni certificada: la suite de pruebas simulaba la autorización como `true` globalmente y omitía pruebas de integración real con el almacén y el transporte.
+- Se detectaron nueve hallazgos críticos (P1/P2) que reproducen fallos reales de sincronización:
+  1. *P1 — Mensajes sin identidad aceptados:* `procesarEventoSyncV2` despachaba sin validar remitente cuando faltaba `fromClient` o `player.id`.
+  2. *P1 — HOLA permitía sobrescribir fichas ajenas:* `HOLA` sin `pj.m` omitía `autorizarPersonaje` y se aceptaba por no ser espectador.
+  3. *P1 — Protocolos concurrentes e integración incompleta:* convivencia rota entre snapshots v2 y deltas v3 con riesgo de doble daño, reconexión con `REQ` v2 y emisores atómicos desconectados de los flujos de store.
+  4. *P1 — Daño al PJ afectando acompañantes:* filtrado por `idPersonajeDuenio` afectaba a los acompañantes tanto en absorción de delta como en resolución de discrepancias.
+  5. *P1 — Paquetes excediendo transporte:* ausencia de fragmentación ante entidades grandes (> 400 y > 500 caracteres UTF-16).
+  6. *P2 — Páginas de lotes fuera de orden:* aplicación inmediata de páginas y vaciado en parte 1 causaba pérdida de criaturas al recibir páginas invertidas.
+  7. *P2 — Concentración calculada con daño parcial:* descomposición de daño entre temporales y vida actual enviaba deltas fragmentados y calculaba CD errónea.
+  8. *P2 — Discrepancias de temporales ignoradas:* comparación exclusiva de vida actual ignoraba diferencias en vida temporal al reconectar.
+  9. *P2 — Confirmación duplicada desde React:* `DialogoDiscrepanciaVitalidad` duplicaba la emisión de `PJ_ESTADO` tras la resolución en el store.
+- Las pruebas con mocks y entornos Node/Chromium locales no certifican la ejecución en CEF/TaleSpire ni la sincronización multicliente en red real. Se procede a corregir quirúrgicamente cada hallazgo y añadir regresiones permanentes que prueben la integración y el comportamiento real sin mocks permisivos.
+
+---
+
 ## [2026-11-04] Consolidación Final de la Auditoría Ponytail (Fase 15), Resolución de Cruces (`F10-X001`, `F10-X003`, `F05-Constructores`, `F12-X001`), Corrección de `F14-O003`/`F14-O005` y Certificación en CEF/TaleSpire (`localhost:9222`)
 
 **Contexto y Alcance:**

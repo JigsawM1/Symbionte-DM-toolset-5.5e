@@ -28,6 +28,7 @@ import {
 } from '@/almacen/slices/personajes/condicionesRasgosHelpers';
 import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
+import { emitirDeltaVidaSync } from '@/servicios/sincronizacion/motorEventosSync';
 
 function coincidePersonajeEnIniciativa(pj: PersonajeJugador, criatura: CriaturaIniciativa | undefined, id: string, nombre: string): boolean {
   return Boolean(
@@ -203,6 +204,7 @@ export interface SliceIniciativa {
   ) => void;
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
+  dañarCriaturaIniciativa: (id: string, cantidad: number) => void;
   modificarVidaMaximaCriaturaIniciativa: (id: string, nuevaVidaMax: number) => void;
   agregarCondicionACriatura: (id: string, condicion: string) => void;
   quitarCondicionDeCriatura: (id: string, condicion: string) => void;
@@ -494,6 +496,17 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
     modificarVidaCriaturaIniciativa: (id, nuevaVida) => {
+    const estadoPrevio = get();
+    const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === id);
+    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
+      const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
+      const diferencia = nuevaVida - criaturaObjetivoPrev.vidaActual;
+      if (diferencia < 0) {
+        void emitirDeltaVidaSync(idDestino, Math.abs(diferencia), "dano");
+      } else if (diferencia > 0) {
+        void emitirDeltaVidaSync(idDestino, diferencia, "curacion");
+      }
+    }
     get().registrarModificacionLocalPJ(id);
     return set((state) => {
     let criaturaAfectadaNombre = "";
@@ -546,6 +559,89 @@ export const crearSliceIniciativa: StateCreator<
 
     return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
   });
+  },
+
+  dañarCriaturaIniciativa: (id, cantidad) => {
+    const daño = Math.max(0, Math.trunc(cantidad));
+    if (daño === 0) return;
+
+    const estadoPrevio = get();
+    const criaturaPrevia = estadoPrevio.colaIniciativa.find((c) => c.id === id);
+    if (!criaturaPrevia) return;
+
+    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && !criaturaPrevia.esMonstruo) {
+      const idDestino = criaturaPrevia.idAcompanante || criaturaPrevia.idPersonajeDuenio || criaturaPrevia.id;
+      void emitirDeltaVidaSync(idDestino, daño, "dano");
+    }
+
+    get().registrarModificacionLocalPJ(id);
+    return set((state) => {
+      let dañoRestante = daño;
+      let vidaTemp = criaturaPrevia.vidaTemporal || 0;
+      let vidaAct = criaturaPrevia.vidaActual;
+
+      if (vidaTemp > 0) {
+        if (vidaTemp >= dañoRestante) {
+          vidaTemp -= dañoRestante;
+          dañoRestante = 0;
+        } else {
+          dañoRestante -= vidaTemp;
+          vidaTemp = 0;
+        }
+      }
+      if (dañoRestante > 0) {
+        vidaAct = Math.max(0, vidaAct - dañoRestante);
+      }
+
+      let criaturaAfectadaNombre = "";
+      const nuevaCola = state.colaIniciativa.map((c) => {
+        if (c.id === id) {
+          criaturaAfectadaNombre = c.nombre;
+          return { ...c, vidaActual: vidaAct, vidaTemporal: vidaTemp };
+        }
+        return c;
+      });
+
+      if (criaturaPrevia.esMonstruo) {
+        return { colaIniciativa: nuevaCola };
+      }
+
+      const nuevosPjs = state.personajes.map((pj) => {
+        const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaPrevia, id, criaturaAfectadaNombre);
+        if (coincidePj) {
+          return {
+            ...pj,
+            hpActual: vidaAct,
+            hpTemporal: vidaTemp,
+          };
+        }
+        if (!criaturaPrevia.esAcompanante && !criaturaPrevia.idAcompanante) {
+          return pj;
+        }
+        let acompModificado = false;
+        const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+          const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaPrevia, id, criaturaAfectadaNombre);
+          if (coincideAcomp) {
+            acompModificado = true;
+            return {
+              ...acomp,
+              vidaActual: vidaAct,
+              vidaTemporal: vidaTemp,
+            };
+          }
+          return acomp;
+        });
+        if (acompModificado) {
+          return { ...pj, acompanantes: nuevosAcomps };
+        }
+        return pj;
+      });
+
+      return {
+        colaIniciativa: nuevaCola,
+        personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual)),
+      };
+    });
   },
 
   modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => {
@@ -1059,6 +1155,12 @@ export const crearSliceIniciativa: StateCreator<
   }),
 
   actualizarVidaTemporal: (idCriatura, vidaTemp) => {
+    const estadoPrevio = get();
+    const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === idCriatura);
+    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
+      const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
+      void emitirDeltaVidaSync(idDestino, Math.max(0, vidaTemp), "temp");
+    }
     get().registrarModificacionLocalPJ(idCriatura);
     return set((state) => {
     let criaturaAfectadaNombre = "";
@@ -1386,9 +1488,7 @@ export const crearSliceIniciativa: StateCreator<
 
       const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
         plantillaMonstruo,
-        state.metodoVidaMonstruo,
-        cTS.maxHp,
-        cTS.hp
+        state.metodoVidaMonstruo
       );
 
       const tiradaInic = Math.floor(Math.random() * 20) + 1;
@@ -1421,7 +1521,22 @@ export const crearSliceIniciativa: StateCreator<
   // aplicarTransformacionEnArea encapsula ese boilerplate (Strategy Pattern):
   // cada función sólo define su "estrategia" de transformación por criatura.
 
-  aplicarDañoEnArea: (cantidad, idsObjetivo) => set((state) => {
+  aplicarDañoEnArea: (cantidad, idsObjetivo) => {
+    if (get().esGM && !get().aplicandoSync && cantidad !== 0) {
+      const targets = obtenerIdsObjetivoMasivo(
+        get().colaIniciativa,
+        get().indiceTurnoActivo,
+        get().criaturasSeleccionadas,
+        idsObjetivo
+      );
+      for (const criatura of get().colaIniciativa) {
+        if (targets.has(criatura.id) && !criatura.esMonstruo) {
+          const idDestino = criatura.idAcompanante || criatura.idPersonajeDuenio || criatura.id;
+          void emitirDeltaVidaSync(idDestino, Math.abs(cantidad), cantidad > 0 ? "dano" : "curacion");
+        }
+      }
+    }
+    return set((state) => {
     if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
     return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
       if (cantidad > 0) {
@@ -1448,7 +1563,8 @@ export const crearSliceIniciativa: StateCreator<
         return { ...c, vidaActual: Math.min(c.vidaMaxima, c.vidaActual + curacion) };
       }
     });
-  }),
+  });
+},
 
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
     if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};

@@ -40,6 +40,7 @@ export function usarAccionesIniciativa() {
       alternarRolCriatura:               s.alternarRolCriatura,
       quitarCriaturaDeIniciativa:        s.quitarCriaturaDeIniciativa,
       modificarVidaCriaturaIniciativa:   s.modificarVidaCriaturaIniciativa,
+      dañarCriaturaIniciativa:           s.dañarCriaturaIniciativa,
       modificarVidaMaximaCriaturaIniciativa: s.modificarVidaMaximaCriaturaIniciativa,
       actualizarVidaTemporal:            s.actualizarVidaTemporal,
       establecerIniciativaCriatura:      s.establecerIniciativaCriatura,

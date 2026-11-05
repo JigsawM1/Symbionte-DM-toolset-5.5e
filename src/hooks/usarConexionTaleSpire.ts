@@ -106,8 +106,6 @@ export function usarConexionTaleSpire() {
             const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
               id: c.id,
               name: c.name,
-              hp: c.hp?.value,
-              maxHp: c.hp?.max,
               esDeJugador: Array.isArray(c.ownerIds) && c.ownerIds.length > 0
             }));
             actualizarSeleccionCriaturas(seleccionadas.length > 0 ? seleccionadas : ids.map((id) => ({ id, name: "Criatura Seleccionada" })));
@@ -495,8 +493,7 @@ export function usarConexionTaleSpire() {
                   const seleccionadas: import("../almacen/slices/sliceIniciativa").CriaturaSeleccionadaTS[] = info.map((c) => ({
                     id: c.id,
                     name: c.name,
-                    hp: c.hp?.value,
-                    maxHp: c.hp?.max
+                    esDeJugador: Array.isArray(c.ownerIds) && c.ownerIds.length > 0
                   }));
                   actualizarSeleccionCriaturas(seleccionadas);
                 } catch (error) {

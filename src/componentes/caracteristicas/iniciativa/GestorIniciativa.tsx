@@ -132,6 +132,7 @@ export const GestorIniciativa: React.FC = () => {
   const {
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
+    dañarCriaturaIniciativa,
     actualizarVidaTemporal,
     asociarPlantillaACriatura,
     desvincularPlantillaDeCriatura,
@@ -259,22 +260,9 @@ export const GestorIniciativa: React.FC = () => {
     logger.debug(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
   }, [modificarVidaCriaturaIniciativa]);
 
-  const alDañarCriatura = useCallback((id: string, actual: number, temporal: number, valor: number) => {
-    if (temporal > 0) {
-      if (valor <= temporal) {
-        actualizarVidaTemporal(id, temporal - valor);
-      } else {
-        const excedente = valor - temporal;
-        actualizarVidaTemporal(id, 0);
-        const nuevaVida = Math.max(0, actual - excedente);
-        modificarVidaCriaturaIniciativa(id, nuevaVida);
-      }
-    } else {
-      const nuevaVida = Math.max(0, actual - valor);
-      modificarVidaCriaturaIniciativa(id, nuevaVida);
-    }
-  }, [actualizarVidaTemporal, modificarVidaCriaturaIniciativa]);
-
+  const alDañarCriatura = useCallback((id: string, _actual: number, _temporal: number, valor: number) => {
+    dañarCriaturaIniciativa(id, valor);
+  }, [dañarCriaturaIniciativa]);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;

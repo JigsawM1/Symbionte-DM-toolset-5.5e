@@ -11,8 +11,9 @@ import type { EstadoIniciativaDM } from "@/tipos/sync";
 import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
+import { crearAccionesSyncV2, type AccionesSyncV2 } from "./accionesSyncV2";
 
-export interface SliceSync {
+export interface SliceSync extends AccionesSyncV2 {
   aplicandoSync: boolean;
   idClienteDM: string | null;
   timestampsModificacionLocal: Record<string, number>;
@@ -36,6 +37,7 @@ export const crearSliceSync: StateCreator<
   [],
   SliceSync
 > = (set, get) => ({
+  ...crearAccionesSyncV2(set, get),
   aplicandoSync: false,
   idClienteDM: null,
   timestampsModificacionLocal: {},

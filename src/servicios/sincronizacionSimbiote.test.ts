@@ -1,4 +1,4 @@
-vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
+vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarMensajeSyncV2: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   proyectarEstadoCombatePJ,

@@ -157,14 +157,12 @@ export function resolverPlantillaPorCriatura(
 }
 
 /**
- * Calcula los puntos de vida iniciales (máximos y actuales) de una criatura nativa,
- * aplicando el método de cálculo de vida del DM o los stats que vengan de TaleSpire.
+ * Calcula los puntos de vida iniciales (máximos y actuales) de una criatura,
+ * tomando exclusivamente la plantilla del Simbionte como fuente de la verdad.
  */
 export function calcularVidaInicial(
   plantilla: MonstruoBase | undefined,
-  metodoVida: string,
-  maxHpTS?: number,
-  hpTS?: number
+  metodoVida: string
 ): { vidaMaxima: number; vidaActual: number } {
   let vidaMax = 10;
   let vidaAct = 10;
@@ -176,9 +174,6 @@ export function calcularVidaInicial(
       metodoVida as "estandar" | "maximo" | "azar"
     );
     vidaAct = vidaMax;
-  } else if (maxHpTS !== undefined && maxHpTS > 0) {
-    vidaMax = maxHpTS;
-    vidaAct = hpTS !== undefined ? hpTS : maxHpTS;
   } else if (plantilla) {
     vidaMax = plantilla.vidaMaxima;
     vidaAct = vidaMax;

@@ -2,6 +2,7 @@ import { ts } from '@/utiles/TaleSpireAdapter';
 import { logger } from '@/utiles/logger';
 import type { FragmentoCliente, InfoCliente } from '@/tipos/talespire';
 import type { WireMensajeSync, WireEstadoCombatePJ } from '@/tipos/sync';
+import type { MensajeSyncV2 } from '@/tipos/protocoloSync';
 
 const clientes = new Map<string, { hasta: number; valor: Promise<InfoCliente | undefined> }>();
 const propiedades = new Map<string, { hasta: number; valor: Promise<Set<string>> }>();
@@ -77,6 +78,41 @@ export async function autorizarMensaje(mensaje: WireMensajeSync, remitente?: Fra
     return cliente.clientMode !== 'spectator';
   } catch (err) {
     logger.debug('[Sync] Error autorizando mensaje entrante:', err);
+    return false;
+  }
+}
+
+/** Autoriza mensajes del protocolo Sync v2 (v: 3) verificando rol y propiedad en TaleSpire. */
+export async function autorizarMensajeSyncV2(
+  mensaje: MensajeSyncV2,
+  remitente?: FragmentoCliente
+): Promise<boolean> {
+  if (!remitente?.id || !remitente.player?.id) return false;
+  const inicio = generacion;
+  try {
+    const cliente = await obtenerCliente(remitente.id);
+    if (!cliente || cliente.player.id !== remitente.player.id || inicio !== generacion) return false;
+    if (
+      mensaje.t === 'DELTA_VIDA' ||
+      mensaje.t === 'CRIATURA_ESTADO' ||
+      mensaje.t === 'META_COMBATE' ||
+      mensaje.t === 'LOTE_INICIAL'
+    ) {
+      return cliente.clientMode === 'gm';
+    }
+    if (mensaje.t === 'PJ_ESTADO') {
+      return autorizarPersonaje(mensaje.d, remitente);
+    }
+    if (mensaje.t === 'HOLA') {
+      if (mensaje.pj) return autorizarPersonaje(mensaje.pj, remitente);
+      return cliente.clientMode !== 'spectator';
+    }
+    if (mensaje.t === 'FRAG') {
+      return cliente.clientMode !== 'spectator';
+    }
+    return false;
+  } catch (err) {
+    logger.debug('[Sync v2] Error autorizando mensaje entrante:', err);
     return false;
   }
 }

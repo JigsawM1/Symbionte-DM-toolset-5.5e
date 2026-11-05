@@ -204,8 +204,10 @@ export function calcularRelevanciaBusqueda(
   secundarios?: (string | undefined | null)[]
 ): number {
   if (!consulta || !consulta.trim()) return 0;
-  const tokens = tokenizarBusqueda(consulta);
-  if (tokens.length === 0) return 0;
+  // ponytail: reutiliza tokens cacheados para evitar split/regex repetitivo en bucles .sort()
+  const tokens = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+  if (numTokens === 0) return 0;
 
   const consultaNorm = normalizarParaBusqueda(consulta);
   const tituloNorm = normalizarParaBusqueda(titulo || "");
@@ -223,7 +225,7 @@ export function calcularRelevanciaBusqueda(
       }
     }
 
-    if (coincidencias === tokens.length) return 400;
+    if (coincidencias === numTokens) return 400;
     if (coincidencias > 0) return 300;
   }
 

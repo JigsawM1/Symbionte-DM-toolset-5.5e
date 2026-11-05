@@ -1,6 +1,6 @@
 import React from "react";
 import { Swords, Star } from "lucide-react";
-import { MonstruoBase, HechizoBase } from "@/tipos";
+import { MonstruoBase, HechizoBase, AccionMonstruo } from "@/tipos";
 import { formatearVelocidad, formatearSentidos, formatearSubtituloCriatura, formatearRecargaTexto } from "@/almacen/sanitizacion";
 import { detectarTipoDaño } from "@/utiles/lanzadorDados";
 import { procesarTextoFicha } from "./procesadorTexto";
@@ -52,6 +52,56 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
   lanzarTiradaD20Interactiva,
   obtenerPercepcionPasiva
 }) => {
+  const renderizarAccion = (acc: AccionMonstruo, indice: number, claseNombre: string): React.ReactNode => {
+    const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
+    const qaCorrespondiente = (plantilla.accionesRapidas || []).find(
+      (q) => q.nombre.toLowerCase().trim() === acc.nombre.toLowerCase().trim()
+    );
+    const dadosLanzar = qaCorrespondiente ? qaCorrespondiente.dadosDaño : (acc.daño || "1d6");
+    const tipoLanzar = qaCorrespondiente ? qaCorrespondiente.tipoDaño : detectarTipoDaño(acc.descripcion, "físico");
+    const recargaTexto = formatearRecargaTexto(acc.recarga, acc.uso);
+
+    return (
+      <div key={indice} className={estilosClases.tarjetaAccionPurple}>
+        <div className={estilosClases.cabeceraAccionTarjeta}>
+          <span className={claseNombre}>
+            {acc.nombre.toUpperCase()}
+            {recargaTexto && (
+              <span className={estilosClases.etiquetaRecargaAccion}>
+                {" "}({recargaTexto})
+              </span>
+            )}
+          </span>
+          {esAtaque && (
+            <button
+              onClick={() =>
+                lanzarAtaqueRapido(
+                  criaturaNombre,
+                  acc.nombre,
+                  `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`,
+                  dadosLanzar,
+                  tipoLanzar
+                )
+              }
+              className={estilosClases.botonAccionAtaqueLanzar}
+            >
+              <Swords size={10} />
+              <span>TIRAR 3D</span>
+            </button>
+          )}
+        </div>
+        <div className={estilosClases.descAccionTarjeta}>
+          {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
+          {esAtaque && (
+            <span className={estilosClases.detallesAtaqueMetaInline}>
+              [ +{acc.bonificadorAtaque} Al Impacto | Daño: {dadosLanzar} ]
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const renderizarDefensa = (etiqueta: string, valor: string[] | string | undefined) => {
     if (!valor) return null;
     const items = Array.isArray(valor) ? valor : [valor];
@@ -244,55 +294,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
         {plantilla.acciones && plantilla.acciones.length > 0 && (
           <div className={estilosClases.cajaListaAccionesFicha}>
             <div className={estilosClases.subtituloFichaSection}>ACCIONES</div>
-            {plantilla.acciones.map((acc, i) => {
-              const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
-              const qaCorrespondiente = (plantilla.accionesRapidas || []).find(
-                (q) => q.nombre.toLowerCase().trim() === acc.nombre.toLowerCase().trim()
-              );
-              const dadosLanzar = qaCorrespondiente ? qaCorrespondiente.dadosDaño : (acc.daño || "1d6");
-              const tipoLanzar = qaCorrespondiente ? qaCorrespondiente.tipoDaño : detectarTipoDaño(acc.descripcion, "físico");
-              const recargaTexto = formatearRecargaTexto(acc.recarga, acc.uso);
-
-              return (
-                <div key={i} className={estilosClases.tarjetaAccionPurple}>
-                  <div className={estilosClases.cabeceraAccionTarjeta}>
-                    <span className={estilosClases.nombreAccionTarjeta}>
-                      {acc.nombre.toUpperCase()}
-                      {recargaTexto && (
-                        <span className={estilosClases.etiquetaRecargaAccion}>
-                          {" "}({recargaTexto})
-                        </span>
-                      )}
-                    </span>
-                    {esAtaque && (
-                      <button
-                        onClick={() =>
-                          lanzarAtaqueRapido(
-                            criaturaNombre,
-                            acc.nombre,
-                            `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`,
-                            dadosLanzar,
-                            tipoLanzar
-                          )
-                        }
-                        className={estilosClases.botonAccionAtaqueLanzar}
-                      >
-                        <Swords size={10} />
-                        <span>TIRAR 3D</span>
-                      </button>
-                    )}
-                  </div>
-                  <div className={estilosClases.descAccionTarjeta}>
-                    {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
-                    {esAtaque && (
-                      <span className={estilosClases.detallesAtaqueMetaInline}>
-                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {dadosLanzar} ]
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {plantilla.acciones.map((acc, i) => renderizarAccion(acc, i, estilosClases.nombreAccionTarjeta))}
           </div>
         )}
 
@@ -302,55 +304,7 @@ export const PanelFichaDnD: React.FC<PanelFichaDnDProps> = ({
             <div className={`${estilosClases.subtituloFichaSection} ${estilosClases.subtituloAccionesAdicionales}`}>
               ACCIONES ADICIONALES
             </div>
-            {plantilla.accionesAdicionales.map((acc, i) => {
-              const esAtaque = acc.bonificadorAtaque !== undefined && acc.daño !== undefined;
-              const qaCorrespondiente = (plantilla.accionesRapidas || []).find(
-                (q) => q.nombre.toLowerCase().trim() === acc.nombre.toLowerCase().trim()
-              );
-              const dadosLanzar = qaCorrespondiente ? qaCorrespondiente.dadosDaño : (acc.daño || "1d6");
-              const tipoLanzar = qaCorrespondiente ? qaCorrespondiente.tipoDaño : detectarTipoDaño(acc.descripcion, "físico");
-              const recargaTexto = formatearRecargaTexto(acc.recarga, acc.uso);
-
-              return (
-                <div key={i} className={estilosClases.tarjetaAccionPurple}>
-                  <div className={estilosClases.cabeceraAccionTarjeta}>
-                    <span className={`${estilosClases.nombreAccionTarjeta} ${estilosClases.nombreAccionAdicional}`}>
-                      {acc.nombre.toUpperCase()}
-                      {recargaTexto && (
-                        <span className={estilosClases.etiquetaRecargaAccion}>
-                          {" "}({recargaTexto})
-                        </span>
-                      )}
-                    </span>
-                    {esAtaque && (
-                      <button
-                        onClick={() =>
-                          lanzarAtaqueRapido(
-                            criaturaNombre,
-                            acc.nombre,
-                            `${(acc.bonificadorAtaque ?? 0) >= 0 ? "+" : ""}${acc.bonificadorAtaque ?? 0}`,
-                            dadosLanzar,
-                            tipoLanzar
-                          )
-                        }
-                        className={estilosClases.botonAccionAtaqueLanzar}
-                      >
-                        <Swords size={10} />
-                        <span>TIRAR 3D</span>
-                      </button>
-                    )}
-                  </div>
-                  <div className={estilosClases.descAccionTarjeta}>
-                    {procesarTextoFicha(acc.descripcion, `${criaturaNombre} - ${acc.nombre}`, baseDatosHechizos, alHacerClicHechizo)}
-                    {esAtaque && (
-                      <span className={estilosClases.detallesAtaqueMetaInline}>
-                        [ +{acc.bonificadorAtaque} Al Impacto | Daño: {dadosLanzar} ]
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {plantilla.accionesAdicionales.map((acc, i) => renderizarAccion(acc, i, [estilosClases.nombreAccionTarjeta, estilosClases.nombreAccionAdicional].join(" ")))}
           </div>
         )}
 

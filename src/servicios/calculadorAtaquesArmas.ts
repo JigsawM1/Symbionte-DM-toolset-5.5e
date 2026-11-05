@@ -207,7 +207,7 @@ export function calcularAtaqueArmaEquipada(
       const resV = componerFormulasDano(dadoV, modDanoTotalV, dadosExtraV, danosSecundariosV);
       dadoVersatilBase = resV.dadoDanoTotalBase;
       formulaVersatil = resV.formulaDano;
-    } else if (esPropiedadVersatil) {
+    } else {
       let dadoV: string | undefined;
       if (dadoDanoBase.includes("1d6")) dadoV = "1d8";
       else if (dadoDanoBase.includes("1d8")) dadoV = "1d10";
@@ -243,7 +243,7 @@ export function calcularAtaqueArmaEquipada(
     };
     tipoDanoBase = mapaTipos[configPactoFilo.tipoDano] || tipoDanoBase;
   }
-  const tipoDanoCompleto = (tiposDanoSecundarios && tiposDanoSecundarios.length > 0)
+  const tipoDanoCompleto = (tiposDanoSecundarios.length > 0)
     ? `${tipoDanoBase} / ${tiposDanoSecundarios.join(" / ")}`
     : tipoDanoBase;
 
@@ -346,7 +346,7 @@ export function calcularAtaqueImprovisado(contexto: {
     danosSecundarios
   );
 
-  const tipoDanoImprovisada = (tiposDanoSecundarios && tiposDanoSecundarios.length > 0)
+  const tipoDanoImprovisada = (tiposDanoSecundarios.length > 0)
     ? `Contundente / ${tiposDanoSecundarios.join(" / ")}`
     : "Contundente";
 

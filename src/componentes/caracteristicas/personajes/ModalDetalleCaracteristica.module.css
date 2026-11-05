@@ -42,15 +42,21 @@
   color: var(--pj-texto-acento);
 }
 
-.valorEfectivoResaltado {
+.valorEfectivoResaltado,
+.labelColorBlanco {
   color: var(--pj-texto-primario);
 }
 
-.modPreviewPositivo {
+.modPreviewPositivo,
+.valorModPositivo,
+.valorBonoSalvacionPositivo,
+.valorOverrideInactivo {
   color: var(--pj-texto-acento);
 }
 
-.modPreviewNegativo {
+.modPreviewNegativo,
+.valorModNegativo,
+.valorBonoSalvacionNegativo {
   color: var(--pj-texto-alerta);
 }
 
@@ -69,7 +75,6 @@
 .cajaDescripcionSalvacion {
   padding: 10px 12px;
   border-radius: var(--pj-radio-control);
-  border-left: 3px solid var(--pj-borde-fuerte);
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-acento);
 }
@@ -149,35 +154,11 @@
   font-weight: 700;
 }
 
-.valorModPositivo {
-  color: var(--pj-texto-acento);
-}
-
-.valorModNegativo {
-  color: var(--pj-texto-alerta);
-}
-
-.valorBonoSalvacionPositivo {
-  color: var(--pj-texto-acento);
-}
-
-.valorBonoSalvacionNegativo {
-  color: var(--pj-texto-alerta);
-}
-
 .valorOverrideActivo {
   color: var(--pj-texto-magia);
 }
 
-.valorOverrideInactivo {
-  color: var(--pj-texto-acento);
-}
-
-.valorSalvacionCompetente {
-  color: var(--pj-texto-acento);
-  font-weight: 600;
-}
-
+.valorSalvacionCompetente,
 .valorSalvacionIncompetente {
   color: var(--pj-texto-acento);
   font-weight: 600;
@@ -231,10 +212,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.labelColorBlanco {
-  color: var(--pj-texto-primario);
 }
 
 .subtextoModBase {

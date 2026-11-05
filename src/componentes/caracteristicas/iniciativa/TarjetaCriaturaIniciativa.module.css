@@ -64,7 +64,8 @@
   background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
 }
 
-.bloqueIniciativaIzquierda[data-turno-activo="true"] {
+.bloqueIniciativaIzquierda[data-turno-activo="true"],
+.miniBotonAdd:hover {
   border-color: var(--color-borde-cian);
   background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
 }
@@ -72,14 +73,6 @@
 .bloqueIniciativaConAvatar {
   width: 58px;
   height: 38px;
-}
-
-.etiquetaInicMini {
-  font-size: var(--dm-fuente-minima, 9px);
-  font-weight: bold;
-  color: var(--color-texto-apagado);
-  letter-spacing: 0.02em;
-  line-height: 1;
 }
 
 .valorInicGigante {
@@ -138,7 +131,9 @@
 }
 
 .inputIniciativaEditable::-webkit-outer-spin-button,
-.inputIniciativaEditable::-webkit-inner-spin-button {
+.inputIniciativaEditable::-webkit-inner-spin-button,
+.inputVidaMaximaEditable::-webkit-outer-spin-button,
+.inputVidaMaximaEditable::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -161,17 +156,6 @@
   flex-direction: row;
   align-items: center;
   gap: 8px;
-}
-
-.avatarRedondeado {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .cajaNombres {
@@ -295,49 +279,6 @@
   margin-top: 1px;
 }
 
-.textoCondicionesVacias {
-  font-size: var(--dm-fuente-minima, 12px);
-  color: var(--color-texto-apagado);
-  font-style: italic;
-}
-
-.chipCondicionChico {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 3px;
-  font-size: var(--dm-fuente-minima, 9px);
-  font-weight: 800;
-  padding: 1px 5px;
-  border-radius: var(--dm-radio-control, 3px);
-  text-transform: uppercase;
-  font-family: var(--fuente-codigo);
-  letter-spacing: 0.02em;
-  border: 1px solid;
-}
-
-.chipDesangrado {
-  background-color: var(--dm-superficie-peligro, hsla(0, 80%, 9%, 0.75)) !important;
-  border-color: var(--dm-borde-peligro, hsla(0, 80%, 50%, 0.7)) !important;
-  color: var(--dm-texto-peligro, hsl(0, 100%, 85%)) !important;
-  box-shadow: inset 0 0 3px rgba(var(--dm-rgb-peligro, 255, 0, 0), 0.2) !important;
-}
-
-.chipEfectoPredefinido {
-  background-color: var(--dm-superficie-primario, hsla(265, 80%, 12%, 0.75)) !important;
-  border-color: var(--dm-borde-primario, hsla(265, 80%, 60%, 0.7)) !important;
-  color: var(--dm-texto-acento, hsl(265, 95%, 90%)) !important;
-}
-
-.botonQuitarCondicionChico {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
-
 .miniBotonAdd {
   height: 18px;
   background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
@@ -354,11 +295,6 @@
   font-family: var(--fuente-codigo);
   text-transform: uppercase;
   outline: none;
-}
-
-.miniBotonAdd:hover {
-  border-color: var(--color-borde-cian);
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
 }
 
 .miniBotonAddEfectos {
@@ -412,15 +348,6 @@
 
 .dropdownItemEfecto:hover {
   background-color: rgba(var(--dm-rgb-primario, 157, 78, 221), 0.08) !important;
-}
-
-.dropdownItemPersonalizado {
-  color: var(--color-borde-cian) !important;
-  border-top: 1px dashed rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.1) !important;
-}
-
-.dropdownItemPersonalizado:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08) !important;
 }
 
 .cajaAccionesRapidasColumn {
@@ -625,31 +552,6 @@
   background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.1);
 }
 
-.chipEfectoConcentracion {
-  background-color: var(--dm-superficie-advertencia, hsla(45, 80%, 10%, 0.75)) !important;
-  border-color: var(--dm-texto-advertencia, hsl(45, 90%, 50%)) !important;
-  color: var(--dm-texto-advertencia, hsl(45, 100%, 75%)) !important;
-  box-shadow: inset 0 0 4px rgba(var(--dm-rgb-advertencia, 212, 175, 55), 0.25) !important;
-}
-
-.chipEfectoPermanente {
-  background-color: var(--dm-fondo-foco, hsla(0, 0%, 15%, 0.75)) !important;
-  border-color: var(--dm-borde, hsla(0, 0%, 50%, 0.7)) !important;
-  color: var(--dm-texto-secundario, hsl(0, 0%, 85%)) !important;
-}
-
-.badgeExpiracion {
-  background-color: rgba(0, 0, 0, 0.4);
-  padding: 0 4px;
-  border-radius: var(--dm-radio-control, 2px);
-  font-size: var(--dm-fuente-minima, 8.5px);
-  font-family: var(--fuente-codigo);
-  font-weight: normal;
-  margin-left: 4px;
-  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.1);
-  color: var(--dm-texto-principal, hsla(0, 0%, 100%, 0.85));
-}
-
 .textoMiniSinNombre {
   font-style: italic;
   opacity: 0.65;
@@ -674,10 +576,7 @@
   margin-top: 4px;
 }
 
-.iconoEspadasPeligro {
-  color: var(--dm-texto-peligro, var(--color-peligro));
-}
-
+.iconoEspadasPeligro,
 .iconoCorazonPeligro {
   color: var(--dm-texto-peligro, var(--color-peligro));
 }
@@ -713,12 +612,6 @@
   margin-left: 2px;
   -moz-appearance: textfield;
   appearance: textfield;
-}
-
-.inputVidaMaximaEditable::-webkit-outer-spin-button,
-.inputVidaMaximaEditable::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 .contenedorPasivasJugador {

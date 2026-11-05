@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+﻿import { beforeEach, describe, expect, it } from "vitest";
 import HECHIZOS from "@/utiles/compendios/all.json";
 import { EsquemaHechizoBase, EsquemaPersonajeJugador, type PersonajeJugador } from "@/tipos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
@@ -10,7 +10,7 @@ import { resolverClaseLanzamiento } from "./rasgos/modificadoresConjuroRasgos";
 import { aplicarConfiguracionConjurosRasgos } from "./rasgos/conjurosGratuitosRasgos";
 import { validarLanzamiento } from "./servicioLanzamientoConjuros";
 import { habilidadElegible } from "./rasgos/habilidadesSelectores";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 const catalogo = HECHIZOS.map(h => EsquemaHechizoBase.parse(h));
 const hechizo = (nombre: string) => catalogo.find(h => h.nombre === nombre)!;

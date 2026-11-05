@@ -6,7 +6,6 @@
  *
  */
 
-import { useMemo } from "react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 
@@ -92,7 +91,5 @@ export function crearIndiceMonstruos(monstruos: MonstruoBase[]): IndiceMonstruos
 export function usarIndiceMonstruos(): IndiceMonstruos {
   const baseDatosMonstruos = usarAlmacenDM((state) => state.baseDatosMonstruos);
 
-  return useMemo(() => {
-    return crearIndiceMonstruos(baseDatosMonstruos);
-  }, [baseDatosMonstruos]);
+  return crearIndiceMonstruos(baseDatosMonstruos);
 }

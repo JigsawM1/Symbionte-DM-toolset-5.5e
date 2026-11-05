@@ -9,7 +9,7 @@ type Store = typeof import('../src/almacen/usarAlmacenDM').usarAlmacenDM;
 type Motor = typeof import('../src/servicios/sincronizacionSimbiote');
 type Adaptador = typeof import('../src/utiles/TaleSpireAdapter').ts;
 interface Cliente { id: string; store: Store; motor: Motor; adaptador: Adaptador; detener: () => void; conectado: boolean }
-interface Paquete { origen: string; texto: string; datos: WireMensajeSync; hora: number }
+interface Paquete { origen: string; texto: string; datos: WireMensajeSync }
 interface Resultado { escenario: string; correcto: boolean; detalle: string; segundos: number; envios: number; entregas: number; duplicados: number; perdidos: number; rateLimited: number; purgados: number; maxCaracteres: number; maxChunk: number; advertencias: string[] }
 const resultados: Resultado[] = [];
 let clientes: Cliente[] = [];
@@ -56,7 +56,7 @@ function entregar(paquete: Paquete, destino: Cliente) {
 async function enviarNativo(origen: string, texto: string, target: string) {
   expect(target).toBe('board');
   expect(texto.length).toBeLessThanOrEqual(500);
-  const paquete: Paquete = { origen, texto, datos: JSON.parse(texto), hora: Date.now() };
+  const paquete: Paquete = { origen, texto, datos: JSON.parse(texto) };
   secuencia++;
   if (conLimite && secuencia % 13 === 0) {
     rateLimited++;
@@ -355,8 +355,8 @@ El proceso devuelve código 0 si todas las comprobaciones pasan, o 1 si alguna f
     await iniciarMesa();
     const j = jugadores()[0]; const ronda = j.store.getState().rondaActual;
     const mensaje = { v: 1, t: 'DM', d: { c: [], t: 0, r: 99, v: true, mv: 'maximo' } };
-    await j.motor.procesarMensajeSyncEntrante({ datos: mensaje, strCrudo: JSON.stringify(mensaje), fromClient: { id: 'DM', player: { id: 'DM', name: 'DM' } } });
-    concluir(j.store.getState().rondaActual === ronda && j.store.getState().notificaciones.some(n => n.mensaje.includes('actualicen')), 'El cliente informa incompatibilidad y conserva el combate vigente');
+    await j.motor.procesarMensajeSyncEntrante({ datos: { ...mensaje, v: 3 }, strCrudo: JSON.stringify({ ...mensaje, v: 3 }), fromClient: { id: 'DM', player: { id: 'DM', name: 'DM' } } });
+    concluir(j.store.getState().rondaActual === ronda && j.store.getState().notificaciones.some(n => n.mensaje.includes('desactualizada')), 'El cliente informa incompatibilidad y conserva el combate vigente');
   });
 
 });

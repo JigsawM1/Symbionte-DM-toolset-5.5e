@@ -61,7 +61,6 @@
         {
           "id": "selector_orden_divina",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Orden divina",
           "opciones": [
             {
@@ -75,8 +74,6 @@
               "descripcion": "Conoces un truco adicional de clérigo y sumas tu modificador por Sabiduría (mínimo +1) a tus pruebas de Inteligencia (Conocimiento arcano o Religión)."
             }
           ],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
           "modo": "seleccion",
@@ -135,11 +132,7 @@
         {
           "id": "selector_truco_taumaturgo",
           "tipoSelector": "conjuro",
-          "tipo": "unico",
           "etiqueta": "Truco adicional de Clérigo (Taumaturgo)",
-          "opciones": [],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
           "modo": "seleccion",
@@ -348,12 +341,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_clerigo_nv4",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "valorActual": [],
-          "maxSelecciones": 1,
           "requiereEleccionExplicita": true,
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
@@ -390,7 +379,6 @@
         {
           "id": "selector_golpes_benditos",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Opción de Golpes benditos",
           "opciones": [
             {
@@ -404,8 +392,6 @@
               "descripcion": "Sumas tu modificador de Sabiduría al daño de tus trucos de clérigo."
             }
           ],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
           "modo": "seleccion",
@@ -440,7 +426,6 @@
         {
           "id": "selector_tipo_dano_golpe_divino",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Tipo de daño (Golpe divino)",
           "opciones": [
             {
@@ -454,8 +439,6 @@
               "descripcion": "Daño necrótico"
             }
           ],
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
           "modo": "seleccion",
@@ -538,12 +521,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_clerigo_nv8",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "valorActual": [],
-          "maxSelecciones": 1,
           "requiereEleccionExplicita": true,
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
@@ -579,12 +558,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_clerigo_nv12",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "valorActual": [],
-          "maxSelecciones": 1,
           "requiereEleccionExplicita": true,
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
@@ -634,12 +609,8 @@
       "selectores": [
         {
           "id": "selector_dote_asi_clerigo_nv16",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "opciones": [],
-          "valorActual": [],
-          "maxSelecciones": 1,
           "requiereEleccionExplicita": true,
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
@@ -665,12 +636,8 @@
       "selectores": [
         {
           "id": "selector_dote_don_epico_clerigo_nv19",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Don épico elegido",
-          "opciones": [],
-          "valorActual": [],
-          "maxSelecciones": 1,
           "requiereEleccionExplicita": true,
           "visualizacion": "lista",
           "ubicacion": "tarjeta",
@@ -1106,16 +1073,13 @@
           "selectores": [
             {
               "id": "destinatario_bendicion",
-              "tipo": "unico",
               "etiqueta": "Destinatario de la bendición",
               "tipoSelector": "general",
-              "maxSelecciones": 1,
               "visualizacion": "lista",
               "ubicacion": "tarjeta",
               "modo": "seleccion",
               "momentoEleccion": "activacion",
               "requiereEleccionExplicita": true,
-              "valorActual": [],
               "opciones": [
                 {
                   "id": "propio",

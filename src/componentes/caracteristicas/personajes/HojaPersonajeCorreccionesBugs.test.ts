@@ -214,94 +214,67 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
   });
 
   describe("5. Equipamiento Robusto y Reglas 5.5e (Armadura, Escudo y Stacks)", () => {
+    const baseObjeto = {
+      esConsumible: false,
+      rareza: "Común",
+      cantidad: 1,
+      equipado: false,
+      sintonizado: false,
+      notas: "",
+      esMagico: false,
+      equipable: false,
+      sintonizacionRequerida: false
+    } satisfies Partial<ObjetoInventario>;
+
     const espadaLarga: ObjetoInventario = {
+      ...baseObjeto,
       idInstancia: "inv_espada_1",
       idObjeto: "item_espada_larga",
       nombre: "Espada larga",
       categoria: "armas",
-      esConsumible: false,
       subcategoria: "Marcial",
-      pesoLb: 3,
-      rareza: "Común",
-      cantidad: 1,
-      equipado: false,
-      sintonizado: false,
-      notas: "",
-      esMagico: false,
-      equipable: false,
-      sintonizacionRequerida: false
+      pesoLb: 3
     };
 
     const cotaMalla: ObjetoInventario = {
+      ...baseObjeto,
       idInstancia: "inv_cota_1",
       idObjeto: "item_cota_malla",
       nombre: "Cota de malla",
       categoria: "armaduras",
-      esConsumible: false,
       subcategoria: "Pesada",
-      pesoLb: 55,
-      rareza: "Común",
-      cantidad: 1,
-      equipado: false,
-      sintonizado: false,
-      notas: "",
-      esMagico: false,
-      equipable: false,
-      sintonizacionRequerida: false
+      pesoLb: 55
     };
 
     const corazaPlacas: ObjetoInventario = {
+      ...baseObjeto,
       idInstancia: "inv_placas_1",
       idObjeto: "item_placas",
       nombre: "Armadura de placas",
       categoria: "armaduras",
-      esConsumible: false,
       subcategoria: "Pesada",
-      pesoLb: 65,
-      rareza: "Común",
-      cantidad: 1,
-      equipado: false,
-      sintonizado: false,
-      notas: "",
-      esMagico: false,
-      equipable: false,
-      sintonizacionRequerida: false
+      pesoLb: 65
     };
 
     const escudo: ObjetoInventario = {
+      ...baseObjeto,
       idInstancia: "inv_escudo_1",
       idObjeto: "item_escudo",
       nombre: "Escudo",
       categoria: "escudos",
-      esConsumible: false,
       subcategoria: "Escudo",
-      pesoLb: 6,
-      rareza: "Común",
-      cantidad: 1,
-      equipado: false,
-      sintonizado: false,
-      notas: "",
-      esMagico: false,
-      equipable: false,
-      sintonizacionRequerida: false
+      pesoLb: 6
     };
 
     const dagasApiladas: ObjetoInventario = {
+      ...baseObjeto,
       idInstancia: "inv_daga_stack",
       idObjeto: "item_daga",
       nombre: "Daga",
       categoria: "armas",
-      esConsumible: false,
       subcategoria: "Simple",
       pesoLb: 1,
-      rareza: "Común",
-      cantidad: 3,
-      equipado: false,
-      sintonizado: false,
-      notas: "",
-      esMagico: false,
-      equipable: false,
-      sintonizacionRequerida: false
+      cantidad: 3
     };
 
     it("esObjetoEquipable identifica armas, armaduras y escudos sin requerir equipable: true previo", () => {
@@ -313,21 +286,13 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
       expect(esObjetoArmaduraCorporal(escudo)).toBe(false);
 
       const objetoGenerico: ObjetoInventario = {
+        ...baseObjeto,
         idInstancia: "inv_cuerda",
         idObjeto: "item_cuerda",
         nombre: "Cuerda de cáñamo",
         categoria: "equipo-aventurero",
-        esConsumible: false,
         subcategoria: "",
-        pesoLb: 10,
-        rareza: "Común",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        pesoLb: 10
       };
       expect(esObjetoEquipable(objetoGenerico)).toBe(false);
     });

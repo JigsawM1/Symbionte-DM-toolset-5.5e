@@ -47,29 +47,25 @@
   flex: 1;
 }
 
-.iconoCampoCuracion {
+.iconoCampoCuracion, .iconoCampoTirada {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.iconoCampoCuracion {
   background: rgba(52, 211, 153, 0.15);
   color: #34d399;
-  flex-shrink: 0;
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
 .iconoCampoTirada {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
   background: rgba(251, 191, 36, 0.15);
   color: #fbbf24;
-  flex-shrink: 0;
   box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
 }
 

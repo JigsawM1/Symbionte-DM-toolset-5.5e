@@ -68,28 +68,6 @@
   border-color: var(--color-borde-cian);
 }
 
-.selectorFiltro {
-  flex: 1;
-  min-width: 100px;
-  height: 24px;
-  padding: 2px 22px 2px 6px;
-  background-color: var(--color-fondo-profundo);
-  border: 1px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 4px);
-  color: var(--color-texto-principal);
-  font-size: var(--dm-fuente-minima, 12px);
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectorFiltro:focus {
-  outline: none;
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 1.5px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
 .listaContenedor {
   flex: 1;
   overflow-y: auto;
@@ -239,19 +217,6 @@
 
 :global([data-tema="jugador"]) .buscadorInput:focus {
   border-color: var(--pj-borde-cian-fuerte);
-}
-
-:global([data-tema="jugador"]) .selectorFiltro {
-  background-color: var(--pj-fondo-base);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-cuerpo);
-}
-
-:global([data-tema="jugador"]) .selectorFiltro:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
 }
 
 :global([data-tema="jugador"]) .vacioTexto {

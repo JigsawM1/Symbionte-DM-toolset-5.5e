@@ -58,29 +58,26 @@
   color: var(--pj-texto-primario);
 }
 
-.dotActivoVerde {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--pj-texto-exito);
-  box-shadow: 0 0 6px var(--pj-texto-exito);
-  flex-shrink: 0;
-}
-
-.dotActivoCian {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--pj-texto-cian);
-  flex-shrink: 0;
-}
-
+.dotActivoVerde,
+.dotActivoCian,
 .dotGris {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--pj-texto-terciario);
   flex-shrink: 0;
+}
+
+.dotActivoVerde {
+  background-color: var(--pj-texto-exito);
+  box-shadow: 0 0 6px var(--pj-texto-exito);
+}
+
+.dotActivoCian {
+  background-color: var(--pj-texto-cian);
+}
+
+.dotGris {
+  background-color: var(--pj-texto-terciario);
 }
 
 .textoPill {

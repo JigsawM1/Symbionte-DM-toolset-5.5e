@@ -893,38 +893,21 @@ describe("Clérigo D&D 5.5 (2024) - Reglas y Mecánicas Base", () => {
         notas: ""
       };
 
-      // Nivel 3 (5 * 3 = 15)
-      const pjNv3 = {
-        id: "pj-clerigo-nv3",
-        nombre: "Clérigo Nv 3",
-        clase: "Clérigo",
-        nivel: 3,
-        rasgos: [rasgoCanalizar, rasgoPreservarVida]
-      } as unknown as PersonajeJugador;
+      // Nivel 3 -> 15; nivel 10 -> 50; nivel 20 -> 100.
+      for (const [nivel, esperado] of [[3, "15"], [10, "50"], [20, "100"]] as const) {
+        const pj = {
+          id: `pj-clerigo-nv${nivel}`,
+          nombre: `Clérigo Nv ${nivel}`,
+          clase: "Clérigo",
+          nivel,
+          rasgos: [rasgoCanalizar, rasgoPreservarVida]
+        } as unknown as PersonajeJugador;
 
-      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv3, "Clérigo")).toBe("15");
-
-      // Nivel 10 (5 * 10 = 50)
-      const pjNv10 = {
-        id: "pj-clerigo-nv10",
-        nombre: "Clérigo Nv 10",
-        clase: "Clérigo",
-        nivel: 10,
-        rasgos: [rasgoCanalizar, rasgoPreservarVida]
-      } as unknown as PersonajeJugador;
-
-      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv10, "Clérigo")).toBe("50");
-
-      // Nivel 20 (5 * 20 = 100)
-      const pjNv20 = {
-        id: "pj-clerigo-nv20",
-        nombre: "Clérigo Nv 20",
-        clase: "Clérigo",
-        nivel: 20,
-        rasgos: [rasgoCanalizar, rasgoPreservarVida]
-      } as unknown as PersonajeJugador;
-
-      expect(resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pjNv20, "Clérigo")).toBe("100");
+        expect(
+          resolverFormulaDinamica(rasgoPreservarVida.formulaDados || "5*nivel", pj, "Clérigo"),
+          `Nivel ${nivel}`
+        ).toBe(esperado);
+      }
     });
 
     it("No aplica autocuración sobre el clérigo al activar Preservar vida (es un pool para repartir)", async () => {

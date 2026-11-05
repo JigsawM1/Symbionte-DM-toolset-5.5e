@@ -56,25 +56,12 @@ export function obtenerOpcionesDotesParaSelector(): import("@/tipos").OpcionSele
     .filter((d) => d.id !== "dote_mejora_caracteristica")
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-  if (doteMejora) {
-    opciones.push({
-      id: doteMejora.id,
-      nombre: doteMejora.nombre,
-      descripcion: doteMejora.descripcion,
-      requisito: doteMejora.requisito,
-      categoria: doteMejora.categoria
-    });
-  }
-  for (const d of otras) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito,
-      categoria: d.categoria
-    });
-  }
+  const opciones: import("@/tipos").OpcionSelector[] = [
+    ...(doteMejora ? [doteMejora] : []),
+    ...otras
+  ].map(({ id, nombre, descripcion, requisito, categoria }) => ({
+    id, nombre, descripcion, requisito, categoria
+  }));
   cacheOpcionesDotesSelector = opciones;
   return opciones;
 }
@@ -94,28 +81,30 @@ export function crearSelectorDoteMejoraCaracteristica(claseId: string, nivel: nu
   };
 }
 
-/**
- * Construye la dote asociada al rasgo de clase Mejora de Característica
- * para ser incorporada y renderizada en la sección de dotes de la ficha.
- */
-export function construirDoteDeMejoraCaracteristica(
-  rasgoMejora: RasgoPersonaje,
-  idDoteSeleccionada: string = "dote_mejora_caracteristica"
+function proyectarDoteDeRasgo(
+  rasgo: RasgoPersonaje,
+  idDoteSeleccionada: string,
+  idFallback: string,
+  prefijoId: string,
+  etiquetaRasgo: string,
+  nivelDefecto: number,
+  incluirEsActivable = false
 ): RasgoPersonaje {
   const normId = normalizarTextoClase(idDoteSeleccionada);
   const plantillaDote =
     TODAS_LAS_DOTES_CANONICAS_DND55.find(
       (d) => d.id === idDoteSeleccionada || normalizarTextoClase(d.id) === normId || normalizarTextoClase(d.nombre) === normId
-    ) || TODAS_LAS_DOTES_CANONICAS_DND55.find((d) => d.id === "dote_mejora_caracteristica")!;
+    ) || TODAS_LAS_DOTES_CANONICAS_DND55.find((d) => d.id === idFallback) || TODAS_LAS_DOTES_CANONICAS_DND55[0];
+  const nivelRequerido = rasgo.nivelRequerido || nivelDefecto;
 
   return {
-    id: `dote_asi_${normalizarTextoClase(rasgoMejora.id)}`,
+    id: `${prefijoId}_${normalizarTextoClase(rasgo.id)}`,
     nombre: plantillaDote.nombre,
     descripcion: plantillaDote.descripcion,
     origen: "dote",
-    fuente: rasgoMejora.fuente || `Mejora de característica (Nivel ${rasgoMejora.nivelRequerido || 4})`,
+    fuente: rasgo.fuente || `${etiquetaRasgo} (Nivel ${nivelRequerido})`,
     tipoAccion: plantillaDote.tipoAccion || "pasivo",
-    nivelRequerido: rasgoMejora.nivelRequerido || 4,
+    nivelRequerido,
     tieneUsosLimitados: Boolean(plantillaDote.tieneUsosLimitados),
     usosMaximos: plantillaDote.usosMaximos,
     usosRestantes: plantillaDote.usosMaximos,
@@ -125,10 +114,29 @@ export function construirDoteDeMejoraCaracteristica(
     efectos: plantillaDote.efectos ? JSON.parse(JSON.stringify(plantillaDote.efectos)) : [],
     selectores: plantillaDote.selectores ? JSON.parse(JSON.stringify(plantillaDote.selectores)) : [],
     activo: true,
+    ...(incluirEsActivable ? { esActivable: Boolean(plantillaDote.esActivable) } : {}),
     personalizado: false,
-    ligadoA: rasgoMejora.id,
-    notas: `Dote obtenida por el rasgo Mejora de característica (${rasgoMejora.fuente}).`
+    ligadoA: rasgo.id,
+    notas: `Dote obtenida por el rasgo ${etiquetaRasgo} (${rasgo.fuente}).`
   };
+}
+
+/**
+ * Construye la dote asociada al rasgo de clase Mejora de Característica
+ * para ser incorporada y renderizada en la sección de dotes de la ficha.
+ */
+export function construirDoteDeMejoraCaracteristica(
+  rasgoMejora: RasgoPersonaje,
+  idDoteSeleccionada: string = "dote_mejora_caracteristica"
+): RasgoPersonaje {
+  return proyectarDoteDeRasgo(
+    rasgoMejora,
+    idDoteSeleccionada,
+    "dote_mejora_caracteristica",
+    "dote_asi",
+    "Mejora de característica",
+    4
+  );
 }
 
 /**
@@ -198,36 +206,13 @@ export function obtenerOpcionesDotesDonEpicoParaSelector(doteRecomendadaId: stri
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   const otrasOrdenadas = otrasDotes.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-
-  if (doteRecomendada) {
-    opciones.push({
-      id: doteRecomendada.id,
-      nombre: doteRecomendada.nombre,
-      descripcion: doteRecomendada.descripcion,
-      requisito: doteRecomendada.requisito
-    });
-  }
-
-  for (const d of otrosDones) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito
-    });
-  }
-
-  for (const d of otrasOrdenadas) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito
-    });
-  }
-
-  return opciones;
+  return [
+    ...(doteRecomendada ? [doteRecomendada] : []),
+    ...otrosDones,
+    ...otrasOrdenadas
+  ].map(({ id, nombre, descripcion, requisito }) => ({
+    id, nombre, descripcion, requisito
+  }));
 }
 
 /**
@@ -254,36 +239,15 @@ export function construirDoteDeDonEpico(
   rasgoDonEpico: RasgoPersonaje,
   idDoteSeleccionada?: string
 ): RasgoPersonaje {
-  const idDefecto = resolverDoteDonEpicoRecomendada(rasgoDonEpico.descripcion, rasgoDonEpico.fuente);
-  const idObjetivo = idDoteSeleccionada || idDefecto;
-  const normId = normalizarTextoClase(idObjetivo);
-
-  const plantillaDote =
-    TODAS_LAS_DOTES_CANONICAS_DND55.find(
-      (d) => d.id === idObjetivo || normalizarTextoClase(d.id) === normId || normalizarTextoClase(d.nombre) === normId
-    ) || TODAS_LAS_DOTES_CANONICAS_DND55.find((d) => d.id === "dote_don_destino") || TODAS_LAS_DOTES_CANONICAS_DND55[0];
-
-  return {
-    id: `dote_don_${normalizarTextoClase(rasgoDonEpico.id)}`,
-    nombre: plantillaDote.nombre,
-    descripcion: plantillaDote.descripcion,
-    origen: "dote",
-    fuente: rasgoDonEpico.fuente || `Don épico (Nivel ${rasgoDonEpico.nivelRequerido || 19})`,
-    tipoAccion: plantillaDote.tipoAccion || "pasivo",
-    nivelRequerido: rasgoDonEpico.nivelRequerido || 19,
-    tieneUsosLimitados: Boolean(plantillaDote.tieneUsosLimitados),
-    usosMaximos: plantillaDote.usosMaximos,
-    usosRestantes: plantillaDote.usosMaximos,
-    recuperacion: plantillaDote.recuperacion || "ninguno",
-    formulaDados: plantillaDote.formulaDados,
-    categoriaMecanica: plantillaDote.categoriaMecanica || "pasivo_permanente",
-    efectos: plantillaDote.efectos ? JSON.parse(JSON.stringify(plantillaDote.efectos)) : [],
-    selectores: plantillaDote.selectores ? JSON.parse(JSON.stringify(plantillaDote.selectores)) : [],
-    activo: true,
-    personalizado: false,
-    ligadoA: rasgoDonEpico.id,
-    notas: `Dote obtenida por el rasgo Don épico (${rasgoDonEpico.fuente}).`
-  };
+  const idObjetivo = idDoteSeleccionada || resolverDoteDonEpicoRecomendada(rasgoDonEpico.descripcion, rasgoDonEpico.fuente);
+  return proyectarDoteDeRasgo(
+    rasgoDonEpico,
+    idObjetivo,
+    "dote_don_destino",
+    "dote_don",
+    "Don épico",
+    19
+  );
 }
 
 let cacheOpcionesDotesEstiloSelector: Record<string, import("@/tipos").OpcionSelector[]> = {};
@@ -324,26 +288,12 @@ export function obtenerOpcionesDotesEstiloCombate(claseId: string): import("@/ti
     .filter((d) => d.id !== dotePorDefectoId)
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
-  const opciones: import("@/tipos").OpcionSelector[] = [];
-  if (primera) {
-    opciones.push({
-      id: primera.id,
-      nombre: primera.nombre,
-      descripcion: primera.descripcion,
-      requisito: primera.requisito,
-      categoria: primera.categoria
-    });
-  }
-  for (const d of resto) {
-    opciones.push({
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
-      requisito: d.requisito,
-      categoria: d.categoria
-    });
-  }
-
+  const opciones: import("@/tipos").OpcionSelector[] = [
+    ...(primera ? [primera] : []),
+    ...resto
+  ].map(({ id, nombre, descripcion, requisito, categoria }) => ({
+    id, nombre, descripcion, requisito, categoria
+  }));
   cacheOpcionesDotesEstiloSelector[normClase] = opciones;
   return opciones;
 }
@@ -379,32 +329,13 @@ export function construirDoteDeEstiloCombate(
   rasgoEstilo: RasgoPersonaje,
   idDoteSeleccionada: string = "dote_estilo_defensa"
 ): RasgoPersonaje {
-  const normId = normalizarTextoClase(idDoteSeleccionada);
-  const plantillaDote =
-    TODAS_LAS_DOTES_CANONICAS_DND55.find(
-      (d) => d.id === idDoteSeleccionada || normalizarTextoClase(d.id) === normId || normalizarTextoClase(d.nombre) === normId
-    ) || TODAS_LAS_DOTES_CANONICAS_DND55.find((d) => d.id === "dote_estilo_defensa")!;
-
-  return {
-    id: `dote_estilo_${normalizarTextoClase(rasgoEstilo.id)}`,
-    nombre: plantillaDote.nombre,
-    descripcion: plantillaDote.descripcion,
-    origen: "dote",
-    fuente: rasgoEstilo.fuente || `Estilo de combate (Nivel ${rasgoEstilo.nivelRequerido || 1})`,
-    tipoAccion: plantillaDote.tipoAccion || "pasivo",
-    nivelRequerido: rasgoEstilo.nivelRequerido || 1,
-    tieneUsosLimitados: Boolean(plantillaDote.tieneUsosLimitados),
-    usosMaximos: plantillaDote.usosMaximos,
-    usosRestantes: plantillaDote.usosMaximos,
-    recuperacion: plantillaDote.recuperacion || "ninguno",
-    formulaDados: plantillaDote.formulaDados,
-    categoriaMecanica: plantillaDote.categoriaMecanica || "pasivo_permanente",
-    efectos: plantillaDote.efectos ? JSON.parse(JSON.stringify(plantillaDote.efectos)) : [],
-    selectores: plantillaDote.selectores ? JSON.parse(JSON.stringify(plantillaDote.selectores)) : [],
-    activo: true,
-    esActivable: Boolean(plantillaDote.esActivable),
-    personalizado: false,
-    ligadoA: rasgoEstilo.id,
-    notas: `Dote obtenida por el rasgo Estilo de combate (${rasgoEstilo.fuente}).`
-  };
+  return proyectarDoteDeRasgo(
+    rasgoEstilo,
+    idDoteSeleccionada,
+    "dote_estilo_defensa",
+    "dote_estilo",
+    "Estilo de combate",
+    1,
+    true
+  );
 }

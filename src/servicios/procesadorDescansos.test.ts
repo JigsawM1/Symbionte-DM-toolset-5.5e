@@ -146,10 +146,13 @@ describe("procesadorDescansos (D&D 5.5e)", () => {
       expect(resultado.acciones.some((a) => a.tipo === "recurso" && a.cambio === 5)).toBe(true);
     });
 
-    it("restaura Inspiración Heroica si el personaje posee un rasgo declarativo con restaurar_recurso", () => {
+    it.each([
+      { inspiracion: false, mensaje: "obtenida" },
+      { inspiracion: true, mensaje: "conservada" },
+    ])("inspiración $mensaje tras descanso largo", ({ inspiracion, mensaje }) => {
       const pjConIngenioso: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
-        inspiracion: false,
+        inspiracion,
         rasgos: [
           {
             id: "rasgo_esp_humano_ingenioso",
@@ -180,44 +183,7 @@ describe("procesadorDescansos (D&D 5.5e)", () => {
 
       const resultado = ejecutarDescansoLargo(pjConIngenioso);
       expect(resultado.personajeActualizado.inspiracion).toBe(true);
-      expect(resultado.acciones.some((a) => a.descripcion.includes("Inspiración heroica obtenida"))).toBe(true);
-    });
-
-    it("conserva la Inspiración Heroica si el personaje ya disponía de ella", () => {
-      const pjConInspiracionPrevia: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        inspiracion: true,
-        rasgos: [
-          {
-            id: "rasgo_esp_humano_ingenioso",
-            nombre: "Ingenioso",
-            descripcion: "Obtienes inspiración heroica tras finalizar un descanso largo.",
-            origen: "especie",
-            fuente: "Especie: Humano",
-            tipoAccion: "pasivo",
-            tieneUsosLimitados: false,
-            personalizado: false,
-            notas: "",
-            recuperacion: "descanso_largo",
-            activo: true,
-            efectos: [
-              {
-                id: "ef_humano_ingenioso_insp",
-                tipo: "restaurar_recurso",
-                objetivo: "inspiracion",
-                valor: "1",
-                condicion: "descanso_largo",
-                descripcion: "Inspiración heroica tras descanso largo",
-                activo: true
-              }
-            ]
-          }
-        ]
-      };
-
-      const resultado = ejecutarDescansoLargo(pjConInspiracionPrevia);
-      expect(resultado.personajeActualizado.inspiracion).toBe(true);
-      expect(resultado.acciones.some((a) => a.descripcion.includes("Inspiración heroica conservada"))).toBe(true);
+      expect(resultado.acciones.some((a) => a.descripcion.includes(`Inspiración heroica ${mensaje}`))).toBe(true);
     });
 
     it("no otorga Inspiración Heroica si el personaje no tiene rasgos que lo especifiquen", () => {

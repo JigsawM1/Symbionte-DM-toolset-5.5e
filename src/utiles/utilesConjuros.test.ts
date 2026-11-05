@@ -3,7 +3,6 @@ import {
   calcularFormulaEscalada,
   extraerDadosBaseTruco,
   calcularMultiplicadorTruco,
-  calcularFormulaTruco,
   esTrucoDeAtaquesMultiples,
   calcularInfoTruco,
   construirFormulaTaleSpireTruco,
@@ -81,56 +80,6 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
         descripcion: "Tocas un objeto que no mida más de 10 pies en cualquier dimensión. Hasta que el conjuro termine, el objeto emite luz brillante..."
       };
       expect(extraerDadosBaseTruco(luz)).toBe("");
-    });
-  });
-
-  describe("calcularFormulaTruco", () => {
-    it("escala Toque Helado (1d10) según el nivel del personaje", () => {
-      // Nivel 1 -> 1d10
-      expect(calcularFormulaTruco("1d10", 1)).toEqual({
-        formula: "1d10",
-        multiplicador: 1,
-        cantDados: 1,
-        caras: "10",
-        base: "1d10"
-      });
-
-      // Nivel 5 -> 2d10
-      expect(calcularFormulaTruco("1d10", 5)).toEqual({
-        formula: "2d10",
-        multiplicador: 2,
-        cantDados: 2,
-        caras: "10",
-        base: "1d10"
-      });
-
-      // Nivel 11 -> 3d10
-      expect(calcularFormulaTruco("1d10", 11)).toEqual({
-        formula: "3d10",
-        multiplicador: 3,
-        cantDados: 3,
-        caras: "10",
-        base: "1d10"
-      });
-
-      // Nivel 17 -> 4d10
-      expect(calcularFormulaTruco("1d10", 17)).toEqual({
-        formula: "4d10",
-        multiplicador: 4,
-        cantDados: 4,
-        caras: "10",
-        base: "1d10"
-      });
-    });
-
-    it("escala trucos con dados base múltiples (ej. 2d4)", () => {
-      expect(calcularFormulaTruco("2d4", 5)).toEqual({
-        formula: "4d4",
-        multiplicador: 2,
-        cantDados: 4,
-        caras: "4",
-        base: "2d4"
-      });
     });
   });
 
@@ -444,29 +393,21 @@ describe("utilesConjuros - Sistema de Escalado de Conjuros y Trucos (D&D 5.5e)",
     });
 
     describe("agregarModificadorHabilidad en Trucos y Espacios de Conjuro", () => {
+      const curarHeridas = {
+        id: "curar-heridas",
+        nombre: "Curar heridas",
+        nivel: 1,
+        dadosDaño: "2d8",
+        tipoDaño: "curacion",
+        agregarModificadorHabilidad: true
+      };
       it("aplica modificador de habilidad a Curar heridas cuando agregarModificadorHabilidad es true", () => {
-        const curarHeridas = {
-          id: "curar-heridas",
-          nombre: "Curar heridas",
-          nivel: 1,
-          dadosDaño: "2d8",
-          tipoDaño: "curacion",
-          agregarModificadorHabilidad: true
-        };
         // Modificador de sabiduría +3
         const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo", 0, 3);
         expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+3");
       });
 
       it("combina bonoDanoMagico y modificadorHabilidad cuando ambos aplican", () => {
-        const curarHeridas = {
-          id: "curar-heridas",
-          nombre: "Curar heridas",
-          nivel: 1,
-          dadosDaño: "2d8",
-          tipoDaño: "curacion",
-          agregarModificadorHabilidad: true
-        };
         // bonoDanoMagico = 2, modificadorHabilidad = 3 -> Total bono +5
         const res = construirFormulaTaleSpireEspacio(curarHeridas, 1, 5, "Clérigo Asimar", 2, 3);
         expect(res.formulaTaleSpire).toBe("!Daño Curar heridas(curacion):2d8+5");

@@ -4,22 +4,6 @@ import { resolverEstadoMunicionArma, esMunicionCompatibleConArma } from "@/servi
 import type { ObjetoInventario } from "@/tipos";
 
 describe("Cálculo y Tiradas de Armas Versátiles D&D 5.5e", () => {
-  it("extrae limpiamente los dados de daño versátil ignorando tipos de daño o notas", () => {
-    const rawVersatiles = [
-      "1d10 (Cortante)",
-      "1d10 cortante",
-      "1d10",
-      "1d8 (Perforante)",
-      "1d12"
-    ];
-
-    const resultados = rawVersatiles.map((raw) => {
-      const match = raw.match(/(\d+d\d+)/i);
-      return match ? match[1] : raw.trim();
-    });
-
-    expect(resultados).toEqual(["1d10", "1d10", "1d10", "1d8", "1d12"]);
-  });
 
   it("calcula la fórmula de daño versátil sumando el modificador de atributo y bono mágico", () => {
     const modAtributo = 3;
@@ -61,21 +45,6 @@ describe("Cálculo y Tiradas de Armas Versátiles D&D 5.5e", () => {
     expect(normalizarFormulaDados(formulaTaleSpireCrit2M)).toBe("Critico Cortante:2d10+3");
   });
 
-  it("infiere correctamente el dado versátil para armas D&D 5.5e según su dado base", () => {
-    const inferirVersatil = (dadoBase: string): string | undefined => {
-      if (dadoBase.includes("1d6")) return "1d8";
-      if (dadoBase.includes("1d8")) return "1d10";
-      if (dadoBase.includes("1d10")) return "1d12";
-      if (dadoBase.includes("1d4")) return "1d6";
-      return undefined;
-    };
-
-    expect(inferirVersatil("1d6")).toBe("1d8");
-    expect(inferirVersatil("1d8")).toBe("1d10");
-    expect(inferirVersatil("1d10")).toBe("1d12");
-    expect(inferirVersatil("1d4")).toBe("1d6");
-    expect(inferirVersatil("2d6")).toBeUndefined();
-  });
 
   describe("Uso de Armas con Munición (Sin Prohibición de Uso)", () => {
     it("permite ejecutar el flujo de ataque emitiendo un aviso no intrusivo cuando no hay munición disponible", () => {

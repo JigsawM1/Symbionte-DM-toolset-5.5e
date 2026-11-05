@@ -144,9 +144,6 @@ const OPCIONES_DINAMICAS_MAP: Record<string, () => OpcionSelector[]> = {
   dotes_origen: () =>
     DOTES_ORIGEN_DND55.map((d) => ({
       ...d,
-      id: d.id,
-      nombre: d.nombre,
-      descripcion: d.descripcion,
       requisito: d.requisito || "Dote de origen",
       categoria: d.categoria || "origen"
     })).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))

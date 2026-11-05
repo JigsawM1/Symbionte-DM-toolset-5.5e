@@ -17,17 +17,12 @@ describe("Monje D&D 5.5e (2024) - Reglas y Mecánicas", () => {
       expect(artesNv1?.tipoAccion).toBe("accion_adicional");
       expect(artesNv1?.formulaDados).toBe("1d6");
 
-      const rasgosNv5 = obtenerRasgosClaseYSubclase("Monje", 5);
-      const artesNv5 = rasgosNv5.find((r) => r.nombre === "Artes marciales");
-      expect(artesNv5?.formulaDados).toBe("1d8");
-
-      const rasgosNv11 = obtenerRasgosClaseYSubclase("Monje", 11);
-      const artesNv11 = rasgosNv11.find((r) => r.nombre === "Artes marciales");
-      expect(artesNv11?.formulaDados).toBe("1d10");
-
-      const rasgosNv17 = obtenerRasgosClaseYSubclase("Monje", 17);
-      const artesNv17 = rasgosNv17.find((r) => r.nombre === "Artes marciales");
-      expect(artesNv17?.formulaDados).toBe("1d12");
+      const casos = [[5, "1d8"], [11, "1d10"], [17, "1d12"]] as const;
+      for (const [nivel, esperado] of casos) {
+        const rasgos = obtenerRasgosClaseYSubclase("Monje", nivel);
+        const artes = rasgos.find((r) => r.nombre === "Artes marciales");
+        expect(artes?.formulaDados, `nivel ${nivel}`).toBe(esperado);
+      }
     });
 
     it("Defensa sin armadura es pasivo permanente con modificador por Sabiduría", () => {
@@ -87,39 +82,23 @@ describe("Monje D&D 5.5e (2024) - Reglas y Mecánicas", () => {
       expect(metabolismoNv2?.recuperacion).toBe("descanso_largo");
       expect(metabolismoNv2?.formulaDados).toBe("1d6 + nivel");
 
-      const rasgosNv5 = obtenerRasgosClaseYSubclase("Monje", 5);
-      const metabolismoNv5 = rasgosNv5.find((r) => r.nombre === "Metabolismo asombroso");
-      expect(metabolismoNv5?.formulaDados).toBe("1d8 + nivel");
-
-      const rasgosNv11 = obtenerRasgosClaseYSubclase("Monje", 11);
-      const metabolismoNv11 = rasgosNv11.find((r) => r.nombre === "Metabolismo asombroso");
-      expect(metabolismoNv11?.formulaDados).toBe("1d10 + nivel");
-
-      const rasgosNv17 = obtenerRasgosClaseYSubclase("Monje", 17);
-      const metabolismoNv17 = rasgosNv17.find((r) => r.nombre === "Metabolismo asombroso");
-      expect(metabolismoNv17?.formulaDados).toBe("1d12 + nivel");
+      const casos = [[5, "1d8 + nivel"], [11, "1d10 + nivel"], [17, "1d12 + nivel"]] as const;
+      for (const [nivel, esperado] of casos) {
+        const rasgos = obtenerRasgosClaseYSubclase("Monje", nivel);
+        const metabolismo = rasgos.find((r) => r.nombre === "Metabolismo asombroso");
+        expect(metabolismo?.formulaDados, `nivel ${nivel}`).toBe(esperado);
+      }
     });
 
     it("Movimiento sin armadura escala la velocidad según el nivel del monje (+10 a +30)", () => {
-      const rasgosNv2 = obtenerRasgosClaseYSubclase("Monje", 2);
-      const movNv2 = rasgosNv2.find((r) => r.nombre === "Movimiento sin armadura");
-      expect(movNv2?.efectos?.[0].valor).toBe(10);
-
-      const rasgosNv6 = obtenerRasgosClaseYSubclase("Monje", 6);
-      const movNv6 = rasgosNv6.find((r) => r.nombre === "Movimiento sin armadura");
-      expect(movNv6?.efectos?.[0].valor).toBe(15);
-
-      const rasgosNv10 = obtenerRasgosClaseYSubclase("Monje", 10);
-      const movNv10 = rasgosNv10.find((r) => r.nombre === "Movimiento sin armadura");
-      expect(movNv10?.efectos?.[0].valor).toBe(20);
-
-      const rasgosNv14 = obtenerRasgosClaseYSubclase("Monje", 14);
-      const movNv14 = rasgosNv14.find((r) => r.nombre === "Movimiento sin armadura");
-      expect(movNv14?.efectos?.[0].valor).toBe(25);
-
-      const rasgosNv18 = obtenerRasgosClaseYSubclase("Monje", 18);
-      const movNv18 = rasgosNv18.find((r) => r.nombre === "Movimiento sin armadura");
-      expect(movNv18?.efectos?.[0].valor).toBe(30);
+      const casos = [
+        [2, 10], [6, 15], [10, 20], [14, 25], [18, 30]
+      ] as const;
+      for (const [nivel, esperado] of casos) {
+        const rasgos = obtenerRasgosClaseYSubclase("Monje", nivel);
+        const movimiento = rasgos.find((r) => r.nombre === "Movimiento sin armadura");
+        expect(movimiento?.efectos?.[0].valor, `nivel ${nivel}`).toBe(esperado);
+      }
     });
 
     it("Desviar ataques tiene fórmula 1d10 + destreza + nivel, gasta de Concentración y declara noGastarAlTirarDados", () => {

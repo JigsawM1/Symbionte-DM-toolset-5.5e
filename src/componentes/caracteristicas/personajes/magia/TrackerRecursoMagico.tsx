@@ -11,7 +11,6 @@ export interface GrupoRanurasMagicas {
   alGastar?: () => void;
   alRecuperar?: () => void;
   colorTema?: string;
-  colorTemaFondo?: string;
 }
 
 export interface TrackerRecursoMagicoProps {
@@ -21,7 +20,6 @@ export interface TrackerRecursoMagicoProps {
   soloLectura?: boolean;
   pieDePagina?: string;
   modoGrid?: boolean;
-  colorBordeContenedor?: string;
 }
 
 export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
@@ -89,10 +87,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
       <div className={modoGrid ? styles.contenedorGruposGrid : styles.contenedorGruposFlex}>
         {gruposValidos.map((grupo) => {
           const disponibles = Math.max(0, grupo.max - grupo.gastados);
-          const grupoEsPacto =
-            esPacto ||
-            grupo.id.toLowerCase().includes("pacto") ||
-            (grupo.colorTema ? grupo.colorTema.toLowerCase().includes("c084fc") : false);
 
           return (
             <div key={grupo.id} className={styles.tarjetaGrupoRanura}>
@@ -102,7 +96,7 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
                   <span
                     className={styles.conteoGrupoRanura}
                     data-disponible={disponibles > 0 ? "true" : "false"}
-                    data-pacto={grupoEsPacto ? "true" : "false"}
+                    data-pacto={esPacto ? "true" : "false"}
                   >
                     {disponibles}/{grupo.max}
                   </span>
@@ -136,7 +130,7 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
                       }}
                       className={styles.botonRanuraCircular}
                       data-disponible={estaDisponible ? "true" : "false"}
-                      data-pacto={grupoEsPacto ? "true" : "false"}
+                      data-pacto={esPacto ? "true" : "false"}
                       data-readonly={soloLectura ? "true" : "false"}
                     />
                   );

@@ -1,4 +1,4 @@
-import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
+﻿import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
 /**
  * @module sincronizacionSimbiote
  * Motor de sincronización bidireccional en tiempo real entre instancias del Simbiote (DM y Jugadores).
@@ -12,31 +12,35 @@ import type { PersonajeJugador } from "@/tipos/personaje";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { FragmentoCliente } from "@/tipos/talespire";
 import {
-  type EstadoIniciativaDM,
   type WireEstadoIniciativaDM,
   EsquemaWireMensajeSync,
   VERSION_PROTOCOLO_SYNC,
-  serializarEstadoCombatePJ,
   deserializarEstadoCombatePJ,
-  serializarIniciativaDM,
   deserializarIniciativaDM,
   type WireMensajeSync,
 } from "@/tipos/sync";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa";
 import { GestorReintentosSync } from "./sincronizacion/gestorReintentosSync";
 import { proyectarEstadoCombatePJ, proyectarBorradorCombatePJ } from "./sincronizacion/proyeccionEstadoCombate";
-import { BufferFragmentosSync, claveEstadoSync, empaquetarEstadoSync, type EstadoSync } from "./sincronizacion/transporteSync";
+import { BufferFragmentosSync, claveEstadoSync, type EstadoSync } from "./sincronizacion/transporteSync";
 import { gestionarNotificacionVersionIncompatible, reiniciarNotificadorVersion } from "./sincronizacion/notificadorVersionSync";
 
 export { proyectarEstadoCombatePJ };
 
-const RETARDO_DEBOUNCE_GM_MS = 350;
-const RETARDO_DEBOUNCE_PJ_MS = 150;
+import { VERSION_PROTOCOLO_SYNC_V2 } from "@/tipos/protocoloSync";
+import {
+  emitirHolaSync,
+  procesarEventoSyncV2,
+  emitirMetaCombateSync,
+  emitirCriaturaSync,
+  programarEmisionEstadoPJSync,
+  emitirLotesInicialesSync,
+} from "./sincronizacion/motorEventosSync";
 
-let timerDebounceGM: ReturnType<typeof setTimeout> | null = null;
+
 const timersPJ = new Map<string, ReturnType<typeof setTimeout>>();
 const pendientesPJ = new Map<string, PersonajeJugador>();
 const emitidasPJ = new Map<string, { personaje: PersonajeJugador; revision: number }>();
@@ -57,7 +61,6 @@ const gestorReintentos = new GestorReintentosSync(id => {
   estado.agregarNotificacion('No se confirmó tu cambio. Puedes recuperarlo desde los cambios pendientes.', 'advertencia');
 });
 const revisionesAplicadas = new Map<string, number>();
-let ultimaRevisionEmitida = 0;
 const buffersPorOrigen = new Map<string, BufferFragmentosSync>();
 function obtenerBuffer(origen: string): BufferFragmentosSync {
   let buffer = buffersPorOrigen.get(origen);
@@ -75,31 +78,14 @@ function obtenerBuffer(origen: string): BufferFragmentosSync {
   return buffer;
 }
 
-function nuevaRevision(): number {
-  ultimaRevisionEmitida = ultimaRevisionEmitida + 1;
-  return ultimaRevisionEmitida;
-}
-
 function enviarSolicitud(): void {
-  void ts.sync.send(JSON.stringify({ v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'REQ' }), 'board');
+  const estado = usarAlmacenDM.getState();
+  const pjActivo = estado.personajes.find((p) => p.idMiniaturaTS) || estado.personajes[0];
+  void emitirHolaSync(pjActivo, estado.colaIniciativa);
 }
 
-function purgarEstado(tipo: 'DM' | 'PJ', id = 'DM'): void {
-  ts.sync.purgarColaSync(texto => {
-    try {
-      const m = JSON.parse(texto) as WireMensajeSync;
-      return (m.t === 'FRAG' && m.k === tipo && m.id === id)
-        || (m.t === tipo && (m.t === 'DM' || m.d.id === id))
-        || (tipo === 'DM' && m.t === 'DM_CHUNK');
-    } catch (err) {
-      logger.debug("[Sync] Paquete inválido descartado al purgar cola:", err);
-      return false;
-    }
-  });
-}
-
-function enviarPaquetes(paquetes: string[]): Promise<boolean> {
-  return Promise.all(paquetes.map(p => ts.sync.send(p, 'board'))).then(resultados => resultados.every(Boolean));
+export function cancelarReintentosSolicitudInicial(): void {
+  gestorReintentos.cancelarReintentosREQ();
 }
 
 function confirmarRecepcionPJ(id: string, revision: number, ok = true): void {
@@ -151,14 +137,14 @@ function aplicarEstadoRecibido(mensaje: EstadoSync, origen = ""): void {
 
 /** Cancela el ciclo anterior, incluida cualquier emisión pendiente durante un cambio de rol. */
 export function reiniciarSincronizacion(): void {
-  if (timerDebounceGM) clearTimeout(timerDebounceGM);
+  
   for (const timer of timersPJ.values()) clearTimeout(timer);
   timersPJ.clear(); pendientesPJ.clear(); emitidasPJ.clear(); revisionesDM.clear();
   generacionSync++; sesionLocal = crypto.randomUUID(); sesionDM = undefined;
   sesionesDMRetiradas.clear();
   usarAlmacenDM.getState().establecerIdClienteDM(null);
   invalidarAutoridadSync();
-  timerDebounceGM = null;
+  
   gestorReintentos.destruir();
   for (const buffer of buffersPorOrigen.values()) buffer.limpiar();
   buffersPorOrigen.clear();
@@ -197,31 +183,14 @@ function esMensajeDuplicado(strCrudo: string): boolean {
  * Implementa debounce de 350ms, purgado de fragmentos obsoletos y particionado automático si excede el tamaño seguro.
  */
 export function emitirEstadoComoGM(): void {
-  if (timerDebounceGM) {
-    clearTimeout(timerDebounceGM);
-  }
-
-  timerDebounceGM = setTimeout(() => {
-    const estado = usarAlmacenDM.getState();
-    if (!estado.esGM || estado.aplicandoSync) return;
-
-    // Descartar ráfagas obsoletas de la iniciativa anterior en la cola de salida para evitar saturar el canal nativo
-    purgarEstado('DM');
-
-    const datosDM: EstadoIniciativaDM = {
-      cola: estado.colaIniciativa,
-      indiceTurnoActivo: estado.indiceTurnoActivo,
-      rondaActual: estado.rondaActual,
-      mostrarPorcentajeVidaAJugadores: estado.mostrarPorcentajeVidaAJugadores,
-      metodoVidaMonstruo: estado.metodoVidaMonstruo,
-      ts: nuevaRevision(),
-    };
-
-    const wire = serializarIniciativaDM(datosDM);
-    wire.rv = Object.fromEntries(revisionesDM);
-    const mensaje: EstadoSync = { v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'DM', d: wire };
-    void enviarPaquetes(empaquetarEstadoSync(mensaje));
-  }, RETARDO_DEBOUNCE_GM_MS);
+  const estado = usarAlmacenDM.getState();
+  if (!estado.esGM || estado.aplicandoSync) return;
+  void emitirLotesInicialesSync(
+    estado.colaIniciativa,
+    estado.rondaActual,
+    estado.indiceTurnoActivo,
+    estado.mostrarPorcentajeVidaAJugadores
+  );
 }
 
 /**
@@ -231,28 +200,8 @@ export function emitirEstadoComoGM(): void {
 export function emitirMiPersonaje(personajeId?: string): void {
   const estado = usarAlmacenDM.getState();
   const id = personajeId ?? estado.idPersonajeActivo;
-  const pj = estado.personajes.find(p => p.id === id);
-  if (!pj || estado.esGM || estado.aplicandoSync) return;
-  pendientesPJ.set(pj.id, pj);
-  estado.registrarModificacionLocalPJ(pj.id);
-  if (emitidasPJ.has(pj.id)) return;
-  clearTimeout(timersPJ.get(pj.id));
-  const generacion = generacionSync;
-  timersPJ.set(pj.id, setTimeout(() => {
-    timersPJ.delete(pj.id);
-    const pendiente = pendientesPJ.get(pj.id);
-    if (!pendiente) return;
-    void Promise.resolve(puedeEmitirPJ(pendiente.idMiniaturaTS)).then(autorizado => {
-      if (!autorizado || generacion !== generacionSync || usarAlmacenDM.getState().esGM || emitidasPJ.has(pj.id)) return;
-      const dto = proyectarEstadoCombatePJ(pendiente);
-      dto.ts = nuevaRevision();
-      const wire = serializarEstadoCombatePJ(dto, true);
-      wire.b = revisionesDM.get(pj.id) ?? 0;
-      const paquetes = empaquetarEstadoSync({ v: VERSION_PROTOCOLO_SYNC, s: sesionLocal, t: 'PJ', d: wire });
-      emitidasPJ.set(pj.id, { personaje: pendiente, revision: dto.ts });
-      gestorReintentos.registrarEmisionPJ(pj.id, dto.ts, () => enviarPaquetes(paquetes));
-    });
-  }, RETARDO_DEBOUNCE_PJ_MS));
+  if (!id || estado.esGM || estado.aplicandoSync) return;
+  programarEmisionEstadoPJSync(id);
 }
 
 /** Reaplica la edición conservada y solicita una emisión incluso si sus valores no cambiaron. */
@@ -299,9 +248,21 @@ export function solicitarEstadoInicial(): void {
 /**
  * Procesa mensajes de sincronización entrantes recibidos a través del EventBus.
  */
-export function procesarMensajeSyncEntrante(evento: {
+export async function procesarMensajeSyncEntrante(evento: {
   datos: unknown; strCrudo: string; fromClient?: FragmentoCliente;
-}): void | Promise<void> {
+}): Promise<void> {
+  if (
+    evento.datos !== null &&
+    typeof evento.datos === "object" &&
+    (evento.datos as { v?: unknown }).v === VERSION_PROTOCOLO_SYNC_V2
+  ) {
+    if (esMensajeDuplicado(`${evento.fromClient?.id ?? ""}:v3:${evento.strCrudo}`)) return;
+    const procesado = await procesarEventoSyncV2(evento.datos, evento.fromClient);
+    if (procesado && (evento.datos as { t?: string }).t === "LOTE_INICIAL") {
+      gestorReintentos.cancelarReintentosREQ();
+    }
+    return;
+  }
   const parseo = EsquemaWireMensajeSync.safeParse(evento.datos);
   if (!parseo.success) {
     gestionarNotificacionVersionIncompatible(evento.datos, evento.fromClient);
@@ -483,19 +444,28 @@ export function calcularFirmaIniciativaDM(
  * Inicializa los observadores reactivos del store Zustand.
  * Monitorea cambios locales para emitir sincronizaciones según el rol activo.
  */
+function calcularFirmaCriaturaMonstruo(c: CriaturaIniciativa): string {
+  const condStr = (c.condiciones || []).slice().sort().join(",");
+  const efStr = (c.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",");
+  return `${c.id}:${c.iniciativa}:${c.vidaActual}:${c.vidaMaxima}:${c.vidaTemporal || 0}:${c.ca || 10}:${condStr}:${efStr}`;
+}
+
 export function inicializarObservadoresStoreSync(): () => void {
   reiniciarSincronizacion();
   logger.info("[Sync] Inicializando observadores reactivos del store de combate...");
 
   const estadoInicial = usarAlmacenDM.getState();
   let eraGM = estadoInicial.esGM;
-  let prevFirmaDM = calcularFirmaIniciativaDM(
-    estadoInicial.colaIniciativa,
-    estadoInicial.indiceTurnoActivo,
-    estadoInicial.rondaActual,
-    estadoInicial.mostrarPorcentajeVidaAJugadores,
-    estadoInicial.metodoVidaMonstruo
-  );
+  let prevRonda = estadoInicial.rondaActual;
+  let prevTurno = estadoInicial.indiceTurnoActivo;
+  let prevMostrarVida = estadoInicial.mostrarPorcentajeVidaAJugadores;
+
+  const prevFirmasCriaturas = new Map<string, string>();
+  estadoInicial.colaIniciativa.forEach((c) => {
+    if (c.esMonstruo) {
+      prevFirmasCriaturas.set(c.id, calcularFirmaCriaturaMonstruo(c));
+    }
+  });
 
   const prevFirmasPJs = new Map<string, string>();
   estadoInicial.personajes.forEach((pj) => {
@@ -511,51 +481,78 @@ export function inicializarObservadoresStoreSync(): () => void {
       estadoActual.personajes.forEach((pj) => {
         prevFirmasPJs.set(pj.id, calcularFirmaPJ(pj, estadoActual.colaIniciativa));
       });
-
       if (estadoActual.esGM) {
-        prevFirmaDM = calcularFirmaIniciativaDM(
-          estadoActual.colaIniciativa,
-          estadoActual.indiceTurnoActivo,
-          estadoActual.rondaActual,
-          estadoActual.mostrarPorcentajeVidaAJugadores,
-          estadoActual.metodoVidaMonstruo
-        );
+        prevRonda = estadoActual.rondaActual;
+        prevTurno = estadoActual.indiceTurnoActivo;
+        prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
+        prevFirmasCriaturas.clear();
+        estadoActual.colaIniciativa.forEach((c) => {
+          if (c.esMonstruo) {
+            prevFirmasCriaturas.set(c.id, calcularFirmaCriaturaMonstruo(c));
+          }
+        });
       }
       return;
     }
 
     if (estadoActual.esGM) {
-      let cambioEntidad = false;
-      for (const pj of estadoActual.personajes) {
-        const firma = calcularFirmaPJ(pj, estadoActual.colaIniciativa);
-        if (prevFirmasPJs.get(pj.id) !== firma) {
-          revisionesDM.set(pj.id, (revisionesDM.get(pj.id) ?? 0) + 1);
-          cambioEntidad = true;
-        }
-        prevFirmasPJs.set(pj.id, firma);
+      // 1. Metadatos de combate (META_COMBATE)
+      if (
+        estadoActual.rondaActual !== prevRonda ||
+        estadoActual.indiceTurnoActivo !== prevTurno ||
+        estadoActual.mostrarPorcentajeVidaAJugadores !== prevMostrarVida
+      ) {
+        prevRonda = estadoActual.rondaActual;
+        prevTurno = estadoActual.indiceTurnoActivo;
+        prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
+        void emitirMetaCombateSync(
+          estadoActual.rondaActual,
+          estadoActual.indiceTurnoActivo,
+          estadoActual.mostrarPorcentajeVidaAJugadores
+        );
       }
-      // ── Observación del DM ──
-      const firmaActualDM = calcularFirmaIniciativaDM(
-        estadoActual.colaIniciativa,
-        estadoActual.indiceTurnoActivo,
-        estadoActual.rondaActual,
-        estadoActual.mostrarPorcentajeVidaAJugadores,
-        estadoActual.metodoVidaMonstruo
-      );
 
-      if (firmaActualDM !== prevFirmaDM || cambioEntidad) {
-        prevFirmaDM = firmaActualDM;
-        emitirEstadoComoGM();
+      // 2. Criaturas monstruo del DM (CRIATURA_ESTADO)
+      const idsActuales = new Set<string>();
+      for (const c of estadoActual.colaIniciativa) {
+        if (c.esMonstruo) {
+          idsActuales.add(c.id);
+          const firma = calcularFirmaCriaturaMonstruo(c);
+          if (prevFirmasCriaturas.get(c.id) !== firma) {
+            prevFirmasCriaturas.set(c.id, firma);
+            void emitirCriaturaSync(c);
+          }
+        }
+      }
+      for (const [idPrevio] of prevFirmasCriaturas) {
+        if (!idsActuales.has(idPrevio)) {
+          prevFirmasCriaturas.delete(idPrevio);
+          void emitirCriaturaSync(
+            {
+              id: idPrevio,
+              nombre: "",
+              iniciativa: 0,
+              vidaActual: 0,
+              vidaMaxima: 0,
+              ca: 10,
+              esMonstruo: true,
+              condiciones: [],
+              efectos: [],
+              velocidad: "30 pies",
+              bonificadorIniciativa: 0,
+            },
+            true
+          );
+        }
       }
     } else {
-      // ── Observación del Jugador ──
+      // ── Observación del Jugador (PJ_ESTADO) ──
       for (const pj of estadoActual.personajes) {
         const firmaActual = calcularFirmaPJ(pj, estadoActual.colaIniciativa);
         const firmaPrevia = prevFirmasPJs.get(pj.id);
-
         if (firmaActual !== firmaPrevia) {
           prevFirmasPJs.set(pj.id, firmaActual);
-          emitirMiPersonaje(pj.id);
+          programarEmisionEstadoPJSync(pj.id);
         }
       }
     }

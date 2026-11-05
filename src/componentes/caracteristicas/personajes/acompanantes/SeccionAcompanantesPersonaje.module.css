@@ -22,7 +22,8 @@
   box-shadow: var(--pj-sombra-panel);
 }
 
-.tituloFila {
+.tituloFila,
+.cabeceraTerreno {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,7 +41,8 @@
   letter-spacing: 0.5px;
 }
 
-.iconoTitulo {
+.iconoTitulo,
+.iconoInvocacion {
   color: var(--pj-texto-cian);
 }
 
@@ -104,7 +106,8 @@
   padding: 2px;
 }
 
-.botonLimpiar:hover {
+.botonLimpiar:hover,
+.botonCerrarModal:hover {
   color: var(--pj-texto-alerta);
 }
 
@@ -275,13 +278,7 @@
   color: var(--pj-texto-cian) !important;
 }
 
-.separadorVelocidad {
-  font-size: var(--pj-fuente-label);
-  font-weight: 600;
-  color: var(--pj-texto-terciario);
-  margin-left: 2px;
-}
-
+.separadorVelocidad,
 .unidadMetrica {
   font-size: var(--pj-fuente-label);
   font-weight: 600;
@@ -409,12 +406,6 @@
   gap: 4px;
 }
 
-.cabeceraTerreno {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .tituloTerreno {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
@@ -447,7 +438,9 @@
   transition: none;
 }
 
-.botonTerreno:hover {
+.botonTerreno:hover,
+.botonPasoPies:hover,
+.botonAccionVelocidad:hover:not(:disabled) {
   background: var(--pj-fondo-tarjeta-hover);
   color: var(--pj-texto-primario);
 }
@@ -535,11 +528,6 @@
   justify-content: center;
 }
 
-.botonPasoPies:hover {
-  background: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
-}
-
 .inputRestanteManual {
   width: 50px;
   background: var(--pj-fondo-hundido);
@@ -577,11 +565,6 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-}
-
-.botonAccionVelocidad:hover:not(:disabled) {
-  background: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
 }
 
 .botonAccionVelocidad:disabled {
@@ -744,10 +727,6 @@
   padding: 2px;
 }
 
-.botonCerrarModal:hover {
-  color: var(--pj-texto-alerta);
-}
-
 .modalFichaCuerpo {
   padding: 12px;
   overflow-y: auto;
@@ -774,10 +753,6 @@
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-.iconoInvocacion {
-  color: var(--pj-texto-cian);
 }
 
 .etiquetaNivelInvocacion {
@@ -818,7 +793,8 @@
   transition: none;
 }
 
-.botonNivelInvocacion:hover {
+.botonNivelInvocacion:hover,
+.botonSubtipoInvocacion:hover {
   background: var(--pj-fondo-tarjeta-hover);
   color: var(--pj-texto-primario);
   border-color: var(--pj-borde-cian);
@@ -849,12 +825,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: none;
-}
-
-.botonSubtipoInvocacion:hover {
-  background: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-cian);
 }
 
 .botonSubtipoInvocacionActivo {

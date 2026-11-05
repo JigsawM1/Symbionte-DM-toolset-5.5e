@@ -176,9 +176,6 @@
     padding: 10px;
   }
   .avatar {
-    flex-basis: 58px;
-    width: 58px;
-    height: 72px;
     font-size: 20px;
   }
   .detalles {

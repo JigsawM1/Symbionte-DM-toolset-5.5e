@@ -200,7 +200,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           <PanelCompetenciasPersonaje
             personaje={personajeActivo}
             statsCalculadas={statsCalculadas}
-            alAbrirSelectorCompetencias={(categoria) => setModalCompetencias(categoria)}
+            alAbrirSelectorCompetencias={setModalCompetencias}
           />
         </>
       )}

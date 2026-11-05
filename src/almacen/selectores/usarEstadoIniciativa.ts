@@ -40,6 +40,7 @@ export function usarAccionesIniciativa() {
       alternarRolCriatura:               s.alternarRolCriatura,
       quitarCriaturaDeIniciativa:        s.quitarCriaturaDeIniciativa,
       modificarVidaCriaturaIniciativa:   s.modificarVidaCriaturaIniciativa,
+      dañarCriaturaIniciativa:           s.dañarCriaturaIniciativa,
       modificarVidaMaximaCriaturaIniciativa: s.modificarVidaMaximaCriaturaIniciativa,
       actualizarVidaTemporal:            s.actualizarVidaTemporal,
       establecerIniciativaCriatura:      s.establecerIniciativaCriatura,
@@ -55,8 +56,6 @@ export function usarAccionesIniciativa() {
       ejecutarSalvacionEnArea:           s.ejecutarSalvacionEnArea,
       importarIniciativaTaleSpire:       s.importarIniciativaTaleSpire,
       autoLanzarIniciativaMonstruos:     s.autoLanzarIniciativaMonstruos,
-      actualizarColaIniciativaDesdeTaleSpire: s.actualizarColaIniciativaDesdeTaleSpire,
-      actualizarSeleccionCriaturas:      s.actualizarSeleccionCriaturas,
       establecerTipoTirada:              s.establecerTipoTirada,
     }))
   );

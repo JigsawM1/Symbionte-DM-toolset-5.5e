@@ -14,6 +14,19 @@ interface SeccionDefensasProps {
   alternarCheckArray: (campo: "vulnerabilidades" | "resistencias" | "inmunidadesDaño" | "inmunidadesCondicion", valor: string) => void;
 }
 
+const defensas: {
+  pestana: SeccionDefensasProps["subDefensas"];
+  campo: keyof SeccionDefensasProps["monstruoForm"];
+  etiqueta: string;
+  prefijo: string;
+  opciones: string[];
+}[] = [
+  { pestana: "inmunidades", campo: "inmunidadesDaño", etiqueta: "Inm. Daño", prefijo: "inm", opciones: TIPOS_DAÑO_DND },
+  { pestana: "resistencias", campo: "resistencias", etiqueta: "Res. Daño", prefijo: "res", opciones: TIPOS_DAÑO_DND },
+  { pestana: "vulnerabilidades", campo: "vulnerabilidades", etiqueta: "Vuln. Daño", prefijo: "vuln", opciones: TIPOS_DAÑO_DND },
+  { pestana: "condiciones", campo: "inmunidadesCondicion", etiqueta: "Inm. Condic", prefijo: "inm_cond", opciones: CONDICIONES_DND }
+];
+
 export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
   monstruoForm,
   subDefensas,
@@ -23,104 +36,34 @@ export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
   return (
     <div className={estilos.seccionContenido}>
       <div className={estilos.selectorDefensasNavegacion}>
-        <button
-          type="button"
-          onClick={() => setSubDefensas("inmunidades")}
-          className={`${estilos.subDefBoton} ${subDefensas === "inmunidades" ? estilos.subDefBotonActivo : ""}`}
-        >
-          Inm. Daño ({monstruoForm.inmunidadesDaño?.length || 0})
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubDefensas("resistencias")}
-          className={`${estilos.subDefBoton} ${subDefensas === "resistencias" ? estilos.subDefBotonActivo : ""}`}
-        >
-          Res. Daño ({monstruoForm.resistencias?.length || 0})
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubDefensas("vulnerabilidades")}
-          className={`${estilos.subDefBoton} ${subDefensas === "vulnerabilidades" ? estilos.subDefBotonActivo : ""}`}
-        >
-          Vuln. Daño ({monstruoForm.vulnerabilidades?.length || 0})
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubDefensas("condiciones")}
-          className={`${estilos.subDefBoton} ${subDefensas === "condiciones" ? estilos.subDefBotonActivo : ""}`}
-        >
-          Inm. Condic ({monstruoForm.inmunidadesCondicion?.length || 0})
-        </button>
+        {defensas.map(({ pestana, campo, etiqueta }) => (
+          <button
+            key={pestana}
+            type="button"
+            onClick={() => setSubDefensas(pestana)}
+            className={`${estilos.subDefBoton} ${subDefensas === pestana ? estilos.subDefBotonActivo : ""}`}
+          >
+            {etiqueta} ({monstruoForm[campo]?.length || 0})
+          </button>
+        ))}
       </div>
 
       <div className={estilos.contenedorChecksDefensas}>
-        {/* INMUNIDADES AL DAÑO */}
-        {subDefensas === "inmunidades" && (
-          <div className={estilos.gridCheckboxMini}>
-            {TIPOS_DAÑO_DND.map((daño: string) => (
-              <label key={`inm_${daño}`} className={estilos.labelCheckMini}>
+        {defensas.map(({ pestana, campo, prefijo, opciones }) => subDefensas === pestana && (
+          <div key={pestana} className={estilos.gridCheckboxMini}>
+            {opciones.map((valor) => (
+              <label key={`${prefijo}_${valor}`} className={estilos.labelCheckMini}>
                 <input
                   type="checkbox"
-                  checked={monstruoForm.inmunidadesDaño?.includes(daño) || false}
-                  onChange={() => alternarCheckArray("inmunidadesDaño", daño)}
+                  checked={monstruoForm[campo]?.includes(valor) || false}
+                  onChange={() => alternarCheckArray(campo, valor)}
                   className={estilos.checkMini}
                 />
-                {daño}
+                {valor}
               </label>
             ))}
           </div>
-        )}
-
-        {/* RESISTENCIAS AL DAÑO */}
-        {subDefensas === "resistencias" && (
-          <div className={estilos.gridCheckboxMini}>
-            {TIPOS_DAÑO_DND.map((daño: string) => (
-              <label key={`res_${daño}`} className={estilos.labelCheckMini}>
-                <input
-                  type="checkbox"
-                  checked={monstruoForm.resistencias?.includes(daño) || false}
-                  onChange={() => alternarCheckArray("resistencias", daño)}
-                  className={estilos.checkMini}
-                />
-                {daño}
-              </label>
-            ))}
-          </div>
-        )}
-
-        {/* VULNERABILIDADES AL DAÑO */}
-        {subDefensas === "vulnerabilidades" && (
-          <div className={estilos.gridCheckboxMini}>
-            {TIPOS_DAÑO_DND.map((daño: string) => (
-              <label key={`vuln_${daño}`} className={estilos.labelCheckMini}>
-                <input
-                  type="checkbox"
-                  checked={monstruoForm.vulnerabilidades?.includes(daño) || false}
-                  onChange={() => alternarCheckArray("vulnerabilidades", daño)}
-                  className={estilos.checkMini}
-                />
-                {daño}
-              </label>
-            ))}
-          </div>
-        )}
-
-        {/* INMUNIDADES A CONDICIONES */}
-        {subDefensas === "condiciones" && (
-          <div className={estilos.gridCheckboxMini}>
-            {CONDICIONES_DND.map((condicion: string) => (
-              <label key={`inm_cond_${condicion}`} className={estilos.labelCheckMini}>
-                <input
-                  type="checkbox"
-                  checked={monstruoForm.inmunidadesCondicion?.includes(condicion) || false}
-                  onChange={() => alternarCheckArray("inmunidadesCondicion", condicion)}
-                  className={estilos.checkMini}
-                />
-                {condicion}
-              </label>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );

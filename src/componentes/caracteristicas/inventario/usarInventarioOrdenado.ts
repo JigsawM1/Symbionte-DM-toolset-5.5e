@@ -32,6 +32,25 @@ import { usarDragAndDropInventario } from "./usarDragAndDropInventario";
 export type { CriterioOrdenMochila, CajaMovilizacionRapida, ContenedorEspecialConfig, SubseccionMochilaTipo };
 export { OPCIONES_ORDEN_MOCHILA, CAJAS_MOVILIZACION_RAPIDA, CONTENEDORES_ESPECIALES_CONFIG };
 
+const SECCIONES_INICIALES: Record<string, boolean> = {
+  recursos: true,
+  equipados: true,
+  consumibles: true,
+  municion: true,
+  armas: true,
+  armaduras: true,
+  escudos: true,
+  herramientas: true,
+  "focos-magicos": true,
+  contenedores: true,
+  "paquetes-equipo": true,
+  magicos: true,
+  equipo: true,
+  bolsa_contencion: true,
+  montura: true,
+  almacen: true
+};
+
 interface ParametrosInventarioOrdenado {
   personaje: PersonajeJugador;
   statsCalculadas: EstadisticasCalculadasPersonaje;
@@ -54,24 +73,7 @@ export function usarInventarioOrdenado({
   // Estado persistente de secciones colapsables
   const [seccionesAbiertas, setSeccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
     "ts_inventario_secciones_abiertas",
-    {
-      recursos: true,
-      equipados: true,
-      consumibles: true,
-      municion: true,
-      armas: true,
-      armaduras: true,
-      escudos: true,
-      herramientas: true,
-      "focos-magicos": true,
-      contenedores: true,
-      "paquetes-equipo": true,
-      magicos: true,
-      equipo: true,
-      bolsa_contencion: true,
-      montura: true,
-      almacen: true
-    }
+    SECCIONES_INICIALES
   );
 
   // Estados de Búsqueda y Orden en Mochila
@@ -85,59 +87,17 @@ export function usarInventarioOrdenado({
     }));
   };
 
-  const colapsarTodasSecciones = () => {
+  const establecerTodasSecciones = (abiertas: boolean) => {
     setSeccionesAbiertas((prev) => {
-      const colapsadas: Record<string, boolean> = {
-        recursos: false,
-        equipados: false,
-        consumibles: false,
-        municion: false,
-        armas: false,
-        armaduras: false,
-        escudos: false,
-        herramientas: false,
-        "focos-magicos": false,
-        contenedores: false,
-        "paquetes-equipo": false,
-        magicos: false,
-        equipo: false,
-        bolsa_contencion: false,
-        montura: false,
-        almacen: false
-      };
-      for (const k of Object.keys(prev)) {
-        colapsadas[k] = false;
+      const secciones: Record<string, boolean> = {};
+      for (const clave of Object.keys({ ...SECCIONES_INICIALES, ...prev })) {
+        secciones[clave] = abiertas;
       }
-      return colapsadas;
+      return secciones;
     });
   };
-
-  const expandirTodasSecciones = () => {
-    setSeccionesAbiertas((prev) => {
-      const expandidas: Record<string, boolean> = {
-        recursos: true,
-        equipados: true,
-        consumibles: true,
-        municion: true,
-        armas: true,
-        armaduras: true,
-        escudos: true,
-        herramientas: true,
-        "focos-magicos": true,
-        contenedores: true,
-        "paquetes-equipo": true,
-        magicos: true,
-        equipo: true,
-        bolsa_contencion: true,
-        montura: true,
-        almacen: true
-      };
-      for (const k of Object.keys(prev)) {
-        expandidas[k] = true;
-      }
-      return expandidas;
-    });
-  };
+  const colapsarTodasSecciones = () => establecerTodasSecciones(false);
+  const expandirTodasSecciones = () => establecerTodasSecciones(true);
 
   const inventario = personaje.inventario || [];
   const bolsaMonedas = personaje.bolsaMonedas || { pc: 0, pp: 0, pe: 0, po: 0, ppt: 0 };
@@ -163,14 +123,12 @@ export function usarInventarioOrdenado({
   // 3. Listas por compartimento memoizadas en un solo paso O(N)
   const {
     objetosEquipados,
-    objetosNoEquipados,
     objetosMochilaBase,
     objetosBolsaContencionBase,
     objetosMonturaBase,
     objetosAlmacenBase
   } = useMemo(() => {
     const equipados: ObjetoInventario[] = [];
-    const noEquipados: ObjetoInventario[] = [];
     const mochila: ObjetoInventario[] = [];
     const bolsa: ObjetoInventario[] = [];
     const montura: ObjetoInventario[] = [];
@@ -180,7 +138,6 @@ export function usarInventarioOrdenado({
       if (o.equipado) {
         equipados.push(o);
       } else {
-        noEquipados.push(o);
         const c = o.contenedor;
         if (!c || c === "mochila") mochila.push(o);
         else if (c === "bolsa_contencion") bolsa.push(o);
@@ -192,7 +149,6 @@ export function usarInventarioOrdenado({
 
     return {
       objetosEquipados: equipados,
-      objetosNoEquipados: noEquipados,
       objetosMochilaBase: mochila,
       objetosBolsaContencionBase: bolsa,
       objetosMonturaBase: montura,
@@ -264,9 +220,6 @@ export function usarInventarioOrdenado({
     inventario,
     alCambiarContenedor,
     alAlternarEquipado,
-    alReordenarInventario,
-    alCambiarOrden: setCriterioOrden,
-    criterioOrden,
     agregarNotificacion
   });
 
@@ -282,7 +235,6 @@ export function usarInventarioOrdenado({
     fuerzaEfectiva,
     capacidadCarga,
     pesoTotal,
-    desglosePesos,
     sobrecargado,
     porcentajeCarga,
     pesoContenedoresSinCarga,
@@ -291,7 +243,6 @@ export function usarInventarioOrdenado({
     totalSintonizados,
     objetosSintonizados,
     objetosEquipados,
-    objetosNoEquipados,
     objetosMochilaBase,
     objetosMochilaFiltrados,
     mapaContenedoresEspeciales,

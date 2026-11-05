@@ -288,19 +288,13 @@ describe("Dotes Generales Canónicas D&D 5.5e — Lote 3/4", () => {
       // Arma perforante con daño secundario (ej. Lanza con 1d8 perforante / 1d6 fuego):
       // El 1d8 perforante se convierte en 3d8, pero el 1d6 fuego se queda en 2d6 (sin +1)
       const ataqueCompuesto: AtaquePersonajeCalculado = {
+        ...ataqueCortante,
         id: "atk-compuesto",
         nombre: "Lanza Flamígera",
-        tipo: "Arma",
-        tipoAccion: "accion",
-        caracteristicaUsada: "fuerza",
-        bonoAtaque: 5,
         dadoDano: "1d8/1d6+3",
         dadoDanoBase: "1d8/1d6",
-        modificadorDano: 3,
-        esDanoFijo: false,
         tipoDano: "perforante/fuego",
-        propiedades: [],
-        tieneTiradaAtaque: true
+        propiedades: []
       };
 
       await ejecutarTiradaCritico(ataqueCompuesto, pj, false);

@@ -9,10 +9,8 @@ import {
 import {
   serializarEstadoCombatePJ,
   deserializarEstadoCombatePJ,
-  dividirEnChunksIniciativa,
   type EstadoCombatePJ,
   type WireChunkIniciativa,
-  type WireEstadoIniciativaDM,
 } from "@/tipos/sync";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
@@ -283,36 +281,6 @@ describe("Sincronización Robusta - Validación de Mecanismos Anti-Regresión y 
       expect(buffer.obtenerSesionActiva()).toBe(300);
     });
 
-    it("dividirEnChunksIniciativa incluye el mismo sid en todos los fragmentos", () => {
-      const wireDM: WireEstadoIniciativaDM = {
-        t: 0,
-        r: 1,
-        v: true,
-        mv: "estandar",
-        c: Array.from({ length: 12 }, (_, i) => ({
-          id: `criatura-${i}`,
-          n: `Enemigo de prueba largo ${i}`,
-          i: 10 + i,
-          va: 50,
-          vm: 50,
-          vt: 0,
-          ca: 15,
-          m: true,
-          c: [],
-          e: [],
-          vel: "30 pies",
-        })),
-      };
-
-      const chunks = dividirEnChunksIniciativa(wireDM, 250);
-      expect(chunks.length).toBeGreaterThan(1);
-
-      const sidPrimerChunk = chunks[0].sid;
-      expect(sidPrimerChunk).toBeGreaterThan(0);
-      for (const ch of chunks) {
-        expect(ch.sid).toBe(sidPrimerChunk);
-      }
-    });
   });
 
   describe("4. Reintentos de REQ y Seguimiento ACK", () => {

@@ -5,12 +5,7 @@
   padding-bottom: 100px; /* Espacio para que la Sticky Bottom Bar (≈80px) no tape el último campo al hacer scroll */
 }
 
-.filaDobleForm {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-
+.filaDobleForm,
 .filaTripleForm {
   display: flex;
   flex-direction: row;
@@ -43,32 +38,6 @@
   border-radius: var(--dm-radio-control, 5px);
   color: var(--color-texto-principal);
   outline: none;
-}
-
-.inputForm:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
-.selectForm {
-  font-size: 13px;
-  padding: 6px 28px 6px 10px;
-  height: 34px;
-  width: 100%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectForm:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
 }
 
 .bloqueDinamicoForm {
@@ -139,6 +108,7 @@
   resize: vertical;
 }
 
+.inputForm:focus,
 .textareaBrutal:focus {
   border-color: var(--color-borde-cian);
   box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
@@ -239,24 +209,6 @@
   color: var(--pj-texto-primario);
 }
 
-:global([data-tema="jugador"]) .inputForm:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .selectForm {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectForm:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 :global([data-tema="jugador"]) .bloqueDinamicoForm {
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-medio);
@@ -283,6 +235,7 @@
   font-family: var(--fuente-principal);
 }
 
+:global([data-tema="jugador"]) .inputForm:focus,
 :global([data-tema="jugador"]) .textareaBrutal:focus {
   border-color: var(--pj-borde-cian-fuerte);
   box-shadow: var(--pj-sombra-tarjeta);

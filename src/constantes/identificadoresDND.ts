@@ -55,9 +55,7 @@ export function coincideIdRasgo(rasgo: RasgoPersonaje, idBuscado: string): boole
   const nomNormRasgo = normalizarIdentificador(rasgo.nombre);
 
   return (
-    idNormRasgo === idNormBuscado ||
     idNormRasgo.includes(idNormBuscado) ||
-    nomNormRasgo === idNormBuscado ||
     nomNormRasgo.includes(idNormBuscado)
   );
 }
@@ -80,8 +78,7 @@ export const CLASES_LANZADORAS_CARISMA: ReadonlySet<string> = new Set([
   ID_CLASE.PALADIN,
   "warlock",
   "bard",
-  "sorcerer",
-  "paladin"
+  "sorcerer"
 ]);
 
 /**
@@ -101,7 +98,6 @@ export const CLASES_LANZADORAS_SABIDURIA: ReadonlySet<string> = new Set([
  */
 export const CLASES_LANZADORAS_INTELIGENCIA: ReadonlySet<string> = new Set([
   ID_CLASE.MAGO,
-  "mago",
   "wizard",
   "artificer",
   "artifice"
@@ -129,7 +125,6 @@ export const CLASES_DRUIDA: ReadonlySet<string> = new Set([
 export function esClasePacto(nombreOIdClase: string = ""): boolean {
   const norm = normalizarIdentificador(nombreOIdClase);
   if (!norm) return false;
-  if (CLASES_PACTO.has(norm)) return true;
   for (const clase of CLASES_PACTO) {
     if (norm.includes(clase)) return true;
   }
@@ -142,7 +137,6 @@ export function esClasePacto(nombreOIdClase: string = ""): boolean {
 export function esLanzadorCarisma(nombreOIdClase: string = ""): boolean {
   const norm = normalizarIdentificador(nombreOIdClase);
   if (!norm) return false;
-  if (CLASES_LANZADORAS_CARISMA.has(norm)) return true;
   for (const clase of CLASES_LANZADORAS_CARISMA) {
     if (norm.includes(clase)) return true;
   }
@@ -155,7 +149,6 @@ export function esLanzadorCarisma(nombreOIdClase: string = ""): boolean {
 export function esLanzadorSabiduria(nombreOIdClase: string = ""): boolean {
   const norm = normalizarIdentificador(nombreOIdClase);
   if (!norm) return false;
-  if (CLASES_LANZADORAS_SABIDURIA.has(norm)) return true;
   for (const clase of CLASES_LANZADORAS_SABIDURIA) {
     if (norm.includes(clase)) return true;
   }
@@ -168,7 +161,6 @@ export function esLanzadorSabiduria(nombreOIdClase: string = ""): boolean {
 export function esLanzadorInteligencia(nombreOIdClase: string = ""): boolean {
   const norm = normalizarIdentificador(nombreOIdClase);
   if (!norm) return false;
-  if (CLASES_LANZADORAS_INTELIGENCIA.has(norm)) return true;
   for (const clase of CLASES_LANZADORAS_INTELIGENCIA) {
     if (norm.includes(clase)) return true;
   }
@@ -191,7 +183,6 @@ export function resolverAtributoConjuroClase(nombreOIdClase: string = ""): Carac
 export function esClaseBarbaro(nombreOIdClase: string = ""): boolean {
   const norm = normalizarIdentificador(nombreOIdClase);
   if (!norm) return false;
-  if (CLASES_BARBARO.has(norm)) return true;
   for (const clase of CLASES_BARBARO) {
     if (norm.includes(clase)) return true;
   }

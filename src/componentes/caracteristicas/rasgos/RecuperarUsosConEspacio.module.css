@@ -65,7 +65,8 @@
   border-radius: var(--pj-radio-control);
 }
 
-.bloqueRecurso {
+.bloqueRecurso,
+.itemCostePuntos {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -91,7 +92,9 @@
   color: var(--pj-texto-magia);
 }
 
-.subBloque {
+.subBloque,
+.ayudaSeccion,
+.proyeccionRestante {
   font-size: var(--pj-fuente-micro);
   color: var(--pj-texto-terciario);
 }
@@ -125,10 +128,6 @@
   letter-spacing: 0.04em;
 }
 
-.ayudaSeccion {
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-}
 
 .rejillaEspacios {
   display: grid;
@@ -206,10 +205,6 @@
   color: var(--pj-texto-primario-suave);
 }
 
-.proyeccionRestante {
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-}
 
 /* 4. Alertas y Estados Vacíos */
 .avisoVacio {
@@ -283,7 +278,8 @@
   color: var(--pj-texto-acento-brillante);
 }
 
-.botonContador:disabled {
+.botonContador:disabled,
+.botonMaximo:disabled {
   opacity: 0.35;
   cursor: default;
 }
@@ -334,10 +330,6 @@
   background: var(--pj-fondo-tarjeta-hover);
 }
 
-.botonMaximo:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
 
 .resumenCostePuntos {
   display: grid;
@@ -347,11 +339,6 @@
   border-top: 1px solid var(--pj-borde-sutil);
 }
 
-.itemCostePuntos {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
 
 .itemCostePuntos span {
   font-size: var(--pj-fuente-micro);

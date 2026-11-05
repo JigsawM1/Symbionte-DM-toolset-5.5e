@@ -282,7 +282,6 @@
             }
           ],
           "maxSelecciones": 2,
-          "valorActual": [],
           "visualizacion": "normal",
           "escaladoMaxSelecciones": [
             {
@@ -390,11 +389,8 @@
       "selectores": [
         {
           "id": "habilidad_conocimiento_primigenio",
-          "tipo": "unico",
           "tipoSelector": "general",
           "etiqueta": "Habilidad adicional",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "visualizacion": "normal",
           "opciones": [
             {
@@ -482,14 +478,10 @@
       "selectores": [
         {
           "id": "selector_dote_asi_barbaro_nv4",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
-          "claveOpcionesDinamicas": "dotes_elegibles",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_elegibles"
         }
       ]
     },
@@ -558,14 +550,10 @@
       "selectores": [
         {
           "id": "selector_dote_asi_barbaro_nv8",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
-          "claveOpcionesDinamicas": "dotes_elegibles",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_elegibles"
         }
       ]
     },
@@ -632,14 +620,10 @@
       "selectores": [
         {
           "id": "selector_dote_asi_barbaro_nv12",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
-          "claveOpcionesDinamicas": "dotes_elegibles",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_elegibles"
         }
       ]
     },
@@ -696,14 +680,10 @@
       "selectores": [
         {
           "id": "selector_dote_asi_barbaro_nv16",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote elegida",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
-          "claveOpcionesDinamicas": "dotes_elegibles",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_elegibles"
         }
       ]
     },
@@ -732,14 +712,10 @@
       "selectores": [
         {
           "id": "selector_dote_don_epico_barbaro_nv19",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Don épico elegido",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "requiereEleccionExplicita": true,
-          "claveOpcionesDinamicas": "dotes_elegibles",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_elegibles"
         }
       ]
     },
@@ -910,7 +886,6 @@
             {
               "id": "furia_tierras_salvajes_opcion",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Aspecto de Furia Primigenia",
               "opciones": [
                 {
@@ -994,8 +969,6 @@
                   "descripcion": "Tus aliados tienen ventaja al atacar a enemigos a 5 pies de ti durante Furia"
                 }
               ],
-              "maxSelecciones": 1,
-              "valorActual": [],
               "visualizacion": "normal",
               "momentoEleccion": "activacion"
             }
@@ -1013,7 +986,6 @@
             {
               "id": "aspecto_tierras_salvajes_opcion",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Aspecto de las Tierras Salvajes",
               "opciones": [
                 {
@@ -1059,8 +1031,6 @@
                   ]
                 }
               ],
-              "maxSelecciones": 1,
-              "valorActual": [],
               "visualizacion": "normal",
               "momentoEleccion": "descanso_largo"
             }
@@ -1092,7 +1062,6 @@
             {
               "id": "poder_tierras_salvajes_opcion",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Poder de las Tierras Salvajes",
               "opciones": [
                 {
@@ -1120,8 +1089,6 @@
                   "descripcion": "Derriba a criaturas Grandes o menores al acertar ataque cuerpo a cuerpo durante Furia"
                 }
               ],
-              "maxSelecciones": 1,
-              "valorActual": [],
               "visualizacion": "normal",
               "momentoEleccion": "activacion"
             }
@@ -1313,7 +1280,6 @@
           "selectores": [
             {
               "id": "furia_divina_tipo_dano",
-              "tipo": "unico",
               "tipoSelector": "general",
               "etiqueta": "Tipo de daño divino",
               "opciones": [
@@ -1328,8 +1294,6 @@
                   "descripcion": "Daño necrótico."
                 }
               ],
-              "maxSelecciones": 1,
-              "valorActual": [],
               "visualizacion": "normal",
               "momentoEleccion": "activacion"
             }

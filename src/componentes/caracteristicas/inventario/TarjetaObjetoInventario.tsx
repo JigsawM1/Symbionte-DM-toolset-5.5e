@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import type { ObjetoInventario, Rareza, TipoContenedor, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
+import type { ObjetoInventario, Rareza, ObjetoJuego, Arma, Armadura, Escudo } from "@/tipos";
 import { Swords, Link2, Trash2, Plus, Minus, Zap, Sparkles, Heart, PackageOpen, GripVertical } from "lucide-react";
 import { ConfirmDialog } from "@/componentes/comunes/ConfirmDialog";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
@@ -28,7 +28,6 @@ interface TarjetaObjetoInventarioProps {
   alEliminar: () => void;
   alUsar?: (objeto: ObjetoInventario) => void;
   alDesempaquetar?: () => void;
-  alCambiarContenedor?: (contenedor: TipoContenedor) => void;
   alSoltarReordenar?: (idInstanciaOrigen: string, idInstanciaDestino: string) => void;
   alIniciarArrastre?: () => void;
   alFinalizarArrastre?: () => void;
@@ -57,7 +56,6 @@ export const TarjetaObjetoInventario: React.FC<TarjetaObjetoInventarioProps> = R
   alEliminar,
   alUsar,
   alDesempaquetar,
-  alCambiarContenedor: _alCambiarContenedor,
   alSoltarReordenar,
   alIniciarArrastre,
   alFinalizarArrastre

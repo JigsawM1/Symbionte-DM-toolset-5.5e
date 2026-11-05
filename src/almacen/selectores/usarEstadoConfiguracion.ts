@@ -25,16 +25,6 @@ export function usarPestanaActiva() {
   return usarAlmacenDM((s) => s.pestañaActiva);
 }
 
-/** Selector atómico para las notificaciones del sistema. */
-export function usarNotificaciones() {
-  return usarAlmacenDM((s) => s.notificaciones);
-}
-
-/** Selector atómico para el rol de GM. */
-export function usarEsGM() {
-  return usarAlmacenDM((s) => s.esGM);
-}
-
 /** Estado de lectura de la configuración y sesión (Compatibilidad retroactiva). */
 export function usarEstadoConfiguracion() {
   return usarAlmacenDM(

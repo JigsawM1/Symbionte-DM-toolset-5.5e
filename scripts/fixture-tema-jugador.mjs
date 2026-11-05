@@ -33,15 +33,14 @@ const rasgo=EsquemaRasgoPersonaje.parse({id:'rasgo-prueba',nombre:'Escudo del za
 const objeto=EsquemaObjetoInventario.parse({idInstancia:'objeto-prueba',idObjeto:'custom-prueba',nombre:'Amuleto del zafiro',categoria:'equipo-aventurero',pesoLb:1,esMagico:true,rareza:'Raro',notas:'Primera parte.\\n\\nSegunda parte.'});
 pj.rasgos=[rasgo];pj.inventario=[objeto];pj.esLanzador=true;pj.inspiracion=true;pj.espaciosConjuroMaximos={'1':4,'2':3,'3':2};pj.espaciosConjuroGastados={'1':1};pj.conjurosConocidosIds=[conjuro.id];pj.conjurosPreparadosIds=[conjuro.id];
 usarAlmacenDM.setState({ esGM:false, personajes:[pj], idPersonajeActivo:pj.id, colaIniciativa:criaturas, rondaActual:2, indiceTurnoActivo:0, datosInicialesCargados:false });
-const vistas = { caracteristicas:VistaJugadores, acciones:VistaAtaquesJugador, inventario:VistaInventarioJugador, rasgos:VistaRasgosJugador, conjuros:Compendio, iniciativa:IniciativaJugador, notas:NotasDM, dm:GestorIniciativa };
-Object.assign(vistas,{
+const vistas = { caracteristicas:VistaJugadores, acciones:VistaAtaquesJugador, inventario:VistaInventarioJugador, rasgos:VistaRasgosJugador, conjuros:Compendio, iniciativa:IniciativaJugador, notas:NotasDM, dm:GestorIniciativa,
  'configuracion-personaje':()=>React.createElement(PanelConfiguracionPersonaje,{personaje:pj,alGuardar:()=>{},alVolverAFicha:()=>{}}),
  constructor:()=>React.createElement(ConstructorRasgoDote,{personaje:pj,alGuardar:()=>{},alVolver:()=>{}}),
  'agregar-objeto':()=>React.createElement(ModalAgregarObjeto,{baseDatosObjetos:OBJETOS_INICIALES,alAgregarObjeto:objeto=>{window.objetoAgregado=objeto;},alCerrar:()=>{window.modalCerrado=true;}}),
  'detalle-objeto':()=>React.createElement(ModalDetalleObjetoInventario,{objeto,totalSintonizados:0,alCerrar:()=>{}}),
  'detalle-rasgo':()=>React.createElement(ModalDetalleRasgo,{rasgo,nombrePersonaje:pj.nombre,nivelPersonaje:5,alCerrar:()=>{},alGastarUso:()=>{},alRecuperarUso:()=>{},alAlternarActivo:()=>{}}),
  homebrew:CreadorHomebrew
-});
+};
 const raiz = createRoot(document.getElementById('root'));
 function Aplicacion() {
  const estado = usarAlmacenDM(s => ({ esGM:s.esGM, pestañaActiva:s.pestañaActiva }));
@@ -68,5 +67,5 @@ window.probarDM = () => {
  }
  raizPruebas.remove();return resultados;
 };
-window.mostrar('caracteristicas');raiz.render(React.createElement(Aplicacion));window.listo=true;
+window.mostrar('caracteristicas');window.listo=true;
 </script></body></html>`;

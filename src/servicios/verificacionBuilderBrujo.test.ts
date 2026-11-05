@@ -22,10 +22,7 @@ import catalogo from "@/datos/clases/brujo.json";
 import HECHIZOS from "@/utiles/compendios/all.json";
 
 interface RasgoCatalogoRaw {
-  nivel: number;
   nombre: string;
-  ligadoA?: string;
-  categoriaMecanica?: string;
   efectos?: EfectoMecanicoRasgo[];
 }
 
@@ -43,14 +40,9 @@ interface CatalogoBrujoRaw {
 interface EfectoEsperado {
   origen: "clase" | "subclase";
   subclase?: string;
-  nivel: number;
   rasgo: string;
-  ligadoA?: string;
-  categoriaMecanica?: string;
   tipo: string;
   objetivo: string;
-  valor: unknown;
-  condicion?: string;
 }
 
 const catalogoTipado = catalogo as unknown as CatalogoBrujoRaw;
@@ -61,14 +53,9 @@ for (const r of catalogoTipado.rasgos) {
     for (const ef of r.efectos) {
       efectosCatalogo.push({
         origen: "clase",
-        nivel: r.nivel,
         rasgo: r.nombre,
-        ligadoA: r.ligadoA,
-        categoriaMecanica: r.categoriaMecanica,
         tipo: ef.tipo,
-        objetivo: ef.objetivo,
-        valor: ef.valor,
-        condicion: ef.condicion || undefined
+        objetivo: ef.objetivo
       });
     }
   }
@@ -81,14 +68,9 @@ for (const sub of (catalogoTipado.subclases || [])) {
         efectosCatalogo.push({
           origen: "subclase",
           subclase: sub.nombre,
-          nivel: r.nivel,
           rasgo: r.nombre,
-          ligadoA: r.ligadoA,
-          categoriaMecanica: r.categoriaMecanica,
           tipo: ef.tipo,
-          objetivo: ef.objetivo,
-          valor: ef.valor,
-          condicion: ef.condicion || undefined
+          objetivo: ef.objetivo
         });
       }
     }

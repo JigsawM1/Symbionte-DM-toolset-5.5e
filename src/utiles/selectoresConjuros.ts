@@ -79,27 +79,3 @@ export function agregarValoresSelectorAListas(
   }
   return resultado;
 }
-
-/**
- * Elimina de las listas los valores indicados (respetando el destino del selector).
- * Devuelve nuevas listas. Función PURA.
- */
-export function quitarValoresSelectorDeListas(
-  selector: SelectorMinimo,
-  valores: readonly string[],
-  listas: ListasConjurosSelector
-): ListasConjurosSelector {
-  const fuera = (lista: string[]): string[] => lista.filter((c) => !valores.includes(c));
-  if (esSelectorDeTrucos(selector)) {
-    return { ...listas, trucos: fuera(listas.trucos) };
-  }
-  if (esSelectorSoloLibro(selector)) {
-    return { ...listas, conocidos: fuera(listas.conocidos) };
-  }
-  return {
-    ...listas,
-    siempre: fuera(listas.siempre),
-    preparados: fuera(listas.preparados),
-    conocidos: fuera(listas.conocidos)
-  };
-}

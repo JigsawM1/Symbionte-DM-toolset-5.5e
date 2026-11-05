@@ -7,7 +7,6 @@ import estilosModal from "../ModalDetalleCaracteristica.module.css";
 interface EditorPuntuacionYOverrideProps {
   valorBaseForm: string;
   setValorBaseForm: (val: string) => void;
-  valorBaseActual: number;
   modBasePreview: number;
   overrideForm: string;
   setOverrideForm: (val: string) => void;

@@ -106,6 +106,7 @@
   justify-content: center;
   cursor: pointer;
   outline: none;
+  border: 2px solid var(--dm-borde, hsl(240, 5%, 26%));
 }
 
 .contadorDado {
@@ -244,12 +245,6 @@
   border-radius: var(--dm-radio-control, 8px);
 }
 
-.tarjetaDado {
-  position: relative;
-  aspect-ratio: 1/1;
-  border: 2px solid var(--dm-borde, hsl(240, 5%, 26%));
-}
-
 .tarjetaDado_d4 { --color-dado: var(--dm-texto-alerta, hsl(343, 81%, 65%)); }
 .tarjetaDado_d6 { --color-dado: var(--dm-texto-advertencia, hsl(32, 95%, 60%)); }
 .tarjetaDado_d8 { --color-dado: var(--dm-texto-exito, hsl(142, 70%, 55%)); }
@@ -338,6 +333,7 @@
 :global([data-tema="jugador"]) .tarjetaDado {
   border-radius: var(--pj-radio-panel);
   background-color: var(--pj-fondo-tarjeta);
+  border: 2px solid var(--pj-borde-medio);
 }
 
 :global([data-tema="jugador"]) .contadorDado {
@@ -408,10 +404,6 @@
   color: var(--pj-texto-sobre-acento);
   font-size: var(--pj-fuente-boton);
   border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .tarjetaDado {
-  border: 2px solid var(--pj-borde-medio);
 }
 
 :global([data-tema="jugador"]) .tarjetaDadoActivo {

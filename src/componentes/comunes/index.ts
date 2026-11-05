@@ -10,10 +10,10 @@ export type { ChipCondicionProps } from "./ChipCondicion";
 export { TooltipUniversal } from "./TooltipUniversal";
 export type { TooltipUniversalProps } from "./TooltipUniversal";
 export { TextoEnriquecidoDND } from "./TextoEnriquecidoDND";
+export { renderizarTextoConDadosInteractivos } from "./renderizarTextoConDadosInteractivos";
 export { ControlPaginacion } from "./ControlPaginacion";
 export type { ControlPaginacionProps } from "./ControlPaginacion";
 export { CampoNumerico } from "./CampoNumerico";
 export type { CampoNumericoProps } from "./CampoNumerico";
 export { usarCampoNumerico } from "./usarCampoNumerico";
 export { FormularioNumerico } from "./FormularioNumerico";
-

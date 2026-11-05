@@ -1,8 +1,8 @@
-import type { PersonajeJugador } from "@/tipos";
+﻿import type { PersonajeJugador } from "@/tipos";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import { obtenerRasgosRituales } from "@/servicios/rasgos/conjurosRitualesRasgos";
 import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 
 export function ConjurosRitualesRasgo({ personaje, idRasgo }: { personaje: PersonajeJugador; idRasgo?: string }) {

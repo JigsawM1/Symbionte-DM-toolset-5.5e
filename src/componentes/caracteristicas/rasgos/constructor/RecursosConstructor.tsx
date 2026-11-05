@@ -106,7 +106,6 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
                   valor={recuperacion}
                   opciones={OPCIONES_RECUPERACION}
                   alCambiar={(val) => actualizarBorrador("recuperacion", val)}
-                  tamano="normal"
                 />
               </div>
             </div>
@@ -119,7 +118,6 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
                 valor={formulaEscalado}
                 opciones={OPCIONES_FORMULA_ESCALADO}
                 alCambiar={(val) => actualizarBorrador("formulaEscalado", val)}
-                tamano="normal"
               />
               <p className={estilos.pistaCampo}>
                 Permite que los usos escalen de forma automática con el Bonificador por Competencia (PB) o nivel del personaje.
@@ -186,7 +184,6 @@ export function RecursosConstructor({ borrador, actualizarBorrador, opcionesRasg
               opciones={opcionesRasgosPadre}
               alCambiar={(val) => actualizarBorrador("ligadoA", val)}
               placeholder="-- Seleccionar Rasgo Padre --"
-              tamano="normal"
             />
             {!ligadoA.trim() && (<p className={estilos.advertenciaPadreRequerido}>
                 <AlertTriangle size={14}/>

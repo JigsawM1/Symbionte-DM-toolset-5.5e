@@ -38,12 +38,7 @@
   background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.04);
 }
 
-.filaDobleForm {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-}
-
+.filaDobleForm,
 .filaTripleForm {
   display: flex;
   flex-direction: row;
@@ -78,101 +73,7 @@
   outline: none;
 }
 
-.inputForm:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
-.selectForm {
-  font-size: 13px;
-  padding: 6px 28px 6px 10px;
-  height: 34px;
-  width: 100%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectForm:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
 /* SELECTOR DE RAREZA CON COLOR HSL */
-.rarezaSelectWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.selectRarezaHSL {
-  padding-left: 28px !important;
-  padding-right: 28px !important;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.indicadorRarezaColor {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.25);
-  pointer-events: none;
-}
-
-.cajaCosto {
-  display: flex;
-  gap: 6px;
-  width: 100%;
-}
-
-.inputCostoValor {
-  font-size: 13px;
-  padding: 7px 10px;
-  width: 65%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-}
-
-.inputCostoValor:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
-.selectCostoUnidad {
-  font-size: 13px;
-  padding: 6px 28px 6px 10px;
-  height: 34px;
-  width: 35%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectCostoUnidad:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
 .bloqueDinamicoForm {
   display: flex;
   flex-direction: column;
@@ -237,10 +138,7 @@
   width: 100%;
 }
 
-.campoBonoCategoria {
-  flex: 1 1 30%;
-}
-
+.campoBonoCategoria,
 .campoBonoNombre {
   flex: 1 1 30%;
 }
@@ -325,6 +223,7 @@
   resize: vertical;
 }
 
+.inputForm:focus,
 .textareaBrutal:focus {
   border-color: var(--color-borde-cian);
   box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
@@ -509,27 +408,6 @@
   letter-spacing: 0.04em;
 }
 
-.selectPlantillaBase {
-  font-size: 12.5px;
-  padding: 6px 28px 6px 10px;
-  height: 34px;
-  width: 100%;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-control, 5px);
-  color: var(--color-texto-principal);
-  outline: none;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-}
-
-.selectPlantillaBase:focus {
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 0 0 2px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.18);
-}
-
 /* PRESETS DE FÓRMULA DE RECARGA */
 .contenedorPresetsRecarga {
   display: flex;
@@ -622,15 +500,6 @@
   border-color: rgba(var(--dm-rgb-cian, 56, 189, 248), 0.25);
 }
 
-.bloqueDinamicoContenedor {
-  border-color: rgba(var(--dm-rgb-peligro, 255, 99, 71), 0.25);
-}
-
-.bloqueDinamicoEfectosPasivos {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.02);
-  border-color: var(--color-borde-cian);
-}
-
 .bloqueDinamicoArtesania {
   border-color: rgba(var(--dm-rgb-primario, 168, 85, 247), 0.25);
   margin-top: 8px;
@@ -641,51 +510,14 @@
   margin-right: 2px;
 }
 
-.campoFormCentrado {
-  justify-content: center;
-}
-
-.campoFormFlexEnd {
-  justify-content: flex-end;
-}
-
 .labelCheckboxConMargen {
   margin-top: 16px;
-}
-
-.labelCheckboxBold14 {
-  font-size: 14px;
-  font-weight: bold;
 }
 
 .separadorArmaduraForm {
   margin-top: 12px;
   border-top: 1px dashed rgba(var(--dm-rgb-advertencia, 255, 165, 0), 0.1);
   padding-top: 12px;
-}
-
-.separadorContenedorForm {
-  margin-top: 12px;
-  border-top: 1px dashed rgba(var(--dm-rgb-peligro, 255, 99, 71), 0.2);
-  padding-top: 12px;
-}
-
-.separadorArmaForm {
-  margin-top: 12px;
-  border-top: 1px dashed rgba(var(--dm-rgb-cian, 0, 245, 212), 0.1);
-  padding-top: 12px;
-}
-
-.separadorSeccionDashed {
-  margin-top: 12px;
-  border-top: 1px dashed rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
-  padding-top: 12px;
-}
-
-.separadorSuaveDashed {
-  margin-top: 8px;
-  border-top: 1px dashed rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.06);
-  padding-top: 8px;
 }
 
 .filaDobleTranslúcida {
@@ -710,22 +542,6 @@
   margin-top: 4px;
 }
 
-.margenTop6 {
-  margin-top: 6px;
-}
-
-.margenTop8 {
-  margin-top: 8px;
-}
-
-.margenTop10 {
-  margin-top: 10px;
-}
-
-.margenBottom6 {
-  margin-bottom: 6px;
-}
-
 .margenBottom8 {
   margin-bottom: 8px;
 }
@@ -736,14 +552,6 @@
 
 .textoFuente12 {
   font-size: var(--dm-fuente-minima, 12px);
-}
-
-.textoFuente11 {
-  font-size: var(--dm-fuente-minima, 11px);
-}
-
-.textoFuente10 {
-  font-size: var(--dm-fuente-minima, 10px);
 }
 
 .ancho115 {
@@ -1129,54 +937,6 @@
   color: var(--pj-texto-primario);
 }
 
-:global([data-tema="jugador"]) .inputForm:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .selectForm {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectForm:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .indicadorRarezaColor {
-  border: 1px solid rgba(var(--pj-rgb-neutro), 0.25);
-}
-
-:global([data-tema="jugador"]) .inputCostoValor {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .inputCostoValor:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .selectCostoUnidad {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectCostoUnidad:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 :global([data-tema="jugador"]) .bloqueDinamicoForm {
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-medio);
@@ -1245,6 +1005,7 @@
   font-family: var(--fuente-principal);
 }
 
+:global([data-tema="jugador"]) .inputForm:focus,
 :global([data-tema="jugador"]) .textareaBrutal:focus {
   border-color: var(--pj-borde-cian-fuerte);
   box-shadow: var(--pj-sombra-tarjeta);
@@ -1324,19 +1085,6 @@
   color: var(--pj-borde-cian-fuerte);
 }
 
-:global([data-tema="jugador"]) .selectPlantillaBase {
-  font-size: var(--pj-fuente-cuerpo);
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .selectPlantillaBase:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
 :global([data-tema="jugador"]) .botonPresetRecarga {
   background: rgba(var(--pj-rgb-neutro), 0.04);
   border: 1px solid var(--pj-borde-medio);
@@ -1388,41 +1136,12 @@
   border-color: rgba(var(--pj-rgb-cian), 0.25);
 }
 
-:global([data-tema="jugador"]) .bloqueDinamicoContenedor {
-  border-color: rgba(var(--pj-rgb-peligro), 0.25);
-}
-
-:global([data-tema="jugador"]) .bloqueDinamicoEfectosPasivos {
-  background-color: rgba(var(--pj-rgb-cian), 0.02);
-  border-color: var(--pj-borde-cian-fuerte);
-}
-
 :global([data-tema="jugador"]) .bloqueDinamicoArtesania {
   border-color: rgba(var(--pj-rgb-primario), 0.25);
 }
 
-:global([data-tema="jugador"]) .labelCheckboxBold14 {
-  font-size: var(--pj-fuente-label);
-}
-
 :global([data-tema="jugador"]) .separadorArmaduraForm {
   border-top: 1px dashed rgba(var(--pj-rgb-oro), 0.1);
-}
-
-:global([data-tema="jugador"]) .separadorContenedorForm {
-  border-top: 1px dashed rgba(var(--pj-rgb-peligro), 0.2);
-}
-
-:global([data-tema="jugador"]) .separadorArmaForm {
-  border-top: 1px dashed rgba(var(--pj-rgb-cian), 0.1);
-}
-
-:global([data-tema="jugador"]) .separadorSeccionDashed {
-  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.05);
-}
-
-:global([data-tema="jugador"]) .separadorSuaveDashed {
-  border-top: 1px dashed rgba(var(--pj-rgb-neutro), 0.06);
 }
 
 :global([data-tema="jugador"]) .filaDobleTranslúcida {
@@ -1439,14 +1158,6 @@
 
 :global([data-tema="jugador"]) .textoFuente12 {
   font-size: var(--pj-fuente-cuerpo);
-}
-
-:global([data-tema="jugador"]) .textoFuente11 {
-  font-size: var(--pj-fuente-label);
-}
-
-:global([data-tema="jugador"]) .textoFuente10 {
-  font-size: var(--pj-fuente-label);
 }
 
 :global([data-tema="jugador"]) .botonAgregarChipCompacto {

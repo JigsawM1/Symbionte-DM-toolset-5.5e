@@ -376,69 +376,12 @@
 }
 
 /* Bloque individual de Clase */
-.bloqueClaseJerarquico {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  background: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-control);
-  padding: 6px 8px 8px 8px;
-  box-sizing: border-box;
-}
 
-.cabeceraClaseItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--pj-borde-sutil);
-}
 
-.tituloClaseTexto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-oro);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 
-.subtituloSubclaseTexto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 600;
-  color: var(--pj-texto-oro);
-  background: var(--pj-acento-oro-fondo);
-  border: 1px solid var(--pj-borde-oro);
-  padding: 1px 6px;
-  border-radius: 4px;
-}
 
 /* Sub-bloque anidado para la Subclase */
-.bloqueSubclaseAnidado {
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 4px;
-  padding: 6px 8px;
-  background: var(--pj-acento-oro-fondo);
-  border: 1px dashed var(--pj-borde-oro);
-  border-left: 3px solid var(--pj-borde-oro);
-  border-radius: 4px;
-  box-sizing: border-box;
-}
 
-.cabeceraSubclaseAnidada {
-  font-size: var(--pj-fuente-label);
-  font-weight: 700;
-  color: var(--pj-texto-oro);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 2px;
-}
 
 /* ==========================================
    3. TARJETA DE RASGO COMPACTA Y MODERNA
@@ -565,15 +508,6 @@
   color: var(--pj-texto-magia);
 }
 
-.badgeNivel {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background: var(--pj-fondo-tarjeta-elevada);
-  color: var(--pj-texto-acento);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
 
 .badgeFuente {
   display: inline-flex;
@@ -641,15 +575,6 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.badgeRecuperacion {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--pj-texto-acento);
-  padding: 1px 3px;
-  border-radius: 2px;
-  background: var(--pj-fondo-tarjeta-elevada);
-}
 
 .botonTirarDados {
   display: inline-flex;
@@ -736,24 +661,7 @@
   color: var(--pj-texto-cian);
 }
 
-.descripcionRasgo {
-  font-size: var(--pj-fuente-cuerpo);
-  line-height: 1.45;
-  color: var(--pj-texto-primario);
-  white-space: pre-line;
-  margin: 0;
-}
 
-.notasRasgo {
-  margin-top: 2px;
-  padding: 3px 6px;
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  font-style: italic;
-  background: var(--pj-fondo-base);
-  border-left: 2px solid var(--pj-borde-cian);
-  border-radius: 0 3px 3px 0;
-}
 
 /* Selector de Modo de Pestaña */
 .pestanasVistaModo {
@@ -926,26 +834,9 @@
   margin: 2px;
 }
 
-.palabraClaveRegla {
-  color: var(--pj-texto-primario);
-  font-weight: inherit;
-}
 
-.subtituloRasgoModal {
-  color: var(--pj-texto-cian);
-  font-weight: 700;
-  font-style: italic;
-}
 
-.negritaModal {
-  color: var(--pj-texto-cian);
-  font-weight: 700;
-}
 
-.cursivaColoreadaModal {
-  color: var(--pj-texto-cian);
-  font-style: italic;
-}
 
 .itemNivelFuturo {
   opacity: 0.65;
@@ -1040,12 +931,6 @@
   border-top-color: var(--pj-borde-acento);
 }
 
-.formularioModal {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  overflow: hidden;
-}
 
 .cabeceraModalDetalle {
   display: flex;
@@ -1236,11 +1121,6 @@
   flex: 1 1 auto;
 }
 
-.parrafoModalEnriquecido {
-  margin: 0;
-  color: var(--pj-texto-primario);
-  text-indent: 10px;
-}
 
 .seccionNotasModal {
   margin-top: 6px;
@@ -1339,125 +1219,18 @@
 }
 
 /* Modales */
-.overlayModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--pj-fondo-modal-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  padding: 12px;
-  backdrop-filter: none;
-}
 
-.ventanaModal {
-  background: var(--pj-fondo-modal-cuerpo);
-  border: 1px solid var(--pj-borde-fuerte);
-  border-radius: var(--pj-radio-panel);
-  width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: var(--pj-sombra-modal);
-  color: var(--pj-texto-primario);
-}
 
-.cabeceraModal {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--pj-borde-fuerte);
-  background: var(--pj-fondo-tarjeta-elevada);
-  border-radius: 8px 8px 0 0;
-}
 
-.tituloModal {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-primario);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-}
 
-.cuerpoModal {
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  overflow-y: auto;
-}
 
-.pieModal {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 10px 14px;
-  border-top: 1px solid var(--pj-borde-fuerte);
-  background: var(--pj-fondo-modal-cuerpo);
-  border-radius: 0 0 8px 8px;
-}
 
-.grupoCampo {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
 
-.labelCampo {
-  font-size: var(--pj-fuente-label);
-  font-weight: 600;
-  color: var(--pj-texto-secundario-claro);
-}
 
-.inputTexto,
-.selectCampo,
-.textareaCampo {
-  background: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-fuerte);
-  border-radius: var(--pj-radio-control);
-  padding: 5px 8px;
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-cuerpo);
-  outline: none;
-  font-family: var(--fuente-principal);
-}
 
-.inputTexto:focus,
-.selectCampo:focus,
-.textareaCampo:focus {
-  border-color: var(--pj-borde-cian);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
 
-.textareaCampo {
-  min-height: 70px;
-  resize: vertical;
-}
 
-.filaDosCampos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
 
-.filaCheckbox {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  user-select: none;
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-primario-suave);
-}
 
 /* =======================================================
    ESTILOS PARA RASGOS ACTIVABLES, TOGGLES Y SELECTORES
@@ -1645,11 +1418,6 @@
   gap: 4px;
 }
 
-.descripcionOpcionSelector {
-  font-size: var(--pj-fuente-boton);
-  color: var(--pj-texto-acento);
-  line-height: 1.3;
-}
 
 .opcionSelectorCardBloqueada {
   opacity: 0.45;

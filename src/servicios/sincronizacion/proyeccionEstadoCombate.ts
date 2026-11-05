@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @module proyeccionEstadoCombate
  * Transforma un PersonajeJugador en un DTO ligero EstadoCombatePJ para el canal de red TS.sync.
  * Excluye inventario, descripciones estáticas y rasgos innecesarios para combate en tiempo real.
@@ -8,7 +8,7 @@ import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import type { EstadoCombatePJ } from "@/tipos/sync";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 
 /**

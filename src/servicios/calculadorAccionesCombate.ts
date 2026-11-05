@@ -311,7 +311,7 @@ export function resolverRasgosAcciones(
 
     // Activable (toggle táctico ON/OFF)
     const esActivable = Boolean(rasgo.esActivable || rasgo.categoriaMecanica === "activable");
-    if (esActivable && !categorias.includes("activable")) {
+    if (esActivable) {
       categorias.push("activable");
     }
 
@@ -325,7 +325,7 @@ export function resolverRasgosAcciones(
       rasgo.categoriaMecanica === "consumible" ||
       rasgo.categoriaMecanica === "curacion"
     );
-    if (esConsumible && !categorias.includes("consumible")) {
+    if (esConsumible) {
       categorias.push("consumible");
     }
 
@@ -363,13 +363,8 @@ export function resolverRasgosAcciones(
     }
 
     // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
-    const esPasivoPuro =
-      (rasgo.tipoAccion === "pasivo" || !rasgo.tipoAccion) &&
-      !esActivable &&
-      !esConsumible &&
-      !tieneDados;
 
-    if (esPasivoPuro || categorias.length === 0) {
+    if (categorias.length === 0) {
       continue;
     }
 

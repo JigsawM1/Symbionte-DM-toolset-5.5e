@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   DOTES_ESTILO_COMBATE_DND55,
   TODAS_LAS_DOTES_CANONICAS_DND55,
   DOTES_CANONICAS_DND55
 } from "@/constantes/dotesConstantes";
 import type { PersonajeJugador, ObjetoInventario, ObjetoJuego, RasgoPersonaje } from "@/tipos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { calcularAtaqueArmaEquipada } from "@/servicios/calculadorAtaquesArmas";
 import { calcularAtaqueDesarmado } from "@/servicios/calculadorAtaqueDesarmado";
 
@@ -43,16 +43,14 @@ function crearPersonajeGuerrero(overrides: Partial<PersonajeJugador> = {}): Pers
 function crearArmaInventario(
   idInstancia: string,
   nombre: string,
-  categoria: "armas" = "armas",
-  equipado: boolean = true
 ): ObjetoInventario {
   return {
     idInstancia,
     idObjeto: idInstancia,
     nombre,
-    categoria,
+    categoria: "armas",
     cantidad: 1,
-    equipado,
+    equipado: true,
     pesoLb: 2,
     sintonizado: false,
     notas: ""
@@ -275,6 +273,20 @@ describe("Dotes de Estilo de Combate D&D 5.5e (PHB 2024) — Mecánicas y Reglas
   });
 
   describe("5. Mecánica de Duelo (+2 a daño a una mano, nunca a dos manos)", () => {
+    const crearCompendioDuelo = (): ObjetoJuego[] => [
+      {
+        id: "inst-espada-larga",
+        nombre: "Espada larga",
+        categoria: "armas",
+        subcategoria: "Marcial",
+        tipoAtaque: "Cuerpo a Cuerpo",
+        propiedades: ["Versátil"],
+        dadoDano: "1d8",
+        danoVersatil: "1d10",
+        tipoDano: "Cortante"
+      } as unknown as ObjetoJuego
+    ];
+
     it("debe sumar +2 al daño normal a 1 mano y excluir el daño versátil a dos manos", () => {
       const doteDuelo = instanciarDoteComoRasgo("dote_estilo_duelo", {
         activo: true
@@ -285,24 +297,11 @@ describe("Dotes de Estilo de Combate D&D 5.5e (PHB 2024) — Mecánicas y Reglas
       const stats = calcularEstadisticasPersonaje(pj);
 
       const espadaLarga = crearArmaInventario("inst-espada-larga", "Espada larga");
-      const compendioMock: ObjetoJuego[] = [
-        {
-          id: "inst-espada-larga",
-          nombre: "Espada larga",
-          categoria: "armas",
-          subcategoria: "Marcial",
-          tipoAtaque: "Cuerpo a Cuerpo",
-          propiedades: ["Versátil"],
-          dadoDano: "1d8",
-          danoVersatil: "1d10",
-          tipoDano: "Cortante"
-        } as unknown as ObjetoJuego
-      ];
 
       const atkEspada = calcularAtaqueArmaEquipada(espadaLarga, {
         personajeActivo: pj,
         statsCalculadas: stats,
-        baseDatosObjetos: compendioMock,
+        baseDatosObjetos: crearCompendioDuelo(),
         caracteristicasArmas: {},
         gruposArmasConsolidados: ["Todas las armas marciales"],
         furiaEstaActiva: false,
@@ -327,24 +326,11 @@ describe("Dotes de Estilo de Combate D&D 5.5e (PHB 2024) — Mecánicas y Reglas
       const stats = calcularEstadisticasPersonaje(pj);
 
       const espadaLarga = crearArmaInventario("inst-espada-larga", "Espada larga");
-      const compendioMock: ObjetoJuego[] = [
-        {
-          id: "inst-espada-larga",
-          nombre: "Espada larga",
-          categoria: "armas",
-          subcategoria: "Marcial",
-          tipoAtaque: "Cuerpo a Cuerpo",
-          propiedades: ["Versátil"],
-          dadoDano: "1d8",
-          danoVersatil: "1d10",
-          tipoDano: "Cortante"
-        } as unknown as ObjetoJuego
-      ];
 
       const atkEspada = calcularAtaqueArmaEquipada(espadaLarga, {
         personajeActivo: pj,
         statsCalculadas: stats,
-        baseDatosObjetos: compendioMock,
+        baseDatosObjetos: crearCompendioDuelo(),
         caracteristicasArmas: {},
         gruposArmasConsolidados: ["Todas las armas marciales"],
         furiaEstaActiva: false,

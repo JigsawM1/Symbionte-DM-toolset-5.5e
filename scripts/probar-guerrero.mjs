@@ -37,7 +37,7 @@ window.equipar=()=>{
   window.estado().actualizarPersonaje(window.pj().id,{inventario:[EsquemaObjetoInventario.parse({idInstancia:'espada-prueba',idObjeto:arma.id,nombre:arma.nombre,categoria:'armas',equipado:true})]});
 };
 window.sembrar(9);
-createRoot(document.getElementById('root')).render(React.createElement(App));window.listo=true;
+createRoot(document.getElementById('root')).render(React.createElement(App));
 </script></body></html>`;
 const servidor = await createServer({ server: { host: "127.0.0.1", port: 0 }, logLevel: "error", plugins: [{
   name: "prueba-guerrero", configureServer(s) { s.middlewares.use(async (req, res, next) => {
@@ -121,7 +121,7 @@ try {
     const acrobacias = await pagina.$('[title^="Prueba de Acrobacias"]');
     assert.doesNotMatch(await acrobacias.evaluate(el => el.title), /VENTAJA/);
     desde = tiradas.length;
-    const muerte = await pagina.$('button[title^="Haz clic para tirar Salvación de Muerte"]');
+    const muerte = await pagina.$('button[title^="Tirar Salvación de Muerte"]');
     await muerte.scrollIntoView(); await muerte.click();
     assert(tiradas.slice(desde).some(t => t.includes("Muerte") && t.includes("Tipo original: ventaja")),
       `Salvación de muerte del Campeón sin ventaja en ${width}px: ${tiradas.slice(desde)}`);

@@ -248,9 +248,7 @@ export const crearSubSliceAcompanantes: StateCreator<
         if (acomp.id !== idAcompanante) return acomp;
 
         const velBase = extraerVelocidadCaminarAcompanante(acomp.velocidad);
-        const total = acomp.movimientoMaximoTemporal !== null && acomp.movimientoMaximoTemporal !== undefined
-          ? acomp.movimientoMaximoTemporal
-          : velBase;
+        const total = acomp.movimientoMaximoTemporal ?? velBase;
 
         const restanteSeguro = Math.max(0, Math.round(nuevoRestante * 10) / 10);
         const nuevoGastado = Math.max(0, Math.round((total - restanteSeguro) * 10) / 10);
@@ -377,41 +375,21 @@ export const crearSubSliceAcompanantes: StateCreator<
         const velBase = extraerVelocidadCaminarAcompanante(acomp.velocidad);
         const anteriorGastado = acomp.movimientoGastado || 0;
 
-        // Si ya está activa la carrera, la desactivamos
-        if (acomp.movimientoMaximoTemporal !== null && acomp.movimientoMaximoTemporal !== undefined) {
-          const entradaHistorial: RegistroMovimiento = {
-            id: `mov-acomp-dash-off-${Date.now()}`,
-            timestamp: Date.now(),
-            tipo: "carrera",
-            delta: -velBase,
-            anteriorGastado,
-            nuevoGastado: anteriorGastado,
-            descripcion: "Desactivar Acción Carrera"
-          };
-          const historialPrevio = Array.isArray(acomp.historialMovimiento) ? acomp.historialMovimiento : [];
-          return {
-            ...acomp,
-            movimientoMaximoTemporal: null,
-            historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
-          };
-        }
-
-        // Activamos la carrera (doble de velocidad base)
-        const velocidadCarrera = velBase * 2;
+        const carreraActiva = acomp.movimientoMaximoTemporal !== null && acomp.movimientoMaximoTemporal !== undefined;
         const entradaHistorial: RegistroMovimiento = {
-          id: `mov-acomp-dash-on-${Date.now()}`,
+          id: `mov-acomp-dash-${carreraActiva ? "off" : "on"}-${Date.now()}`,
           timestamp: Date.now(),
           tipo: "carrera",
-          delta: velBase,
+          delta: carreraActiva ? -velBase : velBase,
           anteriorGastado,
           nuevoGastado: anteriorGastado,
-          descripcion: `Acción Carrera activada (+${velBase} ft)`
+          descripcion: carreraActiva ? "Desactivar Acción Carrera" : `Acción Carrera activada (+${velBase} ft)`
         };
         const historialPrevio = Array.isArray(acomp.historialMovimiento) ? acomp.historialMovimiento : [];
 
         return {
           ...acomp,
-          movimientoMaximoTemporal: velocidadCarrera,
+          movimientoMaximoTemporal: carreraActiva ? null : velBase * 2,
           historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
         };
       })

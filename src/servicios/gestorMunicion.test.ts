@@ -260,45 +260,24 @@ describe("gestorMunicion - Compatibilidad de Munición y Contenedores D&D 5.5e",
       expect(resBalas?.almacenadasEnContenedor).toBe(20);
     });
 
-    it("calcula ocupación del Estuche de Agujas con 50 agujas (50/50 Lleno)", () => {
-      const agujas = crearItemInv("Agujas", 50);
-      const estuche = crearItemInv("Estuche de Agujas", 1);
-      estuche.idObjeto = "needle-case";
-      const inventario = [estuche, agujas];
+    it.each([
+      ["calcula ocupación del Estuche de Agujas con 50 agujas (50/50 Lleno)",
+        "Estuche de Agujas", "needle-case", "Agujas", 50, "agujas"],
+      ["calcula ocupación de la Cartuchera con 20 balas de arma de fuego (20/20 Lleno)",
+        "Cartuchera", "cartridge-pouch", "Balas, Arma de Fuego", 20, "balas"],
+      ["calcula ocupación de la Bolsa de Balas con 20 balas de honda (20/20 Lleno)",
+        "Bolsa de Balas", "bullet-pouch", "Balas, Honda", 20, "balas"]
+    ] as const)("%s", (_titulo, nombre, idObjeto, municion, cantidad, tipo) => {
+      const proyectiles = crearItemInv(municion, cantidad);
+      const contenedor = crearItemInv(nombre, 1);
+      contenedor.idObjeto = idObjeto;
+      const inventario = [contenedor, proyectiles];
 
-      const info = calcularContenidoContenedorMunicion(estuche, inventario);
+      const info = calcularContenidoContenedorMunicion(contenedor, inventario);
       expect(info).not.toBeNull();
-      expect(info?.tipoProyectil).toBe("agujas");
-      expect(info?.totalAlmacenado).toBe(50);
-      expect(info?.capacidadTotal).toBe(50);
-      expect(info?.estaLleno).toBe(true);
-    });
-
-    it("calcula ocupación de la Cartuchera con 20 balas de arma de fuego (20/20 Lleno)", () => {
-      const balas = crearItemInv("Balas, Arma de Fuego", 20);
-      const cartuchera = crearItemInv("Cartuchera", 1);
-      cartuchera.idObjeto = "cartridge-pouch";
-      const inventario = [cartuchera, balas];
-
-      const info = calcularContenidoContenedorMunicion(cartuchera, inventario);
-      expect(info).not.toBeNull();
-      expect(info?.tipoProyectil).toBe("balas");
-      expect(info?.totalAlmacenado).toBe(20);
-      expect(info?.capacidadTotal).toBe(20);
-      expect(info?.estaLleno).toBe(true);
-    });
-
-    it("calcula ocupación de la Bolsa de Balas con 20 balas de honda (20/20 Lleno)", () => {
-      const balas = crearItemInv("Balas, Honda", 20);
-      const bolsaBalas = crearItemInv("Bolsa de Balas", 1);
-      bolsaBalas.idObjeto = "bullet-pouch";
-      const inventario = [bolsaBalas, balas];
-
-      const info = calcularContenidoContenedorMunicion(bolsaBalas, inventario);
-      expect(info).not.toBeNull();
-      expect(info?.tipoProyectil).toBe("balas");
-      expect(info?.totalAlmacenado).toBe(20);
-      expect(info?.capacidadTotal).toBe(20);
+      expect(info?.tipoProyectil).toBe(tipo);
+      expect(info?.totalAlmacenado).toBe(cantidad);
+      expect(info?.capacidadTotal).toBe(cantidad);
       expect(info?.estaLleno).toBe(true);
     });
   });

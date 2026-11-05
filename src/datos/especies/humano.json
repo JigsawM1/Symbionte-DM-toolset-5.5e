@@ -43,13 +43,10 @@
       "selectores": [
         {
           "id": "selector_dote_origen_humano_versatil",
-          "tipo": "unico",
           "tipoSelector": "dote",
           "etiqueta": "Dote de origen elegida",
-          "maxSelecciones": 1,
           "valorActual": ["dote_alerta"],
-          "claveOpcionesDinamicas": "dotes_origen",
-          "opciones": []
+          "claveOpcionesDinamicas": "dotes_origen"
         }
       ]
     }

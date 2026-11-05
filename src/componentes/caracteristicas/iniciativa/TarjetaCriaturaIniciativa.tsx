@@ -92,14 +92,9 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
   const estaMuerto = criatura.vidaActual === 0;
 
-  const ejecutarCuracion = () => {
+  const ejecutarCambioVida = (aplicar: (cantidad: number) => void) => {
     const valor = Number(hpInput);
-    if (!isNaN(valor) && valor > 0) { onCurar(valor); setHpInput(""); }
-  };
-
-  const ejecutarDaño = () => {
-    const valor = Number(hpInput);
-    if (!isNaN(valor) && valor > 0) { onDañar(valor); setHpInput(""); }
+    if (!isNaN(valor) && valor > 0) { aplicar(valor); setHpInput(""); }
   };
 
   const activarEdicionIniciativa = () => {    setEditandoIniciativa(true);
@@ -418,7 +413,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         <div className={estilosClases.inputsSaludFila}>
           {/* Control HP Vertical Curar/Dañar */}
           <div className={estilosClases.controlHPVertical}>
-            <BotonNumerico onClick={ejecutarCuracion} className={estilosClases.botonCurarVertical} title="Aplicar Curación">
+            <BotonNumerico onClick={() => ejecutarCambioVida(onCurar)} className={estilosClases.botonCurarVertical} title="Aplicar Curación">
               CURAR
             </BotonNumerico>
             <CampoNumerico
@@ -427,11 +422,11 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               value={hpInput}
               identidad={criatura.id}
               alConfirmar={(valor) => setHpInput(String(valor))}
-              onKeyDown={(e) => { if (e.key === "Enter") ejecutarDaño(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") ejecutarCambioVida(onDañar); }}
               className={estilosClases.inputHPVertical}
               alVaciar={() => setHpInput("")}
             />
-            <BotonNumerico onClick={ejecutarDaño} className={estilosClases.botonDañoVertical} title="Aplicar Daño">
+            <BotonNumerico onClick={() => ejecutarCambioVida(onDañar)} className={estilosClases.botonDañoVertical} title="Aplicar Daño">
               DAÑO
             </BotonNumerico>
           </div>

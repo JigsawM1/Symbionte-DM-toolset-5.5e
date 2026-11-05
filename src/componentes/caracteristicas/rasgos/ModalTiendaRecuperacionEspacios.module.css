@@ -256,7 +256,8 @@
   transition: none;
 }
 
-.botonControl:hover:not(:disabled) {
+.botonControl:hover:not(:disabled),
+.botonCancelar:hover {
   background-color: var(--pj-fondo-tarjeta-hover);
 }
 
@@ -308,9 +309,6 @@
   transition: none;
 }
 
-.botonCancelar:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-}
 
 .botonConfirmar {
   display: flex;

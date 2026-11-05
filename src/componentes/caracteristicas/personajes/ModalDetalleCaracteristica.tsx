@@ -1,9 +1,9 @@
 import React from "react";
-import type { PersonajeJugador, Caracteristica, PersonalizacionCaracteristica } from "@/tipos";
+import type { PersonajeJugador, Caracteristica } from "@/tipos";
 import { X, Info, Edit3 } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";
 import estilosModal from "./ModalDetalleCaracteristica.module.css";
-import { usarModalCaracteristica } from "./caracteristica/usarModalCaracteristica";
+import { usarModalCaracteristica, type ParametrosGuardadoCaracteristica } from "./caracteristica/usarModalCaracteristica";
 import { PestanaInfoCaracteristica } from "./caracteristica/PestanaInfoCaracteristica";
 import { PestanaPersonalizarCaracteristica } from "./caracteristica/PestanaPersonalizarCaracteristica";
 
@@ -11,15 +11,7 @@ interface ModalDetalleCaracteristicaProps {
   caracteristicaClave: Caracteristica;
   personaje: PersonajeJugador;
   alCerrar: () => void;
-  alGuardar: (
-    carac: Caracteristica,
-    cambios: {
-      valorBase: number;
-      overrideFijo: number | null;
-      competenteSalvacion: boolean;
-      personalizacion?: Partial<PersonalizacionCaracteristica>;
-    }
-  ) => void;
+  alGuardar: (carac: Caracteristica, cambios: ParametrosGuardadoCaracteristica) => void;
   alTirarCaracteristica?: (carac: Caracteristica, nombre: string, bono: number) => void;
   alTirarSalvacion?: (carac: Caracteristica, nombre: string, bono: number) => void;
 }
@@ -175,7 +167,6 @@ export const ModalDetalleCaracteristica: React.FC<ModalDetalleCaracteristicaProp
             setDescForm={setDescForm}
             valorBaseForm={valorBaseForm}
             setValorBaseForm={setValorBaseForm}
-            valorBaseActual={valorBaseActual}
             overrideForm={overrideForm}
             setOverrideForm={setOverrideForm}
             overrideValidoPreview={overrideValidoPreview}

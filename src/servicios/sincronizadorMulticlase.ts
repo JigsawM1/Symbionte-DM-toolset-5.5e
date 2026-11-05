@@ -101,31 +101,20 @@ export function sincronizarMagiaMulticlase(
     }
   });
 
-  if (clasesLanzadoras.length > 0) {
-    const recursos = calcularTodosRecursosMagicos(clasesLanzadoras, overrideEspacios, overridePuntos);
-    return {
-      esLanzador: true,
-      clasesLanzadoras,
-      espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-      puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-      nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-      espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-      nivelEspacioPacto: recursos.nivelEspacioPacto,
-      conjurosSiemprePreparadosIds: siemprePrep,
-      conjurosPreparadosIds: prepFinales,
-      conjurosConocidosIds: conocFinales,
-      trucosConocidosIds: trucosFinales
-    };
-  }
-
+  const esLanzador = clasesLanzadoras.length > 0;
+  const recursos = esLanzador
+    ? calcularTodosRecursosMagicos(clasesLanzadoras, overrideEspacios, overridePuntos)
+    : {
+        espaciosConjuroMaximos: {},
+        puntosConjuroMaximos: 0,
+        nivelConjuroMaximo: 0,
+        espaciosPactoMaximos: 0,
+        nivelEspacioPacto: 0
+      };
   return {
-    esLanzador: false,
-    clasesLanzadoras: [],
-    espaciosConjuroMaximos: {},
-    puntosConjuroMaximos: 0,
-    nivelConjuroMaximo: 0,
-    espaciosPactoMaximos: 0,
-    nivelEspacioPacto: 0,
+    esLanzador,
+    clasesLanzadoras,
+    ...recursos,
     conjurosSiemprePreparadosIds: siemprePrep,
     conjurosPreparadosIds: prepFinales,
     conjurosConocidosIds: conocFinales,

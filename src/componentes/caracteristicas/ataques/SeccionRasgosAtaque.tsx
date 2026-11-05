@@ -200,6 +200,14 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
     </div>
   );
 
+  const subsecciones: { clave: string; lista: RasgoAccionCombate[]; titulo: string; ayuda: string; icono: React.ReactNode }[] = [
+    { clave: "activables", lista: activablesVisibles, titulo: "Activables y Modos de Combate", ayuda: "Clic para alternar subsección de activables y modos tácticos", icono: <Sliders size={13} color="var(--pj-texto-magia)" /> },
+    { clave: "consumibles", lista: consumiblesVisibles, titulo: "Recursos Tácticos y Consumibles", ayuda: "Clic para alternar subsección de recursos tácticos y consumibles", icono: <FlaskConical size={13} color="var(--pj-texto-exito)" /> },
+    { clave: "acciones", lista: accionesVisibles, titulo: "Acciones", ayuda: "Clic para alternar subsección de acciones", icono: <Zap size={13} color="var(--pj-texto-oro)" /> },
+    { clave: "adicionales", lista: adicionalesVisibles, titulo: "Acciones Adicionales", ayuda: "Clic para alternar subsección de acciones adicionales", icono: <Clock size={13} color="var(--pj-texto-cian)" /> },
+    { clave: "reacciones", lista: reaccionesVisibles, titulo: "Reacciones", ayuda: "Clic para alternar subsección de reacciones", icono: <Sparkles size={13} color="var(--pj-texto-magia)" /> }
+  ];
+
   return (
     <div className={estilos.seccionGrupoAtaques}>
       {/* Cabecera Principal de la Sección de Rasgos */}
@@ -225,160 +233,37 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
           {filtro === "todas" ? (
             /* Vista General agrupada en subsecciones colapsables */
             <div className={estilos.listaSeccionesNivelMagico}>
-              {/* 1. Subsección: Activables y Modos de Combate */}
-              {activablesVisibles.length > 0 && (
-                <div className={estilos.seccionNivelMagico}>
-                  <div
-                    className={estilos.cabeceraNivelMagico}
-                    onClick={() => alternarSubseccion("activables")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar subsección de activables y modos tácticos"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <Sliders size={13} color="var(--pj-texto-magia)" />
-                      <span>Activables y Modos de Combate</span>
+              {subsecciones.map(({ clave, lista, titulo, ayuda, icono }) => (
+                lista.length > 0 && (
+                  <div key={clave} className={estilos.seccionNivelMagico}>
+                    <div
+                      className={estilos.cabeceraNivelMagico}
+                      onClick={() => alternarSubseccion(clave)}
+                      role="button"
+                      tabIndex={0}
+                      title={ayuda}
+                    >
+                      <div className={estilos.tituloNivelMagico}>
+                        {icono}
+                        <span>{titulo}</span>
+                      </div>
+                      <div className={estilos.ladoDerechoCabecera}>
+                        <span className={estilos.badgeConteoNivelMagico}>{lista.length}</span>
+                        {subseccionesAbiertas[clave] !== false ? (
+                          <ChevronDown size={13} />
+                        ) : (
+                          <ChevronRight size={13} />
+                        )}
+                      </div>
                     </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeConteoNivelMagico}>{activablesVisibles.length}</span>
-                      {subseccionesAbiertas.activables !== false ? (
-                        <ChevronDown size={13} />
-                      ) : (
-                        <ChevronRight size={13} />
-                      )}
-                    </div>
+                    {subseccionesAbiertas[clave] !== false && (
+                      <div className={estilos.listaAtaques}>
+                        {lista.map((item, idx) => renderTarjeta(item, idx, false))}
+                      </div>
+                    )}
                   </div>
-                  {subseccionesAbiertas.activables !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {activablesVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 2. Subsección: Recursos Tácticos y Consumibles */}
-              {consumiblesVisibles.length > 0 && (
-                <div className={estilos.seccionNivelMagico}>
-                  <div
-                    className={estilos.cabeceraNivelMagico}
-                    onClick={() => alternarSubseccion("consumibles")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar subsección de recursos tácticos y consumibles"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <FlaskConical size={13} color="var(--pj-texto-exito)" />
-                      <span>Recursos Tácticos y Consumibles</span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeConteoNivelMagico}>{consumiblesVisibles.length}</span>
-                      {subseccionesAbiertas.consumibles !== false ? (
-                        <ChevronDown size={13} />
-                      ) : (
-                        <ChevronRight size={13} />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.consumibles !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {consumiblesVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 3. Subsección: Acciones */}
-              {accionesVisibles.length > 0 && (
-                <div className={estilos.seccionNivelMagico}>
-                  <div
-                    className={estilos.cabeceraNivelMagico}
-                    onClick={() => alternarSubseccion("acciones")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar subsección de acciones"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <Zap size={13} color="var(--pj-texto-oro)" />
-                      <span>Acciones</span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeConteoNivelMagico}>{accionesVisibles.length}</span>
-                      {subseccionesAbiertas.acciones !== false ? (
-                        <ChevronDown size={13} />
-                      ) : (
-                        <ChevronRight size={13} />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.acciones !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {accionesVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 4. Subsección: Acciones Adicionales */}
-              {adicionalesVisibles.length > 0 && (
-                <div className={estilos.seccionNivelMagico}>
-                  <div
-                    className={estilos.cabeceraNivelMagico}
-                    onClick={() => alternarSubseccion("adicionales")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar subsección de acciones adicionales"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <Clock size={13} color="var(--pj-texto-cian)" />
-                      <span>Acciones Adicionales</span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeConteoNivelMagico}>{adicionalesVisibles.length}</span>
-                      {subseccionesAbiertas.adicionales !== false ? (
-                        <ChevronDown size={13} />
-                      ) : (
-                        <ChevronRight size={13} />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.adicionales !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {adicionalesVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* 5. Subsección: Reacciones */}
-              {reaccionesVisibles.length > 0 && (
-                <div className={estilos.seccionNivelMagico}>
-                  <div
-                    className={estilos.cabeceraNivelMagico}
-                    onClick={() => alternarSubseccion("reacciones")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar subsección de reacciones"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <Sparkles size={13} color="var(--pj-texto-magia)" />
-                      <span>Reacciones</span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeConteoNivelMagico}>{reaccionesVisibles.length}</span>
-                      {subseccionesAbiertas.reacciones !== false ? (
-                        <ChevronDown size={13} />
-                      ) : (
-                        <ChevronRight size={13} />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.reacciones !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {reaccionesVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
+                )
+              ))}
 
               {/* Subsección: Rasgos Ocultos */}
               {subseccionOcultos}

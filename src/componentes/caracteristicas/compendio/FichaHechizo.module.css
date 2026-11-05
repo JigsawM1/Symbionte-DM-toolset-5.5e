@@ -286,14 +286,6 @@
   width: 100%;
 }
 
-.upcastControlFila {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
 .upcastSelectContenedor {
   display: flex;
   flex-direction: row;
@@ -306,24 +298,6 @@
   font-size: var(--dm-fuente-minima, 11px);
   color: var(--color-texto-secundario);
   white-space: nowrap;
-}
-
-.upcastSelect {
-  height: 24px;
-  background-color: var(--color-fondo-profundo);
-  border: 1px solid rgba(var(--dm-rgb-cian, 0, 245, 212), 0.3);
-  color: var(--color-texto-principal);
-  font-size: var(--dm-fuente-minima, 11px);
-  border-radius: var(--dm-radio-control, 2px);
-  padding: 0 6px;
-  cursor: pointer;
-  flex: 1;
-  font-family: var(--fuente-codigo);
-}
-
-.upcastSelect:focus {
-  outline: none;
-  border-color: var(--color-borde-cian);
 }
 
 .formulasVista {
@@ -346,11 +320,9 @@
   font-family: var(--fuente-codigo);
 }
 
-.botonTirarCombate {
+.botonTirarCombate,
+.botonTirarUpcast {
   height: 28px;
-  background-color: var(--dm-superficie-primario, rgba(255, 118, 117, 0.15));
-  border: 1px solid var(--dm-primario, #ff7675);
-  color: var(--dm-texto-acento, #ff7675);
   font-weight: bold;
   border-radius: var(--dm-radio-control, 2px);
   cursor: pointer;
@@ -361,6 +333,12 @@
   font-family: var(--fuente-codigo);
   letter-spacing: 0.02em;
   transition: none;
+}
+
+.botonTirarCombate {
+  background-color: var(--dm-superficie-primario, rgba(255, 118, 117, 0.15));
+  border: 1px solid var(--dm-primario, #ff7675);
+  color: var(--dm-texto-acento, #ff7675);
 }
 
 .botonTirarCombate:hover {
@@ -369,20 +347,9 @@
 }
 
 .botonTirarUpcast {
-  height: 28px;
   background-color: rgba(var(--dm-rgb-cian, 116, 185, 255), 0.15);
   border: 1px solid var(--dm-texto-cian, #74b9ff);
   color: var(--dm-texto-cian, #74b9ff);
-  font-weight: bold;
-  border-radius: var(--dm-radio-control, 2px);
-  cursor: pointer;
-  font-size: var(--dm-fuente-minima, 11px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--fuente-codigo);
-  letter-spacing: 0.02em;
-  transition: none;
 }
 
 .botonTirarUpcast:hover {
@@ -418,11 +385,6 @@
 
 .colorDano {
   color: var(--dm-texto-peligro, #ff7675);
-}
-
-.textoUpcast {
-  font-style: italic;
-  color: var(--color-texto-secundario);
 }
 
 .combateItemSpanCompleto {
@@ -670,18 +632,6 @@
   color: var(--pj-texto-secundario);
 }
 
-:global([data-tema="jugador"]) .upcastSelect {
-  background-color: var(--pj-fondo-base);
-  border: 1px solid rgba(var(--pj-rgb-cian), 0.3);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-label);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .upcastSelect:focus {
-  border-color: var(--pj-borde-cian-fuerte);
-}
-
 :global([data-tema="jugador"]) .formulaTotal {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-alerta);
@@ -736,10 +686,6 @@
 
 :global([data-tema="jugador"]) .colorDano {
   color: var(--pj-texto-alerta);
-}
-
-:global([data-tema="jugador"]) .textoUpcast {
-  color: var(--pj-texto-secundario);
 }
 
 :global([data-tema="jugador"]) .textoMultiplicadorTruco {

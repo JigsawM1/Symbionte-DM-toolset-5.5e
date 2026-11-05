@@ -32,7 +32,6 @@ export interface EstadoFormularioObjeto {
   propiedades: string;
   descripcion: string;
   pesoLb: number;
-  valorPO: number;
   costoCantidad: number;
   costoUnidad: "PC" | "PP" | "PE" | "PO" | "PPT";
   esMagico: boolean;
@@ -121,7 +120,6 @@ export const ESTADO_INICIAL_FORMULARIO: EstadoFormularioObjeto = {
   propiedades: "",
   descripcion: "",
   pesoLb: 0,
-  valorPO: 0,
   costoCantidad: 0,
   costoUnidad: "PO",
   esMagico: false,
@@ -215,12 +213,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const setOPropiedades = crearSetter("propiedades");
   const setODescripcion = crearSetter("descripcion");
   const setOPesoLb = crearSetter("pesoLb");
-  const setOValorPO = crearSetter("valorPO");
   const setOCostoCantidad = crearSetter("costoCantidad");
   const setOCostoUnidad = crearSetter("costoUnidad");
   const setOEsMagico = crearSetter("esMagico");
-  const setOEfectosPasivos = crearSetter("efectosPasivos");
-  const setOCategoria = crearSetter("categoria");
   const setOEsConsumible = crearSetter("esConsumible");
   const setOSubcategoria = crearSetter("subcategoria");
   const setOQuantity = crearSetter("quantity");
@@ -241,7 +236,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const setODesventajaSigilo = crearSetter("desventajaSigilo");
   const setOBonoDestreza = crearSetter("bonoDestreza");
   const setOTiempoEquipar = crearSetter("tiempoEquipar");
-  const setOSubcategoriaEquipo = crearSetter("subcategoriaEquipo");
   const setOCantidad = crearSetter("cantidad");
   const setOSintonizacionRequerida = crearSetter("sintonizacionRequerida");
   const setOCargas = crearSetter("cargas");
@@ -252,7 +246,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
   const setOCondicionSintonizacion = crearSetter("condicionSintonizacion");
   const setOFormulaRecarga = crearSetter("formulaRecarga");
   const setOModificadorAtaqueDano = crearSetter("modificadorAtaqueDano");
-  const setOHechizosVinculados = crearSetter("hechizosVinculados");
   const setOArtesaniaTaller = crearSetter("artesaniaTaller");
   const setOArtesaniaComponentes = crearSetter("artesaniaComponentes");
   const setONuevoComponente = crearSetter("nuevoComponente");
@@ -430,7 +423,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
       propiedades: Array.isArray(o.propiedades) ? o.propiedades.join(", ") : (o.propiedades || ""),
       descripcion: o.descripcion,
       pesoLb: o.pesoLb || 0,
-      valorPO: o.valorPO || 0,
       costoCantidad: o.costoOriginal ? o.costoOriginal.cantidad : (o.valorPO || 0),
       costoUnidad: o.costoOriginal ? o.costoOriginal.unidad : "PO",
       esMagico: o.esMagico,
@@ -726,8 +718,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     } else {
       payload = {
         ...basePayload,
-        categoria: estado.categoria,
-        subcategoria: estado.subcategoria.trim() || estado.subcategoriaEquipo,
         cantidad: estado.cantidad !== "" ? Number(estado.cantidad) : undefined,
         equipable: estado.equipable,
         ...(estado.esVeneno ? {
@@ -766,12 +756,11 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oPropiedades: estado.propiedades, setOPropiedades,
     oDescripcion: estado.descripcion, setODescripcion,
     oPesoLb: estado.pesoLb, setOPesoLb,
-    oValorPO: estado.valorPO, setOValorPO,
     oCostoCantidad: estado.costoCantidad, setOCostoCantidad,
     oCostoUnidad: estado.costoUnidad, setOCostoUnidad,
     oEsMagico: estado.esMagico, setOEsMagico,
-    oEfectosPasivos: estado.efectosPasivos, setOEfectosPasivos,
-    oCategoria: estado.categoria, setOCategoria, alCambiarCategoria,
+    oEfectosPasivos: estado.efectosPasivos,
+    oCategoria: estado.categoria, alCambiarCategoria,
     oEsConsumible: estado.esConsumible, setOEsConsumible,
     oSubcategoria: estado.subcategoria, setOSubcategoria,
     oQuantity: estado.quantity, setOQuantity,
@@ -796,7 +785,6 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oBonoDestreza: estado.bonoDestreza, setOBonoDestreza,
     oTiempoEquipar: estado.tiempoEquipar, setOTiempoEquipar,
 
-    oSubcategoriaEquipo: estado.subcategoriaEquipo, setOSubcategoriaEquipo,
     oCantidad: estado.cantidad, setOCantidad,
     oSintonizacionRequerida: estado.sintonizacionRequerida, setOSintonizacionRequerida,
     oCargas: estado.cargas, setOCargas,
@@ -810,7 +798,7 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oCondicionSintonizacion: estado.condicionSintonizacion, setOCondicionSintonizacion,
     oFormulaRecarga: estado.formulaRecarga, setOFormulaRecarga,
     oModificadorAtaqueDano: estado.modificadorAtaqueDano, setOModificadorAtaqueDano,
-    oHechizosVinculados: estado.hechizosVinculados, setOHechizosVinculados,
+    oHechizosVinculados: estado.hechizosVinculados,
     oArtesaniaTaller: estado.artesaniaTaller, setOArtesaniaTaller,
     oArtesaniaComponentes: estado.artesaniaComponentes, setOArtesaniaComponentes,
     oNuevoComponente: estado.nuevoComponente, setONuevoComponente,
@@ -824,9 +812,9 @@ export function usarFormularioObjeto(idEnEdicion: string | null, alGuardarExitos
     oNuevoHechizoCd: estado.nuevoHechizoCd, setONuevoHechizoCd,
     oNuevoHechizoBonoAtaque: estado.nuevoHechizoBonoAtaque, setONuevoHechizoBonoAtaque,
     oNuevoHechizoCosteCargas: estado.nuevoHechizoCosteCargas, setONuevoHechizoCosteCargas,
-    oNuevoHechizoId: estado.nuevoHechizoId, setONuevoHechizoId,
-    oNuevoHechizoNivel: estado.nuevoHechizoNivel, setONuevoHechizoNivel,
-    oNuevoHechizoTipoAccion: estado.nuevoHechizoTipoAccion, setONuevoHechizoTipoAccion,
+    setONuevoHechizoId,
+    setONuevoHechizoNivel,
+    setONuevoHechizoTipoAccion,
 
     // Nuevos campos relacionales
     oAmmunitionIndex: estado.ammunitionIndex, setOAmmunitionIndex,

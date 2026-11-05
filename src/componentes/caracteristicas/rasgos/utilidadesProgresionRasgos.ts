@@ -1,4 +1,5 @@
-import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import type { RasgoPersonaje } from "@/tipos";
+import type { PlantillaRasgoClase } from "@/tipos/rasgos";
 import {
   obtenerClasePorNombre,
   obtenerSubclasePorNombre,
@@ -62,7 +63,6 @@ function calcularUsosItemProgresion(r: import("@/tipos/rasgos").PlantillaRasgoCl
  * Calcula la progresión de niveles 1 a 20 para todas las clases y subclases del personaje.
  */
 export function calcularProgresionClases(
-  _personaje: PersonajeJugador,
   clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }>
 ): BloqueProgresionClase[] {
   const lista: BloqueProgresionClase[] = [];
@@ -76,41 +76,16 @@ export function calcularProgresionClases(
       : null;
     const nivelPj = claseItem.nivel || 1;
 
-    const rasgosClase1a20: ItemProgresionClase[] = defClase.rasgos
-      .filter((r) => !(subDef && esRasgoPlaceholderSubclase(r.nombre)))
-      .map((r) => ({
-        id: `prog_cls_${r.nivel}_${normalizar(r.nombre)}`,
-        nombre: r.nombre,
-        descripcion: r.descripcion,
-        origen: "clase",
-        fuente: `${defClase.nombre} (Nivel ${r.nivel})`,
-        tipoAccion: r.tipoAccion,
-        nivelRequerido: r.nivel,
-        nivel: r.nivel,
-        tieneUsosLimitados: !!r.tieneUsosLimitados,
-        usosMaximos: calcularUsosItemProgresion(r, nivelPj),
-        usosRestantes: calcularUsosItemProgresion(r, nivelPj),
-        recuperacion: r.recuperacion || "ninguno",
-        formulaDados: r.formulaDados,
-        personalizado: false,
-        activo: r.esActivable ? false : true,
-        notas: "",
-        alcanzado: nivelPj >= r.nivel,
-        tablaProgresion: r.tablaProgresion,
-        tablasProgresion: r.tablasProgresion,
-        esActivable: !!r.esActivable,
-        ligadoA: r.ligadoA,
-        categoriaMecanica: r.categoriaMecanica,
-        efectos: r.efectos ? structuredClone(r.efectos) : [],
-        selectores: r.selectores ? structuredClone(r.selectores) : []
-      }));
-
-    const rasgosSub1a20: ItemProgresionClase[] = (subDef ? subDef.rasgos : []).map((r) => ({
-      id: `prog_sub_${r.nivel}_${normalizar(r.nombre)}`,
+    const proyectar = (
+      r: PlantillaRasgoClase,
+      origen: "clase" | "subclase",
+      fuente: string
+    ): ItemProgresionClase => ({
+      id: `prog_${origen === "clase" ? "cls" : "sub"}_${r.nivel}_${normalizar(r.nombre)}`,
       nombre: r.nombre,
       descripcion: r.descripcion,
-      origen: "subclase",
-      fuente: `${subDef?.nombre || "Subclase"} (Nivel ${r.nivel})`,
+      origen,
+      fuente: `${fuente} (Nivel ${r.nivel})`,
       tipoAccion: r.tipoAccion,
       nivelRequerido: r.nivel,
       nivel: r.nivel,
@@ -130,7 +105,15 @@ export function calcularProgresionClases(
       categoriaMecanica: r.categoriaMecanica,
       efectos: r.efectos ? structuredClone(r.efectos) : [],
       selectores: r.selectores ? structuredClone(r.selectores) : []
-    }));
+    });
+
+    const rasgosClase1a20 = defClase.rasgos
+      .filter((r) => !(subDef && esRasgoPlaceholderSubclase(r.nombre)))
+      .map((r) => proyectar(r, "clase", defClase.nombre));
+
+    const rasgosSub1a20 = (subDef ? subDef.rasgos : []).map((r) =>
+      proyectar(r, "subclase", subDef?.nombre || "Subclase")
+    );
 
     const todosProgresion: ItemProgresionClase[] = [...rasgosClase1a20, ...rasgosSub1a20].sort(
       (a, b) => a.nivel - b.nivel

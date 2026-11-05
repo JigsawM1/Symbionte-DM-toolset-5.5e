@@ -430,24 +430,6 @@ describe("Dotes de Origen Canónicas (D&D 5.5e)", () => {
     });
   });
 
-  describe("7. Escalado Dinámico de Usos por Bono de Competencia (+PB)", () => {
-    it("resuelve dinámicamente los usos según el nivel del personaje para rasgos con formulaEscalado bono_competencia", () => {
-      const calcularUsosPB = (nivel: number): number => {
-        return Math.floor((Math.max(1, nivel) - 1) / 4) + 2;
-      };
-
-      expect(calcularUsosPB(1)).toBe(2);
-      expect(calcularUsosPB(4)).toBe(2);
-      expect(calcularUsosPB(5)).toBe(3);
-      expect(calcularUsosPB(8)).toBe(3);
-      expect(calcularUsosPB(9)).toBe(4);
-      expect(calcularUsosPB(12)).toBe(4);
-      expect(calcularUsosPB(13)).toBe(5);
-      expect(calcularUsosPB(16)).toBe(5);
-      expect(calcularUsosPB(17)).toBe(6);
-      expect(calcularUsosPB(20)).toBe(6);
-    });
-  });
 
   describe("8. Integración de Dote desde Lecciones de los Primeros en la Ficha", () => {
     it("al agregar Duro como rasgo de dote, suma inmediatamente +2 HP por nivel a la vida máxima", () => {

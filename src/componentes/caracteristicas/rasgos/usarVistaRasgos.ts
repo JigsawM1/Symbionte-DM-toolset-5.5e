@@ -179,7 +179,7 @@ export function usarVistaRasgos() {
 
   const datosProgresionClases = useMemo(() => {
     if (!personajeActivo) return [];
-    return calcularProgresionClases(personajeActivo, clasesPersonaje);
+    return calcularProgresionClases(clasesPersonaje);
   }, [personajeActivo, clasesPersonaje]);
 
   const dotesInvocacion = useMemo(() => {

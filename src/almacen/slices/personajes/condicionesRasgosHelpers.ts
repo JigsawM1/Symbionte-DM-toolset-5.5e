@@ -1,12 +1,11 @@
 import type { RasgoPersonaje } from "@/tipos";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
+import { normalizar as normalizarTextoSeguro } from "@/servicios/rasgos/utilidadesRasgos";
 
 /**
  * Normaliza cadenas para comparaciones de condiciones y rasgos sin distinción de mayúsculas ni diacríticos.
  */
-export function normalizarTextoSeguro(s: string = ""): string {
-  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-}
+export { normalizarTextoSeguro };
 
 /**
  * Resuelve la condición táctica asociada a un rasgo activable (personalizada o canónica).

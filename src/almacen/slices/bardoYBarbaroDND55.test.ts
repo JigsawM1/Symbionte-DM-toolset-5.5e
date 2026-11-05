@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+﻿import { describe, it, expect, beforeEach } from "vitest";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import {
@@ -15,7 +15,7 @@ import {
   obtenerSentidosEfectivos
 } from "@/servicios/evaluadorEfectosRasgos";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { aplicarBuildClaseAPersonaje, obtenerRasgosClaseYSubclase } from "@/servicios/gestorClases";
 import { resolverRasgosAcciones } from "@/servicios/calculadorAccionesCombate";

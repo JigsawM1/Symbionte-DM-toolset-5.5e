@@ -361,51 +361,15 @@ export function importarDesdeJSON(
           resistencias: Array.isArray(m.resistencias) ? m.resistencias.map(aplanarValor) : (Array.isArray(m.DamageResistances) ? m.DamageResistances.map(aplanarValor) : []),
           inmunidadesDaño: Array.isArray(m.inmunidadesDaño) ? m.inmunidadesDaño.map(aplanarValor) : (Array.isArray(m.DamageImmunities) ? m.DamageImmunities.map(aplanarValor) : []),
           inmunidadesCondicion: Array.isArray(m.inmunidadesCondicion) ? m.inmunidadesCondicion.map(aplanarValor) : (Array.isArray(m.ConditionImmunities) ? m.ConditionImmunities.map(aplanarValor) : []),
-          accionesRapidas: accionesRapidasFormateadas.map((qa) => ({
-            nombre: aplanarValor(qa.nombre),
-            bonificadorAtaque: aplanarValor(qa.bonificadorAtaque),
-            dadosDaño: aplanarValor(qa.dadosDaño),
-            tipoDaño: aplanarValor(qa.tipoDaño),
-            recarga: aplanarValor(qa.recarga),
-            uso: aplanarValor(qa.uso)
-          })),
-          rasgos: rasgosFormateados.map((r) => ({
-            nombre: aplanarValor(r.nombre),
-            descripcion: aplanarValor(r.descripcion),
-            uso: aplanarValor(r.uso),
-            recarga: aplanarValor(r.recarga)
-          })),
-          acciones: accionesFormateadas.map((a) => ({
-            nombre: aplanarValor(a.nombre),
-            descripcion: aplanarValor(a.descripcion),
-            bonificadorAtaque: a.bonificadorAtaque,
-            daño: aplanarValor(a.daño),
-            uso: aplanarValor(a.uso),
-            recarga: aplanarValor(a.recarga)
-          })),
-          accionesAdicionales: accionesAdicionalesFormateadas.map((a) => ({
-            nombre: aplanarValor(a.nombre),
-            descripcion: aplanarValor(a.descripcion),
-            bonificadorAtaque: a.bonificadorAtaque,
-            daño: aplanarValor(a.daño),
-            uso: aplanarValor(a.uso),
-            recarga: aplanarValor(a.recarga)
-          })),
-          reacciones: reaccionesFormateadas.map((r) => ({
-            nombre: aplanarValor(r.nombre),
-            descripcion: aplanarValor(r.descripcion),
-            uso: aplanarValor(r.uso),
-            recarga: aplanarValor(r.recarga)
-          })),
+          accionesRapidas: accionesRapidasFormateadas,
+          rasgos: rasgosFormateados,
+          acciones: accionesFormateadas,
+          accionesAdicionales: accionesAdicionalesFormateadas,
+          reacciones: reaccionesFormateadas,
           accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null && m.accionesLegendariasTotal !== ""
             ? aplanarValor(m.accionesLegendariasTotal)
             : (m.legendaryActionsCount !== undefined && m.legendaryActionsCount !== null ? String(m.legendaryActionsCount) : (legendariasFormateadas.length > 0 ? "3" : undefined)),
-          accionesLegendarias: legendariasFormateadas.map((l) => ({
-            nombre: aplanarValor(l.nombre),
-            descripcion: aplanarValor(l.descripcion),
-            uso: aplanarValor(l.uso),
-            recarga: aplanarValor(l.recarga)
-          })),
+          accionesLegendarias: legendariasFormateadas,
           equipo: aplanarValor(m.equipo || m.Equipment || m.gear || m.Gear || ""),
           tesoros: aplanarValor(m.tesoros || m.Treasure || m.treasure || m.treasures || m.Treasures || "")
         };
@@ -523,8 +487,6 @@ export function importarDesdeJSON(
         const nombre = aplanarValor(o.nombre || o.name || "Objeto Desconocido");
         const rareza = aplanarValor(o.rareza || o.rarity || (o.magic_item ? "Mágico" : "Común"));
         
-        const propiedadesArr: string[] = [];
-        
         // Categoría de equipamiento
         let categoriaStr = "OTRO";
         if (o.equipment_category) {
@@ -539,10 +501,6 @@ export function importarDesdeJSON(
         } else if (o.armor_category) {
           categoriaStr = "ARMADURA";
         }
-        if (categoriaStr) propiedadesArr.push(categoriaStr);
-
-        if (o.weapon_category) propiedadesArr.push(`Arma ${aplanarValor(o.weapon_category)}`);
-        if (o.armor_category) propiedadesArr.push(`Armadura ${aplanarValor(o.armor_category)}`);
         
         // Costo y unidad traducida en español
         let cVal = 0;
@@ -557,7 +515,6 @@ export function importarDesdeJSON(
             else if (unitRaw === "ep" || unitRaw === "pe") cUni = "PE";
             else if (unitRaw === "gp" || unitRaw === "po") cUni = "PO";
             else if (unitRaw === "plat" || unitRaw === "ppt" || unitRaw === "pt") cUni = "PPT";
-            propiedadesArr.push(`Coste: ${cVal} ${cUni}`);
           } else {
             const costStr = String(o.cost).trim();
             const matches = costStr.match(/(\d+)\s*([a-zA-Z]+)/);
@@ -572,7 +529,6 @@ export function importarDesdeJSON(
             } else {
               cVal = Number(costStr) || 0;
             }
-            propiedadesArr.push(`Coste: ${cVal} ${cUni}`);
           }
         }
         
@@ -580,7 +536,6 @@ export function importarDesdeJSON(
         let pesoStr = "";
         if (o.weight !== undefined && o.weight !== null) {
           pesoStr = `${aplanarValor(o.weight)} lb`;
-          propiedadesArr.push(`Peso: ${pesoStr}`);
         }
         
         // Daño (para armas)
@@ -592,12 +547,8 @@ export function importarDesdeJSON(
             dmgDice = aplanarValor(dmgObj.damage_dice || "");
             const dmgTypeName = dmgObj.damage_type ? (typeof dmgObj.damage_type === 'object' && dmgObj.damage_type !== null ? (dmgObj.damage_type as Record<string, unknown>).name : dmgObj.damage_type) : "";
             dmgType = aplanarValor(dmgTypeName).toLowerCase();
-            if (dmgDice) {
-              propiedadesArr.push(`Daño: ${dmgDice}${dmgType ? ` (${dmgType})` : ""}`);
-            }
           } else {
             dmgDice = String(o.damage);
-            propiedadesArr.push(`Daño: ${dmgDice}`);
           }
         }
 
@@ -606,24 +557,15 @@ export function importarDesdeJSON(
         let bonoDmgStr = "";
         if (o.toHitBonus) {
           bonoAtkStr = String(o.toHitBonus);
-          propiedadesArr.push(`Bono Ataque: +${bonoAtkStr}`);
         }
         if (o.damageBonus) {
           bonoDmgStr = String(o.damageBonus);
-          propiedadesArr.push(`Bono Daño: +${bonoDmgStr}`);
         }
         
         // Cargas / Sintonización
         const propArmaArr: string[] = [];
         if (o.hasCharges || o.tieneCargas) {
           propArmaArr.push("Tiene cargas");
-          let cargasStr = "Tiene Cargas";
-          if (o.chargesOptions && typeof o.chargesOptions === 'object') {
-            const coObj = o.chargesOptions as Record<string, unknown>;
-            const maxC = coObj.max || coObj.cantidadMax;
-            if (maxC) cargasStr = `Cargas: ${aplanarValor(maxC)} máx`;
-          }
-          propiedadesArr.push(cargasStr);
         }
 
         // Deducir propiedades de armas desde el array original 'properties'
@@ -671,20 +613,7 @@ export function importarDesdeJSON(
             }
             return { tipo: "Otro", bono: aplanarValor(b), valor: 0 };
           });
-
-          const bonosStr = efectosPasivosLista.map(b => `${b.tipo} ${b.bono}: +${b.valor}`).join(', ');
-          if (bonosStr) propiedadesArr.push(`Bonos: ${bonosStr}`);
         }
-        
-        if (Array.isArray(o.properties)) {
-          const props = o.properties.map((p) => aplanarValor(p && typeof p === 'object' ? (p as Record<string, unknown>).name : p)).filter(Boolean).join(', ');
-          if (props) propiedadesArr.push(`Propiedades: ${props}`);
-        } else if (typeof o.properties === 'string' && o.properties.trim()) {
-          propiedadesArr.push(aplanarValor(o.properties));
-        }
-        
-        let propiedadesFinal = propiedadesArr.join(" | ");
-        if (!propiedadesFinal) propiedadesFinal = aplanarValor(o.propiedades || "Ninguna");
         
         // Descripción
         const descRaw = o.desc || o.descripcion || o.description || "";
@@ -701,9 +630,6 @@ export function importarDesdeJSON(
           id: aplanarValor(o.index || o.id || o.Id || generarIdSlug('o', nombre)),
           nombre,
           rareza,
-          // IMPORTANTE: NO sobreescribir 'propiedades' aquí — sanearObjetoHomebrew lee 'o.properties' (array original)
-          // para armas. Usar '_propiedadesTexto' como metadato de display sin pisar el array fuente.
-          _propiedadesTexto: propiedadesFinal,
           descripcion: descripcion || "Sin descripción disponible.",
           
           // Metadatos enriquecidos

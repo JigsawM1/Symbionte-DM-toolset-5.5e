@@ -1,9 +1,7 @@
 .tarjeta {
   display: flex;
-  align-items: center;
   justify-content: space-between;
   border-radius: var(--pj-radio-control);
-  padding: 6px 10px;
   gap: 8px;
 }
 
@@ -17,14 +15,9 @@
   border: 1px solid var(--pj-borde-cian);
 }
 
-.tarjetaNoPreparada {
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-sutil);
-}
 
 .ladoIzquierdo {
   display: flex;
-  align-items: center;
   gap: 8px;
   flex: 1;
   min-width: 0;
@@ -46,7 +39,6 @@
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
   color: var(--pj-texto-primario-suave);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   background: none;
@@ -228,13 +220,11 @@
   color: var(--pj-texto-alerta);
 }
 
-.botonOcultoActivo {
-  color: var(--pj-texto-cian) !important;
-}
-
+.botonOcultoActivo,
 .botonOcultoActivo:hover {
   color: var(--pj-texto-cian) !important;
 }
+
 
 .botonBloqueado,
 .botonBloqueado:hover {
@@ -271,7 +261,8 @@
   border-color: var(--pj-borde-magia);
 }
 
-.badgeSubclaseTexto[data-origen="especie"] {
+.badgeSubclaseTexto[data-origen="especie"],
+.badgeSubclaseTexto[data-origen="rasgos"] {
   color: var(--pj-texto-oro);
   background-color: var(--pj-acento-oro-fondo);
   border-color: var(--pj-borde-oro);
@@ -283,11 +274,6 @@
   border-color: var(--pj-borde-cian);
 }
 
-.badgeSubclaseTexto[data-origen="rasgos"] {
-  color: var(--pj-texto-oro);
-  background-color: var(--pj-acento-oro-fondo);
-  border-color: var(--pj-borde-oro);
-}
 
 
 /* La carta conserva las alternativas de lanzamiento y deja espacio al nombre. */

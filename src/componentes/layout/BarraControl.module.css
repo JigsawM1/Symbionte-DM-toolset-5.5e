@@ -38,7 +38,8 @@
   border-radius: var(--dm-radio-control, 2px);
 }
 
-.botonAccionPrincipal:hover {
+.botonAccionPrincipal:hover,
+.botonNavegacionTurno:hover {
   background-color: var(--color-fondo-profundo);
   border-color: var(--color-borde-cian);
 }
@@ -55,11 +56,6 @@
   color: var(--color-texto-principal);
   cursor: pointer;
   border-radius: var(--dm-radio-control, 2px);
-}
-
-.botonNavegacionTurno:hover {
-  background-color: var(--color-fondo-profundo);
-  border-color: var(--color-borde-cian);
 }
 
 .grupoVentaja {
@@ -126,7 +122,8 @@
   font-size: 14px;
 }
 
-.botonRondaPaso:hover {
+.botonRondaPaso:hover,
+.numeroRonda {
   color: var(--color-borde-cian);
 }
 
@@ -140,10 +137,6 @@
 .iconoAlerta {
   color: var(--dm-texto-advertencia, var(--color-advertencia));
   margin-right: 4px;
-}
-
-.numeroRonda {
-  color: var(--color-borde-cian);
 }
 
 @media (max-width: 620px) {

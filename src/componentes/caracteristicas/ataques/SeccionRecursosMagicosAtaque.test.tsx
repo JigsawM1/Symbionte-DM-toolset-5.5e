@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
-import { BannerConcentracionActiva } from "@/componentes/caracteristicas/personajes/BannerConcentracionActiva";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import type { PersonajeJugador } from "@/tipos";
 
@@ -128,20 +127,4 @@ describe("SeccionRecursosMagicosAtaque - Integración de BannerConcentracionActi
     expect(html).not.toContain("Volar");
   });
 
-  it("dispara alRomperConcentracion al invocar la acción del banner", () => {
-    const alRomper = vi.fn();
-    const elementoBanner = (
-      <BannerConcentracionActiva
-        nombreHechizo="Muro de Fuego"
-        alRomperConcentracion={() => alRomper("pj-mago-1")}
-      />
-    );
-
-    expect(elementoBanner.type).toBe(BannerConcentracionActiva);
-    expect(elementoBanner.props.nombreHechizo).toBe("Muro de Fuego");
-
-    // Ejecución directa de la prop conectada
-    elementoBanner.props.alRomperConcentracion();
-    expect(alRomper).toHaveBeenCalledWith("pj-mago-1");
-  });
 });

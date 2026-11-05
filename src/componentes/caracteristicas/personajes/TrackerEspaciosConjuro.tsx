@@ -35,8 +35,7 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
     gastados: espaciosGastados[String(nivel)] || 0,
     alGastar: () => alGastarEspacio?.(nivel),
     alRecuperar: () => alRecuperarEspacio?.(nivel),
-    colorTema: "var(--pj-texto-acento)",
-    colorTemaFondo: "var(--pj-acento-primario-solido-hover)"
+    colorTema: "var(--pj-texto-acento)"
   }));
 
   return (

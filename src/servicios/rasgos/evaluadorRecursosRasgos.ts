@@ -12,7 +12,6 @@ export function esRasgoCanalizarDivinidad(rasgo: RasgoPersonaje): boolean {
   const ligadoNorm = rasgo.ligadoA ? normalizar(rasgo.ligadoA) : "";
 
   return (
-    nomNorm === "canalizar divinidad" ||
     nomNorm.includes("canalizar divinidad") ||
     idNorm.includes("canalizar_divinidad") ||
     ligadoNorm.includes("canalizar divinidad")

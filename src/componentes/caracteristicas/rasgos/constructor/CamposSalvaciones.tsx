@@ -13,7 +13,6 @@ export function CamposSalvaciones({ nuevoTipoEfecto, nuevoObjetivo, setNuevoObje
                   valor={nuevoObjetivo}
                   opciones={OPCIONES_VENTAJA}
                   alCambiar={(val) => setNuevoObjetivo(val)}
-                  tamano="normal"
                 />
               </div>)}
         {nuevoTipoEfecto === "bono_salvacion" && (<div className={estilos.gridDosColumnas}>
@@ -25,7 +24,6 @@ export function CamposSalvaciones({ nuevoTipoEfecto, nuevoObjetivo, setNuevoObje
                     valor={nuevoObjetivo}
                     opciones={OPCIONES_SALVACION_OBJETIVO}
                     alCambiar={(val) => setNuevoObjetivo(val)}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -89,7 +87,6 @@ export function CamposSalvaciones({ nuevoTipoEfecto, nuevoObjetivo, setNuevoObje
                     setNuevoValor(val.replace("armas_", "").replace("armaduras_", ""));
                 }
             }}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -107,7 +104,6 @@ export function CamposSalvaciones({ nuevoTipoEfecto, nuevoObjetivo, setNuevoObje
                     { valor: "Instrumento musical", etiqueta: "Instrumento musical" }
                 ]}
                     alCambiar={(val) => setNuevoValor(val)}
-                    tamano="normal"
                   />) : (<input
                   type="text"
                   className={estilos.inputControl}

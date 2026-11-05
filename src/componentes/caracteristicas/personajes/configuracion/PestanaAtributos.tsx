@@ -38,14 +38,14 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
 
       {/* Grid 2 Columnas de Tarjetas de Atributos */}
       <div className={estilos.gridAtributos}>
-        {CARACTERISTICAS_CLAVES.map(({ clave }) => {
+        {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta: abreviatura }) => {
           const carac = clave as Caracteristica;
           const custom = form.personalizacionesCaracteristicas?.[carac];
           const valorBase = form.caracteristicas?.[carac] ?? 10;
           const override = custom?.valorFijo ?? form.overridesFijos?.[carac] ?? null;
           const esCompetente = !!form.competenciasSalvacion?.[carac];
 
-          const valorEfectivo = override !== null && override !== undefined ? override : valorBase;
+          const valorEfectivo = override ?? valorBase;
           const modBase = calcularModificadorCaracteristica(valorEfectivo);
           const modExtra = custom?.modificadorExtra || 0;
           const modTotal = modBase + modExtra;
@@ -66,19 +66,6 @@ export const PestanaAtributos: React.FC<PestanaAtributosProps> = ({
               : carac === "sabiduria"
               ? "Sabiduría"
               : "Carisma";
-
-          const abreviatura =
-            carac === "fuerza"
-              ? "FUE"
-              : carac === "destreza"
-              ? "DES"
-              : carac === "constitucion"
-              ? "CON"
-              : carac === "inteligencia"
-              ? "INT"
-              : carac === "sabiduria"
-              ? "SAB"
-              : "CAR";
 
           const tituloMostrar = custom?.nombrePersonalizado || nombreCompleto;
 

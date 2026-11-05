@@ -27,8 +27,7 @@ export const COOLDOWN_NOTIFICACION_VERSION_MS = 60_000;
  */
 export function gestionarNotificacionVersionIncompatible(
   datos: unknown,
-  fromClient?: FragmentoCliente,
-  esGMCustom?: boolean
+  fromClient?: FragmentoCliente
 ): void {
   if (typeof datos !== "object" || datos === null || !("v" in datos)) return;
 
@@ -43,7 +42,7 @@ export function gestionarNotificacionVersionIncompatible(
       }
     }
   }
-  const esGM = esGMCustom ?? usarAlmacenDM.getState().esGM;
+  const esGM = usarAlmacenDM.getState().esGM;
 
   // Caso 1: El cliente local está desactualizado (un cliente remoto usa una versión superior)
   if (versionRemota > VERSION_PROTOCOLO_SYNC) {

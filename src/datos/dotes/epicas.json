@@ -10,7 +10,6 @@
       "+40 puntos de golpe máximos",
       "Curación fortalecida (+CON a la curación recibida 1 vez por turno)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -33,7 +32,6 @@
       "Competencia total (competencia en todas las habilidades)",
       "Pericia en 1 habilidad donde no la tengas"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -47,7 +45,6 @@
       "+1 a una característica a tu elección (máx 30)",
       "Puntería inigualable (convertir fallo de ataque en acierto 1 vez por asalto/turno)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "especial",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -65,7 +62,6 @@
       "Último bastión (al llegar a 0 PG quedas a 1 y curas la mitad de tus PG máximos, 1 vez por descanso largo)",
       "Vitalidad (reserva de 10d10 para autocuración como acción adicional, recarga en descanso largo)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "reaccion",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -81,7 +77,6 @@
         "beneficios": [
           "Reserva de 10d10 de vitalidad (acción adicional para gastar dados y autocurarse, recarga en descanso largo)"
         ],
-        "fuente": "PHB 2024",
         "tipoAccion": "accion_adicional",
         "tieneUsosLimitados": true,
         "usosMaximos": 10,
@@ -102,7 +97,6 @@
       "Resistencia a 2 tipos de energía a tu elección (intercambiables en descanso largo)",
       "Redirigir energía (reacción para infligir 2d12 + CON a una criatura a 60 pies al recibir daño de tu tipo resistente, salvación DES CD 8+PB+CON)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "reaccion",
     "formulaDados": "2d12",
     "categoriaMecanica": "pasivo_permanente",
@@ -159,8 +153,7 @@
             "nombre": "Trueno",
             "descripcion": "Resistencia al daño de trueno"
           }
-        ],
-        "valorActual": []
+        ]
       }
     ]
   },
@@ -175,7 +168,6 @@
       "+30 pies a la velocidad de movimiento a pie",
       "Artista del escape (acción adicional para Destrabarse y librarse de agarrado)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente",
     "efectos": [
@@ -197,7 +189,6 @@
       "+1 a una característica a tu elección (máx 30)",
       "Visión verdadera (alcance 60 pies)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -212,7 +203,6 @@
       "Superar defensas (ignora resistencias a daño contundente, perforante y cortante)",
       "Golpe arrollador (con 20 natural en ataque suma el valor total de tu característica aumentada al daño)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "pasivo",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -226,7 +216,6 @@
       "+1 a una característica a tu elección (máx 30)",
       "Mejorar el destino (tirar 2d4 para sumar o restar a una prueba de d20 a 60 pies, 1 uso, recarga con iniciativa o descanso)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "especial",
     "tieneUsosLimitados": true,
     "usosMaximos": 1,
@@ -245,7 +234,6 @@
       "Fundirse con las sombras (invisibilidad como acción adicional en luz tenue u oscuridad)",
       "Forma sombría (resistencia a todo daño excepto psíquico y radiante en luz tenue u oscuridad)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "accion_adicional",
     "categoriaMecanica": "pasivo_permanente"
   },
@@ -259,7 +247,6 @@
       "+1 Inteligencia, Sabiduría o Carisma (máx 30)",
       "Lanzamiento gratuito (tira 1d4 al gastar espacio de nv 1-4; si coincide con el nivel, el espacio no se gasta)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "especial",
     "formulaDados": "1d4",
     "categoriaMecanica": "pasivo_permanente"
@@ -274,7 +261,6 @@
       "+1 a una característica a tu elección (máx 30)",
       "Pasos intermitentes (teletransporte hasta 30 pies tras realizar la acción de atacar o magia)"
     ],
-    "fuente": "PHB 2024",
     "tipoAccion": "especial",
     "categoriaMecanica": "pasivo_permanente"
   }

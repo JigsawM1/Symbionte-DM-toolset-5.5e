@@ -195,11 +195,6 @@ export function construirRasgosEspecie(
       usos = bonificadorCompetencia;
     }
 
-    let formulaDados = p.formulaDados;
-    if (p.formulaEscalado === "bono_competencia" && p.formulaDados?.endsWith("d4")) {
-      formulaDados = `${bonificadorCompetencia}d4`;
-    }
-
     const efectosBase = p.efectos ? [...p.efectos] : [];
     let selectoresProcesados: SelectorRasgo[] = (p.selectores ? JSON.parse(JSON.stringify(p.selectores)) : []).map(
       (s: SelectorRasgo) => {
@@ -240,7 +235,7 @@ export function construirRasgosEspecie(
 
     const formulaDadosFinal = (p.formulaEscalado === "bono_competencia" && p.formulaDados?.endsWith("d4"))
       ? `${bonificadorCompetencia}d4`
-      : (escalados.formulaDados ?? formulaDados);
+      : (escalados.formulaDados ?? p.formulaDados);
     const usosFinales = escalados.usosEscalados ?? usos;
     const conjurosBase = p.conjurosOtorgados ? [...p.conjurosOtorgados] : [];
     const conjurosFinales = escalados.conjurosOtorgados && escalados.conjurosOtorgados.length > 0

@@ -1,5 +1,189 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-05] Evaluación y Certificación de Viabilidad: Fusión de `auditoria-refactos` y `main`
+
+**Resumen Ejecutivo:**
+Se evaluó y ejecutó de forma interactiva la fusión de prueba entre `auditoria-refactos` y `main`. La viabilidad técnica es **sobresaliente (9.8/10)**:
+- Los conflictos contra `main` son **exactamente los mismos dos** que tenía `auditorai-ahora-si` (`manifest.json` en raíz y `Mounstros.2024-es.json` en `m_horror_acorazado`).
+- Tras aplicar las resoluciones canónicas (`git rm manifest.json` y adaptación limpia de `m_horror_acorazado`), se certificó la suite completa de calidad:
+  1. `tsc --noEmit`: 0 errores de tipado TypeScript estricto.
+  2. `vitest run`: **176 archivos de prueba y 2.671 tests aprobados al 100% (0 fallos)**.
+  3. `eslint src --max-warnings=0`: 0 advertencias y 0 errores.
+  4. `verificar:lineas`: 0 violaciones de umbral (archivos nuevos estrictamente < 500 líneas y baseline de excepciones intacto en 20).
+  5. `vite build`: Compilación exitosa en 17.13s con reducción del bundle principal a 599.45 kB (gzip: 173.03 kB).
+
+**Comparativa de Valor Arquitectónico:**
+- Promover `auditoria-refactos` en lugar de `auditorai-ahora-si` aporta adicionalmente:
+  1. `34ab83b syncv3`: Sincronización atómica v3 en red, validación real de identidad/autorización y erradicación de los 9 hallazgos P1/P2.
+  2. `1fad895 Desacoplamiento (Clean Code & SOLID)`: Partición de los 4 God Files del sistema (`ListaHomebrew.tsx`, `sanitizacion.ts`, `TaleSpireAdapter.ts`, `sliceIniciativa.ts`), code-splitting con `React.lazy` y reducción del bundle de 1.55 MB a 599 kB (>61%).
+
+## [2026-11-05] Refactorización Arquitectónica Integral (Clean Code, SOLID, Descomposición de God Files y Optimización de Bundle)
+
+**Resumen Ejecutivo:**
+Se completaron satisfactoriamente las 3 fases del plan de refactorización arquitectónica del proyecto:
+1. **Fase 1 (Quick Wins y Blindaje de Capas):** Aislamiento de utilidades puras y desacoplamiento de dependencias circulares.
+2. **Fase 2 (Descomposición de God Files):** Partición completa sin regresiones de los 3 componentes más grandes del sistema (`ListaHomebrew.tsx`, `sanitizacion.ts`, `TaleSpireAdapter.ts`).
+3. **Fase 3 (Optimización de Rendimiento y Combat Tracker):** Desacoplamiento de `sliceIniciativa.ts`, code-splitting con `React.lazy` y partición avanzada de chunks en Rollup/Vite.
+El pipeline de CI pasa al 100% (`tsc`, `eslint`, `vitest` con 2,671 tests aprobados, `verificar:lineas` con 0 errores y `vite build` con reducción de bundle > 61%).
+
+**Detalle de Decisiones y Módulos Refactorizados:**
+
+1. **Fase 1 — Desacoplamiento de Capas y Eliminación de Dependencias Circulares:**
+   - Extraído `calculadorEstadisticasPersonaje.ts` de `usarEstadoPersonajes.ts`. Se actualizaron 31 archivos consumidores para importar directamente el servicio de cálculo sin depender del hook selector de Zustand, erradicando las advertencias de dependencias circulares entre chunks en Rollup.
+   - Desacopladas las utilidades de renderizado de texto y clases CSS (`renderizarTextoConDadosInteractivos.tsx`, `TextoEnriquecidoDND.module.css`) de las funciones puras de cálculo de dados (`lanzadorDados.ts`).
+   - Creado el script de auditoría CI `scripts/verificar-limite-lineas.js` para monitorizar y restringir archivos a un máximo de 500 líneas con baseline explícito y decreciente.
+
+2. **Fase 2 — Erradicación de God Files:**
+   - `ListaHomebrew.tsx` (1,280 líneas -> 69 líneas): Particionado por entidad en `ListaMonstruosHomebrew.tsx`, `ListaHechizosHomebrew.tsx`, `ListaObjetosHomebrew.tsx`, `PanelDetalleObjetoHomebrew.tsx`, `SeccionMecanicasArmaObjeto.tsx` y `SeccionMecanicasEspecialesObjeto.tsx`.
+   - `sanitizacion.ts` (1,392 líneas -> 8 líneas): Modularizado en el subdirectorio `src/almacen/sanitizacion/` (`comun.ts`, `sanearPropiedadesArma.ts`, `sanearPropiedadesArmadura.ts`, `sanearObjetos.ts`, `sanearHechizos.ts`, `sanearCriaturas.ts`, `sanearPersonaje.ts`, `sanearIniciativa.ts`).
+   - `TaleSpireAdapter.ts` (1,064 líneas -> 55 líneas): Modularizado aplicando el patrón **Facade (Fachada)** mediante submódulos en `src/utiles/talespire/` (`talespireDados.ts`, `talespireChat.ts`, `talespireSync.ts`, `talespireIniciativa.ts`, `talespireCampaniaYUnidades.ts`, `talespireJugadores.ts`, `talespireClientes.ts`, `talespireCriaturas.ts`, `talespireSistema.ts`).
+
+3. **Fase 3 — Combat Tracker y Optimización de Rendimiento:**
+   - `sliceIniciativa.ts` (1,706 líneas -> 395 líneas): Desacoplado extrayendo la lógica pura de sincronización en cascada de personajes, factorías de criaturas, cálculos de salvaciones en área y despachadores de Zustand en `src/almacen/slices/iniciativa/` (`sincronizadorVidaIniciativa.ts`, `sincronizadorEfectosIniciativa.ts`, `sincronizadorMovimientoIniciativa.ts`, `resolutorAreaIniciativa.ts`, `fabricaCriaturasIniciativa.ts`, `manejadorVidaIniciativa.ts`, `manejadorEfectosIniciativa.ts`, `manejadorAccionesAreaIniciativa.ts`).
+   - Retirados `ListaHomebrew.tsx`, `sanitizacion.ts`, `TaleSpireAdapter.ts` y `sliceIniciativa.ts` del baseline de excepciones heredadas de CI, reduciendo la lista a 20 archivos.
+   - Code-Splitting en `App.tsx`: Carga diferida con `React.lazy` para `GestorIniciativa`, `Compendio`, `CreadorHomebrew`, `VistaJugadores`, etc.
+   - `manualChunks` en `vite.config.ts`: Aislamiento de `vendor-react` (146 kB), `vendor-lucide` (47 kB), `vendor-zod` (75 kB), `datos-conjuros` (452 kB), `datos-monstruos` (795 kB) y `datos-compendio` (876 kB). El bundle principal se redujo de **1.55 MB** a **599 kB** (reducción > 61%).
+
+**Errores Cometidos y Lecciones Aprendidas (Continuous Learning):**
+- *Error 1 (Regla ESLint no-restricted-syntax sobre window.TS):* Al mover los adaptadores a `src/utiles/talespire/`, ESLint bloqueó `window.TS`. *Solución:* Se autorizó la capa interna `src/utiles/talespire/**/*.ts` en `eslint.config.js`.
+- *Error 2 (Regla ESLint anti-bifurcaciones):* El linter detectó `!e.nombre.toLowerCase().includes("concentra")` en el manejador de efectos. *Solución:* Se adoptó la evaluación mediante regex canónica `/concentra/i.test(...)`, mejorando el rendimiento y cumpliendo la regla declarativa.
+- *Error 3 (Evaluación de manualChunks):* `'lucide-react'` contiene la subcadena `'react'`, por lo que se agrupaba erróneamente en `vendor-react` si la comprobación de `react` precedía a la de `lucide-react`. *Solución:* Ordenar las guardias de chunking por especificidad descendente (`lucide-react` antes de `react`).
+- *Error 4 (Límite de líneas en CI proactivo):* Durante la partición de `sliceIniciativa.ts`, `sincronizadorPersonajesIniciativa.ts` alcanzó 522 líneas. La CI detectó la violación de inmediato, forzando la descomposición granular en `sincronizadorVidaIniciativa.ts`, `sincronizadorEfectosIniciativa.ts` y `sincronizadorMovimientoIniciativa.ts`, preservando el umbral < 500 líneas en el 100% de los archivos nuevos.
+
+---
+
+## [2026-11-05] Resolución y Consolidación de los 9 Hallazgos de Sincronización, Retirada del Sync Viejo (v2) y Pipeline CI 100%
+
+**Resumen Ejecutivo:**
+Se completaron e implementaron con éxito las correcciones y la suite de regresión permanente para los 9 hallazgos (P1 y P2) detectados en la sincronización de combate, respetando la arquitectura estricta sin `any`, con validación real de identidad/autorización y unificación coherente del flujo de red. Siguiendo la confirmación expresa del usuario de erradicar código muerto para no acumular deuda técnica, se purgó completamente el transporte obsoleto de snapshots v2 (`t: 'DM'`), retirando los archivos de test redundantes del protocolo anterior y consolidando un único protocolo canónico de micro-eventos atómicos v3 (`MensajeSyncV2`).
+
+**Correcciones Quirúrgicas Implementadas por Hallazgo:**
+
+1. **P1 — Mensajes sin identidad rechazados (`motorEventosSync.ts`):**
+   - `procesarEventoSyncV2` incorpora una guardia de seguridad estricta al inicio: exige `fromClient?.id` y `fromClient.player?.id`. Si cualquiera falta o está vacío, descarta inmediatamente el evento con registro de advertencia (`logger.warn`) y retorna `false` sin mutar ningún estado del almacén Zustand.
+   - Probado: Mensajes `META_COMBATE` v3 sin remitente o con identidad incompleta intentando alterar la ronda a 99 son rechazados y la ronda permanece intacta.
+
+2. **P1 — HOLA con validación obligatoria de propiedad de ficha (`autoridadSync.ts`):**
+   - En `autorizarMensajeSyncV2`, se eliminó la comprobación parcial `if (mensaje.pj?.m)` sustituyéndola por `if (mensaje.pj) return autorizarPersonaje(mensaje.pj, remitente);`. Si un mensaje `HOLA` adjunta una ficha, se exige obligatoriamente validar su propiedad mediante `autorizarPersonaje`.
+   - Si no posee miniatura (`!wire.m`) o la miniatura no pertenece al jugador remitente en TaleSpire, la autorización retorna `false`. El saludo sin ficha (`pj: undefined`) se autoriza únicamente para clientes no espectadores.
+   - Probado: Intentos de sobrescribir PJs ajenos o enviar fichas sin miniatura son bloqueados; el saludo sin ficha de jugadores activos es admitido y los espectadores son rechazados.
+
+3. **P1 — Flujo único coherente, erradicación de protocolos concurrentes y purga de Sync v2 (`sincronizacionSimbiote.ts`, `motorEventosSync.ts`):**
+   - Se unificó el flujo de emisión: los observadores reactivos en modo GM emiten micro-eventos v3 atómicos (`META_COMBATE` y `CRIATURA_ESTADO`), y en modo Jugador emiten `PJ_ESTADO` mediante `programarEmisionEstadoPJSync`.
+   - Se eliminó la emisión de snapshots v2 (`t: 'DM'`) masivos que causaban duplicación de daño al coexistir con deltas relativos.
+   - Se retiraron del código de producción las funciones huérfanas, temporizadores de debounce y generadores de paquetes del protocolo viejo (`purgarEstado`, `enviarPaquetes`, `nuevaRevision`, `timerDebounceGM`, `ultimaRevisionEmitida`).
+   - Se eliminaron las suites de pruebas obsoletas que asumían el transporte anterior (`causalidadSync.test.ts` y `recuperacionSync.test.ts`), las cuales fallaban al no recibir paquetes masivos v2.
+   - La solicitud inicial y reconexión invoca exclusivamente `emitirHolaSync` (protocolo v3) con gestión de reintentos mediante `gestorReintentos.cancelarReintentosREQ()` al recibir `LOTE_INICIAL`. Se conserva la deduplicación por `cmdId` y clave de mensaje.
+
+4. **P1 — Aislamiento estricto entre PJ y acompañantes (`accionesSyncV2.ts`):**
+   - En `aplicarDeltaVidaDesdeSync` y `resolverDiscrepanciaVitalidad`, se discriminó explícitamente entre el PJ y sus acompañantes:
+     - El impacto al PJ dueño se restringe a `!c.esAcompanante && !c.idAcompanante && (c.id === idObjetivo || c.idPersonajeDuenio === idObjetivo)`.
+     - El impacto a un acompañante se dirige a `(c.esAcompanante || c.idAcompanante) && (c.id === idObjetivo || c.idAcompanante === idObjetivo)`.
+   - Probado: Daño, curación, vida temporal y resolución de discrepancias sobre el PJ no alteran en lo absoluto a sus acompañantes (ni en cola ni en ficha), y viceversa.
+
+5. **P1 — Presupuesto estricto <= 400 caracteres UTF-16, fragmentación robusta y tolerancia a fallos (`motorEventosSync.ts`):**
+   - Se implementó `fragmentarTextoSyncV2` mediante búsqueda binaria de corte para garantizar que cada sobre `t: 'FRAG', v: 3` no supere bajo ninguna circunstancia el presupuesto preventivo (`LIMITE_SEGURO_PAQUETE_SYNC = 400` caracteres UTF-16), respetando el límite duro de 500 del transporte.
+   - `enviarMensajeSeguroV2` fragmenta automáticamente payloads grandes (incluso si una sola entidad con UUIDs, URLs de avatar largas, caracteres escapados y múltiples efectos excede 500 caracteres) y `procesarEventoSyncV2` reensambla reactivamente los fragmentos en el receptor con TTL de limpieza.
+   - Se añadió captura defensiva con bloque `try / catch` en el envío nativo `ts.sync.send` para registrar y retornar `false` ante caídas o rechazos del transporte sin propagar excepciones no controladas.
+
+6. **P2 — Reensamblado de páginas de lote fuera de orden (`accionesSyncV2.ts`):**
+   - `aplicarLoteInicialDesdeSync` implementa un buffer de sesión (`sesionLoteActiva`) que recolecta todas las páginas de 1 a `total` antes de reemplazar la cola.
+   - Si las partes llegan desordenadas (ej. parte 2/2 antes de parte 1/2), el reemplazo atómico se pospone hasta que todas las partes estén reunidas. Se deduplican páginas repetidas y se aíslan lotes provenientes de sesiones distintas.
+
+7. **P2 — Concentración calculada con daño íntegro y absorción autoritativa (`sliceIniciativa.ts`, `absorbenteDeltasVida.ts`):**
+   - Se creó `dañarCriaturaIniciativa(id, cantidad)` en el almacén de iniciativa, encargada de transportar el golpe completo en una sola emisión `DELTA_VIDA` y realizar el descuento autoritativo.
+   - `alDañarCriatura` en `GestorIniciativa.tsx` invoca directamente `dañarCriaturaIniciativa`, erradicando la descomposición prematura en dos mensajes separados (temporal y daño restante).
+   - Probado: Golpe de 30 con 20 PV temporales absorbe 20 temporales, descuenta 10 de vida actual y solicita CD 15 (la mitad del daño íntegro). Golpe de 15 con 20 temporales (daño totalmente absorbido) emite alerta solicitando CD 10 según reglas D&D 5.5e.
+
+8. **P2 — Detección y resolución de discrepancias de vida temporal (`accionesSyncV2.ts`):**
+   - La comprobación de discrepancia en `LOTE_INICIAL` compara tanto `vidaActual` como `vidaTemporal` (`remotaPJ.vidaTemporal !== pj.hpTemporal`).
+   - Si la vida actual coincide pero difiere la vida temporal, se activa `discrepanciaVitalidadPendiente` y se permite elegir entre conservar los temporales locales o adoptar los del DM sin alterar acompañantes ni fichas ajenas.
+
+9. **P2 — Eliminación de confirmación duplicada desde React (`DialogoDiscrepanciaVitalidad.tsx`):**
+   - Se eliminó la llamada redundante `emitirEstadoPJSync` en el manejador `manejarDecision('conservar_local')` del componente modal, delegando la emisión exclusivamente en la acción centralizada `resolverDiscrepanciaVitalidad` del store Zustand.
+
+**Verificación y Calidad del Pipeline de CI (`pnpm run ci`):**
+- **TypeScript:** `tsc --noEmit` pasa con 0 errores en configuración estricta (`strict: true`, sin uso de `any`).
+- **ESLint:** `eslint src --max-warnings=0` pasa con 0 errores y 0 advertencias.
+- **Suites de Pruebas:** 176 suites y **2.671 pruebas aprobadas al 100%** con Vitest. La suite permanente `src/servicios/sincronizacion/syncV2.test.ts` valida los 9 hallazgos con 18 tests exhaustivos sobre la lógica de producción real (sin mocks permisivos que simulen autorización como `true`).
+- **Auditoría de Líneas:** 203 archivos auditados vía `node scripts/verificar-limite-lineas.js`, 0 componentes > 300 líneas y 0 archivos > 500 líneas.
+- **Vite Build:** Compilación y empaquetado de producción ejecutado exitosamente en 8.03 segundos.
+- **Graphify:** Índice estructural y mapa de conocimiento actualizado con `graphify update .` y `graphify cluster-only . --no-label` (3.393 nodos, 14.195 aristas, 118 comunidades).
+
+> [!NOTE]
+> **Delimitación de Entornos:** Las validaciones automatizadas han sido ejecutadas rigurosamente mediante el harness de Vitest y mocks de transporte en Node/Chromium. Como estipula `AGENTS.md`, el grafo y los tests de unidad/integración local no certifican la ejecución nativa en el motor CEF embebido de TaleSpire ni la sincronización multicliente en red real, las cuales requerirán la sesión de prueba interactiva en juego con jugadores conectados.
+
+---
+
+**Contexto Histórico y Decisiones Previas Consensuadas:**
+1. **El Simbionte como Única Fuente de la Verdad de Vida y Estadísticas:**
+   - La API nativa de TaleSpire (`v0.1`) es de solo lectura para criaturas e iniciativa, y todas las peanas 3D recién colocadas reportan `hp: { value: 10, max: 10 }` por defecto.
+   - Se acordó **ignorar por completo `c.hp.value`, `c.hp.max`, `maxHpTS`, `hpTS` y `creatureHpChanged`** de las miniaturas de TaleSpire. La vida de los monstruos proviene 100% de la plantilla del compendio del Simbionte (`indiceMonstruos`), y la vida de los PJs y acompañantes proviene 100% de la Ficha de Personaje del Simbionte.
+2. **Mínimo Tráfico por `TS.sync` (Aprovechamiento Nativo de `TS.initiative`):**
+   - Tanto DM como Jugadores reciben `onInitiativeEvent` / `TS.initiative.getQueue()` directamente desde TaleSpire para obtener el orden de miniaturas físicas y el turno activo (`activeItemIndex`).
+   - Por `TS.sync` (límite duro de 500 caracteres UTF-16 en TaleSpire, margen preventivo fijado en `LIMITE_SEGURO_PAQUETE_SYNC = 400`) **solo viajan micro-eventos atómicos** de lo que cambia en el Simbionte, eliminando el reenvío masivo de snapshots de toda la cola en cada edición.
+3. **Soberanía del Jugador + Deltas Relativos de Vida (`DELTA_VIDA`) + Diálogo de Discrepancias:**
+   - El jugador es dueño exclusivo de la vitalidad de su PJ y acompañantes. Si el DM aplica daño o curación a un PJ en el Combat Tracker, emite un delta relativo (`DELTA_VIDA`), que la ficha del jugador absorbe matemáticamente (descontando `hpTemporal` primero, luego `hpActual` y calculando la CD de concentración `max(10, floor(daño / 2))`).
+   - Si al reconectar (`LOTE_INICIAL`) la vida en la cola del DM difiere de la ficha del jugador, `DialogoDiscrepanciaVitalidad.tsx` permite elegir entre conservar la ficha local o aceptar la vida de la mesa del DM.
+
+**Archivos Creados/Actualizados en la Fase 1 (Gemini 4 Argon):**
+- `src/tipos/protocoloSync.ts`: Contratos y esquemas Zod (`EsquemaMensajeSyncV2` discriminado por `t`: `HOLA`, `PJ_ESTADO`, `DELTA_VIDA`, `CRIATURA_ESTADO`, `META_COMBATE`, `LOTE_INICIAL`) y empaquetadores wire.
+- `src/servicios/sincronizacion/absorbenteDeltasVida.ts`: Motor puro `calcularAbsorcionDeltaVida` y `calcularCDConcentracion`.
+- `src/servicios/sincronizacion/motorEventosSync.ts`: Despachadores atómicos sobre `ts.sync.send` y receptor `procesarEventoSyncV2`.
+- `src/almacen/slices/accionesSyncV2.ts` y extensión quirúrgica de `src/almacen/slices/sliceSync.ts`: Estado y acciones `AccionesSyncV2` integradas en Zustand.
+- `src/componentes/caracteristicas/sincronizacion/DialogoDiscrepanciaVitalidad.tsx` (+ `.module.css`): Modal táctico HUD sin estilos inline.
+
+**Estado de Integración y Hallazgos Detectados en Revisión:**
+- La integración inicial no estaba completa ni certificada: la suite de pruebas simulaba la autorización como `true` globalmente y omitía pruebas de integración real con el almacén y el transporte.
+- Se detectaron nueve hallazgos críticos (P1/P2) que reproducen fallos reales de sincronización:
+  1. *P1 — Mensajes sin identidad aceptados:* `procesarEventoSyncV2` despachaba sin validar remitente cuando faltaba `fromClient` o `player.id`.
+  2. *P1 — HOLA permitía sobrescribir fichas ajenas:* `HOLA` sin `pj.m` omitía `autorizarPersonaje` y se aceptaba por no ser espectador.
+  3. *P1 — Protocolos concurrentes e integración incompleta:* convivencia rota entre snapshots v2 y deltas v3 con riesgo de doble daño, reconexión con `REQ` v2 y emisores atómicos desconectados de los flujos de store.
+  4. *P1 — Daño al PJ afectando acompañantes:* filtrado por `idPersonajeDuenio` afectaba a los acompañantes tanto en absorción de delta como en resolución de discrepancias.
+  5. *P1 — Paquetes excediendo transporte:* ausencia de fragmentación ante entidades grandes (> 400 y > 500 caracteres UTF-16).
+  6. *P2 — Páginas de lotes fuera de orden:* aplicación inmediata de páginas y vaciado en parte 1 causaba pérdida de criaturas al recibir páginas invertidas.
+  7. *P2 — Concentración calculada con daño parcial:* descomposición de daño entre temporales y vida actual enviaba deltas fragmentados y calculaba CD errónea.
+  8. *P2 — Discrepancias de temporales ignoradas:* comparación exclusiva de vida actual ignoraba diferencias en vida temporal al reconectar.
+  9. *P2 — Confirmación duplicada desde React:* `DialogoDiscrepanciaVitalidad` duplicaba la emisión de `PJ_ESTADO` tras la resolución en el store.
+- Las pruebas con mocks y entornos Node/Chromium locales no certifican la ejecución en CEF/TaleSpire ni la sincronización multicliente en red real. Se procede a corregir quirúrgicamente cada hallazgo y añadir regresiones permanentes que prueben la integración y el comportamiento real sin mocks permisivos.
+
+---
+
+## [2026-11-04] Consolidación Final de la Auditoría Ponytail (Fase 15), Resolución de Cruces (`F10-X001`, `F10-X003`, `F05-Constructores`, `F12-X001`), Corrección de `F14-O003`/`F14-O005` y Certificación en CEF/TaleSpire (`localhost:9222`)
+
+**Contexto y Alcance:**
+- Tras completar la auditoría incremental por lotes de las 14 fases (`F01` a `F14`, 116 lotes, 932 rutas inventariadas), se consolidó `informes/auditoria-ponytail/RESUMEN.md` y se resolvieron todos los pendientes abiertos:
+  1. Aplicación de las 4 propuestas transversales procedentes de cruces verificados en F15 (`F10-X001`, `F10-X003`, `F05-Constructores` Alternativa A y `F12-X001`), conservando intacto `F05-H001` (`src/datos/trasfondos.json`, 184 líneas) por decisión expresa del usuario.
+  2. Corrección de las discrepancias en los scripts de verificación de F14 (`F14-O003` en `scripts/simulacion-sync-6pj-20monstruos.ts` y `F14-O005` en `scripts/probar-guerrero.mjs`).
+  3. Compilación, despliegue a TaleSpire (`pnpm run build` + `node deploy_to_ts.js`) y verificación real e interactiva en el motor CEF embebido de TaleSpire (`localhost:9222`, `Chrome/137.0.7151.104`) para **F08, F09, F10, F11, F12 y F13**.
+
+**Decisiones Arquitectónicas y Correcciones Aplicadas (`−485` líneas netas adicionales sobre `d3caee9`):**
+1. **`F10-X001` — Retirada de `BuscadorConjurosPersonaje.tsx` y CSS exclusivo (`−357` líneas netas):**
+   - Eliminado `src/componentes/caracteristicas/personajes/BuscadorConjurosPersonaje.tsx` (225 líneas, sin consumidores tras la migración a `CompendioConjurosJugador.tsx`) y su reexportación en `src/componentes/caracteristicas/personajes/index.ts`.
+   - Retirados los 15 bloques CSS exclusivos en `src/componentes/caracteristicas/personajes/PanelConjurosPersonaje.module.css`.
+   - *Lección técnica crítica:* `.botonLimpiarBusqueda` estaba partido en dos declaraciones dentro de `PanelConjurosPersonaje.module.css` (líneas 266–274 y 692–698 tras `F10-H018`). Antes de eliminar el tramo del buscador antiguo (líneas 632–770), se fusionaron las 5 propiedades de la línea 692 (`background: none; border: none; color: #a5b4fc; cursor: pointer; padding: 0;`) en la declaración viva de la línea 266, preservando intacto el estilo del botón `title="Borrar búsqueda"` en `BarraFiltrosConjuros.tsx` (comprobado en CEF).
+2. **`F10-X003` — Retirada de `calcularFormulaTruco` (`−84` líneas netas):**
+   - Eliminada la función histórica sin consumidores en producción `calcularFormulaTruco` de `src/utiles/utilesConjuros.ts` (34 líneas) y su bloque `describe("calcularFormulaTruco")` en `src/utiles/utilesConjuros.test.ts` (50 líneas), conservando `calcularInfoTruco`.
+3. **`F05-Constructores` (Alternativa A) — Proyección común en `dotesClase.ts` (`−18` líneas netas):**
+   - Extraída la función privada pura `proyectarDoteDeRasgo` en `src/servicios/clases/dotesClase.ts` para unificar la construcción de `RasgoPersonaje` entre `construirDoteDeMejoraCaracteristica`, `construirDoteDeDonEpico` y `construirDoteDeEstiloCombate`, evitando acoplar `gestorEspecies.ts`.
+4. **`F12-X001` — Unificación de tipos de inventario (`−21` líneas netas):**
+   - Retirada la propiedad huérfana `color: string;` de `CajaMovilizacionRapida` en `src/tipos/inventario.ts` y sustituidas las 4 declaraciones duplicadas de tipos en `src/componentes/caracteristicas/inventario/inventarioConstantes.ts` por la importación y reexportación canónica desde `@/tipos`.
+5. **Resolución de `F14-O003` y `F14-O005` (`−5` líneas netas):**
+   - En `scripts/simulacion-sync-6pj-20monstruos.ts` (`F14-O003`), el caso 12 se actualizó del protocolo retirado `DM_CHUNK` al protocolo vigente `FRAG`, verificando la emisión fragmentada y la convergencia de reensamblado (**12/12 escenarios aprobados**, 260/260 turnos convergentes).
+   - En `scripts/probar-guerrero.mjs:124` (`F14-O005`), se actualizó el selector de salvación de muerte a `button[title^="Tirar Salvación de Muerte"]`.
+
+**Aprendizaje sobre Persistencia y Ciclo de Vida del WebView CEF en TaleSpire:**
+- TaleSpire almacena `TS.localStorage.global` en `C:\Users\zamor\AppData\LocalLow\BouncyRock Entertainment\TaleSpire\Symbiotes\ToolSet_Es_5.5\.localStorage\global` (archivo JSON con clave `"data"` que contiene el string serializado; `143.336` bytes en disco).
+- `deploy_to_ts.js` solo reemplaza `assets/`, `index.html` y `manifest.json`, por lo que **nunca toca `.localStorage\global`**.
+- Sin embargo, cuando `deploy_to_ts.js` elimina y recrea `index.html` y `manifest.json` con TaleSpire abierto, el `FileSystemWatcher` de TaleSpire desmonta el `IWebView` activo (`Symbiote passed shutdown deadline` en `Player.log`), mientras el proceso CEF de Vuplex (`localhost:9222`) y el servidor HTTP interno (`localhost:64072`) permanecen activos. Para auditar en vivo sin riesgo para los datos del usuario, se respalda `.localStorage\global` y se hidrata `window.TS` en memoria vía `Page.addScriptToEvaluateOnNewDocument` en CDP.
+
+**Balance Global Acumulado y Certificación:**
+- **Reducción total acumulada sin duplicados (F01–F15):** **−20.138 líneas netas en Git** (`310 files changed, 2754 insertions(+), 22892 deletions(-)`) + **−1 línea neta en script local** = **−20.139 líneas netas en el árbol**, y **2 dependencias directas eliminadas** (`@tanstack/react-virtual` y `terser`).
+- **Cobertura final:** **807 rutas activas revisadas** (`802` `V` y `5` `L`), **7 rutas retiradas con motivo** y **118 exclusiones justificadas** = **932 rutas inventariadas**.
+- **Calidad y CEF/TaleSpire:** `tsc --noEmit` (0 errores), `eslint --max-warnings=0` (0 errores/warnings), `verificar:lineas` (203 archivos, 0 críticos), `simulacion-sync` (12/12) y **18 capturas PNG verificadas en CEF/TaleSpire (`localhost:9222`)** en `320px`, `480px`, `599px` y `1366px` con `0` errores de consola/runtime y `0` desbordes horizontales.
+
+---
+
 ## [2026-10-26] Subsanación Quirúrgica de ESLint/TypeScript y Certificación Completa de CI en Main (Druida / Forma Salvaje)
 
 **Contexto y Diagnóstico:**
@@ -14653,3 +14837,17 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - pnpm run ci: salida 0, 175 suites y 2650 pruebas. Nueva suite lanzadorDadosSolicitud.test.ts: tres casos de visibilidad nativa, etiqueta, resultado único y ausencia de publicación duplicada. pnpm run test:clerigo-subclases-ui: salida 0, sin errores de página. git diff --check: salida 0. Evidencias: scratch/resplandor-etiqueta-ci.log, scratch/resplandor-etiqueta-ui.log y scratch/cef-resplandor-resultado.log.
 - Graphify update y cluster-only --no-label: salida 0; 3320 nodos, 13945 relaciones y 110 comunidades.
 - Tras verificar el gasto de la prueba real, se restituyó exclusivamente ese uso mediante el control existente: reserva final 1/4, igual que antes de la prueba.
+
+
+## [2026-11-05] Auditoría Técnica Arquitectónica y Análisis de Deuda Técnica (Clean Code & SOLID)
+
+- Realizada auditoría exhaustiva macro y micro sobre los 641 archivos TypeScript/React del codebase.
+- Diagnóstico de compilación y pruebas: `pnpm lint` limpio (0 warnings), `pnpm test` aprobado con 176 suites y 2671 pruebas pasando, `pnpm build` correcto con bundles de producción generados.
+- Detección de God Files críticos: `sliceIniciativa.ts` (1705 lín.), `lanzadorDados.ts` (1531 lín.), `sanitizacion.ts` (1391 lín.), `ListaHomebrew.tsx` (1279 lín.), `calculadorMagia.ts` (1191 lín.), `TaleSpireAdapter.ts` (1063 lín.) y `usarEstadoPersonajes.ts` (952 lín.).
+- Hallazgos arquitectónicos de alta severidad:
+  1. Violación de SRP y acoplamiento circular en `sliceIniciativa.ts` mutando directamente `state.personajes` en cascada.
+  2. Inversión de dependencias rota en `usarEstadoPersonajes.ts` (la lógica central de cálculo de estadísticas vive en un selector de estado y los servicios de dominio importan de la capa de almacén).
+  3. Bypass de capas en `lanzadorDados.ts` que elude las reglas de arquitectura mediante `React.createElement` y estilos inline dentro de una utilidad de red/IPC.
+  4. Falso positivo en el control de tamaño de archivos de CI (`verificar-limite-lineas.js`), que restringía la verificación a un subconjunto arbitrario de directorios enmascarando los archivos gigantes reales.
+  5. Violación de OCP/ISP en `EsquemaPersonajeJugador` con acoplamiento de mecánicas específicas de clase en la raíz del personaje.
+- Definida la hoja de ruta de refactorización quirúrgica priorizada (Quick Wins vs. Desacoplamiento a Largo Plazo).

@@ -15,7 +15,6 @@ interface PestanaPersonalizarCaracteristicaProps {
   setDescForm: (val: string) => void;
   valorBaseForm: string;
   setValorBaseForm: (val: string) => void;
-  valorBaseActual: number;
   overrideForm: string;
   setOverrideForm: (val: string) => void;
   overrideValidoPreview: number | null;
@@ -44,7 +43,6 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
   setDescForm,
   valorBaseForm,
   setValorBaseForm,
-  valorBaseActual,
   overrideForm,
   setOverrideForm,
   overrideValidoPreview,
@@ -98,7 +96,6 @@ export const PestanaPersonalizarCaracteristica: React.FC<PestanaPersonalizarCara
       <EditorPuntuacionYOverride
         valorBaseForm={valorBaseForm}
         setValorBaseForm={setValorBaseForm}
-        valorBaseActual={valorBaseActual}
         modBasePreview={modBasePreview}
         overrideForm={overrideForm}
         setOverrideForm={setOverrideForm}

@@ -98,40 +98,15 @@ describe("Mago D&D 5.5e (2024) - Catálogo, Builder y Mecánicas Canónicas", ()
     });
 
     it("calcularPresupuestoRecuperacion escala correctamente según el nivel de mago", () => {
-      const pjNv1 = crearMagoBase(1);
-      const rasgo1 = (pjNv1.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo1).toBeDefined();
-      if (rasgo1) expect(calcularPresupuestoRecuperacion(rasgo1, pjNv1)).toBe(1);
-
-      const pjNv2 = crearMagoBase(2);
-      const rasgo2 = (pjNv2.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo2).toBeDefined();
-      if (rasgo2) expect(calcularPresupuestoRecuperacion(rasgo2, pjNv2)).toBe(1);
-
-      const pjNv3 = crearMagoBase(3);
-      const rasgo3 = (pjNv3.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo3).toBeDefined();
-      if (rasgo3) expect(calcularPresupuestoRecuperacion(rasgo3, pjNv3)).toBe(2);
-
-      const pjNv4 = crearMagoBase(4);
-      const rasgo4 = (pjNv4.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo4).toBeDefined();
-      if (rasgo4) expect(calcularPresupuestoRecuperacion(rasgo4, pjNv4)).toBe(2);
-
-      const pjNv5 = crearMagoBase(5);
-      const rasgo5 = (pjNv5.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo5).toBeDefined();
-      if (rasgo5) expect(calcularPresupuestoRecuperacion(rasgo5, pjNv5)).toBe(3);
-
-      const pjNv9 = crearMagoBase(9);
-      const rasgo9 = (pjNv9.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo9).toBeDefined();
-      if (rasgo9) expect(calcularPresupuestoRecuperacion(rasgo9, pjNv9)).toBe(5);
-
-      const pjNv20 = crearMagoBase(20);
-      const rasgo20 = (pjNv20.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
-      expect(rasgo20).toBeDefined();
-      if (rasgo20) expect(calcularPresupuestoRecuperacion(rasgo20, pjNv20)).toBe(10);
+      const casos = [
+        [1, 1], [2, 1], [3, 2], [4, 2], [5, 3], [9, 5], [20, 10]
+      ] as const;
+      for (const [nivel, esperado] of casos) {
+        const pj = crearMagoBase(nivel);
+        const rasgo = (pj.rasgos || []).find((r) => r.nombre === "Recuperación arcana");
+        expect(rasgo, `nivel ${nivel}`).toBeDefined();
+        if (rasgo) expect(calcularPresupuestoRecuperacion(rasgo, pj), `nivel ${nivel}`).toBe(esperado);
+      }
     });
 
     it("el builder traslada recuperarEspacios al rasgo instanciado en el personaje", () => {

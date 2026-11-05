@@ -17,7 +17,8 @@
   width: 100%;
 }
 
-.tituloSeccion {
+.tituloSeccion,
+.zonaDerecha {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -49,13 +50,6 @@
 .tituloTextoClickable {
   cursor: pointer;
   user-select: none;
-}
-
-.zonaDerecha {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
 }
 
 .campañaTexto {
@@ -272,7 +266,8 @@
 }
 
 @media (max-width: 480px) {
-  :global([data-tema="jugador"]) .pestanaBoton {
+  :global([data-tema="jugador"]) .pestanaBoton,
+  .selectorPestanas > button > div {
     flex-direction: column;
     gap: 2px;
   }
@@ -280,11 +275,6 @@
   :global([data-tema="jugador"]) .pestanaTexto {
     white-space: nowrap;
     overflow-wrap: normal;
-  }
-
-  .selectorPestanas > button > div {
-    flex-direction: column;
-    gap: 2px;
   }
 
   .selectorPestanas > button > svg {

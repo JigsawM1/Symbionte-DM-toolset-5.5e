@@ -57,11 +57,9 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
 
     const renuncia = personajeActivo && evaluarEfectosRasgosActivos(personajeActivo).find(e =>
       e.tipo === "renunciar_ventaja" && e.objetivo === `ataque.${ataque.caracteristicaUsada}` && Number(e.valor) > 0);
-    if (renuncia) {
-      if (evaluacionCondiciones.tieneDesventaja || ctx.tipoTiradaManual === "desventaja") {
-        agregarNotificacion("No puedes renunciar a ventaja en un ataque que tenga desventaja. Desactiva el rasgo para lanzar ese ataque.", "advertencia");
-        return false;
-      }
+    if (renuncia && (evaluacionCondiciones.tieneDesventaja || ctx.tipoTiradaManual === "desventaja")) {
+      agregarNotificacion("No puedes renunciar a ventaja en un ataque que tenga desventaja. Desactiva el rasgo para lanzar ese ataque.", "advertencia");
+      return false;
     }
 
     const motivos = [
@@ -73,13 +71,9 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
     const sufijoMotivo = motivos ? ` (${motivos})` : "";
 
     const formula = `1d20${bonoStr}`;
-    let etiqueta = `${nombrePj} - Ataque con ${ataque.nombre}${sufijoMotivo}`;
-
-    if (evaluacionCondiciones.modoEfectivo === "ventaja") {
-      etiqueta = `${nombrePj} - Ataque con ${ataque.nombre} (Ventaja)${sufijoMotivo}`;
-    } else if (evaluacionCondiciones.modoEfectivo === "desventaja") {
-      etiqueta = `${nombrePj} - Ataque con ${ataque.nombre} (Desventaja)${sufijoMotivo}`;
-    }
+    const sufijoCondicion = evaluacionCondiciones.modoEfectivo === "ventaja" ? " (Ventaja)"
+      : evaluacionCondiciones.modoEfectivo === "desventaja" ? " (Desventaja)" : "";
+    const etiqueta = `${nombrePj} - Ataque con ${ataque.nombre}${sufijoCondicion}${sufijoMotivo}`;
 
     if (ataque.requiereMunicion && !ataque.puedeDisparar) {
       const aviso =
@@ -167,16 +161,12 @@ export async function ejecutarTiradaDanoFisico(
       }
       const etiquetaLimpia = sanitizarEtiqueta(etiquetaSub);
 
+      let formulaSub = sub;
       if (!sub.includes("d")) {
         const valorFijo = parseInt(sub, 10);
-        if (!isNaN(valorFijo)) {
-          formulasTaleSpire.push(`${etiquetaLimpia}:1d1+${valorFijo - 1}`);
-        } else {
-          formulasTaleSpire.push(`${etiquetaLimpia}:${sub}`);
-        }
-      } else {
-        formulasTaleSpire.push(`${etiquetaLimpia}:${sub}`);
+        if (!isNaN(valorFijo)) formulaSub = `1d1+${valorFijo - 1}`;
       }
+      formulasTaleSpire.push(`${etiquetaLimpia}:${formulaSub}`);
     }
 
     const formulaCompuesta = formulasTaleSpire.join("/");

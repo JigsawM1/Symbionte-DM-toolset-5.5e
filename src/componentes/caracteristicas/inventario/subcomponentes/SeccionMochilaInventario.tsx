@@ -1,6 +1,19 @@
 import React from "react";
 import type { ObjetoInventario } from "@/tipos";
-import { Backpack, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  Backpack,
+  ChevronDown,
+  ChevronRight,
+  FlaskConical,
+  Crosshair,
+  Swords,
+  Shield,
+  Wrench,
+  Sparkles,
+  Package,
+  PackageOpen,
+  Wand2
+} from "lucide-react";
 import type { CriterioOrdenMochila, SubseccionMochilaTipo } from "../usarInventarioOrdenado";
 import { BarraHerramientasInventario } from "../BarraHerramientasInventario";
 import estilos from "@/componentes/caracteristicas/personajes/HojaPersonaje.module.css";
@@ -24,6 +37,34 @@ interface SeccionMochilaInventarioProps {
   alDragLeave: (e: React.DragEvent, zona: string) => void;
   alDrop: (e: React.DragEvent, zona: string) => void;
   renderizarTarjeta: (obj: ObjetoInventario) => React.ReactNode;
+}
+
+function renderizarIconoSubseccion(tipoIcono?: string, color?: string): React.ReactNode {
+  const props = { size: 14, color: color || "currentColor" };
+  switch (tipoIcono) {
+    case "FlaskConical":
+      return <FlaskConical {...props} />;
+    case "Crosshair":
+      return <Crosshair {...props} />;
+    case "Swords":
+      return <Swords {...props} />;
+    case "Shield":
+      return <Shield {...props} />;
+    case "Wrench":
+      return <Wrench {...props} />;
+    case "Sparkles":
+      return <Sparkles {...props} />;
+    case "Package":
+      return <Package {...props} />;
+    case "PackageOpen":
+      return <PackageOpen {...props} />;
+    case "Wand2":
+      return <Wand2 {...props} />;
+    case "Backpack":
+      return <Backpack {...props} />;
+    default:
+      return <Package {...props} />;
+  }
 }
 
 export const SeccionMochilaInventario: React.FC<SeccionMochilaInventarioProps> = ({
@@ -110,7 +151,7 @@ export const SeccionMochilaInventario: React.FC<SeccionMochilaInventarioProps> =
                       <span className={estilos.iconoChevronColapso}>
                         {abierta ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                       </span>
-                      {sub.icono}
+                      {renderizarIconoSubseccion(sub.tipoIcono, sub.color)}
                       <span>{sub.titulo}</span>
                     </div>
                     <div className={estilos.metaSubseccionMochila}>

@@ -64,7 +64,6 @@
         {
           "id": "selector_orden_primigenio",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Orden primigenio",
           "opciones": [
             {
@@ -78,7 +77,6 @@
               "descripcion": "Ganas competencia con armas marciales y entrenamiento con armaduras medias."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "mago"
           ]
@@ -189,7 +187,6 @@
         {
           "id": "selector_furia_elemental",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Furia elemental",
           "opciones": [
             {
@@ -203,7 +200,6 @@
               "descripcion": "Una vez en cada uno de tus turnos, cuando aciertes con un arma o ataque de bestia en Forma salvaje, infliges 1d8 de daño adicional (frío, fuego, relámpago o trueno)."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "golpe_primordial"
           ]
@@ -300,7 +296,6 @@
             {
               "id": "selector_tierra_bioma",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Tipo de tierra elegida",
               "opciones": [
                 {
@@ -324,7 +319,6 @@
                   "descripcion": "Conjuros de veneno y plagas (Rayo de enfermedad, Telaraña, Polimorfar)."
                 }
               ],
-              "maxSelecciones": 1,
               "valorActual": [
                 "templada"
               ]
@@ -740,7 +734,6 @@
             {
               "id": "selector_constelacion_estelar",
               "tipoSelector": "general",
-              "tipo": "unico",
               "etiqueta": "Constelación activa",
               "opciones": [
                 {
@@ -759,7 +752,6 @@
                   "descripcion": "En pruebas de Sabiduría/Inteligencia o salvación de Constitución de concentración, tiradas de 9 o menos cuentan como 10. Vuelo 20 pies a nivel 10."
                 }
               ],
-              "maxSelecciones": 1,
               "valorActual": [
                 "arquero"
               ]

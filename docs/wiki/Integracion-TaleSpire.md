@@ -4,13 +4,13 @@
 
 `src/utiles/TaleSpireAdapter.ts` encapsula el acceso a `window.TS`. El resto de la aplicación usa `ts` en lugar de consultar directamente la API nativa.
 
-El adaptador expone módulos para dados, chat, iniciativa, criaturas, paquetes de contenido, campaña, clientes, jugadores, almacenamiento, portapapeles y depuración.
+El adaptador expone módulos para dados, chat, iniciativa, criaturas, campaña, clientes, jugadores, almacenamiento, portapapeles y depuración.
 
 La propiedad `estaDisponible` permite distinguir TaleSpire de un navegador local.
 
 ## Iniciativa
 
-`ts.initiative.getQueue()` lee la cola nativa y deduplica peticiones concurrentes mediante una promesa temporal. `suscribirAEvento` escucha `initiative.onInitiativeEvent`.
+`ts.initiative.getQueue()` lee la cola nativa y deduplica peticiones concurrentes mediante una promesa temporal. El hook recibe los cambios de iniciativa mediante `puenteTaleSpire.on("iniciativaActualizada", ...)`.
 
 El puente recibe `manejarEventoIniciativa` y `initiativeUpdated`, deserializa el payload y emite `iniciativaActualizada`. El slice transforma `activeItemIndex` y los elementos de la cola al modelo local.
 
@@ -19,8 +19,6 @@ El puente recibe `manejarEventoIniciativa` y `initiativeUpdated`, deserializa el
 `ts.creatures.getSelectedCreatures()` obtiene la selección física del tablero. `ts.creatures.getMoreInfo()` consulta nombre, vida, estadísticas y otros datos extendidos.
 
 `ts.creatures.getCreaturesOwnedByPlayer()` se usa para resolver miniaturas del jugador. `resolutorMiniaturasJugador.ts` empareja esas criaturas con personajes locales.
-
-El adaptador también dispone de operaciones de paquetes de contenido para buscar objetos de tablero y crear elementos de miniatura cuando TaleSpire expone esas funciones.
 
 ## Roles y clientes
 

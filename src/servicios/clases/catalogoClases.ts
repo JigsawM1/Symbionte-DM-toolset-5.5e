@@ -148,19 +148,8 @@ export function obtenerNivelEfectivoParaRasgo(
   }
 
   // Clases configuradas en el personaje
-  const clasesPersonaje: Array<{ nombre: string; subclase?: string; nivel: number }> =
-    personaje.clases && personaje.clases.length > 0
-      ? personaje.clases
-      : [
-          {
-            nombre: personaje.clase || "Guerrero",
-            subclase: personaje.subclase || "",
-            nivel: personaje.nivel || 1
-          }
-        ];
-
-  // Si el personaje solo cuenta con una clase configurada, su nivel coincide con el general
-  if (clasesPersonaje.length === 1) {
+  const clasesPersonaje = personaje.clases;
+  if (!clasesPersonaje || clasesPersonaje.length <= 1) {
     return nivelGeneral;
   }
 

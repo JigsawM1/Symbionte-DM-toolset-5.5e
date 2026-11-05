@@ -94,14 +94,7 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
       const spyEstaDisponible = vi.spyOn(ts, "estaDisponible", "get").mockReturnValue(true);
       const spyDebugLog = vi.spyOn(ts.debug, "log").mockImplementation(() => {});
 
-      let descriptorsEnviados: DescriptorTirada[] = [];
-      let silenceChatEnviado = false;
-
-      vi.spyOn(ts.dice, "putDiceInTray").mockImplementation(async (desc, silence) => {
-        descriptorsEnviados = desc;
-        silenceChatEnviado = silence ?? false;
-        return "roll-ventaja-1";
-      });
+      const spyBandeja = vi.spyOn(ts.dice, "putDiceInTray").mockResolvedValue("roll-ventaja-1");
 
       vi.spyOn(ts.dice, "makeRollDescriptors").mockImplementation(async (f) => {
         return crearDescriptoresManualmente(f) as DescriptorTirada[];
@@ -110,10 +103,10 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
       // Lanzar tirada con ventaja
       await lanzarDadosTaleSpire("1d20+4", "Sigilo");
 
-      expect(silenceChatEnviado).toBe(true);
-      expect(descriptorsEnviados).toHaveLength(2);
-      expect(descriptorsEnviados[0].name).toBe("Sigilo (Ventaja 1)");
-      expect(descriptorsEnviados[1].name).toBe("Sigilo (Ventaja 2)");
+      expect((spyBandeja.mock.calls.at(-1)?.[1] ?? false)).toBe(true);
+      expect(spyBandeja.mock.calls.at(-1)![0]).toHaveLength(2);
+      expect(spyBandeja.mock.calls.at(-1)![0][0].name).toBe("Sigilo (Ventaja 1)");
+      expect(spyBandeja.mock.calls.at(-1)![0][1].name).toBe("Sigilo (Ventaja 2)");
 
       // Simular respuesta nativa directa de TaleSpire (sin kind ni payload intermedio)
       const mockResultGroups: GrupoResultadosTirada[] = [
@@ -128,13 +121,7 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
         return 0;
       });
 
-      let gruposEnviadosAlChat: GrupoResultadosTirada[] | null = null;
-      let rollIdEnviadoAlChat: string | null | undefined = null;
-
-      vi.spyOn(ts.dice, "sendDiceResult").mockImplementation(async (grupos, rollId) => {
-        gruposEnviadosAlChat = grupos as GrupoResultadosTirada[];
-        rollIdEnviadoAlChat = rollId;
-      });
+      const spyResultado = vi.spyOn(ts.dice, "sendDiceResult").mockResolvedValue(undefined);
 
       const eventoNativoTaleSpire = {
         rollId: "roll-ventaja-1",
@@ -147,10 +134,10 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
       const procesado = await procesarResultadosDadosTaleSpire(eventoNativoTaleSpire);
 
       expect(procesado).toBe(true);
-      expect(rollIdEnviadoAlChat).toBe("roll-ventaja-1");
-      expect(gruposEnviadosAlChat).toHaveLength(1);
+      expect(spyResultado.mock.calls.at(-1)?.[1]).toBe("roll-ventaja-1");
+      expect(spyResultado.mock.calls.at(-1)?.[0]).toHaveLength(1);
       // Debe elegir el grupo B (20 > 11) y nombrarlo con (Ventaja)
-      expect(gruposEnviadosAlChat![0].name).toBe("Sigilo (Ventaja)");
+      expect((spyResultado.mock.calls.at(-1)![0] as GrupoResultadosTirada[])[0].name).toBe("Sigilo (Ventaja)");
 
       // Verificar que NO se generen notificaciones toast redundantes cuando la tarjeta nativa se envió con éxito
       const notifs = usarAlmacenDM.getState().notificaciones;
@@ -186,11 +173,7 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
       // Simular falla en sendDiceResult
       vi.spyOn(ts.dice, "sendDiceResult").mockRejectedValue(new Error("sendDiceResult no soportado"));
 
-      let mensajeChatEnviado = "";
-      vi.spyOn(ts.chat, "send").mockImplementation(async (msg) => {
-        mensajeChatEnviado = msg;
-        return true;
-      });
+      const spyChat = vi.spyOn(ts.chat, "send").mockResolvedValue(true);
 
       const procesado = await procesarResultadosDadosTaleSpire({
         rollId: "roll-fallback-chat",
@@ -199,8 +182,8 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
 
       expect(procesado).toBe(true);
       // Debe haber avisado por chat con el resultado ganador
-      expect(mensajeChatEnviado).toContain("Ataque Espada (Ventaja)");
-      expect(mensajeChatEnviado).toContain("17");
+      expect(spyChat.mock.calls.at(-1)?.[0]).toContain("Ataque Espada (Ventaja)");
+      expect(spyChat.mock.calls.at(-1)?.[0]).toContain("17");
     });
   });
 
@@ -228,10 +211,7 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
         return grupo?.name === "Salvacion de DES (Desventaja 1)" ? 20 : 7;
       });
 
-      let gruposEnviadosAlChat: GrupoResultadosTirada[] | null = null;
-      vi.spyOn(ts.dice, "sendDiceResult").mockImplementation(async (grupos) => {
-        gruposEnviadosAlChat = grupos as GrupoResultadosTirada[];
-      });
+      const spyResultado = vi.spyOn(ts.dice, "sendDiceResult").mockResolvedValue(undefined);
 
       const procesado = await procesarResultadosDadosTaleSpire({
         rollId: "roll-desventaja-1",
@@ -239,9 +219,9 @@ describe("Lanzador de Dados - Ventaja, Desventaja y Notificación a TaleSpire", 
       });
 
       expect(procesado).toBe(true);
-      expect(gruposEnviadosAlChat).toHaveLength(1);
+      expect(spyResultado.mock.calls.at(-1)?.[0]).toHaveLength(1);
       // Debe elegir el menor (7 < 20) y nombrarlo con (Desventaja)
-      expect(gruposEnviadosAlChat![0].name).toBe("Salvacion de DES (Desventaja)");
+      expect((spyResultado.mock.calls.at(-1)![0] as GrupoResultadosTirada[])[0].name).toBe("Salvacion de DES (Desventaja)");
     });
   });
 });

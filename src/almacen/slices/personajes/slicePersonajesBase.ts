@@ -41,11 +41,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
       nuevoPersonaje = {
         ...nuevoPersonaje,
         esLanzador: true,
-        espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-        puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-        nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-        espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-        nivelEspacioPacto: recursos.nivelEspacioPacto
+        ...recursos
       };
     } else {
       const infoLanzador = detectarTipoLanzador(nuevoPersonaje.clase, nuevoPersonaje.subclase);
@@ -69,11 +65,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
           ...nuevoPersonaje,
           esLanzador: true,
           clasesLanzadoras: clases,
-          espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-          puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-          nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-          espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-          nivelEspacioPacto: recursos.nivelEspacioPacto
+          ...recursos
         };
       }
     }
@@ -142,11 +134,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
               ...fusionado,
               esLanzador: true,
               clasesLanzadoras: clases,
-              espaciosConjuroMaximos: recursos.espaciosConjuroMaximos,
-              puntosConjuroMaximos: recursos.puntosConjuroMaximos,
-              nivelConjuroMaximo: recursos.nivelConjuroMaximo,
-              espaciosPactoMaximos: recursos.espaciosPactoMaximos,
-              nivelEspacioPacto: recursos.nivelEspacioPacto
+              ...recursos
             };
           }
         }

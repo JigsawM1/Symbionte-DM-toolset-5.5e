@@ -215,13 +215,6 @@ export function validarLanzamiento(
       }
       break;
     }
-
-    case "espacio":
-    case "truco":
-    case "ritual":
-    case "ataqueMagico":
-    default:
-      break;
   }
 
   if (contexto.personajeActual) {
@@ -230,48 +223,6 @@ export function validarLanzamiento(
     if (!resultado.permitido) return resultado;
   }
   return { permitido: true };
-}
-
-/**
- * Construye la fórmula de dados para un truco según el nivel del personaje.
- */
-function construirFormulaTruco(
-  hechizo: HechizoBase,
-  nivelPersonaje: number,
-  bonoAtaqueMagico: number,
-  nombrePersonaje: string,
-  bonoDanoMagico: number = 0,
-  modificadorHabilidad: number = 0
-): FormulaConstruida {
-  return construirFormulaTaleSpireTruco(
-    hechizo,
-    nivelPersonaje,
-    bonoAtaqueMagico,
-    nombrePersonaje,
-    bonoDanoMagico,
-    modificadorHabilidad
-  );
-}
-
-/**
- * Construye la fórmula de dados para un conjuro lanzado con ranura / upcast.
- */
-function construirFormulaEspacio(
-  hechizo: HechizoBase,
-  nivelLanzamiento: number,
-  bonoAtaqueMagico: number,
-  nombrePersonaje: string,
-  bonoDanoMagico: number = 0,
-  modificadorHabilidad: number = 0
-): FormulaConstruida {
-  return construirFormulaTaleSpireEspacio(
-    hechizo,
-    nivelLanzamiento,
-    bonoAtaqueMagico,
-    nombrePersonaje,
-    bonoDanoMagico,
-    modificadorHabilidad
-  );
 }
 
 /**
@@ -428,7 +379,7 @@ export function prepararLanzamiento(
 
   switch (solicitud.modo) {
     case "truco": {
-      formula = construirFormulaTruco(
+      formula = construirFormulaTaleSpireTruco(
         solicitud.hechizo,
         nivelPersonaje,
         bonoAtaqueMagico,
@@ -436,7 +387,6 @@ export function prepararLanzamiento(
         bonoDanoMagico,
         modificadorHabilidad
       );
-      gasto = { tipo: "ninguno" };
       break;
     }
 
@@ -446,7 +396,6 @@ export function prepararLanzamiento(
         bonoAtaqueMagico,
         nombrePersonaje
       );
-      gasto = { tipo: "ninguno" };
       break;
     }
 
@@ -487,24 +436,23 @@ export function prepararLanzamiento(
     }
 
     case "continuarConjuro": {
-      formula = construirFormulaEspacio(solicitud.hechizo, solicitud.hechizo.nivel, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
-      gasto = { tipo: "ninguno" };
+      formula = construirFormulaTaleSpireEspacio(solicitud.hechizo, solicitud.hechizo.nivel, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       break;
     }
     case "estadoRasgo": {
-      formula = construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      formula = construirFormulaTaleSpireEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       formula = { ...formula, etiquetaLog: `${formula.etiquetaLog} · Acción adicional` };
       gasto = { tipo: "estadoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };
       break;
     }
     case "recursoRasgo": {
-      formula = nivelLanzamiento === 0 ? construirFormulaTruco(solicitud.hechizo, nivelPersonaje, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad)
-        : construirFormulaEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
+      formula = nivelLanzamiento === 0 ? construirFormulaTaleSpireTruco(solicitud.hechizo, nivelPersonaje, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad)
+        : construirFormulaTaleSpireEspacio(solicitud.hechizo, nivelLanzamiento, bonoAtaqueMagico, nombrePersonaje, bonoDanoMagico, modificadorHabilidad);
       gasto = { tipo: "recursoRasgo", idRasgo: solicitud.idRasgoOrigen ?? "", hechizo: solicitud.hechizo, nivel: nivelLanzamiento };
       break;
     }
     case "gratuitoInnato": {
-      formula = construirFormulaEspacio(
+      formula = construirFormulaTaleSpireEspacio(
         solicitud.hechizo,
         nivelLanzamiento,
         bonoAtaqueMagico,
@@ -525,14 +473,13 @@ export function prepararLanzamiento(
         formulaTaleSpire: `!Ataque de Conjuro:1d20${signo}${bonoAtaqueMagico}`,
         etiquetaLog: `${nombrePersonaje} - Ataque Mágico`
       };
-      gasto = { tipo: "ninguno" };
       break;
     }
 
     case "espacio":
     default: {
       if (solicitud.hechizo.nivel === 0) {
-        formula = construirFormulaTruco(
+        formula = construirFormulaTaleSpireTruco(
           solicitud.hechizo,
           nivelPersonaje,
           bonoAtaqueMagico,
@@ -540,9 +487,8 @@ export function prepararLanzamiento(
           bonoDanoMagico,
           modificadorHabilidad
         );
-        gasto = { tipo: "ninguno" };
       } else {
-        formula = construirFormulaEspacio(
+        formula = construirFormulaTaleSpireEspacio(
           solicitud.hechizo,
           nivelLanzamiento,
           bonoAtaqueMagico,

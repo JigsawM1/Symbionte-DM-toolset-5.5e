@@ -1,4 +1,4 @@
-/**
+﻿/**
  * resolutorCriaturas.ts
  * ---------------------
  * Servicio centralizado para la normalización de nombres de miniaturas y la
@@ -11,7 +11,7 @@ import { calcularVidaPorDados } from "@/almacen/sanitizacion";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { PasivasCombatePJ } from "@/tipos/sync";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 /**
  * Determina si un nombre está vacío, tiene solo espacios, o es un punto simple (o secuencia de puntos/espacios).
@@ -83,10 +83,6 @@ export function coincidenNombresTaleSpire(nombreA?: string | null, nombreB?: str
   const normB = normalizarNombreTaleSpire(nombreB);
 
   return (
-    normA.completo === normB.completo ||
-    normA.base === normB.base ||
-    normA.completo === normB.base ||
-    normA.base === normB.completo ||
     normA.completoSinTildes === normB.completoSinTildes ||
     normA.baseSinTildes === normB.baseSinTildes ||
     normA.completoSinTildes === normB.baseSinTildes ||
@@ -143,34 +139,16 @@ export function resolverPlantillaPorCriatura(
   let plantillaGanadora: MonstruoBase | undefined = undefined;
   let longitudMaxima = 0;
 
-  if (indice.entradasPrefijo && indice.entradasPrefijo.length > 0) {
-    for (const entrada of indice.entradasPrefijo) {
-      if (
-        completo.startsWith(entrada.nombreLower) ||
-        base.startsWith(entrada.nombreLower) ||
-        completoSinTildes.startsWith(entrada.nombreSinTildes) ||
-        baseSinTildes.startsWith(entrada.nombreSinTildes)
-      ) {
-        if (entrada.longitud > longitudMaxima) {
-          longitudMaxima = entrada.longitud;
-          plantillaGanadora = entrada.monstruo;
-        }
-      }
-    }
-  } else {
-    for (const m of indice.listaCompleta) {
-      const nombrePlantilla = m.nombre.toLowerCase().trim();
-      const pSinTildes = quitarDiacriticos(nombrePlantilla);
-      if (
-        completo.startsWith(nombrePlantilla) ||
-        base.startsWith(nombrePlantilla) ||
-        completoSinTildes.startsWith(pSinTildes) ||
-        baseSinTildes.startsWith(pSinTildes)
-      ) {
-        if (nombrePlantilla.length > longitudMaxima) {
-          longitudMaxima = nombrePlantilla.length;
-          plantillaGanadora = m;
-        }
+  for (const entrada of indice.entradasPrefijo) {
+    if (
+      completo.startsWith(entrada.nombreLower) ||
+      base.startsWith(entrada.nombreLower) ||
+      completoSinTildes.startsWith(entrada.nombreSinTildes) ||
+      baseSinTildes.startsWith(entrada.nombreSinTildes)
+    ) {
+      if (entrada.longitud > longitudMaxima) {
+        longitudMaxima = entrada.longitud;
+        plantillaGanadora = entrada.monstruo;
       }
     }
   }
@@ -179,14 +157,12 @@ export function resolverPlantillaPorCriatura(
 }
 
 /**
- * Calcula los puntos de vida iniciales (máximos y actuales) de una criatura nativa,
- * aplicando el método de cálculo de vida del DM o los stats que vengan de TaleSpire.
+ * Calcula los puntos de vida iniciales (máximos y actuales) de una criatura,
+ * tomando exclusivamente la plantilla del Simbionte como fuente de la verdad.
  */
 export function calcularVidaInicial(
   plantilla: MonstruoBase | undefined,
-  metodoVida: string,
-  maxHpTS?: number,
-  hpTS?: number
+  metodoVida: string
 ): { vidaMaxima: number; vidaActual: number } {
   let vidaMax = 10;
   let vidaAct = 10;
@@ -198,9 +174,6 @@ export function calcularVidaInicial(
       metodoVida as "estandar" | "maximo" | "azar"
     );
     vidaAct = vidaMax;
-  } else if (maxHpTS !== undefined && maxHpTS > 0) {
-    vidaMax = maxHpTS;
-    vidaAct = hpTS !== undefined ? hpTS : maxHpTS;
   } else if (plantilla) {
     vidaMax = plantilla.vidaMaxima;
     vidaAct = vidaMax;

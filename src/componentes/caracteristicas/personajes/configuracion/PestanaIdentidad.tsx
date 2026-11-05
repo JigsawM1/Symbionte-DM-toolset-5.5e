@@ -217,7 +217,6 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
             valor={form.alineacion}
             alCambiar={(val) => alActualizarCampo("alineacion", val)}
             opciones={ALINEAMIENTOS_DND}
-            tamano="normal"
           />
         </div>
       </div>

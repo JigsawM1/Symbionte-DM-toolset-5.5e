@@ -117,25 +117,32 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
     });
   });
 
-  describe("Subclase: Patrón de los Archihadas (Señor Feérico)", () => {
-    it("a nivel 3 Conjuros de archihada incluye tabla de progresión con los 4 niveles canónicos", () => {
+  describe("Tablas de conjuros de patrón", () => {
+    const casos = [
+      { id: "pj-hada-conjuros", subclase: "Patrón de los Archihadas", nombre: "Conjuros de archihada", primer: "Paso brumoso" },
+      { id: "pj-celestial-conjuros", subclase: "Patrón Celestial", nombre: "Conjuros celestiales", primer: "Curar heridas" },
+      { id: "pj-infernal-conjuros", subclase: "Patrón Infernal", nombre: "Conjuros infernales", primer: "Manos ardientes" },
+      { id: "pj-primigenio-conjuros", subclase: "Patrón del Gran Primigenio", nombre: "Conjuros del Gran Primigenio", primer: "Detectar pensamientos" }
+    ];
+    it.each(casos)("$subclase: $nombre a nivel 3", ({ id, subclase, nombre, primer }) => {
       const pjInicial: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
-        id: "pj-hada-conjuros",
+        id,
         clase: "Brujo",
-        subclase: "Patrón de los Archihadas",
+        subclase,
         nivel: 3,
       };
-
-      const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 3, "Patrón de los Archihadas");
-      const conjurosRasgo = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Conjuros de archihada");
-
+      const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 3, subclase);
+      const conjurosRasgo = pjActualizado.rasgos.find(r => r.nombre === nombre);
       expect(conjurosRasgo).toBeDefined();
       expect(conjurosRasgo?.tablaProgresion).toBeDefined();
       expect(conjurosRasgo?.tablaProgresion?.columnas).toEqual(["Nivel de brujo", "Conjuros"]);
       expect(conjurosRasgo?.tablaProgresion?.filas.length).toBe(4);
-      expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain("Paso brumoso");
+      expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain(primer);
     });
+  });
+
+  describe("Subclase: Patrón de los Archihadas (Señor Feérico)", () => {
 
     it("a nivel 3 adquiere Pasos feéricos con lanzamiento gratuito y usos dependientes de Carisma", () => {
       const pjInicial: PersonajeJugador = {
@@ -204,24 +211,6 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
   });
 
   describe("Subclase: Patrón Celestial", () => {
-    it("a nivel 3 Conjuros celestiales incluye tabla de progresión con los 4 niveles canónicos", () => {
-      const pjInicial: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        id: "pj-celestial-conjuros",
-        clase: "Brujo",
-        subclase: "Patrón Celestial",
-        nivel: 3,
-      };
-
-      const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 3, "Patrón Celestial");
-      const conjurosRasgo = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Conjuros celestiales");
-
-      expect(conjurosRasgo).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion?.columnas).toEqual(["Nivel de brujo", "Conjuros"]);
-      expect(conjurosRasgo?.tablaProgresion?.filas.length).toBe(4);
-      expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain("Curar heridas");
-    });
 
     it("Luz sanadora calcula la reserva de dados 1d6 como 1 + nivel", () => {
       const pjInicial3: PersonajeJugador = {
@@ -307,24 +296,6 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
   });
 
   describe("Subclase: Patrón Infernal", () => {
-    it("a nivel 3 Conjuros infernales incluye tabla de progresión con los 4 niveles canónicos", () => {
-      const pjInicial: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        id: "pj-infernal-conjuros",
-        clase: "Brujo",
-        subclase: "Patrón Infernal",
-        nivel: 3,
-      };
-
-      const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 3, "Patrón Infernal");
-      const conjurosRasgo = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Conjuros infernales");
-
-      expect(conjurosRasgo).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion?.columnas).toEqual(["Nivel de brujo", "Conjuros"]);
-      expect(conjurosRasgo?.tablaProgresion?.filas.length).toBe(4);
-      expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain("Manos ardientes");
-    });
 
     it("a nivel 3 Bendición del Oscuro otorga PG temporales con fórmula carisma + nivel bajo demanda", () => {
       const pjInicial: PersonajeJugador = {
@@ -406,24 +377,6 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
   });
 
   describe("Subclase: Patrón del Gran Primigenio", () => {
-    it("a nivel 3 Conjuros del Gran Primigenio incluye tabla de progresión con los 4 niveles canónicos", () => {
-      const pjInicial: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        id: "pj-primigenio-conjuros",
-        clase: "Brujo",
-        subclase: "Patrón del Gran Primigenio",
-        nivel: 3,
-      };
-
-      const pjActualizado = aplicarBuildClaseAPersonaje(pjInicial, "Brujo", 3, "Patrón del Gran Primigenio");
-      const conjurosRasgo = pjActualizado.rasgos.find((r: RasgoPersonaje) => r.nombre === "Conjuros del Gran Primigenio");
-
-      expect(conjurosRasgo).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion).toBeDefined();
-      expect(conjurosRasgo?.tablaProgresion?.columnas).toEqual(["Nivel de brujo", "Conjuros"]);
-      expect(conjurosRasgo?.tablaProgresion?.filas.length).toBe(4);
-      expect(conjurosRasgo?.tablaProgresion?.filas[0].valores[0]).toContain("Detectar pensamientos");
-    });
 
     it("a nivel 3 adquiere Mente despierta y Conjuros psíquicos", () => {
       const pjInicial: PersonajeJugador = {
@@ -545,26 +498,14 @@ describe("D&D 5.5e - Brujo (Warlock) y Subclases Canónicas", () => {
     });
 
     it("el rasgo escala maxSelecciones según el nivel del Brujo (1 a Nv 1, 3 a Nv 2, 5 a Nv 5, 10 a Nv 18)", () => {
-      const pjNv1 = aplicarBuildClaseAPersonaje({ ...PERSONAJE_POR_DEFECTO, id: "pj-inv-1", clase: "Brujo", nivel: 1 }, "Brujo", 1);
-      const rasgoNv1 = pjNv1.rasgos.find((r: RasgoPersonaje) => r.nombre === "Invocaciones sobrenaturales");
-      expect(rasgoNv1?.selectores?.[0].maxSelecciones).toBe(1);
-
-      const pjNv2 = aplicarBuildClaseAPersonaje({ ...PERSONAJE_POR_DEFECTO, id: "pj-inv-2", clase: "Brujo", nivel: 2 }, "Brujo", 2);
-      const rasgoNv2 = pjNv2.rasgos.find((r: RasgoPersonaje) => r.nombre === "Invocaciones sobrenaturales");
-      expect(rasgoNv2?.selectores?.[0].maxSelecciones).toBe(3);
-      expect(rasgoNv2?.selectores?.[0].tipo).toBe("multiple");
-
-      const pjNv5 = aplicarBuildClaseAPersonaje({ ...PERSONAJE_POR_DEFECTO, id: "pj-inv-5", clase: "Brujo", nivel: 5 }, "Brujo", 5);
-      const rasgoNv5 = pjNv5.rasgos.find((r: RasgoPersonaje) => r.nombre === "Invocaciones sobrenaturales");
-      expect(rasgoNv5?.selectores?.[0].maxSelecciones).toBe(5);
-
-      const pjNv9 = aplicarBuildClaseAPersonaje({ ...PERSONAJE_POR_DEFECTO, id: "pj-inv-9", clase: "Brujo", nivel: 9 }, "Brujo", 9);
-      const rasgoNv9 = pjNv9.rasgos.find((r: RasgoPersonaje) => r.nombre === "Invocaciones sobrenaturales");
-      expect(rasgoNv9?.selectores?.[0].maxSelecciones).toBe(7);
-
-      const pjNv18 = aplicarBuildClaseAPersonaje({ ...PERSONAJE_POR_DEFECTO, id: "pj-inv-18", clase: "Brujo", nivel: 18 }, "Brujo", 18);
-      const rasgoNv18 = pjNv18.rasgos.find((r: RasgoPersonaje) => r.nombre === "Invocaciones sobrenaturales");
-      expect(rasgoNv18?.selectores?.[0].maxSelecciones).toBe(10);
+      for (const [nivel, maximo] of [[1, 1], [2, 3], [5, 5], [9, 7], [18, 10]] as const) {
+        const pj = aplicarBuildClaseAPersonaje(
+          { ...PERSONAJE_POR_DEFECTO, id: `pj-inv-${nivel}`, clase: "Brujo", nivel }, "Brujo", nivel
+        );
+        const rasgo = pj.rasgos.find(r => r.nombre === "Invocaciones sobrenaturales");
+        expect(rasgo?.selectores?.[0].maxSelecciones).toBe(maximo);
+        if (nivel === 2) expect(rasgo?.selectores?.[0].tipo).toBe("multiple");
+      }
     });
 
     it("permite seleccionar y persistir múltiples invocaciones simultáneamente en el almacén Zustand", () => {

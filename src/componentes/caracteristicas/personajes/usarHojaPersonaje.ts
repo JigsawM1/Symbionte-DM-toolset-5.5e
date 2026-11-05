@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
 import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { elegirIniciativaOpcional } from "../rasgos/elegirIniciativaOpcional";
 import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
 import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { usarPersonajeActivo, usarAccionesPersonajes, calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { usarPersonajeActivo, usarAccionesPersonajes } from '@/almacen/selectores/usarEstadoPersonajes';
+import { calcularEstadisticasPersonaje } from '@/servicios/personajes/calculadorEstadisticasPersonaje';
 import { usarTipoTirada, usarSistemaMagia, usarPestanaActiva } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
@@ -35,7 +36,7 @@ export function usarHojaPersonaje() {
     reiniciarSalvacionesMuertePersonaje, modificarCansancioPersonaje,
     modificarCaracteristicaBasePersonaje, alternarSalvacionPersonaje,
     ciclarGradoHabilidadPersonaje, aplicarCondicionPersonaje,
-    quitarCondicionPersonaje, vincularMiniaturaTSPersonaje,
+    quitarCondicionPersonaje,
     establecerPosicionInicialTSPersonaje, gastarEspacioConjuro,
     recuperarEspacioConjuro,
     gastarPuntosConjuro, recuperarPuntosConjuro,
@@ -68,7 +69,7 @@ export function usarHojaPersonaje() {
     ts.creatures
       .getMoreInfo([personajeActivo.idMiniaturaTS])
       .then((infos) => {
-        if (infos && infos.length > 0 && infos[0]?.position) {
+        if (infos?.[0]?.position) {
           logger.info(`[HojaPersonaje] Posición física inicial detectada para '${personajeActivo.nombre}':`, infos[0].position);
           establecerPosicionInicialTSPersonaje(personajeActivo.id, infos[0].position, infos[0].boardId);
         }
@@ -87,10 +88,7 @@ export function usarHojaPersonaje() {
     [personajeActivo, objetosHomebrew]
   );
 
-  const modoTirada: ModoTirada = useMemo(
-    () => (tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano"),
-    [tipoTirada]
-  );
+  const modoTirada: ModoTirada = tipoTirada === "ventaja" ? "vent" : tipoTirada === "desventaja" ? "disv" : "plano";
 
   const manejarCambioModoTirada = useCallback((modo: ModoTirada) => {
     establecerTipoTirada(modo === "vent" ? "ventaja" : modo === "disv" ? "desventaja" : "plano");
@@ -262,7 +260,7 @@ export function usarHojaPersonaje() {
     setSubPestanaActiva, totalConjurosYTrucos, actualizarPersonaje,
     alternarInspiracionPersonaje, aplicarCondicionPersonaje, quitarCondicionPersonaje,
     quitarEfectoPersonaje, romperConcentracion,
-    establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje, vincularMiniaturaTSPersonaje,
+    establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje,
     manejarCambioModoTirada, manejarDescansoCorto,
     manejarDescansoLargo, manejarTirarCaracteristica, manejarTirarSalvacion,
     manejarTirarHabilidad, manejarTirarIniciativa, manejarTirarSalvacionMuerte3D,

@@ -235,7 +235,6 @@ export const crearSliceConfiguracion: StateCreator<
     });
     if (result.error) throw new Error(result.error);
 
-    let modificado = result.modificado;
     const cambiosParciales: Partial<EstadoDM> = {};
 
     if (result.modificado) {
@@ -264,7 +263,6 @@ export const crearSliceConfiguracion: StateCreator<
           const nuevaListaPjs = Array.from(mapaPjs.values());
           cambiosParciales.personajes = nuevaListaPjs;
           cambiosParciales.idPersonajeActivo = nuevaListaPjs[0]?.id || null;
-          modificado = true;
         }
       }
 
@@ -272,7 +270,6 @@ export const crearSliceConfiguracion: StateCreator<
       const notas = datosObj.notas ?? datosObj.notasDM ?? datosObj.notes;
       if (typeof notas === "string" && notas.trim()) {
         cambiosParciales.notasDM = notas;
-        modificado = true;
       }
 
       // 3. Tareas Pendientes
@@ -283,7 +280,6 @@ export const crearSliceConfiguracion: StateCreator<
           .filter((p): p is ElementoPendiente => p !== null);
         if (pendientesSaneados.length > 0) {
           cambiosParciales.listaPendientes = pendientesSaneados;
-          modificado = true;
         }
       }
 
@@ -295,7 +291,6 @@ export const crearSliceConfiguracion: StateCreator<
           .filter((e): e is EncuentroGuardado => e !== null);
         if (encuentrosSaneados.length > 0) {
           cambiosParciales.encuentrosGuardados = encuentrosSaneados;
-          modificado = true;
         }
       }
 
@@ -307,11 +302,11 @@ export const crearSliceConfiguracion: StateCreator<
           .filter((c): c is CriaturaIniciativa => c !== null);
         if (colaSaneada.length > 0) {
           cambiosParciales.colaIniciativa = colaSaneada;
-          modificado = true;
         }
       }
     }
 
+    const modificado = Object.keys(cambiosParciales).length > 0;
     if (modificado) {
       set(cambiosParciales);
     }

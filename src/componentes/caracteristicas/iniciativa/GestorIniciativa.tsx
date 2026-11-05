@@ -132,6 +132,7 @@ export const GestorIniciativa: React.FC = () => {
   const {
     quitarCriaturaDeIniciativa,
     modificarVidaCriaturaIniciativa,
+    dañarCriaturaIniciativa,
     actualizarVidaTemporal,
     asociarPlantillaACriatura,
     desvincularPlantillaDeCriatura,
@@ -259,29 +260,9 @@ export const GestorIniciativa: React.FC = () => {
     logger.debug(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
   }, [modificarVidaCriaturaIniciativa]);
 
-  const alDañarCriatura = useCallback((id: string, actual: number, temporal: number, valor: number) => {
-    if (temporal > 0) {
-      if (valor <= temporal) {
-        actualizarVidaTemporal(id, temporal - valor);
-      } else {
-        const excedente = valor - temporal;
-        actualizarVidaTemporal(id, 0);
-        const nuevaVida = Math.max(0, actual - excedente);
-        modificarVidaCriaturaIniciativa(id, nuevaVida);
-      }
-    } else {
-      const nuevaVida = Math.max(0, actual - valor);
-      modificarVidaCriaturaIniciativa(id, nuevaVida);
-    }
-  }, [actualizarVidaTemporal, modificarVidaCriaturaIniciativa]);
-
-  const alCambiarTempHPCriatura = useCallback((id: string, cant: number) => actualizarVidaTemporal(id, cant), [actualizarVidaTemporal]);
-  const alAñadirCondicionCriatura = useCallback((id: string, cond: string) => agregarCondicionACriatura(id, cond), [agregarCondicionACriatura]);
-  const alQuitarCondicionCriatura = useCallback((id: string, cond: string) => quitarCondicionDeCriatura(id, cond), [quitarCondicionDeCriatura]);
-  const alAñadirEfectoCriatura = useCallback((id: string, nom: string, dur: number, opciones?: { concentracion?: boolean }) => agregarEfectoACriatura(id, nom, dur, opciones), [agregarEfectoACriatura]);
-  const alQuitarEfectoCriatura = useCallback((id: string, efId: string) => quitarEfectoDeCriatura(id, efId), [quitarEfectoDeCriatura]);
-  const alEstablecerIniciativaCriatura = useCallback((id: string, nuevaInic: number) => establecerIniciativaCriatura(id, nuevaInic), [establecerIniciativaCriatura]);
-  const alEstablecerVidaMaximaCriatura = useCallback((id: string, nuevaMax: number) => modificarVidaMaximaCriaturaIniciativa(id, nuevaMax), [modificarVidaMaximaCriaturaIniciativa]);
+  const alDañarCriatura = useCallback((id: string, _actual: number, _temporal: number, valor: number) => {
+    dañarCriaturaIniciativa(id, valor);
+  }, [dañarCriaturaIniciativa]);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;
@@ -372,16 +353,16 @@ export const GestorIniciativa: React.FC = () => {
                     onSeleccionar={alSeleccionarCriatura}
                     onCurar={alCurarCriatura}
                     onDañar={alDañarCriatura}
-                    onCambiarTempHP={alCambiarTempHPCriatura}
-                    onAñadirCondicion={alAñadirCondicionCriatura}
-                    onQuitarCondicion={alQuitarCondicionCriatura}
-                    onAñadirEfecto={alAñadirEfectoCriatura}
-                    onQuitarEfecto={alQuitarEfectoCriatura}
+                    onCambiarTempHP={actualizarVidaTemporal}
+                    onAñadirCondicion={agregarCondicionACriatura}
+                    onQuitarCondicion={quitarCondicionDeCriatura}
+                    onAñadirEfecto={agregarEfectoACriatura}
+                    onQuitarEfecto={quitarEfectoDeCriatura}
                     onLanzarIniciativa={alLanzarIniciativaCriatura}
                     onLanzarAtaqueRapido={lanzarAtaqueRapido}
                     obtenerPercepcionPasiva={obtenerPercepcionPasiva}
-                    onEstablecerIniciativa={alEstablecerIniciativaCriatura}
-                    onEstablecerVidaMaxima={alEstablecerVidaMaximaCriatura}
+                    onEstablecerIniciativa={establecerIniciativaCriatura}
+                    onEstablecerVidaMaxima={modificarVidaMaximaCriaturaIniciativa}
                     onAlternarRol={alternarRolCriatura}
                     refTarjetaActiva={refTarjetaActiva}
                   />

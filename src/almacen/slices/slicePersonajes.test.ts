@@ -1,11 +1,29 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
-import type { RasgoPersonaje, PersonajeJugador } from "@/tipos";
+import type { RasgoPersonaje, PersonajeJugador, ObjetoInventario } from "@/tipos";
 import { estaAtaqueTemerarioActivo } from "@/servicios/evaluadorEfectosRasgos";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 
 describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
+  const objetoPrueba: ObjetoInventario = {
+    idInstancia: "objeto-inst",
+    idObjeto: "objeto",
+    nombre: "Objeto",
+    cantidad: 1,
+    equipado: false,
+    sintonizado: false,
+    notas: "",
+    pesoLb: 1,
+    categoria: "equipo-aventurero",
+    esConsumible: false,
+    subcategoria: "",
+    rareza: "Común",
+    esMagico: false,
+    equipable: false,
+    sintonizacionRequerida: false
+  };
+
   beforeEach(() => {
     usarAlmacenDM.setState({
       personajes: [
@@ -371,40 +389,25 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
 
       // Agregar primera Daga
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "daga-1",
         idObjeto: "daga",
         nombre: "Daga",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
         categoria: "armas",
-        esConsumible: false,
         subcategoria: "Simple",
-        rareza: "Común",
-        esMagico: false,
-        equipable: true,
-        sintonizacionRequerida: false
+        equipable: true
       });
 
       // Agregar segunda Daga con cantidad 2
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "daga-2",
         idObjeto: "daga",
         nombre: "Daga",
         cantidad: 2,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
         categoria: "armas",
-        esConsumible: false,
         subcategoria: "Simple",
-        rareza: "Común",
-        esMagico: false,
-        equipable: true,
-        sintonizacionRequerida: false
+        equipable: true
       });
 
       const pj = usarAlmacenDM.getState().personajes[0];
@@ -419,40 +422,26 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
 
       // Agregar Armadura de Cuero
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "cuero-inst",
         idObjeto: "armadura-cuero",
         nombre: "Armadura de Cuero",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
         pesoLb: 10,
         categoria: "armaduras",
-        esConsumible: false,
         subcategoria: "Ligera",
-        rareza: "Común",
-        esMagico: false,
-        equipable: true,
-        sintonizacionRequerida: false
+        equipable: true
       });
 
       // Agregar Cota de Malla
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "malla-inst",
         idObjeto: "cota-malla",
         nombre: "Cota de Malla",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
         pesoLb: 55,
         categoria: "armaduras",
-        esConsumible: false,
         subcategoria: "Pesada",
-        rareza: "Común",
-        esMagico: false,
-        equipable: true,
-        sintonizacionRequerida: false
+        equipable: true
       });
 
       // Equipar Cuero
@@ -472,21 +461,15 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
 
       // Agregar 3 Pociones o 3 Hoz
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "hoz-inst",
         idObjeto: "hoz",
         nombre: "Hoz",
         cantidad: 3,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
         pesoLb: 2,
         categoria: "armas",
-        esConsumible: false,
         subcategoria: "Simple",
-        rareza: "Común",
-        esMagico: false,
-        equipable: true,
-        sintonizacionRequerida: false
+        equipable: true
       });
 
       // Equipar
@@ -514,21 +497,12 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       const { agregarObjetoInventario, actualizarObjetoInventario } = usarAlmacenDM.getState();
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "bolsita-inst",
         idObjeto: "pouch",
         nombre: "Bolsita",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
         categoria: "contenedores",
-        esConsumible: false,
-        subcategoria: "Contenedor",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        subcategoria: "Contenedor"
       });
 
       actualizarObjetoInventario("test-pj", "bolsita-inst", {
@@ -546,57 +520,24 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       const { agregarObjetoInventario, reordenarInventario } = usarAlmacenDM.getState();
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "item-a",
         idObjeto: "obj-a",
-        nombre: "Objeto A",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
-        categoria: "equipo-aventurero",
-        esConsumible: false,
-        subcategoria: "",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        nombre: "Objeto A"
       });
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "item-b",
         idObjeto: "obj-b",
-        nombre: "Objeto B",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
-        categoria: "equipo-aventurero",
-        esConsumible: false,
-        subcategoria: "",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        nombre: "Objeto B"
       });
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "item-c",
         idObjeto: "obj-c",
-        nombre: "Objeto C",
-        cantidad: 1,
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
-        categoria: "equipo-aventurero",
-        esConsumible: false,
-        subcategoria: "",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        nombre: "Objeto C"
       });
 
       // Mover Item C a la primera posición (donde está Item A)
@@ -616,41 +557,21 @@ describe("SlicePersonajes - Daño y Escudo (HP Temporal)", () => {
       const { agregarObjetoInventario } = usarAlmacenDM.getState();
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "antorcha-mochila",
         idObjeto: "torch",
         nombre: "Antorcha",
         cantidad: 2,
-        contenedor: "mochila",
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
-        categoria: "equipo-aventurero",
-        esConsumible: false,
-        subcategoria: "",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        contenedor: "mochila"
       });
 
       agregarObjetoInventario("test-pj", {
+        ...objetoPrueba,
         idInstancia: "antorcha-almacen",
         idObjeto: "torch",
         nombre: "Antorcha",
         cantidad: 5,
-        contenedor: "almacen",
-        equipado: false,
-        sintonizado: false,
-        notas: "",
-        pesoLb: 1,
-        categoria: "equipo-aventurero",
-        esConsumible: false,
-        subcategoria: "",
-        rareza: "Común",
-        esMagico: false,
-        equipable: false,
-        sintonizacionRequerida: false
+        contenedor: "almacen"
       });
 
       const pj = usarAlmacenDM.getState().personajes[0];

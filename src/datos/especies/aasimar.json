@@ -26,7 +26,6 @@
         {
           "id": "selector_tamano_especie",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Tamaño",
           "opciones": [
             {
@@ -40,7 +39,6 @@
               "descripcion": "Tu personaje es de tamaño Pequeño."
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "mediano"
           ],
@@ -112,7 +110,6 @@
         {
           "id": "opcion_revelacion_celestial",
           "tipoSelector": "general",
-          "tipo": "unico",
           "etiqueta": "Opción de Revelación Celestial",
           "opciones": [
             {
@@ -192,7 +189,6 @@
               ]
             }
           ],
-          "maxSelecciones": 1,
           "valorActual": [
             "alas_celestiales"
           ],

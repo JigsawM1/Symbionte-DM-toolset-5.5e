@@ -38,7 +38,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     conjurosPorNivel,
     consumiblesFiltrados,
     hechizosObjetosFiltrados,
-    listaRasgosCombate: _listaRasgosCombate,
     rasgosFiltrados,
     rasgosAcciones,
     rasgosAccionesAdicionales,
@@ -232,17 +231,13 @@ export const VistaAtaquesJugador: React.FC = () => {
               nombrePersonaje={personajeActivo.nombre}
               nivelPersonaje={personajeActivo.nivel || 1}
               bonoAtaqueMagico={bonoAtaqueMagico}
-              bonoDanoMagico={
-                hechizoDetalle
-                  ? obtenerBonoDanoConjuroExtra(personajeActivo, {
-                      esTruco: hechizoDetalle.nivel === 0,
-                      nivelLanzamiento: hechizoDetalle.nivel,
-                      tipoDano: hechizoDetalle.tipoDaño,
-                      escuela: hechizoDetalle.escuela,
-                      nombreConjuro: hechizoDetalle.nombre
-                    })
-                  : 0
-              }
+              bonoDanoMagico={obtenerBonoDanoConjuroExtra(personajeActivo, {
+                esTruco: hechizoDetalle.nivel === 0,
+                nivelLanzamiento: hechizoDetalle.nivel,
+                tipoDano: hechizoDetalle.tipoDaño,
+                escuela: hechizoDetalle.escuela,
+                nombreConjuro: hechizoDetalle.nombre
+              })}
               modificadorHabilidad={obtenerModificadorAptitudMagica(personajeActivo)}
               esLanzadorPacto={tienePacto}
               nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}

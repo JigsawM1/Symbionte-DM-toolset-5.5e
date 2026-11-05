@@ -137,7 +137,8 @@
   margin-bottom: 2px;
 }
 
-.tituloCondicionEfecto {
+.tituloCondicionEfecto,
+.cabeceraBloqueEfectosEfecto {
   color: var(--dm-texto-acento, #d8b4fe) !important;
 }
 
@@ -173,10 +174,6 @@
   padding-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-}
-
-.cabeceraBloqueEfectosEfecto {
-  color: var(--dm-texto-acento, #d8b4fe) !important;
 }
 
 .listaEfectos {

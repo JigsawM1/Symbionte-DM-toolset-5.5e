@@ -1,4 +1,4 @@
-const esProduccion = import.meta.env.PROD;
+const esProduccion = import.meta.env?.PROD ?? false;
 
 export const logger = {
   debug: (mensaje: string, ...datos: unknown[]) => {

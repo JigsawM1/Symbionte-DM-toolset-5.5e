@@ -3,7 +3,7 @@ import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
 } from "@/almacen/selectores";
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from "@/tipos";
+import { ObjetoHomebrew } from "@/tipos";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { Plus, Sparkles, BookOpen, Swords, Edit2 } from "lucide-react";
 import { FormularioCriatura } from "./FormularioCriatura";
@@ -38,26 +38,8 @@ export const CreadorHomebrew: React.FC = () => {
     cancelarEdicion();
   };
 
-  const alGuardarExitoso = () => {
-    setIdEnEdicion(null);
-    setObjetoPlantilla(null);
-    establecerModoHomebrew("lista");
-  };
-
-  const iniciarEdicionCriatura = (m: MonstruoBase) => {
-    setIdEnEdicion(m.id);
-    setObjetoPlantilla(null);
-    establecerModoHomebrew("crear");
-  };
-
-  const iniciarEdicionHechizo = (h: HechizoBase) => {
-    setIdEnEdicion(h.id);
-    setObjetoPlantilla(null);
-    establecerModoHomebrew("crear");
-  };
-
-  const iniciarEdicionObjeto = (o: ObjetoHomebrew) => {
-    setIdEnEdicion(o.id);
+  const iniciarEdicion = (elemento: { id: string }) => {
+    setIdEnEdicion(elemento.id);
     setObjetoPlantilla(null);
     establecerModoHomebrew("crear");
   };
@@ -146,7 +128,7 @@ export const CreadorHomebrew: React.FC = () => {
             {tipoHomebrew === "criatura" && (
               <FormularioCriatura
                 idEnEdicion={idEnEdicion}
-                alGuardarExitoso={alGuardarExitoso}
+                alGuardarExitoso={cancelarEdicion}
                 cancelarEdicion={cancelarEdicion}
               />
             )}
@@ -154,7 +136,7 @@ export const CreadorHomebrew: React.FC = () => {
             {tipoHomebrew === "hechizo" && (
               <FormularioHechizo
                 idEnEdicion={idEnEdicion}
-                alGuardarExitoso={alGuardarExitoso}
+                alGuardarExitoso={cancelarEdicion}
                 cancelarEdicion={cancelarEdicion}
               />
             )}
@@ -163,7 +145,7 @@ export const CreadorHomebrew: React.FC = () => {
               <FormularioObjeto
                 idEnEdicion={idEnEdicion}
                 objetoPlantilla={objetoPlantilla}
-                alGuardarExitoso={alGuardarExitoso}
+                alGuardarExitoso={cancelarEdicion}
                 cancelarEdicion={cancelarEdicion}
               />
             )}
@@ -174,9 +156,9 @@ export const CreadorHomebrew: React.FC = () => {
         {modoHomebrew === "lista" && (
           <ListaHomebrew
             tipoHomebrew={tipoHomebrew}
-            iniciarEdicionCriatura={iniciarEdicionCriatura}
-            iniciarEdicionHechizo={iniciarEdicionHechizo}
-            iniciarEdicionObjeto={iniciarEdicionObjeto}
+            iniciarEdicionCriatura={iniciarEdicion}
+            iniciarEdicionHechizo={iniciarEdicion}
+            iniciarEdicionObjeto={iniciarEdicion}
             iniciarPlantillaObjeto={iniciarPlantillaObjeto}
             cancelarEdicion={cancelarEdicion}
             idEnEdicion={idEnEdicion}

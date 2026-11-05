@@ -127,28 +127,26 @@
   line-height: 1.2;
 }
 
-.alertaExito {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
-  border: 1px solid var(--color-exito);
-  color: var(--dm-texto-exito, var(--color-exito));
-  font-size: var(--dm-fuente-minima, 11px);
-  line-height: 1.3;
-}
-
+.alertaExito,
 .alertaError {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
+  font-size: var(--dm-fuente-minima, 11px);
+  line-height: 1.3;
+}
+
+.alertaExito {
+  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
+  border: 1px solid var(--color-exito);
+  color: var(--dm-texto-exito, var(--color-exito));
+}
+
+.alertaError {
   background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.08);
   border: 1px solid var(--color-peligro);
   color: var(--dm-texto-peligro, var(--color-peligro));
-  font-size: var(--dm-fuente-minima, 11px);
-  line-height: 1.3;
 }
 
 .estructuraAyuda {
@@ -274,20 +272,24 @@
   gap: 6px;
 }
 
-.botonDescargar {
+.botonDescargar,
+.botonRestablecer {
   width: 100%;
   height: 26px;
-  background-color: var(--color-primario);
-  color: var(--dm-texto-principal, #ffffff);
-  border: 1px solid var(--color-borde-neon);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
   font-size: var(--dm-fuente-minima, 10.5px);
   font-weight: bold;
   letter-spacing: 0.02em;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.botonDescargar {
+  background-color: var(--color-primario);
+  color: var(--dm-texto-principal, #ffffff);
+  border: 1px solid var(--color-borde-neon);
 }
 
 .botonDescargar:hover {
@@ -324,19 +326,9 @@
 }
 
 .botonRestablecer {
-  width: 100%;
-  height: 26px;
   background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.08);
   border: 1px solid rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.3);
   color: var(--dm-texto-peligro, var(--color-peligro));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-size: var(--dm-fuente-minima, 10.5px);
-  font-weight: bold;
-  letter-spacing: 0.02em;
-  cursor: pointer;
 }
 
 .botonRestablecer:hover {
@@ -376,18 +368,22 @@
   gap: 4px;
 }
 
-.botonConfirmarReset {
+.botonConfirmarReset,
+.botonCancelarReset {
   flex: 1;
   height: 24px;
-  background-color: var(--color-peligro);
-  color: var(--dm-texto-principal, #ffffff);
-  border: 1px solid var(--color-peligro);
   font-size: var(--dm-fuente-minima, 10px);
   font-weight: bold;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.botonConfirmarReset {
+  background-color: var(--color-peligro);
+  color: var(--dm-texto-principal, #ffffff);
+  border: 1px solid var(--color-peligro);
 }
 
 .botonConfirmarReset:hover {
@@ -395,17 +391,9 @@
 }
 
 .botonCancelarReset {
-  flex: 1;
-  height: 24px;
   background-color: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
   color: var(--color-texto-principal);
   border: 1px solid var(--color-borde-brutal);
-  font-size: var(--dm-fuente-minima, 10px);
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .botonCancelarReset:hover {

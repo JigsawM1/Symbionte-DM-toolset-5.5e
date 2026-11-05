@@ -273,9 +273,7 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
     mutarPersonaje(set, id, (pj) => {
       const velocidades = obtenerVelocidadesEfectivas(pj);
       const velNormal = velocidades.caminar;
-      const total = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined
-        ? pj.movimientoMaximoTemporal
-        : velNormal;
+      const total = pj.movimientoMaximoTemporal ?? velNormal;
 
       const restanteSeguro = Math.max(0, Math.round(nuevoRestante * 10) / 10);
       const nuevoGastado = Math.max(0, Math.round((total - restanteSeguro) * 10) / 10);
@@ -383,41 +381,21 @@ export const crearSubSliceCaracteristicasHabilidades: StateCreator<
       const velNormal = velocidades.caminar;
       const anteriorGastado = pj.movimientoGastado || 0;
 
-      // Si ya está activa la carrera, la desactivamos
-      if (pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined) {
-        const entradaHistorial: RegistroMovimiento = {
-          id: `mov-dash-off-${Date.now()}`,
-          timestamp: Date.now(),
-          tipo: "carrera",
-          delta: -velNormal,
-          anteriorGastado,
-          nuevoGastado: anteriorGastado,
-          descripcion: "Desactivar Acción Carrera"
-        };
-        const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-        return {
-          ...pj,
-          movimientoMaximoTemporal: null,
-          historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
-        };
-      }
-
-      // Activar carrera (duplica la velocidad disponible en el turno)
-      const velocidadCarrera = velNormal * 2;
+      const carreraActiva = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined;
       const entradaHistorial: RegistroMovimiento = {
-        id: `mov-dash-on-${Date.now()}`,
+        id: `mov-dash-${carreraActiva ? "off" : "on"}-${Date.now()}`,
         timestamp: Date.now(),
         tipo: "carrera",
-        delta: velNormal,
+        delta: carreraActiva ? -velNormal : velNormal,
         anteriorGastado,
         nuevoGastado: anteriorGastado,
-        descripcion: `Acción Carrera activada (+${velNormal} ft)`
+        descripcion: carreraActiva ? "Desactivar Acción Carrera" : `Acción Carrera activada (+${velNormal} ft)`
       };
       const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
 
       return {
         ...pj,
-        movimientoMaximoTemporal: velocidadCarrera,
+        movimientoMaximoTemporal: carreraActiva ? null : velNormal * 2,
         historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
       };
     });

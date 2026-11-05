@@ -60,12 +60,9 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
   const tieneConcentracion = Boolean(concentracionActiva);
 
   // Filtrar efectos para no duplicar el chip de concentración si ya se muestra arriba
-  const efectosFiltrados = efectosActivos.filter((ef) => {
-    if (tieneConcentracion && esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion)) {
-      return false;
-    }
-    return true;
-  });
+  const efectosFiltrados = efectosActivos.filter((ef) =>
+    !(tieneConcentracion && esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion))
+  );
 
   const nombresEfectosSet = new Set(
     efectosFiltrados.flatMap((ef) => [

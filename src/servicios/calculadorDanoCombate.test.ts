@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   resolverBonosYDadosExtraCombate,
   componerFormulasDano
@@ -6,96 +6,42 @@ import {
 import { aplicarBuildClaseAPersonaje } from "./gestorClases";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", () => {
   describe("Escalado Dinámico de Frenesí (2d6 -> 3d6 -> 4d6)", () => {
-    it("debe otorgar 2d6 de daño extra a nivel 3-8 de Bárbaro Bersérker", () => {
-      let pjNv3 = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Bárbaro", 3, "Senda del Berserker");
-      // Activar Furia, Ataque Temerario y Frenesí con Fuerza 18 (+4)
-      pjNv3 = {
-        ...pjNv3,
-        caracteristicas: { ...pjNv3.caracteristicas, fuerza: 18 },
+    it.each<{ nivel: number; fuerza: number; modAtributo: number; dados: string; danoTotal: number }>([
+      { nivel: 3, fuerza: 18, modAtributo: 4, dados: "2d6", danoTotal: 6 },
+      { nivel: 9, fuerza: 18, modAtributo: 4, dados: "3d6", danoTotal: 7 },
+      { nivel: 16, fuerza: 20, modAtributo: 5, dados: "4d6", danoTotal: 9 }
+    ])("otorga $dados de Frenesí a nivel $nivel", ({ nivel, fuerza, modAtributo, dados, danoTotal }) => {
+      let personaje = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Bárbaro", nivel, "Senda del Berserker");
+
+      personaje = {
+        ...personaje,
+        caracteristicas: { ...personaje.caracteristicas, fuerza },
         condicionesActivas: ["Furia", "Ataque Temerario"],
-        rasgos: (pjNv3.rasgos || []).map((r) =>
+        rasgos: (personaje.rasgos || []).map((r) =>
           r.nombre === "Frenesí" || r.nombre === "Furia" || r.nombre === "Ataque temerario"
             ? { ...r, activo: true }
             : r
         )
       };
 
-      const stats = calcularEstadisticasPersonaje(pjNv3);
+      const stats = calcularEstadisticasPersonaje(personaje);
       const resultado = resolverBonosYDadosExtraCombate({
-        personajeActivo: pjNv3,
+        personajeActivo: personaje,
         statsCalculadas: stats,
         contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
         caracUsada: "fuerza",
-        modAtributo: 4,
-        bonoMagico: 0,
-        furiaEstaActiva: true,
-        yaIncluyeFuriaEnEfectos: true // El rasgo Furia ya aporta bono_dano_fuerza vía efectos
-      });
-
-      expect(resultado.dadosExtra).toContain("2d6");
-      expect(resultado.modDanoTotal).toBe(6); // 4 (Fuerza) + 2 (Furia vía efectos)
-    });
-
-    it("debe otorgar 3d6 de daño extra a nivel 9-15 de Bárbaro Bersérker", () => {
-      let pjNv9 = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Bárbaro", 9, "Senda del Berserker");
-      pjNv9 = {
-        ...pjNv9,
-        caracteristicas: { ...pjNv9.caracteristicas, fuerza: 18 },
-        condicionesActivas: ["Furia", "Ataque Temerario"],
-        rasgos: (pjNv9.rasgos || []).map((r) =>
-          r.nombre === "Frenesí" || r.nombre === "Furia" || r.nombre === "Ataque temerario"
-            ? { ...r, activo: true }
-            : r
-        )
-      };
-
-      const stats = calcularEstadisticasPersonaje(pjNv9);
-      const resultado = resolverBonosYDadosExtraCombate({
-        personajeActivo: pjNv9,
-        statsCalculadas: stats,
-        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
-        caracUsada: "fuerza",
-        modAtributo: 4,
+        modAtributo,
         bonoMagico: 0,
         furiaEstaActiva: true,
         yaIncluyeFuriaEnEfectos: true
       });
 
-      expect(resultado.dadosExtra).toContain("3d6");
-      expect(resultado.modDanoTotal).toBe(7); // 4 (Fuerza) + 3 (Furia vía efectos)
-    });
-
-    it("debe otorgar 4d6 de daño extra a nivel 16-20 de Bárbaro Bersérker", () => {
-      let pjNv16 = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Bárbaro", 16, "Senda del Berserker");
-      pjNv16 = {
-        ...pjNv16,
-        caracteristicas: { ...pjNv16.caracteristicas, fuerza: 20 },
-        condicionesActivas: ["Furia", "Ataque Temerario"],
-        rasgos: (pjNv16.rasgos || []).map((r) =>
-          r.nombre === "Frenesí" || r.nombre === "Furia" || r.nombre === "Ataque temerario"
-            ? { ...r, activo: true }
-            : r
-        )
-      };
-
-      const stats = calcularEstadisticasPersonaje(pjNv16);
-      const resultado = resolverBonosYDadosExtraCombate({
-        personajeActivo: pjNv16,
-        statsCalculadas: stats,
-        contextoAtaque: { tipo: "arma", caracteristica: "fuerza", esCuerpoACuerpo: true, esDistancia: false },
-        caracUsada: "fuerza",
-        modAtributo: 5,
-        bonoMagico: 0,
-        furiaEstaActiva: true,
-        yaIncluyeFuriaEnEfectos: true
-      });
-
-      expect(resultado.dadosExtra).toContain("4d6");
-      expect(resultado.modDanoTotal).toBe(9); // 5 (Fuerza) + 4 (Furia vía efectos)
+      expect(resultado.dadosExtra).toContain(dados);
+      expect(resultado.modDanoTotal).toBe(danoTotal);
     });
   });
 

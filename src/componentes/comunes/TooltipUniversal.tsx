@@ -72,16 +72,8 @@ export const TooltipUniversal: React.FC<TooltipUniversalProps> = ({
     let top = 0;
     let left = 0;
 
-    if (posEfectiva === "arriba") {
-      top = rect.top - 6;
-      left =
-        alineacionEfectiva === "inicio"
-          ? rect.left
-          : alineacionEfectiva === "fin"
-          ? rect.right
-          : rect.left + rect.width / 2;
-    } else if (posEfectiva === "abajo") {
-      top = rect.bottom + 6;
+    if (posEfectiva === "arriba" || posEfectiva === "abajo") {
+      top = posEfectiva === "arriba" ? rect.top - 6 : rect.bottom + 6;
       left =
         alineacionEfectiva === "inicio"
           ? rect.left

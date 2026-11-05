@@ -58,7 +58,8 @@
   transition: none;
 }
 
-.cajaAtributoPurple:hover {
+.cajaAtributoPurple:hover,
+.chipHabilidadInteractiva:hover {
   background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
   border-color: var(--color-borde-cian);
 }
@@ -75,7 +76,8 @@
   letter-spacing: 0.01em;
 }
 
-.atributoEtiquetaSalvacionEntrenada {
+.atributoEtiquetaSalvacionEntrenada,
+.atributoModSalvacionEntrenada {
   color: var(--color-borde-cian) !important;
 }
 
@@ -92,10 +94,6 @@
   font-size: 13.5px;
   font-weight: 800;
   color: var(--color-borde-cian);
-}
-
-.atributoModSalvacionEntrenada {
-  color: var(--color-borde-cian) !important;
 }
 
 .cajaMetadatosFichaExtra {
@@ -123,24 +121,18 @@
   color: var(--dm-texto-advertencia, var(--color-advertencia));
 }
 
-.valorIniciativa {
+.valorIniciativa,
+.nombreRasgoPasivo {
   color: var(--dm-texto-acento);
 }
 
-.valorPercepcion {
+.valorPercepcion,
+.valorMetaCian {
   color: var(--color-borde-cian);
 }
 
 .etiquetaMetaSecundaria {
   color: var(--color-texto-secundario);
-}
-
-.valorMetaCian {
-  color: var(--color-borde-cian);
-}
-
-.nombreRasgoPasivo {
-  color: var(--dm-texto-acento);
 }
 
 .subtituloFichaSection {
@@ -155,11 +147,7 @@
   font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
 }
 
-.subtituloPruebas {
-  color: var(--dm-texto-acento) !important;
-  border-color: rgba(var(--dm-rgb-primario, 162, 155, 254), 0.2) !important;
-}
-
+.subtituloPruebas,
 .subtituloSalvaciones {
   color: var(--dm-texto-acento) !important;
   border-color: rgba(var(--dm-rgb-primario, 162, 155, 254), 0.2) !important;
@@ -303,11 +291,6 @@
   padding: 3px 6px;
   cursor: pointer;
   font-size: var(--dm-fuente-minima, 12px);
-}
-
-.chipHabilidadInteractiva:hover {
-  background-color: var(--dm-fondo-foco, hsl(222, 18%, 16%));
-  border-color: var(--color-borde-cian);
 }
 
 .habilidadNombre {

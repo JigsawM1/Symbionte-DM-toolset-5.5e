@@ -1,5 +1,9 @@
 export { CreadorHomebrew } from "./CreadorHomebrew";
 export { ListaHomebrew } from "./ListaHomebrew";
+export type { ListaHomebrewProps } from "./ListaHomebrew";
+export { ListaMonstruosHomebrew } from "./ListaMonstruosHomebrew";
+export { ListaHechizosHomebrew } from "./ListaHechizosHomebrew";
+export { ListaObjetosHomebrew } from "./ListaObjetosHomebrew";
 export { FormularioCriatura } from "./FormularioCriatura";
 export { FormularioHechizo } from "./FormularioHechizo";
 export { FormularioObjeto } from "./FormularioObjeto";

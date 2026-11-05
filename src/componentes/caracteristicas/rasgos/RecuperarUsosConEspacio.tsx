@@ -10,7 +10,6 @@ import local from "./RecuperarUsosConEspacio.module.css";
 
 interface OpcionEspacio {
   valor: string;
-  etiqueta: string;
   etiquetaCorta: string;
   nivel: number;
   disponibles: number;
@@ -52,11 +51,11 @@ export function RecuperarUsosConEspacio({ personaje, rasgo }: { personaje: Perso
     const lista: OpcionEspacio[] = Array.from({ length: 9 }, (_, i) => i + 1).flatMap(nivel => {
       const disp = Math.max(0, (pj.espaciosConjuroMaximos[nivel] ?? 0) - (pj.espaciosConjuroGastados[nivel] ?? 0))
         + (pj.espaciosConjuroAdicionales?.[nivel] ?? 0);
-      return disp > 0 && nivel >= (r.nivelMinimoRecuperarUsosConEspacio ?? 1) ? [{ valor: String(nivel), etiqueta: `Nivel ${nivel} · ${disp} disponibles`, etiquetaCorta: `Nivel ${nivel}`, nivel, disponibles: disp, esPacto: false }] : [];
+      return disp > 0 && nivel >= (r.nivelMinimoRecuperarUsosConEspacio ?? 1) ? [{ valor: String(nivel), etiquetaCorta: `Nivel ${nivel}`, nivel, disponibles: disp, esPacto: false }] : [];
     });
     const pacto = pj.espaciosPactoMaximos - pj.espaciosPactoGastados;
     if (pacto > 0 && pj.nivelEspacioPacto >= (r.nivelMinimoRecuperarUsosConEspacio ?? 1)) {
-      lista.push({ valor: "pacto", etiqueta: `Pacto nivel ${pj.nivelEspacioPacto} · ${pacto} disponibles`, etiquetaCorta: `Pacto Nv. ${pj.nivelEspacioPacto}`, nivel: pj.nivelEspacioPacto, disponibles: pacto, esPacto: true });
+      lista.push({ valor: "pacto", etiquetaCorta: `Pacto Nv. ${pj.nivelEspacioPacto}`, nivel: pj.nivelEspacioPacto, disponibles: pacto, esPacto: true });
     }
     return lista;
   }, [pj.espaciosConjuroMaximos, pj.espaciosConjuroGastados, pj.espaciosConjuroAdicionales, pj.espaciosPactoMaximos, pj.espaciosPactoGastados, pj.nivelEspacioPacto, r.nivelMinimoRecuperarUsosConEspacio]);

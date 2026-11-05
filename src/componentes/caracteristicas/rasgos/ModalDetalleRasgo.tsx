@@ -2,7 +2,8 @@ import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import React from "react";
 import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
 import { useActivacionDeclarativa } from "./usarActivacionDeclarativa";
-import type { RasgoPersonaje, TipoAccionRasgo, OrigenRasgo } from "@/tipos";
+import type { RasgoPersonaje, TipoAccionRasgo } from "@/tipos";
+import { ETIQUETA_ACCION, ETIQUETA_ORIGEN } from "./TarjetaRasgo.constantes";
 import {
   X,
   Shield,
@@ -53,24 +54,6 @@ const ICONO_POR_ACCION: Record<TipoAccionRasgo, React.ReactNode> = {
   especial: <Layers size={12} />
 };
 
-const ETIQUETA_ACCION: Record<TipoAccionRasgo, string> = {
-  pasivo: "Pasivo",
-  accion: "Acción",
-  accion_adicional: "Acción Adicional",
-  reaccion: "Reacción",
-  especial: "Especial"
-};
-
-const ETIQUETA_ORIGEN: Record<OrigenRasgo, string> = {
-  clase: "Clase",
-  subclase: "Subclase",
-  especie: "Especie",
-  subespecie: "Legado / Subraza",
-  dote: "Dote",
-  trasfondo: "Trasfondo",
-  personalizado: "Personalizado / Homebrew"
-};
-
 export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   rasgo,
   nombrePersonaje,
@@ -95,42 +78,10 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
   );
 
   const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number) => {
-    if (!idPersonaje) return;
-    const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
-    let totalRanuras = 0;
-    for (const [lvlStr, cant] of Object.entries(espacios)) {
-      const lvl = Number(lvlStr);
-      const cantidad = cant || 0;
-      for (let i = 0; i < cantidad; i++) {
-        recuperarEspacioConjuro(idPersonaje, lvl);
-        totalRanuras++;
-      }
-    }
-    const puntos = puntosConjuro || 0;
-    if (puntos > 0) {
-      recuperarPuntosConjuro(idPersonaje, puntos);
-    }
-    if (totalRanuras > 0 || puntos > 0) {
-      if (alGastarUso) {
-        alGastarUso(1);
-      } else {
-        gastarUsoRasgoPersonaje(idPersonaje, rasgo.id, 1);
-      }
-      const partesMensaje: string[] = [];
-      if (totalRanuras > 0) {
-        partesMensaje.push(`${totalRanuras} ${totalRanuras === 1 ? "espacio de conjuro" : "espacios de conjuro"}`);
-      }
-      if (puntos > 0) {
-        partesMensaje.push(`${puntos} ${puntos === 1 ? "punto de conjuro" : "puntos de conjuro"}`);
-      }
-      agregarNotificacion(
-        `¡${rasgo.nombre}! Se han recuperado ${partesMensaje.join(" y ")}.`,
-        "exito"
-      );
-    }
+    confirmarRecuperacion(espacios, puntosConjuro, alGastarUso);
   };
 
-  const { formulaEfectiva, tieneUsosPropios, tieneUsosPadre, usosMaximos, usosRestantes, sinUsosDisponibles, esCuracion, esPreservarVida, manejarTirarDados } = usarAccionesTarjetaRasgo({
+  const { formulaEfectiva, tieneUsosPropios, tieneUsosPadre, usosMaximos, usosRestantes, sinUsosDisponibles, esCuracion, esPreservarVida, manejarTirarDados, manejarConfirmarRecuperacion: confirmarRecuperacion } = usarAccionesTarjetaRasgo({
     rasgo, nombrePersonaje, idPersonaje, alGastarUso, usosPadre, formulaDadosEfectiva, nivelPersonaje
   });
   const tieneDadosReales = Boolean(formulaEfectiva && formulaEfectiva.toLowerCase().includes("d"));

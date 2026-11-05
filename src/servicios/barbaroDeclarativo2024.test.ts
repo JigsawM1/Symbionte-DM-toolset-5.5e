@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from "vitest";
+﻿import { beforeEach, describe, expect, it } from "vitest";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { EsquemaDefinicionClaseJSON } from "@/tipos/esquemasCatalogos";
 import { EsquemaObjetoInventario, EsquemaRasgoPersonaje } from "@/tipos";
 import type { PersonajeJugador } from "@/tipos";

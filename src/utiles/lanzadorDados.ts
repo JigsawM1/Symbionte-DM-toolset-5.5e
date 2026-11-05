@@ -1,11 +1,10 @@
-import React from "react";
-import { Dices } from "lucide-react";
-import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+﻿import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
 import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
+import type { AcompanantePersonaje } from "@/tipos";
 
 /**
  * Módulo de Lanzamiento de Dados para TaleSpire (window.TS.dice)
@@ -247,16 +246,17 @@ export function aplicarResultadoIniciativaEnEstado(
     return c;
   });
 
+  const coincideAcompanante = (a: AcompanantePersonaje): boolean => Boolean(
+    a.id === infoIniciativa.criaturaId ||
+    a.id === infoIniciativa.idAcompanante ||
+    (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
+    (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm)
+  );
+
   // Si la tirada corresponde a un acompañante, actualizar su ficha en state.personajes
   let personajesModificados = false;
   const nuevosPersonajes = state.personajes.map((p) => {
-    const tieneAcomp = (p.acompanantes || []).some(
-      (a) =>
-        a.id === infoIniciativa.criaturaId ||
-        a.id === infoIniciativa.idAcompanante ||
-        (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
-        (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm)
-    );
+    const tieneAcomp = (p.acompanantes || []).some(coincideAcompanante);
 
     if (!tieneAcomp) return p;
 
@@ -264,11 +264,7 @@ export function aplicarResultadoIniciativaEnEstado(
     return {
       ...p,
       acompanantes: (p.acompanantes || []).map((a) => {
-        const coincide =
-          a.id === infoIniciativa.criaturaId ||
-          a.id === infoIniciativa.idAcompanante ||
-          (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
-          (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm);
+        const coincide = coincideAcompanante(a);
 
         if (coincide) {
           return { ...a, iniciativa: totalIniciativa };
@@ -290,13 +286,7 @@ export function aplicarResultadoIniciativaEnEstado(
 
   // Si no estaba en la cola de iniciativa, verificar si corresponde a un acompañante de un personaje
   for (const p of state.personajes) {
-    const acomp = (p.acompanantes || []).find(
-      (a) =>
-        a.id === infoIniciativa.criaturaId ||
-        a.id === infoIniciativa.idAcompanante ||
-        (infoIniciativa.idMiniaturaTS && a.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
-        (nombreNorm && a.nombre.trim().toLowerCase() === nombreNorm)
-    );
+    const acomp = (p.acompanantes || []).find(coincideAcompanante);
 
     if (acomp) {
       const nuevaCriaturaAcomp: CriaturaIniciativa = {
@@ -610,14 +600,10 @@ export async function lanzarDadosTaleSpire(
   const tieneVentaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "ventaja" || tipoTiradaForzado === "ventaja");
   const tieneDesventaja = tipoTiradaForzado !== "plano" && (tipoTiradaGlobal === "desventaja" || tipoTiradaForzado === "desventaja");
 
-  let tipoTirada: "ventaja" | "desventaja" | "plano" = "plano";
-  if (tieneVentaja && tieneDesventaja) {
-    tipoTirada = "plano";
-  } else if (tieneVentaja) {
-    tipoTirada = "ventaja";
-  } else if (tieneDesventaja) {
-    tipoTirada = "desventaja";
-  }
+  const tipoTirada: "ventaja" | "desventaja" | "plano" =
+    tieneVentaja === tieneDesventaja
+      ? "plano"
+      : tieneVentaja ? "ventaja" : "desventaja";
 
   // Restablecer el selector global de la barra táctica a "plano" si estaba activado manualmente
   if (tipoTiradaGlobal !== "plano") {
@@ -1209,8 +1195,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       const gName = typeof gObj.name === "string" ? gObj.name.trim().toLowerCase() : "";
       return (
         gName === normA ||
-        gName.endsWith(" (a)") ||
-        gName.endsWith(" 1)") ||
         gName.endsWith(" (1)") ||
         gName.includes("(a)") ||
         gName.includes(" 1)")
@@ -1221,8 +1205,6 @@ export async function procesarResultadosDadosTaleSpire(evento: unknown): Promise
       const gName = typeof gObj.name === "string" ? gObj.name.trim().toLowerCase() : "";
       return (
         gName === normB ||
-        gName.endsWith(" (b)") ||
-        gName.endsWith(" 2)") ||
         gName.endsWith(" (2)") ||
         gName.includes("(b)") ||
         gName.includes(" 2)")
@@ -1461,87 +1443,4 @@ export function detectarTipoDaño(descripcion: string, valorPredeterminado: stri
   if (desc.includes("force")) return "Fuerza";
 
   return valorPredeterminado;
-}
-
-/**
- * Escanea un texto descriptivo, identifica fórmulas de dados comunes de D&D
- * (ej: 1d20, 2d6+4, d100) y las convierte en botones interactivos en React
- * que envían tiradas físicas a TaleSpire al hacer click.
- */
-export function renderizarTextoConDadosInteractivos(
-  texto: string,
-  etiquetaTirada: string
-): React.ReactNode[] {
-  if (!texto) return [];
-
-  // Solo detectamos expresiones de dados reales (ej. 1d6, 2d8+3, d20-1)
-  // Eliminamos el grupo de modificadores sueltos ([+-]\d+) que causaba falsos positivos
-  // en texto como "CD 12", "2/día", "+5 al golpear cuando se compara con" etc.
-  const regexDadosYModificadores = /\b(?:[1-9]\d*)?d(?:4|6|8|10|12|20|100)(?:\s*[+-]\s*\d+)?\b/gi;
-
-  const partes: React.ReactNode[] = [];
-  let ultimoIndice = 0;
-  let match;
-
-  while ((match = regexDadosYModificadores.exec(texto)) !== null) {
-    const indiceCoincidencia = match.index;
-    const textoCoincidente = match[0];
-
-    if (indiceCoincidencia > ultimoIndice) {
-      partes.push(texto.substring(ultimoIndice, indiceCoincidencia));
-    }
-
-    partes.push(
-      React.createElement(
-        "strong",
-        {
-          key: `dado-${indiceCoincidencia}`,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            
-            let formulaConEtiqueta = "";
-            const matchNombreLimpio = etiquetaTirada.match(/^([^(]+)/);
-            const nombreLimpio = matchNombreLimpio ? matchNombreLimpio[1].trim() : etiquetaTirada;
-            
-            // Ahora todo lo que coincide es un dado real (ej. 1d6, 2d8+3, d20)
-            const esD20 = textoCoincidente.toLowerCase().includes("d20");
-            if (esD20) {
-              formulaConEtiqueta = `!${nombreLimpio}:${textoCoincidente}`;
-            } else {
-              const tipoDañoEncontrado = detectarTipoDaño(texto, "Daño");
-              const etiquetaDaño = tipoDañoEncontrado === "Daño" ? "Daño" : `Daño ${tipoDañoEncontrado}`;
-              formulaConEtiqueta = `!${etiquetaDaño}:${textoCoincidente}`;
-            }
-            
-            lanzarDadosTaleSpire(formulaConEtiqueta, etiquetaTirada);
-          },
-          style: {
-            color: "#ff7675",
-            cursor: "pointer",
-            textDecoration: "underline dashed",
-            fontWeight: "bold",
-            padding: "0 4px",
-            backgroundColor: "rgba(255, 118, 117, 0.1)",
-            borderRadius: "4px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "3px",
-            fontFamily: "monospace"
-          },
-          title: `Tirar ${textoCoincidente} en TaleSpire`,
-          className: "dado-interactivo-inline"
-        },
-        React.createElement(Dices, { size: 12, style: { display: "inline-block", flexShrink: 0 } }),
-        textoCoincidente
-      )
-    );
-
-    ultimoIndice = regexDadosYModificadores.lastIndex;
-  }
-
-  if (ultimoIndice < texto.length) {
-    partes.push(texto.substring(ultimoIndice));
-  }
-
-  return partes.length > 0 ? partes : [texto];
 }

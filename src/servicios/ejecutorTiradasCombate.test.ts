@@ -70,20 +70,23 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
     efectosActivos: []
   };
 
+  const tirarAtaqueFuerza = (personajeActivo: PersonajeJugador): Promise<boolean> =>
+    ejecutarTiradaAtaqueFisico({
+      ataque: ataqueFuerza,
+      personajeActivo,
+      statsCalculadas: null,
+      baseDatosObjetos: [],
+      modificarCantidadObjeto: vi.fn(),
+      agregarNotificacion: vi.fn()
+    });
+
   it("cuando Ataque Temerario está en condicionesActivas, envía la fórmula estándar 1d20+5 y tipoTiradaForzado 'ventaja' a TaleSpire", async () => {
     const pjConCondicion: PersonajeJugador = {
       ...basePj,
       condicionesActivas: ["Ataque Temerario"]
     };
 
-    await ejecutarTiradaAtaqueFisico({
-      ataque: ataqueFuerza,
-      personajeActivo: pjConCondicion,
-      statsCalculadas: null,
-      baseDatosObjetos: [],
-      modificarCantidadObjeto: vi.fn(),
-      agregarNotificacion: vi.fn()
-    });
+    await tirarAtaqueFuerza(pjConCondicion);
 
     expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
     const [formula, etiqueta, , , tipoTiradaForzado] = vi.mocked(lanzarDadosTaleSpire).mock.calls[0];
@@ -101,14 +104,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
       efectosActivos: [{ id: "ef_temerario", nombre: "Ataque Temerario", expiraRonda: 2 }]
     };
 
-    await ejecutarTiradaAtaqueFisico({
-      ataque: ataqueFuerza,
-      personajeActivo: pjConEfecto,
-      statsCalculadas: null,
-      baseDatosObjetos: [],
-      modificarCantidadObjeto: vi.fn(),
-      agregarNotificacion: vi.fn()
-    });
+    await tirarAtaqueFuerza(pjConEfecto);
 
     expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
     const [formula, etiqueta, , , tipoTiradaForzado] = vi.mocked(lanzarDadosTaleSpire).mock.calls[0];
@@ -126,14 +122,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
       )
     };
 
-    await ejecutarTiradaAtaqueFisico({
-      ataque: ataqueFuerza,
-      personajeActivo: pjConRasgoActivo,
-      statsCalculadas: null,
-      baseDatosObjetos: [],
-      modificarCantidadObjeto: vi.fn(),
-      agregarNotificacion: vi.fn()
-    });
+    await tirarAtaqueFuerza(pjConRasgoActivo);
 
     expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
     const [formula, etiqueta, , , tipoTiradaForzado] = vi.mocked(lanzarDadosTaleSpire).mock.calls[0];
@@ -169,14 +158,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
       rasgos: [...basePj.rasgos, rasgoGolpeBrutal]
     };
 
-    await ejecutarTiradaAtaqueFisico({
-      ataque: ataqueFuerza,
-      personajeActivo: pjConGolpeBrutal,
-      statsCalculadas: null,
-      baseDatosObjetos: [],
-      modificarCantidadObjeto: vi.fn(),
-      agregarNotificacion: vi.fn()
-    });
+    await tirarAtaqueFuerza(pjConGolpeBrutal);
 
     expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
     const [formula, etiqueta, , , tipoTiradaForzado] = vi.mocked(lanzarDadosTaleSpire).mock.calls[0];
@@ -187,14 +169,7 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
   });
 
   it("en una tirada normal sin condiciones, envía la tirada plana estándar", async () => {
-    await ejecutarTiradaAtaqueFisico({
-      ataque: ataqueFuerza,
-      personajeActivo: basePj,
-      statsCalculadas: null,
-      baseDatosObjetos: [],
-      modificarCantidadObjeto: vi.fn(),
-      agregarNotificacion: vi.fn()
-    });
+    await tirarAtaqueFuerza(basePj);
 
     expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
     const [formula, etiqueta, , , tipoTiradaForzado] = vi.mocked(lanzarDadosTaleSpire).mock.calls[0];

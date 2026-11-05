@@ -37,6 +37,15 @@ export const ConversorDivisas: React.FC = () => {
     };
   };
 
+  const cambios = calcularCambioDivisas();
+  const monedas = [
+    { clave: "PPT", nombre: "Platino (PPT)", desc: "1 PPT = 10 PO" },
+    { clave: "PO", nombre: "Oro (PO)", desc: "1 PO = 10 PP" },
+    { clave: "PE", nombre: "Electro (PE)", desc: "1 PE = 5 PP" },
+    { clave: "PP", nombre: "Plata (PP)", desc: "1 PP = 10 PC" },
+    { clave: "PC", nombre: "Cobre (PC)", desc: "Moneda Base" }
+  ];
+
   return (
     <div className={estilosClases.tarjetaCalculadora}>
       <div className={estilosClases.tituloCalculadora}>
@@ -74,46 +83,35 @@ export const ConversorDivisas: React.FC = () => {
             <span>VALOR</span>
           </div>
 
-          {(() => {
-            const cambios = calcularCambioDivisas();
-            const monedas = [
-              { clave: "PPT", nombre: "Platino (PPT)", desc: "1 PPT = 10 PO" },
-              { clave: "PO", nombre: "Oro (PO)", desc: "1 PO = 10 PP" },
-              { clave: "PE", nombre: "Electro (PE)", desc: "1 PE = 5 PP" },
-              { clave: "PP", nombre: "Plata (PP)", desc: "1 PP = 10 PC" },
-              { clave: "PC", nombre: "Cobre (PC)", desc: "Moneda Base" }
-            ];
-
-            return monedas.map((m) => {
-              const esOrigen = m.clave === monedaOrigen;
-              const claseColorMoneda = estilosClases[`moneda_${m.clave}` as keyof typeof estilosClases] || "";
-              return (
-                <div
-                  key={m.clave}
-                  className={`${estilosClases.filaCambio} ${
-                    esOrigen ? estilosClases.filaCambioOrigen : ""
-                  }`}
-                >
-                  <div className={estilosClases.columnaInfoMoneda}>
-                    <span className={`${estilosClases.nombreMoneda} ${claseColorMoneda}`}>
-                      <span>{m.nombre}</span>
-                      {esOrigen && <Star size={11} fill="var(--dm-texto-advertencia, #eab308)" color="var(--dm-texto-advertencia, #eab308)" className={estilosClases.iconoEstrella} />}
-                    </span>
-                    <span className={estilosClases.descMoneda}>
-                      {m.desc}
-                    </span>
-                  </div>
-                  <span
-                    className={`${estilosClases.cambioValor} ${
-                      esOrigen ? estilosClases.cambioValorOrigen : ""
-                    }`}
-                  >
-                    {cambios[m.clave as keyof typeof cambios]}
+          {monedas.map((m) => {
+            const esOrigen = m.clave === monedaOrigen;
+            const claseColorMoneda = estilosClases[`moneda_${m.clave}` as keyof typeof estilosClases] || "";
+            return (
+              <div
+                key={m.clave}
+                className={`${estilosClases.filaCambio} ${
+                  esOrigen ? estilosClases.filaCambioOrigen : ""
+                }`}
+              >
+                <div className={estilosClases.columnaInfoMoneda}>
+                  <span className={`${estilosClases.nombreMoneda} ${claseColorMoneda}`}>
+                    <span>{m.nombre}</span>
+                    {esOrigen && <Star size={11} fill="var(--dm-texto-advertencia, #eab308)" color="var(--dm-texto-advertencia, #eab308)" className={estilosClases.iconoEstrella} />}
+                  </span>
+                  <span className={estilosClases.descMoneda}>
+                    {m.desc}
                   </span>
                 </div>
-              );
-            });
-          })()}
+                <span
+                  className={`${estilosClases.cambioValor} ${
+                    esOrigen ? estilosClases.cambioValorOrigen : ""
+                  }`}
+                >
+                  {cambios[m.clave as keyof typeof cambios]}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

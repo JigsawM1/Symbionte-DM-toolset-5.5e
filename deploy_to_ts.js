@@ -24,6 +24,18 @@ switch (os.platform()) {
         process.exit(1);
 }
 
+const eliminarArchivoAnterior = (itemPath, mensajeAviso) => {
+    try {
+        fs.unlinkSync(itemPath);
+    } catch (error) {
+        try {
+            fs.renameSync(itemPath, `${itemPath}.old.${Date.now()}`);
+        } catch {
+            console.warn(`${mensajeAviso}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+};
+
 // Función para eliminar de forma segura archivos/carpetas de compilaciones previas
 const deleteBuildElement = (itemPath) => {
     if (fs.existsSync(itemPath)) {
@@ -32,16 +44,7 @@ const deleteBuildElement = (itemPath) => {
             fs.readdirSync(itemPath).forEach((file) => {
                 const curPath = path.join(itemPath, file);
                 if (!fs.lstatSync(curPath).isDirectory()) {
-                    try {
-                        fs.unlinkSync(curPath);
-                    } catch (error) {
-                        // Si está bloqueado por TaleSpire, intentar renombrarlo temporalmente
-                        try {
-                            fs.renameSync(curPath, `${curPath}.old.${Date.now()}`);
-                        } catch (renameErr) {
-                            console.warn(`[Aviso Despliegue] Archivo bloqueado por TaleSpire (${file}): ${error instanceof Error ? error.message : String(error)}`);
-                        }
-                    }
+                    eliminarArchivoAnterior(curPath, `[Aviso Despliegue] Archivo bloqueado por TaleSpire (${file})`);
                 }
             });
             try {
@@ -51,15 +54,7 @@ const deleteBuildElement = (itemPath) => {
                 console.warn(`[Aviso Despliegue] No se pudo eliminar directorio de assets anterior (${path.basename(itemPath)}): ${error instanceof Error ? error.message : String(error)}`);
             }
         } else {
-            try {
-                fs.unlinkSync(itemPath);
-            } catch (error) {
-                try {
-                    fs.renameSync(itemPath, `${itemPath}.old.${Date.now()}`);
-                } catch (renameErr) {
-                    console.warn(`[Aviso Despliegue] Archivo bloqueado (${path.basename(itemPath)}): ${error instanceof Error ? error.message : String(error)}`);
-                }
-            }
+            eliminarArchivoAnterior(itemPath, `[Aviso Despliegue] Archivo bloqueado (${path.basename(itemPath)})`);
         }
     }
 };

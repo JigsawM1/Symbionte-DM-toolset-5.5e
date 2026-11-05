@@ -73,7 +73,7 @@ const GENERADORES_DESCRIPCION: Partial<
   modificador_hp_maximo: (d) => `Modificador de HP Máximo: ${d.nuevoValor}`,
   restaurar_recurso: (d) => {
     const objNorm = d.nuevoObjetivo.trim().toLowerCase();
-    if (objNorm === "inspiracion" || objNorm === "inspiracion_heroica" || objNorm.includes("inspiracion")) {
+    if (objNorm.includes("inspiracion")) {
       const condTexto = d.nuevoCondicion.includes("corto") ? "un descanso corto" : "un descanso largo";
       return `Recupera Inspiración Heroica tras finalizar ${condTexto}`;
     }

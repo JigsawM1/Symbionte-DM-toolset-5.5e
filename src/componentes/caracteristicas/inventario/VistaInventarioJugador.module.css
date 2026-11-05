@@ -15,49 +15,6 @@
   font-family: var(--fuente-principal);
 }
 
-.cabeceraPrincipal {
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-acento-tenue);
-  border-radius: var(--pj-radio-panel);
-  padding: 8px 12px;
-  box-shadow: var(--pj-sombra-panel);
-}
-
-.filaTitulo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.grupoTitulo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tituloTexto {
-  font-family: var(--fuente-principal);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  margin: 0;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-}
-
-.contadorBadge {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  background-color: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  color: var(--pj-texto-cian);
-  padding: 1px 7px;
-  border-radius: var(--pj-radio-panel);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
 .tarjetaVacia {
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-sutil);

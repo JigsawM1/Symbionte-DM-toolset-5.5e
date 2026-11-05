@@ -52,7 +52,6 @@ export function CamposMagiaRecursos({
                 setNuevoAplicaA(val);
                 setNuevoObjetivo(val);
             }}
-                    tamano="normal"
                   />
                 </div>
               </div>)}
@@ -77,7 +76,6 @@ export function CamposMagiaRecursos({
                     valor={nuevoObjetivo}
                     opciones={OPCIONES_OBJETIVO_HP_TEMPORAL}
                     alCambiar={(val) => setNuevoObjetivo(val)}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -94,7 +92,6 @@ export function CamposMagiaRecursos({
                     setNuevoValor(val);
                 }
             }}
-                    tamano="normal"
                   />
                 </div>
                 <div className={estilos.campoGrupo}>
@@ -175,13 +172,7 @@ export function CamposMagiaRecursos({
                       <span>Recurso Predefinido o Rápido</span>
                     </label>
                     <SelectorDesplegable
-                      valor={nuevoObjetivo === "inspiracion"
-                ? "inspiracion"
-                : nuevoObjetivo === "furia"
-                    ? "furia"
-                    : nuevoObjetivo === "espacios_pacto"
-                        ? "espacios_pacto"
-                        : "personalizado"}
+                      valor={["inspiracion", "furia", "espacios_pacto"].includes(nuevoObjetivo) ? nuevoObjetivo : "personalizado"}
                       opciones={[
                 { valor: "inspiracion", etiqueta: "Inspiración Heroica" },
                 { valor: "furia", etiqueta: "Furia" },
@@ -208,7 +199,6 @@ export function CamposMagiaRecursos({
                     setNuevaDescripcionEfecto("Restaura Espacios de Pacto");
                 }
             }}
-                      tamano="normal"
                     />
                   </div>
                   <div className={estilos.campoGrupo}>
@@ -224,7 +214,6 @@ export function CamposMagiaRecursos({
                 { valor: "siempre", etiqueta: "Siempre / Pasivo" }
             ]}
                       alCambiar={(val) => setNuevoCondicion(val)}
-                      tamano="normal"
                     />
                   </div>
                 </div>

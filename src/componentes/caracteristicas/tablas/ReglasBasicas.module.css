@@ -38,10 +38,7 @@
   font-size: var(--dm-fuente-minima, 12px);
 }
 
-.tablaRegla th {
-  padding: 4px;
-}
-
+.tablaRegla th,
 .tablaRegla td {
   padding: 4px;
 }

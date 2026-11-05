@@ -1,4 +1,4 @@
-import { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
+﻿import { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
 import { conjuroEnAmpliacion } from "./rasgos/ampliacionesListaConjuros";
 import type {
   ClaseLanzadora,
@@ -22,7 +22,7 @@ import {
 } from "@/constantes/subclasesConjurosConstantes";
 import { TODAS_SUBCLASES_DND55 } from "@/constantes/clasesDND55";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { logger } from "@/utiles/logger";
 
 /**
@@ -496,18 +496,10 @@ export function obtenerOpcionesLanzamientoConjuro(parametros: {
     const esNivelPacto = tienePacto && lvl === nivelEspacioPacto;
     const esNivelEstandar = nivelesEstandarDisponibles.has(lvl);
 
-    let etiqueta: string;
-    if (esMulticlasePacto) {
-      if (esNivelPacto && esNivelEstandar) {
-        etiqueta = lvl === nivelHechizo ? `Nv. ${lvl} (Pacto/Estándar)` : `Nv. ${lvl} ↑ (Pacto/Estándar)`;
-      } else if (esNivelPacto) {
-        etiqueta = lvl === nivelHechizo ? `Nv. ${lvl} (Pacto)` : `Nv. ${lvl} ↑ (Pacto)`;
-      } else {
-        etiqueta = lvl === nivelHechizo ? `Nv. ${lvl}` : `Nv. ${lvl} ↑`;
-      }
-    } else {
-      etiqueta = lvl === nivelHechizo ? `Nv. ${lvl}` : `Nv. ${lvl} ↑`;
-    }
+    const etiquetaBase = lvl === nivelHechizo ? `Nv. ${lvl}` : `Nv. ${lvl} ↑`;
+    const etiqueta = esMulticlasePacto && esNivelPacto
+      ? `${etiquetaBase} (${esNivelEstandar ? "Pacto/Estándar" : "Pacto"})`
+      : etiquetaBase;
 
     return {
       nivel: lvl,

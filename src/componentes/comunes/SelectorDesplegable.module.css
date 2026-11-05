@@ -238,7 +238,8 @@
   border: 1px solid rgba(var(--pj-rgb-neutro), 0.25);
 }
 
-:global([data-tema="jugador"]) .chevronIcono {
+:global([data-tema="jugador"]) .chevronIcono,
+:global([data-tema="jugador"]) .checkIcono {
   color: var(--pj-texto-cian);
 }
 
@@ -266,10 +267,6 @@
 
 :global([data-tema="jugador"]) .opcionSeleccionada {
   background-color: rgba(var(--pj-rgb-primario), 0.28);
-  color: var(--pj-texto-cian);
-}
-
-:global([data-tema="jugador"]) .checkIcono {
   color: var(--pj-texto-cian);
 }
 

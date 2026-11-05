@@ -1,4 +1,4 @@
-/**
+﻿/**
  * sincronizacionIniciativa.ts
  * ----------------------------
  * Servicio centralizado para la sincronización de la iniciativa local con TaleSpire
@@ -10,7 +10,7 @@ import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, AcompanantePersonaje } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import {
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
@@ -98,7 +98,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nuevasCriaturasNativas = colaTSItems.map((cTS) => {
     // Reemplaza el .find() lento por una lectura directa
     const existente = mapaLocal.get(cTS.id);
-    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number; maxHp?: number; hp?: number };
+    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number };
     
     // Simplificado usando Nullish Coalescing (??)
     const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0);
@@ -193,7 +193,6 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     }
 
     if (acompAsociado && pjDuenioAcomp) {
-      let bonificadorIniciativa = 0;
       let plantillaProyectada: MonstruoBase | undefined = undefined;
 
       if (acompAsociado.idPlantilla && esIdInvocacionEscalable(acompAsociado.idPlantilla)) {
@@ -206,15 +205,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
             contextoLanzador,
             acompAsociado.subtipoInvocacion
           );
-          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
         }
       } else if (acompAsociado.idPlantilla) {
         plantillaProyectada = indiceMonstruos.porId.get(acompAsociado.idPlantilla);
-        if (plantillaProyectada) {
-          bonificadorIniciativa = plantillaProyectada.iniciativaBonificador ?? 0;
-        }
       }
 
+      const bonificadorIniciativa = plantillaProyectada?.iniciativaBonificador ?? 0;
       const caFinal = acompAsociado.ca || plantillaProyectada?.ca || 10;
       const vidaMaxFinal = acompAsociado.vidaMaxima || plantillaProyectada?.vidaMaxima || 10;
       const vidaActFinal = acompAsociado.vidaActual !== undefined ? acompAsociado.vidaActual : vidaMaxFinal;
@@ -272,8 +268,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
         id: cTS.id,
         nombre: cTS.name,
         iniciativa: iniciativaFisica,
-        vidaMaxima: cTSConPropiedades.maxHp || 10,
-        vidaActual: cTSConPropiedades.hp !== undefined ? cTSConPropiedades.hp : (cTSConPropiedades.maxHp || 10),
+        vidaMaxima: 10,
+        vidaActual: 10,
         ca: 10,
         condiciones: [],
         efectos: [],
@@ -312,9 +308,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     // Criatura nueva que viene de TaleSpire
     const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
       plantillaMonstruo,
-      metodoVidaMonstruo,
-      cTSConPropiedades.maxHp,
-      cTSConPropiedades.hp
+      metodoVidaMonstruo
     );
 
     return {

@@ -65,13 +65,7 @@
   color: var(--pj-texto-cian);
 }
 
-.ranurasDisponiblesPactoTexto {
-  color: var(--pj-texto-magia);
-}
 
-.ranurasAgotadasTexto {
-  color: var(--pj-texto-alerta);
-}
 
 .ranurasMaxTexto {
   color: var(--pj-texto-acento);
@@ -118,14 +112,14 @@
   color: var(--pj-texto-cian);
 }
 
-.conteoGrupoRanura[data-disponible="false"] {
-  color: var(--pj-texto-alerta);
-}
 
+.ranurasDisponiblesPactoTexto,
 .conteoGrupoRanura[data-pacto="true"] {
   color: var(--pj-texto-magia);
 }
 
+.ranurasAgotadasTexto,
+.conteoGrupoRanura[data-disponible="false"],
 .conteoGrupoRanura[data-pacto="true"][data-disponible="false"] {
   color: var(--pj-texto-alerta);
 }

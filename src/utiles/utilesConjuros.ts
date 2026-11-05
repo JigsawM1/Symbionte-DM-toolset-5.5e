@@ -120,41 +120,6 @@ export function calcularMultiplicadorTruco(nivelPersonaje: number): number {
 }
 
 /**
- * Calcula la fórmula de dados escalada automáticamente para un truco según el nivel del personaje.
- * Ejemplo: Toque helado ("1d10") a nivel 5 devuelve "2d10" con multiplicador 2.
- */
-export function calcularFormulaTruco(
-  formulaBase: string,
-  nivelPersonaje: number
-): { formula: string; multiplicador: number; cantDados: number; caras: string; base: string } {
-  const baseLimpia = formulaBase ? formulaBase.trim() : "";
-  const mult = calcularMultiplicadorTruco(nivelPersonaje);
-
-  if (!baseLimpia || baseLimpia === "N/A") {
-    return { formula: "", multiplicador: mult, cantDados: 0, caras: "", base: "" };
-  }
-
-  const regexDados = /^(\d+)[dD](\d+)(.*)$/;
-  const match = baseLimpia.replace(/\s+/g, "").match(regexDados);
-
-  if (match) {
-    const cantBase = parseInt(match[1], 10);
-    const caras = match[2];
-    const resto = match[3] || "";
-    const cantTotal = cantBase * mult;
-    return {
-      formula: `${cantTotal}d${caras}${resto}`,
-      multiplicador: mult,
-      cantDados: cantTotal,
-      caras,
-      base: baseLimpia
-    };
-  }
-
-  return { formula: baseLimpia, multiplicador: mult, cantDados: 1, caras: "", base: baseLimpia };
-}
-
-/**
  * Determina si un truco escala por nivel de personaje (D&D 5.5e / 5e).
  * En las reglas oficiales, todo truco con dados de daño estructurados en la base de datos
  * escala automáticamente a los niveles 5, 11 y 17 (salvo excepciones de arma como Garrote/Shillelagh).
@@ -231,12 +196,7 @@ export function obtenerInfoProyectilesMultiples(
   const nivel = typeof hechizo.nivel === "number" ? hechizo.nivel : 0;
 
   // 1. Descarga sobrenatural (Truco nv 0)
-  if (
-    normId.includes("descarga-sobrenatural") ||
-    normId.includes("eldritch-blast") ||
-    normNombre.includes("descarga sobrenatural") ||
-    normNombre.includes("eldritch blast")
-  ) {
+  if (esTrucoDeAtaquesMultiples(hechizo)) {
     const mult = calcularMultiplicadorTruco(opciones.nivelPersonaje ?? 1);
     const dados = hechizo.dadosDaño?.trim() || "1d10";
     return {
@@ -470,10 +430,8 @@ export function construirFormulaTaleSpireTruco(
 
       if (tieneAtaque) {
         grupos.push(`Ataque Rayo ${i}:1d20${modTexto}`);
-        grupos.push(`Daño Rayo ${i}${tipoDaño}:${formulaRayo}`);
-      } else {
-        grupos.push(`Daño Rayo ${i}${tipoDaño}:${formulaRayo}`);
       }
+      grupos.push(`Daño Rayo ${i}${tipoDaño}:${formulaRayo}`);
     }
     return {
       formulaTaleSpire: `!${grupos.join("/")}`,
@@ -566,10 +524,8 @@ export function construirFormulaTaleSpireEspacio(
 
       if (infoProyectiles.requiereAtaque) {
         grupos.push(`Ataque ${infoProyectiles.etiquetaSingular} ${i}:1d20${bonoSigno}`);
-        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${formulaProyectil}`);
-      } else {
-        grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${formulaProyectil}`);
       }
+      grupos.push(`Daño ${infoProyectiles.etiquetaSingular} ${i}${tipoDanoText}:${formulaProyectil}`);
     }
 
     const sufijoNivel =
@@ -608,27 +564,18 @@ export function construirFormulaTaleSpireEspacio(
 
   if (tieneAtaque) {
     const formulaAtaque = `!Ataque ${sanitizarEtiqueta(nombreLimpio)}:1d20${bonoSigno}`;
-    if (formulaFinalDano) {
-      return {
-        formulaTaleSpire: `${formulaAtaque}/Daño${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`,
-        etiquetaLog
-      };
-    }
     return {
-      formulaTaleSpire: formulaAtaque,
-      etiquetaLog
-    };
-  }
-
-  if (formulaFinalDano) {
-    return {
-      formulaTaleSpire: `!Daño ${sanitizarEtiqueta(nombreLimpio)}${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`,
+      formulaTaleSpire: formulaFinalDano
+        ? `${formulaAtaque}/Daño${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`
+        : formulaAtaque,
       etiquetaLog
     };
   }
 
   return {
-    formulaTaleSpire: `!Lanzar Conjuro:${sanitizarEtiqueta(nombreLimpio)}`,
+    formulaTaleSpire: formulaFinalDano
+      ? `!Daño ${sanitizarEtiqueta(nombreLimpio)}${sanitizarEtiqueta(tipoDanoText)}:${formulaFinalDano}`
+      : `!Lanzar Conjuro:${sanitizarEtiqueta(nombreLimpio)}`,
     etiquetaLog
   };
 }

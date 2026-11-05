@@ -94,7 +94,6 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
                 valor={nuevoTipoEfecto}
                 opciones={opcionesTiposEfecto}
                 alCambiar={manejarCambioTipoEfecto}
-                tamano="normal"
               />
             </div>
 
@@ -146,7 +145,6 @@ export function EfectosConstructor({ borrador, actualizarBorrador }: Props) {
                     if (nuevoTipoEfecto === "bono_ataque")
                         setNuevoObjetivo(val);
                 }}
-                    tamano="normal"
                   />
                 </div>
               </div>)}

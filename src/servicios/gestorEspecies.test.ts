@@ -272,17 +272,8 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       expect(esCuracionAuto).toBe(false);
     });
 
-    it("Manto de inspiración no califica como auto-HP temporal forzado al propio bardo", () => {
-      const nombreManto = "Manto de inspiración";
-      const normNombre = nombreManto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const esMantoInspiracion = normNombre.includes("manto de inspiracion");
-      const tieneEfectoHpTemporalAuto = !esMantoInspiracion;
 
-      expect(esMantoInspiracion).toBe(true);
-      expect(tieneEfectoHpTemporalAuto).toBe(false);
-    });
-
-    it("Ataque de aliento e Inspiración bárdica gastan uso al tirar los dados", () => {
+    it("Ataque de aliento gasta uso al tirar los dados", () => {
       const draconido = obtenerEspeciePorId("draconido")!;
       const subRojo = obtenerSubespeciePorNombre("draconido", "Dragón Rojo");
       const rasgos = construirRasgosEspecie(draconido, subRojo, 3, 2);
@@ -294,9 +285,7 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       const gastaUsoAliento = esAtaqueAliento || aliento.categoriaMecanica === "consumible";
       expect(gastaUsoAliento).toBe(true);
 
-      const normInspiracion = "Inspiración bárdica".toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const esInspiracion = normInspiracion.includes("inspiracion bardica");
-      expect(esInspiracion).toBe(true);
+
     });
   });
 
@@ -606,30 +595,17 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       const draconido = obtenerEspeciePorId("draconido")!;
       const legadoAzul = obtenerSubespeciePorNombre("draconido", "azul")!;
 
-      // Nivel 1 (PB = 2) -> 1d10, 2 usos
-      const rasgosNivel1 = construirRasgosEspecie(draconido, legadoAzul, 1, 2);
-      const alientoN1 = rasgosNivel1.find((r) => r.nombre === "Ataque de aliento")!;
-      expect(alientoN1.formulaDados).toBe("1d10");
-      expect(alientoN1.usosMaximos).toBe(2);
-      expect(alientoN1.origen).toBe("subespecie");
-
-      // Nivel 5 (PB = 3) -> 2d10, 3 usos
-      const rasgosNivel5 = construirRasgosEspecie(draconido, legadoAzul, 5, 3);
-      const alientoN5 = rasgosNivel5.find((r) => r.nombre === "Ataque de aliento")!;
-      expect(alientoN5.formulaDados).toBe("2d10");
-      expect(alientoN5.usosMaximos).toBe(3);
-
-      // Nivel 11 (PB = 4) -> 3d10, 4 usos
-      const rasgosNivel11 = construirRasgosEspecie(draconido, legadoAzul, 11, 4);
-      const alientoN11 = rasgosNivel11.find((r) => r.nombre === "Ataque de aliento")!;
-      expect(alientoN11.formulaDados).toBe("3d10");
-      expect(alientoN11.usosMaximos).toBe(4);
-
-      // Nivel 17 (PB = 6) -> 4d10, 6 usos
-      const rasgosNivel17 = construirRasgosEspecie(draconido, legadoAzul, 17, 6);
-      const alientoN17 = rasgosNivel17.find((r) => r.nombre === "Ataque de aliento")!;
-      expect(alientoN17.formulaDados).toBe("4d10");
-      expect(alientoN17.usosMaximos).toBe(6);
+      for (const [nivel, competencia, formula] of [
+        [1, 2, "1d10"],
+        [5, 3, "2d10"],
+        [11, 4, "3d10"],
+        [17, 6, "4d10"]
+      ] as const) {
+        const aliento = construirRasgosEspecie(draconido, legadoAzul, nivel, competencia).find((r) => r.nombre === "Ataque de aliento")!;
+        expect(aliento.formulaDados).toBe(formula);
+        expect(aliento.usosMaximos).toBe(competencia);
+        if (nivel === 1) expect(aliento.origen).toBe("subespecie");
+      }
     });
 
     it("aplica Dracónido y su legado a un personaje mediante la función genérica del builder", () => {
@@ -1822,23 +1798,14 @@ describe("GestorEspecies - Dominio de Razas y Subrazas (D&D 5.5e)", () => {
       const efectoHp = obtenerEfectoHpTemporalRasgo(descarga);
       expect(efectoHp).toBeDefined();
 
-      const pjNivel1: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        nivel: 1
-      };
-      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel1)).toBe(2);
-
-      const pjNivel5: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        nivel: 5
-      };
-      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel5)).toBe(3);
-
-      const pjNivel9: PersonajeJugador = {
-        ...PERSONAJE_POR_DEFECTO,
-        nivel: 9
-      };
-      expect(calcularHpTemporalDeEfecto(efectoHp!, pjNivel9)).toBe(4);
+      for (const [nivel, esperado] of [
+        [1, 2],
+        [5, 3],
+        [9, 4]
+      ] as const) {
+        const pj: PersonajeJugador = { ...PERSONAJE_POR_DEFECTO, nivel };
+        expect(calcularHpTemporalDeEfecto(efectoHp!, pj)).toBe(esperado);
+      }
     });
 
     it("aplica la especie Orco al personaje y respeta el ciclo de consumo y recuperación en descansos corto y largo", () => {

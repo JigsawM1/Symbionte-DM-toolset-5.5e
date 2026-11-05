@@ -32,12 +32,7 @@ export function esCondicionFuria(condicion: string): boolean {
   if (!condicion) return false;
   const normalizada = condicion.toLowerCase().trim();
   if (esCondicionFuriaDioses(normalizada)) return false;
-  return (
-    normalizada.includes("furia (rage)") ||
-    normalizada.startsWith("furia") ||
-    normalizada.startsWith("rage") ||
-    normalizada.includes("furia")
-  );
+  return normalizada.includes("furia") || normalizada.startsWith("rage");
 }
 
 /**
@@ -53,14 +48,7 @@ export function esCondicionConcentracion(
   if (id === "ef_concentracion" || id === "concentracion") return true;
   if (!nombreOTexto) return false;
   const normalizada = nombreOTexto.toLowerCase().trim();
-  return (
-    normalizada === "concentración" ||
-    normalizada === "concentracion" ||
-    normalizada.startsWith("concentra") ||
-    normalizada.includes("(concentración)") ||
-    normalizada.includes("(concentracion)") ||
-    normalizada.includes("concentra")
-  );
+  return normalizada.includes("concentra");
 }
 
 /**
@@ -369,7 +357,7 @@ export function evaluarEfectosCondicionesEnTirada(
     // Cansado / Agotamiento (Exhaustion D&D 2024): -2 * nivel a todas las tiradas de d20
     if (cond.startsWith("cansado") || cond.startsWith("exhausted") || cond.startsWith("agotamiento")) {
       const match = cond.match(/\d+/);
-      const nivel = match ? parseInt(matchesNumero(cond), 10) : 1;
+      const nivel = match ? parseInt(match[0], 10) : 1;
       const penalizacion = -2 * Math.max(1, Math.min(NIVEL_MAXIMO_CANSANCIO, nivel));
       penalizadorD20 += penalizacion;
       motivosModificadores.push(`Cansancio Niv. ${nivel} (${penalizacion})`);
@@ -432,9 +420,4 @@ export function evaluarEfectosCondicionesEnTirada(
     motivosVentaja,
     motivosModificadores
   };
-}
-
-function matchesNumero(cadena: string): string {
-  const m = cadena.match(/\d+/);
-  return m ? m[0] : "1";
 }

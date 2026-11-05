@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+﻿import { describe, it, expect, beforeEach } from "vitest";
 import type { PersonajeJugador, RasgoPersonaje, ObjetoInventario } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
@@ -11,7 +11,7 @@ import {
   filtrarRasgosFormaSalvaje,
   extraerRasgosBestia
 } from "./reglasFormaSalvaje";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
 import {
   obtenerVelocidadesEfectivas,
@@ -28,6 +28,26 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       personajes: [],
       idPersonajeActivo: null
     });
+  });
+
+  it("mantiene IDs, categorías, orden y notas al integrar rasgos, acciones adicionales y reacciones de bestia", () => {
+    const bestia = {
+      ...structuredClone(lobo),
+      id: "bestia_prueba",
+      nombre: "Bestia de prueba",
+      rasgos: [{ nombre: "  Olfáto agudo  ", descripcion: "Detecta presas" }],
+      accionesAdicionales: [{ nombre: "  Salto ágil ", descripcion: "" }],
+      reacciones: [{ nombre: "Salto ágil", descripcion: "Esquiva" }]
+    };
+    const entrada = structuredClone(bestia);
+    const rasgos = extraerRasgosBestia(bestia);
+    expect(rasgos.map(({ id, tipoAccion, descripcion, notas }) => ({ id, tipoAccion, descripcion, notas }))).toEqual([
+      { id: "rasgo_bestia_bestia_prueba_0_olfato_agudo", tipoAccion: "pasivo", descripcion: "Detecta presas", notas: "Rasgo de Bestia de prueba." },
+      { id: "acc_adic_bestia_bestia_prueba_0_salto_agil", tipoAccion: "accion_adicional", descripcion: "", notas: "Acción adicional de Bestia de prueba." },
+      { id: "reac_bestia_bestia_prueba_0_salto_agil", tipoAccion: "reaccion", descripcion: "Esquiva", notas: "Reacción de Bestia de prueba." }
+    ]);
+    expect(bestia).toEqual(entrada);
+    expect(filtrarRasgosFormaSalvaje([], bestia)).toEqual(rasgos);
   });
 
   describe("1. Reglas Canónicas por Nivel (Límites, VD y Vuelo)", () => {

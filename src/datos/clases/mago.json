@@ -115,10 +115,8 @@
       "selectores": [
         {
           "id": "selector_erudito_mago",
-          "tipo": "unico",
           "tipoSelector": "general",
           "etiqueta": "Pericia académica elegida",
-          "maxSelecciones": 1,
           "valorActual": [
             "arcanos"
           ],
@@ -233,22 +231,16 @@
         {
           "id": "selector_maestria_conjuro_nv1",
           "visualizacion": "lista",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuro de Maestría Nivel 1 (Gratuito a voluntad)",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "claveOpcionesDinamicas": "conjuros1_accion_mago",
           "esConjuroGratuito": true
         },
         {
           "id": "selector_maestria_conjuro_nv2",
           "visualizacion": "lista",
-          "tipo": "unico",
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuro de Maestría Nivel 2 (Gratuito a voluntad)",
-          "maxSelecciones": 1,
-          "valorActual": [],
           "claveOpcionesDinamicas": "conjuros2_accion_mago",
           "esConjuroGratuito": true
         }
@@ -278,7 +270,6 @@
           "tipoSelector": "conjuro",
           "etiqueta": "Conjuros Predilectos Elegidos (Nivel 3)",
           "maxSelecciones": 2,
-          "valorActual": [],
           "claveOpcionesDinamicas": "conjuros3_mago",
           "esConjuroGratuito": true
         }
@@ -319,7 +310,6 @@
                 { "nivelMinimo": 15, "valor": 8 },
                 { "nivelMinimo": 17, "valor": 9 }
               ],
-              "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_abjuracion_1_2_mago",
               "claveGruposDinamicos": "grupos_abjuracion_mago",
               "destinoConjuros": "libro"
@@ -439,7 +429,6 @@
                 { "nivelMinimo": 15, "valor": 8 },
                 { "nivelMinimo": 17, "valor": 9 }
               ],
-              "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_adivinacion_1_2_mago",
               "claveGruposDinamicos": "grupos_adivinacion_mago",
               "destinoConjuros": "libro"
@@ -516,10 +505,8 @@
           "selectores": [
             {
               "id": "selector_beneficio_tercer_ojo",
-              "tipo": "unico",
               "tipoSelector": "general",
               "etiqueta": "Beneficio de El tercer ojo",
-              "maxSelecciones": 1,
               "valorActual": [
                 "vision_oscuridad"
               ],
@@ -591,7 +578,6 @@
                 { "nivelMinimo": 15, "valor": 8 },
                 { "nivelMinimo": 17, "valor": 9 }
               ],
-              "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_evocacion_1_2_mago",
               "claveGruposDinamicos": "grupos_evocacion_mago",
               "destinoConjuros": "libro"
@@ -709,7 +695,6 @@
                 { "nivelMinimo": 15, "valor": 8 },
                 { "nivelMinimo": 17, "valor": 9 }
               ],
-              "valorActual": [],
               "claveOpcionesDinamicas": "conjuros_ilusion_1_2_mago",
               "claveGruposDinamicos": "grupos_ilusion_mago",
               "destinoConjuros": "libro"

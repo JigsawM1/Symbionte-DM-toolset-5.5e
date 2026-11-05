@@ -4,11 +4,7 @@
   text-indent: 10px;
 }
 
-.subtituloRasgoModal {
-  color: var(--dm-texto-cian, var(--pj-texto-cian, #38bdf8));
-  font-weight: 700;
-}
-
+.subtituloRasgoModal,
 .negritaModal {
   color: var(--dm-texto-cian, var(--pj-texto-cian, #38bdf8));
   font-weight: 700;
@@ -17,6 +13,34 @@
 .cursivaColoreadaModal {
   color: var(--dm-texto-cian, var(--pj-texto-cian, #38bdf8));
   font-style: italic;
+}
+
+/* Dado interactivo táctico embebido en texto descriptivo */
+.dadoInteractivoInline {
+  color: var(--pj-texto-oro, var(--color-advertencia, #fde047));
+  cursor: pointer;
+  text-decoration: underline dashed;
+  font-weight: 700;
+  padding: 0 4px;
+  background-color: var(--pj-acento-oro-oscuro, rgba(253, 224, 71, 0.12));
+  border-radius: var(--pj-radio-control, 4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 0.95em;
+  border: none;
+  line-height: normal;
+  vertical-align: middle;
+}
+
+.dadoInteractivoInline:hover {
+  background-color: var(--pj-fondo-tarjeta-hover, rgba(253, 224, 71, 0.24));
+}
+
+.iconoDadoInline {
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 /* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
@@ -31,14 +55,8 @@
   margin-top: 1.45em;
 }
 
-:global([data-tema="jugador"]) .subtituloRasgoModal {
-  color: var(--pj-texto-cian);
-}
-
-:global([data-tema="jugador"]) .negritaModal {
-  color: var(--pj-texto-cian);
-}
-
+:global([data-tema="jugador"]) .subtituloRasgoModal,
+:global([data-tema="jugador"]) .negritaModal,
 :global([data-tema="jugador"]) .cursivaColoreadaModal {
   color: var(--pj-texto-cian);
 }

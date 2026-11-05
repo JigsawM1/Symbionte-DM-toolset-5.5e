@@ -41,17 +41,5 @@ jobs:
       - name: Instalar Dependencias
         run: pnpm install --frozen-lockfile
 
-      - name: Verificación Estricta de Tipos (TypeScript)
-        run: pnpm exec tsc --noEmit
-
-      - name: Análisis Estático de Código (ESLint)
-        run: pnpm run lint
-
-      - name: Ejecución de Pruebas Automatizadas (Vitest)
-        run: pnpm run test
-
-      - name: Auditoría de Tamaño de Archivos y Prevención de Monolitos
-        run: pnpm run verificar:lineas
-
-      - name: Compilación y Empaquetado de Producción (Vite Build)
-        run: pnpm exec vite build
+      - name: Verificaciones de CI y compilación
+        run: pnpm run ci

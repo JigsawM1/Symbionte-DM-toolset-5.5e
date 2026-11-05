@@ -51,7 +51,7 @@ export function obtenerInfoMaestria(maestriaTexto?: string | null): InfoPropieda
 
   // 1. Coincidencia directa o parcial
   for (const [k, data] of Object.entries(DICCIONARIO_MAESTRIAS)) {
-    if (claveLimpia === k || claveLimpia.includes(k)) {
+    if (claveLimpia.includes(k)) {
       return {
         titulo: data.titulo,
         descripcion: data.descripcion,
@@ -83,7 +83,7 @@ export function obtenerInfoPropiedadArma(propiedadTexto: string): InfoPropiedad 
   const claveLimpia = normalizarClave(propiedadTexto);
 
   for (const [k, data] of Object.entries(DICCIONARIO_PROPIEDADES_ARMAS)) {
-    if (claveLimpia === k || claveLimpia.startsWith(k) || claveLimpia.includes(k)) {
+    if (claveLimpia.includes(k)) {
       return {
         titulo: data.titulo,
         descripcion: data.descripcion,
@@ -118,10 +118,7 @@ export function obtenerInfoPropiedadArmadura(
     case "bonoDestreza": {
       const tipoBono = normalizarClave(String(valorExtra || "Completo"));
       if (
-        tipoBono.includes("sin bono") ||
         tipoBono.includes("sin") ||
-        tipoBono.includes("ninguno") ||
-        tipoBono.includes("none") ||
         tipoBono.includes("pesada") ||
         tipoBono.includes("no") ||
         tipoBono === "0"

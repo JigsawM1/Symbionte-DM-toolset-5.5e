@@ -20,17 +20,10 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(furiaNv1?.condicionAlActivar).toBe("Furia (Rage)");
 
       // Escalados en niveles canónicos: 3 a nv 3, 4 a nv 6, 5 a nv 12, 6 a nv 17
-      const furiaNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3).find((r) => r.nombre === "Furia");
-      expect(furiaNv3?.usosMaximos).toBe(3);
-
-      const furiaNv6 = obtenerRasgosClaseYSubclase("Bárbaro", 6).find((r) => r.nombre === "Furia");
-      expect(furiaNv6?.usosMaximos).toBe(4);
-
-      const furiaNv12 = obtenerRasgosClaseYSubclase("Bárbaro", 12).find((r) => r.nombre === "Furia");
-      expect(furiaNv12?.usosMaximos).toBe(5);
-
-      const furiaNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17).find((r) => r.nombre === "Furia");
-      expect(furiaNv17?.usosMaximos).toBe(6);
+      for (const [nivel, usos] of [[3, 3], [6, 4], [12, 5], [17, 6]] as const) {
+        const furia = obtenerRasgosClaseYSubclase("Bárbaro", nivel).find(r => r.nombre === "Furia");
+        expect(furia?.usosMaximos, `Nivel ${nivel}`).toBe(usos);
+      }
     });
 
     it("Furia otorga efectos declarativos de daño de furia y ventajas en Fuerza", () => {
@@ -379,14 +372,10 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       expect(guerreroNv3?.formulaDados).toBe("1d12");
       expect(guerreroNv3?.usosMaximos).toBe(4);
 
-      const guerreroNv6 = obtenerRasgosClaseYSubclase("Bárbaro", 6, "Senda del Fanático").find((r) => r.nombre === "Guerrero de los dioses");
-      expect(guerreroNv6?.usosMaximos).toBe(5);
-
-      const guerreroNv12 = obtenerRasgosClaseYSubclase("Bárbaro", 12, "Senda del Fanático").find((r) => r.nombre === "Guerrero de los dioses");
-      expect(guerreroNv12?.usosMaximos).toBe(6);
-
-      const guerreroNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17, "Senda del Fanático").find((r) => r.nombre === "Guerrero de los dioses");
-      expect(guerreroNv17?.usosMaximos).toBe(7);
+      for (const [nivel, usos] of [[6, 5], [12, 6], [17, 7]] as const) {
+        const guerrero = obtenerRasgosClaseYSubclase("Bárbaro", nivel, "Senda del Fanático").find(r => r.nombre === "Guerrero de los dioses");
+        expect(guerrero?.usosMaximos, `Nivel ${nivel}`).toBe(usos);
+      }
     });
 
     it("Enfoque fanático, Presencia fervorosa y Furia de los dioses tienen configuración correcta", () => {

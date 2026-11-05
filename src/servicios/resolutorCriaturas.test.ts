@@ -132,13 +132,7 @@ describe("resolutorCriaturas - calcularVidaInicial", () => {
     expect(res.vidaActual).toBe(res.vidaMaxima);
   });
 
-  it("debe usar datos de TaleSpire si no hay plantilla pero se definieron hp/maxHp", () => {
-    const res = calcularVidaInicial(undefined, "estandar", 30, 25);
-    expect(res.vidaMaxima).toBe(30);
-    expect(res.vidaActual).toBe(25);
-  });
-
-  it("debe usar valores por defecto si no hay plantilla ni datos válidos de TaleSpire", () => {
+  it("debe usar valores por defecto (10/10) si no hay plantilla asociada, ignorando stats nativos de TaleSpire", () => {
     const res = calcularVidaInicial(undefined, "estandar");
     expect(res.vidaMaxima).toBe(10);
     expect(res.vidaActual).toBe(10);

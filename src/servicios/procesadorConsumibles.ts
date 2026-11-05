@@ -11,17 +11,17 @@ export interface InfoConsumible {
   descripcionUso: string;
 }
 
+const norm = (s: string): string =>
+  s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
 /**
  * Determina si un objeto por su nombre o notas califica como poción o consumible.
  */
 export function esObjetoConsumible(nombre: string, notas?: string): boolean {
-  const norm = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-
   const n = norm(nombre);
   const d = norm(notas || "");
 
@@ -49,13 +49,6 @@ export function esObjetoConsumible(nombre: string, notas?: string): boolean {
  * Detecta la información táctica y las reglas de uso de un consumible/poción.
  */
 export function detectarInfoConsumible(nombre: string, descripcion?: string): InfoConsumible {
-  const norm = (s: string) =>
-    s
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim();
-
   const n = norm(nombre);
   const d = norm(descripcion || "");
 
@@ -154,18 +147,13 @@ export function recargarCargasItem(
     return { nuevasCargas: 0, recuperadas: 0 };
   }
 
-  if (!formula || formula.trim() === "") {
+  const f = formula?.toLowerCase().trim();
+  if (!f || f.includes("toda") || f.includes("completo") || f.includes("all")) {
     const faltantes = Math.max(0, cargasMaximas - cargasActuales);
     return { nuevasCargas: cargasMaximas, recuperadas: faltantes };
   }
 
-  const f = formula.toLowerCase().trim();
-  if (f.includes("toda") || f.includes("completo") || f.includes("all")) {
-    const faltantes = Math.max(0, cargasMaximas - cargasActuales);
-    return { nuevasCargas: cargasMaximas, recuperadas: faltantes };
-  }
-
-  const tirada = evaluarFormulaDados(formula);
+  const tirada = evaluarFormulaDados(f);
   const aumento = Math.max(0, tirada);
   const nuevasCargas = Math.min(cargasMaximas, cargasActuales + aumento);
   const recuperadas = nuevasCargas - cargasActuales;

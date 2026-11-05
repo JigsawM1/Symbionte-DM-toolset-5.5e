@@ -91,7 +91,6 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
           ca: m.ca,
           vidaMaxima: m.vidaMaxima,
           desafio: m.desafio || "—",
-          conjuroAsociado: undefined
         });
         if (monstruos.length >= 8) break;
       }
@@ -428,7 +427,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
                 plantilla={plantilla}
                 plantillaInvocacion={plantillaInvocacion}
                 criaturasSeleccionadas={criaturasSeleccionadas}
-                onSeleccionarDetalle={(id) => setIdAcompananteDetalle(id)}
+                onSeleccionarDetalle={setIdAcompananteDetalle}
                 onEliminar={() => eliminarAcompanantePersonaje(personaje.id, acomp.id)}
                 onCurar={(cant) => manejarCurar(acomp, cant)}
                 onDañar={(cant) => manejarDañar(acomp, cant)}

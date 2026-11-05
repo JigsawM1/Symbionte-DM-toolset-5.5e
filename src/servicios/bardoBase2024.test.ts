@@ -1,11 +1,11 @@
-import { beforeEach, describe, expect, it } from "vitest";
+﻿import { beforeEach, describe, expect, it } from "vitest";
 import bardo from "@/datos/clases/bardo.json";
 import { EsquemaDefinicionClaseJSON } from "@/tipos/esquemasCatalogos";
 import { EsquemaPersonajeJugador } from "@/tipos/personaje";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { aplicarBuildClaseAPersonaje, obtenerRasgosClaseYSubclase } from "./gestorClases";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "./procesadorDescansos";
 import { deshidratarPersonaje, hidratarPersonaje } from "./serializadorPersonaje";
 import { operarRecursoRasgo } from "./rasgos/conversionRecursosRasgos";

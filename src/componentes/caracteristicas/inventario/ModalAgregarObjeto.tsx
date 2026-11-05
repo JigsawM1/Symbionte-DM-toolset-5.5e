@@ -174,12 +174,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
     });
 
     // 4. Ordenar items por grupo respetando el orden interno ya calculado
-    return itemsConPrioridad.sort((a, b) => {
-      if (a.pesoGrupo !== b.pesoGrupo) {
-        return a.pesoGrupo - b.pesoGrupo;
-      }
-      return 0;
-    });
+    return itemsConPrioridad.sort((a, b) => a.pesoGrupo - b.pesoGrupo);
   }, [objetosFiltrados]);
 
   // Objeto seleccionado actualmente para preview

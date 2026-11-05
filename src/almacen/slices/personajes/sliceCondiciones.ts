@@ -116,8 +116,6 @@ export const crearSubSliceCondiciones: StateCreator<
         const epNorm = ep.nombre.toLowerCase().trim();
         const epBase = ep.nombre.split(" (")[0].toLowerCase().trim();
         return (
-          normalizada === epNorm ||
-          normalizada === epBase ||
           normalizada.startsWith(epBase) ||
           epNorm.startsWith(normalizada)
         );

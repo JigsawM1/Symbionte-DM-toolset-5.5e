@@ -88,8 +88,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       },
       {
@@ -99,8 +98,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -211,8 +209,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -222,8 +219,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -244,8 +240,7 @@
       "unit": "po"
     },
     "weight": 2,
-    "description": "Como acción de Utilizar, puedes derramar Rodamientos de Bolas de su bolsa. Se esparcen para cubrir un área nivelada de 10 pies cuadrados a menos de 10 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 10 o quedar con la condición de Derribado. Toma 10 minutos recuperar los Rodamientos de Bolas.",
-    "image": "/api/images/equipment/ball-bearings-bag-of-1000.png"
+    "description": "Como acción de Utilizar, puedes derramar Rodamientos de Bolas de su bolsa. Se esparcen para cubrir un área nivelada de 10 pies cuadrados a menos de 10 pies de ti. Una criatura que entra en esta área por primera vez en un turno debe tener éxito en una tirada de salvación de Destreza CD 10 o quedar con la condición de Derribado. Toma 10 minutos recuperar los Rodamientos de Bolas."
   },
   {
     "index": "barrel",
@@ -572,8 +567,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -583,8 +577,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -798,8 +791,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -907,8 +899,7 @@
             "index": "str",
             "name": "FUE"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -950,8 +941,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -1259,8 +1249,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -1331,8 +1320,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -1342,8 +1330,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -1548,8 +1535,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -1559,8 +1545,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -1708,8 +1693,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -1745,8 +1729,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -1756,8 +1739,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -1793,8 +1775,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -1804,8 +1785,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -1841,8 +1821,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -1852,8 +1831,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -2201,8 +2179,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -2212,8 +2189,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -2249,8 +2225,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       },
       {
@@ -2260,8 +2235,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -2818,7 +2792,6 @@
       "index": "push",
       "name": "Empujar"
     },
-    "image": "/api/images/equipment/crossbow-heavy.png",
     "description": "Un arma a Distancia se usa para atacar a una mayor distancia. Puedes usar un arma que tenga la propiedad Munición para hacer un ataque a distancia solo si tienes munición para dispararla. Tienes Desventaja en las tiradas de ataque con un arma Pesada si es un arma a Distancia y tu puntuación de Destreza no es al menos 13. Puedes disparar solo una pieza de munición de un arma con la propiedad de Carga cuando usas una acción, una Acción Adicional o una Reacción para dispararla, sin importar el número de ataques que normalmente puedas hacer. Un arma a Dos Manos requiere dos manos cuando atacas con ella."
   },
   {
@@ -2868,8 +2841,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -2952,8 +2924,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -2963,8 +2934,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -3138,8 +3108,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -3392,8 +3361,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -3678,8 +3646,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -3689,8 +3656,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -3726,8 +3692,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -3737,8 +3702,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -3855,8 +3819,7 @@
             "index": "str",
             "name": "FUE"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -4077,8 +4040,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -4088,8 +4050,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -4258,8 +4219,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -4295,8 +4255,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -4306,8 +4265,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -4566,8 +4524,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -4632,8 +4589,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -4643,8 +4599,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -5048,8 +5003,7 @@
             "index": "int",
             "name": "INT"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -5615,8 +5569,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -5626,8 +5579,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -6081,8 +6033,7 @@
             "index": "str",
             "name": "FUE"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -6433,8 +6384,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       },
       {
@@ -6444,8 +6394,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -6481,8 +6430,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -6492,8 +6440,7 @@
             "index": "wis",
             "name": "SAB"
           },
-          "dc_value": 20,
-          "success_type": "none"
+          "dc_value": 20
         }
       }
     ],
@@ -6599,8 +6546,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -6731,8 +6677,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -6742,8 +6687,7 @@
             "index": "cha",
             "name": "CAR"
           },
-          "dc_value": 15,
-          "success_type": "none"
+          "dc_value": 15
         }
       }
     ],
@@ -6975,8 +6919,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       },
       {
@@ -6986,8 +6929,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],
@@ -7169,8 +7111,7 @@
             "index": "dex",
             "name": "DES"
           },
-          "dc_value": 10,
-          "success_type": "none"
+          "dc_value": 10
         }
       }
     ],

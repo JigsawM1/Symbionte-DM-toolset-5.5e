@@ -20,24 +20,6 @@
   background: var(--pj-fondo-tarjeta-elevada);
 }
 
-.thNivel {
-  padding: 8px 12px;
-  text-align: center;
-  font-weight: 700;
-  color: var(--pj-texto-primario);
-  white-space: nowrap;
-  width: 1%;
-  min-width: 80px;
-  border-right: 1px solid var(--pj-borde-sutil);
-}
-
-.thDescripcion {
-  padding: 8px 14px;
-  text-align: left;
-  font-weight: 700;
-  color: var(--pj-texto-primario);
-}
-
 /* Estilos específicos para la tabla de conjuros de subclase según manual PHB 2024 */
 .tablaConjurosSubclase {
   border-collapse: separate;
@@ -144,10 +126,6 @@
   background: var(--pj-fondo-tarjeta-hover);
 }
 
-.filaNivelAlcanzado {
-  background: var(--pj-acento-cian-fondo);
-}
-
 .filaNivelActual {
   background: var(--pj-acento-oro-fondo);
   font-weight: 600;
@@ -179,12 +157,6 @@
   border-right: 1px solid var(--pj-borde-sutil);
   font-family: var(--fuente-codigo, monospace);
   font-size: var(--pj-fuente-label);
-}
-
-.celdaDescripcion {
-  padding: 7px 14px;
-  color: var(--pj-texto-primario-suave);
-  line-height: 1.4;
 }
 
 .celdaGenerica {

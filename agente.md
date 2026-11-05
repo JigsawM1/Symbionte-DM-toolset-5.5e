@@ -1,21 +1,19 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
-## [2026-11-05] Evaluación Técnica y Viabilidad de las Ramas de Optimización de Bolt
+## [2026-11-05] Integración y Certificación de las Ramas Ganadoras de Bolt (Revisión Ponytail)
 
 **Resumen Ejecutivo:**
-Se auditaron las 6 ramas remotas generadas por Bolt (`origin/bolt-*` y `origin/bolt/*`), además de la rama asociada `origin/perf/short-circuit-spell-filters-*`. Se identificaron 3 áreas funcionales clave:
-1. **Memoización de Componentes de Conjuros:** (`origin/bolt-memo-tarjeta-conjuro-compacta-1595942205829254266`) — **Viabilidad: 10/10**. 0 conflictos con `main`. Aplica `React.memo` a `TarjetaConjuroCompacta` y añade 6 pruebas unitarias (`TarjetaConjuroCompacta.test.tsx`).
-2. **Cortocircuito O(1) en Filtros de Conjuros:** 3 ramas concurrentes (`opt-filtros-hechizos`, `optimizacion-orden-filtros-conjuros`, `optimizar-filtrado-conjuros`).
-   - La rama ganadora y limpia es `origin/bolt/opt-filtros-hechizos-1881523312407930382` (**Viabilidad: 10/10**), ya que aísla los cambios estrictamente a `src/utiles/filtrosConjuros.ts` y `filtrosConjuros.test.ts` sin colisionar con componentes extirpados.
-   - Las otras dos ramas intentan modificar el archivo eliminado `BuscadorConjurosPersonaje.tsx` (purgado en la Fase 15), provocando conflictos `modify/delete`.
-3. **Optimización de Relevancia en Búsqueda Tolerante:** (`optimizar-scoring-busqueda` y `optimizar-calculo-relevancia-busqueda`).
-   - La auditoría Ponytail en `main` ya eliminó el manejo redundante de la `ñ` (la descomposición NFD ya convierte `ñ` en `n`).
-   - El remanente útil de estas ramas es el reemplazo de `tokenizarBusqueda(consulta)` por la versión cacheada `obtenerTokensConsulta(consulta)` en `calcularRelevanciaBusqueda`.
+Bajo la filosofía **Ponytail** (priorizar soluciones nativas de la plataforma, el diff más corto y evitar abstracciones innecesarias), se revisaron e integraron en `main` las optimizaciones ganadoras de Bolt:
+1. **Memoización Nativa de Componente:** Se integró `bolt-memo-tarjeta-conjuro-compacta` (commit `25a60d1`), envolviendo `TarjetaConjuroCompacta` con `React.memo` estándar (sin comparadores manuales redundantes) y sumando 6 pruebas unitarias.
+2. **Cortocircuito O(1) en Filtros:** Se integró `opt-filtros-hechizos` (commit `5f4d7c3`), reordenando las guardias booleanas antes del escaneo difuso O(N) sin tocar código legado y sumando 11 pruebas unitarias.
+3. **Caché en Relevancia de Búsqueda:** Se aplicó quirúrgicamente en `busquedaTolerante.ts` la reutilización de `obtenerTokensConsulta` en `calcularRelevanciaBusqueda` (commit `8801514`), evitando divisiones de cadenas y regex repetitivos en bucles `.sort()`, acompañado de su prueba unitaria.
 
-**Certificación de Fusión Combinada (Ramas Viables 1 y 2):**
-- Fusión combinada de `bolt-memo-tarjeta-conjuro-compacta` + `opt-filtros-hechizos`:
-  - `tsc --noEmit`: 0 errores.
-  - `vitest run`: **178 archivos probados y 2.688 pruebas aprobadas al 100% (+17 tests nuevos, 0 fallos)**.
+**Certificación del Pipeline de CI en `main`:**
+- **TypeScript:** `tsc --noEmit` con 0 errores (`strict: true`).
+- **Vitest:** **178 archivos y 2.689 pruebas aprobadas al 100% (0 fallos)**.
+- **ESLint:** `--max-warnings=0` con 0 errores y 0 advertencias.
+- **Control de Monolitos:** `verificar:lineas` con 0 violaciones (< 500 líneas).
+- **Vite Build:** Empaquetado exitoso en 8.33s (bundle: 599.44 kB, gzip: 173.04 kB).
 
 ---
 

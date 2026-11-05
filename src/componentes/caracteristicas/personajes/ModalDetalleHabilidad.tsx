@@ -1,4 +1,4 @@
-import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+﻿import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import React, { useState } from "react";
@@ -8,7 +8,7 @@ import {
   DESCRIPCIONES_HABILIDADES
 } from "@/constantes";
 import { tieneMedioBonoHabilidades } from "@/servicios/evaluadorEfectosRasgos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { X, Info, Edit3, Dices, Save } from "lucide-react";
 import estilos from "./HojaPersonaje.module.css";

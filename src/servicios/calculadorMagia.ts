@@ -1,4 +1,4 @@
-import { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
+﻿import { obtenerNivelMaximoConjuroPorTipoClase } from "./clases/nivelConjuros";
 import { conjuroEnAmpliacion } from "./rasgos/ampliacionesListaConjuros";
 import type {
   ClaseLanzadora,
@@ -22,7 +22,7 @@ import {
 } from "@/constantes/subclasesConjurosConstantes";
 import { TODAS_SUBCLASES_DND55 } from "@/constantes/clasesDND55";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { logger } from "@/utiles/logger";
 
 /**

@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import { construirBuildClase, aplicarBuildClaseAPersonaje } from "./clases/buildClase";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 import { calcularDefensaSinArmaduraRasgos, evaluarVentajasDeRasgosEnTirada } from "./evaluadorEfectosRasgos";
 import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
 import { calcularVelocidadPersonaje } from "./rasgos/evaluadorMovilidadRasgos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import type { EfectoMecanicoRasgo } from "@/tipos/rasgos";
 import catalogo from "@/datos/clases/barbaro.json";
 

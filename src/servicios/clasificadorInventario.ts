@@ -1,4 +1,3 @@
-import React from "react";
 import type {
   ObjetoInventario,
   ObjetoJuego,
@@ -7,18 +6,6 @@ import type {
 } from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import { CONFIG_CONTENEDORES } from "@/servicios/calculadorInventario";
-import {
-  Sparkles,
-  Package,
-  Swords,
-  FlaskConical,
-  Crosshair,
-  Shield,
-  Wrench,
-  PackageOpen,
-  Wand2,
-  Backpack
-} from "lucide-react";
 
 /**
  * Filtra una lista de objetos de inventario mediante búsqueda difusa tolerante
@@ -96,6 +83,8 @@ export function obtenerValorPO(
 /**
  * Clasifica los objetos de la mochila por su categoría oficial de D&D 5.5e
  * y retorna únicamente las subsecciones que contengan al menos un ítem.
+ *
+ * ponytail: servicio desacoplado de la vista; metadatos puros sin instancias React.
  */
 export function clasificarMochilaPorTipo(
   objetosMochilaFiltrados: ObjetoInventario[],
@@ -146,77 +135,77 @@ export function clasificarMochilaPorTipo(
     {
       id: "consumibles",
       titulo: "Consumibles y Pociones",
-      icono: React.createElement(FlaskConical, { size: 13, color: "#10b981" }),
+      tipoIcono: "FlaskConical",
       color: "#10b981",
       items: consumibles
     },
     {
       id: "municion",
       titulo: "Munición",
-      icono: React.createElement(Crosshair, { size: 13, color: "#06b6d4" }),
+      tipoIcono: "Crosshair",
       color: "#06b6d4",
       items: municion
     },
     {
       id: "armas",
       titulo: "Armas en Reserva",
-      icono: React.createElement(Swords, { size: 13, color: "#f87171" }),
+      tipoIcono: "Swords",
       color: "#f87171",
       items: armas
     },
     {
       id: "armaduras",
       titulo: "Armaduras",
-      icono: React.createElement(Shield, { size: 13, color: "#60a5fa" }),
+      tipoIcono: "Shield",
       color: "#60a5fa",
       items: armaduras
     },
     {
       id: "escudos",
       titulo: "Escudos",
-      icono: React.createElement(Shield, { size: 13, color: "#38bdf8" }),
+      tipoIcono: "Shield",
       color: "#38bdf8",
       items: escudos
     },
     {
       id: "herramientas",
       titulo: "Herramientas e Instrumentos",
-      icono: React.createElement(Wrench, { size: 13, color: "#f59e0b" }),
+      tipoIcono: "Wrench",
       color: "#f59e0b",
       items: herramientas
     },
     {
       id: "focos-magicos",
       titulo: "Focos Mágicos y Símbolos Sagrados",
-      icono: React.createElement(Sparkles, { size: 13, color: "#c084fc" }),
+      tipoIcono: "Sparkles",
       color: "#c084fc",
       items: focosMagicos
     },
     {
       id: "contenedores",
       titulo: "Contenedores y Almacenaje",
-      icono: React.createElement(Package, { size: 13, color: "#eab308" }),
+      tipoIcono: "Package",
       color: "#eab308",
       items: contenedores
     },
     {
       id: "paquetes-equipo",
       titulo: "Paquetes de Equipo",
-      icono: React.createElement(PackageOpen, { size: 13, color: "#a855f7" }),
+      tipoIcono: "PackageOpen",
       color: "#a855f7",
       items: paquetes
     },
     {
       id: "magicos",
       titulo: "Objetos Mágicos y Maravillosos",
-      icono: React.createElement(Wand2, { size: 13, color: "#ec4899" }),
+      tipoIcono: "Wand2",
       color: "#ec4899",
       items: magicos
     },
     {
       id: "equipo",
       titulo: "Equipo de Aventuras y Varios",
-      icono: React.createElement(Backpack, { size: 13, color: "#94a3b8" }),
+      tipoIcono: "Backpack",
       color: "#94a3b8",
       items: equipo
     }

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   formatearResumenCompetenciasArmas,
   formatearResumenCompetenciasArmaduras,
@@ -8,7 +8,7 @@ import {
   obtenerExperienciaMinimaPorNivel,
   PERSONAJE_POR_DEFECTO
 } from "@/constantes";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import type { PersonajeJugador } from "@/tipos";
 
 describe("Competencias y Diccionarios D&D 5.5e", () => {

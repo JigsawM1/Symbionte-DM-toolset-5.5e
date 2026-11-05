@@ -1,4 +1,4 @@
-/**
+﻿/**
  * sincronizacionIniciativa.ts
  * ----------------------------
  * Servicio centralizado para la sincronización de la iniciativa local con TaleSpire
@@ -10,7 +10,7 @@ import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, AcompanantePersonaje } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import {
   resolverPlantillaPorCriatura,
   calcularVidaInicial,

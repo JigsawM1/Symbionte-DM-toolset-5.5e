@@ -1,4 +1,4 @@
-import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
+﻿import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
 import { EsquemaMecanicasRasgo } from "@/tipos/mecanicasRasgos";
 import { beforeEach, describe, expect, it } from "vitest";
 import type { PersonajeJugador } from "@/tipos";
@@ -8,7 +8,7 @@ import { obtenerRasgosClaseYSubclase } from "./gestorClases";
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
 import { deshidratarPersonaje, hidratarPersonaje } from "./serializadorPersonaje";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "./procesadorDescansos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { obtenerVelocidadesEfectivas, calcularBonoHPMaximoRasgos } from "./evaluadorEfectosRasgos";
 import { operarRecursoRasgo } from "./rasgos/conversionRecursosRasgos";
 import { normalizarCondicionesRasgos } from "./rasgos/estadoCondicionesRasgos";

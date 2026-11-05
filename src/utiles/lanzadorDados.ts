@@ -1,7 +1,5 @@
-import React from "react";
-import { Dices } from "lucide-react";
-import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+﻿import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { ts } from "./TaleSpireAdapter";
 import { logger } from '@/utiles/logger';
@@ -1445,87 +1443,4 @@ export function detectarTipoDaño(descripcion: string, valorPredeterminado: stri
   if (desc.includes("force")) return "Fuerza";
 
   return valorPredeterminado;
-}
-
-/**
- * Escanea un texto descriptivo, identifica fórmulas de dados comunes de D&D
- * (ej: 1d20, 2d6+4, d100) y las convierte en botones interactivos en React
- * que envían tiradas físicas a TaleSpire al hacer click.
- */
-export function renderizarTextoConDadosInteractivos(
-  texto: string,
-  etiquetaTirada: string
-): React.ReactNode[] {
-  if (!texto) return [];
-
-  // Solo detectamos expresiones de dados reales (ej. 1d6, 2d8+3, d20-1)
-  // Eliminamos el grupo de modificadores sueltos ([+-]\d+) que causaba falsos positivos
-  // en texto como "CD 12", "2/día", "+5 al golpear cuando se compara con" etc.
-  const regexDadosYModificadores = /\b(?:[1-9]\d*)?d(?:4|6|8|10|12|20|100)(?:\s*[+-]\s*\d+)?\b/gi;
-
-  const partes: React.ReactNode[] = [];
-  let ultimoIndice = 0;
-  let match;
-
-  while ((match = regexDadosYModificadores.exec(texto)) !== null) {
-    const indiceCoincidencia = match.index;
-    const textoCoincidente = match[0];
-
-    if (indiceCoincidencia > ultimoIndice) {
-      partes.push(texto.substring(ultimoIndice, indiceCoincidencia));
-    }
-
-    partes.push(
-      React.createElement(
-        "strong",
-        {
-          key: `dado-${indiceCoincidencia}`,
-          onClick: (e: React.MouseEvent) => {
-            e.stopPropagation();
-            
-            let formulaConEtiqueta = "";
-            const matchNombreLimpio = etiquetaTirada.match(/^([^(]+)/);
-            const nombreLimpio = matchNombreLimpio ? matchNombreLimpio[1].trim() : etiquetaTirada;
-            
-            // Ahora todo lo que coincide es un dado real (ej. 1d6, 2d8+3, d20)
-            const esD20 = textoCoincidente.toLowerCase().includes("d20");
-            if (esD20) {
-              formulaConEtiqueta = `!${nombreLimpio}:${textoCoincidente}`;
-            } else {
-              const tipoDañoEncontrado = detectarTipoDaño(texto, "Daño");
-              const etiquetaDaño = tipoDañoEncontrado === "Daño" ? "Daño" : `Daño ${tipoDañoEncontrado}`;
-              formulaConEtiqueta = `!${etiquetaDaño}:${textoCoincidente}`;
-            }
-            
-            lanzarDadosTaleSpire(formulaConEtiqueta, etiquetaTirada);
-          },
-          style: {
-            color: "#ff7675",
-            cursor: "pointer",
-            textDecoration: "underline dashed",
-            fontWeight: "bold",
-            padding: "0 4px",
-            backgroundColor: "rgba(255, 118, 117, 0.1)",
-            borderRadius: "4px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "3px",
-            fontFamily: "monospace"
-          },
-          title: `Tirar ${textoCoincidente} en TaleSpire`,
-          className: "dado-interactivo-inline"
-        },
-        React.createElement(Dices, { size: 12, style: { display: "inline-block", flexShrink: 0 } }),
-        textoCoincidente
-      )
-    );
-
-    ultimoIndice = regexDadosYModificadores.lastIndex;
-  }
-
-  if (ultimoIndice < texto.length) {
-    partes.push(texto.substring(ultimoIndice));
-  }
-
-  return partes.length > 0 ? partes : [texto];
 }

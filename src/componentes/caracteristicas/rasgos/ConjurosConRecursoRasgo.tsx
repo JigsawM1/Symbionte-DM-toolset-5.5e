@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { SelectorDesplegable } from "@/componentes/comunes";
 import { obtenerConcesionConRecurso } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";

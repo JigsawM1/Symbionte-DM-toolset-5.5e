@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { obtenerRasgosClaseYSubclase } from "./gestorClases";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
 import { emitirTiradaDanoConRasgos } from "./rasgos/emisionTiradaRasgos";

@@ -156,6 +156,38 @@ export default [
       ]
     }
   },
+  // Blindaje anti-fugas de UI: prohibir React y librerías de UI en capas puras de dominio
+  {
+    files: [
+      "src/servicios/**/*.ts",
+      "src/tipos/**/*.ts",
+      "src/constantes/**/*.ts",
+      "src/utiles/**/*.ts",
+      "src/almacen/slices/**/*.ts"
+    ],
+    ignores: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.spec.ts"
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "react",
+              message: "Violación de Arquitectura de Capas: Servicios, tipos, constantes, slices y utilidades no deben importar React."
+            },
+            {
+              name: "lucide-react",
+              message: "Violación de Arquitectura de Capas: Servicios, tipos, constantes, slices y utilidades no deben importar iconos UI."
+            }
+          ]
+        }
+      ]
+    }
+  },
   // Blindaje de persistencia: prohibir localStorage fuera de la capa de persistencia y tests
   {
     files: [
@@ -186,6 +218,7 @@ export default [
     ],
     ignores: [
       "src/utiles/TaleSpireAdapter.ts",
+      "src/utiles/talespire/**/*.ts",
       "src/tipos/talespire.d.ts",
       "**/*.test.ts",
       "**/*.test.tsx"

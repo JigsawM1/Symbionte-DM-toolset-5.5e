@@ -1,8 +1,6 @@
 import React from "react";
 import type {
   CriterioOrdenMochila,
-  CajaMovilizacionRapida,
-  ContenedorEspecialConfig,
   SubseccionMochilaTipo
 } from "@/tipos";
 import type { OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
@@ -14,10 +12,22 @@ import {
   Swords
 } from "lucide-react";
 
+export interface CajaMovilizacionRapida {
+  id: string;
+  titulo: string;
+  subtitulo: string;
+  icono: React.ReactNode;
+}
+
+export interface ContenedorEspecialConfig {
+  id: "bolsa_contencion" | "montura" | "almacen";
+  titulo: string;
+  icono: React.ReactNode;
+  color: string;
+}
+
 export type {
   CriterioOrdenMochila,
-  CajaMovilizacionRapida,
-  ContenedorEspecialConfig,
   SubseccionMochilaTipo
 };
 

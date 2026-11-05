@@ -1,6 +1,6 @@
 import React from "react";
-import { renderizarTextoConDadosInteractivos } from "@/utiles/lanzadorDados";
 import estilos from "./TextoEnriquecidoDND.module.css";
+import { renderizarTextoConDadosInteractivos } from "./renderizarTextoConDadosInteractivos";
 
 export interface TextoEnriquecidoDNDProps {
   texto: string;

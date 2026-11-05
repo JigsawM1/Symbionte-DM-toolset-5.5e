@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import type { ObjetoInventario } from "./personaje";
 
 export type CriterioOrdenMochila =
@@ -13,23 +12,9 @@ export type CriterioOrdenMochila =
 export interface SubseccionMochilaTipo {
   id: string;
   titulo: string;
-  icono: ReactNode;
+  tipoIcono?: string;
   color: string;
   items: ObjetoInventario[];
   pesoTotal: number;
   esContenedorEspecial: boolean;
-}
-
-export interface CajaMovilizacionRapida {
-  id: string;
-  titulo: string;
-  subtitulo: string;
-  icono: ReactNode;
-}
-
-export interface ContenedorEspecialConfig {
-  id: "bolsa_contencion" | "montura" | "almacen";
-  titulo: string;
-  icono: ReactNode;
-  color: string;
 }

@@ -1,6 +1,6 @@
 import React from "react";
 import { BookOpen } from "lucide-react";
-import { renderizarTextoConDadosInteractivos } from "@/utiles/lanzadorDados";
+import { renderizarTextoConDadosInteractivos } from "@/componentes/comunes";
 import { HechizoBase } from "@/tipos";
 import estilos from "./PanelFichaDnD.module.css";
 
@@ -33,7 +33,7 @@ export const procesarTextoFicha = (
   // Procesamos cada nodo de texto
   const nodosFinales: React.ReactNode[] = [];
 
-  nodosConDados.forEach((nodo) => {
+  nodosConDados.forEach((nodo: React.ReactNode) => {
     if (typeof nodo !== "string") {
       nodosFinales.push(nodo); // Preservamos los botones de dados ya procesados
       return;

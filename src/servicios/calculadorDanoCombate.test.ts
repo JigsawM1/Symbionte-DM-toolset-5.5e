@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   resolverBonosYDadosExtraCombate,
   componerFormulasDano
@@ -6,7 +6,7 @@ import {
 import { aplicarBuildClaseAPersonaje } from "./gestorClases";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", () => {
   describe("Escalado Dinámico de Frenesí (2d6 -> 3d6 -> 4d6)", () => {

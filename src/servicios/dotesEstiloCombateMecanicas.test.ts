@@ -1,11 +1,11 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   DOTES_ESTILO_COMBATE_DND55,
   TODAS_LAS_DOTES_CANONICAS_DND55,
   DOTES_CANONICAS_DND55
 } from "@/constantes/dotesConstantes";
 import type { PersonajeJugador, ObjetoInventario, ObjetoJuego, RasgoPersonaje } from "@/tipos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { calcularAtaqueArmaEquipada } from "@/servicios/calculadorAtaquesArmas";
 import { calcularAtaqueDesarmado } from "@/servicios/calculadorAtaqueDesarmado";
 

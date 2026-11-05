@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+﻿import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createElement, type DragEvent, type SetStateAction } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { ObjetoInventario } from "@/tipos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { usarInventarioOrdenado } from "./usarInventarioOrdenado";
 import { clasificarMochilaPorTipo, ordenarInventarioPlano } from "@/servicios/clasificadorInventario";
 

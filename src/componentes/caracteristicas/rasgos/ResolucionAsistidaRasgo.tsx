@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { prepararResolucionAsistida, resultadoConstante } from "@/servicios/rasgos/resolucionAsistidaRasgos";
 import { resolverFormulaDinamica } from "@/servicios/rasgos/evaluadorExpresionesRasgos";
 import { solicitarResultadoTirada } from "@/utiles/lanzadorDados";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificadoresConjuroRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { logger } from "@/utiles/logger";

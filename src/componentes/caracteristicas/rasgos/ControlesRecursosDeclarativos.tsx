@@ -1,4 +1,4 @@
-import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
+﻿import { ConjurosConRecursoRasgo } from "./ConjurosConRecursoRasgo";
 import { ResolucionAsistidaRasgo } from "./ResolucionAsistidaRasgo";
 import { CuracionesPendientesRasgo } from "./CuracionesPendientesRasgo";
 import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
@@ -21,7 +21,7 @@ import { Dices, Hourglass, Minus, Plus, RotateCcw, Shield, Sparkles, X } from "l
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { ConjurosRitualesRasgo } from "./ConjurosRitualesRasgo";
 import { emitirCuracionConDados } from "@/servicios/rasgos/tiradaCuracionDados";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tarjeta" }: {
   rasgo: RasgoPersonaje; idPersonaje?: string; vista?: "tarjeta" | "detalle";

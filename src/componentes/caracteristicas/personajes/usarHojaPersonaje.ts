@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
 import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { elegirIniciativaOpcional } from "../rasgos/elegirIniciativaOpcional";
 import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
 import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { usarPersonajeActivo, usarAccionesPersonajes, calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { usarPersonajeActivo, usarAccionesPersonajes } from '@/almacen/selectores/usarEstadoPersonajes';
+import { calcularEstadisticasPersonaje } from '@/servicios/personajes/calculadorEstadisticasPersonaje';
 import { usarTipoTirada, usarSistemaMagia, usarPestanaActiva } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";

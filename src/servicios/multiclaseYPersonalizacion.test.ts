@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   obtenerExperienciaMinimaPorNivel,
   obtenerExperienciaMaximaPorNivel,
@@ -7,7 +7,7 @@ import {
   CLASES_DND,
   PERSONAJE_POR_DEFECTO
 } from "@/constantes";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import {
   detectarTipoLanzador,
   calcularTodosRecursosMagicos,

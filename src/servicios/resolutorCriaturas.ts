@@ -1,4 +1,4 @@
-/**
+﻿/**
  * resolutorCriaturas.ts
  * ---------------------
  * Servicio centralizado para la normalización de nombres de miniaturas y la
@@ -11,7 +11,7 @@ import { calcularVidaPorDados } from "@/almacen/sanitizacion";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import type { PersonajeJugador } from "@/tipos/personaje";
 import type { PasivasCombatePJ } from "@/tipos/sync";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 /**
  * Determina si un nombre está vacío, tiene solo espacios, o es un punto simple (o secuencia de puntos/espacios).

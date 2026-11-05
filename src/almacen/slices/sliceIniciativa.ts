@@ -1,244 +1,67 @@
+/**
+ * sliceIniciativa.ts
+ * ------------------
+ * Slice de Zustand para la gestión de la cola de iniciativa, turnos y combate.
+ * Orquesta los subsistemas especializados ubicados en './iniciativa/':
+ * - tipos: interfaces y modelos de datos.
+ * - sincronizadorPersonajesIniciativa: proyección bidireccional a fichas de personaje y acompañantes.
+ * - resolutorAreaIniciativa: cálculos de área y salvaciones.
+ * - fabricaCriaturasIniciativa: factorías y conversiones de entidades.
+ * - manejadorVidaIniciativa: mutaciones de vida, daño y vida temporal.
+ * - manejadorEfectosIniciativa: mutaciones de condiciones, efectos y asociaciones.
+ * - manejadorAccionesAreaIniciativa: mutaciones de área.
+ */
+
+import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { PersonajeJugador } from "@/tipos";
+import type { ColaIniciativaTS } from "@/tipos/talespire";
+import { ts } from "@/utiles/TaleSpireAdapter";
 import { normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
-import { StateCreator } from 'zustand';
-import { CriaturaIniciativa, EfectoActivo } from '@/almacen/usarAlmacenDM';
-import { formatearVelocidad } from '@/almacen/sanitizacion';
-import type { EstadoDM } from '@/almacen/usarAlmacenDM';
-import type { Caracteristica, PersonajeJugador, RegistroMovimiento } from '@/tipos';
-import { ts } from '@/utiles/TaleSpireAdapter';
-import type { ColaIniciativaTS } from '@/tipos/talespire';
 import {
   normalizarNombreTaleSpire,
   coincidenNombresTaleSpire,
-  resolverPlantillaPorCriatura,
-  resolverPersonajeAsociado,
-  resolverPersonajePorCriatura,
-  calcularVidaInicial,
   esNombreVacioODot
-} from '@/servicios/resolutorCriaturas';
-import { calcularEstadisticasPersonaje } from '@/almacen/selectores/usarEstadoPersonajes';
-import { crearIndiceMonstruos } from '@/servicios/indiceMonstruos';
+} from "@/servicios/resolutorCriaturas";
+import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import {
   sincronizarConEstadoLocal,
   filtrarEfectosExpirados
-} from '@/servicios/sincronizacionIniciativa';
-import { aplicarCondicion, quitarCondicion } from '@/servicios/procesadorCondiciones';
+} from "@/servicios/sincronizacionIniciativa";
+import { generarId } from "@/utiles/generarId";
+import { logger } from "@/utiles/logger";
+
+import { type CreadorSliceIniciativa } from "./iniciativa/tipos";
+import { restablecerMovimientoPersonajes } from "./iniciativa/sincronizadorPersonajesIniciativa";
+import { ejecutarCalculoSalvacionArea } from "./iniciativa/resolutorAreaIniciativa";
 import {
-  activarRasgosPorCondicionOEfecto,
-  desactivarRasgosPorCondicionOEfecto
-} from '@/almacen/slices/personajes/condicionesRasgosHelpers';
-import { generarId } from '@/utiles/generarId';
-import { logger } from '@/utiles/logger';
-import { emitirDeltaVidaSync } from '@/servicios/sincronizacion/motorEventosSync';
+  construirEntradaJugador,
+  alternarRolCriaturaHelper,
+  autoLanzarIniciativaMonstruosHelper,
+  construirCriaturasDesdeSeleccionTS
+} from "./iniciativa/fabricaCriaturasIniciativa";
+import {
+  despacharModificarVida,
+  despacharDano,
+  despacharModificarVidaMaxima,
+  despacharActualizarVidaTemporal
+} from "./iniciativa/manejadorVidaIniciativa";
+import {
+  despacharAgregarCondicion,
+  despacharQuitarCondicion,
+  despacharAgregarEfecto,
+  despacharQuitarEfecto,
+  despacharAsociarPlantilla,
+  despacharDesvincularPlantilla
+} from "./iniciativa/manejadorEfectosIniciativa";
+import {
+  despacharAplicarDanoEnArea,
+  despacharAplicarCondicionEnArea,
+  despacharAplicarEfectoEnArea
+} from "./iniciativa/manejadorAccionesAreaIniciativa";
 
-function coincidePersonajeEnIniciativa(pj: PersonajeJugador, criatura: CriaturaIniciativa | undefined, id: string, nombre: string): boolean {
-  return Boolean(
-    !criatura?.esAcompanante &&
-    !criatura?.idAcompanante &&
-    (pj.id === id ||
-      pj.idMiniaturaTS === id ||
-      (criatura?.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio) ||
-      coincidenNombresTaleSpire(pj.nombre, nombre))
-  );
-}
+export * from "./iniciativa/tipos";
 
-function coincideAcompananteEnIniciativa(acomp: PersonajeJugador["acompanantes"][number], criatura: CriaturaIniciativa | undefined, id: string, nombre: string): boolean {
-  return Boolean(
-    acomp.id === id ||
-    (criatura?.idAcompanante && acomp.id === criatura.idAcompanante) ||
-    (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-    coincidenNombresTaleSpire(acomp.nombre, nombre)
-  );
-}
-
-function aplicarEfectoAPersonaje(pj: PersonajeJugador, nombreEfecto: string, nuevoEfecto: EfectoActivo, esConcentracion: boolean): PersonajeJugador {
-  const spellName = nombreEfecto.replace(/^concentraci[oó]n:\s*/i, "").trim();
-  const efectosPjPrevios = (pj.efectosActivos || []).filter((e) => {
-    if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || e.nombre.toLowerCase().startsWith("concentra"))) {
-      return false;
-    }
-    return e.id !== nuevoEfecto.id;
-  });
-
-  let conds = pj.condicionesActivas || [];
-  if (esConcentracion) {
-    if (!conds.includes("Concentración")) {
-      conds = [...conds, "Concentración"];
-    }
-  } else {
-    conds = aplicarCondicion(conds, nombreEfecto);
-  }
-
-  const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
-
-  return {
-    ...pj,
-    condicionesActivas: conds,
-    efectosActivos: [...efectosPjPrevios, nuevoEfecto],
-    concentracionActiva: esConcentracion
-      ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
-      : pj.concentracionActiva,
-    rasgos: rasgosActualizados
-  };
-}
-
-function esCondicionDerribado(texto: string): boolean {
-  const tNorm = (texto || "").toLowerCase().trim();
-  return tNorm.includes("derribad") || tNorm.includes("prone") || tNorm === "caido" || tNorm === "caído";
-}
-
-function restablecerMovimientoPersonajes(personajes: PersonajeJugador[], motivo: string): PersonajeJugador[] {
-  let huboCambios = false;
-  const nuevos = personajes.map((pj) => {
-    const anteriorGastado = pj.movimientoGastado || 0;
-    const teniaCarrera = pj.movimientoMaximoTemporal !== null && pj.movimientoMaximoTemporal !== undefined;
-
-    let acompCambiados = false;
-    const nuevosAcomp = (pj.acompanantes || []).map((acomp) => {
-      const acompGastado = acomp.movimientoGastado || 0;
-      const acompCarrera = acomp.movimientoMaximoTemporal !== null && acomp.movimientoMaximoTemporal !== undefined;
-      if (acompGastado === 0 && !acompCarrera) return acomp;
-      acompCambiados = true;
-      const entradaAcomp: RegistroMovimiento = {
-        id: `mov-acomp-rst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        timestamp: Date.now(),
-        tipo: "reinicio",
-        delta: -acompGastado,
-        anteriorGastado: acompGastado,
-        nuevoGastado: 0,
-        descripcion: motivo
-      };
-      const histPrev = Array.isArray(acomp.historialMovimiento) ? acomp.historialMovimiento : [];
-      return {
-        ...acomp,
-        movimientoGastado: 0,
-        movimientoMaximoTemporal: null,
-        historialMovimiento: [...histPrev.slice(-49), entradaAcomp]
-      };
-    });
-
-    if (anteriorGastado === 0 && !teniaCarrera && !acompCambiados) {
-      return pj;
-    }
-    huboCambios = true;
-    const entradaHistorial: RegistroMovimiento = {
-      id: `mov-rst-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      timestamp: Date.now(),
-      tipo: "reinicio",
-      delta: -anteriorGastado,
-      anteriorGastado,
-      nuevoGastado: 0,
-      descripcion: motivo
-    };
-    const historialPrevio = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-    return {
-      ...pj,
-      movimientoGastado: 0,
-      movimientoMaximoTemporal: null,
-      acompanantes: acompCambiados ? nuevosAcomp : pj.acompanantes,
-      historialMovimiento: [...historialPrevio.slice(-49), entradaHistorial]
-    };
-  });
-  return huboCambios ? nuevos : personajes;
-}
-
-export interface ResultadoSalvacionCriatura {
-  id: string;
-  nombre: string;
-  bono: number;
-  d20: number;
-  total: number;
-  exito: boolean;
-  dañoSufrido?: number;
-  condicionAplicada?: boolean;
-}
-
-export interface ResultadoSalvacionArea {
-  caracteristica: Caracteristica;
-  cd: number;
-  resultados: ResultadoSalvacionCriatura[];
-}
-
-export interface CriaturaSeleccionadaTS {
-  id: string;
-  name: string;
-  maxHp?: number;
-  hp?: number;
-  esDeJugador?: boolean;
-}
-
-export interface CriaturaNativaTS {
-  id: string;
-  name: string;
-  initiative?: number;
-  maxHp?: number;
-  hp?: number;
-}
-
-export interface SliceIniciativa {
-  colaIniciativa: CriaturaIniciativa[];
-  indiceTurnoActivo: number;
-  rondaActual: number;
-  tipoTirada: "desventaja" | "plano" | "ventaja";
-  criaturasSeleccionadas: CriaturaSeleccionadaTS[];
-  asociacionesFichas: Record<string, string>;
-
-  avanzarRonda: () => void;
-  retrocederRonda: () => void;
-  avanzarTurno: () => void;
-  retrocederTurno: () => void;
-  establecerTipoTirada: (tipo: "desventaja" | "plano" | "ventaja") => void;
-
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => void;
-  importarIniciativaTaleSpire: () => Promise<void>;
-  agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => void;
-  alternarRolCriatura: (idCriatura: string) => void;
-  agregarCriaturaAIniciativa: (
-    nombre: string,
-    iniciativa: number,
-    vidaMax: number,
-    ca: number,
-    esMonstruo: boolean,
-    velocidad: string,
-    bonifInic: number,
-    idPlantillaAsociada?: string
-  ) => void;
-  quitarCriaturaDeIniciativa: (id: string) => void;
-  modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
-  dañarCriaturaIniciativa: (id: string, cantidad: number) => void;
-  modificarVidaMaximaCriaturaIniciativa: (id: string, nuevaVidaMax: number) => void;
-  agregarCondicionACriatura: (id: string, condicion: string) => void;
-  quitarCondicionDeCriatura: (id: string, condicion: string) => void;
-  agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
-  quitarEfectoDeCriatura: (idCriatura: string, idEfecto: string) => void;
-  asociarPlantillaACriatura: (idCriatura: string, idPlantilla: string) => void;
-  desvincularPlantillaDeCriatura: (idCriatura: string) => void;
-  actualizarVidaTemporal: (idCriatura: string, vidaTemp: number) => void;
-  establecerIniciativaCriatura: (idCriatura: string, nuevaIniciativa: number) => void;
-  limpiarIniciativa: () => void;
-  ordenarIniciativa: () => void;
-  autoLanzarIniciativaMonstruos: () => void;
-
-  actualizarSeleccionCriaturas: (seleccionadas: CriaturaSeleccionadaTS[]) => void;
-  agregarCriaturasSeleccionadasAIniciativa: () => void;
-  aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[]) => void;
-  aplicarCondicionEnArea: (condicion: string, idsObjetivo?: string[]) => void;
-  aplicarEfectoEnArea: (nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }, idsObjetivo?: string[]) => void;
-  ejecutarSalvacionEnArea: (
-    caracteristica: Caracteristica,
-    cd: number,
-    dañoBruto?: number,
-    condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
-    mitigacion?: "mitad" | "nada",
-    idsObjetivo?: string[]
-  ) => ResultadoSalvacionArea | null;
-}
-
-export const crearSliceIniciativa: StateCreator<
-  EstadoDM,
-  [],
-  [],
-  SliceIniciativa
-> = (set, get) => ({
+export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
   colaIniciativa: [],
   indiceTurnoActivo: 0,
   rondaActual: 1,
@@ -252,13 +75,16 @@ export const crearSliceIniciativa: StateCreator<
     const nuevaRonda = state.rondaActual + 1;
     const nuevaCola = filtrarEfectosExpirados(state.colaIniciativa, nuevaRonda);
     const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
-    return { rondaActual: nuevaRonda, colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, nuevaRonda)) };
+    return {
+      rondaActual: nuevaRonda,
+      colaIniciativa: nuevaCola,
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda))
+    };
   }),
-  
-  retrocederRonda: () => set((state) => {
-    const nuevaRonda = Math.max(1, state.rondaActual - 1);
-    return { rondaActual: nuevaRonda };
-  }),
+
+  retrocederRonda: () => set((state) => ({
+    rondaActual: Math.max(1, state.rondaActual - 1)
+  })),
 
   avanzarTurno: () => set((state) => {
     if (state.colaIniciativa.length === 0) return {};
@@ -277,7 +103,12 @@ export const crearSliceIniciativa: StateCreator<
       nuevosPjs = restablecerMovimientoPersonajes(state.personajes, `Reinicio de ronda (Ronda ${nuevaRonda})`);
     }
 
-    return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, nuevaRonda)) };
+    return {
+      colaIniciativa: nuevaCola,
+      indiceTurnoActivo: nuevoIndice,
+      rondaActual: nuevaRonda,
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda))
+    };
   }),
 
   retrocederTurno: () => set((state) => {
@@ -311,7 +142,7 @@ export const crearSliceIniciativa: StateCreator<
     if (resultado.rondaActual > state.rondaActual) {
       const pjsBase = state.personajes;
       const nuevosPjs = restablecerMovimientoPersonajes(pjsBase, `Reinicio de ronda TaleSpire (Ronda ${resultado.rondaActual})`);
-      return { ...resultado, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, resultado.rondaActual)) };
+      return { ...resultado, personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, resultado.rondaActual)) };
     }
 
     return resultado;
@@ -337,9 +168,7 @@ export const crearSliceIniciativa: StateCreator<
   },
 
   agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => set((state) => {
-    const statsPj = calcularEstadisticasPersonaje(personaje);
     const idObjetivo = personaje.idMiniaturaTS || personaje.id;
-
     const indiceExistente = state.colaIniciativa.findIndex(
       (c) =>
         c.id === idObjetivo ||
@@ -349,30 +178,7 @@ export const crearSliceIniciativa: StateCreator<
         coincidenNombresTaleSpire(c.nombre, personaje.nombre)
     );
 
-    const entradaJugador: CriaturaIniciativa = {
-      id: idObjetivo,
-      nombre: personaje.nombre,
-      avatarUrl: personaje.avatarUrl,
-      iniciativa: indiceExistente >= 0 ? state.colaIniciativa[indiceExistente].iniciativa : 0,
-      vidaMaxima: personaje.hpMaximo || 10,
-      vidaActual: personaje.hpActual !== undefined ? personaje.hpActual : (personaje.hpMaximo || 10),
-      vidaTemporal: personaje.hpTemporal || 0,
-      ca: statsPj.claseArmadura.total,
-      condiciones: personaje.condicionesActivas ? [...personaje.condicionesActivas] : [],
-      efectos: personaje.efectosActivos ? [...personaje.efectosActivos] : [],
-      bonificadorIniciativa: statsPj.modificadores.destreza,
-      esMonstruo: false,
-      velocidad: `${personaje.velocidad || "30 pies"}`,
-      movimientoGastado: personaje.movimientoGastado || 0,
-      movimientoMaximoTemporal: personaje.movimientoMaximoTemporal,
-      idPersonajeDuenio: personaje.id,
-      idPlantillaAsociada: undefined,
-      pasivas: {
-        percepcion: statsPj.pasivas?.percepcion ?? 10,
-        investigacion: statsPj.pasivas?.investigacion ?? 10,
-        perspicacia: statsPj.pasivas?.perspicacia ?? 10,
-      }
-    };
+    const entradaJugador = construirEntradaJugador(personaje, indiceExistente, state.colaIniciativa);
 
     if (indiceExistente >= 0) {
       const nuevaCola = [...state.colaIniciativa];
@@ -387,51 +193,15 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: [...state.colaIniciativa, entradaJugador] };
   }),
 
-  alternarRolCriatura: (idCriatura: string) => set((state) => {
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id !== idCriatura) return c;
-      const nuevoEsMonstruo = !c.esMonstruo;
-
-      if (!nuevoEsMonstruo) {
-        const pj = resolverPersonajePorCriatura(c, state.personajes);
-        if (pj) {
-          const stats = calcularEstadisticasPersonaje(pj);
-          return {
-            ...c,
-            esMonstruo: false,
-            idPlantillaAsociada: undefined,
-            idPersonajeDuenio: pj.id,
-            avatarUrl: pj.avatarUrl,
-            ca: stats.claseArmadura.total,
-            bonificadorIniciativa: stats.modificadores.destreza,
-            pasivas: {
-              percepcion: stats.pasivas?.percepcion ?? 10,
-              investigacion: stats.pasivas?.investigacion ?? 10,
-              perspicacia: stats.pasivas?.perspicacia ?? 10,
-            }
-          };
-        }
-        return {
-          ...c,
-          esMonstruo: false,
-          idPlantillaAsociada: undefined,
-          pasivas: c.pasivas || { percepcion: 10, investigacion: 10, perspicacia: 10 }
-        };
-      }
-
-      const indice = crearIndiceMonstruos(state.baseDatosMonstruos);
-      const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indice);
-      return {
-        ...c,
-        esMonstruo: true,
-        idPlantillaAsociada: plantilla ? plantilla.id : undefined,
-        ca: plantilla ? plantilla.ca : c.ca,
-        bonificadorIniciativa: plantilla ? plantilla.iniciativaBonificador : c.bonificadorIniciativa,
-        pasivas: undefined
-      };
-    });
-    return { colaIniciativa: nuevaCola };
-  }),
+  alternarRolCriatura: (idCriatura: string) => set((state) => ({
+    colaIniciativa: alternarRolCriaturaHelper(
+      state.colaIniciativa,
+      idCriatura,
+      state.personajes,
+      state.baseDatosMonstruos,
+      state.asociacionesFichas
+    )
+  })),
 
   agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada) => set((state) => {
     const idCriatura = generarId('c_local');
@@ -464,25 +234,17 @@ export const crearSliceIniciativa: StateCreator<
       }
     }
 
-    const nuevaCola = [...state.colaIniciativa, nuevaCriatura];
-    return { 
-      colaIniciativa: nuevaCola,
+    return {
+      colaIniciativa: [...state.colaIniciativa, nuevaCriatura],
       asociacionesFichas: nuevasAsociaciones
     };
   }),
 
-  establecerIniciativaCriatura: (idCriatura, nuevaIniciativa) => set((state) => {
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
-        return { ...c, iniciativa: nuevaIniciativa };
-      }
-      return c;
-    });
-    // No auto-ordenar por iniciativa: TaleSpire es la fuente de la verdad para el orden
-    return {
-      colaIniciativa: nuevaCola
-    };
-  }),
+  establecerIniciativaCriatura: (idCriatura, nuevaIniciativa) => set((state) => ({
+    colaIniciativa: state.colaIniciativa.map((c) =>
+      c.id === idCriatura ? { ...c, iniciativa: nuevaIniciativa } : c
+    )
+  })),
 
   quitarCriaturaDeIniciativa: (id) => set((state) => {
     const nuevaCola = state.colaIniciativa.filter((c) => c.id !== id);
@@ -495,724 +257,54 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice };
   }),
 
-    modificarVidaCriaturaIniciativa: (id, nuevaVida) => {
-    const estadoPrevio = get();
-    const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === id);
-    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
-      const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
-      const diferencia = nuevaVida - criaturaObjetivoPrev.vidaActual;
-      if (diferencia < 0) {
-        void emitirDeltaVidaSync(idDestino, Math.abs(diferencia), "dano");
-      } else if (diferencia > 0) {
-        void emitirDeltaVidaSync(idDestino, diferencia, "curacion");
-      }
-    }
-    get().registrarModificacionLocalPJ(id);
-    return set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === id) {
-        criaturaAfectadaNombre = c.nombre;
-        return { ...c, vidaActual: Math.max(0, Math.min(c.vidaMaxima, nuevaVida)) };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-      if (coincidePj) {
-        return {
-          ...pj,
-          hpActual: Math.max(0, Math.min(pj.hpMaximo, nuevaVida))
-        };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-        if (coincideAcomp) {
-          acompModificado = true;
-          return {
-            ...acomp,
-            vidaActual: Math.max(0, Math.min(acomp.vidaMaxima, nuevaVida))
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  });
-  },
-
-  dañarCriaturaIniciativa: (id, cantidad) => {
-    const daño = Math.max(0, Math.trunc(cantidad));
-    if (daño === 0) return;
-
-    const estadoPrevio = get();
-    const criaturaPrevia = estadoPrevio.colaIniciativa.find((c) => c.id === id);
-    if (!criaturaPrevia) return;
-
-    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && !criaturaPrevia.esMonstruo) {
-      const idDestino = criaturaPrevia.idAcompanante || criaturaPrevia.idPersonajeDuenio || criaturaPrevia.id;
-      void emitirDeltaVidaSync(idDestino, daño, "dano");
-    }
-
-    get().registrarModificacionLocalPJ(id);
-    return set((state) => {
-      let dañoRestante = daño;
-      let vidaTemp = criaturaPrevia.vidaTemporal || 0;
-      let vidaAct = criaturaPrevia.vidaActual;
-
-      if (vidaTemp > 0) {
-        if (vidaTemp >= dañoRestante) {
-          vidaTemp -= dañoRestante;
-          dañoRestante = 0;
-        } else {
-          dañoRestante -= vidaTemp;
-          vidaTemp = 0;
-        }
-      }
-      if (dañoRestante > 0) {
-        vidaAct = Math.max(0, vidaAct - dañoRestante);
-      }
-
-      let criaturaAfectadaNombre = "";
-      const nuevaCola = state.colaIniciativa.map((c) => {
-        if (c.id === id) {
-          criaturaAfectadaNombre = c.nombre;
-          return { ...c, vidaActual: vidaAct, vidaTemporal: vidaTemp };
-        }
-        return c;
-      });
-
-      if (criaturaPrevia.esMonstruo) {
-        return { colaIniciativa: nuevaCola };
-      }
-
-      const nuevosPjs = state.personajes.map((pj) => {
-        const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaPrevia, id, criaturaAfectadaNombre);
-        if (coincidePj) {
-          return {
-            ...pj,
-            hpActual: vidaAct,
-            hpTemporal: vidaTemp,
-          };
-        }
-        if (!criaturaPrevia.esAcompanante && !criaturaPrevia.idAcompanante) {
-          return pj;
-        }
-        let acompModificado = false;
-        const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-          const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaPrevia, id, criaturaAfectadaNombre);
-          if (coincideAcomp) {
-            acompModificado = true;
-            return {
-              ...acomp,
-              vidaActual: vidaAct,
-              vidaTemporal: vidaTemp,
-            };
-          }
-          return acomp;
-        });
-        if (acompModificado) {
-          return { ...pj, acompanantes: nuevosAcomps };
-        }
-        return pj;
-      });
-
-      return {
-        colaIniciativa: nuevaCola,
-        personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual)),
-      };
-    });
-  },
-
-  modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => {
-    get().registrarModificacionLocalPJ(id);
-    return set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
-    const vidaMaxSegura = Math.max(1, nuevaVidaMax);
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === id) {
-        criaturaAfectadaNombre = c.nombre;
-        return {
-          ...c,
-          vidaMaxima: vidaMaxSegura,
-          vidaActual: Math.min(c.vidaActual, vidaMaxSegura)
-        };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-      if (coincidePj) {
-        return {
-          ...pj,
-          hpMaximo: vidaMaxSegura,
-          hpActual: Math.min(pj.hpActual, vidaMaxSegura)
-        };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-        if (coincideAcomp) {
-          acompModificado = true;
-          return {
-            ...acomp,
-            vidaMaxima: vidaMaxSegura,
-            vidaActual: Math.min(acomp.vidaActual, vidaMaxSegura)
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  });
-  },
-
-  agregarCondicionACriatura: (id, condicion) => set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === id) {
-        criaturaAfectadaNombre = c.nombre;
-        return { ...c, condiciones: aplicarCondicion(c.condiciones, condicion) };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const esDerribado = esCondicionDerribado(condicion);
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-      if (coincide) {
-        let nuevoTipoTerreno = pj.tipoTerreno || "normal";
-        let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
-        let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-
-        if (esDerribado && (pj.tipoTerreno === "normal" || !pj.tipoTerreno || pj.multiplicadorTerreno === 1)) {
-          nuevoTipoTerreno = "dificil";
-          nuevoMultTerreno = 2;
-          const entradaHist: RegistroMovimiento = {
-            id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            timestamp: Date.now(),
-            tipo: "terreno",
-            delta: 0,
-            anteriorGastado: pj.movimientoGastado || 0,
-            nuevoGastado: pj.movimientoGastado || 0,
-            descripcion: "Terreno cambiado a: Terreno Difícil (2x) por condición Derribado"
-          };
-          nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
-        }
-
-        return {
-          ...pj,
-          tipoTerreno: nuevoTipoTerreno,
-          multiplicadorTerreno: nuevoMultTerreno,
-          historialMovimiento: nuevoHistorial,
-          condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
-        };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-        if (coincideAcomp) {
-          acompModificado = true;
-          let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
-          let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
-          if (esDerribado && (acomp.tipoTerreno === "normal" || !acomp.tipoTerreno || acomp.multiplicadorTerreno === 1)) {
-            nuevoTipoTerreno = "dificil";
-            nuevoMultTerreno = 2;
-          }
-          return {
-            ...acomp,
-            tipoTerreno: nuevoTipoTerreno,
-            multiplicadorTerreno: nuevoMultTerreno,
-            condiciones: aplicarCondicion(acomp.condiciones || [], condicion)
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  }),
-
-  quitarCondicionDeCriatura: (id, condicion) => set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
-    const esConcentracion = condicion.toLowerCase().includes("concentra");
-    const esDerribado = esCondicionDerribado(condicion);
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === id) {
-        criaturaAfectadaNombre = c.nombre;
-        const condicionesNuevas = quitarCondicion(c.condiciones, condicion);
-        const efectosNuevos = esConcentracion
-          ? (c.efectos || []).filter((e) => !e.concentracion && e.id !== "ef_concentracion" && !e.nombre.toLowerCase().startsWith("concentra"))
-          : c.efectos;
-        return { ...c, condiciones: condicionesNuevas, efectos: efectosNuevos };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-      if (coincide) {
-        const condsRestantes = quitarCondicion(pj.condicionesActivas || [], condicion);
-        let nuevoTipoTerreno = pj.tipoTerreno || "normal";
-        let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
-        let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-
-        const todaviaDerribado = condsRestantes.some((c) => esCondicionDerribado(c));
-        if (esDerribado && !todaviaDerribado && (pj.tipoTerreno === "dificil" || pj.multiplicadorTerreno === 2)) {
-          nuevoTipoTerreno = "normal";
-          nuevoMultTerreno = 1;
-          const entradaHist: RegistroMovimiento = {
-            id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            timestamp: Date.now(),
-            tipo: "terreno",
-            delta: 0,
-            anteriorGastado: pj.movimientoGastado || 0,
-            nuevoGastado: pj.movimientoGastado || 0,
-            descripcion: "Terreno restaurado a: Normal (1x) al levantarse de Derribado"
-          };
-          nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
-        }
-
-        return {
-          ...pj,
-          tipoTerreno: nuevoTipoTerreno,
-          multiplicadorTerreno: nuevoMultTerreno,
-          historialMovimiento: nuevoHistorial,
-          concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
-          condicionesActivas: condsRestantes
-        };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-
-        if (coincideAcomp) {
-          acompModificado = true;
-          const condsRestantes = quitarCondicion(acomp.condiciones || [], condicion);
-          let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
-          let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
-          const todaviaDerribado = condsRestantes.some((c) => esCondicionDerribado(c));
-          if (esDerribado && !todaviaDerribado && (acomp.tipoTerreno === "dificil" || acomp.multiplicadorTerreno === 2)) {
-            nuevoTipoTerreno = "normal";
-            nuevoMultTerreno = 1;
-          }
-          return {
-            ...acomp,
-            tipoTerreno: nuevoTipoTerreno,
-            multiplicadorTerreno: nuevoMultTerreno,
-            condiciones: condsRestantes
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  }),
-
-  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
-    const esConcentracion = opciones?.concentracion || 
-                           nombreEfecto.toLowerCase().trim() === "concentración" || 
-                           nombreEfecto.toLowerCase().trim() === "concentracion";
-
-    const nuevoEfecto: EfectoActivo = {
-      id: generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
-      nombre: nombreEfecto,
-      expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
-      concentracion: esConcentracion || undefined
-    };
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
-        criaturaAfectadaNombre = c.nombre;
-        const nuevosEfectos = c.efectos ? [...c.efectos] : [];
-        const nombreLimpio = nombreEfecto.split(" (")[0].toLowerCase().trim();
-        const condicionesActualizadas = (c.condiciones || []).filter((cond) => {
-          if (esConcentracion && cond.toLowerCase().includes("concentra")) return false;
-          const condLimpia = cond.split(" (")[0].toLowerCase().trim();
-          if (condLimpia === nombreLimpio || cond.toLowerCase().trim() === nombreEfecto.toLowerCase().trim()) return false;
-          return true;
-        });
-        return { ...c, condiciones: condicionesActualizadas, efectos: [...nuevosEfectos, nuevoEfecto] };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-
-      if (coincide) {
-        return aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion);
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-
-        if (coincideAcomp) {
-          acompModificado = true;
-          const efectosPrevios = (acomp.efectos || []).filter((e) => e.id !== nuevoEfecto.id);
-          let condsAcomp = acomp.condiciones || [];
-          if (esConcentracion) {
-            if (!condsAcomp.includes("Concentración")) condsAcomp = [...condsAcomp, "Concentración"];
-          } else {
-            condsAcomp = aplicarCondicion(condsAcomp, nombreEfecto);
-          }
-          return {
-            ...acomp,
-            condiciones: condsAcomp,
-            efectos: [...efectosPrevios, nuevoEfecto]
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  }),
-
-  quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) => {
-    let criaturaAfectadaNombre = "";
-    let efectoEliminado: EfectoActivo | undefined;
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
-        criaturaAfectadaNombre = c.nombre;
-        efectoEliminado = (c.efectos || []).find((e) => e.id === idEfecto);
-        const nuevosEfectos = (c.efectos || []).filter((e) => e.id !== idEfecto);
-        const eraConcentracion = efectoEliminado?.concentracion || efectoEliminado?.id.includes("concentra");
-        let condicionesActualizadas = eraConcentracion
-          ? quitarCondicion(c.condiciones, "Concentración")
-          : c.condiciones;
-        if (efectoEliminado) {
-          const elimLimpio = efectoEliminado.nombre.split(" (")[0].toLowerCase().trim();
-          condicionesActualizadas = (condicionesActualizadas || []).filter(
-            (cond) => cond.toLowerCase().trim() !== elimLimpio && cond.toLowerCase().trim() !== efectoEliminado!.nombre.toLowerCase().trim()
-          );
-        }
-        return { ...c, condiciones: condicionesActualizadas, efectos: nuevosEfectos };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-
-      if (coincide && efectoEliminado) {
-        const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
-        const nuevosEfectosPj = (pj.efectosActivos || []).filter((e) => e.id !== idEfecto && e.nombre !== efectoEliminado!.nombre);
-        let conds = pj.condicionesActivas || [];
-        if (eraConcentracion) {
-          conds = conds.filter((c) => !c.toLowerCase().includes("concentra"));
-        }
-        conds = quitarCondicion(conds, efectoEliminado.nombre);
-        const elimLimpio = efectoEliminado.nombre.split(" (")[0];
-        if (elimLimpio !== efectoEliminado.nombre) {
-          conds = quitarCondicion(conds, elimLimpio);
-        }
-        const rasgosActualizados = desactivarRasgosPorCondicionOEfecto(efectoEliminado.nombre, pj.rasgos || []);
-
-        return {
-          ...pj,
-          condicionesActivas: conds,
-          efectosActivos: nuevosEfectosPj,
-          concentracionActiva: eraConcentracion ? null : pj.concentracionActiva,
-          rasgos: rasgosActualizados
-        };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-
-        if (coincideAcomp && efectoEliminado) {
-          acompModificado = true;
-          const eraConcentracion = efectoEliminado.concentracion || efectoEliminado.id.includes("concentra");
-          const nuevosEfectosAcomp = (acomp.efectos || []).filter((e) => e.id !== idEfecto && e.nombre !== efectoEliminado!.nombre);
-          let condsAcomp = acomp.condiciones || [];
-          if (eraConcentracion) {
-            condsAcomp = condsAcomp.filter((c) => !c.toLowerCase().includes("concentra"));
-          }
-          condsAcomp = quitarCondicion(condsAcomp, efectoEliminado.nombre);
-          const elimLimpio = efectoEliminado.nombre.split(" (")[0];
-          if (elimLimpio !== efectoEliminado.nombre) {
-            condsAcomp = quitarCondicion(condsAcomp, elimLimpio);
-          }
-          return {
-            ...acomp,
-            condiciones: condsAcomp,
-            efectos: nuevosEfectosAcomp
-          };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  }),
-
-  asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) => {
-    const plantilla = state.baseDatosMonstruos.find((m) => m.id === idPlantilla);
-    
-    // 1. Encontrar la criatura de referencia para obtener su nombre
-    const criaturaReferencia = state.colaIniciativa.find((c) => c.id === idCriatura);
-    if (!criaturaReferencia) return {};
-
-    const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(criaturaReferencia.nombre);
-    const esNombreInvalido = esNombreVacioODot(criaturaReferencia.nombre);
-
-    // 2. Asociar en caliente a cualquier criatura de la cola activa que comparta nombre o nombre base
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      const { completo: nombreC, base: nombreCBase } = normalizarNombreTaleSpire(c.nombre);
-
-      const coincideNombre = c.id === idCriatura || 
-                            (!esNombreInvalido && (nombreC === nombreRef || nombreCBase === nombreRefBase));
-
-      if (coincideNombre) {
-        let vidaMaxCalculada = c.vidaMaxima;
-        let vidaActualCalculada = c.vidaActual;
-        let caCalculada = c.ca;
-        let velocidadCalculada = c.velocidad;
-        let bonificadorIniciativaCalculado = c.bonificadorIniciativa;
-
-        if (plantilla) {
-          const { vidaMaxima, vidaActual } = calcularVidaInicial(plantilla, state.metodoVidaMonstruo);
-          vidaMaxCalculada = vidaMaxima;
-          vidaActualCalculada = vidaActual;
-          caCalculada = plantilla.ca;
-          velocidadCalculada = formatearVelocidad(plantilla.velocidad);
-          bonificadorIniciativaCalculado = plantilla.iniciativaBonificador;
-        }
-
-        return { 
-          ...c, 
-          idPlantillaAsociada: idPlantilla,
-          vidaMaxima: vidaMaxCalculada,
-          vidaActual: vidaActualCalculada,
-          ca: caCalculada,
-          velocidad: velocidadCalculada,
-          bonificadorIniciativa: bonificadorIniciativaCalculado
-        };
-      }
-      return c;
-    });
-
-    // 3. Registrar en la caché persistente la asociación por UUID y por nombres normalizados
-    const nuevasAsociaciones = {
-      ...state.asociacionesFichas,
-      [idCriatura]: idPlantilla
-    };
-
-    if (!esNombreInvalido) {
-      nuevasAsociaciones[`nombre_base:${nombreRef}`] = idPlantilla;
-      nuevasAsociaciones[`nombre_base:${nombreRefBase}`] = idPlantilla;
-    }
-
-    return { 
-      colaIniciativa: nuevaCola,
-      asociacionesFichas: nuevasAsociaciones
-    };
-  }),
-
-  desvincularPlantillaDeCriatura: (idCriatura) => set((state) => {
-    const criaturaReferencia = state.colaIniciativa.find((c) => c.id === idCriatura);
-    if (!criaturaReferencia) return {};
-
-    const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(criaturaReferencia.nombre);
-
-    const nuevasAsociaciones = { ...state.asociacionesFichas };
-    delete nuevasAsociaciones[idCriatura];
-    
-    if (!esNombreVacioODot(criaturaReferencia.nombre)) {
-      delete nuevasAsociaciones[`nombre_base:${nombreRef}`];
-      delete nuevasAsociaciones[`nombre_base:${nombreRefBase}`];
-    }
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
-        return { 
-          ...c, 
-          idPlantillaAsociada: undefined,
-          ca: 10,
-          velocidad: "30 pies",
-          bonificadorIniciativa: 0
-        };
-      }
-      return c;
-    });
-
-    return { 
-      colaIniciativa: nuevaCola,
-      asociacionesFichas: nuevasAsociaciones
-    };
-  }),
-
-  actualizarVidaTemporal: (idCriatura, vidaTemp) => {
-    const estadoPrevio = get();
-    const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === idCriatura);
-    if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
-      const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
-      void emitirDeltaVidaSync(idDestino, Math.max(0, vidaTemp), "temp");
-    }
-    get().registrarModificacionLocalPJ(idCriatura);
-    return set((state) => {
-    let criaturaAfectadaNombre = "";
-    const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
-    const vidaTempSegura = Math.max(0, vidaTemp);
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (c.id === idCriatura) {
-        criaturaAfectadaNombre = c.nombre;
-        return { ...c, vidaTemporal: vidaTempSegura };
-      }
-      return c;
-    });
-
-    if (criaturaObjetivo?.esMonstruo) {
-      return { colaIniciativa: nuevaCola };
-    }
-
-    const nuevosPjs = state.personajes.map((pj) => {
-      const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-
-      if (coincidePj) {
-        return { ...pj, hpTemporal: vidaTempSegura };
-      }
-
-      if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-        return pj;
-      }
-
-      let acompModificado = false;
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, idCriatura, criaturaAfectadaNombre);
-        if (coincideAcomp) {
-          acompModificado = true;
-          return { ...acomp, vidaTemporal: vidaTempSegura };
-        }
-        return acomp;
-      });
-
-      if (acompModificado) {
-        return { ...pj, acompanantes: nuevosAcomps };
-      }
-
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
-  });
-  },
+  modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) =>
+    despacharModificarVida(state, get, id, nuevaVida)
+  ),
+
+  dañarCriaturaIniciativa: (id, cantidad) => set((state) =>
+    despacharDano(state, get, id, cantidad)
+  ),
+
+  modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => set((state) =>
+    despacharModificarVidaMaxima(state, get, id, nuevaVidaMax)
+  ),
+
+  agregarCondicionACriatura: (id, condicion) => set((state) =>
+    despacharAgregarCondicion(state, id, condicion)
+  ),
+
+  quitarCondicionDeCriatura: (id, condicion) => set((state) =>
+    despacharQuitarCondicion(state, id, condicion)
+  ),
+
+  agregarEfectoACriatura: (idCriatura, nombreEfecto, duracion, opciones) => set((state) =>
+    despacharAgregarEfecto(state, idCriatura, nombreEfecto, duracion, opciones)
+  ),
+
+  quitarEfectoDeCriatura: (idCriatura, idEfecto) => set((state) =>
+    despacharQuitarEfecto(state, idCriatura, idEfecto)
+  ),
+
+  asociarPlantillaACriatura: (idCriatura, idPlantilla) => set((state) =>
+    despacharAsociarPlantilla(state, idCriatura, idPlantilla)
+  ),
+
+  desvincularPlantillaDeCriatura: (idCriatura) => set((state) =>
+    despacharDesvincularPlantilla(state, idCriatura)
+  ),
+
+  actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) =>
+    despacharActualizarVidaTemporal(state, get, idCriatura, vidaTemp)
+  ),
 
   limpiarIniciativa: () => set((state) => {
     const nuevosPjs = restablecerMovimientoPersonajes(state.personajes, "Combate finalizado");
-    return { colaIniciativa: [], indiceTurnoActivo: 0, rondaActual: 1, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(p, state.rondaActual)) };
+    return {
+      colaIniciativa: [],
+      indiceTurnoActivo: 0,
+      rondaActual: 1,
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    };
   }),
 
   ordenarIniciativa: () => set((state) => {
@@ -1221,485 +313,82 @@ export const crearSliceIniciativa: StateCreator<
     return { colaIniciativa: nuevaCola, indiceTurnoActivo: 0 };
   }),
 
-  autoLanzarIniciativaMonstruos: () => set((state) => {
-    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      // Discriminación estricta: el auto roll NUNCA se aplica a jugadores
-      const pj = resolverPersonajeAsociado(c.id, c.nombre, state.personajes, c.idPersonajeDuenio);
-      const esJugador =
-        !c.esMonstruo ||
-        Boolean(pj) ||
-        c.id.startsWith("c_jugador") ||
-        c.id.startsWith("pj-") ||
-        c.id.startsWith("pj_");
-
-      if (!esJugador && c.esMonstruo) {
-        let bonoInic = c.bonificadorIniciativa || 0;
-        if (bonoInic === 0) {
-          const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indiceMonstruos);
-          if (plantilla && plantilla.iniciativaBonificador !== undefined) {
-            bonoInic = plantilla.iniciativaBonificador;
-          }
-        }
-        const tirada = Math.floor(Math.random() * 20) + 1;
-        const total = tirada + bonoInic;
-        return { ...c, iniciativa: total, bonificadorIniciativa: bonoInic, esMonstruo: true };
-      }
-
-      // Si es jugador pero estaba marcado erróneamente con esMonstruo, normalizar la bandera sin alterar iniciativa
-      if (esJugador && c.esMonstruo) {
-        return {
-          ...c,
-          esMonstruo: false,
-          idPlantillaAsociada: undefined,
-          idPersonajeDuenio: pj?.id || c.idPersonajeDuenio
-        };
-      }
-
-      return c;
-    });
-    // No auto-ordenar por iniciativa: se preserva el orden de turnos de TaleSpire
-    return { colaIniciativa: nuevaCola };
-  }),
-
-  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo) => {
-    const state = get();
-    if (state.colaIniciativa.length === 0 || cd <= 0) return null;
-
-    const targets = obtenerIdsObjetivoMasivo(
+  autoLanzarIniciativaMonstruos: () => set((state) => ({
+    colaIniciativa: autoLanzarIniciativaMonstruosHelper(
       state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return null;
-
-    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
-    const resultadosLog: ResultadoSalvacionCriatura[] = [];
-    const colaModificada = state.colaIniciativa.map((c) => {
-      if (!targets.has(c.id)) return c;
-
-      const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, state.asociacionesFichas, indiceMonstruos);
-      
-      let bonoSalvacion = 0;
-      if (plantilla) {
-        const salvacionEspecifica = plantilla.salvaciones?.[caracteristica];
-        if (salvacionEspecifica !== undefined && !isNaN(salvacionEspecifica)) {
-          bonoSalvacion = salvacionEspecifica;
-        } else if (plantilla.caracteristicas?.[caracteristica] !== undefined) {
-          bonoSalvacion = Math.floor((plantilla.caracteristicas[caracteristica] - 10) / 2);
-        }
-      }
-
-      const d20 = Math.floor(Math.random() * 20) + 1;
-      const total = d20 + bonoSalvacion;
-      const exito = total >= cd;
-
-      let criaturaActualizada = { ...c };
-      let dañoAplicado: number | undefined = undefined;
-      let condicionAplicada: boolean | undefined = undefined;
-
-      if (dañoBruto !== undefined && dañoBruto > 0) {
-        dañoAplicado = exito ? (mitigacion === "nada" ? 0 : Math.floor(dañoBruto / 2)) : dañoBruto;
-        
-        let dañoRestante = dañoAplicado;
-        let vidaTemp = criaturaActualizada.vidaTemporal || 0;
-        let vidaAct = criaturaActualizada.vidaActual;
-
-        if (vidaTemp > 0) {
-          if (vidaTemp >= dañoRestante) {
-            vidaTemp -= dañoRestante;
-            dañoRestante = 0;
-          } else {
-            dañoRestante -= vidaTemp;
-            vidaTemp = 0;
-          }
-        }
-
-        if (dañoRestante > 0) {
-          vidaAct = Math.max(0, vidaAct - dañoRestante);
-        }
-
-        criaturaActualizada = { ...criaturaActualizada, vidaTemporal: vidaTemp, vidaActual: vidaAct };
-      }
-
-      if (condicionOEfecto && !exito) {
-        condicionAplicada = true;
-        if (condicionOEfecto.tipo === "condicion") {
-          criaturaActualizada.condiciones = aplicarCondicion(
-            criaturaActualizada.condiciones,
-            condicionOEfecto.nombre
-          );
-        } else {
-          const nuevosEfectos = criaturaActualizada.efectos ? [...criaturaActualizada.efectos] : [];
-          const esConcentracion = condicionOEfecto.esConcentracion || 
-                                 condicionOEfecto.nombre.toLowerCase().trim() === "concentración" || 
-                                 condicionOEfecto.nombre.toLowerCase().trim() === "concentracion";
-          const nuevoEfecto: EfectoActivo = {
-            id: generarId(condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20)),
-            nombre: condicionOEfecto.nombre,
-            expiraRonda: esConcentracion ? undefined : state.rondaActual + (condicionOEfecto.duracion || 10),
-            concentracion: esConcentracion || undefined
-          };
-          criaturaActualizada.efectos = [...nuevosEfectos, nuevoEfecto];
-        }
-      }
-
-      resultadosLog.push({
-        id: c.id,
-        nombre: c.nombre,
-        bono: bonoSalvacion,
-        d20,
-        total,
-        exito,
-        dañoSufrido: dañoAplicado,
-        condicionAplicada
-      });
-
-      return criaturaActualizada;
-    });
-
-    const nuevosPersonajesSalvacion = state.personajes.map((pj) => {
-      const c = colaModificada.find((item) => {
-        const cNom = (item.nombre || "").trim().toLowerCase();
-        return (
-          pj.id === item.id ||
-          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === item.id) ||
-          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
-        );
-      });
-      if (c && condicionOEfecto) {
-        const logItem = resultadosLog.find((r) => r.id === c.id);
-        if (logItem?.condicionAplicada) {
-          return {
-            ...pj,
-            condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicionOEfecto.nombre)
-          };
-        }
-      }
-      return pj;
-    });
-
-    set({ colaIniciativa: colaModificada, personajes: nuevosPersonajesSalvacion });
-
-    return {
-      caracteristica,
-      cd,
-      resultados: resultadosLog
-    };
-  },
+      state.personajes,
+      state.baseDatosMonstruos,
+      state.asociacionesFichas
+    )
+  })),
 
   actualizarSeleccionCriaturas: (seleccionadas) => set((state) => {
     const patch: Partial<EstadoDM> = { criaturasSeleccionadas: seleccionadas };
-
-    // Si se seleccionó una miniatura y coincide con un personaje jugador vinculado (por idMiniaturaTS o nombre),
-    // activar reactivamente su ficha de personaje
     if (seleccionadas && seleccionadas.length > 0) {
       const primera = seleccionadas[0];
       const nombreNorm = (primera.name || "").trim().toLowerCase();
-
       const pjEncontrado = state.personajes.find(
         (pj) =>
           (pj.idMiniaturaTS && pj.idMiniaturaTS === primera.id) ||
           (pj.nombre && nombreNorm && pj.nombre.trim().toLowerCase() === nombreNorm)
       );
-
       if (pjEncontrado && pjEncontrado.id !== state.idPersonajeActivo) {
         patch.idPersonajeActivo = pjEncontrado.id;
       }
     }
-
     return patch;
   }),
 
   agregarCriaturasSeleccionadasAIniciativa: () => set((state) => {
-    if (!state.criaturasSeleccionadas || state.criaturasSeleccionadas.length === 0) return {};
-
-    const nuevasCriaturas: CriaturaIniciativa[] = [];
-    const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
-    const idsEnCola = new Set(state.colaIniciativa.map((c) => c.id));
-
-    state.criaturasSeleccionadas.forEach((cTS) => {
-      if (idsEnCola.has(cTS.id)) return;
-
-      // Comprobar si esta miniatura corresponde a un Personaje Jugador local
-      const pjAsociado = resolverPersonajeAsociado(cTS.id, cTS.name, state.personajes);
-
-      if (pjAsociado) {
-        const statsPj = calcularEstadisticasPersonaje(pjAsociado);
-        // Para jugadores: NUNCA se aplica auto-roll de iniciativa
-        nuevasCriaturas.push({
-          id: cTS.id,
-          nombre: pjAsociado.nombre,
-          avatarUrl: pjAsociado.avatarUrl,
-          iniciativa: 0,
-          vidaMaxima: pjAsociado.hpMaximo || 10,
-          vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
-          ca: statsPj.claseArmadura.total,
-          condiciones: pjAsociado.condicionesActivas ? [...pjAsociado.condicionesActivas] : [],
-          efectos: pjAsociado.efectosActivos ? [...pjAsociado.efectosActivos] : [],
-          bonificadorIniciativa: statsPj.modificadores.destreza,
-          esMonstruo: false,
-          velocidad: `${pjAsociado.velocidad || "30 pies"}`,
-          vidaTemporal: pjAsociado.hpTemporal || 0,
-          idPersonajeDuenio: pjAsociado.id,
-          idPlantillaAsociada: undefined,
-          pasivas: {
-            percepcion: statsPj.pasivas?.percepcion ?? 10,
-            investigacion: statsPj.pasivas?.investigacion ?? 10,
-            perspicacia: statsPj.pasivas?.perspicacia ?? 10,
-          }
-        });
-        return;
-      }
-
-      // Si TaleSpire reportó ownerIds para esta miniatura, es de un jugador aunque aún no tenga hoja local
-      if (cTS.esDeJugador) {
-        nuevasCriaturas.push({
-          id: cTS.id,
-          nombre: cTS.name,
-          iniciativa: 0,
-          vidaMaxima: cTS.maxHp || 10,
-          vidaActual: cTS.hp !== undefined ? cTS.hp : (cTS.maxHp || 10),
-          ca: 10,
-          condiciones: [],
-          efectos: [],
-          bonificadorIniciativa: 0,
-          esMonstruo: false,
-          velocidad: "30 pies",
-          vidaTemporal: 0,
-          idPlantillaAsociada: undefined,
-          pasivas: {
-            percepcion: 10,
-            investigacion: 10,
-            perspicacia: 10,
-          }
-        });
-        return;
-      }
-
-      // Si no es jugador, es un monstruo: calcular estadísticas y aplicar auto roll
-      const plantillaMonstruo = resolverPlantillaPorCriatura(
-        cTS.id,
-        cTS.name,
-        state.asociacionesFichas,
-        indiceMonstruos
-      );
-
-      const { vidaMaxima: vidaMaxCalculada, vidaActual: vidaActCalculada } = calcularVidaInicial(
-        plantillaMonstruo,
-        state.metodoVidaMonstruo
-      );
-
-      const tiradaInic = Math.floor(Math.random() * 20) + 1;
-      const totalInic = tiradaInic + (plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0);
-
-      nuevasCriaturas.push({
-        id: cTS.id,
-        nombre: cTS.name,
-        iniciativa: totalInic,
-        vidaMaxima: vidaMaxCalculada,
-        vidaActual: vidaActCalculada,
-        ca: plantillaMonstruo ? plantillaMonstruo.ca : 10,
-        condiciones: [],
-        bonificadorIniciativa: plantillaMonstruo ? plantillaMonstruo.iniciativaBonificador : 0,
-        esMonstruo: true,
-        velocidad: plantillaMonstruo ? formatearVelocidad(plantillaMonstruo.velocidad) : "30 pies",
-        vidaTemporal: 0,
-        idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
-      });
-    });
-
+    const nuevasCriaturas = construirCriaturasDesdeSeleccionTS(
+      state.criaturasSeleccionadas,
+      state.colaIniciativa,
+      state.personajes,
+      state.baseDatosMonstruos,
+      state.asociacionesFichas,
+      state.metodoVidaMonstruo
+    );
     if (nuevasCriaturas.length === 0) return {};
-
-    const colaCombinada = [...state.colaIniciativa, ...nuevasCriaturas];
-    return { colaIniciativa: colaCombinada };
+    return { colaIniciativa: [...state.colaIniciativa, ...nuevasCriaturas] };
   }),
 
-  // --- Funciones EnArea (daño, condición, efecto) ---
-  // Todas comparten el mismo boilerplate de resolución de objetivos.
-  // aplicarTransformacionEnArea encapsula ese boilerplate (Strategy Pattern):
-  // cada función sólo define su "estrategia" de transformación por criatura.
+  aplicarDañoEnArea: (cantidad, idsObjetivo) => set((state) =>
+    despacharAplicarDanoEnArea(state, get, cantidad, idsObjetivo)
+  ),
 
-  aplicarDañoEnArea: (cantidad, idsObjetivo) => {
-    if (get().esGM && !get().aplicandoSync && cantidad !== 0) {
-      const targets = obtenerIdsObjetivoMasivo(
-        get().colaIniciativa,
-        get().indiceTurnoActivo,
-        get().criaturasSeleccionadas,
-        idsObjetivo
-      );
-      for (const criatura of get().colaIniciativa) {
-        if (targets.has(criatura.id) && !criatura.esMonstruo) {
-          const idDestino = criatura.idAcompanante || criatura.idPersonajeDuenio || criatura.id;
-          void emitirDeltaVidaSync(idDestino, Math.abs(cantidad), cantidad > 0 ? "dano" : "curacion");
-        }
-      }
-    }
-    return set((state) => {
-    if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
-    return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
-      if (cantidad > 0) {
-        // Daño
-        let dañoRestante = cantidad;
-        let vidaTemp = c.vidaTemporal || 0;
-        let vidaAct = c.vidaActual;
-        if (vidaTemp > 0) {
-          if (vidaTemp >= dañoRestante) {
-            vidaTemp -= dañoRestante;
-            dañoRestante = 0;
-          } else {
-            dañoRestante -= vidaTemp;
-            vidaTemp = 0;
-          }
-        }
-        if (dañoRestante > 0) {
-          vidaAct = Math.max(0, vidaAct - dañoRestante);
-        }
-        return { ...c, vidaTemporal: vidaTemp, vidaActual: vidaAct };
-      } else {
-        // Curación (cantidad negativa)
-        const curacion = Math.abs(cantidad);
-        return { ...c, vidaActual: Math.min(c.vidaMaxima, c.vidaActual + curacion) };
-      }
-    });
-  });
-},
+  aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) =>
+    despacharAplicarCondicionEnArea(state, condicion, idsObjetivo)
+  ),
 
-  aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) => {
-    if (state.colaIniciativa.length === 0 || !condicion.trim()) return {};
-    const condTrimmed = condicion.trim();
-    const targets = obtenerIdsObjetivoMasivo(
-      state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return {};
+  aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) =>
+    despacharAplicarEfectoEnArea(state, nombreEfecto, duracion, opciones, idsObjetivo)
+  ),
 
-    const nuevaCola = state.colaIniciativa.map((c) =>
-      targets.has(c.id) ? { ...c, condiciones: aplicarCondicion(c.condiciones, condTrimmed) } : c
-    );
-
-    const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
-    const nuevosPersonajes = state.personajes.map((pj) => {
-      const coincide = criaturasAfectadas.some((c) => {
-        const cNom = (c.nombre || "").trim().toLowerCase();
-        return (
-          pj.id === c.id ||
-          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === c.id) ||
-          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
-        );
-      });
-      if (coincide) {
-        return {
-          ...pj,
-          condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condTrimmed)
-        };
-      }
-      return pj;
+  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo) => {
+    const state = get();
+    const resultadoCalculo = ejecutarCalculoSalvacionArea({
+      caracteristica,
+      cd,
+      dañoBruto,
+      condicionOEfecto,
+      mitigacion,
+      idsObjetivo,
+      colaIniciativa: state.colaIniciativa,
+      indiceTurnoActivo: state.indiceTurnoActivo,
+      criaturasSeleccionadas: state.criaturasSeleccionadas,
+      asociacionesFichas: state.asociacionesFichas,
+      baseDatosMonstruos: state.baseDatosMonstruos,
+      rondaActual: state.rondaActual,
+      personajes: state.personajes
     });
 
-    return { colaIniciativa: nuevaCola, personajes: nuevosPersonajes };
-  }),
+    if (!resultadoCalculo) return null;
 
-  aplicarEfectoEnArea: (nombreEfecto, duracion, opciones, idsObjetivo) => set((state) => {
-    if (state.colaIniciativa.length === 0 || !nombreEfecto.trim()) return {};
-    const esConcentracion = opciones?.concentracion ||
-      nombreEfecto.toLowerCase().trim() === "concentración" ||
-      nombreEfecto.toLowerCase().trim() === "concentracion";
-
-    const targets = obtenerIdsObjetivoMasivo(
-      state.colaIniciativa,
-      state.indiceTurnoActivo,
-      state.criaturasSeleccionadas,
-      idsObjetivo
-    );
-    if (targets.size === 0) return {};
-
-    const nuevoEfectoId = generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 20));
-    const nuevoEfecto: EfectoActivo = {
-      id: nuevoEfectoId,
-      nombre: nombreEfecto,
-      expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
-      concentracion: esConcentracion || undefined
-    };
-
-    const nuevaCola = state.colaIniciativa.map((c) => {
-      if (!targets.has(c.id)) return c;
-      const nombreLimpio = nombreEfecto.split(" (")[0].toLowerCase().trim();
-      const condicionesActualizadas = (c.condiciones || []).filter((cond) => {
-        if (esConcentracion && cond.toLowerCase().includes("concentra")) return false;
-        const condLimpia = cond.split(" (")[0].toLowerCase().trim();
-        if (condLimpia === nombreLimpio || cond.toLowerCase().trim() === nombreEfecto.toLowerCase().trim()) return false;
-        return true;
-      });
-      return { ...c, condiciones: condicionesActualizadas, efectos: [...(c.efectos ?? []), nuevoEfecto] };
+    set({
+      colaIniciativa: resultadoCalculo.nuevaCola,
+      personajes: resultadoCalculo.nuevosPersonajes
     });
 
-    const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
-    const nuevosPersonajes = state.personajes.map((pj) => {
-      const coincide = criaturasAfectadas.some((c) => {
-        const cNom = (c.nombre || "").trim().toLowerCase();
-        return (
-          pj.id === c.id ||
-          (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === c.id) ||
-          (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
-        );
-      });
-      if (coincide) {
-        return aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion);
-      }
-      return pj;
-    });
-
-    return { colaIniciativa: nuevaCola, personajes: nuevosPersonajes };
-  })
+    return resultadoCalculo.resultado;
+  }
 });
-
-/**
- * Resuelve el conjunto de IDs objetivo para las operaciones masivas.
- * Prioridad: IDs manuales > criaturas seleccionadas en la cola > criatura con el turno activo.
- */
-function obtenerIdsObjetivoMasivo(
-  colaIniciativa: CriaturaIniciativa[],
-  indiceTurnoActivo: number,
-  criaturasSeleccionadas: CriaturaSeleccionadaTS[],
-  idsManuales?: string[]
-): Set<string> {
-  if (idsManuales && idsManuales.length > 0) {
-    return new Set(idsManuales);
-  }
-  const idsSeleccionadosEnCola = (criaturasSeleccionadas || [])
-    .map((s) => s.id)
-    .filter((id) => colaIniciativa.some((c) => c.id === id));
-
-  if (idsSeleccionadosEnCola.length > 0) {
-    return new Set(idsSeleccionadosEnCola);
-  }
-
-  const idActiva = colaIniciativa[indiceTurnoActivo]?.id;
-  return idActiva ? new Set([idActiva]) : new Set();
-}
-
-/**
- * Encapsula el boilerplate compartido por las 3 acciones "EnArea" (Strategy Pattern).
- * Resuelve targets, aplica la transformación pura `transformar` solo a las criaturas objetivo
- * y devuelve el patch de estado para Zustand.
- */
-function aplicarTransformacionEnArea(
-  state: { colaIniciativa: CriaturaIniciativa[]; indiceTurnoActivo: number; criaturasSeleccionadas: CriaturaSeleccionadaTS[] },
-  idsManuales: string[] | undefined,
-  transformar: (c: CriaturaIniciativa) => CriaturaIniciativa
-): { colaIniciativa: CriaturaIniciativa[] } | Record<string, never> {
-  const targets = obtenerIdsObjetivoMasivo(
-    state.colaIniciativa,
-    state.indiceTurnoActivo,
-    state.criaturasSeleccionadas,
-    idsManuales
-  );
-  if (targets.size === 0) return {};
-  return {
-    colaIniciativa: state.colaIniciativa.map((c) => targets.has(c.id) ? transformar(c) : c)
-  };
-}

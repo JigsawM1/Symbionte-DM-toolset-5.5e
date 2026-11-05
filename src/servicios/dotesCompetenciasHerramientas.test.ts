@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
+﻿import { describe, it, expect } from "vitest";
 import {
   sonHerramientasEquivalentes,
   obtenerCompetenciasExtraRasgos,
   obtenerCompetenciasEfectivasTexto
 } from "./evaluadorEfectosRasgos";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 

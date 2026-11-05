@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { calcularEstadisticasPersonaje } from "./usarEstadoPersonajes";
+﻿import { describe, it, expect } from "vitest";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import type { PersonajeJugador, ObjetoInventario } from "@/tipos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 

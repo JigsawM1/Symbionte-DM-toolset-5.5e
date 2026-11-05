@@ -6,7 +6,7 @@ import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
 import { LimiteError, NotificacionesContenedor } from "@/componentes/comunes";
 import { BarraSuperior, BarraControl, PanelDados } from "@/componentes/layout";
-import { GestorIniciativa } from "@/componentes/caracteristicas/iniciativa";
+const GestorIniciativa = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.GestorIniciativa })));
 import estilos from "./App.module.css";
 
 // Carga diferida de pestañas pesadas o inactivas al inicio con soporte para named exports

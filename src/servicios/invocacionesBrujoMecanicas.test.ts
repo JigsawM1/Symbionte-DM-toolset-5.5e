@@ -1,4 +1,4 @@
-import { construirRasgosDesdeSelectores } from './rasgos/seleccionesRasgos';
+﻿import { construirRasgosDesdeSelectores } from './rasgos/seleccionesRasgos';
 import { describe, it, expect } from "vitest";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
@@ -26,7 +26,7 @@ import {
 } from "@/constantes/invocacionesSobrenaturales";
 import { prepararLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { resolverBonosYDadosExtraCombate } from "@/servicios/calculadorDanoCombate";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { calcularInfoTruco } from "@/utiles/utilesConjuros";
 import { calcularAtaqueArmaEquipada } from "@/servicios/calculadorAtaquesArmas";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";

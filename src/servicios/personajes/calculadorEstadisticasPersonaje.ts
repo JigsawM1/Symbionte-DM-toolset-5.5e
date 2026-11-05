@@ -1,0 +1,851 @@
+/**
+ * calculadorEstadisticasPersonaje.ts
+ * ----------------------------------
+ * Servicio de dominio puro para el cálculo y derivación de estadísticas de
+ * personajes de D&D 5.5e (2024).
+ *
+ * Desacoplado de la capa de interfaz de usuario y hooks de React.
+ */
+
+import type {
+  PersonajeJugador,
+  Caracteristica,
+  Habilidad,
+  EfectoPasivo,
+  GradoCompetencia,
+  ObjetoHomebrew,
+  ObjetoBase
+} from "@/tipos";
+import {
+  obtenerBonoCompetenciaPorNivel,
+  MAPA_HABILIDAD_A_CARACTERISTICA
+} from "@/constantes";
+import { esCompetenteConArmadura } from "@/constantes/competenciasConstantes";
+import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescansos";
+import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
+import {
+  obtenerBestiaFormaActiva,
+  esDruidaCirculoLuna,
+  extraerSentidosBestia
+} from "@/servicios/reglasFormaSalvaje";
+import {
+  calcularModificadoresStatsRasgos,
+  calcularDefensaSinArmaduraRasgos,
+  calcularBonoVelocidadRasgos,
+  calcularBonoHPMaximoRasgos,
+  obtenerBonoDanoFuria,
+  obtenerNivelClasePersonaje,
+  estaFuriaActiva,
+  obtenerBonosSalvacionesRasgos,
+  obtenerHabilidadesConFuerzaRasgos,
+  tieneMedioBonoHabilidades,
+  obtenerCompetenciasExtraRasgos,
+  obtenerCompetenciasEfectivasTexto,
+  obtenerLimiteDesArmaduraMedia,
+  obtenerBonoCARasgos,
+  obtenerBonosHabilidadesRasgos
+} from "@/servicios/evaluadorEfectosRasgos";
+import { ARMADURAS_OFICIALES } from "@/constantes/equipoConstantes";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+
+export interface InformacionCA {
+  total: number;
+  base: number;
+  modDestrezaAplicado: number;
+  bonoEscudo: number;
+  bonosMagicos: number;
+  armaduraEquipadaNombre: string | null;
+  escudoEquipadoNombre: string | null;
+  tipoArmadura: "Sin Armadura" | "Ligera" | "Mediana" | "Pesada";
+  desglose: string;
+  desventajaSigilo?: boolean;
+}
+
+export interface PenalizacionArmadura {
+  sinCompetencia: boolean;
+  armaduraNoCompetente: string | null;
+  escudoNoCompetente: string | null;
+}
+
+/** Estadísticas y bonificadores dinámicos calculados a partir de un personaje. */
+export interface EstadisticasCalculadasPersonaje {
+  bonoCompetencia: number;
+  puntuacionesEfectivas: Record<Caracteristica, number>;
+  modificadores: Record<Caracteristica, number>;
+  salvaciones: Record<Caracteristica, number>;
+  habilidades: Record<Habilidad, number>;
+  gradosHabilidadesEfectivos: Record<Habilidad, GradoCompetencia>;
+  pasivas: {
+    percepcion: number;
+    investigacion: number;
+    perspicacia: number;
+  };
+  claseArmadura: InformacionCA;
+  penalizacionArmadura: PenalizacionArmadura;
+  desventajaSigiloArmadura: boolean;
+  bonoVelocidadRasgos: number;
+  bonoHPMaximoRasgos: number;
+  hpMaximoEfectivo: number;
+  bonoDanoFuria: number;
+  competenciasEfectivas: {
+    armasTexto: string;
+    armadurasTexto: string;
+    herramientasTexto: string;
+    herramientasLista: string[];
+  };
+}
+
+/**
+ * Extrae de forma segura el bonificador o valor de CA especificado en una cadena de propiedades
+ * (por ejemplo "Escudo, CA +3", "+2 CA", "CA 15").
+ */
+export function extraerCaDePropiedades(propiedades?: string | string[]): number | null {
+  if (!propiedades) return null;
+  const texto = Array.isArray(propiedades) ? propiedades.join(" ") : String(propiedades);
+  const matchBono = texto.match(/CA\s*\+\s*(\d+)/i) || texto.match(/\+\s*(\d+)\s*CA/i);
+  if (matchBono) {
+    return parseInt(matchBono[1], 10);
+  }
+  const matchFijo = texto.match(/CA\s*(\d+)/i);
+  if (matchFijo) {
+    return parseInt(matchFijo[1], 10);
+  }
+  return null;
+}
+
+const cacheEstadisticasPersonaje = new WeakMap<
+  PersonajeJugador,
+  { catalogo: ObjetoHomebrew[]; valor: EstadisticasCalculadasPersonaje }
+>();
+
+let cacheMapaObjetosRef: unknown = null;
+let cacheMapaObjetos: Map<string, ObjetoHomebrew | ObjetoBase> | null = null;
+
+function obtenerMapaObjetos(
+  homebrews: ObjetoHomebrew[],
+  normalizar: (s: string) => string
+): Map<string, ObjetoHomebrew | ObjetoBase> {
+  if (cacheMapaObjetosRef === homebrews && cacheMapaObjetos) {
+    return cacheMapaObjetos;
+  }
+  cacheMapaObjetosRef = homebrews;
+  const mapa = new Map<string, ObjetoHomebrew | ObjetoBase>();
+
+  for (const obj of OBJETOS_INICIALES) {
+    if (obj.id) mapa.set(obj.id, obj);
+    if (obj.nombre) mapa.set(normalizar(obj.nombre), obj);
+  }
+  for (const obj of homebrews) {
+    if (obj && obj.id) mapa.set(obj.id, obj);
+    if (obj && obj.nombre) mapa.set(normalizar(obj.nombre), obj);
+  }
+
+  cacheMapaObjetos = mapa;
+  return mapa;
+}
+
+/**
+ * Función pura que calcula todas las estadísticas derivadas de un personaje
+ * conforme a las reglas oficiales de D&D 5.5e.
+ * Optimizado con caché referencial WeakMap O(1) e índice Map de inventario O(1).
+ */
+export function calcularEstadisticasPersonaje(
+  pj: PersonajeJugador,
+  homebrewsExternos?: ObjetoHomebrew[]
+): EstadisticasCalculadasPersonaje {
+  // ponytail: fallback defensivo al almacén DM si no se inyecta catálogo externo
+  const homebrews = homebrewsExternos ?? usarAlmacenDM.getState().objetosHomebrew;
+  if (pj && typeof pj === "object") {
+    const enCache = cacheEstadisticasPersonaje.get(pj);
+    if (enCache?.catalogo === homebrews) {
+      return enCache.valor;
+    }
+  }
+  const nivel = pj?.nivel || 1;
+  const bonoCompetencia = obtenerBonoCompetenciaPorNivel(nivel);
+
+  const carac = pj?.caracteristicas || {
+    fuerza: 10,
+    destreza: 10,
+    constitucion: 10,
+    inteligencia: 10,
+    sabiduria: 10,
+    carisma: 10
+  };
+
+  const overrides = pj?.overridesFijos || {
+    fuerza: null,
+    destreza: null,
+    constitucion: null,
+    inteligencia: null,
+    sabiduria: null,
+    carisma: null
+  };
+
+  const personalizacionesCarac = pj?.personalizacionesCaracteristicas || {};
+  const inventario = pj?.inventario || [];
+  const normalizar = (s: string) =>
+    s
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
+  // Mapeo tolerante de alias de características
+  const MAPA_ALIAS_CARAC: Record<string, Caracteristica> = {
+    fue: "fuerza",
+    fuerza: "fuerza",
+    str: "fuerza",
+    des: "destreza",
+    destreza: "destreza",
+    dex: "destreza",
+    con: "constitucion",
+    constitucion: "constitucion",
+    int: "inteligencia",
+    inteligencia: "inteligencia",
+    sab: "sabiduria",
+    sabiduria: "sabiduria",
+    wis: "sabiduria",
+    car: "carisma",
+    carisma: "carisma",
+    cha: "carisma"
+  };
+
+  // Recopilar efectos pasivos activos de objetos equipados y sintonizados
+  const efectosPasivosActivos: EfectoPasivo[] = [];
+  let bonosModificadorDirectoArmadura = 0;
+  const mapaObjetos = obtenerMapaObjetos(homebrews, normalizar);
+
+  for (const item of inventario) {
+    if (!item.equipado) continue;
+    if (item.sintonizacionRequerida && !item.sintonizado) continue;
+
+    const objetoComp =
+      (item.idObjeto ? mapaObjetos.get(item.idObjeto) : undefined) ||
+      (item.nombre ? mapaObjetos.get(normalizar(item.nombre)) : undefined);
+
+    const efectosDirectos = item.efectosPasivos;
+    const efectosComp = objetoComp?.efectosPasivos;
+    const listaEfectos = Array.isArray(efectosDirectos) && efectosDirectos.length > 0 ? efectosDirectos : efectosComp;
+
+    if (listaEfectos && Array.isArray(listaEfectos)) {
+      efectosPasivosActivos.push(...listaEfectos);
+    }
+
+    const modDirecto = item.modificadorAtaqueDano ?? objetoComp?.modificadorAtaqueDano;
+    if (modDirecto && (item.categoria === "armaduras" || item.categoria === "escudos")) {
+      bonosModificadorDirectoArmadura += Number(modDirecto) || 0;
+    }
+  }
+
+  // Bonos de características procedentes de rasgos mecánicos (ej. Campeón primigenio)
+  const { bonos: bonosStatsRasgos, limitesMaximos: limitesStatsRasgos } = pj
+    ? calcularModificadoresStatsRasgos(pj)
+    : {
+        bonos: { fuerza: 0, destreza: 0, constitucion: 0, inteligencia: 0, sabiduria: 0, carisma: 0 },
+        limitesMaximos: {}
+      };
+
+  const bestiaActiva = pj ? obtenerBestiaFormaActiva(pj) : null;
+
+  const puntuacionesEfectivas: Record<Caracteristica, number> = {
+    fuerza:
+      bestiaActiva?.caracteristicas?.fuerza ??
+      personalizacionesCarac.fuerza?.valorFijo ??
+      overrides.fuerza ??
+      Math.min(limitesStatsRasgos.fuerza || 20, (carac.fuerza ?? 10) + bonosStatsRasgos.fuerza),
+    destreza:
+      bestiaActiva?.caracteristicas?.destreza ??
+      personalizacionesCarac.destreza?.valorFijo ??
+      overrides.destreza ??
+      Math.min(limitesStatsRasgos.destreza || 20, (carac.destreza ?? 10) + bonosStatsRasgos.destreza),
+    constitucion:
+      bestiaActiva?.caracteristicas?.constitucion ??
+      personalizacionesCarac.constitucion?.valorFijo ??
+      overrides.constitucion ??
+      Math.min(limitesStatsRasgos.constitucion || 20, (carac.constitucion ?? 10) + bonosStatsRasgos.constitucion),
+    inteligencia:
+      personalizacionesCarac.inteligencia?.valorFijo ??
+      overrides.inteligencia ??
+      Math.min(limitesStatsRasgos.inteligencia || 20, (carac.inteligencia ?? 10) + bonosStatsRasgos.inteligencia),
+    sabiduria:
+      personalizacionesCarac.sabiduria?.valorFijo ??
+      overrides.sabiduria ??
+      Math.min(limitesStatsRasgos.sabiduria || 20, (carac.sabiduria ?? 10) + bonosStatsRasgos.sabiduria),
+    carisma:
+      personalizacionesCarac.carisma?.valorFijo ??
+      overrides.carisma ??
+      Math.min(limitesStatsRasgos.carisma || 20, (carac.carisma ?? 10) + bonosStatsRasgos.carisma)
+  };
+
+  // Aplicar bonos y overrides pasivos a características
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("caracteristica") || tipoNorm === "atributo") {
+      const caracClave = MAPA_ALIAS_CARAC[normalizar(efecto.bono || "")];
+      if (caracClave) {
+        const valNum = Number(efecto.valor);
+        if (!isNaN(valNum)) {
+          if (valNum >= 19) {
+            puntuacionesEfectivas[caracClave] = Math.max(puntuacionesEfectivas[caracClave], valNum);
+          } else {
+            puntuacionesEfectivas[caracClave] += valNum;
+          }
+        }
+      }
+    }
+  }
+
+  const modificadores: Record<Caracteristica, number> = {
+    fuerza:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.fuerza) +
+      (personalizacionesCarac.fuerza?.modificadorExtra || 0),
+    destreza:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.destreza) +
+      (personalizacionesCarac.destreza?.modificadorExtra || 0),
+    constitucion:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.constitucion) +
+      (personalizacionesCarac.constitucion?.modificadorExtra || 0),
+    inteligencia:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.inteligencia) +
+      (personalizacionesCarac.inteligencia?.modificadorExtra || 0),
+    sabiduria:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.sabiduria) +
+      (personalizacionesCarac.sabiduria?.modificadorExtra || 0),
+    carisma:
+      calcularModificadorCaracteristica(puntuacionesEfectivas.carisma) +
+      (personalizacionesCarac.carisma?.modificadorExtra || 0)
+  };
+
+  const compExtraRasgos = pj
+    ? obtenerCompetenciasExtraRasgos(pj)
+    : {
+        armasGrupos: [] as ("sencillas" | "marciales" | "fuego")[],
+        armadurasGrupos: [] as ("ligeras" | "medias" | "pesadas" | "escudos")[],
+        herramientas: [] as string[],
+        salvaciones: [] as Caracteristica[],
+        idiomas: [] as string[],
+        habilidades: [] as Habilidad[],
+        pericias: [] as Habilidad[]
+      };
+  const compSalv = {
+    fuerza: (pj?.competenciasSalvacion?.fuerza || false) || compExtraRasgos.salvaciones.includes("fuerza"),
+    destreza: (pj?.competenciasSalvacion?.destreza || false) || compExtraRasgos.salvaciones.includes("destreza"),
+    constitucion: (pj?.competenciasSalvacion?.constitucion || false) || compExtraRasgos.salvaciones.includes("constitucion"),
+    inteligencia: (pj?.competenciasSalvacion?.inteligencia || false) || compExtraRasgos.salvaciones.includes("inteligencia"),
+    sabiduria: (pj?.competenciasSalvacion?.sabiduria || false) || compExtraRasgos.salvaciones.includes("sabiduria"),
+    carisma: (pj?.competenciasSalvacion?.carisma || false) || compExtraRasgos.salvaciones.includes("carisma")
+  };
+
+  const salvaciones: Record<Caracteristica, number> = {
+    fuerza:
+      modificadores.fuerza +
+      (compSalv.fuerza ? bonoCompetencia : 0) +
+      (personalizacionesCarac.fuerza?.bonoSalvacionExtra || 0),
+    destreza:
+      modificadores.destreza +
+      (compSalv.destreza ? bonoCompetencia : 0) +
+      (personalizacionesCarac.destreza?.bonoSalvacionExtra || 0),
+    constitucion:
+      modificadores.constitucion +
+      (compSalv.constitucion ? bonoCompetencia : 0) +
+      (personalizacionesCarac.constitucion?.bonoSalvacionExtra || 0),
+    inteligencia:
+      modificadores.inteligencia +
+      (compSalv.inteligencia ? bonoCompetencia : 0) +
+      (personalizacionesCarac.inteligencia?.bonoSalvacionExtra || 0),
+    sabiduria:
+      modificadores.sabiduria +
+      (compSalv.sabiduria ? bonoCompetencia : 0) +
+      (personalizacionesCarac.sabiduria?.bonoSalvacionExtra || 0),
+    carisma:
+      modificadores.carisma +
+      (compSalv.carisma ? bonoCompetencia : 0) +
+      (personalizacionesCarac.carisma?.bonoSalvacionExtra || 0)
+  };
+
+  // Aplicar bonos pasivos a tiradas de salvación
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("salvacion")) {
+      const bonoNorm = normalizar(efecto.bono || "");
+      const valNum = Number(efecto.valor) || 0;
+      if (bonoNorm === "todas" || bonoNorm === "universal" || bonoNorm === "todas las salvaciones") {
+        for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+          salvaciones[k] += valNum;
+        }
+      } else {
+        const caracClave = MAPA_ALIAS_CARAC[bonoNorm];
+        if (caracClave) {
+          salvaciones[caracClave] += valNum;
+        }
+      }
+    }
+  }
+
+  // Bonos a salvaciones procedentes de efectos mecánicos de rasgos (bono_salvacion)
+  if (pj) {
+    const bonosSalvRasgos = obtenerBonosSalvacionesRasgos(pj);
+    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+      salvaciones[k] += bonosSalvRasgos[k] || 0;
+    }
+  }
+
+  // Enfoque fanático (Senda del Fanático): bono de Daño de Furia a todas las salvaciones si está activo
+  const rasgoEnfoque = (pj?.rasgos || []).find(
+    (r) => (r.id.includes("enfoque_fanatico") || normalizar(r.nombre).includes("enfoque fanatico")) && r.activo
+  );
+  if (rasgoEnfoque && (!pj || !pj.rasgos?.some((r) => r.activo && r.efectos?.some((e) => e.tipo === "bono_salvacion")))) {
+    const nivelBarbaro =
+      obtenerNivelClasePersonaje(pj as PersonajeJugador, "bárbaro") ||
+      obtenerNivelClasePersonaje(pj as PersonajeJugador, "barbaro") ||
+      pj?.nivel ||
+      1;
+    const bonoFuriaSalv = obtenerBonoDanoFuria(nivelBarbaro);
+    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+      salvaciones[k] += bonoFuriaSalv;
+    }
+  }
+
+  // D&D 2024: Si está en Forma salvaje, conserva sus competencias y gana las de la bestia.
+  // Si la bestia tiene un bono superior en su ficha, usa el bono de la bestia.
+  if (bestiaActiva?.salvaciones) {
+    for (const [k, modBestia] of Object.entries(bestiaActiva.salvaciones)) {
+      if (typeof modBestia === "number" && k in salvaciones) {
+        salvaciones[k as Caracteristica] = Math.max(salvaciones[k as Caracteristica], modBestia);
+      }
+    }
+  }
+
+  const habilidades = {} as Record<Habilidad, number>;
+  const gradosHabilidadesEfectivos = {} as Record<Habilidad, GradoCompetencia>;
+  const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
+  const grados = pj?.gradosHabilidades || {};
+  const personalizaciones = pj?.personalizacionesHabilidades || {};
+  const habsConFuerzaRasgos = pj ? obtenerHabilidadesConFuerzaRasgos(pj) : new Set<string>();
+  const tieneAprendiz = pj ? tieneMedioBonoHabilidades(pj) : false;
+
+  for (const hab of listaHabilidades) {
+    const caracAsociada = MAPA_HABILIDAD_A_CARACTERISTICA[hab];
+    const modBase = modificadores[caracAsociada] || 0;
+    const gradoExtra = compExtraRasgos.habilidades?.includes(hab) ? "competente" : "ninguna";
+    const gradoGuardado = grados[hab] || "ninguna";
+    const gradoBase: GradoCompetencia =
+      gradoGuardado === "pericia"
+        ? "pericia"
+        : gradoExtra === "competente"
+        ? "competente"
+        : gradoGuardado;
+    const grado: GradoCompetencia = compExtraRasgos.pericias.includes(hab)
+      ? "pericia"
+      : gradoBase === "ninguna" && tieneAprendiz
+      ? "medio"
+      : gradoBase;
+    gradosHabilidadesEfectivos[hab] = grado;
+    const custom = personalizaciones[hab];
+
+    if (custom?.valorFijo !== null && custom?.valorFijo !== undefined) {
+      habilidades[hab] = custom.valorFijo;
+    } else {
+      let bonoHabilidad = 0;
+      if (grado === "competente") {
+        bonoHabilidad = bonoCompetencia;
+      } else if (grado === "pericia") {
+        bonoHabilidad = bonoCompetencia * 2;
+      } else if (grado === "medio") {
+        bonoHabilidad = Math.floor(bonoCompetencia / 2);
+      }
+
+      const modExtra = custom?.modificadorExtra || 0;
+      // Conocimiento primigenio / Habilidad con Fuerza: si está configurado en rasgos o con Furia activa
+      const usaFuerzaPorRasgo = habsConFuerzaRasgos.has(hab);
+
+      const modEfectivo = usaFuerzaPorRasgo && modificadores.fuerza > modBase ? modificadores.fuerza : modBase;
+      habilidades[hab] = modEfectivo + bonoHabilidad + modExtra;
+    }
+  }
+
+  // Aplicar bonos pasivos a habilidades procedentes de equipo
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm.includes("habilidad") || tipoNorm.includes("pericia")) {
+      const bonoNorm = normalizar(efecto.bono || "");
+      const valNum = Number(efecto.valor) || 0;
+      if (bonoNorm === "todas" || bonoNorm === "universal") {
+        for (const hab of listaHabilidades) {
+          habilidades[hab] += valNum;
+        }
+      } else {
+        const matchHab = listaHabilidades.find((h) => normalizar(h) === bonoNorm);
+        if (matchHab) {
+          habilidades[matchHab] += valNum;
+        }
+      }
+    }
+  }
+
+  // Bonos a habilidades procedentes de efectos mecánicos de rasgos (bono_habilidad)
+  if (pj) {
+    const bonosHabsRasgos = obtenerBonosHabilidadesRasgos(pj);
+    for (const [hab, bono] of Object.entries(bonosHabsRasgos)) {
+      if (hab in habilidades && typeof bono === "number") {
+        habilidades[hab as Habilidad] += bono;
+      }
+    }
+  }
+
+  // D&D 2024: Si está en Forma salvaje, conserva sus competencias y gana las de la bestia.
+  // Si la bestia tiene un bono superior en su ficha, usa el bono de la bestia.
+  if (bestiaActiva?.habilidades) {
+    for (const [hab, modBestia] of Object.entries(bestiaActiva.habilidades)) {
+      if (typeof modBestia === "number" && hab in habilidades) {
+        habilidades[hab as Habilidad] = Math.max(habilidades[hab as Habilidad], modBestia);
+      }
+    }
+  }
+
+  const sentidosBestia = bestiaActiva ? extraerSentidosBestia(bestiaActiva) : null;
+  const pasivas = {
+    percepcion: Math.max(10 + (habilidades.percepcion || 0), sentidosBestia?.percepcionPasiva ?? 0),
+    investigacion: 10 + (habilidades.investigacion || 0),
+    perspicacia: 10 + (habilidades.perspicacia || 0)
+  };
+
+  // ==========================================
+  // CÁLCULO DE CLASE DE ARMADURA (CA - D&D 5.5e)
+  // ==========================================
+
+  // 1. Identificar armadura corporal y escudo equipados
+  const armaduraObj = inventario.find((o) => o.equipado && o.categoria === "armaduras");
+  const escudoObj = inventario.find((o) => o.equipado && o.categoria === "escudos");
+
+  const armaduraBase = armaduraObj
+    ? homebrews.find((b) => b.id === armaduraObj.idObjeto || normalizar(b.nombre) === normalizar(armaduraObj.nombre)) ||
+      OBJETOS_INICIALES.find((b) => b.id === armaduraObj.idObjeto || normalizar(b.nombre) === normalizar(armaduraObj.nombre))
+    : undefined;
+
+  const escudoBase = escudoObj
+    ? homebrews.find((b) => b.id === escudoObj.idObjeto || normalizar(b.nombre) === normalizar(escudoObj.nombre)) ||
+      OBJETOS_INICIALES.find((b) => b.id === escudoObj.idObjeto || normalizar(b.nombre) === normalizar(escudoObj.nombre))
+    : undefined;
+
+  let caBase = 10;
+  let modDesAplicado = modificadores.destreza || 0;
+  let tipoArmadura: InformacionCA["tipoArmadura"] = "Sin Armadura";
+  let armaduraNombre: string | null = null;
+  const desglosePartes: string[] = [];
+
+  const clasePrincipal = pj?.clase || "";
+  const clasesPj = (pj?.clases || []).map((c) => c.nombre);
+  const esBarbaro = clasePrincipal === "Bárbaro" || clasesPj.includes("Bárbaro");
+  const esMonje = clasePrincipal === "Monje" || clasesPj.includes("Monje");
+
+  if (armaduraObj) {
+    armaduraNombre = armaduraObj.nombre;
+    const nombreNorm = normalizar(armaduraObj.nombre);
+    const refOficial = ARMADURAS_OFICIALES[nombreNorm];
+
+    if (refOficial) {
+      caBase = refOficial.caBase;
+      tipoArmadura = refOficial.tipo;
+      if (refOficial.limiteDes === null) {
+        modDesAplicado = modificadores.destreza;
+      } else if (refOficial.limiteDes === 2) {
+        const limiteDesEfectivo = pj ? obtenerLimiteDesArmaduraMedia(pj) : 2;
+        modDesAplicado = Math.min(limiteDesEfectivo, Math.max(0, modificadores.destreza));
+      } else {
+        modDesAplicado = 0;
+      }
+    } else {
+      // Soporte integral para armaduras homebrew / custom
+      const caBaseHomebrew =
+        armaduraObj.caBase ??
+        (armaduraBase && "caBase" in armaduraBase ? Number((armaduraBase as { caBase: number }).caBase) : undefined) ??
+        extraerCaDePropiedades(armaduraObj.propiedades) ??
+        extraerCaDePropiedades(armaduraBase?.propiedades) ??
+        11;
+      caBase = caBaseHomebrew;
+
+      const subcatNorm = normalizar(armaduraObj.subcategoria || armaduraBase?.subcategoria || "");
+      const bonoDesNorm = normalizar(
+        String(
+          armaduraObj.bonoDestreza ||
+            (armaduraBase && "bonoDestreza" in armaduraBase
+              ? (armaduraBase as { bonoDestreza: string }).bonoDestreza
+              : "")
+        )
+      );
+
+      if (subcatNorm.includes("pesada") || bonoDesNorm.includes("sin")) {
+        tipoArmadura = "Pesada";
+        modDesAplicado = 0;
+      } else if (subcatNorm.includes("mediana") || bonoDesNorm.includes("max") || bonoDesNorm.includes("2")) {
+        tipoArmadura = "Mediana";
+        const limiteDesEfectivo = pj ? obtenerLimiteDesArmaduraMedia(pj) : 2;
+        modDesAplicado = Math.min(limiteDesEfectivo, Math.max(0, modificadores.destreza));
+      } else {
+        tipoArmadura = "Ligera";
+        modDesAplicado = modificadores.destreza;
+      }
+    }
+    desglosePartes.push(`${armaduraObj.nombre} ${caBase}`);
+    if (modDesAplicado !== 0) {
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+    }
+  } else {
+    // Sin armadura equipada
+    caBase = 10;
+    desglosePartes.push(`Base 10`);
+
+    // Comprobar primero rasgos mecánicos (Bárbaro, Monje o clases Homebrew con Defensa sin armadura)
+    const defSinArmadura = pj ? calcularDefensaSinArmaduraRasgos(pj, modificadores) : null;
+    if (defSinArmadura?.aplica) {
+      const statNom = (defSinArmadura.caracteristicaExtra || "con").toUpperCase();
+      const bonoStat = defSinArmadura.bonoExtra;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (bonoStat !== 0) {
+        desglosePartes.push(`${statNom} ${bonoStat >= 0 ? `+${bonoStat}` : bonoStat}`);
+        caBase += bonoStat;
+      }
+    } else if (esBarbaro) {
+      // Fallback si el rasgo aún no fue sincronizado
+      const modCon = modificadores.constitucion || 0;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (modCon !== 0) {
+        desglosePartes.push(`CON ${modCon >= 0 ? `+${modCon}` : modCon}`);
+        caBase += modCon;
+      }
+    } else if (esMonje && !escudoObj) {
+      // Fallback Monje
+      const modSab = modificadores.sabiduria || 0;
+      desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      if (modSab !== 0) {
+        desglosePartes.push(`SAB ${modSab >= 0 ? `+${modSab}` : modSab}`);
+        caBase += modSab;
+      }
+    } else {
+      if (modDesAplicado !== 0) {
+        desglosePartes.push(`DES ${modDesAplicado >= 0 ? `+${modDesAplicado}` : modDesAplicado}`);
+      }
+    }
+  }
+
+  // 2. Escudo (Soporte dinámico para escudos estándar (+2) o con caBase personalizada (+3, etc.))
+  let bonoEscudo = 0;
+  let escudoNombre: string | null = null;
+  let bonoMagicoEscudoPorNombre = 0;
+
+  if (escudoObj) {
+    escudoNombre = escudoObj.nombre;
+    const caBaseEscudo =
+      escudoObj.caBase ??
+      (escudoBase && "caBase" in escudoBase ? Number((escudoBase as { caBase: number }).caBase) : undefined) ??
+      extraerCaDePropiedades(escudoObj.propiedades) ??
+      extraerCaDePropiedades(escudoBase?.propiedades) ??
+      2;
+
+    bonoEscudo = caBaseEscudo;
+
+    if (escudoObj.esMagico && escudoObj.nombre) {
+      const match = escudoObj.nombre.match(/\+(\d+)/);
+      if (match) {
+        const b = parseInt(match[1], 10);
+        if (!(caBaseEscudo > 2 && caBaseEscudo >= 2 + b)) {
+          bonoMagicoEscudoPorNombre = b;
+        }
+      }
+    }
+
+    desglosePartes.push(`${escudoObj.nombre} +${bonoEscudo}`);
+  }
+
+  // 3. Bonos Mágicos y Efectos Pasivos de CA
+  let bonosMagicos = 0;
+  if (armaduraObj?.esMagico && armaduraObj.nombre) {
+    const match = armaduraObj.nombre.match(/\+(\d+)/);
+    if (match) {
+      const b = parseInt(match[1], 10);
+      bonosMagicos += b;
+      desglosePartes.push(`Magia +${b}`);
+    }
+  }
+  if (bonoMagicoEscudoPorNombre > 0) {
+    bonosMagicos += bonoMagicoEscudoPorNombre;
+    desglosePartes.push(`Escudo Mágico +${bonoMagicoEscudoPorNombre}`);
+  }
+
+  let bonosPasivosCA = 0;
+  for (const efecto of efectosPasivosActivos) {
+    const tipoNorm = normalizar(efecto.tipo || "");
+    if (tipoNorm === "ca" || tipoNorm === "defensa" || tipoNorm === "clase de armadura") {
+      const valNum = Number(efecto.valor) || (efecto.bono && !isNaN(Number(efecto.bono)) ? Number(efecto.bono) : 1);
+      bonosPasivosCA += valNum;
+    }
+  }
+
+  if (bonosPasivosCA > 0) {
+    bonosMagicos += bonosPasivosCA;
+    desglosePartes.push(`Objetos Mágicos +${bonosPasivosCA}`);
+  }
+
+  const tieneBonoEnNombre = /\+(\d+)/.test(armaduraObj?.nombre || "") || /\+(\d+)/.test(escudoObj?.nombre || "");
+  if (bonosModificadorDirectoArmadura > 0 && !tieneBonoEnNombre) {
+    bonosMagicos += bonosModificadorDirectoArmadura;
+    desglosePartes.push(`Refuerzo Mágico +${bonosModificadorDirectoArmadura}`);
+  }
+
+  // Bonos a la CA procedentes de rasgos mecánicos (ej. Defensa +1)
+  const bonosCARasgos = pj ? obtenerBonoCARasgos(pj) : { bonoTotal: 0, fuentes: [] };
+  if (bonosCARasgos.bonoTotal !== 0) {
+    bonosMagicos += bonosCARasgos.bonoTotal;
+    for (const f of bonosCARasgos.fuentes) {
+      desglosePartes.push(`${f.nombre} ${f.valor >= 0 ? `+${f.valor}` : f.valor}`);
+    }
+  }
+
+  let desventajaSigiloArmadura = false;
+  if (armaduraObj) {
+    const nombreNorm = normalizar(armaduraObj.nombre);
+    const refOficial = ARMADURAS_OFICIALES[nombreNorm];
+    if (
+      refOficial?.desventajaSigilo ||
+      armaduraObj.desventajaSigilo ||
+      (armaduraBase && "desventajaSigilo" in armaduraBase && !!(armaduraBase as { desventajaSigilo: boolean }).desventajaSigilo) ||
+      (armaduraObj.notas && normalizar(armaduraObj.notas).includes("desventaja en sigilo"))
+    ) {
+      desventajaSigiloArmadura = true;
+    }
+  }
+  if (escudoObj) {
+    if (
+      escudoObj.desventajaSigilo ||
+      (escudoBase && "desventajaSigilo" in escudoBase && !!(escudoBase as { desventajaSigilo: boolean }).desventajaSigilo) ||
+      (escudoObj.notas && normalizar(escudoObj.notas).includes("desventaja en sigilo"))
+    ) {
+      desventajaSigiloArmadura = true;
+    }
+  }
+
+  let totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
+  if (bestiaActiva) {
+    const esLuna = pj ? esDruidaCirculoLuna(pj) : false;
+    const modSab = modificadores.sabiduria || 0;
+    const caBestia = bestiaActiva.ca || 10;
+    const caFinal = esLuna ? caBestia + modSab : caBestia;
+
+    totalCA = caFinal;
+    caBase = caFinal;
+    modDesAplicado = 0;
+    bonoEscudo = 0;
+    bonosMagicos = 0;
+    armaduraNombre = null;
+    escudoNombre = null;
+    tipoArmadura = "Sin Armadura";
+    desventajaSigiloArmadura = false;
+
+    if (esLuna && modSab !== 0) {
+      desglosePartes.splice(
+        0,
+        desglosePartes.length,
+        `${bestiaActiva.nombre} ${caBestia}`,
+        `SAB ${modSab >= 0 ? `+${modSab}` : modSab}`
+      );
+    } else {
+      desglosePartes.splice(0, desglosePartes.length, `${bestiaActiva.nombre} (${caBestia})`);
+    }
+  }
+
+  const claseArmadura: InformacionCA = {
+    total: totalCA,
+    base: caBase,
+    modDestrezaAplicado: modDesAplicado,
+    bonoEscudo,
+    bonosMagicos,
+    armaduraEquipadaNombre: armaduraNombre,
+    escudoEquipadoNombre: escudoNombre,
+    tipoArmadura,
+    desglose: `CA ${totalCA} (${desglosePartes.join(" + ")})`,
+    desventajaSigilo: desventajaSigiloArmadura
+  };
+
+  // ==========================================
+  // PENALIZACIÓN POR ARMADURA SIN COMPETENCIA (D&D 5.5e)
+  // ==========================================
+  let armaduraNoCompetente: string | null = null;
+  let escudoNoCompetente: string | null = null;
+
+  const gruposArmadura = Array.from(
+    new Set([...(pj?.competenciasArmadurasGrupos || []), ...compExtraRasgos.armadurasGrupos])
+  );
+  const listaArmaduras = pj?.competenciasArmadurasLista || [];
+
+  if (armaduraObj) {
+    const subcat = tipoArmadura !== "Sin Armadura" ? tipoArmadura : "Ligera";
+    const esCompArmadura = esCompetenteConArmadura(
+      armaduraObj.nombre,
+      subcat,
+      gruposArmadura,
+      listaArmaduras
+    );
+    if (!esCompArmadura) {
+      armaduraNoCompetente = armaduraObj.nombre;
+    }
+  }
+
+  if (escudoObj) {
+    const esCompEscudo = esCompetenteConArmadura(
+      escudoObj.nombre,
+      "Escudo",
+      gruposArmadura,
+      listaArmaduras
+    );
+    if (!esCompEscudo) {
+      escudoNoCompetente = escudoObj.nombre;
+    }
+  }
+
+  if (bestiaActiva) {
+    armaduraNoCompetente = null;
+    escudoNoCompetente = null;
+  }
+
+  const penalizacionArmadura: PenalizacionArmadura = {
+    sinCompetencia: !!armaduraNoCompetente || !!escudoNoCompetente,
+    armaduraNoCompetente,
+    escudoNoCompetente
+  };
+
+  const nivelBarbaro = pj ? obtenerNivelClasePersonaje(pj, "Bárbaro") : 0;
+  const furiaActiva = pj ? estaFuriaActiva(pj) : false;
+  const bonoDanoFuria = furiaActiva && nivelBarbaro > 0 ? obtenerBonoDanoFuria(nivelBarbaro) : 0;
+  const bonoVelocidadRasgos = pj ? calcularBonoVelocidadRasgos(pj) : 0;
+  const bonoHPMaximoRasgos = pj ? calcularBonoHPMaximoRasgos(pj) : 0;
+  const hpMaximoEfectivo = pj ? pj.hpMaximo || pj.hpMaximoBase || 10 : 10;
+  const competenciasEfectivas = pj
+    ? obtenerCompetenciasEfectivasTexto(pj)
+    : { armasTexto: "Ninguna", armadurasTexto: "Ninguna", herramientasTexto: "Ninguna", herramientasLista: [] };
+
+  const resultado: EstadisticasCalculadasPersonaje = {
+    bonoCompetencia,
+    puntuacionesEfectivas,
+    modificadores,
+    salvaciones,
+    habilidades,
+    gradosHabilidadesEfectivos,
+    pasivas,
+    claseArmadura,
+    penalizacionArmadura,
+    desventajaSigiloArmadura,
+    bonoVelocidadRasgos,
+    bonoHPMaximoRasgos,
+    hpMaximoEfectivo,
+    bonoDanoFuria,
+    competenciasEfectivas
+  };
+
+  if (pj && typeof pj === "object") {
+    cacheEstadisticasPersonaje.set(pj, { catalogo: homebrews, valor: resultado });
+  }
+
+  return resultado;
+}

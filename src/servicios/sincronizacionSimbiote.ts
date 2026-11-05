@@ -1,4 +1,4 @@
-import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
+﻿import { autorizarMensaje, autorizarPersonaje, puedeEmitirPJ, invalidarAutoridadSync } from "./sincronizacion/autoridadSync";
 /**
  * @module sincronizacionSimbiote
  * Motor de sincronización bidireccional en tiempo real entre instancias del Simbiote (DM y Jugadores).
@@ -19,7 +19,7 @@ import {
   deserializarIniciativaDM,
   type WireMensajeSync,
 } from "@/tipos/sync";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 import { BufferChunksIniciativa } from "./sincronizacion/bufferChunksIniciativa";

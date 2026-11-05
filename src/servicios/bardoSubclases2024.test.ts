@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+﻿import { beforeEach, describe, expect, it } from "vitest";
 import datos from "@/datos/clases/bardo.json";
 import HECHIZOS from "@/utiles/compendios/all.json";
 import { EsquemaHechizoBase, EsquemaPersonajeJugador, EsquemaObjetoInventario, type PersonajeJugador } from "@/tipos";
@@ -19,7 +19,7 @@ import { consumirRecursoConjuro } from "./consumidorRecursosConjuros";
 import { prepararLanzamiento, validarLanzamiento } from "./servicioLanzamientoConjuros";
 import { aplicarConfiguracionConjurosRasgos } from "./rasgos/conjurosGratuitosRasgos";
 import { deshidratarPersonaje, hidratarPersonaje } from "./serializadorPersonaje";
-import { calcularEstadisticasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 
 const colegios = datos.subclases.map(s => s.nombre);
 const catalogo = HECHIZOS.map(h => EsquemaHechizoBase.parse(h));

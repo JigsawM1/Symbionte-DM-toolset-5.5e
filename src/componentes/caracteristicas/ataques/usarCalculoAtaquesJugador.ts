@@ -1,14 +1,14 @@
-import { emitirTiradaDanoConRasgos, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+﻿import { emitirTiradaDanoConRasgos, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   usarEstadoPersonajes,
   usarAccionesPersonajes,
-  calcularEstadisticasPersonaje,
   usarEstadoHomebrew,
   usarEstadoConfiguracion,
   usarAccionesConfiguracion
-} from "@/almacen/selectores";
+} from '@/almacen/selectores';
+import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { esLanzadorCarisma, esLanzadorSabiduria, esClasePacto } from "@/constantes";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 export type {

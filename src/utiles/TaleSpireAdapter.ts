@@ -41,7 +41,7 @@ export class TaleSpireAdapter {
   readonly units = new TaleSpireUnitsAdapter();
   readonly clients = new TaleSpireClientsAdapter();
   readonly players = new TaleSpirePlayersAdapter();
-  readonly creatures = new TaleSpireCreaturesAdapter(() => this.players);
+  readonly creatures = new TaleSpireCreaturesAdapter();
   readonly localStorage = new TaleSpireLocalStorageAdapter();
   readonly system = new TaleSpireSystemAdapter();
   readonly sync = new TaleSpireSyncAdapter();

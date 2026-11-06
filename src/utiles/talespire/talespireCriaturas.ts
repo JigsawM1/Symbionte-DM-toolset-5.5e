@@ -12,15 +12,8 @@ import type {
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 import { limpiarSuscripcionNativa, obtenerTSGlobal } from "./comun";
-import type { TaleSpirePlayersAdapter } from "./talespireJugadores";
 
 export class TaleSpireCreaturesAdapter {
-  private promesaMinisJugadores: Promise<Set<string>> | null = null;
-  private cacheMinisJugadores: { datos: Set<string>; expiraEn: number } | null = null;
-  private readonly TTL_CACHE_MINIS_JUGADORES_MS = 2500;
-
-  constructor(private readonly obtenerPlayers: () => TaleSpirePlayersAdapter) {}
-
   /**
    * Obtiene el listado de miniaturas seleccionadas en la mesa por el DM.
    */
@@ -74,85 +67,19 @@ export class TaleSpireCreaturesAdapter {
   }
 
   /**
-   * Consulta todas las miniaturas que pertenecen a jugadores registrados en la campaña o tablero.
-   * Emplea paralelización IPC, deduplicación de promesas en vuelo y caché de corto plazo.
-   */
-  async obtenerMiniaturasDeJugadores(): Promise<Set<string>> {
-    const ahora = Date.now();
-    if (this.cacheMinisJugadores && ahora < this.cacheMinisJugadores.expiraEn) {
-      return new Set(this.cacheMinisJugadores.datos);
-    }
-
-    if (this.promesaMinisJugadores) {
-      const compartido = await this.promesaMinisJugadores;
-      return new Set(compartido);
-    }
-
-    this.promesaMinisJugadores = (async () => {
-      const idsMiniaturas = new Set<string>();
-      try {
-        const players = this.obtenerPlayers();
-        const [jugadoresCampania, jugadoresTablero] = await Promise.all([
-          players.getPlayersInThisCampaign(),
-          players.getPlayersInThisBoard()
-        ]);
-        const idsJugadoresUnicos = new Set<string>();
-        for (const j of [...jugadoresCampania, ...jugadoresTablero]) {
-          if (j?.id) idsJugadoresUnicos.add(j.id);
-        }
-
-        if (idsJugadoresUnicos.size > 0) {
-          const listasMinis = await Promise.all(
-            Array.from(idsJugadoresUnicos).map((idJugador) =>
-              this.getCreaturesOwnedByPlayer(idJugador)
-            )
-          );
-          for (const minis of listasMinis) {
-            for (const m of minis) {
-              if (m?.id) idsMiniaturas.add(m.id);
-            }
-          }
-        }
-        this.cacheMinisJugadores = {
-          datos: idsMiniaturas,
-          expiraEn: Date.now() + this.TTL_CACHE_MINIS_JUGADORES_MS
-        };
-      } catch (e) {
-        logger.warn("[TS Adapter] Error al obtener miniaturas asignadas a jugadores:", e);
-      }
-      return idsMiniaturas;
-    })();
-
-    try {
-      const res = await this.promesaMinisJugadores;
-      return new Set(res);
-    } finally {
-      this.promesaMinisJugadores = null;
-    }
-  }
-
-  /**
-   * Detecta qué miniaturas pertenecen a jugadores inspeccionando en paralelo tanto sus propietarios (ownerIds)
-   * como las asignaciones de jugadores activos en la campaña de TaleSpire.
+   * Lee los propietarios de las miniaturas solicitadas. Consultar las miniaturas
+   * de un GM desde un cliente sin permisos puede romper la respuesta nativa de TaleSpire.
    */
   async detectarMiniaturasJugadores(idsMiniaturas: string[]): Promise<Set<string>> {
     const resultado = new Set<string>();
     if (!idsMiniaturas || idsMiniaturas.length === 0) return resultado;
 
     try {
-      const [infos, minisJugadores] = await Promise.all([
-        this.getMoreInfo(idsMiniaturas),
-        this.obtenerMiniaturasDeJugadores()
-      ]);
-
+      const infos = await this.getMoreInfo(idsMiniaturas);
       for (const info of infos) {
         if (info?.id && Array.isArray(info.ownerIds) && info.ownerIds.length > 0) {
           resultado.add(info.id);
         }
-      }
-
-      for (const id of minisJugadores) {
-        resultado.add(id);
       }
     } catch (e) {
       logger.warn("[TS Adapter] Error al detectar miniaturas de jugadores:", e);

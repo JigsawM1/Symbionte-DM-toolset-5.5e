@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { filtrarEfectosExpirados, sincronizarConEstadoLocal } from "./sincronizacionIniciativa";
 import { crearIndiceMonstruos } from "./indiceMonstruos";
 import { usarAlmacenDM, type CriaturaIniciativa, type MonstruoBase } from "@/almacen/usarAlmacenDM";
@@ -329,6 +329,45 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
 });
 
 describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tiradas)", () => {
+  it("importa la iniciativa de un jugador sin pedir la lista de miniaturas del GM", async () => {
+    const colaTS: ColaIniciativaTS = {
+      items: [
+        { id: "mini-pj", name: "Aventurera", kind: "creature" },
+        { id: "mini-npc", name: "Trasgo", kind: "creature" },
+      ],
+      activeItemIndex: 0,
+    };
+    const getMoreInfo = vi.fn().mockResolvedValue([
+      { id: "mini-pj", ownerIds: ["jugador"] },
+      { id: "mini-npc", ownerIds: [] },
+    ]);
+    const getCreaturesOwnedByPlayer = vi.fn().mockRejectedValue(new Error("insufficientRights"));
+    const getPlayersInThisCampaign = vi.fn().mockResolvedValue([{ id: "gm", name: "DM" }]);
+    vi.stubGlobal("TS", {
+      initiative: { getQueue: vi.fn().mockResolvedValue(colaTS) },
+      creatures: { getMoreInfo, getCreaturesOwnedByPlayer },
+      players: { getPlayersInThisCampaign },
+    });
+
+    const estadoAnterior = usarAlmacenDM.getState();
+    try {
+      usarAlmacenDM.setState({ colaIniciativa: [], personajes: [], asociacionesFichas: {} });
+      await usarAlmacenDM.getState().importarIniciativaTaleSpire();
+
+      expect(getMoreInfo).toHaveBeenCalledTimes(1);
+      expect(getMoreInfo).toHaveBeenCalledWith(["mini-pj", "mini-npc"]);
+      expect(getPlayersInThisCampaign).not.toHaveBeenCalled();
+      expect(getCreaturesOwnedByPlayer).not.toHaveBeenCalled();
+      expect(usarAlmacenDM.getState().colaIniciativa).toMatchObject([
+        { id: "mini-pj", esMonstruo: false },
+        { id: "mini-npc", esMonstruo: true },
+      ]);
+    } finally {
+      usarAlmacenDM.setState(estadoAnterior, true);
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("establecerIniciativaCriatura no debe alterar el orden posicional de las criaturas", () => {
     usarAlmacenDM.setState({
       colaIniciativa: [

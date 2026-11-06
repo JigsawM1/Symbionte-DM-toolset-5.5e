@@ -1,5 +1,31 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-06] Fusión y Certificación de `solucion-A`: Erradicación de NullReferenceException en TaleSpire (Poda Ponytail)
+
+**Resumen Ejecutivo:**
+Se integró satisfactoriamente la rama `solucion-A` en `main` (commit `a50d422`), resolviendo de raíz el error rojo `NullReferenceException: Object reference not set to an instance of an object` en `Symbiotes.WebView.SymbioteWebItem+SerializingVisitor.VisitObjectsField[T]` reportado en la consola SRDebugger de TaleSpire.
+Bajo la filosofía **Ponytail**, en lugar de añadir capas defensivas o validaciones adicionales, se identificó y erradicó la causa estructural: la función redundante `obtenerMiniaturasDeJugadores()`.
+
+**Diagnóstico y Causa Raíz:**
+1. Al importar la iniciativa o detectar miniaturas de jugadores (`detectarMiniaturasJugadores`), el Simbionte ejecutaba `players.getPlayersInThisCampaign()` y luego `creatures.getCreaturesOwnedByPlayer(idJugador)` para cada jugador registrado.
+2. Cuando el usuario conectado es un Jugador (sin permisos de DM) o cuando se consultaban criaturas pertenecientes al GM o jugadores sin miniaturas en el tablero, la API nativa de TaleSpire en C# rechazaba la consulta o retornaba colecciones no inicializadas/nulas (`null`).
+3. Al procesar la respuesta (`OnReply`) en el thread worker de TaleSpire (`SymbiotesManager.WorkerMain`), el serializador JSON a WebView (`ObjectListResponse<T>.VisitPayload` -> `SerializingVisitor.VisitObjectsField[T]`) intentaba iterar sobre los elementos nulos, lanzando una excepción no controlada (`NullReferenceException`) en Unity.
+4. Se constató que `ts.creatures.getMoreInfo(idsMiniaturas)` **ya incluye de forma nativa la propiedad `ownerIds`** para cada miniatura presente en el tablero, por lo que toda la consulta paralela de jugadores y propietarios era innecesaria, causaba tráfico redundante y rompía la API nativa para clientes no DM.
+
+**Correcciones Quirúrgicas Aplicadas (-79 líneas netas de complejidad):**
+1. **Poda de `obtenerMiniaturasDeJugadores`:** Eliminadas 79 líneas de promesas compartidas en vuelo, cachés con TTL y llamadas IPC cruzadas en `src/utiles/talespire/talespireCriaturas.ts`.
+2. **Desacoplamiento Estructural (SRP):** Retirada la inyección forzada de `TaleSpirePlayersAdapter` en el constructor de `TaleSpireCreaturesAdapter` (`src/utiles/TaleSpireAdapter.ts`).
+3. **Detección Directa y Confiable:** `detectarMiniaturasJugadores` se basa exclusivamente en `this.getMoreInfo(idsMiniaturas)` y el filtrado directo de `info.ownerIds`.
+4. **Suite de Regresión Permanente:** Añadida prueba en `src/servicios/sincronizacionIniciativa.test.ts` verificando que un jugador sin derechos de GM (`insufficientRights` en `getCreaturesOwnedByPlayer`) importa la iniciativa sin consultar las APIs de GM y clasifica correctamente monstruos vs jugadores.
+
+**Certificación del Pipeline de CI en `main`:**
+- **TypeScript:** `tsc --noEmit` con 0 errores bajo `strict: true`.
+- **ESLint:** `--max-warnings=0` con 0 errores y 0 advertencias.
+- **Vitest:** **178 archivos y 2.690 pruebas aprobadas al 100% (0 fallos)**.
+- **Control de Monolitos:** `verificar:lineas` con 0 errores críticos no autorizados.
+
+---
+
 ## [2026-11-05] Integración y Certificación de las Ramas Ganadoras de Bolt (Revisión Ponytail)
 
 **Resumen Ejecutivo:**

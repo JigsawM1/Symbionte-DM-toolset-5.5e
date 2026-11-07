@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -45,29 +45,37 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
     setLimiteVista(LIMITE_PASO);
   }, [filtroBusqueda, criterioOrden]);
 
-  const hechizosSinFiltro = soloLectura
-    ? baseDatosHechizos
-    : baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
+  // Optimización de rendimiento (Bolt): Memoizamos el filtrado y ordenamiento del compendio/creaciones
+  // de hechizos (390+ elementos) para evitar recomputaciones O(N log N) en re-renders causados por
+  // interacción con la UI (abrir panel detalle, diálogos de confirmación, etc.).
+  const hechizosOrdenados = useMemo(() => {
+    const hechizosBase = soloLectura
+      ? baseDatosHechizos
+      : baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
 
-  const hechizosFiltrados = hechizosSinFiltro.filter((h) =>
-    coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda)
+    const filtrados = hechizosBase.filter((h) =>
+      coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda)
+    );
+
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (h) => h.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") {
+            return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          }
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        },
+        (h) => [h.escuela, h.descripcion]
+      )
+    );
+  }, [baseDatosHechizos, soloLectura, filtroBusqueda, criterioOrden]);
+
+  const hechizosVisibles = useMemo(
+    () => hechizosOrdenados.slice(0, limiteVista),
+    [hechizosOrdenados, limiteVista]
   );
-
-  const hechizosOrdenados = hechizosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (h) => h.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (h) => [h.escuela, h.descripcion]
-    )
-  );
-
-  const hechizosVisibles = hechizosOrdenados.slice(0, limiteVista);
 
   return (
     <div className={estilos.panelLista}>

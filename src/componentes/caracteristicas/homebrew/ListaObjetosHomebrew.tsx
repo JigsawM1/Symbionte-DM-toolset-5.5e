@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -52,29 +52,37 @@ export const ListaObjetosHomebrew: React.FC<ListaObjetosHomebrewProps> = ({
     setLimiteVista(LIMITE_PASO);
   }, [filtroBusqueda, criterioOrden]);
 
-  const objetosSinFiltro = soloLectura
-    ? objetosHomebrew
-    : objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
+  // Optimización de rendimiento (Bolt): Memoizamos el filtrado y ordenamiento de objetos
+  // del compendio y creaciones personalizadas (200+ elementos) para prevenir ejecuciones
+  // redundantes de búsqueda tolerante en cambios de estado secundarios (como idObjetoDetalle o confirmarAccion).
+  const objetosOrdenados = useMemo(() => {
+    const objetosBase = soloLectura
+      ? objetosHomebrew
+      : objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
 
-  const objetosFiltrados = objetosSinFiltro.filter((o) =>
-    coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria, o.descripcion], filtroBusqueda)
+    const filtrados = objetosBase.filter((o) =>
+      coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria, o.descripcion], filtroBusqueda)
+    );
+
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (o) => o.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") {
+            return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          }
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        },
+        (o) => [o.categoria, o.subcategoria, o.descripcion]
+      )
+    );
+  }, [objetosHomebrew, soloLectura, filtroBusqueda, criterioOrden]);
+
+  const objetosVisibles = useMemo(
+    () => objetosOrdenados.slice(0, limiteVista),
+    [objetosOrdenados, limiteVista]
   );
-
-  const objetosOrdenados = objetosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (o) => o.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (o) => [o.categoria, o.subcategoria, o.descripcion]
-    )
-  );
-
-  const objetosVisibles = objetosOrdenados.slice(0, limiteVista);
 
   return (
     <div className={estilos.panelLista}>

@@ -2,7 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Contrato nativo de TS.sync.send', () => {
   beforeEach(() => { vi.resetModules(); vi.stubGlobal('BroadcastChannel', undefined); });
-  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
+  it('espacia envíos consecutivos aunque cada productor espere y deje vacía la cola', async () => {
+    vi.useFakeTimers();
+    const instantes: number[] = [];
+    vi.stubGlobal('TS', { sync: { send: async () => { instantes.push(Date.now()); } } });
+    const { ts } = await import('./TaleSpireAdapter');
+    await ts.sync.send('uno');
+    const segundo = ts.sync.send('dos');
+    await vi.advanceTimersByTimeAsync(179);
+    expect(instantes).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(await segundo).toBe(true);
+    expect(instantes[1] - instantes[0]).toBe(180);
+  });
 
   it('acepta exactamente 500 unidades UTF-16 y rechaza 501 antes de llamar a TaleSpire', async () => {
     const enviarNativo = vi.fn().mockResolvedValue(undefined);

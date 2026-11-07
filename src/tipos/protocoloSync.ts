@@ -12,6 +12,59 @@
 import { z } from "zod";
 import type { CriaturaIniciativa, EfectoActivo } from "@/almacen/usarAlmacenDM";
 
+/** Contrato v4. Se activa cuando el motor y sus consumidores hayan migrado juntos. */
+export const VERSION_PROTOCOLO_SYNC_V4 = 4;
+const idSyncV4 = z.string().min(1).max(128);
+const revisionSyncV4 = z.number().int().nonnegative().safe();
+export const EsquemaContextoSyncV4 = z.object({
+  campania: idSyncV4, tablero: idSyncV4, sesion: idSyncV4, director: idSyncV4,
+});
+export type ContextoSyncV4 = z.infer<typeof EsquemaContextoSyncV4>;
+export const EsquemaGruposSyncV4 = z.object({
+  vitalidad: z.object({ actual: z.number().int().nonnegative(), maxima: z.number().int().positive(),
+    temporal: z.number().int().nonnegative() }).refine(v => v.actual <= v.maxima),
+  estados: z.object({ condiciones: z.array(z.string().max(256)).max(256),
+    efectos: z.array(z.object({ id: idSyncV4, nombre: z.string().max(256),
+      expiraRonda: revisionSyncV4.optional(), concentracion: z.boolean().optional(),
+      duracion: z.number().nonnegative().optional() })).max(1024),
+    concentracion: z.object({ origen: z.enum(['conjuro', 'rasgo']), id: idSyncV4,
+      nombre: z.string().max(256) }).nullable() }),
+  datos: z.object({ nombre: z.string().max(256), avatar: z.string().max(8192).optional(),
+    iniciativa: z.number().finite(), ca: z.number().finite(),
+    pasivas: z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]) }),
+  acompanantes: z.array(z.object({ id: idSyncV4, miniatura: idSyncV4.nullable() })).max(256),
+});
+export type GruposSyncV4 = z.infer<typeof EsquemaGruposSyncV4>;
+export type GrupoSyncV4 = keyof GruposSyncV4;
+export const GRUPOS_SYNC_V4: readonly GrupoSyncV4[] = ['vitalidad', 'estados', 'datos', 'acompanantes'];
+export const EsquemaRevisionesSyncV4 = z.object({ vitalidad: revisionSyncV4,
+  estados: revisionSyncV4, datos: revisionSyncV4, acompanantes: revisionSyncV4 });
+export const EsquemaEntidadSyncV4 = z.object({ id: idSyncV4, duenio: idSyncV4,
+  miniatura: idSyncV4.nullable(), padre: idSyncV4.nullable(),
+  revision: revisionSyncV4, revisiones: EsquemaRevisionesSyncV4,
+  grupos: EsquemaGruposSyncV4, eliminada: z.boolean() });
+export type EntidadSyncV4 = z.infer<typeof EsquemaEntidadSyncV4>;
+const sobreSyncV4 = z.object({ v: z.literal(4), contexto: EsquemaContextoSyncV4, emisor: idSyncV4 });
+export const EsquemaMensajeSyncV4 = z.discriminatedUnion('t', [
+  sobreSyncV4.extend({ t: z.literal('HOLA'), solicitud: idSyncV4 }),
+  sobreSyncV4.extend({ t: z.literal('PROPUESTA'), operacion: idSyncV4, entidad: idSyncV4,
+    bases: EsquemaRevisionesSyncV4, cambios: EsquemaGruposSyncV4.partial(),
+    resolver: z.array(z.enum(['vitalidad', 'estados', 'datos', 'acompanantes'])).max(4).default([]) }),
+  sobreSyncV4.extend({ t: z.literal('CONFIRMADO'), operacion: idSyncV4,
+    revision: revisionSyncV4, entidad: EsquemaEntidadSyncV4 }),
+  sobreSyncV4.extend({ t: z.literal('RESULTADO'), operacion: idSyncV4,
+    estado: z.enum(['aplicado', 'conflicto', 'rechazado']), revision: revisionSyncV4,
+    conflictos: z.array(z.enum(['vitalidad', 'estados', 'datos', 'acompanantes'])).max(4) }),
+  sobreSyncV4.extend({ t: z.literal('LOTE'), snapshot: idSyncV4, revision: revisionSyncV4,
+    parte: z.number().int().min(1).max(4096), total: z.number().int().min(1).max(4096),
+    entidades: z.array(EsquemaEntidadSyncV4).max(3) }),
+  sobreSyncV4.extend({ t: z.literal('LATIDO'), revision: revisionSyncV4 }),
+  sobreSyncV4.extend({ t: z.literal('FRAG'), id: idSyncV4,
+    parte: z.number().int().min(1).max(4096), total: z.number().int().min(2).max(4096),
+    texto: z.string().min(1).max(400) }),
+]);
+export type MensajeSyncV4 = z.infer<typeof EsquemaMensajeSyncV4>;
+
 // ==========================================
 // 1. CONSTANTES DEL PROTOCOLO V2
 // ==========================================

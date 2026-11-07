@@ -20,6 +20,7 @@ export class TaleSpireSyncAdapter {
   private canalBroadcastSync?: BroadcastChannel;
   private colaEnvioSync: ElementoColaSync[] = [];
   private procesandoColaSync = false;
+  private ultimoEnvioSync: number | undefined;
   private readonly INTERVALO_MINIMO_SYNC_MS = 180;
   private readonly MAX_REINTENTOS_RATE_LIMIT = 3;
 
@@ -47,10 +48,6 @@ export class TaleSpireSyncAdapter {
         const exito = await this.ejecutarEnvioSyncNativoConReintentos(item.mensaje, item.target);
         item.resolver(exito);
 
-        // Espaciado mínimo de seguridad entre llamadas nativas sucesivas
-        if (this.colaEnvioSync.length > 0) {
-          await new Promise((r) => setTimeout(r, this.INTERVALO_MINIMO_SYNC_MS));
-        }
       }
     } finally {
       this.procesandoColaSync = false;
@@ -69,6 +66,11 @@ export class TaleSpireSyncAdapter {
 
       for (let intento = 0; intento <= this.MAX_REINTENTOS_RATE_LIMIT; intento++) {
         try {
+          // También se espacia cuando el productor espera cada Promise y vacía la cola.
+          const espera = this.ultimoEnvioSync === undefined ? 0
+            : this.INTERVALO_MINIMO_SYNC_MS - (Date.now() - this.ultimoEnvioSync);
+          if (espera > 0) await new Promise(resolve => setTimeout(resolve, espera));
+          this.ultimoEnvioSync = Date.now();
           await ts.sync.send(message, target);
           enviado = true;
           break;

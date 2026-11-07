@@ -24,6 +24,7 @@ import { calcularAbsorcionDeltaVida } from "@/servicios/sincronizacion/absorbent
 import { emitirEstadoPJSync } from "@/servicios/sincronizacion/motorEventosSync";
 import { filtrarEfectosExpirados } from "@/servicios/sincronizacionIniciativa";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { sincronizarEstadosPersonajesDesdeCola } from "./iniciativa/sincronizadorEfectosIniciativa";
 
 export interface AccionesSyncV2 {
   discrepanciaVitalidadPendiente: DiscrepanciaVitalidadSync | null;
@@ -307,7 +308,7 @@ export function crearAccionesSyncV2(
     },
 
     aplicarCriaturaDesdeSync: (wireCriatura, eliminada = false) => {
-      const { colaIniciativa } = get();
+      const { colaIniciativa, personajes } = get();
       if (eliminada) {
         set({
           aplicandoSync: true,
@@ -320,14 +321,18 @@ export function crearAccionesSyncV2(
       const criaturaDesempaquetada = desempaquetarResumenCriaturaDM(wireCriatura);
       const existe = colaIniciativa.some((c) => c.id === wireCriatura.id);
       const nuevaCola = existe
-        ? colaIniciativa.map((c) =>
-            c.id === wireCriatura.id ? { ...c, ...criaturaDesempaquetada } : c
-          )
+        ? colaIniciativa.map((c) => {
+            if (c.id !== wireCriatura.id) return c;
+            if (criaturaDesempaquetada.esMonstruo) return { ...c, ...criaturaDesempaquetada };
+            // La vitalidad de PJ y acompañantes se sincroniza mediante DELTA_VIDA.
+            return { ...c, condiciones: criaturaDesempaquetada.condiciones, efectos: criaturaDesempaquetada.efectos };
+          })
         : [...colaIniciativa, criaturaDesempaquetada];
 
       set({
         aplicandoSync: true,
         colaIniciativa: nuevaCola,
+        personajes: sincronizarEstadosPersonajesDesdeCola(personajes, [criaturaDesempaquetada]),
       });
       queueMicrotask(() => set({ aplicandoSync: false }));
     },
@@ -448,6 +453,7 @@ export function crearAccionesSyncV2(
       set({
         aplicandoSync: true,
         colaIniciativa: criaturasNuevas,
+        personajes: sincronizarEstadosPersonajesDesdeCola(personajes, criaturasNuevas),
         rondaActual: infoLoteFinal.r,
         indiceTurnoActivo: infoLoteFinal.idx,
         mostrarPorcentajeVidaAJugadores: infoLoteFinal.vPorcentaje,

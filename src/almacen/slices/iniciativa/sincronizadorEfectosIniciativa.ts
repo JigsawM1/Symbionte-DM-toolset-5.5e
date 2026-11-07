@@ -17,6 +17,40 @@ import {
   coincideAcompananteEnIniciativa
 } from "./sincronizadorMovimientoIniciativa";
 
+/** Proyecta los estados recibidos del DM a las fichas locales vinculadas. */
+export function sincronizarEstadosPersonajesDesdeCola(
+  personajes: PersonajeJugador[],
+  cola: CriaturaIniciativa[]
+): PersonajeJugador[] {
+  return personajes.map((pj) => {
+    const criatura = cola.find((c) => !c.esMonstruo &&
+      coincidePersonajeEnIniciativa(pj, c, c.id, c.nombre));
+    const acompanantes = (pj.acompanantes || []).map((acomp) => {
+      const criaturaAcomp = cola.find((c) => (c.esAcompanante || c.idAcompanante) &&
+        coincideAcompananteEnIniciativa(acomp, c, c.id, c.nombre));
+      if (!criaturaAcomp) return acomp;
+      return {
+        ...acomp,
+        condiciones: criaturaAcomp.condiciones,
+        efectos: (criaturaAcomp.efectos || []).map(efecto => ({
+          ...acomp.efectos.find(local => local.id === efecto.id),
+          ...efecto
+        }))
+      };
+    });
+    if (!criatura) return { ...pj, acompanantes };
+    return {
+      ...pj,
+      condicionesActivas: criatura.condiciones,
+      efectosActivos: (criatura.efectos || []).map(efecto => ({
+        ...pj.efectosActivos.find(local => local.id === efecto.id),
+        ...efecto
+      })),
+      acompanantes
+    };
+  });
+}
+
 export function aplicarEfectoAPersonaje(
   pj: PersonajeJugador,
   nombreEfecto: string,

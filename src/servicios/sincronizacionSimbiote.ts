@@ -444,9 +444,12 @@ export function calcularFirmaIniciativaDM(
  * Inicializa los observadores reactivos del store Zustand.
  * Monitorea cambios locales para emitir sincronizaciones según el rol activo.
  */
-function calcularFirmaCriaturaMonstruo(c: CriaturaIniciativa): string {
+function calcularFirmaCriatura(c: CriaturaIniciativa): string {
   const condStr = (c.condiciones || []).slice().sort().join(",");
   const efStr = (c.efectos || []).map((e) => `${e.id}:${e.nombre}:${e.expiraRonda}:${e.concentracion}`).join(",");
+  if (!c.esMonstruo) {
+    return `${c.id}:${c.idPersonajeDuenio}:${c.idAcompanante}:${Boolean(c.esAcompanante)}:${condStr}:${efStr}`;
+  }
   return `${c.id}:${c.iniciativa}:${c.vidaActual}:${c.vidaMaxima}:${c.vidaTemporal || 0}:${c.ca || 10}:${condStr}:${efStr}`;
 }
 
@@ -462,9 +465,7 @@ export function inicializarObservadoresStoreSync(): () => void {
 
   const prevFirmasCriaturas = new Map<string, string>();
   estadoInicial.colaIniciativa.forEach((c) => {
-    if (c.esMonstruo) {
-      prevFirmasCriaturas.set(c.id, calcularFirmaCriaturaMonstruo(c));
-    }
+    prevFirmasCriaturas.set(c.id, calcularFirmaCriatura(c));
   });
 
   const prevFirmasPJs = new Map<string, string>();
@@ -487,9 +488,7 @@ export function inicializarObservadoresStoreSync(): () => void {
         prevMostrarVida = estadoActual.mostrarPorcentajeVidaAJugadores;
         prevFirmasCriaturas.clear();
         estadoActual.colaIniciativa.forEach((c) => {
-          if (c.esMonstruo) {
-            prevFirmasCriaturas.set(c.id, calcularFirmaCriaturaMonstruo(c));
-          }
+          prevFirmasCriaturas.set(c.id, calcularFirmaCriatura(c));
         });
       }
       return;
@@ -512,16 +511,14 @@ export function inicializarObservadoresStoreSync(): () => void {
         );
       }
 
-      // 2. Criaturas monstruo del DM (CRIATURA_ESTADO)
+      // 2. Estado de monstruos y condiciones/efectos de PJ y acompañantes.
       const idsActuales = new Set<string>();
       for (const c of estadoActual.colaIniciativa) {
-        if (c.esMonstruo) {
-          idsActuales.add(c.id);
-          const firma = calcularFirmaCriaturaMonstruo(c);
-          if (prevFirmasCriaturas.get(c.id) !== firma) {
-            prevFirmasCriaturas.set(c.id, firma);
-            void emitirCriaturaSync(c);
-          }
+        idsActuales.add(c.id);
+        const firma = calcularFirmaCriatura(c);
+        if (prevFirmasCriaturas.get(c.id) !== firma) {
+          prevFirmasCriaturas.set(c.id, firma);
+          void emitirCriaturaSync(c);
         }
       }
       for (const [idPrevio] of prevFirmasCriaturas) {

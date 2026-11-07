@@ -15,6 +15,8 @@ import {
 import {
   LIMITE_SEGURO_PAQUETE_SYNC,
   VERSION_PROTOCOLO_SYNC_V2,
+  EsquemaMensajeSyncV2,
+  empaquetarResumenCriaturaDM,
   type MensajeSyncV2,
 } from "@/tipos/protocoloSync";
 import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
@@ -22,6 +24,7 @@ import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import type { FragmentoCliente, InfoCliente, FragmentoOId } from "@/tipos/talespire";
 import { EsquemaAcompanantePersonaje } from "@/tipos/personaje";
+import { inicializarObservadoresStoreSync } from "@/servicios/sincronizacionSimbiote";
 
 const esperarSync = () => new Promise((resolve) => setTimeout(resolve, 25));
 
@@ -98,6 +101,93 @@ describe("Sync v2 — Suite Exhaustiva de Regresión Permanente (Hallazgos 1 al 
       rondaActual: 1,
       indiceTurnoActivo: 0,
     });
+  });
+
+  it.each([false, true])("propaga estados del DM a la ficha y permite retirarlos (acompañante=%s)", async (esAcompanante) => {
+    const acompanante = EsquemaAcompanantePersonaje.parse({
+      id: "acomp-1", idPlantilla: "familiar", idMiniaturaTS: "mini-acomp", nombre: "Familiar",
+      vidaActual: 8, vidaMaxima: 12, condiciones: [], efectos: [],
+    });
+    const pj = {
+      ...PERSONAJE_POR_DEFECTO,
+      id: "pj-1", idMiniaturaTS: "mini-pj-1", nombre: "Aventurera",
+      hpActual: 25, hpMaximo: 30, hpTemporal: 3,
+      condicionesActivas: [], efectosActivos: [], acompanantes: [acompanante],
+    };
+    const criatura: CriaturaIniciativa = {
+      id: esAcompanante ? "mini-acomp" : "mini-pj-1",
+      nombre: esAcompanante ? "Familiar" : "Aventurera",
+      idPersonajeDuenio: "pj-1",
+      esAcompanante, idAcompanante: esAcompanante ? "acomp-1" : undefined,
+      iniciativa: 10, vidaActual: 1, vidaMaxima: 30, ca: 12,
+      esMonstruo: false, condiciones: [], efectos: [],
+      velocidad: "30 pies", bonificadorIniciativa: 0,
+    };
+    usarAlmacenDM.setState({ esGM: true, colaIniciativa: [criatura], personajes: [] });
+    const desuscribirDM = inicializarObservadoresStoreSync();
+    let mensajes: MensajeSyncV2[];
+    try {
+      usarAlmacenDM.setState({ colaIniciativa: [{ ...criatura, vidaActual: 2 }] });
+      expect(paquetesEnviados).toHaveLength(0);
+      usarAlmacenDM.getState().agregarCondicionACriatura(criatura.id, "Envenenado");
+      usarAlmacenDM.getState().agregarEfectoACriatura(criatura.id, "Bendición", 3);
+      const efecto = usarAlmacenDM.getState().colaIniciativa[0].efectos?.[0];
+      expect(efecto).toBeDefined();
+      if (!efecto) throw new Error("No se creó el efecto de prueba");
+      usarAlmacenDM.getState().quitarCondicionDeCriatura(criatura.id, "Envenenado");
+      usarAlmacenDM.getState().quitarEfectoDeCriatura(criatura.id, efecto.id);
+      mensajes = paquetesEnviados.map(p => EsquemaMensajeSyncV2.parse(JSON.parse(p)));
+      expect(mensajes).toHaveLength(4);
+      expect(mensajes.every(m => m.t === "CRIATURA_ESTADO")).toBe(true);
+    } finally {
+      desuscribirDM();
+    }
+
+    paquetesEnviados.length = 0;
+    const vidaLocal = esAcompanante ? 8 : 25;
+    usarAlmacenDM.setState({ esGM: false, aplicandoSync: false, personajes: [pj],
+      colaIniciativa: [{ ...criatura, vidaActual: vidaLocal }] });
+    const desuscribirJugador = inicializarObservadoresStoreSync();
+    const remitente: FragmentoCliente = {
+      id: "cliente-dm", player: { id: "jugador-dm", name: "Dungeon Master" },
+    };
+    try {
+      for (const [indice, mensaje] of mensajes.entries()) {
+        expect(await procesarEventoSyncV2(mensaje, remitente)).toBe(true);
+        const ficha = usarAlmacenDM.getState().personajes[0];
+        const condiciones = esAcompanante ? ficha.acompanantes[0].condiciones : ficha.condicionesActivas;
+        const efectos = esAcompanante ? ficha.acompanantes[0].efectos : ficha.efectosActivos;
+        expect(condiciones.includes("Envenenado")).toBe(indice < 2);
+        expect(efectos.some(e => e.nombre === "Bendición")).toBe(indice === 1 || indice === 2);
+        expect(ficha.hpActual).toBe(25);
+        expect(ficha.hpTemporal).toBe(3);
+        expect(ficha.acompanantes[0].vidaActual).toBe(8);
+        expect(usarAlmacenDM.getState().colaIniciativa[0].vidaActual).toBe(vidaLocal);
+      }
+      await new Promise(resolve => setTimeout(resolve, 160));
+      expect(paquetesEnviados).toHaveLength(0);
+    } finally {
+      desuscribirJugador();
+    }
+  });
+
+  it("recupera condiciones y efectos del PJ al recibir el lote inicial del DM", async () => {
+    const pj = { ...PERSONAJE_POR_DEFECTO, id: "pj-1", idMiniaturaTS: "mini-pj-1",
+      nombre: "Aventurera", hpActual: 25, hpMaximo: 30 };
+    usarAlmacenDM.setState({ personajes: [pj] });
+    const criatura: CriaturaIniciativa = {
+      id: "mini-pj-1", nombre: "Aventurera", iniciativa: 10,
+      vidaActual: 25, vidaMaxima: 30, ca: 12, esMonstruo: false,
+      condiciones: ["Envenenado"], efectos: [{ id: "bendicion", nombre: "Bendición", expiraRonda: 4 }],
+      velocidad: "30 pies", bonificadorIniciativa: 0,
+    };
+    expect(await procesarEventoSyncV2({
+      v: VERSION_PROTOCOLO_SYNC_V2, s: "dm", t: "LOTE_INICIAL",
+      parte: 1, total: 1, r: 1, idx: 0, vPorcentaje: true,
+      criaturas: [empaquetarResumenCriaturaDM(criatura)],
+    }, { id: "cliente-dm", player: { id: "jugador-dm", name: "DM" } })).toBe(true);
+    expect(usarAlmacenDM.getState().personajes[0].condicionesActivas).toEqual(["Envenenado"]);
+    expect(usarAlmacenDM.getState().personajes[0].efectosActivos).toEqual(criatura.efectos);
   });
 
   // =========================================================================

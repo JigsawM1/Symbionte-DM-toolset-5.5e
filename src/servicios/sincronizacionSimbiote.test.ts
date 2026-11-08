@@ -1,10 +1,7 @@
-vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ autorizarMensaje: () => true, autorizarMensajeSyncV2: () => true, autorizarPersonaje: () => Promise.resolve(true), puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
+vi.mock("@/servicios/sincronizacion/autoridadSync", () => ({ puedeEmitirPJ: () => true, invalidarAutoridadSync: () => {} }));
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
-  proyectarEstadoCombatePJ,
-  procesarMensajeSyncEntrante,
-  calcularFirmaIniciativaDM,
-} from "./sincronizacionSimbiote";
+  proyectarEstadoCombatePJ,} from "./sincronizacionSimbiote";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import {
   type EstadoCombatePJ,
@@ -18,6 +15,11 @@ import {
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
 import { usarAlmacenDM, type CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+
+// La entrada de red v4 se prueba en auditoriaSync.test; aquí se preserva lectura de DTOs antiguos.
+function aplicarCodecLegado(evento: { datos: unknown; strCrudo: string }) {
+  const mensaje = EsquemaWireMensajeSync.parse(evento.datos);  if (mensaje.t === 'PJ') usarAlmacenDM.getState().aplicarBorradorCombatePJ(deserializarEstadoCombatePJ(mensaje.d));
+}
 
 describe("Sincronización Simbiote - Wire Format y DTOs", () => {
   it("proyectarEstadoCombatePJ extrae correctamente pasivas, CA, vitalidad y concentración", () => {
@@ -200,42 +202,9 @@ describe("Sincronización Simbiote - Wire Format y DTOs", () => {
     const parseInvalido = EsquemaWireMensajeSync.safeParse(msgInvalido);
     expect(parseInvalido.success).toBe(false);
   });
-
-  it("procesarMensajeSyncEntrante con versión desactualizada no notifica a un jugador pero sí al DM con el nombre del remitente", () => {
-    const notificaciones: string[] = [];
-    usarAlmacenDM.setState({
-      esGM: false,
-      agregarNotificacion: (msg: string) => { notificaciones.push(msg); },
-    });
-
-    const remitente = {
-      id: "cli-1",
-      player: { id: "p-1", name: "Valeros" },
-    };
-
-    // Caso jugador: silencio
-    procesarMensajeSyncEntrante({
-      datos: { v: 1, s: "viejo", t: "REQ" },
-      strCrudo: '{"v":1}',
-      fromClient: remitente,
-    });
-    expect(notificaciones).toHaveLength(0);
-
-    // Caso DM: notifica una sola vez con nombre aunque lleguen múltiples paquetes
-    usarAlmacenDM.setState({ esGM: true });
-    for (let i = 0; i < 5; i++) {
-      procesarMensajeSyncEntrante({
-        datos: { v: 1, s: "viejo", t: "REQ" },
-        strCrudo: '{"v":1}',
-        fromClient: remitente,
-      });
-    }
-    expect(notificaciones).toHaveLength(1);
-    expect(notificaciones[0]).toBe('El jugador "Valeros" tiene una versión desactualizada del Simbionte y no puede sincronizar.');
-  });
 });
 
-describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
+describe("Compatibilidad de DTOs guardados - aplicación al Store", () => {
   beforeEach(() => {
     usarAlmacenDM.setState({
       esGM: false,
@@ -255,56 +224,6 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
       ],
       aplicandoSync: false,
     });
-  });
-
-  it("jugador aplica mensaje DM actualizando la cola, configuración del Master y condiciones del personaje", () => {
-    const mensajeDM = {
-      v: 2, s: 'prueba',
-      t: "DM",
-      d: {
-        c: [
-          {
-            id: "m1",
-            n: "Dragón Rojo",
-            i: 22,
-            va: 250,
-            vm: 250,
-            vt: 0,
-            m: true,
-            c: [],
-          },
-          {
-            id: "pj-test-1",
-            n: "Bárbaro Enano",
-            i: 14,
-            va: 38,
-            vm: 50,
-            vt: 0,
-            m: false,
-            c: ["Envenenado", "Cegado"],
-          },
-        ],
-        t: 0,
-        r: 3,
-        v: true,
-        mv: "maximo",
-      },
-    };
-
-    procesarMensajeSyncEntrante({ datos: mensajeDM, strCrudo: JSON.stringify(mensajeDM) });
-
-    const estadoFinal = usarAlmacenDM.getState();
-    expect(estadoFinal.rondaActual).toBe(3);
-    expect(estadoFinal.mostrarPorcentajeVidaAJugadores).toBe(true);
-    expect(estadoFinal.metodoVidaMonstruo).toBe("maximo");
-    expect(estadoFinal.colaIniciativa).toHaveLength(2);
-    expect(estadoFinal.colaIniciativa[0].nombre).toBe("Dragón Rojo");
-
-    // Verificar que la hoja del personaje jugador en "Características" sincronizó las condiciones y salud del DM
-    const pjSincronizado = estadoFinal.personajes.find((p) => p.id === "pj-test-1");
-    expect(pjSincronizado).toBeDefined();
-    expect(pjSincronizado?.condicionesActivas).toEqual(["Envenenado", "Cegado"]);
-    expect(pjSincronizado?.hpActual).toBe(38);
   });
 
   it("DM actualiza personaje de jugador y cola de iniciativa al recibir mensaje PJ", () => {
@@ -345,7 +264,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
       },
     };
 
-    procesarMensajeSyncEntrante({ datos: mensajePJ, strCrudo: JSON.stringify(mensajePJ) });
+    aplicarCodecLegado({ datos: mensajePJ, strCrudo: JSON.stringify(mensajePJ) });
 
     const estadoFinal = usarAlmacenDM.getState();
     const pjActualizado = estadoFinal.personajes.find((p) => p.id === "pj-test-1");
@@ -463,7 +382,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
       },
     };
 
-    procesarMensajeSyncEntrante({ datos: mensajePJ, strCrudo: JSON.stringify(mensajePJ) });
+    aplicarCodecLegado({ datos: mensajePJ, strCrudo: JSON.stringify(mensajePJ) });
 
     const estadoFinal = usarAlmacenDM.getState();
     const pjFinal = estadoFinal.personajes.find((p) => p.id === "pj-tryn");
@@ -689,7 +608,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     expect(deserializado.acompanantes?.[0].iniciativa).toBe(16);
   });
 
-  it("actualizarPersonajeDesdeSync incorpora al acompañante a la cola del DM si no estaba presente", () => {
+  it("aplicarBorradorCombatePJ incorpora al acompañante a la cola del DM si no estaba presente", () => {
     usarAlmacenDM.setState({
       personajes: [
         {
@@ -729,7 +648,7 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
     };
 
     const estado = usarAlmacenDM.getState();
-    estado.actualizarPersonajeDesdeSync(dtoSync);
+    estado.aplicarBorradorCombatePJ(dtoSync);
 
     const estadoFinal = usarAlmacenDM.getState();
     const acompEnCola = estadoFinal.colaIniciativa.find((c) => c.idAcompanante === "acomp-familiar" || c.id === "acomp-familiar");
@@ -741,39 +660,6 @@ describe("Sincronización Simbiote - Manejo de Mensajes en Store", () => {
 });
 
 describe("Sincronización Simbiote - Firma del DM y Resiliencia de Cola", () => {
-  it("calcularFirmaIniciativaDM es determinista y no muta si la referencia del array cambia pero el contenido es idéntico", () => {
-    const criatura: CriaturaIniciativa = {
-      id: "c-1",
-      nombre: "Goblin",
-      iniciativa: 12,
-      vidaActual: 7,
-      vidaMaxima: 7,
-      vidaTemporal: 0,
-      ca: 15,
-      esMonstruo: true,
-      condiciones: ["envenenado"],
-      efectos: [{ id: "e1", nombre: "Maldición", expiraRonda: 2 }],
-      bonificadorIniciativa: 2,
-      velocidad: "30 pies",
-    };
-
-    const cola1 = [criatura];
-    const cola2 = [{ ...criatura }];
-
-    const firma1 = calcularFirmaIniciativaDM(cola1, 0, 1, false, "estandar");
-    const firma2 = calcularFirmaIniciativaDM(cola2, 0, 1, false, "estandar");
-
-    expect(firma1).toBe(firma2);
-
-    // Si cambia vida, la firma cambia
-    const colaModificada = [{ ...criatura, vidaActual: 4 }];
-    const firmaModificada = calcularFirmaIniciativaDM(colaModificada, 0, 1, false, "estandar");
-    expect(firmaModificada).not.toBe(firma1);
-
-    // Si cambia turno o ronda, la firma cambia
-    const firmaTurno = calcularFirmaIniciativaDM(cola1, 1, 1, false, "estandar");
-    expect(firmaTurno).not.toBe(firma1);
-  });
 
   it("ts.sync.send encola secuencialmente y maneja reintentos ante error rateLimited", async () => {
     let intentosLlamada = 0;

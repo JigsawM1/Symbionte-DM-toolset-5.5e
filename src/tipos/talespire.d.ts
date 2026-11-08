@@ -119,7 +119,7 @@ export interface InfoCliente {
 }
 
 export interface EventoClienteTS {
-  kind: "clientJoinedBoard" | "clientLeftBoard" | "clientModeChanged";
+  kind: "clientJoinedBoard" | "clientLeftBoard" | "clientModeChanged" | "clientConnected" | "clientDisconnected";
   client?: FragmentoCliente;
   clientId?: string;
   clientMode?: ModoCliente;
@@ -273,6 +273,7 @@ export interface TaleSpireAPI {
   };
   clients?: {
     whoAmI?: () => Promise<FragmentoCliente>;
+    getClientsInThisBoard?: () => Promise<FragmentoCliente[]>;
     getMoreInfo?: (clientFragmentsOrIds: FragmentoOId[]) => Promise<InfoCliente[]>;
     onClientEvent?: Suscribible<EventoClienteTS> | ((listener: (e: unknown) => void) => (() => void) | undefined);
   };

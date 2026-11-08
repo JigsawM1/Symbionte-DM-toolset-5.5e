@@ -14,8 +14,6 @@ import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculador
 import {
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
-  resolverPersonajeAsociado,
-  coincidenNombresTaleSpire
 } from "./resolutorCriaturas";
 import {
   esIdInvocacionEscalable,
@@ -25,7 +23,6 @@ import {
 } from "./factoriaInvocaciones";
 import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { IndiceMonstruos } from "./indiceMonstruos";
-import { logger } from "@/utiles/logger";
 
 export interface ResultadoSincronizacion {
   colaIniciativa: CriaturaIniciativa[];
@@ -67,7 +64,7 @@ export function filtrarEfectosExpirados(
 
 /**
  * Sincroniza la cola de iniciativa física nativa de TaleSpire con la cola DM local,
- * calculando turnos activos, incrementos de ronda y actualizando fichas asociadas.
+ * importando participantes y orden. Los valores, el turno y la ronda pertenecen a ToolSet.
  */
 export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): ResultadoSincronizacion {
   const {
@@ -98,18 +95,15 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nuevasCriaturasNativas = colaTSItems.map((cTS) => {
     // Reemplaza el .find() lento por una lectura directa
     const existente = mapaLocal.get(cTS.id);
-    const cTSConPropiedades = cTS as typeof cTS & { initiative?: number };
     
     // Simplificado usando Nullish Coalescing (??)
-    const iniciativaFisica = cTSConPropiedades.initiative ?? (existente ? existente.iniciativa : 0);
+    const iniciativaFisica = existente?.iniciativa ?? 0;
+
 
     // Comprobar si esta miniatura corresponde a un Personaje Jugador conocido
-    const pjAsociado = resolverPersonajeAsociado(
-      cTS.id,
-      cTS.name,
-      personajes,
-      existente?.idPersonajeDuenio
-    );
+    const pjAsociado = personajes.find(p => p.id.toLowerCase() === cTS.id.toLowerCase()
+      || p.idMiniaturaTS?.toLowerCase() === cTS.id.toLowerCase()
+      || (!!existente?.idPersonajeDuenio && !existente.esAcompanante && p.id === existente.idPersonajeDuenio));
 
     if (pjAsociado) {
       const statsPj = calcularEstadisticasPersonaje(pjAsociado);
@@ -181,8 +175,8 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       if (!pj.acompanantes || pj.acompanantes.length === 0) continue;
       for (const acomp of pj.acompanantes) {
         if (
-          (acomp.idMiniaturaTS && acomp.idMiniaturaTS === cTS.id) ||
-          (cTS.name && coincidenNombresTaleSpire(acomp.nombre, cTS.name))
+          acomp.id.toLowerCase() === cTS.id.toLowerCase() ||
+          acomp.idMiniaturaTS?.toLowerCase() === cTS.id.toLowerCase()
         ) {
           acompAsociado = acomp;
           pjDuenioAcomp = pj;
@@ -326,68 +320,19 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
       vidaTemporal: 0,
       idPlantillaAsociada: plantillaMonstruo ? plantillaMonstruo.id : undefined
     } as CriaturaIniciativa;
-  });
+  }).map(c => mapaLocal.get(c.id) ?? c);
 
   // Combinar preservando a TaleSpire como Fuente Única de la Verdad (SSOT) para el orden de turnos.
   // NO se auto-ordena por valor numérico: las miniaturas nativas conservan su orden posicional exacto de TaleSpire.
-  let colaCombinada = [...nuevasCriaturasNativas, ...criaturasLocales];
+  const colaCombinada = [...nuevasCriaturasNativas, ...criaturasLocales];
 
-  let nuevoIndice = indiceTurnoActivo;
-  let nuevaRonda = rondaActual;
-
-  const nativeActiveIndex = colaTS.activeItemIndex;
-  logger.debug("[TaleSpire Sincronismo] Leyendo turno activo nativo:", nativeActiveIndex, "de la cola:", colaTSItems);
-
-  if (typeof nativeActiveIndex === "number" && nativeActiveIndex >= 0 && nativeActiveIndex < colaTSItems.length) {
-    const criaturaActivaTS = colaTSItems[nativeActiveIndex];
-    if (criaturaActivaTS) {
-      const activeTurnId = criaturaActivaTS.id;
-      
-      // Buscamos el índice en la cola combinada preservada
-      let indiceEncontrado = colaCombinada.findIndex((c) => c.id === activeTurnId);
-      if (indiceEncontrado === -1) {
-        const nombreBuscado = criaturaActivaTS.name.toLowerCase().trim();
-        indiceEncontrado = colaCombinada.findIndex(
-          (c) => c.nombre.toLowerCase().trim() === nombreBuscado
-        );
-      }
-
-      if (indiceEncontrado !== -1) {
-        logger.debug("[TaleSpire Sincronismo] Encontrado índice de turno activo en la cola combinada local:", indiceEncontrado);
-        nuevoIndice = indiceEncontrado;
-      }
-    }
-  }
-
-  // Asegurar que el índice del turno no exceda los límites de la cola
-  if (colaCombinada.length === 0) {
-    nuevoIndice = 0;
-  } else if (nuevoIndice >= colaCombinada.length) {
-    nuevoIndice = Math.max(0, colaCombinada.length - 1);
-  }
-
-  // DETECCIÓN DE AVANCE / RETROCESO DE RONDA POR WRAP-AROUND:
-  const totalItemsTaleSpire = colaTSItems.length;
-  const longitudRelevante = totalItemsTaleSpire > 1 ? totalItemsTaleSpire : colaCombinada.length;
-  if (longitudRelevante > 1) {
-    const ultimoIndice = longitudRelevante - 1;
-    if (indiceTurnoActivo === ultimoIndice && nuevoIndice === 0) {
-      nuevaRonda = rondaActual + 1;
-    } else if (indiceTurnoActivo === 0 && nuevoIndice === ultimoIndice) {
-      nuevaRonda = Math.max(1, rondaActual - 1);
-    }
-  }
-
-  // Sincronizar ronda si TaleSpire la envía de forma explícita
-  const colaTSConRonda = colaTS as typeof colaTS & { round?: number };
-  if (colaTSConRonda && typeof colaTSConRonda.round === "number" && colaTSConRonda.round > 0) {
-    nuevaRonda = colaTSConRonda.round;
-  }
-
-  // Filtrar efectos temporales si la ronda avanzó
-  if (nuevaRonda > rondaActual) {
-    colaCombinada = filtrarEfectosExpirados(colaCombinada, nuevaRonda);
-  }
+  const ids = new Set(colaCombinada.map(c => c.id));
+  const activa = colaLocal[indiceTurnoActivo]?.id;
+  const siguiente = [...colaLocal.slice(indiceTurnoActivo + 1), ...colaLocal.slice(0, indiceTurnoActivo)]
+    .find(c => ids.has(c.id))?.id;
+  const idActivo = activa && ids.has(activa) ? activa : siguiente;
+  const nuevoIndice = Math.max(0, colaCombinada.findIndex(c => c.id === idActivo));
+  const nuevaRonda = rondaActual;
 
   return {
     colaIniciativa: colaCombinada,

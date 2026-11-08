@@ -1,6 +1,6 @@
 import { CambiosSyncPendientes } from "@/componentes/comunes/CambiosSyncPendientes";
 import { AvisoCargaDatos } from "@/componentes/comunes/AvisoCargaDatos";
-import { DialogoDiscrepanciaVitalidad } from "@/componentes/caracteristicas/sincronizacion/DialogoDiscrepanciaVitalidad";
+import { EstadoSincronizacionV4 } from "@/componentes/caracteristicas/sincronizacion/EstadoSincronizacionV4";
 import React, { Suspense } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
@@ -99,7 +99,7 @@ const AppContenido: React.FC = () => {
       <main className={estilos.areaContenido}>
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
-        {!esGM && <DialogoDiscrepanciaVitalidad />}
+        <EstadoSincronizacionV4 />
         <Suspense
           fallback={
             <div className={estilos.cargadorPestana}>

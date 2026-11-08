@@ -1,3 +1,4 @@
+import { eventoClienteSyncV4, esDirectorSyncV4, generacionConexionSyncV4 } from "@/servicios/sincronizacion/conexionSyncV4";
 import { limpiarTiradasExpiradas, limpiarRegistrosTiradas } from "@/utiles/lanzadorDados";
 import { invalidarAutoridadSync } from "@/servicios/sincronizacion/autoridadSync";
 /**
@@ -41,6 +42,7 @@ export function usarConexionTaleSpire() {
   useEffect(() => {
     let desuscribirSeleccion: (() => void) | null = null;
     let desuscribirIniciativa: (() => void) | null = null;
+    let desuscribirDireccion: (() => void) | null = null;
     let desuscribirCliente: (() => void) | null = null;
     let desuscribirSync: (() => void) | null = null;
     let desuscribirEstadoCriatura: (() => void) | null = null;
@@ -155,6 +157,8 @@ export function usarConexionTaleSpire() {
 
         // Función auxiliar para procesar cola de iniciativa con detección nativa de propietarios (ownerIds)
         const procesarColaConDeteccion = async (cola: import("@/tipos/talespire").ColaIniciativaTS | null) => {
+          if (!esDirectorSyncV4()) return;
+          const generacionCola = generacionConexionSyncV4();
           if (!cola) {
             actualizarColaIniciativaDesdeTaleSpire(null);
             return;
@@ -168,8 +172,15 @@ export function usarConexionTaleSpire() {
               logger.warn("[usarConexionTaleSpire] Error detectando miniaturas de jugadores:", e);
             }
           }
-          actualizarColaIniciativaDesdeTaleSpire(cola, minisJugadores);
+          if (activo && generacionCola === generacionConexionSyncV4() && esDirectorSyncV4()) actualizarColaIniciativaDesdeTaleSpire(cola, minisJugadores);
         };
+        desuscribirDireccion = usarAlmacenDM.subscribe((s, anterior) => {
+          if (!s.conexionSyncV4.soyDirector || anterior.conexionSyncV4.soyDirector) return;
+          const g = generacionConexionSyncV4();
+          void ts.initiative.getQueue().then(cola => {
+            if (activo && g === generacionConexionSyncV4()) void procesarColaConDeteccion(cola);
+          }).catch(error => logger.error('[Sync v4] No se pudo importar la cola al asumir la dirección:', error));
+        });
 
         // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
         desuscribirIniciativa = puenteTaleSpire.on("iniciativaActualizada", (payload) => {
@@ -190,28 +201,20 @@ export function usarConexionTaleSpire() {
 
         // Suscribirse a eventos de cambios de rol del cliente en tiempo real
         const procesarEventoCliente = (payload: EventoClienteTS) => {
-          invalidarAutoridadSync();
           if (!activo) return;
-          logger.debug("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
-          void ts.clients.esGM(true).then(soyGm => {
-            if (!activo) return;
-            establecerEsGM(soyGm);
-            if (!soyGm) solicitarEstadoInicial();
-          }).catch(error => logger.warn('[Sync] No se pudo verificar el cambio de rol:', error));
+          invalidarAutoridadSync();
+          eventoClienteSyncV4(payload);
         };
 
         const subPuenteCliente = puenteTaleSpire.on("eventoCliente", procesarEventoCliente);
-        const subNativaCliente = ts.clients.suscribirACambioModoCliente(() => {
-          invalidarAutoridadSync();
-          void ts.clients.esGM(true).then(soyGm => {
-            if (!activo) return;
-            establecerEsGM(soyGm);
-            if (!soyGm) solicitarEstadoInicial();
-          });
+        const subClientesSyncV4 = puenteTaleSpire.on("eventoClienteSync", payload => {
+          eventoClienteSyncV4(payload);
         });
+        const subNativaCliente = ts.clients.suscribirACambioModoCliente(procesarEventoCliente);
 
         desuscribirCliente = () => {
           subPuenteCliente();
+          subClientesSyncV4();
           subNativaCliente.desuscribir();
         };
 
@@ -594,6 +597,7 @@ export function usarConexionTaleSpire() {
       if (timerInicializacion) clearTimeout(timerInicializacion);
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
+      if (desuscribirDireccion) desuscribirDireccion();
       if (desuscribirCliente) desuscribirCliente();
       if (desuscribirSync) desuscribirSync();
       if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();

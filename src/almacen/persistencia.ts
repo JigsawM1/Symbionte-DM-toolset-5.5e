@@ -61,6 +61,7 @@ export function construirBlobPersistencia(estado: Partial<EstadoDM>): Record<str
     sistema_magia:       estado.sistemaMagia || "espacios",
     asociaciones_fichas: estado.asociacionesFichas || {},
     personajes:          cachePersonajes,
+    sync_v4: estado.memoriaSyncV4 ?? {},
     borradores_sync: Object.fromEntries(Object.entries(estado.borradoresSync ?? {}).map(([id, dto]) => [id, serializarBorradorSync(dto)])),
     id_personaje_activo: estado.idPersonajeActivo || null,
     mostrar_porcentaje_vida: estado.mostrarPorcentajeVidaAJugadores !== undefined ? estado.mostrarPorcentajeVidaAJugadores : true,

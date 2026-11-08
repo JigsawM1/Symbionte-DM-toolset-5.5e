@@ -1,46 +1,36 @@
-/**
- * @module sliceSync
- * Slice de Zustand para la gestión del estado efímero de sincronización (TS.sync).
- * Aísla banderas de sincronización en tránsito y mutaciones del estado
- * sin persistirlas en disco para evitar desincronizaciones locales.
- */
+/** Conexión efímera v4, memoria persistida y adaptadores de borradores históricos. */
 
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import type { EstadoIniciativaDM } from "@/tipos/sync";
 import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
-import { crearAccionesSyncV2, type AccionesSyncV2 } from "./accionesSyncV2";
+import { CONEXION_SYNC_V4_INICIAL, type EstadoConexionSyncV4, type MemoriaSyncV4 } from "@/tipos/estadoSyncV4";
 
-export interface SliceSync extends AccionesSyncV2 {
+export interface SliceSync {
+  conexionSyncV4: EstadoConexionSyncV4;
+  memoriaSyncV4: MemoriaSyncV4;
   aplicandoSync: boolean;
   idClienteDM: string | null;
-  timestampsModificacionLocal: Record<string, number>;
   borradoresSync: Record<string, BorradorCombatePJ>;
   guardarBorradorSync: (id: string, borrador: BorradorCombatePJ) => void;
   descartarBorradorSync: (id: string) => void;
   reaplicarBorradorSync: (id: string) => boolean;
 
   establecerIdClienteDM: (id: string | null) => void;
-  registrarModificacionLocalPJ: (id: string, ts?: number) => void;
-  confirmarACKPJ: (id: string, ts: number) => void;
-  aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => void;
-  actualizarPersonajeDesdeSync: (dto: BorradorCombatePJ, origen?: 'remoto' | 'borrador') => void;
+  aplicarBorradorCombatePJ: (dto: BorradorCombatePJ) => void;
 }
 
-const VENTANA_PROTECCION_MUTACION_MS = 2500;
 
 export const crearSliceSync: StateCreator<
   EstadoDM,
   [],
   [],
   SliceSync
-> = (set, get) => ({
-  ...crearAccionesSyncV2(set, get),
+> = (set, get) => ({  conexionSyncV4: { ...CONEXION_SYNC_V4_INICIAL },
+  memoriaSyncV4: {},
   aplicandoSync: false,
   idClienteDM: null,
-  timestampsModificacionLocal: {},
   borradoresSync: {},
   guardarBorradorSync: (id, borrador) => set(s => ({ borradoresSync: { ...s.borradoresSync, [id]: borrador } })),
   descartarBorradorSync: id => set(s => ({ borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) })),
@@ -57,7 +47,7 @@ export const crearSliceSync: StateCreator<
       s.agregarNotificacion('No se encontró la ficha de este cambio. El borrador sigue disponible para descargar.', 'advertencia');
       return false;
     }
-    s.actualizarPersonajeDesdeSync(borrador, 'borrador');
+    s.aplicarBorradorCombatePJ(borrador);
     get().descartarBorradorSync(id);
     return true;
   },
@@ -66,180 +56,11 @@ export const crearSliceSync: StateCreator<
     set({ idClienteDM: id });
   },
 
-  registrarModificacionLocalPJ: (id: string, ts = Date.now()) => {
-    set((state) => ({
-      timestampsModificacionLocal: {
-        ...state.timestampsModificacionLocal,
-        [id]: ts,
-      },
-    }));
-  },
+  aplicarBorradorCombatePJ: (dto) => {
+    logger.debug("[SliceSync] Reaplicando borrador guardado:", dto.nombre, dto.id);
 
-  confirmarACKPJ: (id: string, ts: number) => {
-    set((state) => {
-      const tsRegistrado = state.timestampsModificacionLocal[id];
-      if (tsRegistrado && ts >= tsRegistrado) {
-        const nuevoMapa = { ...state.timestampsModificacionLocal };
-        delete nuevoMapa[id];
-        return { timestampsModificacionLocal: nuevoMapa };
-      }
-      return state;
-    });
-  },
-
-  aplicarIniciativaDesdeSync: (datos: EstadoIniciativaDM) => {
-    logger.debug("[SliceSync] Aplicando estado de combate desde sync:", datos);
-
-    const { personajes, timestampsModificacionLocal } = get();
-
-    // Actualizar condiciones, efectos y vitalidad de los personajes locales y sus acompañantes que estén en la iniciativa del DM
-    const personajesActualizados = personajes.map((pj) => {
-      const criaturaEnCola = datos.cola.find(
-        (c) =>
-          !c.esAcompanante &&
-          (c.id === pj.id ||
-            c.idPersonajeDuenio === pj.id ||
-            (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(c.nombre, pj.nombre))
-      );
-
-      const tsModPJ = timestampsModificacionLocal[pj.id];
-      const mutacionEnTransitoPJ = tsModPJ !== undefined;
-
-      const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-        const criaturaAcompEnCola = datos.cola.find(
-          (c) =>
-            c.id === acomp.id ||
-            c.idAcompanante === acomp.id ||
-            (acomp.idMiniaturaTS && c.id === acomp.idMiniaturaTS) ||
-            coincidenNombresTaleSpire(c.nombre, acomp.nombre)
-        );
-
-        if (!criaturaAcompEnCola) return acomp;
-
-        const tsModAcomp = timestampsModificacionLocal[acomp.id];
-        const mutacionEnTransitoAcomp = tsModAcomp !== undefined || mutacionEnTransitoPJ;
-        const esFallbackAcomp =
-          typeof criaturaAcompEnCola.vidaMaxima === "number" &&
-          criaturaAcompEnCola.vidaMaxima === 10 &&
-          (acomp.vidaMaxima || 0) > 10;
-
-        return {
-          ...acomp,
-          condiciones: mutacionEnTransitoAcomp
-            ? acomp.condiciones
-            : esFallbackAcomp && (criaturaAcompEnCola.condiciones || []).length === 0 && (acomp.condiciones || []).length > 0
-            ? acomp.condiciones
-            : criaturaAcompEnCola.condiciones || [],
-          efectos: mutacionEnTransitoAcomp
-            ? acomp.efectos
-            : esFallbackAcomp && (criaturaAcompEnCola.efectos || []).length === 0 && (acomp.efectos || []).length > 0
-            ? acomp.efectos
-            : criaturaAcompEnCola.efectos || [],
-          vidaActual: mutacionEnTransitoAcomp
-            ? acomp.vidaActual
-            : esFallbackAcomp && criaturaAcompEnCola.vidaActual === 10
-            ? acomp.vidaActual
-            : typeof criaturaAcompEnCola.vidaActual === "number"
-            ? criaturaAcompEnCola.vidaActual
-            : acomp.vidaActual,
-          vidaMaxima: mutacionEnTransitoAcomp
-            ? acomp.vidaMaxima
-            : esFallbackAcomp
-            ? acomp.vidaMaxima
-            : typeof criaturaAcompEnCola.vidaMaxima === "number" && criaturaAcompEnCola.vidaMaxima > 0
-            ? criaturaAcompEnCola.vidaMaxima
-            : acomp.vidaMaxima,
-          vidaTemporal: mutacionEnTransitoAcomp
-            ? acomp.vidaTemporal
-            : esFallbackAcomp && criaturaAcompEnCola.vidaTemporal === 0 && (acomp.vidaTemporal || 0) > 0
-            ? acomp.vidaTemporal
-            : typeof criaturaAcompEnCola.vidaTemporal === "number"
-            ? criaturaAcompEnCola.vidaTemporal
-            : acomp.vidaTemporal,
-        };
-      });
-
-      if (!criaturaEnCola) {
-        return {
-          ...pj,
-          acompanantes: nuevosAcomps,
-        };
-      }
-
-      const esFallbackTaleSpire =
-        typeof criaturaEnCola.vidaMaxima === "number" &&
-        criaturaEnCola.vidaMaxima === 10 &&
-        (pj.hpMaximoBase ?? pj.hpMaximo ?? 10) > 10;
-
-      return {
-        ...pj,
-        condicionesActivas: mutacionEnTransitoPJ
-          ? pj.condicionesActivas
-          : esFallbackTaleSpire && (criaturaEnCola.condiciones || []).length === 0 && (pj.condicionesActivas || []).length > 0
-          ? pj.condicionesActivas
-          : criaturaEnCola.condiciones || [],
-        efectosActivos: mutacionEnTransitoPJ
-          ? pj.efectosActivos
-          : esFallbackTaleSpire && (criaturaEnCola.efectos || []).length === 0 && (pj.efectosActivos || []).length > 0
-          ? pj.efectosActivos
-          : criaturaEnCola.efectos || [],
-        hpActual: mutacionEnTransitoPJ
-          ? pj.hpActual
-          : esFallbackTaleSpire && criaturaEnCola.vidaActual === 10
-          ? pj.hpActual
-          : typeof criaturaEnCola.vidaActual === "number"
-          ? criaturaEnCola.vidaActual
-          : pj.hpActual,
-        hpMaximo: mutacionEnTransitoPJ
-          ? pj.hpMaximo
-          : esFallbackTaleSpire
-          ? pj.hpMaximo
-          : typeof criaturaEnCola.vidaMaxima === "number" && criaturaEnCola.vidaMaxima > 0
-          ? criaturaEnCola.vidaMaxima
-          : pj.hpMaximo,
-        hpTemporal: mutacionEnTransitoPJ
-          ? pj.hpTemporal
-          : esFallbackTaleSpire && criaturaEnCola.vidaTemporal === 0 && (pj.hpTemporal || 0) > 0
-          ? pj.hpTemporal
-          : typeof criaturaEnCola.vidaTemporal === "number"
-          ? criaturaEnCola.vidaTemporal
-          : pj.hpTemporal,
-        acompanantes: nuevosAcomps,
-      };
-    });
-
-    // Activamos flag para evitar reemisiones cíclicas
-    set({
-      aplicandoSync: true,
-      personajes: personajesActualizados,
-      colaIniciativa: datos.cola,
-      indiceTurnoActivo: datos.indiceTurnoActivo,
-      rondaActual: datos.rondaActual,
-      mostrarPorcentajeVidaAJugadores: datos.mostrarPorcentajeVidaAJugadores,
-      metodoVidaMonstruo: datos.metodoVidaMonstruo as "estandar" | "maximo" | "azar",
-    });
-
-    // Liberar flag en el siguiente microtask tras disparar listeners de Zustand
-    queueMicrotask(() => {
-      set({ aplicandoSync: false });
-    });
-  },
-
-  actualizarPersonajeDesdeSync: (dto, origen = 'remoto') => {
-    logger.debug("[SliceSync] Actualizando personaje desde sync:", dto.nombre, dto.id);
-
-    const { personajes, colaIniciativa, timestampsModificacionLocal } = get();
-    const ahora = Date.now();
-    const locales = origen === 'borrador' ? dto : undefined;
-    const tieneEdicionReciente = (id: string): boolean => {
-      const tsLocal = timestampsModificacionLocal[id];
-      return Boolean(
-        origen === 'remoto' && tsLocal &&
-          ahora - tsLocal < VENTANA_PROTECCION_MUTACION_MS &&
-          (!dto.ts || dto.ts < tsLocal)
-      );
-    };
+    const { personajes, colaIniciativa } = get();
+    const locales = dto;
 
     // 1. Localizar personaje en la colección del DM
     const indexPj = personajes.findIndex((p) => {
@@ -268,16 +89,12 @@ export const crearSliceSync: StateCreator<
           idsProcesados.add(acompDTO.id);
           const local = locales?.acompanantes?.find(a => a.id === acompDTO.id);
 
-          const edicionRecienteAcompDM = tieneEdicionReciente(acompExistente.id);
-
           return {
             ...acompExistente,
             nombre: acompDTO.nombre || acompExistente.nombre,
-            vidaActual: edicionRecienteAcompDM ? acompExistente.vidaActual : acompDTO.vidaActual,
-            vidaMaxima: edicionRecienteAcompDM ? acompExistente.vidaMaxima : acompDTO.vidaMaxima,
-            vidaTemporal: edicionRecienteAcompDM
-              ? acompExistente.vidaTemporal
-              : (acompDTO.vidaTemporal ?? acompExistente.vidaTemporal),
+            vidaActual: acompDTO.vidaActual,
+            vidaMaxima: acompDTO.vidaMaxima,
+            vidaTemporal: (acompDTO.vidaTemporal ?? acompExistente.vidaTemporal),
             ca: acompDTO.ca ?? acompExistente.ca,
             condiciones: acompDTO.condiciones || [],
             efectos: acompDTO.efectos || [],
@@ -332,13 +149,11 @@ export const crearSliceSync: StateCreator<
         acompSincronizados = [...actualizados, ...nuevosAcomps];
       }
 
-      const edicionRecientePjDM = tieneEdicionReciente(pjExistente.id);
-
       const pjActualizado = {
         ...pjExistente,
-        hpActual: edicionRecientePjDM ? pjExistente.hpActual : dto.hpActual,
-        hpMaximo: edicionRecientePjDM ? pjExistente.hpMaximo : dto.hpMaximo,
-        hpTemporal: edicionRecientePjDM ? pjExistente.hpTemporal : dto.hpTemporal,
+        hpActual: dto.hpActual,
+        hpMaximo: dto.hpMaximo,
+        hpTemporal: dto.hpTemporal,
         ca: dto.ca,
         condicionesActivas: dto.condiciones,
         efectosActivos: dto.efectos.map((e) => ({
@@ -391,7 +206,6 @@ export const crearSliceSync: StateCreator<
           criatura.idPersonajeDuenio === dto.id ||
           (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, dto.nombre));
       if (coincidePorIdPJ) {
-        const edicionRecienteColaDM = tieneEdicionReciente(criatura.id);
 
         return {
           ...criatura,
@@ -400,9 +214,9 @@ export const crearSliceSync: StateCreator<
           idPersonajeDuenio: dto.id,
           avatarUrl: dto.avatarUrl ?? criatura.avatarUrl,
           iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
-          vidaActual: edicionRecienteColaDM ? criatura.vidaActual : dto.hpActual,
-          vidaMaxima: edicionRecienteColaDM ? criatura.vidaMaxima : dto.hpMaximo,
-          vidaTemporal: edicionRecienteColaDM ? criatura.vidaTemporal : dto.hpTemporal,
+          vidaActual: dto.hpActual,
+          vidaMaxima: dto.hpMaximo,
+          vidaTemporal: dto.hpTemporal,
           ca: dto.ca,
           pasivas: dto.pasivas || criatura.pasivas,
           condiciones: dto.condiciones,
@@ -426,16 +240,13 @@ export const crearSliceSync: StateCreator<
 
         if (acompCoincidente) {
           const local = locales?.acompanantes?.find(a => a.id === acompCoincidente.id);
-          const edicionRecienteAcompColaDM = tieneEdicionReciente(criatura.id);
 
           return {
             ...criatura,
             iniciativa: acompCoincidente.iniciativa !== undefined ? acompCoincidente.iniciativa : criatura.iniciativa,
-            vidaActual: edicionRecienteAcompColaDM ? criatura.vidaActual : acompCoincidente.vidaActual,
-            vidaMaxima: edicionRecienteAcompColaDM ? criatura.vidaMaxima : acompCoincidente.vidaMaxima,
-            vidaTemporal: edicionRecienteAcompColaDM
-              ? criatura.vidaTemporal
-              : (acompCoincidente.vidaTemporal ?? criatura.vidaTemporal),
+            vidaActual: acompCoincidente.vidaActual,
+            vidaMaxima: acompCoincidente.vidaMaxima,
+            vidaTemporal: (acompCoincidente.vidaTemporal ?? criatura.vidaTemporal),
             ca: acompCoincidente.ca ?? criatura.ca,
             condiciones: acompCoincidente.condiciones || [],
             efectos: acompCoincidente.efectos || [],
@@ -484,13 +295,8 @@ export const crearSliceSync: StateCreator<
     }
 
     set({
-      aplicandoSync: origen === 'remoto',
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,
-    });
-
-    if (origen === 'remoto') queueMicrotask(() => {
-      set({ aplicandoSync: false });
     });
   },
 });

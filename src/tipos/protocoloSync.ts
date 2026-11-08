@@ -1,18 +1,13 @@
 /**
  * @module tipos/protocoloSync
  * Contratos de dominio, constantes y esquemas Zod para el protocolo de
- * sincronización minimalista de eventos atómicos (Sync v2 - Protocolo v3).
- *
- * Principios arquitectónicos:
- * 1. El Simbionte es la única fuente de la verdad de vida y estadísticas (se ignora el HP 10/10 de TaleSpire).
- * 2. Por TS.sync solo viajan micro-eventos (< 400 caracteres seguros sobre los 500 nativos de TaleSpire).
- * 3. Soberanía del jugador: el DM envía daños/curaciones a PJs mediante `DELTA_VIDA` relativo.
+ * sincronización v4. Los codecs anteriores permanecen para lectura de datos locales.
  */
 
 import { z } from "zod";
 import type { CriaturaIniciativa, EfectoActivo } from "@/almacen/usarAlmacenDM";
 
-/** Contrato v4. Se activa cuando el motor y sus consumidores hayan migrado juntos. */
+/** Contrato activo v4. Los formatos anteriores sólo se conservan para datos locales y migración. */
 export const VERSION_PROTOCOLO_SYNC_V4 = 4;
 const idSyncV4 = z.string().min(1).max(128);
 const revisionSyncV4 = z.number().int().nonnegative().safe();
@@ -41,28 +36,48 @@ export const EsquemaRevisionesSyncV4 = z.object({ vitalidad: revisionSyncV4,
   estados: revisionSyncV4, datos: revisionSyncV4, acompanantes: revisionSyncV4 });
 export const EsquemaEntidadSyncV4 = z.object({ id: idSyncV4, duenio: idSyncV4,
   miniatura: idSyncV4.nullable(), padre: idSyncV4.nullable(),
+  ficha: idSyncV4.optional(), fila: idSyncV4.optional(), monstruo: z.boolean().optional(), plantilla: idSyncV4.optional(),
   revision: revisionSyncV4, revisiones: EsquemaRevisionesSyncV4,
   grupos: EsquemaGruposSyncV4, eliminada: z.boolean() });
 export type EntidadSyncV4 = z.infer<typeof EsquemaEntidadSyncV4>;
-const sobreSyncV4 = z.object({ v: z.literal(4), contexto: EsquemaContextoSyncV4, emisor: idSyncV4 });
-export const EsquemaMensajeSyncV4 = z.discriminatedUnion('t', [
+export const EsquemaMetaSyncV4 = z.object({ orden: z.array(idSyncV4).max(4096), activo: idSyncV4.nullable(),
+  ronda: z.number().int().positive().safe(), porcentaje: z.boolean() });
+export type MetaSyncV4 = z.infer<typeof EsquemaMetaSyncV4>;
+const sobreSyncV4 = z.object({ v: z.literal(4), contexto: EsquemaContextoSyncV4, emisor: idSyncV4,
+  sesionEmisor: idSyncV4.optional() });
+const esquemaMensajeExtendidoSyncV4 = z.discriminatedUnion('t', [
   sobreSyncV4.extend({ t: z.literal('HOLA'), solicitud: idSyncV4 }),
+  sobreSyncV4.extend({ t: z.literal('DIRECCION'), fase: z.enum(['voto', 'anuncio', 'requiere-voto']), candidato: idSyncV4 }),
+  sobreSyncV4.extend({ t: z.literal('COMBATE'), revision: revisionSyncV4, meta: EsquemaMetaSyncV4 }),
   sobreSyncV4.extend({ t: z.literal('PROPUESTA'), operacion: idSyncV4, entidad: idSyncV4,
+    registro: EsquemaEntidadSyncV4.optional(), revisionesHijos: z.record(z.string(), revisionSyncV4).optional(),
+    restaurar: z.boolean().optional(),
     bases: EsquemaRevisionesSyncV4, cambios: EsquemaGruposSyncV4.partial(),
     resolver: z.array(z.enum(['vitalidad', 'estados', 'datos', 'acompanantes'])).max(4).default([]) }),
   sobreSyncV4.extend({ t: z.literal('CONFIRMADO'), operacion: idSyncV4,
     revision: revisionSyncV4, entidad: EsquemaEntidadSyncV4 }),
   sobreSyncV4.extend({ t: z.literal('RESULTADO'), operacion: idSyncV4,
     estado: z.enum(['aplicado', 'conflicto', 'rechazado']), revision: revisionSyncV4,
-    conflictos: z.array(z.enum(['vitalidad', 'estados', 'datos', 'acompanantes'])).max(4) }),
+    conflictos: z.array(z.enum(['vitalidad', 'estados', 'datos', 'acompanantes'])).max(4),
+    entidad: EsquemaEntidadSyncV4.optional() }),
   sobreSyncV4.extend({ t: z.literal('LOTE'), snapshot: idSyncV4, revision: revisionSyncV4,
     parte: z.number().int().min(1).max(4096), total: z.number().int().min(1).max(4096),
-    entidades: z.array(EsquemaEntidadSyncV4).max(3) }),
+    entidades: z.array(EsquemaEntidadSyncV4).max(3), meta: EsquemaMetaSyncV4.optional() }),
   sobreSyncV4.extend({ t: z.literal('LATIDO'), revision: revisionSyncV4 }),
   sobreSyncV4.extend({ t: z.literal('FRAG'), id: idSyncV4,
+    tipoMensaje: z.string().max(32).optional(),
     parte: z.number().int().min(1).max(4096), total: z.number().int().min(2).max(4096),
     texto: z.string().min(1).max(400) }),
 ]);
+/** Sólo abrevia claves; la autoridad y el contexto conservan sus valores completos. */
+const esquemaFragmentoCompactoV4 = z.object({ v: z.literal(4), t: z.literal('F'),
+  c: z.tuple([idSyncV4, idSyncV4, idSyncV4, idSyncV4]), e: idSyncV4, s: idSyncV4.optional(), i: idSyncV4,
+  k: z.string().max(32).optional(),
+  p: z.number().int().min(1).max(4096), n: z.number().int().min(2).max(4096), x: z.string().min(1).max(400),
+}).transform(f => ({ v: 4 as const, t: 'FRAG' as const,
+  contexto: { campania: f.c[0], tablero: f.c[1], sesion: f.c[2], director: f.c[3] },
+  emisor: f.e, sesionEmisor: f.s, id: f.i, tipoMensaje: f.k, parte: f.p, total: f.n, texto: f.x }));
+export const EsquemaMensajeSyncV4 = esquemaMensajeExtendidoSyncV4.or(esquemaFragmentoCompactoV4);
 export type MensajeSyncV4 = z.infer<typeof EsquemaMensajeSyncV4>;
 
 // ==========================================

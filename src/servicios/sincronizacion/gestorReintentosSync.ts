@@ -28,8 +28,7 @@ export class GestorReintentosSync {
 
   /** Solo el progreso nuevo pausa la solicitud, sin consumir ni reiniciar su presupuesto. */
   pausarReintentosREQ(enviar: () => void): void {
-    if (this.req.agotado) return;
-    this.req.activo = true;
+    if (!this.req.activo || this.req.agotado) return;
     this.req.enviar = enviar;
     if (this.req.timer) clearTimeout(this.req.timer);
     this.req.timer = null;

@@ -341,7 +341,7 @@ export const crearSliceConfiguracion: StateCreator<
         notasDM: "Escribe aquí las notas de tu sesión...",
         encuentrosGuardados: [],
         personajes: [structuredClone(PERSONAJE_POR_DEFECTO)],
-        borradoresSync: {}, sistemaMagia: "espacios",
+        borradoresSync: {}, memoriaSyncV4: {}, sistemaMagia: "espacios",
         idPersonajeActivo: PERSONAJE_POR_DEFECTO.id,
         mostrarPorcentajeVidaAJugadores: true,
         cargandoDatos: false, datosInicialesCargados: true, errorCargaDatos: null, blobRecuperacion: null

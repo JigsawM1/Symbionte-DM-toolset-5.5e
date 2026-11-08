@@ -6,7 +6,7 @@
  * y fallback con BroadcastChannel para desarrollo o pruebas.
  */
 
-import type { FragmentoCliente } from "@/tipos/talespire";
+import type { TaleSpireAPI, FragmentoCliente } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 import { limpiarSuscripcionNativa, obtenerTSGlobal } from "./comun";
 
@@ -17,10 +17,12 @@ interface ElementoColaSync {
 }
 
 export class TaleSpireSyncAdapter {
+  constructor(private readonly obtenerAPI: () => Pick<TaleSpireAPI, 'sync'> | undefined = obtenerTSGlobal) {}
   private canalBroadcastSync?: BroadcastChannel;
   private colaEnvioSync: ElementoColaSync[] = [];
   private procesandoColaSync = false;
   private ultimoEnvioSync: number | undefined;
+  private generacionSync = 0;
   private readonly INTERVALO_MINIMO_SYNC_MS = 180;
   private readonly MAX_REINTENTOS_RATE_LIMIT = 3;
 
@@ -55,8 +57,9 @@ export class TaleSpireSyncAdapter {
   }
 
   private async ejecutarEnvioSyncNativoConReintentos(message: string, target: string): Promise<boolean> {
+    const generacion = this.generacionSync;
     let enviado = false;
-    const ts = obtenerTSGlobal();
+    const ts = this.obtenerAPI();
 
     if (ts?.sync && typeof ts.sync.send === "function") {
       if (message.length > 500) {
@@ -70,6 +73,7 @@ export class TaleSpireSyncAdapter {
           const espera = this.ultimoEnvioSync === undefined ? 0
             : this.INTERVALO_MINIMO_SYNC_MS - (Date.now() - this.ultimoEnvioSync);
           if (espera > 0) await new Promise(resolve => setTimeout(resolve, espera));
+          if (generacion !== this.generacionSync) return false;
           this.ultimoEnvioSync = Date.now();
           await ts.sync.send(message, target);
           enviado = true;
@@ -98,7 +102,8 @@ export class TaleSpireSyncAdapter {
       }
     }
 
-    // Replicar en BroadcastChannel persistente para entornos locales o pruebas en navegador
+    if (generacion !== this.generacionSync) return false;
+    // Herramienta local de desarrollo: no aporta identidad nativa al motor v4.
     try {
       const canal = this.getBroadcastChannelSync();
       if (canal) {
@@ -138,6 +143,7 @@ export class TaleSpireSyncAdapter {
    */
   purgarColaSync(filtro?: (mensaje: string) => boolean): number {
     if (!filtro) {
+      this.generacionSync++;
       const descartados = this.colaEnvioSync.length;
       this.colaEnvioSync.forEach((item) => item.resolver(false));
       this.colaEnvioSync = [];
@@ -164,7 +170,7 @@ export class TaleSpireSyncAdapter {
   suscribirAMensajesSync(
     callback: (payload: { str: string; fromClient?: FragmentoCliente }) => void
   ): { desuscribir: () => void } {
-    const ts = obtenerTSGlobal();
+    const ts = this.obtenerAPI();
     const onSyncMessage = ts?.sync?.onSyncMessage;
     if (
       onSyncMessage &&

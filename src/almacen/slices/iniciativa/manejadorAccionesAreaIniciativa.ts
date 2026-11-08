@@ -5,7 +5,6 @@
  */
 
 import type { EfectoActivo, EstadoDM } from "@/almacen/usarAlmacenDM";
-import { emitirDeltaVidaSync } from "@/servicios/sincronizacion/motorEventosSync";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { generarId } from "@/utiles/generarId";
 import {
@@ -16,25 +15,10 @@ import { aplicarEfectoAPersonaje } from "./sincronizadorEfectosIniciativa";
 
 export function despacharAplicarDanoEnArea(
   state: EstadoDM,
-  get: () => EstadoDM,
+  _get: () => EstadoDM,
   cantidad: number,
   idsObjetivo?: string[]
 ): Partial<EstadoDM> {
-  if (get().esGM && !get().aplicandoSync && cantidad !== 0) {
-    const targets = obtenerIdsObjetivoMasivo(
-      get().colaIniciativa,
-      get().indiceTurnoActivo,
-      get().criaturasSeleccionadas,
-      idsObjetivo
-    );
-    for (const criatura of get().colaIniciativa) {
-      if (targets.has(criatura.id) && !criatura.esMonstruo) {
-        const idDestino = criatura.idAcompanante || criatura.idPersonajeDuenio || criatura.id;
-        void emitirDeltaVidaSync(idDestino, Math.abs(cantidad), cantidad > 0 ? "dano" : "curacion");
-      }
-    }
-  }
-
   if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
   return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
     if (cantidad > 0) {

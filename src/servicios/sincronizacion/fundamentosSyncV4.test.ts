@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { EsquemaMensajeSyncV4, type EntidadSyncV4, type GruposSyncV4, type MensajeSyncV4 } from '@/tipos/protocoloSync';
 import { evaluarPropuestaSyncV4, reconciliarSyncV4 } from './reconciliacionSyncV4';
 import { BufferTransporteSyncV4, fragmentarMensajeSyncV4 } from './bufferTransporteSyncV4';
+import { SnapshotsSyncV4 } from './snapshotsSyncV4';
 
 const contexto = { campania: 'campania', tablero: 'tablero', sesion: 'sesion', director: 'dm' };
 const grupos = (): GruposSyncV4 => ({ vitalidad: { actual: 25, maxima: 30, temporal: 5 },
@@ -96,5 +97,46 @@ describe('Fundamentos v4: reconciliación y transporte', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(expirar).toHaveBeenCalledOnce();
     buffer.limpiar();
+  });
+  it('los fragmentos tardíos de una página ya completa no mantienen vivo un snapshot incompleto', async () => {
+    vi.useFakeTimers();
+    const expirar = vi.fn(); const snapshots = new SnapshotsSyncV4(expirar);
+    const lote: Extract<MensajeSyncV4, { t: 'LOTE' }> = { v: 4, t: 'LOTE', contexto, emisor: 'dm',
+      snapshot: 'captura', revision: 4, parte: 1, total: 2, entidades: [entidad()],
+      meta: { orden: [], activo: null, ronda: 1, porcentaje: false } };
+    expect(snapshots.registrar(lote)).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(9000);
+    expect(snapshots.progresar('captura', 1)).toBe(false);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(expirar).toHaveBeenCalledOnce();
+    expect(snapshots.progresar('captura', 2)).toBe(false);
+    snapshots.limpiar();
+  });
+  it('el presupuesto de cien páginas serializa cada página nueva una sola vez', () => {
+    const snapshots = new SnapshotsSyncV4(vi.fn());
+    const serializar = vi.spyOn(JSON, 'stringify');
+    try {
+      let completo;
+      for (let i = 0; i < 100; i++) completo = snapshots.registrar({ v: 4, t: 'LOTE', contexto, emisor: 'dm', snapshot: 'cien',
+        revision: 4, parte: i + 1, total: 100, entidades: [{ ...entidad(), id: `e${i}` }],
+        ...(i === 0 ? { meta: { orden: [], activo: null, ronda: 1, porcentaje: false } } : {}) });
+      expect(completo?.entidades).toHaveLength(100);
+      const paginas = serializar.mock.calls.filter(([valor]) => typeof valor === 'object' && valor !== null && 't' in valor && valor.t === 'LOTE');
+      expect(paginas).toHaveLength(100);
+    } finally { serializar.mockRestore(); snapshots.limpiar(); }
+  });
+  it('los duplicados no consumen presupuesto y una captura nueva reinicia el contador tras desbordar', () => {
+    const expirar = vi.fn(); const snapshots = new SnapshotsSyncV4(expirar);
+    const lote = (parte: number): Extract<MensajeSyncV4, { t: 'LOTE' }> => ({ v: 4, t: 'LOTE', contexto, emisor: 'dm',
+      snapshot: 'grande', revision: 4, parte, total: 6, entidades: Array.from({ length: 3 }, (_, j) => ({ ...entidad(), id: `${parte}-${j}`,
+        grupos: { ...grupos(), estados: { ...grupos().estados, efectos: Array.from({ length: 1024 }, (_, i) => ({ id: `e${i}`, nombre: 'x'.repeat(256) })) } } })),
+      ...(parte === 1 ? { meta: { orden: [], activo: null, ronda: 1, porcentaje: false } } : {}) });
+    try {
+      const primera = lote(1); snapshots.registrar(primera); snapshots.registrar(primera);
+      for (let parte = 2; parte <= 4; parte++) snapshots.registrar(lote(parte));
+      expect(expirar).not.toHaveBeenCalled();
+      snapshots.registrar(lote(5)); expect(expirar).toHaveBeenCalledOnce();
+      expect(snapshots.registrar({ ...primera, snapshot: 'nueva', total: 1, entidades: [] })?.entidades).toEqual([]);
+    } finally { snapshots.limpiar(); }
   });
 });

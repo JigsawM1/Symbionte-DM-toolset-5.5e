@@ -153,10 +153,10 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa[0].id).toBe("mini-ts-1"); // Inic 5 (primero en TaleSpire)
     expect(resultado.colaIniciativa[1].id).toBe("mini-ts-2"); // Inic 25 (segundo en TaleSpire)
     expect(resultado.colaIniciativa[2].id).toBe("c_local_1"); // Local al final
-    expect(resultado.indiceTurnoActivo).toBe(1); // Turno activo nativo de TaleSpire
+    expect(resultado.indiceTurnoActivo).toBe(2); // Conserva al aliado local que estaba activo
   });
 
-  it("debe detectar wrap-around e incrementar la ronda al pasar del último al primer turno", () => {
+  it("ignora el wrap-around físico y conserva la ronda y entidad activas", () => {
     const colaTS: ColaIniciativaTS = {
       items: [
         { id: "mini-1", name: "Trasgo", kind: "creature" },
@@ -184,11 +184,11 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
       rondaActual: 2,
     });
 
-    expect(resultado.rondaActual).toBe(3); // Incrementó ronda de 2 a 3 por wrap-around (1 -> 0)
-    expect(resultado.indiceTurnoActivo).toBe(0); // Ahora apunta a Trasgo (índice 0)
+    expect(resultado.rondaActual).toBe(2); // Sólo ToolSet cambia la ronda
+    expect(resultado.indiceTurnoActivo).toBe(1); // Conserva Lobo (índice 0)
   });
 
-  it("debe respetar la ronda enviada explícitamente por TaleSpire", () => {
+  it("ignora una ronda enviada explícitamente por TaleSpire", () => {
     const colaTS: ColaIniciativaTS = {
       items: [],
       activeItemIndex: -1,
@@ -205,7 +205,7 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
       rondaActual: 1,
     });
 
-    expect(resultado.rondaActual).toBe(4);
+    expect(resultado.rondaActual).toBe(1);
   });
 
   it("debe resolver una miniatura como Personaje Jugador si coincide su idMiniaturaTS", () => {
@@ -251,7 +251,7 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(heroe.ca).toBe(12); // Sin armadura = 10 + mod DES (14 -> +2)
   });
 
-  it("debe resolver una miniatura como Personaje Jugador por coincidencia de nombre", () => {
+  it("no debe asociar una miniatura homónima a una ficha sin vinculación explícita", () => {
     const personajeMago = {
       id: "pj_ezren_1",
       nombre: "Ezren",
@@ -286,10 +286,10 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
 
     expect(resultado.colaIniciativa).toHaveLength(1);
     const heroe = resultado.colaIniciativa[0];
-    expect(heroe.esMonstruo).toBe(false);
+    expect(heroe.esMonstruo).toBe(true);
     expect(heroe.nombre).toBe("Ezren");
-    expect(heroe.vidaMaxima).toBe(14);
-    expect(heroe.ca).toBe(11); // 10 + mod DES (12 -> +1)
+    expect(heroe.vidaMaxima).not.toBe(14);
+    expect(heroe.idPersonajeDuenio).toBeUndefined();
   });
 
   it("debe preservar el orden de múltiples criaturas de TaleSpire sin importar valores de iniciativa mayores o menores", () => {
@@ -319,17 +319,17 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa).toHaveLength(3);
     // Orden exacto de TaleSpire: Bárbaro (8), Pícaro (22), Clérigo (14)
     expect(resultado.colaIniciativa[0].id).toBe("mini-1");
-    expect(resultado.colaIniciativa[0].iniciativa).toBe(8);
+    expect(resultado.colaIniciativa[0].iniciativa).toBe(0);
     expect(resultado.colaIniciativa[1].id).toBe("mini-2");
-    expect(resultado.colaIniciativa[1].iniciativa).toBe(22);
+    expect(resultado.colaIniciativa[1].iniciativa).toBe(0);
     expect(resultado.colaIniciativa[2].id).toBe("mini-3");
-    expect(resultado.colaIniciativa[2].iniciativa).toBe(14);
-    expect(resultado.indiceTurnoActivo).toBe(2);
+    expect(resultado.colaIniciativa[2].iniciativa).toBe(0);
+    expect(resultado.indiceTurnoActivo).toBe(0);
   });
 });
 
 describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tiradas)", () => {
-  it("importa la iniciativa de un jugador sin pedir la lista de miniaturas del GM", async () => {
+  it("el director importa participantes sin consultar listas globales de miniaturas", async () => {
     const colaTS: ColaIniciativaTS = {
       items: [
         { id: "mini-pj", name: "Aventurera", kind: "creature" },
@@ -351,7 +351,8 @@ describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tira
 
     const estadoAnterior = usarAlmacenDM.getState();
     try {
-      usarAlmacenDM.setState({ colaIniciativa: [], personajes: [], asociacionesFichas: {} });
+      usarAlmacenDM.setState({ colaIniciativa: [], personajes: [], asociacionesFichas: {},
+        conexionSyncV4: { ...estadoAnterior.conexionSyncV4, soyDirector: true } });
       await usarAlmacenDM.getState().importarIniciativaTaleSpire();
 
       expect(getMoreInfo).toHaveBeenCalledTimes(1);

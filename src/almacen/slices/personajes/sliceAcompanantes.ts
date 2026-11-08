@@ -27,7 +27,7 @@ export const crearSubSliceAcompanantes: StateCreator<
   [],
   [],
   SubSliceAcompanantes
-> = (set, get) => ({
+> = (set) => ({
   agregarAcompanantePersonaje: (idPersonaje, acompanante) => {
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
@@ -43,7 +43,6 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   modificarVidaAcompanante: (idPersonaje, idAcompanante, vidaActual, vidaTemporal) => {
-    get().registrarModificacionLocalPJ(idAcompanante);
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {
@@ -75,13 +74,6 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   actualizarAcompanante: (idPersonaje, idAcompanante, cambios) => {
-    if (
-      cambios.vidaActual !== undefined ||
-      cambios.vidaMaxima !== undefined ||
-      cambios.vidaTemporal !== undefined
-    ) {
-      get().registrarModificacionLocalPJ(idAcompanante);
-    }
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {

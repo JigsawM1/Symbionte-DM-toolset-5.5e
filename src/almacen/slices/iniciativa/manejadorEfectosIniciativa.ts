@@ -54,7 +54,7 @@ export function despacharAgregarCondicion(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
@@ -98,7 +98,7 @@ export function despacharQuitarCondicion(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
@@ -165,7 +165,7 @@ export function despacharAgregarEfecto(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
@@ -202,7 +202,7 @@ export function despacharQuitarEfecto(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 

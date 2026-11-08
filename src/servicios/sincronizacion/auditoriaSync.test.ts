@@ -1,206 +1,167 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { usarAlmacenDM, type CriaturaIniciativa } from '@/almacen/usarAlmacenDM';
-import { PERSONAJE_POR_DEFECTO } from '@/constantes';
-import { EsquemaAcompanantePersonaje } from '@/tipos/personaje';
-import type { FragmentoCliente, InfoCliente } from '@/tipos/talespire';
-import { EsquemaMensajeSyncV2, empaquetarResumenCriaturaDM, type ResumenCombatePJWire } from '@/tipos/protocoloSync';
-import { ts } from '@/utiles/TaleSpireAdapter';
-import { invalidarAutoridadSync } from './autoridadSync';
-import {
-  emitirEstadoPJSync, fragmentarTextoSyncV2, procesarEventoSyncV2, reiniciarSesionMotorSyncV2,
-  programarEmisionEstadoPJSync,
-} from './motorEventosSync';
-import {
-  inicializarObservadoresStoreSync, procesarMensajeSyncEntrante, reiniciarSincronizacion,
-  solicitarEstadoInicial,
-} from '../sincronizacionSimbiote';
+import { prepararMesaSyncV4, pjSyncV4 } from './fixturesSyncV4.pruebas';
+import type { MensajeSyncV4, EntidadSyncV4 } from '@/tipos/protocoloSync';
+import { SnapshotsSyncV4 } from './snapshotsSyncV4';
 
-// Invariantes deseadas que FALLAN en el código auditado. Vitest it.fails exige
-// que fallen; al corregir cada defecto deberá convertirse en un it normal.
-const dm: FragmentoCliente = { id: 'cliente-dm', player: { id: 'jugador-dm', name: 'DM' } };
-const jugador: FragmentoCliente = { id: 'cliente-pj', player: { id: 'jugador-pj', name: 'Jugador' } };
-const pj = () => ({ ...structuredClone(PERSONAJE_POR_DEFECTO), id: 'pj-1', nombre: 'Heroína',
-  idMiniaturaTS: 'mini-pj', hpActual: 25, hpMaximo: 30, hpTemporal: 5 });
-const criatura = (parcial: Partial<CriaturaIniciativa> = {}): CriaturaIniciativa => ({
-  id: 'mini-pj', idPersonajeDuenio: 'pj-1', nombre: 'Heroína', iniciativa: 10,
-  vidaActual: 25, vidaMaxima: 30, vidaTemporal: 5, ca: 10, esMonstruo: false,
-  condiciones: [], efectos: [], velocidad: '30 pies', bonificadorIniciativa: 0, ...parcial,
-});
-const wirePJ = (parcial: Partial<ResumenCombatePJWire> = {}): ResumenCombatePJWire => ({
-  id: 'pj-1', m: 'mini-pj', n: 'Heroína', i: 10, va: 25, vm: 30, vt: 5,
-  ca: 10, p: [10, 10, 10], ts: Date.now(), ...parcial,
-});
-const estadoCriatura = (parcial: Partial<CriaturaIniciativa> = {}) => ({
-  v: 3, s: 'sesion-dm', t: 'CRIATURA_ESTADO', d: empaquetarResumenCriaturaDM(criatura(parcial)),
-});
-
-describe('Auditoría de sincronización: defectos reproducibles pendientes', () => {
-  let desuscribir: (() => void) | undefined;
-  beforeEach(() => {
-    vi.useFakeTimers();
-    reiniciarSincronizacion();
-    reiniciarSesionMotorSyncV2();
-    invalidarAutoridadSync();
-    vi.spyOn(ts.sync, 'send').mockResolvedValue(true);
-    vi.spyOn(ts.clients, 'obtenerPlayerId').mockResolvedValue(jugador.player.id);
-    vi.spyOn(ts.clients, 'getMoreInfo').mockImplementation(async ids =>
-      [dm, jugador].filter(c => ids.includes(c.id)).map((c): InfoCliente => ({
-        ...c, clientMode: c.id === dm.id ? 'gm' : 'player',
-      })));
-    vi.spyOn(ts.creatures, 'getCreaturesOwnedByPlayer').mockResolvedValue([{ id: 'mini-pj' }]);
-    usarAlmacenDM.setState({ esGM: false, aplicandoSync: false, personajes: [pj()],
-      colaIniciativa: [criatura()], rondaActual: 1, indiceTurnoActivo: 0,
-      timestampsModificacionLocal: {}, borradoresSync: {}, discrepanciaVitalidadPendiente: null,
-      notificaciones: [], idClienteDM: null });
+describe('Auditoría: regresiones resueltas mediante recorridos v4 válidos', () => {
+  let escenario: ReturnType<typeof prepararMesaSyncV4>;
+  beforeEach(() => { vi.useFakeTimers(); vi.stubGlobal('BroadcastChannel', undefined); });
+  afterEach(() => { escenario?.mesa.destruir(); vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals(); });
+  async function iniciar(transporte = false, acompanante = false) {
+    escenario = prepararMesaSyncV4(transporte, acompanante);
+    await vi.advanceTimersByTimeAsync(transporte ? 60000 : 5000);
+    return escenario;
+  }
+  function sobre() {
+    const { mesa } = escenario;
+    const mensaje = mesa.mensajes.find(m => m.origen === 'dm' && m.mensaje.t === 'DIRECCION')!.mensaje;
+    return { v: 4 as const, contexto: mensaje.contexto, emisor: 'jugador', sesionEmisor: mesa.mensajes.find(m => m.origen === 'jugador' && m.mensaje.t === 'HOLA')!.mensaje.sesionEmisor };
+  }
+  function propuesta(operacion: string, actual: number): Extract<MensajeSyncV4, { t: 'PROPUESTA' }> {
+    const e = escenario.pj.motor.replica.base.mini;
+    return { ...sobre(), t: 'PROPUESTA', operacion, entidad: 'mini', registro: structuredClone(e),
+      bases: { ...e.revisiones }, cambios: { vitalidad: { ...e.grupos.vitalidad, actual } }, resolver: [] };
+  }
+  it('A01: la identidad de ficha no puede sustituirse por la de otra ficha', async () => {
+    const { dm, mesa } = await iniciar();
+    const m = propuesta('suplantacion', 1); m.registro!.ficha = 'otra-ficha';
+    await dm.motor.recibir(m, mesa.miembros[1]);
+    expect(dm.store.getState().personajes[0].hpActual).toBe(25);
   });
-  afterEach(() => {
-    desuscribir?.();
-    desuscribir = undefined;
-    reiniciarSincronizacion();
-    reiniciarSesionMotorSyncV2();
-    vi.clearAllTimers();
-    vi.useRealTimers();
-    vi.restoreAllMocks();
+  it('A02: una propuesta atrasada queda en conflicto y no restaura PV anteriores', async () => {
+    const { dm, mesa } = await iniciar();
+    const vieja = propuesta('vieja', 25); const nueva = propuesta('nueva', 20);
+    await dm.motor.recibir(nueva, mesa.miembros[1]);
+    await dm.motor.recibir(vieja, mesa.miembros[1]);
+    expect(dm.store.getState().colaIniciativa[0].vidaActual).toBe(20);
   });
-
-  it.fails('A01: poseer otra miniatura no autoriza sobrescribir un id de PJ ajeno', async () => {
-    usarAlmacenDM.setState({ esGM: true, personajes: [{ ...pj(), idMiniaturaTS: 'mini-ajena' }],
-      colaIniciativa: [criatura({ id: 'mini-ajena' })] });
-    await procesarEventoSyncV2({ v: 3, t: 'PJ_ESTADO', d: wirePJ({ va: 1 }) }, jugador);
-    expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(25);
+  it('A03: un confirmado atrasado no restaura una condición retirada', async () => {
+    const { dm, pj, mesa } = await iniciar();
+    dm.store.getState().agregarCondicionACriatura('mini', 'Envenenado');
+    await vi.advanceTimersByTimeAsync(500);
+    const viejo = [...mesa.mensajes].reverse().find(m => m.mensaje.t === 'CONFIRMADO')!.mensaje;
+    dm.store.getState().quitarCondicionDeCriatura('mini', 'Envenenado');
+    await vi.advanceTimersByTimeAsync(500);
+    await pj.motor.recibir(viejo, mesa.miembros[0]);
+    expect(pj.store.getState().personajes[0].condicionesActivas).toEqual([]);
   });
-
-  it.fails('A02: un PJ atrasado no debe revertir una actualización más nueva', async () => {
-    usarAlmacenDM.setState({ esGM: true });
-    await procesarEventoSyncV2({ v: 3, s: 'pj', t: 'PJ_ESTADO', d: wirePJ({ ts: 200, va: 20 }) }, jugador);
-    await procesarEventoSyncV2({ v: 3, s: 'pj', t: 'PJ_ESTADO', d: wirePJ({ ts: 100, va: 25 }) }, jugador);
-    expect(usarAlmacenDM.getState().colaIniciativa[0].vidaActual).toBe(20);
+  it('A04: el saludo de reconexión no borra los estados aplicados durante la ausencia', async () => {
+    const { dm, mesa, pj } = await iniciar();
+    pj.parar(); pj.motor.destruir();
+    dm.store.getState().agregarCondicionACriatura('mini', 'Envenenado');
+    await vi.advanceTimersByTimeAsync(500);
+    const nuevo = mesa.agregar('jugador', { ...pj.store.getState(), personajes: [pjSyncV4()] });
+    nuevo.motor.iniciar(); nuevo.motor.observar();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(dm.store.getState().colaIniciativa[0].condiciones).toContain('Envenenado');
+    expect(nuevo.store.getState().personajes[0].condicionesActivas).toContain('Envenenado');
   });
-
-  it.fails('A03: una alta de condición atrasada no debe deshacer su retirada', async () => {
-    await procesarEventoSyncV2(estadoCriatura({ condiciones: [] }), dm);
-    await procesarEventoSyncV2(estadoCriatura({ condiciones: ['Envenenado'] }), dm);
-    expect(usarAlmacenDM.getState().personajes[0].condicionesActivas).toEqual([]);
+  it('A05: HOLA devuelve el estado confirmado, sin incorporar una edición por anticipado', async () => {
+    const { dm, pj } = await iniciar();
+    dm.store.getState().modificarVidaCriaturaIniciativa('mini', 12);
+    await vi.advanceTimersByTimeAsync(500);
+    pj.motor.solicitar(); await vi.advanceTimersByTimeAsync(2000);
+    expect(pj.store.getState().colaIniciativa[0].vidaActual).toBe(12);
   });
-
-  it.fails('A04: HOLA no debe borrar los estados que el DM aplicó mientras el PJ estaba desconectado', async () => {
-    usarAlmacenDM.setState({ esGM: true, colaIniciativa: [criatura({ condiciones: ['Envenenado'] })] });
-    await procesarEventoSyncV2({ v: 3, t: 'HOLA', pj: wirePJ() }, jugador);
-    expect(usarAlmacenDM.getState().colaIniciativa[0].condiciones).toEqual(['Envenenado']);
+  it('A06: se conserva la edición local en un conflicto de condiciones', async () => {
+    const { dm, pj, mesa } = await iniciar(); mesa.demora = () => 300;
+    pj.store.getState().aplicarCondicionPersonaje('pj', 'Cegado');
+    dm.store.getState().agregarCondicionACriatura('mini', 'Envenenado');
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(pj.store.getState().personajes[0].condicionesActivas).toContain('Cegado');
+    expect(pj.store.getState().conexionSyncV4.conflictos[0].grupos).toContain('estados');
   });
-
-  it.fails('A05: el lote de respuesta a HOLA debe contener el estado ya incorporado', async () => {
-    usarAlmacenDM.setState({ esGM: true });
-    await procesarEventoSyncV2({ v: 3, t: 'HOLA', pj: wirePJ({ va: 12 }) }, jugador);
-    const mensajes = vi.mocked(ts.sync.send).mock.calls.map(([str]) => EsquemaMensajeSyncV2.parse(JSON.parse(str)));
-    const lote = mensajes.find(m => m.t === 'LOTE_INICIAL');
-    if (!lote || lote.t !== 'LOTE_INICIAL') throw new Error('No se emitió el lote esperado');
-    expect(lote.criaturas[0].va).toBe(12);
+  it('A07: retirar concentración elimina el campo de dominio y el efecto', async () => {
+    const { dm, pj } = await iniciar();
+    dm.store.getState().agregarEfectoACriatura('mini', 'Concentración: Bendición', 5, { concentracion: true });
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(pj.store.getState().personajes[0].concentracionActiva).not.toBeNull();
+    const efecto = dm.store.getState().colaIniciativa[0].efectos![0];
+    dm.store.getState().quitarEfectoDeCriatura('mini', efecto.id);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(pj.store.getState().personajes[0].concentracionActiva).toBeNull();
   });
-
-  it.fails('A06: recibir estados del DM debe conservar una edición local pendiente recuperable', async () => {
-    usarAlmacenDM.setState({ personajes: [{ ...pj(), condicionesActivas: ['Cegado'] }] });
-    usarAlmacenDM.getState().registrarModificacionLocalPJ('pj-1');
-    await procesarEventoSyncV2(estadoCriatura({ condiciones: ['Envenenado'] }), dm);
-    const estado = usarAlmacenDM.getState();
-    expect(estado.personajes[0].condicionesActivas.includes('Cegado') || Boolean(estado.borradoresSync['pj-1'])).toBe(true);
+  it('A08: fijar PV actuales conserva los temporales', async () => {
+    const { dm, pj } = await iniciar(); dm.store.getState().modificarVidaCriaturaIniciativa('mini', 20);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(pj.store.getState().personajes[0]).toMatchObject({ hpActual: 20, hpTemporal: 5 });
   });
-
-  it.fails('A07: retirar concentración por red debe limpiar concentracionActiva', async () => {
-    usarAlmacenDM.setState({ personajes: [{ ...pj(), concentracionActiva: {
-      hechizoId: 'bendicion', nombreHechizo: 'Bendición',
-    }, efectosActivos: [{ id: 'ef_concentracion', nombre: 'Concentración: Bendición', concentracion: true }] }] });
-    await procesarEventoSyncV2(estadoCriatura(), dm);
-    expect(usarAlmacenDM.getState().personajes[0].concentracionActiva).toBeNull();
+  it('A09: el máximo editado en iniciativa llega a la ficha', async () => {
+    const { dm, pj } = await iniciar(); dm.store.getState().modificarVidaMaximaCriaturaIniciativa('mini', 40);
+    await vi.advanceTimersByTimeAsync(1000); expect(pj.store.getState().personajes[0].hpMaximo).toBe(40);
   });
-
-  it.fails('A08: fijar PV actuales desde iniciativa debe dar el mismo resultado con PV temporales', async () => {
-    usarAlmacenDM.setState({ esGM: true });
-    usarAlmacenDM.getState().modificarVidaCriaturaIniciativa('mini-pj', 20);
-    const vidaDM = usarAlmacenDM.getState().colaIniciativa[0].vidaActual;
-    const mensaje = EsquemaMensajeSyncV2.parse(JSON.parse(vi.mocked(ts.sync.send).mock.calls[0][0]));
-    usarAlmacenDM.setState({ esGM: false, personajes: [pj()], colaIniciativa: [criatura()] });
-    await procesarEventoSyncV2(mensaje, dm);
-    expect(usarAlmacenDM.getState().personajes[0].hpActual).toBe(vidaDM);
+  it('A10: ordenar comunica los IDs y conserva el turno sobre la misma entidad al importar', async () => {
+    const { dm, pj } = await iniciar();
+    dm.store.getState().agregarCriaturaAIniciativa('Monstruo', 20, 10, 12, true, '30 pies', 0);
+    dm.store.getState().ordenarIniciativa(); await vi.advanceTimersByTimeAsync(1000);
+    expect(pj.store.getState().colaIniciativa.map(c => c.id)).toEqual(dm.store.getState().colaIniciativa.map(c => c.id));
   });
-
-  it.fails('A09: cambiar PV máximos de PJ desde iniciativa debe emitir el cambio', () => {
-    usarAlmacenDM.setState({ esGM: true });
-    desuscribir = inicializarObservadoresStoreSync();
-    usarAlmacenDM.getState().modificarVidaMaximaCriaturaIniciativa('mini-pj', 40);
-    expect(vi.mocked(ts.sync.send).mock.calls.length).toBeGreaterThan(0);
+  it('A11: un estado fragmentado durante más de cuatro segundos llega íntegro', async () => {
+    const { dm, pj } = await iniciar(true);
+    const avatarUrl = 'https://ejemplo.test/' + 'a'.repeat(5000);
+    pj.store.setState({ personajes: [{ ...pj.store.getState().personajes[0], avatarUrl }] });
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(dm.store.getState().colaIniciativa[0].avatarUrl).toBe(avatarUrl);
   });
-
-  it.fails('A10: ordenar la iniciativa local del DM debe comunicar su nuevo orden', () => {
-    usarAlmacenDM.setState({ esGM: true, colaIniciativa: [criatura(), criatura({ id: 'mon',
-      nombre: 'Monstruo', esMonstruo: true, iniciativa: 20 })] });
-    desuscribir = inicializarObservadoresStoreSync();
-    usarAlmacenDM.getState().ordenarIniciativa();
-    expect(vi.mocked(ts.sync.send).mock.calls.length).toBeGreaterThan(0);
+  it('A12: perder una página inicial provoca recuperación y no una aplicación parcial', async () => {
+    escenario = prepararMesaSyncV4(true);
+    let perdido = false;
+    escenario.mesa.descartar = p => { if (!perdido && p.origen === 'dm' && ['FRAG', 'F'].includes(JSON.parse(p.texto).t)) { perdido = true; return true; } return false; };
+    await vi.advanceTimersByTimeAsync(120000);
+    expect(perdido).toBe(true);
+    expect(escenario.pj.store.getState().conexionSyncV4.estado).toBe('conectado');
+    expect(escenario.pj.store.getState().colaIniciativa).toHaveLength(1);
   });
-
-  it.fails('A11: fragmentos válidos a 180 ms deben completar aunque el paquete tarde más de cuatro segundos', async () => {
-    const d = wirePJ({ e: Array.from({ length: 200 }, (_, i) => ({ id: `ef-${i}`, n: 'Efecto de larga duración' })) });
-    const paquetes = fragmentarTextoSyncV2(JSON.stringify({ v: 3, t: 'PJ_ESTADO', d }), 'pj');
-    expect(paquetes.length).toBeGreaterThan(24);
-    const aplicar = vi.spyOn(usarAlmacenDM.getState(), 'aplicarEstadoPJDesdeSyncV2');
-    for (const paquete of paquetes) {
-      await procesarEventoSyncV2(JSON.parse(paquete), jugador);
-      await vi.advanceTimersByTimeAsync(180);
-    }
-    expect(aplicar).toHaveBeenCalledOnce();
+  it('A13: destruir la sesión cancela un debounce pendiente', async () => {
+    const { pj, mesa } = await iniciar();
+    pj.store.getState().establecerHPActualPersonaje('pj', 19); pj.motor.destruir();
+    const numero = mesa.paquetes.filter(p => p.origen === 'jugador').length;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(mesa.paquetes.filter(p => p.origen === 'jugador')).toHaveLength(numero);
   });
-
-  it.fails('A12: recibir solo la primera página no debe cancelar la recuperación inicial', async () => {
-    solicitarEstadoInicial();
-    await vi.advanceTimersByTimeAsync(0);
-    vi.mocked(ts.sync.send).mockClear();
-    const datos = { v: 3, s: 'dm', t: 'LOTE_INICIAL', parte: 1, total: 2,
-      r: 1, idx: 0, vPorcentaje: false, criaturas: [empaquetarResumenCriaturaDM(criatura())] };
-    await procesarMensajeSyncEntrante({ datos, strCrudo: JSON.stringify(datos), fromClient: dm });
-    await vi.advanceTimersByTimeAsync(10000);
-    expect(vi.mocked(ts.sync.send).mock.calls.length).toBeGreaterThan(0);
+  it('A14: la pérdida de una propuesta reintenta la misma operación', async () => {
+    const { dm, pj, mesa } = await iniciar(); let perdido = false;
+    const inicio = mesa.mensajes.length;
+    mesa.descartar = p => { if (!perdido && p.origen === 'jugador') { perdido = true; return true; } return false; };
+    pj.store.getState().establecerHPActualPersonaje('pj', 19);
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(dm.store.getState().colaIniciativa[0].vidaActual).toBe(19);
+    const mensajes = mesa.mensajes.slice(inicio).filter(m => m.origen === 'jugador' && m.mensaje.t === 'PROPUESTA');
+    expect(mensajes.length).toBeGreaterThan(1);
+    expect(new Set(mensajes.map(m => m.mensaje.t === 'PROPUESTA' ? m.mensaje.operacion : '')).size).toBe(1);
   });
-
-  it.fails('A13: reiniciar la sincronización debe cancelar el debounce v3 anterior', async () => {
-    programarEmisionEstadoPJSync('pj-1');
-    reiniciarSincronizacion();
-    await vi.advanceTimersByTimeAsync(200);
-    expect(ts.sync.send).not.toHaveBeenCalled();
+  it('A15: las páginas de dos snapshots no se mezclan', async () => {
+    await iniciar(); const acumulador = new SnapshotsSyncV4(() => {});
+    const entidad = escenario.pj.motor.replica.base.mini;
+    const meta = { orden: ['mini'], activo: 'mini', ronda: 1, porcentaje: true };
+    const lote = (snapshot: string, parte: number, id: string): Extract<MensajeSyncV4, { t: 'LOTE' }> => ({
+      ...sobre(), emisor: 'dm', t: 'LOTE', snapshot, revision: 10, parte, total: 2,
+      entidades: [{ ...entidad, id }], meta });
+    expect(acumulador.registrar(lote('a', 1, 'viejo'))).toBeUndefined();
+    expect(acumulador.registrar(lote('b', 2, 'nuevo2'))).toBeUndefined();
+    expect(acumulador.registrar(lote('a', 2, 'viejo2'))).toBeUndefined();
+    expect(acumulador.registrar(lote('b', 1, 'nuevo1'))?.entidades.map(e => e.id)).toEqual(['nuevo1', 'nuevo2']);
+    acumulador.limpiar();
   });
-
-  it.fails('A14: un envío PJ fallido debe recuperarse o conservar un borrador con aviso', async () => {
-    vi.mocked(ts.sync.send).mockResolvedValue(false);
-    await emitirEstadoPJSync(pj());
-    await vi.advanceTimersByTimeAsync(10000);
-    const estado = usarAlmacenDM.getState();
-    expect(vi.mocked(ts.sync.send).mock.calls.length > 1 || Boolean(estado.borradoresSync['pj-1'])).toBe(true);
+  it('A16: retirar el último acompañante replica la baja de ficha y combate', async () => {
+    const { dm, pj, mesa } = await iniciar(false, true);
+    pj.store.getState().eliminarAcompanantePersonaje('pj', 'ac');
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(dm.store.getState().personajes[0].acompanantes).toEqual([]);
+    expect(dm.store.getState().colaIniciativa.some(c => c.id === 'mini-ac')).toBe(false);
+    pj.parar(); pj.motor.destruir();
+    const nuevo = mesa.agregar('jugador', pj.store.getState()); nuevo.motor.iniciar(); nuevo.motor.observar();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(nuevo.store.getState().conexionSyncV4.estado).toBe('conectado');
+    expect(nuevo.store.getState().personajes[0].acompanantes).toEqual([]);
   });
-
-  it.fails('A15: dos snapshots de la misma sesión no deben mezclar sus páginas', () => {
-    const base = { v: 3 as const, s: 'dm', t: 'LOTE_INICIAL' as const, total: 2,
-      r: 1, idx: 0, vPorcentaje: false };
-    const aplicar = usarAlmacenDM.getState().aplicarLoteInicialDesdeSync;
-    aplicar({ ...base, parte: 1, criaturas: [empaquetarResumenCriaturaDM(criatura({ id: 'viejo-1' }))] });
-    aplicar({ ...base, parte: 2, criaturas: [empaquetarResumenCriaturaDM(criatura({ id: 'nuevo-2' }))] });
-    expect(usarAlmacenDM.getState().colaIniciativa.map(c => c.id)).toEqual(['mini-pj']);
-  });
-
-  it.fails('A16: retirar el último acompañante debe retirarlo también de la copia remota', async () => {
-    const acomp = EsquemaAcompanantePersonaje.parse({ id: 'ac', idPlantilla: 'familiar',
-      nombre: 'Familiar', vidaActual: 5, vidaMaxima: 5 });
-    usarAlmacenDM.setState({ esGM: true, personajes: [{ ...pj(), acompanantes: [acomp] }] });
-    await procesarEventoSyncV2({ v: 3, t: 'PJ_ESTADO', d: wirePJ({ ac: [] }) }, jugador);
-    expect(usarAlmacenDM.getState().personajes[0].acompanantes).toEqual([]);
-  });
-
-  it.fails('A17: un acompañante homónimo de otro dueño no debe recibir el estado', async () => {
-    const acomp = EsquemaAcompanantePersonaje.parse({ id: 'ac-local', idMiniaturaTS: 'mini-local',
-      idPlantilla: 'familiar', nombre: 'Familiar', vidaActual: 5, vidaMaxima: 5 });
-    usarAlmacenDM.setState({ personajes: [{ ...pj(), acompanantes: [acomp] }] });
-    await procesarEventoSyncV2(estadoCriatura({ id: 'mini-ajena', nombre: 'Familiar',
-      esAcompanante: true, idAcompanante: 'ac-ajeno', idPersonajeDuenio: 'pj-ajeno',
-      condiciones: ['Envenenado'] }), dm);
-    expect(usarAlmacenDM.getState().personajes[0].acompanantes[0].condiciones).toEqual([]);
+  it('A17: un acompañante homónimo con otra identidad no recibe condiciones ajenas', async () => {
+    const { pj, mesa } = await iniciar(false, true);
+    const original = pj.motor.replica.base['mini-ac'];
+    const ajeno: EntidadSyncV4 = { ...original, id: 'mini-ajena', fila: 'mini-ajena', ficha: 'ac-ajeno', padre: 'otro-pj',
+      grupos: { ...original.grupos, estados: { ...original.grupos.estados, condiciones: ['Envenenado'] } } };
+    const ultima = Math.max(...mesa.mensajes.map(m => 'revision' in m.mensaje ? m.mensaje.revision : 0));
+    await pj.motor.recibir({ ...sobre(), emisor: 'dm', sesionEmisor: mesa.mensajes.find(m => m.origen === 'dm')!.mensaje.sesionEmisor, t: 'CONFIRMADO', operacion: 'ajeno', revision: ultima + 1, entidad: ajeno }, mesa.miembros[0]);
+    expect(pj.store.getState().personajes[0].acompanantes[0].condiciones).toEqual([]);
   });
 });

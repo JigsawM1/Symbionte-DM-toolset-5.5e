@@ -26,7 +26,8 @@ export function finalizarRasgosAlDescansar(pj: PersonajeJugador, tipo: "descanso
 }
 
 /** Finaliza estados por duración o condiciones declaradas, sin reglas por nombre del rasgo. */
-export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number): PersonajeJugador {
+export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number,
+  opciones: { conservarConcentracionDesconocida?: boolean } = {}): PersonajeJugador {
   pj = normalizarConjurosTemporales(pj, ronda);
   const retirar = new Set<string>();
   let cambio = false;
@@ -60,7 +61,10 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
     if (!nuevos) break;
   }
   const idConcentracion = pj.concentracionActiva?.idRasgoOrigen;
-  const retirarConcentracion = idConcentracion && !rasgos.some(r => r.id === idConcentracion && r.activo);
+  // Una copia de combate remota puede carecer de la definición del rasgo del dueño.
+  const rasgoConcentracion = rasgos.find(r => r.id === idConcentracion);
+  const retirarConcentracion = idConcentracion && (rasgoConcentracion ? !rasgoConcentracion.activo
+    : !opciones.conservarConcentracionDesconocida);
   if (retirarConcentracion) {
     retirar.add(claveEstado(pj.concentracionActiva!.nombreHechizo));
     for (const e of pj.efectosActivos ?? []) if (e.idRasgoOrigen === idConcentracion) retirar.add(claveEstado(e.nombre));

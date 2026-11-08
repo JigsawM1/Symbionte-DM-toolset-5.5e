@@ -127,6 +127,7 @@ describe("Correcciones de Bugs en Hoja de Personaje e Iniciativa", () => {
     beforeEach(() => {
       const criaturaJugador: CriaturaIniciativa = {
         id: criaturaId,
+        idPersonajeDuenio: personajeId,
         nombre: "Valeros Bardo",
         iniciativa: 15,
         vidaActual: 20,

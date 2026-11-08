@@ -35,7 +35,7 @@ const legado = {
 };
 
 beforeEach(() => usarAlmacenDM.setState({
-  personajes: [personaje()], colaIniciativa: [], borradoresSync: {}, timestampsModificacionLocal: {},
+  personajes: [personaje()], colaIniciativa: [], borradoresSync: {},
 }));
 
 describe('Separación del contrato de red y recuperación local', () => {
@@ -90,7 +90,7 @@ describe('Separación del contrato de red y recuperación local', () => {
     expect(mensaje.d).not.toHaveProperty('cj');
     expect(mensaje.d).not.toHaveProperty('gast');
     expect(mensaje.d.ac?.[0]).not.toHaveProperty('plant');
-    usarAlmacenDM.getState().actualizarPersonajeDesdeSync(deserializarEstadoCombatePJ(mensaje.d));
+    usarAlmacenDM.getState().aplicarBorradorCombatePJ(deserializarEstadoCombatePJ(mensaje.d));
     expect(usarAlmacenDM.getState().personajes[0]).toMatchObject({
       hpActual: 7, espaciosConjuroGastados: { '1': 2 }, puntosConjuroGastados: 3,
       espaciosPactoGastados: 1, movimientoGastado: 15, movimientoMaximoTemporal: 60,

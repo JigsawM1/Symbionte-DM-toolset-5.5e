@@ -6,6 +6,7 @@ import { calcularEstadisticasPersonaje } from '@/servicios/personajes/calculador
 import { coincideCondicionConRasgo, resolverCondicionAsociadaRasgo } from '@/almacen/slices/personajes/condicionesRasgosHelpers';
 import { esCondicionDerribado } from '@/almacen/slices/iniciativa/sincronizadorMovimientoIniciativa';
 import { claveEstado } from '@/servicios/rasgos/estadoCondicionesRasgos';
+import { perteneceACampania } from '@/almacen/campaniasPersonajes';
 
 const revisiones = () => ({ vitalidad: 0, estados: 0, datos: 0, acompanantes: 0 });
 export const claveMiniSyncV4 = (mini: string): string => mini.toLowerCase();
@@ -36,21 +37,23 @@ function gruposFila(c: CriaturaIniciativa): GruposSyncV4 {
 }
 
 /** Las filas nunca se asocian a fichas remotas por nombre. */
-export function capturarSyncV4(s: EstadoDM, jugador: string): DatosLocalesSyncV4 {
+export function capturarSyncV4(s: EstadoDM, jugador: string, campania = s.contextoTaleSpire?.campania.id): DatosLocalesSyncV4 {
   const entidades = new Map<string, EntidadSyncV4>();
   for (const pj of s.personajes) {
+    if (campania ? !perteneceACampania(pj, campania) : !!pj.campaniaTaleSpire) continue;
     const id = clavePJ(pj);
     const fila = s.colaIniciativa.find(c => !c.esMonstruo && !c.esAcompanante &&
       (c.id === pj.id || c.id.toLowerCase() === id || c.idPersonajeDuenio === pj.id));
+    const usarFila = s.esGM && !!fila && (fila.idPersonajeDuenio === pj.id || fila.id === pj.id);
     const stats = calcularEstadisticasPersonaje(pj);
-    const estados = s.esGM && fila ? { condiciones: fila.condiciones, efectos: fila.efectos ?? [] }
+    const estados = usarFila && fila ? { condiciones: fila.condiciones, efectos: fila.efectos ?? [] }
       : { condiciones: pj.condicionesActivas, efectos: pj.efectosActivos };
     let concentracion = pj.concentracionActiva ? { origen: pj.concentracionActiva.idRasgoOrigen ? 'rasgo' as const : 'conjuro' as const,
       id: pj.concentracionActiva.idRasgoOrigen ?? pj.concentracionActiva.hechizoId ?? '', nombre: pj.concentracionActiva.nombreHechizo } : null;
     const efectoConc = estados.efectos.find(e => e.concentracion);
-    if (s.esGM && fila) concentracion = efectoConc ? concentracion ?? { origen: 'conjuro', id: efectoConc.id, nombre: efectoConc.nombre.replace(/^concentraci[oó]n:\s*/i, '') } : null;
-    const grupos: GruposSyncV4 = { vitalidad: { actual: s.esGM && fila ? fila.vidaActual : pj.hpActual,
-      maxima: s.esGM && fila ? fila.vidaMaxima : pj.hpMaximo, temporal: s.esGM && fila ? fila.vidaTemporal ?? 0 : pj.hpTemporal ?? 0 },
+    if (usarFila) concentracion = efectoConc ? concentracion ?? { origen: 'conjuro', id: efectoConc.id, nombre: efectoConc.nombre.replace(/^concentraci[oó]n:\s*/i, '') } : null;
+    const grupos: GruposSyncV4 = { vitalidad: { actual: usarFila && fila ? fila.vidaActual : pj.hpActual,
+      maxima: usarFila && fila ? fila.vidaMaxima : pj.hpMaximo, temporal: usarFila && fila ? fila.vidaTemporal ?? 0 : pj.hpTemporal ?? 0 },
       estados: estadosTransmitidos({ ...estados, concentracion }), datos: { nombre: pj.nombre, avatar: pj.avatarUrl?.startsWith('http') ? pj.avatarUrl : undefined,
         iniciativa: fila?.iniciativa ?? pj.iniciativaBono ?? 0, ca: stats.claseArmadura.total,
         pasivas: [stats.pasivas.percepcion, stats.pasivas.investigacion, stats.pasivas.perspicacia] },
@@ -62,13 +65,14 @@ export function capturarSyncV4(s: EstadoDM, jugador: string): DatosLocalesSyncV4
       const clave = claveAc(id, a);
       const filaAc = s.colaIniciativa.find(c => (c.esAcompanante || c.idAcompanante) &&
         (c.id === a.id || c.id.toLowerCase() === clave || c.idAcompanante === a.id));
+      const usarFilaAc = s.esGM && filaAc?.idAcompanante === a.id;
       entidades.set(clave, { id: clave, ficha: a.id, fila: filaAc?.id ?? a.idMiniaturaTS ?? a.id,
         duenio: s.esGM ? 'sin-vincular' : jugador, miniatura: a.idMiniaturaTS ? clave : null, padre: id,
         revision: 0, revisiones: revisiones(), eliminada: false, monstruo: false, plantilla: a.idPlantilla,
-        grupos: { vitalidad: { actual: s.esGM && filaAc ? filaAc.vidaActual : a.vidaActual,
-          maxima: s.esGM && filaAc ? filaAc.vidaMaxima : a.vidaMaxima, temporal: s.esGM && filaAc ? filaAc.vidaTemporal ?? 0 : a.vidaTemporal ?? 0 },
-          estados: estadosTransmitidos({ condiciones: s.esGM && filaAc ? filaAc.condiciones : a.condiciones,
-            efectos: s.esGM && filaAc ? filaAc.efectos ?? [] : a.efectos, concentracion: null }),
+        grupos: { vitalidad: { actual: usarFilaAc && filaAc ? filaAc.vidaActual : a.vidaActual,
+          maxima: usarFilaAc && filaAc ? filaAc.vidaMaxima : a.vidaMaxima, temporal: usarFilaAc && filaAc ? filaAc.vidaTemporal ?? 0 : a.vidaTemporal ?? 0 },
+          estados: estadosTransmitidos({ condiciones: usarFilaAc && filaAc ? filaAc.condiciones : a.condiciones,
+            efectos: usarFilaAc && filaAc ? filaAc.efectos ?? [] : a.efectos, concentracion: null }),
           datos: { nombre: a.nombre, iniciativa: filaAc?.iniciativa ?? a.iniciativa ?? 0, ca: a.ca ?? 10, pasivas: [10, 10, 10] }, acompanantes: [] } });
     }
   }
@@ -95,7 +99,7 @@ function filaDesdeEntidad(e: EntidadSyncV4, anterior?: CriaturaIniciativa): Cria
 }
 
 /** Aplica valores confirmados/optimistas sin repetir gastos ni disparar acciones de usuario. */
-export function proyectarSyncV4(s: EstadoDM, datos: DatosLocalesSyncV4): Partial<EstadoDM> {
+export function proyectarSyncV4(s: EstadoDM, datos: DatosLocalesSyncV4, campania = s.contextoTaleSpire?.campania.id): Partial<EstadoDM> {
   const porId = new Map(datos.entidades.map(e => [e.id, e]));
   const cola = datos.meta.orden.flatMap(id => {
     const e = datos.entidades.find(e => !e.eliminada && (e.fila ?? e.id) === id);
@@ -105,6 +109,7 @@ export function proyectarSyncV4(s: EstadoDM, datos: DatosLocalesSyncV4): Partial
     return [fila];
   });
   const personajes = s.personajes.map(p => {
+    if (campania ? !perteneceACampania(p, campania) : !!p.campaniaTaleSpire) return p;
     const id = clavePJ(p); const e = porId.get(id);
     if (!e || e.eliminada || e.monstruo || (e.ficha && e.ficha !== p.id)) return p;
     const { vitalidad: v, estados: estados } = e.grupos;

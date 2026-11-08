@@ -23,14 +23,17 @@ import {
 } from "./factoriaInvocaciones";
 import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { IndiceMonstruos } from "./indiceMonstruos";
+import { seguirIniciativaFisica, type ReferenciaIniciativaFisica } from './seguimientoIniciativaFisica';
 
 export interface ResultadoSincronizacion {
+  referenciaIniciativaFisica: ReferenciaIniciativaFisica | null;
   colaIniciativa: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   rondaActual: number;
 }
 
 export interface OpcionesSincronizacion {
+  referenciaIniciativaFisica?: ReferenciaIniciativaFisica | null;
   colaTS: ColaIniciativaTS;
   colaLocal: CriaturaIniciativa[];
   asociacionesFichas: Record<string, string>;
@@ -330,12 +333,14 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const activa = colaLocal[indiceTurnoActivo]?.id;
   const siguiente = [...colaLocal.slice(indiceTurnoActivo + 1), ...colaLocal.slice(0, indiceTurnoActivo)]
     .find(c => ids.has(c.id))?.id;
-  const idActivo = activa && ids.has(activa) ? activa : siguiente;
+  const seguimiento = seguirIniciativaFisica(colaTS, opciones.referenciaIniciativaFisica ?? null, activa ?? null, rondaActual, ids);
+  const idActivo = seguimiento.activo && ids.has(seguimiento.activo) ? seguimiento.activo : siguiente;
   const nuevoIndice = Math.max(0, colaCombinada.findIndex(c => c.id === idActivo));
-  const nuevaRonda = rondaActual;
+  const nuevaRonda = seguimiento.ronda;
 
   return {
-    colaIniciativa: colaCombinada,
+    colaIniciativa: nuevaRonda > rondaActual ? filtrarEfectosExpirados(colaCombinada, nuevaRonda) : colaCombinada,
+    referenciaIniciativaFisica: seguimiento.referencia,
     indiceTurnoActivo: nuevoIndice,
     rondaActual: nuevaRonda
   };

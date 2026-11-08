@@ -8,6 +8,7 @@ import type { StateCreator } from "zustand";
 import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { Caracteristica, PersonajeJugador } from "@/tipos";
 import type { ColaIniciativaTS } from "@/tipos/talespire";
+import type { ReferenciaIniciativaFisica } from '@/servicios/seguimientoIniciativaFisica';
 
 export interface ResultadoSalvacionCriatura {
   id: string;
@@ -43,6 +44,7 @@ export interface CriaturaNativaTS {
 }
 
 export interface SliceIniciativa {
+  referenciaIniciativaFisica: ReferenciaIniciativaFisica | null;
   colaIniciativa: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   rondaActual: number;

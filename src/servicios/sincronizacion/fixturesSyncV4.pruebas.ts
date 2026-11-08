@@ -5,6 +5,7 @@ import { MesaSyncV4 } from './mesaSyncV4.pruebas';
 
 export function pjSyncV4(acompanante = false): PersonajeJugador {
   return { ...structuredClone(PERSONAJE_POR_DEFECTO), id: 'pj', nombre: 'Heroína', idMiniaturaTS: 'mini',
+    campaniaTaleSpire: { id: 'campania', nombre: 'Campaña de pruebas' },
     hpActual: 25, hpMaximo: 30, hpTemporal: 5,
     acompanantes: acompanante ? [EsquemaAcompanantePersonaje.parse({ id: 'ac', nombre: 'Familiar',
       idPlantilla: 'familiar', idMiniaturaTS: 'mini-ac', vidaActual: 8, vidaMaxima: 12 })] : [] };

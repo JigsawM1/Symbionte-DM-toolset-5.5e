@@ -14,6 +14,9 @@ interface ExportacionCambio {
 export function CambiosSyncPendientes() {
   const borradores = usarAlmacenDM(s => s.borradoresSync);
   const descartar = usarAlmacenDM(s => s.descartarBorradorSync);
+  const guardar = usarAlmacenDM(s => s.guardarBorradorSync);
+  const contexto = usarAlmacenDM(s => s.contextoTaleSpire);
+  const personajes = usarAlmacenDM(s => s.personajes);
   const [exportacion, setExportacion] = useState<ExportacionCambio | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   const idTitulo = useId();
@@ -42,7 +45,14 @@ export function CambiosSyncPendientes() {
   return <>{Object.entries(borradores).map(([id, borrador]) => <div role="status" key={id}>
     <p>Tienes un cambio pendiente de confirmación en {borrador.nombre}. Tu edición está disponible.</p>
     <button onClick={() => descargar(borrador)}>Descargar cambio</button>
-    <button onClick={() => { void reaplicarCambioPendienteSync(id); }}>Reaplicar mi cambio</button>
+    {(!contexto || borrador.campaniaId === contexto.campania.id) &&
+      <button onClick={() => { void reaplicarCambioPendienteSync(id); }}>Reaplicar mi cambio</button>}
+    {contexto && !borrador.campaniaId && personajes.some(p => p.campaniaTaleSpire?.id === contexto.campania.id && p.id === borrador.id) &&
+      <details><summary>Revisar campaña del borrador antiguo</summary>
+        <p>Campaña: {contexto.campania.nombre}. Borrador: {borrador.hpActual}/{borrador.hpMaximo} PV.</p>
+        <p>Ficha actual: {personajes.find(p => p.id === borrador.id)?.hpActual} PV. La asignación no reaplica los valores.</p>
+        <button onClick={() => guardar(id, { ...borrador, campaniaId: contexto.campania.id })}>Asignar borrador a esta campaña</button>
+      </details>}
     <button onClick={() => descartar(id)}>Descartar cambio</button>
   </div>)}
     {exportacion && <dialog ref={dialogo} className={estilos.dialogo} aria-labelledby={idTitulo}

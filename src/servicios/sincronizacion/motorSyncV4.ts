@@ -1,5 +1,5 @@
 import {
-  EsquemaMensajeSyncV4, EsquemaGruposSyncV4, GRUPOS_SYNC_V4,
+  EsquemaMensajeSyncV4, GRUPOS_SYNC_V4,
   type ContextoSyncV4, type EntidadSyncV4, type GrupoSyncV4, type MensajeSyncV4, type MetaSyncV4,
 } from '@/tipos/protocoloSync';
 import type { FragmentoCliente, InfoCliente } from '@/tipos/talespire';
@@ -10,7 +10,7 @@ import { GestorReintentosSync } from './gestorReintentosSync';
 import { igualesGrupoSyncV4, evaluarPropuestaSyncV4, edicionLocalSyncV4, metaDisponibleSyncV4 } from './reconciliacionSyncV4';
 import { ReplicaSyncV4 } from './replicaSyncV4';
 import { SnapshotsSyncV4 } from './snapshotsSyncV4';
-
+import { guardarMemoriaMotor, conservarLocalesIniciales, recuperarEntidadArchivada, crearPropuestaPendiente, estadoVistaSyncV4 } from './contextosSyncV4';
 export interface DatosLocalesSyncV4 { entidades: EntidadSyncV4[]; meta: MetaSyncV4 }
 export interface DependenciasMotorSyncV4 {
   cliente: FragmentoCliente;
@@ -69,7 +69,7 @@ export class MotorSyncV4 {
   constructor(private readonly deps: DependenciasMotorSyncV4) {
     this.miembros = deps.miembros;
     this.replica = new ReplicaSyncV4(deps.memoria);
-    this.meta = deps.leer().meta;
+    this.meta = deps.memoria?.metaConfirmada ?? deps.leer().meta;
     this.contexto = { campania: deps.campania, tablero: deps.tablero, director: 'pendiente', sesion: 'pendiente' };
     this.reintentos = new GestorReintentosSync(() => {
       if (this.vivo) deps.notificar('No se confirmó el cambio. Tu edición sigue disponible en sincronización.');
@@ -102,9 +102,8 @@ export class MotorSyncV4 {
     const locales = this.deps.leer().entidades;
     // Un relevo parte del último estado confirmado; una edición pendiente no adquiere autoridad al elegir director.
     if (!Object.keys(this.replica.base).length) for (const entidad of locales) this.replica.base[entidad.id] = structuredClone(entidad);
-    this.deps.guardar(this.replica.memoria());
-    this.revision = Math.max(0, ...Object.values(this.replica.base).map(e => e.revision));
-    this.meta = this.deps.leer().meta;
+    this.revision = Math.max(this.deps.memoria?.revisionConfirmada ?? 0, ...Object.values(this.replica.base).map(e => e.revision));
+    guardarMemoriaMotor(this.deps, this.replica, this.meta, this.revision);
     this.ejecutar(() => this.anunciar());
   }
   async votar(candidato: string): Promise<void> {
@@ -242,6 +241,7 @@ export class MotorSyncV4 {
         if (this.snapshots.huboProgreso) this.reintentos.pausarReintentosREQ(() => this.emitirSolicitud());
         return;
       }
+      conservarLocalesIniciales(this.replica, this.deps.leer().entidades, snapshot, this.deps.cliente.player.id);
       for (const entidad of snapshot.entidades) {
         const propia = [...this.resultados.values()].find(r => r.estado === 'aplicado' && r.entidad?.id === entidad.id);
         this.replica.recibir(entidad, propia ? this.emisiones.get(propia.operacion)?.local : undefined);
@@ -272,7 +272,7 @@ export class MotorSyncV4 {
       if (m.estado === 'conflicto' && m.entidad && pendiente) this.replica.conflictos.set(m.entidad.id,
         { id: m.entidad.id, remoto: this.replica.base[m.entidad.id], local: pendiente, grupos: m.conflictos });
       if (m.estado === 'rechazado') {
-        this.bloqueadas.add(emitida.local.id);
+        this.bloqueadas.add(emitida.local.id); for (const e of Object.values(this.replica.pendientes)) if (e.padre === emitida.local.id) this.bloqueadas.add(e.id);
         this.deps.notificar('El cambio no fue autorizado. Revisa la vinculación; tu edición sigue conservada.');
       }
     }
@@ -386,6 +386,8 @@ export class MotorSyncV4 {
     if (!this.vivo) return;
     const local = this.deps.leer();
     const anterior = this.lectura;
+    const revisionAnterior = this.revision;
+    if (!anterior && !this.soyDirector) { this.lectura = new Map(local.entidades.map(e => [e.id, e])); this.mostrar(); return; }
     let edicion = false;
     local.entidades = local.entidades.map(e => edicionLocalSyncV4(e, anterior?.get(e.id), this.replica.pendientes[e.id] ?? this.replica.base[e.id]));
     if (this.soyDirector) {
@@ -410,7 +412,7 @@ export class MotorSyncV4 {
       edicion = this.replica.editar({ ...entidad, duenio: this.deps.cliente.player.id }) || edicion;
     }
     this.lectura = new Map(this.deps.leer().entidades.map(e => [e.id, e]));
-    if (edicion) this.deps.guardar(this.replica.memoria());
+    if (this.soyDirector && revisionAnterior !== this.revision) this.aplicar(); else if (edicion) guardarMemoriaMotor(this.deps, this.replica, this.meta, this.revision);
     this.mostrar(); this.programar();
   }
   private programar(): void {
@@ -422,21 +424,24 @@ export class MotorSyncV4 {
     for (const [id, local] of Object.entries(this.replica.pendientes)) {
       if (local.duenio !== this.deps.cliente.player.id) continue;
       if (this.bloqueadas.has(id)) continue;
-      if (local.padre && this.replica.base[local.padre]?.duenio !== this.deps.cliente.player.id) continue;
+      const padre = local.padre ? this.replica.base[local.padre] : undefined;
+      if (padre && padre.duenio !== this.deps.cliente.player.id) {
+        if (padre.duenio === 'sin-vincular' && !this.bloqueadas.has(padre.id) && ![...this.emisiones.values()].some(e => e.local.id === padre.id))
+          await this.emitirPendiente({ ...padre, duenio: this.deps.cliente.player.id }, ['datos']);
+        continue;
+      }
       if ([...this.emisiones.values()].some(e => e.local.id === id)) continue;
       const grupos = this.replica.gruposPropuestos(id); if (!grupos.length) continue;
-      const propuesta: Propuesta = { ...this.sobre(), t: 'PROPUESTA', operacion: crypto.randomUUID(), entidad: id,
-        registro: this.replica.base[id]?.ficha ? undefined : local,
-        restaurar: this.replica.base[id]?.eliminada && !local.eliminada && this.replica.resoluciones[id]?.includes('acompanantes') ? true : undefined,
-        revisionesHijos: Object.fromEntries(Object.values(this.replica.base).filter(e => e.padre === id).map(e => [e.id, e.revision])), bases: this.replica.base[id]?.revisiones ?? { ...vacias },
-        cambios: EsquemaGruposSyncV4.partial().parse(Object.fromEntries(grupos.map(g => [g, local.grupos[g]]))), resolver: this.replica.resoluciones[id] ?? [] };
-      this.emisiones.set(propuesta.operacion, { propuesta, local: structuredClone(local) });
-      if (this.soyDirector) {
-        const yo = this.miembros.find(c => c.id === this.deps.cliente.id);
-        if (yo && local.duenio === yo.player.id) await this.propuesta(propuesta, yo);
-      } else this.reintentos.registrarEmisionPJ(propuesta.operacion, 1, () => this.enviar(propuesta, this.contexto.director));
+      await this.emitirPendiente(local, grupos);
     }
     this.mostrar();
+  }
+  private async emitirPendiente(local: EntidadSyncV4, grupos: GrupoSyncV4[]): Promise<void> {
+    const propuesta = crearPropuestaPendiente(this.replica, local, grupos, this.sobre());
+    this.emisiones.set(propuesta.operacion, { propuesta, local: structuredClone(local) });
+    const yo = this.miembros.find(c => c.id === this.deps.cliente.id);
+    if (this.soyDirector && yo) await this.propuesta(propuesta, yo);
+    else this.reintentos.registrarEmisionPJ(propuesta.operacion, 1, () => this.enviar(propuesta, this.contexto.director));
   }
   reintentar(): void {
     this.bloqueadas.clear();
@@ -444,6 +449,12 @@ export class MotorSyncV4 {
     this.programar();
   }
   exportarPendientes(): Record<string, EntidadSyncV4> { return structuredClone(this.replica.pendientes); }
+  async recuperar(entidad: EntidadSyncV4): Promise<boolean> {
+    if (!this.vivo || this.recuperando) return false;
+    const ok = await recuperarEntidadArchivada(this.replica, entidad, this.deps.leer().entidades,
+      this.deps.cliente.player.id, () => this.deps.propiedades(this.deps.cliente.player.id), () => this.vivo && this.deps.leer().entidades.some(e => (e.id === entidad.id && e.ficha === entidad.ficha) || (!!entidad.padre && e.id === entidad.padre)));
+    if (ok && this.vivo) this.aplicar(); return ok;
+  }
   private cancelarEmisiones(): void {
     if (this.esperaOrden) clearTimeout(this.esperaOrden); this.esperaOrden = undefined;
     for (const id of this.emisiones.keys()) this.reintentos.cancelarEmisionPJ(id);
@@ -465,14 +476,12 @@ export class MotorSyncV4 {
   }
   private aplicar(): void {
     this.deps.aplicar({ entidades: this.replica.visibles(), meta: this.meta });
-    this.deps.guardar(this.replica.memoria());
+    guardarMemoriaMotor(this.deps, this.replica, this.meta, this.revision);
     this.lectura = new Map(this.deps.leer().entidades.map(e => [e.id, e])); this.mostrar();
   }
   private mostrar(): void {
-    this.deps.mostrar({ estado: this.contexto.director === 'pendiente' ? 'eligiendo' : this.recuperando ? 'recuperando' : 'conectado',
-      director: this.contexto.director === 'pendiente' ? null : this.contexto.director, soyDirector: this.soyDirector,
-      candidatos: this.gms.map(c => ({ id: c.id, nombre: c.player.name })),
-      conflictos: [...this.replica.conflictos.values()], pendientes: Object.keys(this.replica.pendientes).length });
+    this.deps.mostrar(estadoVistaSyncV4(this.contexto.director, this.recuperando, this.soyDirector,
+      this.gms, this.replica, this.deps.cliente.player.id, this.bloqueadas));
   }
   destruir(): void {
     this.vivo = false;
@@ -480,6 +489,6 @@ export class MotorSyncV4 {
     if (this.debounce) clearTimeout(this.debounce);
     if (this.esperaOrden) clearTimeout(this.esperaOrden);
     this.reintentos.destruir(); this.fragmentos.limpiar(); this.snapshots.limpiar();
-    this.deps.guardar(this.replica.memoria());
+    guardarMemoriaMotor(this.deps, this.replica, this.meta, this.revision);
   }
 }

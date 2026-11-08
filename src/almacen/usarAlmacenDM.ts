@@ -90,6 +90,8 @@ const CLAVES_PERSISTIBLES: (keyof EstadoDM)[] = [
   "personajes",
   "borradoresSync",
   "memoriaSyncV4",
+  "versionContextosSync",
+  "recuperacionContextosSync",
   "idPersonajeActivo"
 ];
 

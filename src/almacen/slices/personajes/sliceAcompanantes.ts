@@ -5,6 +5,7 @@ import { MULTIPLICADOR_POR_TERRENO, INFORMACION_TERRENO } from "@/tipos";
 import { calcularDistanciaMovimientoTS } from "@/servicios/calculadorDistanciaTS";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceAcompanantes } from "./slicePersonajesTipos";
+import { miniaturaEnUso } from '@/almacen/campaniasPersonajes';
 
 /**
  * Extrae numéricamente la velocidad de caminar en pies de un acompañante.
@@ -27,7 +28,7 @@ export const crearSubSliceAcompanantes: StateCreator<
   [],
   [],
   SubSliceAcompanantes
-> = (set) => ({
+> = (set, get) => ({
   agregarAcompanantePersonaje: (idPersonaje, acompanante) => {
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
@@ -120,6 +121,9 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   vincularMiniaturaTSAcompanante: (idPersonaje, idAcompanante, idMiniatura, posicionInicial, boardIdInicial) => {
+    if (idMiniatura && miniaturaEnUso(get(), idMiniatura, idPersonaje, idAcompanante)) {
+      get().agregarNotificacion('La miniatura ya está vinculada a otra ficha o acompañante.', 'advertencia'); return;
+    }
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {

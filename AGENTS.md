@@ -25,6 +25,10 @@
 - Al editar archivos existentes, no reescribir el documento completo salvo que sea estrictamente necesario.
 - Modificar, añadir o eliminar únicamente las líneas de código afectadas por la solicitud para evitar conflictos y mantener el historial de cambios limpio.
 
+## Memoria Técnica y Mejora Continua (agente.md)
+
+Eres responsable de tu propio aprendizaje iterativo. Crea, lee y actualiza constantemente un archivo llamado agente.md en el directorio principal. Registra en este documento los errores cometidos, las correcciones aplicadas y las decisiones arquitectónicas del proyecto para no repetir fallos en sesiones futuras.
+
 ## Graphify
 
 Graphify es una herramienta externa de desarrollo instalada con `uv`; no forma parte del simbionte ni del build de Vite. La skill local está en `.agents/skills/graphify/SKILL.md`.

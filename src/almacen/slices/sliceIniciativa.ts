@@ -29,6 +29,7 @@ import {
 } from "@/servicios/sincronizacionIniciativa";
 import { generarId } from "@/utiles/generarId";
 import { logger } from "@/utiles/logger";
+import { estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
 
 import { type CreadorSliceIniciativa } from "./iniciativa/tipos";
 import { restablecerMovimientoPersonajes } from "./iniciativa/sincronizadorPersonajesIniciativa";
@@ -61,16 +62,24 @@ import {
 
 export * from "./iniciativa/tipos";
 
-export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, get) => {
-  const set: typeof setOriginal = (partial, replace) => {
+export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOriginal) => {
+  const get = () => estadoDelContexto(getOriginal());
+  const aplicar: (partial: Parameters<typeof setOriginal>[0], replace?: boolean, fisica?: boolean) => void = (partial, replace, fisica = false) => {
     const s = get();
     if (s.esGM && ts.estaDisponible && !s.conexionSyncV4.soyDirector) {
       s.agregarNotificacion('Sólo el director puede editar el combate compartido.', 'info');
       return;
     }
-    setOriginal(partial, replace);
+    setOriginal(original => {
+      const cambios = typeof partial === 'function' ? partial(estadoDelContexto(original)) : partial;
+      const manual = !fisica && (cambios.rondaActual !== undefined || cambios.indiceTurnoActivo !== undefined);
+      return conservarFichasAjenas(original, { ...cambios, ...(manual && original.referenciaIniciativaFisica
+        ? { referenciaIniciativaFisica: { ...original.referenciaIniciativaFisica, inferirRonda: false } } : {}) });
+    }, replace);
   };
+  const set: typeof setOriginal = (partial, replace) => aplicar(partial, replace);
   return ({
+  referenciaIniciativaFisica: null,
   colaIniciativa: [],
   indiceTurnoActivo: 0,
   rondaActual: 1,
@@ -132,7 +141,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, get) =
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => set((state) => {
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => aplicar((state) => {
     if (!colaTS || !(state.conexionSyncV4.soyDirector || (!ts.estaDisponible && state.esGM))) return {};
 
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
@@ -144,6 +153,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, get) =
       metodoVidaMonstruo: state.metodoVidaMonstruo,
       indiceTurnoActivo: state.indiceTurnoActivo,
       rondaActual: state.rondaActual,
+      referenciaIniciativaFisica: state.referenciaIniciativaFisica,
       personajes: state.personajes,
       idsMiniaturasJugadores
     });
@@ -155,7 +165,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, get) =
     }
 
     return resultado;
-  }),
+  }, undefined, true),
 
   importarIniciativaTaleSpire: async () => {
     if (ts.estaDisponible) {

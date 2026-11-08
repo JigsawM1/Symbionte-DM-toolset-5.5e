@@ -9,6 +9,7 @@ import { obtenerTSGlobal } from "./comun";
 
 export class TaleSpireInitiativeAdapter {
   private getQueuePromise: Promise<ColaIniciativaTS> | null = null;
+  invalidarLectura(): void { this.getQueuePromise = null; }
 
   /**
    * Obtiene la cola de iniciativa nativa. Deduplica llamadas concurrentes.
@@ -20,13 +21,14 @@ export class TaleSpireInitiativeAdapter {
 
     const ts = obtenerTSGlobal();
     if (ts?.initiative && typeof ts.initiative.getQueue === "function") {
-      this.getQueuePromise = ts.initiative.getQueue();
+      const solicitud = ts.initiative.getQueue();
+      this.getQueuePromise = solicitud;
 
       try {
-        return await this.getQueuePromise;
+        return await solicitud;
       } finally {
         // Garantizar la limpieza de la promesa de caché únicamente al finalizar la misma
-        this.getQueuePromise = null;
+        if (this.getQueuePromise === solicitud) this.getQueuePromise = null;
       }
     }
     return null;

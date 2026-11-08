@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 import type { PersonajeJugador } from '@/tipos';
+import { personajesDelContexto } from '@/almacen/campaniasPersonajes';
 import {
   calcularEstadisticasPersonaje,
   extraerCaDePropiedades,
@@ -32,7 +33,7 @@ export {
  */
 export function usarPersonajeActivo(): PersonajeJugador | null {
   return usarAlmacenDM((s) => {
-    const lista = s.personajes || [];
+    const lista = personajesDelContexto(s);
     return lista.find((p) => p && p.id === s.idPersonajeActivo) || lista[0] || null;
   });
 }
@@ -41,7 +42,8 @@ export function usarPersonajeActivo(): PersonajeJugador | null {
  * Selector atómico para suscribirse únicamente al ID del personaje activo.
  */
 export function usarIdPersonajeActivo(): string | null {
-  return usarAlmacenDM((s) => s.idPersonajeActivo);
+  return usarAlmacenDM(s => { const lista = personajesDelContexto(s);
+    return lista.find(p => p.id === s.idPersonajeActivo)?.id ?? lista[0]?.id ?? null; });
 }
 
 /**
@@ -64,7 +66,7 @@ export function usarEstadisticasPersonajeActivo(): EstadisticasCalculadasPersona
 export function usarEstadoPersonajes() {
   return usarAlmacenDM(
     useShallow((s) => {
-      const listaPjs = s.personajes || [];
+      const listaPjs = personajesDelContexto(s);
       const activo =
         listaPjs.find((pj) => pj && pj.id === s.idPersonajeActivo) ||
         listaPjs[0] ||
@@ -72,7 +74,7 @@ export function usarEstadoPersonajes() {
 
       return {
         personajes: listaPjs,
-        idPersonajeActivo: s.idPersonajeActivo || (activo ? activo.id : null),
+        idPersonajeActivo: activo?.id ?? null,
         personajeActivo: activo
       };
     })
@@ -84,6 +86,7 @@ export function usarAccionesPersonajes() {
   return usarAlmacenDM(
     useShallow((s) => ({
       crearPersonaje:                      s.crearPersonaje,
+      afiliarPersonajeACampania:           s.afiliarPersonajeACampania,
       actualizarPersonaje:                s.actualizarPersonaje,
       eliminarPersonaje:                  s.eliminarPersonaje,
       duplicarPersonaje:                  s.duplicarPersonaje,

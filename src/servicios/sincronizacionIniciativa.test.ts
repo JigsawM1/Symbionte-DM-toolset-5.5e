@@ -153,10 +153,10 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa[0].id).toBe("mini-ts-1"); // Inic 5 (primero en TaleSpire)
     expect(resultado.colaIniciativa[1].id).toBe("mini-ts-2"); // Inic 25 (segundo en TaleSpire)
     expect(resultado.colaIniciativa[2].id).toBe("c_local_1"); // Local al final
-    expect(resultado.indiceTurnoActivo).toBe(2); // Conserva al aliado local que estaba activo
+    expect(resultado.indiceTurnoActivo).toBe(1); // La lectura inicial sigue al activo físico sin inferir rondas.
   });
 
-  it("ignora el wrap-around físico y conserva la ronda y entidad activas", () => {
+  it("la primera lectura física alinea el activo sin inferir una vuelta anterior", () => {
     const colaTS: ColaIniciativaTS = {
       items: [
         { id: "mini-1", name: "Trasgo", kind: "creature" },
@@ -184,8 +184,8 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
       rondaActual: 2,
     });
 
-    expect(resultado.rondaActual).toBe(2); // Sólo ToolSet cambia la ronda
-    expect(resultado.indiceTurnoActivo).toBe(1); // Conserva Lobo (índice 0)
+    expect(resultado.rondaActual).toBe(2);
+    expect(resultado.indiceTurnoActivo).toBe(0);
   });
 
   it("ignora una ronda enviada explícitamente por TaleSpire", () => {
@@ -324,7 +324,7 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa[1].iniciativa).toBe(0);
     expect(resultado.colaIniciativa[2].id).toBe("mini-3");
     expect(resultado.colaIniciativa[2].iniciativa).toBe(0);
-    expect(resultado.indiceTurnoActivo).toBe(0);
+    expect(resultado.indiceTurnoActivo).toBe(2);
   });
 });
 

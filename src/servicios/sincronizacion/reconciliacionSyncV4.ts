@@ -5,6 +5,10 @@ import {
 
 /** Compara contenido semántico; el orden de condiciones y efectos no es una edición. */
 export function igualesGrupoSyncV4(grupo: GrupoSyncV4, a: GruposSyncV4, b: GruposSyncV4): boolean {
+  // ponytail: comprobación directa en O(1) para vitalidad sin serialización JSON ni parse Zod
+  if (grupo === 'vitalidad') {
+    return a.vitalidad.actual === b.vitalidad.actual && a.vitalidad.maxima === b.vitalidad.maxima && a.vitalidad.temporal === b.vitalidad.temporal;
+  }
   const normalizar = (valor: GruposSyncV4): unknown => {
     const limpio = EsquemaGruposSyncV4.parse(valor);
     if (grupo === 'estados') return { ...limpio.estados,

@@ -86,7 +86,8 @@ export async function autoResolverMiniaturasJugador(
     idMiniatura: string | null,
     posicionInicial?: PosicionTS,
     boardIdInicial?: string | null
-  ) => void
+  ) => void,
+  vigente: () => boolean = () => true
 ): Promise<void> {
   try {
     if (!ts.estaDisponible || !personajes || personajes.length === 0) return;
@@ -116,7 +117,7 @@ export async function autoResolverMiniaturasJugador(
     if (ids.length === 0) return;
 
     const infos = await ts.creatures.getMoreInfo(ids);
-    if (!infos || infos.length === 0) return;
+    if (!vigente() || !infos || infos.length === 0) return;
 
     // 3. Emparejar con los personajes del jugador
     const mapa = emparejarPersonajesConCriaturas(personajes, infos);

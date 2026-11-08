@@ -40,6 +40,7 @@ describe('Simulación v4: seis PJ, veinte monstruos y un acompañante', () => {
   beforeEach(() => {
     vi.useFakeTimers(); vi.stubGlobal('BroadcastChannel', undefined);
     personajes = Array.from({ length: 6 }, (_, i) => ({ ...pjSyncV4(), id: uuid(100 + i),
+      campaniaTaleSpire: { id: uuid(500), nombre: 'Campaña de simulación' },
       nombre: `Aventurero ${i + 1}`, idMiniaturaTS: uuid(200 + i) }));
     personajes[0].acompanantes = [EsquemaAcompanantePersonaje.parse({ id: uuid(400), idMiniaturaTS: uuid(401),
       nombre: 'Familiar', idPlantilla: 'familiar', vidaActual: 8, vidaMaxima: 12 })];

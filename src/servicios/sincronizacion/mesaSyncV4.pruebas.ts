@@ -36,7 +36,8 @@ export class MesaSyncV4 {
   agregar(id: string, estado: Partial<EstadoDM>, conTransporte = false) {
     const cliente = this.miembros.find(c => c.id === id)!;
     const store = crearStoreSyncV4();
-    store.setState({ ...estado, aplicandoSync: false, datosInicialesCargados: true });
+    store.setState({ contextoTaleSpire: { campania: { id: this.contexto.campania, nombre: 'Mesa' }, tableroId: this.contexto.tablero },
+      versionContextosSync: 2, ...estado, aplicandoSync: false, datosInicialesCargados: true });
     const publicar = async (texto: string, destino = 'board'): Promise<void> => {
       const p = { origen: id, destino, texto }; this.paquetes.push(p);
       const rechazo = this.rechazar(p); if (rechazo) throw new Error(rechazo);

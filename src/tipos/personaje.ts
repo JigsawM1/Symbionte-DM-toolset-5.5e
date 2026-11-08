@@ -330,6 +330,7 @@ export type AcompanantePersonaje = z.infer<typeof EsquemaAcompanantePersonaje>;
 export const EsquemaPersonajeJugador = z.object({
   // Identidad (Apartado A)
   id: z.string(),
+  campaniaTaleSpire: z.object({ id: z.string().min(1).max(128), nombre: z.string() }).nullable().default(null),
   nombre: z.string().default("Nuevo Personaje"),
   jugador: z.string().default(""),
   clase: z.string().default("Guerrero"),

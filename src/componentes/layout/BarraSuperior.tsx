@@ -121,6 +121,10 @@ export const BarraSuperior: React.FC = () => {
 
       {/* Fila Inferior: Pestañas adaptadas automáticamente al rol detectado */}
       <nav className={estilosClases.navPestañas}>
+        {esGM && <button type="button" onClick={() => establecerPestaña('fichas')}
+          className={`${estilosClases.pestanaBoton} ${pestañaActiva === 'fichas' ? estilosClases.pestanaActiva : ''}`} title="Biblioteca de fichas por campaña">
+          <Gamepad2 size={13} /><span className={estilosClases.pestanaTexto}>Fichas</span>
+        </button>}
         {!esGM ? (
           <>
             <button

@@ -12,6 +12,8 @@ import { logger } from "@/utiles/logger";
 import estilos from "./HojaPersonaje.module.css";
 
 interface GestorPersonajesProps {
+  puedeActivar?: (p: PersonajeJugador) => boolean;
+  alAfiliar?: (id: string) => void;
   personajes: PersonajeJugador[];
   idPersonajeActivo: string | null;
   alSeleccionarActivo: (id: string) => void;
@@ -23,6 +25,8 @@ interface GestorPersonajesProps {
 }
 
 export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
+  puedeActivar = () => true,
+  alAfiliar,
   personajes,
   idPersonajeActivo,
   alSeleccionarActivo,
@@ -102,9 +106,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
   const manejarExportarGrupo = async () => {
     const estadoActual = usarAlmacenDM.getState();
-    const personajesActuales = (estadoActual.personajes && estadoActual.personajes.length > 0)
-      ? estadoActual.personajes
-      : personajes;
+    const personajesActuales = personajes.map(p => estadoActual.personajes.find(actual => actual.id === p.id) ?? p);
 
     if (personajesActuales.length === 0) return;
 
@@ -267,6 +269,7 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
                     )}
                   </div>
                   <span className={estilos.detallesPjGaleria}>
+                    {pj.campaniaTaleSpire?.nombre ?? 'Sin campaña'} ·{' '}
                     {pj.clase} {pj.subclase ? `(${pj.subclase})` : ""} Niv. {pj.nivel} • {pj.especie}
                   </span>
                 </div>
@@ -301,11 +304,14 @@ export const GestorPersonajes: React.FC<GestorPersonajesProps> = ({
 
               {/* Botones de Acción */}
               <div className={estilos.filaBotonesAccionPj}>
-                {!esActivo ? (
+                {!pj.campaniaTaleSpire && alAfiliar && <button type="button" className={estilos.neoButton}
+                  onClick={() => alAfiliar(pj.id)}>Afiliar a esta campaña</button>}
+              {!esActivo ? (
                   <button
                     type="button"
                     className={estilos.neoButton}
                     onClick={() => alSeleccionarActivo(pj.id)}
+                    disabled={!puedeActivar(pj)}
                     title="Establecer como personaje activo"
                   >
                     <CheckCircle2 size={12} />

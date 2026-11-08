@@ -17,7 +17,11 @@ export const EsquemaCriaturaIniciativa = z.object({
   esMonstruo: z.coerce.boolean().default(true),
   velocidad: z.string().default("30 pies"),
   vidaTemporal: z.coerce.number().optional(),
-  idPlantillaAsociada: z.string().optional()
+  idPlantillaAsociada: z.string().optional(),
+  avatarUrl: z.string().optional(), idPersonajeDuenio: z.string().optional(), idAcompanante: z.string().optional(),
+  esAcompanante: z.boolean().optional(), movimientoGastado: z.number().optional(),
+  movimientoMaximoTemporal: z.number().nullable().optional(),
+  pasivas: z.object({ percepcion: z.number(), investigacion: z.number(), perspicacia: z.number() }).optional()
 });
 
 export const EsquemaElementoPendiente = z.object({

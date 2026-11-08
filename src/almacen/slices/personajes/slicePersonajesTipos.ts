@@ -27,6 +27,7 @@ export interface SubSlicePersonajesBase {
   idPersonajeActivo: string | null;
 
   crearPersonaje: (datosIniciales?: Partial<PersonajeJugador>) => string;
+  afiliarPersonajeACampania: (id: string) => boolean;
   actualizarPersonaje: (id: string, cambios: Partial<PersonajeJugador>) => void;
   aplicarBuildClasePersonaje: (
     id: string,

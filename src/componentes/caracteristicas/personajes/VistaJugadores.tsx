@@ -7,7 +7,9 @@ import {
 } from "@/almacen/selectores";
 import { HojaPersonaje } from "./HojaPersonaje";
 import { PanelConfiguracionPersonaje } from "./PanelConfiguracionPersonaje";
-import { GestorPersonajes } from "./GestorPersonajes";
+import { BibliotecaCampanias } from './BibliotecaCampanias';
+import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
+import { generacionConexionSyncV4 } from '@/servicios/sincronizacion/conexionSyncV4';
 import { SeccionAcompanantesPersonaje } from "./acompanantes/SeccionAcompanantesPersonaje";
 import { autoResolverMiniaturasJugador } from "@/servicios/resolutorMiniaturasJugador";
 import { usarEstadoPersistido } from "@/hooks";
@@ -20,6 +22,7 @@ export const VistaJugadores: React.FC = () => {
   const { datosInicialesCargados } = usarEstadoConfiguracion();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const { personajes, idPersonajeActivo, personajeActivo } = usarEstadoPersonajes();
+  const campaniaId = usarAlmacenDM(s => s.contextoTaleSpire?.campania.id);
   const {
     crearPersonaje,
     actualizarPersonaje,
@@ -38,9 +41,12 @@ export const VistaJugadores: React.FC = () => {
   // Auto-resolución silenciosa de miniaturas de TaleSpire en segundo plano
   useEffect(() => {
     if (!datosInicialesCargados) return;
-    autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje, vincularMiniaturaTSAcompanante);
+    const g = generacionConexionSyncV4(); let activo = true;
+    void autoResolverMiniaturasJugador(personajes, vincularMiniaturaTSPersonaje, vincularMiniaturaTSAcompanante,
+      () => activo && g === generacionConexionSyncV4() && usarAlmacenDM.getState().contextoTaleSpire?.campania.id === campaniaId);
+    return () => { activo = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre]);
+  }, [datosInicialesCargados, personajes.length, personajeActivo?.nombre, campaniaId]);
 
   const manejarCrearNuevo = () => {
     const nuevoId = crearPersonaje();
@@ -101,7 +107,7 @@ export const VistaJugadores: React.FC = () => {
       </div>
 
       {/* Contenido según la sub-pestaña activa */}
-      {subPestanaActiva === "ficha" ? (
+      {subPestanaActiva === "ficha" && personajeActivo ? (
         <HojaPersonaje alAbrirConfiguracion={() => setSubPestanaActiva("configuracion")} />
       ) : subPestanaActiva === "acompanantes" && personajeActivo ? (
         <div className={estilos.contenedorAcompanantes}>
@@ -114,8 +120,7 @@ export const VistaJugadores: React.FC = () => {
           alVolverAFicha={() => setSubPestanaActiva("ficha")}
         />
       ) : (
-        <GestorPersonajes
-          personajes={personajes}
+        <BibliotecaCampanias
           idPersonajeActivo={idPersonajeActivo}
           alSeleccionarActivo={(id) => {
             seleccionarPersonajeActivo(id);

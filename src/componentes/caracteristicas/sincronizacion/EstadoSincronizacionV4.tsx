@@ -2,6 +2,8 @@ import { usarAlmacenDM } from '@/almacen/usarAlmacenDM';
 import { resolverConflictoSyncV4, votarDirectorSyncV4, reintentarSyncV4, exportarPendientesSyncV4, descartarPendienteSyncV4 } from '@/servicios/sincronizacion/conexionSyncV4';
 import type { GrupoSyncV4, EntidadSyncV4 } from '@/tipos/protocoloSync';
 import { descargarArchivoJSON } from '@/servicios/sistemaTaleSpire';
+import { RecuperacionesArchivadas } from './RecuperacionesArchivadas';
+import estilos from './EstadoSincronizacionV4.module.css';
 
 const etiquetas: Record<GrupoSyncV4, string> = { vitalidad: 'Vida y puntos temporales',
   estados: 'Condiciones, efectos y concentración', datos: 'Datos de combate', acompanantes: 'Acompañantes' };
@@ -29,8 +31,9 @@ export function EstadoSincronizacionV4() {
   const conexion = usarAlmacenDM(s => s.conexionSyncV4);
   const esGM = usarAlmacenDM(s => s.esGM);
   if (conexion.estado === 'desconectado') return null;
-  return <section aria-label="Sincronización del combate">
-    <p role="status">{conexion.estado === 'eligiendo' ? 'Esperando la elección del director de combate.'
+  return <section className={`${estilos.panel} u-scroll-cef`} aria-label="Sincronización del combate">
+    <p role="status">{conexion.estado === 'sin-director' ? 'No hay GM conectado. Tus ediciones locales se conservan.'
+      : conexion.estado === 'eligiendo' ? 'Esperando la elección del director de combate.'
       : conexion.estado === 'recuperando' ? 'Recuperando el combate compartido…'
       : conexion.soyDirector ? 'Estás dirigiendo el combate.' : 'Conectado al combate compartido.'}
       {conexion.pendientes > 0 && ` Cambios pendientes: ${conexion.pendientes}.`}</p>
@@ -38,6 +41,7 @@ export function EstadoSincronizacionV4() {
       <button onClick={reintentarSyncV4}>Reintentar envío</button>
       <button onClick={() => descargarArchivoJSON(JSON.stringify(exportarPendientesSyncV4(), null, 2), 'ediciones-pendientes.json')}>Descargar ediciones</button>
       {Object.values(exportarPendientesSyncV4()).map(e => <p key={e.id}>{e.grupos.datos.nombre} <button onClick={() => descartarPendienteSyncV4(e.id)}>Descartar edición pendiente</button></p>)}
+      {conexion.bloqueos?.map(b => <p key={b.id}>{b.motivo}</p>)}
     </details>}
     {esGM && conexion.estado === 'eligiendo' && conexion.candidatos.map(c =>
       <button key={c.id} onClick={() => { void votarDirectorSyncV4(c.id); }}>Confirmar a {c.nombre} como director</button>)}
@@ -52,5 +56,6 @@ export function EstadoSincronizacionV4() {
         <button onClick={() => resolverConflictoSyncV4(conflicto.id, grupo, 'compartido', conflicto.remoto.revisiones[grupo])}>Aceptar versión compartida</button>
       </fieldset>)}
     </details>)}
+    <RecuperacionesArchivadas />
   </section>;
 }

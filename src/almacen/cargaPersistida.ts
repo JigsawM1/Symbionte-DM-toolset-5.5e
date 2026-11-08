@@ -13,6 +13,10 @@ const esquema = z.object({
   monstruos_homebrew: coleccion, hechizos_homebrew: coleccion, objetos_homebrew: coleccion,
   personajes: coleccion, pendientes: coleccion, encuentros: coleccion, cola_iniciativa: coleccion,
   sync_v4: EsquemaMemoriaSyncV4.optional(),
+  version_contextos_sync: z.number().int().nonnegative().optional(),
+  recuperacion_contextos_sync: z.object({ memorias: EsquemaMemoriaSyncV4, cola: z.array(z.record(z.string(), z.unknown())),
+    combates: z.array(z.object({ id: z.string(), cola: z.array(z.record(z.string(), z.unknown())), ronda: z.number().int().positive(), indice: z.number().int().nonnegative() })).optional(),
+    ronda: z.number().int().positive(), indice: z.number().int().nonnegative() }).nullable().optional(),
   borradores_sync: z.record(z.string(), z.unknown()).optional(),
   notas: z.string().optional(), notes: z.string().optional(),
   ronda_actual: z.number().int().min(1).optional(), indice_turno_activo: z.number().int().min(0).optional(),
@@ -34,6 +38,10 @@ export function prepararCargaPersistida(raw: Record<string, unknown>): Partial<E
   const datos = esquema.parse(raw);
   const cambios: Partial<EstadoDM> = {};
   if (datos.sync_v4) cambios.memoriaSyncV4 = datos.sync_v4;
+  cambios.versionContextosSync = datos.version_contextos_sync ?? 0;
+  if (datos.recuperacion_contextos_sync) cambios.recuperacionContextosSync = { ...datos.recuperacion_contextos_sync,
+    combates: datos.recuperacion_contextos_sync.combates?.map(c => ({ ...c, cola: validarColeccion(c.cola, sanearCriaturaIniciativa, 'recuperacion_contextos_sync.combates.cola') })),
+    cola: validarColeccion(datos.recuperacion_contextos_sync.cola, sanearCriaturaIniciativa, 'recuperacion_contextos_sync.cola') };
   if (datos.borradores_sync) cambios.borradoresSync = Object.fromEntries(Object.entries(datos.borradores_sync).map(([id, dto]) => [id, deserializarBorradorSync(dto)]));
   if (datos.monstruos_homebrew) cambios.baseDatosMonstruos = desduplicarEntidades(MONSTRUOS_INICIALES, datos.monstruos_homebrew.map(d => sanearMonstruoSentidosYPasiva(EsquemaMonstruoBase.parse(d))));
   if (datos.hechizos_homebrew) cambios.baseDatosHechizos = desduplicarEntidades(HECHIZOS_INICIALES, datos.hechizos_homebrew.map(d => sanearHechizoCD(EsquemaHechizoBase.parse(d))));

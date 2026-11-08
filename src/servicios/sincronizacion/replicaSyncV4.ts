@@ -18,7 +18,7 @@ export class ReplicaSyncV4 {
   }
   editar(entidad: EntidadSyncV4): boolean {
     const base = this.base[entidad.id];
-    if (!base || base.duenio !== entidad.duenio || GRUPOS_SYNC_V4.some(g => !igualesGrupoSyncV4(g, base.grupos, entidad.grupos))) {
+    if (!base || base.eliminada !== entidad.eliminada || GRUPOS_SYNC_V4.some(g => !igualesGrupoSyncV4(g, base.grupos, entidad.grupos))) {
       if (JSON.stringify(this.pendientes[entidad.id]) === JSON.stringify(entidad)) return false;
       this.pendientes[entidad.id] = structuredClone(entidad);
       return true;
@@ -58,7 +58,7 @@ export class ReplicaSyncV4 {
     const bloqueados = this.conflictos.get(id)?.grupos ?? [];
     const base = this.base[id];
     return GRUPOS_SYNC_V4.filter(g => !bloqueados.includes(g) &&
-      (!base || base.duenio === 'sin-vincular' || this.resoluciones[id]?.includes(g) || !igualesGrupoSyncV4(g, local.grupos, base.grupos)));
+      (!base || this.resoluciones[id]?.includes(g) || !igualesGrupoSyncV4(g, local.grupos, base.grupos)));
   }
   resolver(id: string, grupo: GrupoSyncV4, eleccion: 'local' | 'compartido', revision: number): boolean {
     const conflicto = this.conflictos.get(id);

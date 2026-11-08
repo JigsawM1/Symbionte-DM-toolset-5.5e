@@ -4,17 +4,18 @@ import { ts } from '@/utiles/TaleSpireAdapter';
 import { obtenerTSGlobal } from '@/utiles/talespire/comun';
 import { logger } from '@/utiles/logger';
 import type { FragmentoCliente, EventoClienteTS } from '@/tipos/talespire';
-import type { GrupoSyncV4 } from '@/tipos/protocoloSync';
+import type { GrupoSyncV4, EntidadSyncV4 } from '@/tipos/protocoloSync';
 import { CONEXION_SYNC_V4_INICIAL } from '@/tipos/estadoSyncV4';
 import { MotorSyncV4 } from './motorSyncV4';
 import { capturarSyncV4, proyectarSyncV4 } from './proyeccionSyncV4';
+import { migrarContextosSync } from './contextosSyncV4';
 
 let motor: MotorSyncV4 | undefined;
 let generacion = 0;
 let desuscribir: (() => void) | undefined;
 let localId: string | undefined;
 let enTransito = false;
-const identidad = z.object({ id: z.string().min(1) });
+const identidad = z.object({ id: z.string().min(1), name: z.string().optional() });
 async function miembrosDelTablero(g: number) {
   const api = obtenerTSGlobal();
   if (!api?.clients?.getClientsInThisBoard || !api.sync?.getClientsConnected) {
@@ -30,8 +31,9 @@ export function reiniciarConexionSyncV4(): void {
   generacion++;
   desuscribir?.(); desuscribir = undefined;
   motor?.destruir(); motor = undefined;
-  usarAlmacenDM.setState({ conexionSyncV4: { ...CONEXION_SYNC_V4_INICIAL } });
+  usarAlmacenDM.setState({ conexionSyncV4: { ...CONEXION_SYNC_V4_INICIAL }, contextoTaleSpire: null, referenciaIniciativaFisica: null });
   ts.sync.purgarColaSync();
+  ts.initiative.invalidarLectura();
 }
 
 async function arrancar(g: number): Promise<void> {
@@ -47,17 +49,26 @@ async function arrancar(g: number): Promise<void> {
   const campania = identidad.parse(campaniaRaw).id; const tablero = identidad.parse(tableroRaw).id;
   const miembros = await miembrosDelTablero(g);
   if (g !== generacion) return;
+  const propio = miembros.find(c => c.id === yo.id);
+  if (!propio) throw new Error('No se pudo verificar el rol propio en el tablero.');
+  usarAlmacenDM.setState({ ...migrarContextosSync(usarAlmacenDM.getState()), esGM: propio.clientMode === 'gm',
+    contextoTaleSpire: { campania: { id: campania, nombre: identidad.parse(campaniaRaw).name ?? usarAlmacenDM.getState().campañaNombre }, tableroId: tablero },
+    referenciaIniciativaFisica: null });
   const clave = JSON.stringify([campania, tablero]);
   const guardado = usarAlmacenDM.getState().memoriaSyncV4[clave];
+  usarAlmacenDM.setState({ aplicandoSync: true });
+  try { usarAlmacenDM.setState(proyectarSyncV4(usarAlmacenDM.getState(), {
+    entidades: Object.values({ ...guardado?.base, ...guardado?.pendientes }), meta: guardado?.metaConfirmada ?? { orden: [], activo: null, ronda: 1, porcentaje: true },
+  }, campania)); } finally { usarAlmacenDM.setState({ aplicandoSync: false }); }
   const instancia = new MotorSyncV4({ cliente: yo, campania, tablero, miembros, memoria: guardado,
     consultar: async id => (await ts.clients.getMoreInfo([id])).find(c => c.id === id),
     propiedades: async jugador => new Set((await ts.creatures.getCreaturesOwnedByPlayer(jugador)).map(c => c.id.toLowerCase())),
     enviar: (texto, destino) => g === generacion ? ts.sync.send(texto, destino) : Promise.resolve(false),
-    leer: () => capturarSyncV4(usarAlmacenDM.getState(), yo.player.id),
+    leer: () => capturarSyncV4(usarAlmacenDM.getState(), yo.player.id, campania),
     aplicar: datos => {
       if (g !== generacion) return;
       usarAlmacenDM.setState({ aplicandoSync: true });
-      try { usarAlmacenDM.setState(proyectarSyncV4(usarAlmacenDM.getState(), datos)); }
+      try { usarAlmacenDM.setState(proyectarSyncV4(usarAlmacenDM.getState(), datos, campania)); }
       finally { usarAlmacenDM.setState({ aplicandoSync: false }); }
     },
     guardar: memoria => {
@@ -115,6 +126,13 @@ export function esDirectorSyncV4(): boolean { return motor?.soyDirector ?? (!ts.
 export function votarDirectorSyncV4(id: string): Promise<void> { return motor?.votar(id) ?? Promise.resolve(); }
 export function reintentarSyncV4(): void { motor?.reintentar(); }
 export function exportarPendientesSyncV4() { return motor?.exportarPendientes() ?? {}; }
+export async function recuperarArchivadoSyncV4(entidad: EntidadSyncV4): Promise<boolean> {
+  let ok = false;
+  try { ok = await motor?.recuperar(entidad) ?? false; }
+  catch (error) { logger.error('[Sync v4] No se pudo revisar el archivo de recuperación:', error); }
+  if (!ok) usarAlmacenDM.getState().agregarNotificacion('No se puede recuperar aún: verifica campaña, ficha, propiedad y conexión. El original sigue archivado.', 'advertencia');
+  return ok;
+}
 export function descartarPendienteSyncV4(id: string): void { motor?.descartar(id); }
 export function resolverConflictoSyncV4(id: string, grupo: GrupoSyncV4, opcion: 'local' | 'compartido', revision: number): boolean {
   return motor?.resolver(id, grupo, opcion, revision) ?? false;

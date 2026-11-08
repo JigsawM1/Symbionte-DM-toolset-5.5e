@@ -18,8 +18,10 @@ import { generarId } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 import { prepararCargaPersistida } from '@/almacen/cargaPersistida';
 import { establecerCacheEsGM } from '@/utiles/TaleSpireAdapter';
+import { copiarFichaParaCampania, type ContextoTaleSpireActual } from '@/almacen/campaniasPersonajes';
 
 export interface SliceConfiguracion {
+  contextoTaleSpire: ContextoTaleSpireActual | null;
   pestañaActiva: string;
   tablaRasgoAbierta: { idPersonaje: string; idRasgo: string } | null;
   modoHomebrew: "crear" | "lista";
@@ -74,6 +76,7 @@ export const crearSliceConfiguracion: StateCreator<
   [],
   SliceConfiguracion
 > = (set, get) => ({
+  contextoTaleSpire: null,
   pestañaActiva: "jugadores",
   tablaRasgoAbierta: null,
   modoHomebrew: "crear" as const,
@@ -245,6 +248,15 @@ export const crearSliceConfiguracion: StateCreator<
 
     if (datosJSON && typeof datosJSON === "object") {
       const datosObj = datosJSON as Record<string, unknown>;
+      if (datosObj.memorias && Array.isArray(datosObj.cola)) {
+        const recuperado = prepararCargaPersistida({ recuperacion_contextos_sync: datosObj }).recuperacionContextosSync;
+        if (!recuperado) throw new Error('Archivo de recuperación inválido.');
+        const anterior = estado.recuperacionContextosSync ?? { memorias: {}, cola: [], ronda: 1, indice: 0 };
+        cambiosParciales.recuperacionContextosSync = { ...anterior,
+          memorias: { ...anterior.memorias, ...Object.fromEntries(Object.entries(recuperado.memorias).map(([clave, memoria]) => [`${generarId('archivo')}:${clave}`, memoria])) },
+          combates: [...(anterior.combates ?? []), ...(recuperado.combates ?? []),
+            { id: generarId('combate_archivado'), cola: recuperado.cola, ronda: recuperado.ronda, indice: recuperado.indice }] };
+      }
 
       // 1. Personajes (Ficha individual o Party Backup)
       if (Array.isArray(datosObj.personajes) || datosObj.personaje) {
@@ -259,7 +271,12 @@ export const crearSliceConfiguracion: StateCreator<
           ) {
             mapaPjs.clear();
           }
-          pjsImportados.forEach((pj) => mapaPjs.set(pj.id, pj));
+          pjsImportados.forEach((pj) => {
+            const anterior = mapaPjs.get(pj.id);
+            const ficha = anterior && anterior.campaniaTaleSpire?.id !== pj.campaniaTaleSpire?.id
+              ? copiarFichaParaCampania(pj, pj.campaniaTaleSpire) : pj;
+            mapaPjs.set(ficha.id, ficha);
+          });
           const nuevaListaPjs = Array.from(mapaPjs.values());
           cambiosParciales.personajes = nuevaListaPjs;
           cambiosParciales.idPersonajeActivo = nuevaListaPjs[0]?.id || null;
@@ -301,7 +318,11 @@ export const crearSliceConfiguracion: StateCreator<
           .map(sanearCriaturaIniciativa)
           .filter((c): c is CriaturaIniciativa => c !== null);
         if (colaSaneada.length > 0) {
-          cambiosParciales.colaIniciativa = colaSaneada;
+          if (estado.contextoTaleSpire) {
+            const archivo = estado.recuperacionContextosSync ?? { memorias: {}, cola: [], ronda: 1, indice: 0 };
+            cambiosParciales.recuperacionContextosSync = { ...archivo, combates: [...(archivo.combates ?? []),
+              { id: generarId('importacion'), cola: colaSaneada, ronda: 1, indice: 0 }] };
+          } else cambiosParciales.colaIniciativa = colaSaneada;
         }
       }
     }

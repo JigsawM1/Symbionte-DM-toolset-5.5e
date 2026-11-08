@@ -5,9 +5,12 @@ import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
-import { CONEXION_SYNC_V4_INICIAL, type EstadoConexionSyncV4, type MemoriaSyncV4 } from "@/tipos/estadoSyncV4";
+import { CONEXION_SYNC_V4_INICIAL, type EstadoConexionSyncV4, type MemoriaSyncV4, type RecuperacionContextosSync } from "@/tipos/estadoSyncV4";
+import { personajesDelContexto, estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
 
 export interface SliceSync {
+  versionContextosSync: number;
+  recuperacionContextosSync: RecuperacionContextosSync | null;
   conexionSyncV4: EstadoConexionSyncV4;
   memoriaSyncV4: MemoriaSyncV4;
   aplicandoSync: boolean;
@@ -27,7 +30,9 @@ export const crearSliceSync: StateCreator<
   [],
   [],
   SliceSync
-> = (set, get) => ({  conexionSyncV4: { ...CONEXION_SYNC_V4_INICIAL },
+> = (set, get) => ({  versionContextosSync: 0,
+  recuperacionContextosSync: null,
+  conexionSyncV4: { ...CONEXION_SYNC_V4_INICIAL },
   memoriaSyncV4: {},
   aplicandoSync: false,
   idClienteDM: null,
@@ -38,6 +43,10 @@ export const crearSliceSync: StateCreator<
     const s = get();
     const borrador = s.borradoresSync[id];
     if (!borrador) return false;
+    const destino = personajesDelContexto(s).find(p => p.id === borrador.id || (p.idMiniaturaTS && p.idMiniaturaTS === borrador.idMiniaturaTS));
+    if (!destino || (s.contextoTaleSpire && borrador.campaniaId !== s.contextoTaleSpire.campania.id)) {
+      s.agregarNotificacion('Revisa la campaña del borrador antes de recuperarlo. Se conserva para descargar.', 'advertencia'); return false;
+    }
     const tieneDestino = s.personajes.some(p => p.id === borrador.id ||
       (borrador.idMiniaturaTS && p.idMiniaturaTS === borrador.idMiniaturaTS)) ||
       (s.esGM && s.colaIniciativa.some(c => !c.esMonstruo && !c.esAcompanante &&
@@ -59,7 +68,12 @@ export const crearSliceSync: StateCreator<
   aplicarBorradorCombatePJ: (dto) => {
     logger.debug("[SliceSync] Reaplicando borrador guardado:", dto.nombre, dto.id);
 
-    const { personajes, colaIniciativa } = get();
+    const lectura = get();
+    const { personajes, colaIniciativa } = estadoDelContexto(lectura);
+    if (lectura.contextoTaleSpire && (dto.campaniaId !== lectura.contextoTaleSpire.campania.id
+      || !personajes.some(p => p.id === dto.id || (!!dto.idMiniaturaTS && p.idMiniaturaTS === dto.idMiniaturaTS)))) {
+      lectura.agregarNotificacion('El borrador no está vinculado a una ficha de esta campaña.', 'advertencia'); return;
+    }
     const locales = dto;
 
     // 1. Localizar personaje en la colección del DM
@@ -294,9 +308,9 @@ export const crearSliceSync: StateCreator<
       });
     }
 
-    set({
+    set(conservarFichasAjenas(lectura, {
       personajes: personajesActualizados,
       colaIniciativa: colaActualizada,
-    });
+    }));
   },
 });

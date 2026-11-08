@@ -67,6 +67,8 @@ const AppContenido: React.FC = () => {
     switch (pestañaActiva) {
       case "iniciativa":
         return <GestorIniciativa />;
+      case "fichas":
+        return <VistaJugadores />;
       case "tablas":
         return <TablasDM />;
       case "pendientes":
@@ -100,6 +102,7 @@ const AppContenido: React.FC = () => {
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
         <EstadoSincronizacionV4 />
+        <div className={estilos.panelContenido}>
         <Suspense
           fallback={
             <div className={estilos.cargadorPestana}>
@@ -112,6 +115,7 @@ const AppContenido: React.FC = () => {
             {renderContenidoPestaña()}
           </LimiteError>
         </Suspense>
+        </div>
       </main>
 
       {/* Panel flotante premium de dados */}

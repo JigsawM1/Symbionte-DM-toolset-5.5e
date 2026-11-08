@@ -1,5 +1,57 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-08] Auditoría Senior de Arquitectura e Integridad: Rama `syncV4` (/ponytail)
+
+**Veredicto General:** **Aprobado y Optimizado Quirúrgicamente**.
+La migración erradica la sobreingeniería de `SyncV2` (-2.813 líneas netas), devolviendo la pureza a los reducers de Zustand, blindando el transporte contra cuellos de botella de red e introduciendo aislamiento estricto por campaña y tablero.
+
+**Hallazgos Clave y Soluciones Aplicadas:**
+1. **Tipado Estricto (Criterio 1):** Cero usos de `any`, `as any` o `as unknown as` en todo el subsistema de sincronización v4. Contratos de datos 100% validados en tiempo de compilación y runtime mediante Zod discriminado por campo `t`.
+2. **Concurrencia e Idempotencia (Criterio 2):** Ingesta serializada mediante cadena FIFO de promesas (`this.cadena`), deduplicación atómica de propuestas por `${cliente.id}:${sesion}:${operacion}`, vector clocks por grupo de atributos y ciclo de vida hermético con cancelación de temporizadores y buffers.
+3. **Poda Ponytail y Principios SOLID (Criterio 3):**
+   - Eliminación masiva de código muerto y monolitos de red (`motorEventosSync.ts`, `transporteSync.ts`, `accionesSyncV2.ts`, `DialogoDiscrepanciaVitalidad.tsx`).
+   - Sustitución de modales bloqueantes por un panel táctico no modal (`EstadoSincronizacionV4.tsx`).
+   - *Resuelto en `reconciliacionSyncV4.ts:igualesGrupoSyncV4`:* Incorporado cortocircuito $O(1)$ para `'vitalidad'`, evitando el parseo Zod y `JSON.stringify` en comparaciones frecuentes de puntos de golpe.
+   - *Resuelto en `motorSyncV4.ts` y `contextosSyncV4.ts`:* Extraído `estadoVistaSyncV4` a `contextosSyncV4.ts`, reduciendo `motorSyncV4.ts` de 500 a 494 líneas para darle holgura respecto al límite de CI.
+4. **Resiliencia de Transporte (Criterio 4 y 5):** Fragmentación compacta (`F`), reensamblado con límite estricto de memoria (4 MB, 32 sesiones) y prevención de ciclos de retroalimentación mediante cerrojo de estado `aplicandoSync`.
+5. **Cobertura y Certificación CI (Criterio 6):** 186 suites de tests aprobadas al 100% (2.720 tests unitarios), simulación de estrés concurrente aprobada (5 tests de 260 turnos y 6 PJs/20 monstruos), linter sin errores/advertencias y límites de líneas respetados.
+
+---
+
+## [2026-11-08] Análisis Comparativo y Auditoría de `syncV4` vs `main`: Nueva Arquitectura de Sincronización
+
+**Resumen Ejecutivo:**
+Se analizó la divergencia y el alcance arquitectónico entre la rama `main` y la rama `syncV4`.
+- Ambas ramas comparten el historial común hasta `8959f9f` (*"correccion de sync"*).
+- `main` tiene por delante el commit `cfcc91c` (*"agente"*), que añade 4 líneas de documentación sobre Graphify en `AGENTS.md`.
+- `syncV4` tiene por delante el commit `717d363` (*"nuevi sync y eliminacion del anterior"*), que sustituye integralmente el subsistema de sincronización v2/v3 por la arquitectura v4.
+- Balance neto de cambios: **65 archivos afectados (+2.294 inserciones, -5.107 eliminaciones)**, logrando una reducción neta de más de 2.800 líneas de código y simplificando sustancialmente las responsabilidades del store.
+
+**Diferencias Arquitectónicas Clave:**
+1. **Desacoplamiento del Store y Reducers Puros:**
+   - En `main`, los manejadores de iniciativa (`manejadorVidaIniciativa.ts`, `manejadorEfectosIniciativa.ts`, `manejadorAccionesAreaIniciativa.ts`) ejecutaban efectos colaterales de red imperativos (`emitirDeltaVidaSync`, `registrarModificacionLocalPJ`).
+   - En `syncV4`, los reducers vuelven a ser 100% puros. La sincronización se desacopla mediante proyecciones declarativas bidireccionales (`proyeccionSyncV4.ts` y `capturarSyncV4` / `proyectarSyncV4`).
+2. **Fachada Minimalista vs Monolito de Red:**
+   - `src/servicios/sincronizacionSimbiote.ts` se redujo de 569 líneas a 25 líneas, actuando como una fachada pura y delgada delegando en `conexionSyncV4.ts`.
+   - Se erradicaron módulos legados de transporte (`transporteSync.ts`, `motorEventosSync.ts`, `accionesSyncV2.ts`, `notificadorVersionSync.ts`, `bufferChunksIniciativa.ts`).
+3. **Protocolo y Modelo de Reconciliación v4:**
+   - La sincronización se estructura en cuatro grupos de atributos independientes por entidad: `vitalidad`, `estados`, `datos` y `acompanantes`, cada uno con su propio número de revisión secuencial.
+   - Introduce un modelo de consenso y elección de "Director de combate" (`DIRECCION`), relevo dinámico y resiliencia ante pérdida de paquetes mediante latidos (`LATIDO`) y fragmentación compacta (`F` / `FRAG`).
+4. **UI No Bloqueante para Resolución de Conflictos:**
+   - Se retiró el modal intrusivo `DialogoDiscrepanciaVitalidad.tsx` (que bloqueaba la pantalla del jugador ante discrepancias de vida).
+   - Se incorporó `EstadoSincronizacionV4.tsx`, un panel accesible no modal que muestra candidatos a director, ediciones locales pendientes de confirmación y comparaciones por grupo con resolución granular (*"Conservar mi edición"* o *"Aceptar versión compartida"*).
+5. **Calidad y Certificación del Pipeline en `syncV4`:**
+   - **TypeScript:** `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - **ESLint:** `eslint src --max-warnings=0` con 0 errores y 0 advertencias.
+   - **Vitest:** 182 suites y **2.698 pruebas aprobadas al 100%**.
+   - **Simulación Multijugador:** `test:sync-simulacion` (5 pruebas de estrés con 6 PJs, 20 monstruos y 260 turnos concurrentes) aprobada exitosamente.
+   - **Límites de Líneas:** `verificar-limite-lineas.js` con 0 errores críticos no autorizados.
+   - **Vite Build:** Compilación de producción completada en 8.40s.
+
+---
+
+
+
 ## [2026-11-06] Fusión y Certificación de `solucion-A`: Erradicación de NullReferenceException en TaleSpire (Poda Ponytail)
 
 **Resumen Ejecutivo:**
@@ -14893,3 +14945,13 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
   4. Falso positivo en el control de tamaño de archivos de CI (`verificar-limite-lineas.js`), que restringía la verificación a un subconjunto arbitrario de directorios enmascarando los archivos gigantes reales.
   5. Violación de OCP/ISP en `EsquemaPersonajeJugador` con acoplamiento de mecánicas específicas de clase en la raíz del personaje.
 - Definida la hoja de ruta de refactorización quirúrgica priorizada (Quick Wins vs. Desacoplamiento a Largo Plazo).
+
+## [2026-11-08] Afiliación por campaña y seguimiento físico en sync v4
+
+- Un contexto de red por campaña no filtra una biblioteca global: cada ficha necesita afiliación explícita por ID, aplicada también a acciones mecánicas, selectores, autorresolución e importación. El nombre de campaña es sólo descriptivo.
+- Cambiar de rol o dueño provisional no equivale a editar contenido. La regresión reproduce cinco fichas cargadas, sólo 9D-2 afiliada y GM → jugador → GM; una edición real durante la ausencia del director también debe sobrevivir.
+- La API de iniciativa entrega participantes y activo, sin ronda ni dirección. Se acordó seguir el activo físico, inferir fronteras con referencia independiente, asumir avance con dos participantes y no inventar vueltas con uno, cambios estructurales, reconexiones o lecturas tardías.
+- Confirmar entidades mientras se cambia la ronda puede proyectar metadatos anteriores. Aplicar el resultado completo del director al terminar evita perder la ronda nueva y repetir expiraciones.
+- Las filas físicas provisionales no deben sustituir los PV de una ficha recién afiliada. Una lectura pendiente de `getQueue` tampoco debe pasar al contexto nuevo ni limpiar su caché vigente.
+- Archivar antes de migrar: memoria local de formato 2 conserva metadatos confirmados; los originales permanecen descargables/importables sin reenvío. Recuperación de fichas por decisión del dueño; monstruos por decisión del director.
+- Conservar las adiciones anteriores de este archivo y de AGENTS.md. Evidencias y límites de aceptación nativa: `informes/implementacion-contextos-cola-v4-2026-11-08.md`. No equiparar CI/simulación/renderizado estático con TaleSpire/CEF real.

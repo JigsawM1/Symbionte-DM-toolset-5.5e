@@ -253,14 +253,57 @@ export function compararPorRelevanciaTitulo<T>(
     return desempate || (() => 0);
   }
 
+  // Optimización Bolt ⚡: Hoisting de normalización y tokenización de consulta fuera del comparador.
+  // Evita re-normalizar repetidamente la misma consulta y consultar el Map de tokens en cada llamada a calcularRelevanciaBusqueda.
+  const consultaNorm = normalizarParaBusqueda(consulta);
+  const tokens = obtenerTokensConsulta(consulta);
+  const numTokens = tokens.length;
+
+  if (numTokens === 0) {
+    return desempate || (() => 0);
+  }
+
   const cacheRelevancia = new Map<T, number>();
 
   const obtenerRelevancia = (item: T): number => {
     let rel = cacheRelevancia.get(item);
     if (rel === undefined) {
       const titulo = obtenerTitulo(item);
-      const sec = obtenerSecundarios ? obtenerSecundarios(item) : undefined;
-      rel = calcularRelevanciaBusqueda(titulo, consulta, sec);
+      const tituloNorm = normalizarParaBusqueda(titulo || "");
+
+      if (tituloNorm) {
+        if (tituloNorm === consultaNorm) {
+          rel = 1000;
+        } else if (tituloNorm.startsWith(consultaNorm)) {
+          rel = 800;
+        } else if (tituloNorm.includes(consultaNorm)) {
+          rel = 600;
+        } else {
+          let coincidencias = 0;
+          for (let i = 0; i < numTokens; i++) {
+            if (tituloNorm.includes(tokens[i])) {
+              coincidencias++;
+            }
+          }
+          if (coincidencias === numTokens) {
+            rel = 400;
+          } else if (coincidencias > 0) {
+            rel = 300;
+          } else {
+            rel = 0;
+          }
+        }
+      } else {
+        rel = 0;
+      }
+
+      if (rel === 0 && obtenerSecundarios) {
+        const sec = obtenerSecundarios(item);
+        if (sec && sec.length > 0 && coincideBusquedaTolerante(sec, consulta)) {
+          rel = 100;
+        }
+      }
+
       cacheRelevancia.set(item, rel);
     }
     return rel;

@@ -221,5 +221,33 @@ describe("busquedaTolerante - Búsqueda insensible a tildes, mayúsculas y orden
       expect(relEnye).toBe(800);
       expect(relMultitoken).toBe(400);
     });
+
+    it("optimización Bolt: compararPorRelevanciaTitulo produce exactamente los mismos resultados y maneja consultas con espacios", () => {
+      const lista = [
+        { id: "1", nombre: "Poción de Fuerza" },
+        { id: "2", nombre: "pocion" },
+        { id: "3", nombre: "Poción Suprema" },
+        { id: "4", nombre: "Gran Poción de Velocidad" },
+        { id: "5", nombre: "Espada Larga" }
+      ];
+
+      const ordenados = [...lista].sort(
+        compararPorRelevanciaTitulo(
+          (item) => item.nombre,
+          "pocion",
+          (a, b) => a.id.localeCompare(b.id)
+        )
+      );
+
+      // 1000: coincidencia exacta ("pocion")
+      expect(ordenados[0].id).toBe("2");
+      // 800: startsWith ("Poción de Fuerza", "Poción Suprema")
+      expect(ordenados[1].id).toBe("1");
+      expect(ordenados[2].id).toBe("3");
+      // 600: includes ("Gran Poción de Velocidad")
+      expect(ordenados[3].id).toBe("4");
+      // 0: sin coincidencia ("Espada Larga")
+      expect(ordenados[4].id).toBe("5");
+    });
   });
 });

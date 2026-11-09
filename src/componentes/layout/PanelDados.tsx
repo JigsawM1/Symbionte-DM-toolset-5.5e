@@ -51,7 +51,7 @@ export function PanelDados() {
       </div>
 
       {/* Cuerpo del Panel */}
-      <div className={estilosClases.cuerpo}>
+      <div className={`${estilosClases.cuerpo} u-scroll-cef`}>
         {/* Entrada del Nombre de Tirada */}
         <div className={estilosClases.campoEntrada}>
           <input

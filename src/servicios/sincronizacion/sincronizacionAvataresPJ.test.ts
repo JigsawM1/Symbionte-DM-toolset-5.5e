@@ -17,7 +17,6 @@ describe("Sincronización de Retratos (Avatares) de PJs", () => {
     usarAlmacenDM.setState({
       personajes: [],
       colaIniciativa: [],
-      timestampsModificacionLocal: {},
     });
   });
 
@@ -159,7 +158,7 @@ describe("Sincronización de Retratos (Avatares) de PJs", () => {
     });
   });
 
-  describe("Integración con Almacén DM (actualizarPersonajeDesdeSync)", () => {
+  describe("Integración con Almacén DM (aplicarBorradorCombatePJ)", () => {
     it("asigna avatarUrl a la criatura en cola cuando el DM recibe la sincronización del PJ", () => {
       // 1. DM tiene al PJ en la cola sin avatar inicial
       usarAlmacenDM.setState({
@@ -194,7 +193,7 @@ describe("Sincronización de Retratos (Avatares) de PJs", () => {
         pasivas: { percepcion: 12, investigacion: 10, perspicacia: 14 },
       };
 
-      usarAlmacenDM.getState().actualizarPersonajeDesdeSync(dtoPJ, "remoto");
+      usarAlmacenDM.getState().aplicarBorradorCombatePJ(dtoPJ);
 
       const criaturaEnCola = usarAlmacenDM.getState().colaIniciativa.find((c) => c.id === "pj-1");
       expect(criaturaEnCola?.avatarUrl).toBe("https://ejemplo.com/aleron_nuevo.png");

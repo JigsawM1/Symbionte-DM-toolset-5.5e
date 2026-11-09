@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
+import { estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
 
 // Sub-slices especializados por responsabilidad
 import { crearSubSlicePersonajesBase } from "./personajes/slicePersonajesBase";
@@ -55,13 +56,18 @@ export const crearSlicePersonajes: StateCreator<
   [],
   [],
   SlicePersonajes
-> = (set, get, api) => ({
+> = (set, get, api) => {
+  const leer = () => estadoDelContexto(get());
+  const escribir: typeof set = (cambios, replace) => set(s => conservarFichasAjenas(s,
+    typeof cambios === 'function' ? cambios(estadoDelContexto(s)) : cambios), replace);
+  return ({
   ...crearSubSlicePersonajesBase(set, get, api),
-  ...crearSubSliceVitalidad(set, get, api),
-  ...crearSubSliceCaracteristicasHabilidades(set, get, api),
-  ...crearSubSliceCondiciones(set, get, api),
-  ...crearSubSliceMagia(set, get, api),
-  ...crearSubSliceInventario(set, get, api),
-  ...crearSubSliceRasgos(set, get, api),
-  ...crearSubSliceAcompanantes(set, get, api)
+  ...crearSubSliceVitalidad(escribir, leer, api),
+  ...crearSubSliceCaracteristicasHabilidades(escribir, leer, api),
+  ...crearSubSliceCondiciones(escribir, leer, api),
+  ...crearSubSliceMagia(escribir, leer, api),
+  ...crearSubSliceInventario(escribir, leer, api),
+  ...crearSubSliceRasgos(escribir, leer, api),
+  ...crearSubSliceAcompanantes(escribir, leer, api)
 });
+};

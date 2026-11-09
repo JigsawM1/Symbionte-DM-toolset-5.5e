@@ -1,6 +1,6 @@
 import { CambiosSyncPendientes } from "@/componentes/comunes/CambiosSyncPendientes";
 import { AvisoCargaDatos } from "@/componentes/comunes/AvisoCargaDatos";
-import { DialogoDiscrepanciaVitalidad } from "@/componentes/caracteristicas/sincronizacion/DialogoDiscrepanciaVitalidad";
+import { EstadoSincronizacionV4 } from "@/componentes/caracteristicas/sincronizacion/EstadoSincronizacionV4";
 import React, { Suspense } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
@@ -66,6 +66,7 @@ const AppContenido: React.FC = () => {
 
     switch (pestañaActiva) {
       case "iniciativa":
+      case "fichas":
         return <GestorIniciativa />;
       case "tablas":
         return <TablasDM />;
@@ -99,7 +100,7 @@ const AppContenido: React.FC = () => {
       <main className={estilos.areaContenido}>
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
-        {!esGM && <DialogoDiscrepanciaVitalidad />}
+        <div className={estilos.panelContenido}>
         <Suspense
           fallback={
             <div className={estilos.cargadorPestana}>
@@ -112,10 +113,12 @@ const AppContenido: React.FC = () => {
             {renderContenidoPestaña()}
           </LimiteError>
         </Suspense>
+        </div>
+        <PanelDados />
       </main>
 
-      {/* Panel flotante premium de dados */}
-      <PanelDados />
+      {/* Pie de interfaz: telemetría ambiental y sincronización */}
+      <EstadoSincronizacionV4 />
 
       {/* Contenedor global de notificaciones/toasts */}
       <NotificacionesContenedor />

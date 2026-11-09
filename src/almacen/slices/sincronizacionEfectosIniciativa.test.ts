@@ -39,6 +39,7 @@ describe("Sincronización Bidireccional de Efectos, Concentración y Condiciones
 
     const criaturaInicial: CriaturaIniciativa = {
       id: criaturaId,
+      idPersonajeDuenio: personajeId,
       nombre: "Gale de Aguasprofundas",
       iniciativa: 14,
       vidaActual: 35,
@@ -275,6 +276,7 @@ describe("Sincronización Bidireccional de Efectos, Concentración y Condiciones
 
       const barbaroCriatura: CriaturaIniciativa = {
         id: barbaroCriaturaId,
+        idPersonajeDuenio: barbaroId,
         nombre: "Conan el Bárbaro",
         iniciativa: 12,
         vidaActual: 40,

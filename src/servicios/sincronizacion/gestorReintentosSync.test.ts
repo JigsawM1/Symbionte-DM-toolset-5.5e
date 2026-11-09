@@ -77,4 +77,12 @@ describe('Presupuesto de recuperación y emisiones ACK', () => {
     gestor.iniciarReintentosREQ(enviar);
     expect(enviar).toHaveBeenCalledTimes(5);
   });
+  it('un fragmento duplicado tardío no crea una solicitud de recuperación que ya estaba cancelada', async () => {
+    const enviar = vi.fn();
+    gestor.iniciarReintentosREQ(enviar); gestor.cancelarReintentosREQ();
+    gestor.pausarReintentosREQ(enviar); gestor.continuarReintentosREQ();
+    await vi.advanceTimersByTimeAsync(20000);
+    expect(enviar).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
 });

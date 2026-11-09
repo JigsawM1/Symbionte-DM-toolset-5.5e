@@ -218,6 +218,7 @@ export const TABLA_PACTO_BRUJO: Record<number, { espacios: number; nivel: number
 // ==========================================
 
 export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
+  campaniaTaleSpire: null,
   id: "pj-defecto-1",
   nombre: "Nuevo Personaje",
   jugador: "",

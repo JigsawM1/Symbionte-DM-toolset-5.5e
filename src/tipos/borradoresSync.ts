@@ -24,6 +24,7 @@ export interface BorradorCombateAcompanante extends EstadoCombateAcompanante {
 }
 
 export interface BorradorCombatePJ extends EstadoCombatePJ {
+  campaniaId?: string;
   conjuros?: ConjurosCombatePJ;
   movimientoGastado?: number;
   movimientoMaximoTemporal?: number | null;

@@ -1,3 +1,4 @@
+import { eventoClienteSyncV4, esDirectorSyncV4, generacionConexionSyncV4 } from "@/servicios/sincronizacion/conexionSyncV4";
 import { limpiarTiradasExpiradas, limpiarRegistrosTiradas } from "@/utiles/lanzadorDados";
 import { invalidarAutoridadSync } from "@/servicios/sincronizacion/autoridadSync";
 /**
@@ -41,6 +42,7 @@ export function usarConexionTaleSpire() {
   useEffect(() => {
     let desuscribirSeleccion: (() => void) | null = null;
     let desuscribirIniciativa: (() => void) | null = null;
+    let desuscribirDireccion: (() => void) | null = null;
     let desuscribirCliente: (() => void) | null = null;
     let desuscribirSync: (() => void) | null = null;
     let desuscribirEstadoCriatura: (() => void) | null = null;
@@ -154,7 +156,17 @@ export function usarConexionTaleSpire() {
         };
 
         // Función auxiliar para procesar cola de iniciativa con detección nativa de propietarios (ownerIds)
-        const procesarColaConDeteccion = async (cola: import("@/tipos/talespire").ColaIniciativaTS | null) => {
+        let cadenaCola: Promise<void> = Promise.resolve();
+        let revisionEventosCola = 0;
+        let generacionCadenaCola = generacionConexionSyncV4();
+        const procesarColaConDeteccion = (cola: import("@/tipos/talespire").ColaIniciativaTS | null) => {
+          if (!esDirectorSyncV4()) return;
+          const generacionCola = generacionConexionSyncV4();
+          if (generacionCadenaCola !== generacionCola) { cadenaCola = Promise.resolve(); generacionCadenaCola = generacionCola; }
+          const captura = structuredClone(cola);
+          cadenaCola = cadenaCola.then(async () => {
+          if (!activo || generacionCola !== generacionConexionSyncV4() || !esDirectorSyncV4()) return;
+          cola = captura;
           if (!cola) {
             actualizarColaIniciativaDesdeTaleSpire(null);
             return;
@@ -168,18 +180,29 @@ export function usarConexionTaleSpire() {
               logger.warn("[usarConexionTaleSpire] Error detectando miniaturas de jugadores:", e);
             }
           }
-          actualizarColaIniciativaDesdeTaleSpire(cola, minisJugadores);
+          if (activo && generacionCola === generacionConexionSyncV4() && esDirectorSyncV4()) actualizarColaIniciativaDesdeTaleSpire(cola, minisJugadores);
+          }).catch(error => logger.error('[Sync v4] No se pudo procesar la cola física:', error));
+          return cadenaCola;
         };
+        desuscribirDireccion = usarAlmacenDM.subscribe((s, anterior) => {
+          if (!s.conexionSyncV4.soyDirector || anterior.conexionSyncV4.soyDirector) return;
+          const g = generacionConexionSyncV4();
+          const revision = revisionEventosCola;
+          void ts.initiative.getQueue().then(cola => {
+            if (activo && g === generacionConexionSyncV4() && revision === revisionEventosCola) void procesarColaConDeteccion(cola);
+          }).catch(error => logger.error('[Sync v4] No se pudo importar la cola al asumir la dirección:', error));
+        });
 
         // Suscribirse a los cambios en la cola de iniciativa a través del puente EventBus
         desuscribirIniciativa = puenteTaleSpire.on("iniciativaActualizada", (payload) => {
           if (activo) {
+            const revision = ++revisionEventosCola; const g = generacionConexionSyncV4();
             if (payload && payload.queue) {
               void procesarColaConDeteccion(payload.queue);
             } else {
               ts.initiative.getQueue()
                 .then((colaTS) => {
-                  void procesarColaConDeteccion(colaTS);
+                  if (revision === revisionEventosCola && g === generacionConexionSyncV4()) void procesarColaConDeteccion(colaTS);
                 })
                 .catch((e: unknown) => {
                   logger.warn("[TaleSpire Simbionte] Error al leer la cola física tras evento:", e);
@@ -190,28 +213,20 @@ export function usarConexionTaleSpire() {
 
         // Suscribirse a eventos de cambios de rol del cliente en tiempo real
         const procesarEventoCliente = (payload: EventoClienteTS) => {
-          invalidarAutoridadSync();
           if (!activo) return;
-          logger.debug("[TaleSpire Simbionte] Evento de cliente inyectado por CEF:", payload);
-          void ts.clients.esGM(true).then(soyGm => {
-            if (!activo) return;
-            establecerEsGM(soyGm);
-            if (!soyGm) solicitarEstadoInicial();
-          }).catch(error => logger.warn('[Sync] No se pudo verificar el cambio de rol:', error));
+          invalidarAutoridadSync();
+          eventoClienteSyncV4(payload);
         };
 
         const subPuenteCliente = puenteTaleSpire.on("eventoCliente", procesarEventoCliente);
-        const subNativaCliente = ts.clients.suscribirACambioModoCliente(() => {
-          invalidarAutoridadSync();
-          void ts.clients.esGM(true).then(soyGm => {
-            if (!activo) return;
-            establecerEsGM(soyGm);
-            if (!soyGm) solicitarEstadoInicial();
-          });
+        const subClientesSyncV4 = puenteTaleSpire.on("eventoClienteSync", payload => {
+          eventoClienteSyncV4(payload);
         });
+        const subNativaCliente = ts.clients.suscribirACambioModoCliente(procesarEventoCliente);
 
         desuscribirCliente = () => {
           subPuenteCliente();
+          subClientesSyncV4();
           subNativaCliente.desuscribir();
         };
 
@@ -507,9 +522,10 @@ export function usarConexionTaleSpire() {
             });
 
           // Obtener la cola inicial física del tablero (Deduplicada por el Adaptador)
+          const revisionInicialCola = revisionEventosCola; const generacionInicialCola = generacionConexionSyncV4();
           ts.initiative.getQueue()
             .then((colaInicial) => {
-              if (activo) {
+              if (activo && revisionInicialCola === revisionEventosCola && generacionInicialCola === generacionConexionSyncV4()) {
                 void procesarColaConDeteccion(colaInicial);
               }
             })
@@ -594,6 +610,7 @@ export function usarConexionTaleSpire() {
       if (timerInicializacion) clearTimeout(timerInicializacion);
       if (desuscribirSeleccion) desuscribirSeleccion();
       if (desuscribirIniciativa) desuscribirIniciativa();
+      if (desuscribirDireccion) desuscribirDireccion();
       if (desuscribirCliente) desuscribirCliente();
       if (desuscribirSync) desuscribirSync();
       if (desuscribirEstadoCriatura) desuscribirEstadoCriatura();

@@ -6,7 +6,6 @@
 
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
-import { emitirDeltaVidaSync } from "@/servicios/sincronizacion/motorEventosSync";
 import {
   sincronizarModificacionVidaPersonajes,
   sincronizarDanoPersonajes,
@@ -16,22 +15,10 @@ import {
 
 export function despacharModificarVida(
   state: EstadoDM,
-  get: () => EstadoDM,
+  _get: () => EstadoDM,
   id: string,
   nuevaVida: number
 ): Partial<EstadoDM> {
-  const estadoPrevio = get();
-  const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === id);
-  if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
-    const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
-    const diferencia = nuevaVida - criaturaObjetivoPrev.vidaActual;
-    if (diferencia < 0) {
-      void emitirDeltaVidaSync(idDestino, Math.abs(diferencia), "dano");
-    } else if (diferencia > 0) {
-      void emitirDeltaVidaSync(idDestino, diferencia, "curacion");
-    }
-  }
-  get().registrarModificacionLocalPJ(id);
 
   let criaturaAfectadaNombre = "";
   const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
@@ -57,7 +44,7 @@ export function despacharModificarVida(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
@@ -73,13 +60,6 @@ export function despacharDano(
   const estadoPrevio = get();
   const criaturaPrevia = estadoPrevio.colaIniciativa.find((c) => c.id === id);
   if (!criaturaPrevia) return {};
-
-  if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && !criaturaPrevia.esMonstruo) {
-    const idDestino = criaturaPrevia.idAcompanante || criaturaPrevia.idPersonajeDuenio || criaturaPrevia.id;
-    void emitirDeltaVidaSync(idDestino, daño, "dano");
-  }
-
-  get().registrarModificacionLocalPJ(id);
 
   let dañoRestante = daño;
   let vidaTemp = criaturaPrevia.vidaTemporal || 0;
@@ -122,17 +102,16 @@ export function despacharDano(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
 export function despacharModificarVidaMaxima(
   state: EstadoDM,
-  get: () => EstadoDM,
+  _get: () => EstadoDM,
   id: string,
   nuevaVidaMax: number
 ): Partial<EstadoDM> {
-  get().registrarModificacionLocalPJ(id);
 
   let criaturaAfectadaNombre = "";
   const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === id);
@@ -163,23 +142,16 @@ export function despacharModificarVidaMaxima(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }
 
 export function despacharActualizarVidaTemporal(
   state: EstadoDM,
-  get: () => EstadoDM,
+  _get: () => EstadoDM,
   idCriatura: string,
   vidaTemp: number
 ): Partial<EstadoDM> {
-  const estadoPrevio = get();
-  const criaturaObjetivoPrev = estadoPrevio.colaIniciativa.find((c) => c.id === idCriatura);
-  if (estadoPrevio.esGM && !estadoPrevio.aplicandoSync && criaturaObjetivoPrev && !criaturaObjetivoPrev.esMonstruo) {
-    const idDestino = criaturaObjetivoPrev.idAcompanante || criaturaObjetivoPrev.idPersonajeDuenio || criaturaObjetivoPrev.id;
-    void emitirDeltaVidaSync(idDestino, Math.max(0, vidaTemp), "temp");
-  }
-  get().registrarModificacionLocalPJ(idCriatura);
 
   let criaturaAfectadaNombre = "";
   const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
@@ -206,6 +178,6 @@ export function despacharActualizarVidaTemporal(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
   };
 }

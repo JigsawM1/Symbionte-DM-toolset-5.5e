@@ -6,21 +6,19 @@
 
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, RegistroMovimiento } from "@/tipos";
-import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 
 export function coincidePersonajeEnIniciativa(
   pj: PersonajeJugador,
   criatura: CriaturaIniciativa | undefined,
   id: string,
-  nombre: string
+  _nombre: string
 ): boolean {
   return Boolean(
     !criatura?.esAcompanante &&
     !criatura?.idAcompanante &&
-    (pj.id === id ||
-      pj.idMiniaturaTS === id ||
-      (criatura?.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio) ||
-      coincidenNombresTaleSpire(pj.nombre, nombre))
+    (pj.id.toLowerCase() === id.toLowerCase() ||
+      pj.idMiniaturaTS?.toLowerCase() === id.toLowerCase() ||
+      (criatura?.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio))
   );
 }
 
@@ -28,13 +26,12 @@ export function coincideAcompananteEnIniciativa(
   acomp: PersonajeJugador["acompanantes"][number],
   criatura: CriaturaIniciativa | undefined,
   id: string,
-  nombre: string
+  _nombre: string
 ): boolean {
   return Boolean(
-    acomp.id === id ||
+    acomp.id.toLowerCase() === id.toLowerCase() ||
     (criatura?.idAcompanante && acomp.id === criatura.idAcompanante) ||
-    (acomp.idMiniaturaTS && acomp.idMiniaturaTS === id) ||
-    coincidenNombresTaleSpire(acomp.nombre, nombre)
+    (acomp.idMiniaturaTS && acomp.idMiniaturaTS.toLowerCase() === id.toLowerCase())
   );
 }
 

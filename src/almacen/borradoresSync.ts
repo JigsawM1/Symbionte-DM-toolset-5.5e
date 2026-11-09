@@ -11,6 +11,7 @@ const esquemaAcompanante = EsquemaWireEstadoCombatePJ.shape.ac.unwrap().element.
   lvl: numeroOpcional, sub: textoOpcional,
 });
 const esquemaBorrador = EsquemaWireEstadoCombatePJ.extend({
+  campaniaId: z.string().optional(),
   cj: z.object({
     em: z.record(z.string(), z.number()).default({}),
     eg: z.record(z.string(), z.number()).default({}),
@@ -27,6 +28,7 @@ export function serializarBorradorSync(dto: BorradorCombatePJ) {
   const combate = serializarEstadoCombatePJ(dto);
   return {
     ...combate,
+    campaniaId: dto.campaniaId,
     cj: dto.conjuros ? {
       em: dto.conjuros.espaciosMaximos, eg: dto.conjuros.espaciosGastados,
       pm: dto.conjuros.puntosMaximos, pg: dto.conjuros.puntosGastados,
@@ -46,6 +48,7 @@ export function deserializarBorradorSync(raw: unknown): BorradorCombatePJ {
   const combate = deserializarEstadoCombatePJ(local);
   return {
     ...combate,
+    campaniaId: local.campaniaId,
     conjuros: local.cj ? {
       espaciosMaximos: local.cj.em, espaciosGastados: local.cj.eg,
       puntosMaximos: local.cj.pm, puntosGastados: local.cj.pg,

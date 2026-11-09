@@ -1,0 +1,281 @@
+/* ponytail: estilos tácticos compactos para TaleSpire CEF (< 450px) */
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  background-color: rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.08);
+  border: 1px solid var(--dm-borde-advertencia, rgba(249, 176, 31, 0.45));
+  border-radius: var(--dm-radio-panel, 4px);
+}
+
+.bannerInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--dm-texto-principal, #ffffff);
+}
+
+.badge {
+  padding: 1px 5px;
+  background-color: rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.16);
+  border: 1px solid var(--dm-borde-advertencia, rgba(249, 176, 31, 0.5));
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-advertencia, #f9b01f);
+  font-family: var(--fuente-codigo);
+  font-size: 10.5px;
+}
+
+.bannerAcciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Diálogo Modal: solo visible cuando [open] está activo */
+.dialogo:not([open]) {
+  display: none !important;
+}
+
+.dialogo[open] {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 16px));
+  max-height: min(520px, calc(100vh - 24px));
+  padding: 0;
+  border: 1px solid var(--dm-borde-cian, #0ce9cb);
+  border-radius: var(--dm-radio-panel, 4px);
+  background-color: var(--dm-fondo-panel, #141821);
+  color: var(--dm-texto-principal, #ffffff);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+
+.dialogo::backdrop {
+  background: rgba(2, 4, 8, 0.85);
+}
+
+.cabeceraModal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background-color: var(--color-fondo-profundo, #0b0e14);
+  border-bottom: 1px solid var(--color-borde-brutal, #28303e);
+}
+
+.tituloModal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.alertaTactico {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 10px 4px 10px;
+  padding: 5px 8px;
+  background-color: rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.1);
+  border: 1px solid var(--dm-borde-advertencia, rgba(249, 176, 31, 0.4));
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-advertencia, #f9b01f);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+/* Selector horizontal adaptable a ventanas estrechas */
+.tabsSelector {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  background-color: var(--color-fondo-profundo, #0b0e14);
+  border-bottom: 1px solid var(--color-borde-brutal, #28303e);
+  overflow-x: auto;
+}
+
+.tabBoton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px !important;
+  font-size: 11px !important;
+  border-radius: 2px !important;
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
+  color: var(--dm-texto-secundario, #94a3b8) !important;
+  white-space: nowrap;
+}
+
+.tabBoton:hover {
+  background-color: var(--color-fondo-tarjeta, #1a202c) !important;
+  color: #ffffff !important;
+}
+
+.tabBotonActivo {
+  background-color: rgba(var(--dm-rgb-cian, 12, 233, 203), 0.12) !important;
+  border-color: var(--dm-borde-cian, #0ce9cb) !important;
+  color: var(--dm-texto-cian, #0ce9cb) !important;
+}
+
+/* Panel de contenido scrollable */
+.panelContenido {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.respaldo {
+  padding: 6px 10px;
+  overflow: auto;
+}
+
+.respaldo textarea {
+  box-sizing: border-box;
+  width: 100%;
+  height: min(120px, 25vh);
+  font-family: var(--fuente-codigo);
+}
+
+.metaCabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11.5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-borde-brutal, #28303e);
+}
+
+.estadoVacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  text-align: center;
+  gap: 8px;
+  color: var(--dm-texto-apagado, #64748b);
+  font-size: 11.5px;
+}
+
+.tarjetaCriatura {
+  border: 1px solid var(--color-borde-brutal, #28303e);
+  background-color: var(--color-fondo-panel, #0e121a);
+  border-radius: var(--dm-radio-panel, 4px);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cuadriculaComparativa {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+@media (max-width: 400px) {
+  .cuadriculaComparativa {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columnaStat {
+  background-color: var(--color-fondo-profundo, #07090e);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--dm-radio-control, 2px);
+  padding: 5px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.etiquetaColumna {
+  font-family: var(--fuente-codigo);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--dm-texto-apagado, #64748b);
+}
+
+.metricasFila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.chipPv, .chipCa, .chipInic {
+  font-family: var(--fuente-codigo);
+  font-size: 10.5px;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+.chipPv {
+  background-color: rgba(var(--dm-rgb-peligro, 230, 25, 43), 0.15);
+  border: 1px solid var(--dm-borde-peligro, rgba(230, 25, 43, 0.5));
+  color: var(--dm-texto-peligro, #ff7b88);
+}
+
+.chipCa {
+  background-color: rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15);
+  border: 1px solid var(--dm-borde-cian, rgba(12, 233, 203, 0.5));
+  color: var(--dm-texto-cian, #0ce9cb);
+}
+
+.chipInic {
+  background-color: rgba(var(--dm-rgb-primario, 139, 71, 235), 0.15);
+  border: 1px solid var(--dm-borde-primario, rgba(139, 71, 235, 0.5));
+  color: var(--dm-texto-acento, #d4b2ff);
+}
+
+.textoDetalle {
+  font-size: 10.5px;
+  color: var(--dm-texto-secundario, #cbd5e1);
+  margin: 1px 0 0 0;
+}
+
+.barraBotonesCriatura {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.botonAplicar {
+  background-color: var(--color-primario, #8b47eb) !important;
+  border-color: var(--dm-borde-cian, #0ce9cb) !important;
+  color: #ffffff !important;
+}
+
+.filaFichaSync {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background-color: var(--color-fondo-panel, #0e121a);
+  border: 1px solid var(--color-borde-brutal, #28303e);
+  border-radius: var(--dm-radio-control, 2px);
+  font-size: 11px;
+}

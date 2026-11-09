@@ -5,6 +5,7 @@ import { MULTIPLICADOR_POR_TERRENO, INFORMACION_TERRENO } from "@/tipos";
 import { calcularDistanciaMovimientoTS } from "@/servicios/calculadorDistanciaTS";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceAcompanantes } from "./slicePersonajesTipos";
+import { miniaturaEnUso } from '@/almacen/campaniasPersonajes';
 
 /**
  * Extrae numéricamente la velocidad de caminar en pies de un acompañante.
@@ -43,7 +44,6 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   modificarVidaAcompanante: (idPersonaje, idAcompanante, vidaActual, vidaTemporal) => {
-    get().registrarModificacionLocalPJ(idAcompanante);
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {
@@ -75,13 +75,6 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   actualizarAcompanante: (idPersonaje, idAcompanante, cambios) => {
-    if (
-      cambios.vidaActual !== undefined ||
-      cambios.vidaMaxima !== undefined ||
-      cambios.vidaTemporal !== undefined
-    ) {
-      get().registrarModificacionLocalPJ(idAcompanante);
-    }
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {
@@ -128,6 +121,9 @@ export const crearSubSliceAcompanantes: StateCreator<
   },
 
   vincularMiniaturaTSAcompanante: (idPersonaje, idAcompanante, idMiniatura, posicionInicial, boardIdInicial) => {
+    if (idMiniatura && miniaturaEnUso(get(), idMiniatura, idPersonaje, idAcompanante)) {
+      get().agregarNotificacion('La miniatura ya está vinculada a otra ficha o acompañante.', 'advertencia'); return;
+    }
     mutarPersonaje(set, idPersonaje, (pj) => ({
       ...pj,
       acompanantes: (pj.acompanantes || []).map((a) => {

@@ -47,4 +47,18 @@ describe('Contrato nativo de TS.sync.send', () => {
     expect(await ts.sync.send('prueba', 'board')).toBe(true);
     expect(replicar).toHaveBeenCalledTimes(1);
   });
+  it('purgar el ciclo cancela un envío que está esperando el intervalo mínimo', async () => {
+    vi.useFakeTimers();
+    const enviar = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('TS', { sync: { send: enviar } });
+    const { ts } = await import('./TaleSpireAdapter');
+    await ts.sync.send('anterior');
+    const pendiente = ts.sync.send('no debe salir al nuevo tablero');
+    ts.sync.purgarColaSync();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(await pendiente).toBe(false);
+    expect(enviar).toHaveBeenCalledTimes(1);
+    expect(await ts.sync.send('nuevo ciclo')).toBe(true);
+    expect(enviar).toHaveBeenLastCalledWith('nuevo ciclo', 'board');
+  });
 });

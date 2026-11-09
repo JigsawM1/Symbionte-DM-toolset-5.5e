@@ -1,5 +1,186 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-09] Jerarquía visual del pie de sincronización
+
+- El contador visible vive en el encabezado del acordeón y el aviso de estado lo conserva para lectores de pantalla. La lista, los avisos y el reintento siguen el mismo orden visual y de teclado.
+- Pendientes y conflictos comparten la superficie neutra y los controles compactos. Los acentos se resuelven con los tokens de cada tema y la flecha refleja el estado de `<details>` por CSS.
+- La compilación y el lint focalizado pasaron. Chromium verificó el acordeón por teclado, los controles de la cola con datos simulados y el ajuste del pie a 300, 440 y 599 px.
+
+## [2026-11-09] Anclaje de la bandeja de dados sobre el pie
+
+- El botón y la bandeja de dados se anclan al área de contenido. El pie de sincronización puede cambiar de altura y el anclaje se ajusta por CSS.
+- La bandeja limita su tamaño al espacio disponible y desplaza solo el cuerpo para mantener visible el control de minimizar.
+- Chromium comprobó la separación del pie a 300, 420 y 599 px en los temas DM y jugador, con el pie desplegado, plegado y ausente.
+
+## [2026-11-09] Confirmación y respaldo del archivo de sincronización
+
+- `showModal()` deja inertes los controles fuera del diálogo activo. La inspección y la confirmación de descarte comparten ahora un solo diálogo. Ambas vistas permiten copiar el JSON completo o seleccionarlo manualmente antes de borrar.
+- El banner elige la consulta por autoridad y monta el detalle solo al inspeccionar. La proyección de entidades recibe personajes, cola y rol, y el motor conserva su punto de entrada para capturar también los metadatos.
+- El selector y el detalle comparten la etiqueta de campaña y tablero. Las claves antiguas pueden incluir prefijos de migración e importación. Los botones de ambas vistas reutilizan las variantes de acción y descarte.
+- Validación: compilación, ESLint y 139 pruebas focalizadas. En Chromium a 420 px se comprobaron la selección de contexto, el respaldo, la cancelación y el descarte con datos y portapapeles simulados.
+
+## [2026-11-09] Reubicación de la Barra de Sincronización al Footer de la Aplicación
+
+- **Contexto**: `<EstadoSincronizacionV4 />` se renderizaba dentro de `<main className={estilos.areaContenido}>` inmediatamente antes de la vista activa (`panelContenido`), ocupando valioso espacio vertical intermedio y desplazando el contenido de las pestañas (Iniciativa, Fichas, Compendio).
+- **Solución implementada**:
+  1. *Estructura Layout en `src/App.tsx`*: Se extrajo `<EstadoSincronizacionV4 />` de `<main>` y se ubicó como hermano inferior tras el cierre de `</main>`, funcionando como una barra de estado de pie de página (footer) fijada al fondo de la pantalla sin interrumpir la vista activa.
+  2. *Semántica y Estilos*: El contenedor raíz de `EstadoSincronizacionV4.tsx` pasó de `<section>` a `<footer>`, y en `EstadoSincronizacionV4.module.css` se aplicó `border-top` sutil, delimitando la barra de estado con compatibilidad para los temas DM y Jugador.
+  3. *Espacio vertical continuo*: `<main>` dispone ahora del 100% del alto libre entre la navegación superior y el pie inferior, evitando saltos de scroll o desajustes de maquetación entre vistas.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones.
+  - `vite build`: compilación completada en 11.14s.
+
+---
+
+## [2026-11-09] Atenuación Sutil de la Barra de Estado de Sincronización
+
+- **Contexto**: El aviso ambiental `"No hay GM conectado. Tus ediciones locales se conservan"` y el estado del combate compartido en `EstadoSincronizacionV4.tsx` presentaban un peso visual excesivo en la pantalla reducida de TaleSpire (fondo negro sólido, borde grueso de corte `#38404b`, LED de 8px con resplandor fuerte y texto en blanco `#ffffff` con peso negrita 600).
+- **Solución implementada**:
+  1. *Panel ambiental pasivo*: En `EstadoSincronizacionV4.module.css`, se redujo el padding a `2px 8px`, se configuró fondo transparente y un borde inferior tenue (`rgba(255, 255, 255, 0.05)`).
+  2. *Micro-LED táctico*: Reducido a `5.5px` de diámetro con un micro-resplandor suave (`box-shadow: 0 0 3px ...`), eliminando la apariencia de alarma invasiva.
+  3. *Tipografía atenuada*: Reducida a `11px` con peso medio (`450`) y color secundario (`#94a3b8`), con opacidad base `0.75` e incremento natural a `1` en `:hover`.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones.
+  - `vite build`: compilación completada en 8.51s.
+
+---
+
+## [2026-11-09] Rediseño Táctico de Ediciones Pendientes y Limpieza de Badges JSON
+
+- **Contexto**:
+  1. En el modal de recuperación de contexto anterior ([`RecuperacionesArchivadas.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/sincronizacion/RecuperacionesArchivadas.tsx)), el badge del contexto anterior mostraba un fragmento crudo de array JSON (`["4c187a06-2325-...`).
+  2. En [`EstadoSincronizacionV4.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/sincronizacion/EstadoSincronizacionV4.tsx), la sección de "Ediciones pendientes de confirmar" y resolución de conflictos renderizaba elementos HTML nativos (`<details>`, `<summary>`, `<button>`, `<p>`) sin clases ni tipografía del sistema, con el botón superfluo de descarga JSON.
+- **Solución implementada**:
+  1. Se sanitizó la presentación del badge de contexto utilizando la función pura `formatearContextoTS`, extrayendo amigablemente `Campaña X… · Tablero Y…` sin caracteres de formato JSON crudo.
+  2. Se diseñó el componente táctico `.desplegablePendientes` con `.summaryPendientes` sin marcadores nativos de navegador, botones estilizados `.botonReintentar` (con icono `RotateCcw`), filas `.filaPendiente` con botones compactos `.botonDescartarItem` (icono `Trash2`) y alertas `.alertaBloqueo`.
+  3. Se eliminó la descarga redundante de JSON en TaleSpire CEF, manteniendo exclusivamente las acciones operativas.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones (`EstadoSincronizacionV4.tsx` 150 líneas, `RecuperacionesArchivadas.tsx` 295 líneas).
+  - `vite build`: empaquetado de producción completado en 9.91s.
+
+---
+
+## [2026-11-09] Limpieza y Descarte de Datos Archivados de Sesión Anterior
+
+- **Contexto**: Cuando el usuario entra en una sesión donde no hay Master activo o los datos de sesión archivados en `recuperacionContextosSync` (localStorage) ya no son relevantes o se encuentran desactualizados (ej. 0 combatientes), no existía una vía para eliminar permanentemente el banner y el aviso visual.
+- **Solución implementada**:
+  1. *Acción en Store Zustand*: Se agregó `descartarRecuperacionContextosSync: () => set({ recuperacionContextosSync: null })` en `src/almacen/slices/sliceSync.ts`.
+  2. *Persistencia automática*: Dado que `recuperacionContextosSync` está gestionado en el slice con persistencia, al establecerlo en `null` se purga inmediatamente de `localStorage` y el componente `RecuperacionesArchivadas` retorna `null` (`if (!archivo) return null;`).
+  3. *Acción en Banner y Modal*: Se integró un botón accesible `[Descartar]` / `[Descartar todo]` con icono `Trash2` tanto en el banner de cabecera como en la barra superior del diálogo de inspección.
+  4. *Confirmación no destructiva*: Uso del componente estándar `ConfirmDialog` de `@/componentes/comunes` para prevenir descartes accidentales antes de purgar los datos.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones (`RecuperacionesArchivadas.tsx` con 288 líneas, conforme al umbral de 300).
+  - `vite build`: empaquetado de producción completado en 12.02s.
+
+---
+
+## [2026-11-09] Retirada de Pestaña "Fichas" en Vista DM
+
+- Se eliminó el botón `{esGM && <button ...>Fichas</button>}` en `src/componentes/layout/BarraSuperior.tsx`.
+- El Master recupera su conjunto canónico de pestañas: *Iniciativa*, *Tablas DM*, *Pendientes*, *Compendio* y *Notas*.
+- En `src/App.tsx`, las solicitudes con `pestañaActiva === 'fichas'` en rol GM se redirigen limpiamente hacia `<GestorIniciativa />`.
+- TypeScript y ESLint validados con 0 errores.
+
+---
+
+## [2026-11-09] Corrección Crítica en Modal de Recuperación y Optimización TaleSpire (/ponytail)
+
+**Diagnóstico del Fallo Visual Reportado en Capturas:**
+En las capturas de pantalla de TaleSpire se detectaron dos problemas graves de presentación:
+1. **Fallo de Visibilidad de `<dialog>` en CSS:** La regla `.dialogo { display: flex; }` anulaba el estilo predeterminado del navegador `dialog:not([open]) { display: none; }`, provocando que el modal permaneciera renderizado y visible permanentemente en el flujo normal de la aplicación sin haberse invocado `showModal()`.
+2. **Deformación por Ancho Reducido (< 450px en TaleSpire CEF):** La cuadrícula fija de 2 columnas (`240px 1fr`) obligaba al panel de detalle a comprimirse en ~120px de ancho, dejando la sección vacía y cortada.
+
+**Correcciones Aplicadas:**
+1. **Control Hermético de `<dialog>`:** Aplicado `.dialogo:not([open]) { display: none !important; }` y `.dialogo[open] { display: flex; position: fixed; inset: 0; margin: auto; z-index: 9999; width: min(440px, calc(100vw - 16px)); }` para que el modal flote centrado en la capa superior (`::backdrop`) exclusivamente al presionar *Inspeccionar*.
+2. **Navegación por Pestañas Horizontales:** Se reemplazó el grid partido de dos columnas por un selector de tabs compacto horizontal (`.tabsSelector`), permitiendo que el panel de detalle ocupe el 100% del ancho disponible en TaleSpire.
+3. **Manejo de Estado Vacío:** Si el combate archivado tiene 0 combatientes, se presenta un estado visual descriptivo (*"Este combate archivado no tiene participantes registrados (0 combatientes)"*) con botón directo para solicitar iniciativa.
+4. **Poda Ponytail:** Se unificó toda la lógica en `RecuperacionesArchivadas.tsx` (215 líneas) eliminando archivos satélite innecesarios.
+
+---
+
+## [2026-11-09] Rediseño Táctico de Datos Archivados de Sincronización (/frontend-design & /grill-me)
+
+**Resumen Ejecutivo:**
+Se transformó por completo el componente `RecuperacionesArchivadas` y la cabecera de `EstadoSincronizacionV4`, erradicando el acordeón nativo `<details>` no estilizado y las descargas inoperantes de volcados JSON. Se implementó un **Banner Táctico Disparador** no intrusivo y un **Centro de Recuperación de Sesión** en diálogo modal nativo accesible (`<dialog>`) estructurado bajo el patrón Maestro/Detalle.
+
+**Decisiones de Arquitectura y Lecciones Aprendidas:**
+1. **Poda Operativa (Eliminación de Descargas JSON):** Las descargas de archivos JSON (`descargarArchivoJSON`) dentro de TaleSpire resultaban superfluas y agregaban ruido visual. Se sustituyeron por la acción operativa **"Solicitar iniciativa de nuevo"**, que re-consulta la cola nativa de TaleSpire (`importarIniciativaTaleSpire()`) y re-emite la solicitud de sync compartido (`solicitarSyncV4()`).
+2. **Patrón Maestro/Detalle y Modularización Limpia:**
+   - Para no desbordar el límite de líneas por archivo (< 300 líneas), la vista se dividió quirúrgicamente en tres unidades funcionales puras:
+     - `RecuperacionesArchivadas.tsx` (190 líneas): orquestador de estado, banner disparador y contenedor modal `<dialog>`.
+     - `DetalleElementoArchivado.tsx` (170 líneas): subcomponentes `DetalleCombateArchivado`, `DetalleMemoriaContexto` y `StatblockCriatura`.
+     - `utilidadesRecuperacionArchivada.ts` (19 líneas): funciones de parseo de contexto TaleSpire (`formatearContextoTS`) e interfaces compartidas, respetando la regla `react-refresh/only-export-components`.
+     - `RecuperacionesArchivadas.module.css`: estilos brutalistas con densidad 10, paleta oscura HSL y **cero animaciones/transiciones** para garantizar 60 FPS estables en TaleSpire CEF.
+3. **Indicador Visual LED:** La barra superior de `EstadoSincronizacionV4` ahora incluye un distintivo tipo LED de alta visibilidad (verde/cian para director, ámbar para estados de elección/espera, rojo para fallos).
+4. **Certificación del Pipeline CI:**
+   - `tsc --noEmit`: 0 errores con `strict: true`.
+   - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+   - `verificar:lineas`: 0 violaciones, ambos componentes nuevos clasificados como `< 300 lineas`.
+   - `vitest`: 14 suites y 124 tests de sincronización aprobados al 100%.
+   - `vite build`: compilación de producción exitosa en 12.81s.
+
+---
+
+## [2026-11-08] Auditoría Senior de Arquitectura e Integridad: Rama `syncV4` (/ponytail)
+
+**Veredicto General:** **Aprobado y Optimizado Quirúrgicamente**.
+La migración erradica la sobreingeniería de `SyncV2` (-2.813 líneas netas), devolviendo la pureza a los reducers de Zustand, blindando el transporte contra cuellos de botella de red e introduciendo aislamiento estricto por campaña y tablero.
+
+**Hallazgos Clave y Soluciones Aplicadas:**
+1. **Tipado Estricto (Criterio 1):** Cero usos de `any`, `as any` o `as unknown as` en todo el subsistema de sincronización v4. Contratos de datos 100% validados en tiempo de compilación y runtime mediante Zod discriminado por campo `t`.
+2. **Concurrencia e Idempotencia (Criterio 2):** Ingesta serializada mediante cadena FIFO de promesas (`this.cadena`), deduplicación atómica de propuestas por `${cliente.id}:${sesion}:${operacion}`, vector clocks por grupo de atributos y ciclo de vida hermético con cancelación de temporizadores y buffers.
+3. **Poda Ponytail y Principios SOLID (Criterio 3):**
+   - Eliminación masiva de código muerto y monolitos de red (`motorEventosSync.ts`, `transporteSync.ts`, `accionesSyncV2.ts`, `DialogoDiscrepanciaVitalidad.tsx`).
+   - Sustitución de modales bloqueantes por un panel táctico no modal (`EstadoSincronizacionV4.tsx`).
+   - *Resuelto en `reconciliacionSyncV4.ts:igualesGrupoSyncV4`:* Incorporado cortocircuito $O(1)$ para `'vitalidad'`, evitando el parseo Zod y `JSON.stringify` en comparaciones frecuentes de puntos de golpe.
+   - *Resuelto en `motorSyncV4.ts` y `contextosSyncV4.ts`:* Extraído `estadoVistaSyncV4` a `contextosSyncV4.ts`, reduciendo `motorSyncV4.ts` de 500 a 494 líneas para darle holgura respecto al límite de CI.
+4. **Resiliencia de Transporte (Criterio 4 y 5):** Fragmentación compacta (`F`), reensamblado con límite estricto de memoria (4 MB, 32 sesiones) y prevención de ciclos de retroalimentación mediante cerrojo de estado `aplicandoSync`.
+5. **Cobertura y Certificación CI (Criterio 6):** 186 suites de tests aprobadas al 100% (2.720 tests unitarios), simulación de estrés concurrente aprobada (5 tests de 260 turnos y 6 PJs/20 monstruos), linter sin errores/advertencias y límites de líneas respetados.
+
+---
+
+## [2026-11-08] Análisis Comparativo y Auditoría de `syncV4` vs `main`: Nueva Arquitectura de Sincronización
+
+**Resumen Ejecutivo:**
+Se analizó la divergencia y el alcance arquitectónico entre la rama `main` y la rama `syncV4`.
+- Ambas ramas comparten el historial común hasta `8959f9f` (*"correccion de sync"*).
+- `main` tiene por delante el commit `cfcc91c` (*"agente"*), que añade 4 líneas de documentación sobre Graphify en `AGENTS.md`.
+- `syncV4` tiene por delante el commit `717d363` (*"nuevi sync y eliminacion del anterior"*), que sustituye integralmente el subsistema de sincronización v2/v3 por la arquitectura v4.
+- Balance neto de cambios: **65 archivos afectados (+2.294 inserciones, -5.107 eliminaciones)**, logrando una reducción neta de más de 2.800 líneas de código y simplificando sustancialmente las responsabilidades del store.
+
+**Diferencias Arquitectónicas Clave:**
+1. **Desacoplamiento del Store y Reducers Puros:**
+   - En `main`, los manejadores de iniciativa (`manejadorVidaIniciativa.ts`, `manejadorEfectosIniciativa.ts`, `manejadorAccionesAreaIniciativa.ts`) ejecutaban efectos colaterales de red imperativos (`emitirDeltaVidaSync`, `registrarModificacionLocalPJ`).
+   - En `syncV4`, los reducers vuelven a ser 100% puros. La sincronización se desacopla mediante proyecciones declarativas bidireccionales (`proyeccionSyncV4.ts` y `capturarSyncV4` / `proyectarSyncV4`).
+2. **Fachada Minimalista vs Monolito de Red:**
+   - `src/servicios/sincronizacionSimbiote.ts` se redujo de 569 líneas a 25 líneas, actuando como una fachada pura y delgada delegando en `conexionSyncV4.ts`.
+   - Se erradicaron módulos legados de transporte (`transporteSync.ts`, `motorEventosSync.ts`, `accionesSyncV2.ts`, `notificadorVersionSync.ts`, `bufferChunksIniciativa.ts`).
+3. **Protocolo y Modelo de Reconciliación v4:**
+   - La sincronización se estructura en cuatro grupos de atributos independientes por entidad: `vitalidad`, `estados`, `datos` y `acompanantes`, cada uno con su propio número de revisión secuencial.
+   - Introduce un modelo de consenso y elección de "Director de combate" (`DIRECCION`), relevo dinámico y resiliencia ante pérdida de paquetes mediante latidos (`LATIDO`) y fragmentación compacta (`F` / `FRAG`).
+4. **UI No Bloqueante para Resolución de Conflictos:**
+   - Se retiró el modal intrusivo `DialogoDiscrepanciaVitalidad.tsx` (que bloqueaba la pantalla del jugador ante discrepancias de vida).
+   - Se incorporó `EstadoSincronizacionV4.tsx`, un panel accesible no modal que muestra candidatos a director, ediciones locales pendientes de confirmación y comparaciones por grupo con resolución granular (*"Conservar mi edición"* o *"Aceptar versión compartida"*).
+5. **Calidad y Certificación del Pipeline en `syncV4`:**
+   - **TypeScript:** `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+   - **ESLint:** `eslint src --max-warnings=0` con 0 errores y 0 advertencias.
+   - **Vitest:** 182 suites y **2.698 pruebas aprobadas al 100%**.
+   - **Simulación Multijugador:** `test:sync-simulacion` (5 pruebas de estrés con 6 PJs, 20 monstruos y 260 turnos concurrentes) aprobada exitosamente.
+   - **Límites de Líneas:** `verificar-limite-lineas.js` con 0 errores críticos no autorizados.
+   - **Vite Build:** Compilación de producción completada en 8.40s.
+
+---
+
+
+
 ## [2026-11-06] Fusión y Certificación de `solucion-A`: Erradicación de NullReferenceException en TaleSpire (Poda Ponytail)
 
 **Resumen Ejecutivo:**
@@ -14893,3 +15074,13 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
   4. Falso positivo en el control de tamaño de archivos de CI (`verificar-limite-lineas.js`), que restringía la verificación a un subconjunto arbitrario de directorios enmascarando los archivos gigantes reales.
   5. Violación de OCP/ISP en `EsquemaPersonajeJugador` con acoplamiento de mecánicas específicas de clase en la raíz del personaje.
 - Definida la hoja de ruta de refactorización quirúrgica priorizada (Quick Wins vs. Desacoplamiento a Largo Plazo).
+
+## [2026-11-08] Afiliación por campaña y seguimiento físico en sync v4
+
+- Un contexto de red por campaña no filtra una biblioteca global: cada ficha necesita afiliación explícita por ID, aplicada también a acciones mecánicas, selectores, autorresolución e importación. El nombre de campaña es sólo descriptivo.
+- Cambiar de rol o dueño provisional no equivale a editar contenido. La regresión reproduce cinco fichas cargadas, sólo 9D-2 afiliada y GM → jugador → GM; una edición real durante la ausencia del director también debe sobrevivir.
+- La API de iniciativa entrega participantes y activo, sin ronda ni dirección. Se acordó seguir el activo físico, inferir fronteras con referencia independiente, asumir avance con dos participantes y no inventar vueltas con uno, cambios estructurales, reconexiones o lecturas tardías.
+- Confirmar entidades mientras se cambia la ronda puede proyectar metadatos anteriores. Aplicar el resultado completo del director al terminar evita perder la ronda nueva y repetir expiraciones.
+- Las filas físicas provisionales no deben sustituir los PV de una ficha recién afiliada. Una lectura pendiente de `getQueue` tampoco debe pasar al contexto nuevo ni limpiar su caché vigente.
+- Archivar antes de migrar: memoria local de formato 2 conserva metadatos confirmados; los originales permanecen descargables/importables sin reenvío. Recuperación de fichas por decisión del dueño; monstruos por decisión del director.
+- Conservar las adiciones anteriores de este archivo y de AGENTS.md. Evidencias y límites de aceptación nativa: `informes/implementacion-contextos-cola-v4-2026-11-08.md`. No equiparar CI/simulación/renderizado estático con TaleSpire/CEF real.

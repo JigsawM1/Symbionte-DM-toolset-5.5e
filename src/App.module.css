@@ -14,6 +14,9 @@
 }
 
 .areaContenido {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   flex: 1;
   width: 100%;
   min-height: 0;
@@ -22,6 +25,8 @@
   background-color: var(--color-fondo-profundo);
   overflow: hidden;
 }
+
+.panelContenido { flex: 1; min-height: 0; overflow: hidden; }
 
 .cargadorPestana {
   display: flex;

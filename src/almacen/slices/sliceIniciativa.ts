@@ -29,6 +29,7 @@ import {
 } from "@/servicios/sincronizacionIniciativa";
 import { generarId } from "@/utiles/generarId";
 import { logger } from "@/utiles/logger";
+import { estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
 
 import { type CreadorSliceIniciativa } from "./iniciativa/tipos";
 import { restablecerMovimientoPersonajes } from "./iniciativa/sincronizadorPersonajesIniciativa";
@@ -61,7 +62,24 @@ import {
 
 export * from "./iniciativa/tipos";
 
-export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
+export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOriginal) => {
+  const get = () => estadoDelContexto(getOriginal());
+  const aplicar: (partial: Parameters<typeof setOriginal>[0], replace?: boolean, fisica?: boolean) => void = (partial, replace, fisica = false) => {
+    const s = get();
+    if (s.esGM && ts.estaDisponible && !s.conexionSyncV4.soyDirector) {
+      s.agregarNotificacion('Sólo el director puede editar el combate compartido.', 'info');
+      return;
+    }
+    setOriginal(original => {
+      const cambios = typeof partial === 'function' ? partial(estadoDelContexto(original)) : partial;
+      const manual = !fisica && (cambios.rondaActual !== undefined || cambios.indiceTurnoActivo !== undefined);
+      return conservarFichasAjenas(original, { ...cambios, ...(manual && original.referenciaIniciativaFisica
+        ? { referenciaIniciativaFisica: { ...original.referenciaIniciativaFisica, inferirRonda: false } } : {}) });
+    }, replace);
+  };
+  const set: typeof setOriginal = (partial, replace) => aplicar(partial, replace);
+  return ({
+  referenciaIniciativaFisica: null,
   colaIniciativa: [],
   indiceTurnoActivo: 0,
   rondaActual: 1,
@@ -69,7 +87,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
   criaturasSeleccionadas: [],
   asociacionesFichas: {},
 
-  establecerTipoTirada: (tipo) => set({ tipoTirada: tipo }),
+  establecerTipoTirada: (tipo) => setOriginal({ tipoTirada: tipo }),
 
   avanzarRonda: () => set((state) => {
     const nuevaRonda = state.rondaActual + 1;
@@ -78,7 +96,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
     return {
       rondaActual: nuevaRonda,
       colaIniciativa: nuevaCola,
-      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda))
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda, { conservarConcentracionDesconocida: state.esGM }))
     };
   }),
 
@@ -107,7 +125,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
       colaIniciativa: nuevaCola,
       indiceTurnoActivo: nuevoIndice,
       rondaActual: nuevaRonda,
-      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda))
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda, { conservarConcentracionDesconocida: state.esGM }))
     };
   }),
 
@@ -123,8 +141,8 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
     return { indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda };
   }),
 
-  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => set((state) => {
-    if (!colaTS) return {};
+  actualizarColaIniciativaDesdeTaleSpire: (colaTS: ColaIniciativaTS | null, idsMiniaturasJugadores?: Set<string> | string[]) => aplicar((state) => {
+    if (!colaTS || !(state.conexionSyncV4.soyDirector || (!ts.estaDisponible && state.esGM))) return {};
 
     const indiceMonstruos = crearIndiceMonstruos(state.baseDatosMonstruos);
     const resultado = sincronizarConEstadoLocal({
@@ -135,6 +153,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
       metodoVidaMonstruo: state.metodoVidaMonstruo,
       indiceTurnoActivo: state.indiceTurnoActivo,
       rondaActual: state.rondaActual,
+      referenciaIniciativaFisica: state.referenciaIniciativaFisica,
       personajes: state.personajes,
       idsMiniaturasJugadores
     });
@@ -142,11 +161,11 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
     if (resultado.rondaActual > state.rondaActual) {
       const pjsBase = state.personajes;
       const nuevosPjs = restablecerMovimientoPersonajes(pjsBase, `Reinicio de ronda TaleSpire (Ronda ${resultado.rondaActual})`);
-      return { ...resultado, personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, resultado.rondaActual)) };
+      return { ...resultado, personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, resultado.rondaActual, { conservarConcentracionDesconocida: state.esGM })) };
     }
 
     return resultado;
-  }),
+  }, undefined, true),
 
   importarIniciativaTaleSpire: async () => {
     if (ts.estaDisponible) {
@@ -303,7 +322,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
       colaIniciativa: [],
       indiceTurnoActivo: 0,
       rondaActual: 1,
-      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual))
+      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
     };
   }),
 
@@ -322,7 +341,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
     )
   })),
 
-  actualizarSeleccionCriaturas: (seleccionadas) => set((state) => {
+  actualizarSeleccionCriaturas: (seleccionadas) => setOriginal((state) => {
     const patch: Partial<EstadoDM> = { criaturasSeleccionadas: seleccionadas };
     if (seleccionadas && seleccionadas.length > 0) {
       const primera = seleccionadas[0];
@@ -392,3 +411,4 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (set, get) => ({
     return resultadoCalculo.resultado;
   }
 });
+};

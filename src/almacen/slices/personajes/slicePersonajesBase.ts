@@ -11,6 +11,7 @@ import { calcularBonoHPMaximoRasgos } from "@/servicios/evaluadorEfectosRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { aplicarBuildClaseAPersonaje } from "@/servicios/gestorClases";
 import type { SubSlicePersonajesBase } from "./slicePersonajesTipos";
+import { copiarFichaParaCampania, personajesDelContexto, miniaturaEnUso } from '@/almacen/campaniasPersonajes';
 
 export const crearSubSlicePersonajesBase: StateCreator<
   EstadoDM,
@@ -26,6 +27,8 @@ export const crearSubSlicePersonajesBase: StateCreator<
     let nuevoPersonaje: PersonajeJugador = {
       ...PERSONAJE_POR_DEFECTO,
       ...datosIniciales,
+      campaniaTaleSpire: datosIniciales && 'campaniaTaleSpire' in datosIniciales
+        ? datosIniciales.campaniaTaleSpire ?? null : get().contextoTaleSpire?.campania ?? null,
       id: nuevoId,
       nombre: datosIniciales?.nombre || "Nuevo Personaje"
     };
@@ -103,11 +106,15 @@ export const crearSubSlicePersonajesBase: StateCreator<
   },
 
   actualizarPersonaje: (id, cambios) => {
+    if (!personajesDelContexto(get()).some(p => p.id === id)) return;
+    if (cambios.idMiniaturaTS && miniaturaEnUso(get(), cambios.idMiniaturaTS, id)) {
+      get().agregarNotificacion('La miniatura ya está vinculada a otra ficha o acompañante.', 'advertencia'); return;
+    }
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;
 
-        let fusionado = { ...pj, ...cambios };
+        let fusionado = { ...pj, ...cambios, campaniaTaleSpire: pj.campaniaTaleSpire };
         if (cambios.rasgos) fusionado.rasgos = migrarMetadatosRasgos(cambios.rasgos);
 
         // Si se cambia la clase o subclase y no se pasaron clasesLanzadoras explícitas
@@ -229,6 +236,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
   },
 
   aplicarBuildClasePersonaje: (id, claseNombre, nivel, subclaseNombre, opciones) => {
+    if (!personajesDelContexto(get()).some(p => p.id === id)) return;
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;
@@ -258,9 +266,10 @@ export const crearSubSlicePersonajesBase: StateCreator<
     const original = state.personajes.find((pj) => pj.id === id);
     if (!original) return "";
 
-    const nuevoId = generarId("pj");
+    const copia = copiarFichaParaCampania(original, state.contextoTaleSpire?.campania ?? null);
+    const nuevoId = copia.id;
     const duplicado: PersonajeJugador = {
-      ...original,
+      ...copia,
       id: nuevoId,
       nombre: `${original.nombre} (Copia)`
     };
@@ -274,10 +283,28 @@ export const crearSubSlicePersonajesBase: StateCreator<
   },
 
   seleccionarPersonajeActivo: (id) => {
+    if (id && !personajesDelContexto(get()).some(p => p.id === id)) return;
     set({ idPersonajeActivo: id });
   },
 
+  afiliarPersonajeACampania: id => {
+    const s = get(); const campania = s.contextoTaleSpire?.campania;
+    const p = s.personajes.find(p => p.id === id);
+    if (!campania || !p || p.campaniaTaleSpire) return false;
+    if (p.idMiniaturaTS && s.personajes.some(otra => otra.id !== id && otra.campaniaTaleSpire?.id === campania.id
+      && otra.idMiniaturaTS?.toLowerCase() === p.idMiniaturaTS?.toLowerCase())) {
+      s.agregarNotificacion('Esta miniatura ya está vinculada a otra ficha de la campaña.', 'advertencia'); return false;
+    }
+    set({ personajes: s.personajes.map(p => p.id === id ? { ...p, campaniaTaleSpire: campania } : p), idPersonajeActivo: id });
+    return true;
+  },
+
   vincularMiniaturaTSPersonaje: (id, idMiniatura, posicionInicial, boardIdInicial) => {
+    const s = get();
+    if (!personajesDelContexto(s).some(p => p.id === id)) return;
+    if (idMiniatura && miniaturaEnUso(s, idMiniatura, id)) {
+      s.agregarNotificacion('Esta miniatura ya está vinculada a otra ficha de la campaña.', 'advertencia'); return;
+    }
     set((state) => ({
       personajes: state.personajes.map((pj) =>
         pj.id === id

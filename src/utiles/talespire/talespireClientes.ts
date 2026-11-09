@@ -9,8 +9,7 @@ import type {
   FragmentoCliente,
   FragmentoJugador,
   InfoCliente,
-  InfoJugador,
-  ModoCliente
+  InfoJugador
 } from "@/tipos/talespire";
 import { logger } from "@/utiles/logger";
 import {
@@ -135,21 +134,12 @@ export class TaleSpireClientsAdapter {
   /**
    * Escucha el evento 'clientModeChanged' de TaleSpire en tiempo real cuando un usuario cambia de rol (DM <-> Jugador).
    */
-  suscribirACambioModoCliente(callback: (modo: ModoCliente) => void): { desuscribir: () => void } {
+  suscribirACambioModoCliente(callback: (evento: EventoClienteTS) => void): { desuscribir: () => void } {
     const ts = obtenerTSGlobal();
     const listener = (evento: unknown) => {
-      const ev = evento as
-        | EventoClienteTS
-        | { clientMode?: string; payload?: { clientMode?: string } }
-        | string
-        | null
-        | undefined;
-      if (!ev) return;
-      const modo = typeof ev === "string" ? ev : "clientMode" in ev ? ev.clientMode : ev?.payload?.clientMode;
-      if (modo === "gm" || modo === "player" || modo === "spectator") {
-        establecerCacheEsGM(modo === "gm");
-        callback(modo);
-      }
+      if (typeof evento !== 'object' || evento === null || !('kind' in evento) || evento.kind !== 'clientModeChanged') return;
+      // La identidad completa permite distinguir el modo propio del de otro cliente.
+      callback(evento as EventoClienteTS);
     };
 
     const onClientEvent = ts?.clients?.onClientEvent;

@@ -22,6 +22,7 @@ export interface SliceSync {
 
   establecerIdClienteDM: (id: string | null) => void;
   aplicarBorradorCombatePJ: (dto: BorradorCombatePJ) => void;
+  descartarRecuperacionContextosSync: () => void;
 }
 
 
@@ -39,6 +40,7 @@ export const crearSliceSync: StateCreator<
   borradoresSync: {},
   guardarBorradorSync: (id, borrador) => set(s => ({ borradoresSync: { ...s.borradoresSync, [id]: borrador } })),
   descartarBorradorSync: id => set(s => ({ borradoresSync: Object.fromEntries(Object.entries(s.borradoresSync).filter(([clave]) => clave !== id)) })),
+  descartarRecuperacionContextosSync: () => set({ recuperacionContextosSync: null }),
   reaplicarBorradorSync: id => {
     const s = get();
     const borrador = s.borradoresSync[id];

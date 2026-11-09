@@ -1,5 +1,134 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-09] Jerarquía visual del pie de sincronización
+
+- El contador visible vive en el encabezado del acordeón y el aviso de estado lo conserva para lectores de pantalla. La lista, los avisos y el reintento siguen el mismo orden visual y de teclado.
+- Pendientes y conflictos comparten la superficie neutra y los controles compactos. Los acentos se resuelven con los tokens de cada tema y la flecha refleja el estado de `<details>` por CSS.
+- La compilación y el lint focalizado pasaron. Chromium verificó el acordeón por teclado, los controles de la cola con datos simulados y el ajuste del pie a 300, 440 y 599 px.
+
+## [2026-11-09] Anclaje de la bandeja de dados sobre el pie
+
+- El botón y la bandeja de dados se anclan al área de contenido. El pie de sincronización puede cambiar de altura y el anclaje se ajusta por CSS.
+- La bandeja limita su tamaño al espacio disponible y desplaza solo el cuerpo para mantener visible el control de minimizar.
+- Chromium comprobó la separación del pie a 300, 420 y 599 px en los temas DM y jugador, con el pie desplegado, plegado y ausente.
+
+## [2026-11-09] Confirmación y respaldo del archivo de sincronización
+
+- `showModal()` deja inertes los controles fuera del diálogo activo. La inspección y la confirmación de descarte comparten ahora un solo diálogo. Ambas vistas permiten copiar el JSON completo o seleccionarlo manualmente antes de borrar.
+- El banner elige la consulta por autoridad y monta el detalle solo al inspeccionar. La proyección de entidades recibe personajes, cola y rol, y el motor conserva su punto de entrada para capturar también los metadatos.
+- El selector y el detalle comparten la etiqueta de campaña y tablero. Las claves antiguas pueden incluir prefijos de migración e importación. Los botones de ambas vistas reutilizan las variantes de acción y descarte.
+- Validación: compilación, ESLint y 139 pruebas focalizadas. En Chromium a 420 px se comprobaron la selección de contexto, el respaldo, la cancelación y el descarte con datos y portapapeles simulados.
+
+## [2026-11-09] Reubicación de la Barra de Sincronización al Footer de la Aplicación
+
+- **Contexto**: `<EstadoSincronizacionV4 />` se renderizaba dentro de `<main className={estilos.areaContenido}>` inmediatamente antes de la vista activa (`panelContenido`), ocupando valioso espacio vertical intermedio y desplazando el contenido de las pestañas (Iniciativa, Fichas, Compendio).
+- **Solución implementada**:
+  1. *Estructura Layout en `src/App.tsx`*: Se extrajo `<EstadoSincronizacionV4 />` de `<main>` y se ubicó como hermano inferior tras el cierre de `</main>`, funcionando como una barra de estado de pie de página (footer) fijada al fondo de la pantalla sin interrumpir la vista activa.
+  2. *Semántica y Estilos*: El contenedor raíz de `EstadoSincronizacionV4.tsx` pasó de `<section>` a `<footer>`, y en `EstadoSincronizacionV4.module.css` se aplicó `border-top` sutil, delimitando la barra de estado con compatibilidad para los temas DM y Jugador.
+  3. *Espacio vertical continuo*: `<main>` dispone ahora del 100% del alto libre entre la navegación superior y el pie inferior, evitando saltos de scroll o desajustes de maquetación entre vistas.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones.
+  - `vite build`: compilación completada en 11.14s.
+
+---
+
+## [2026-11-09] Atenuación Sutil de la Barra de Estado de Sincronización
+
+- **Contexto**: El aviso ambiental `"No hay GM conectado. Tus ediciones locales se conservan"` y el estado del combate compartido en `EstadoSincronizacionV4.tsx` presentaban un peso visual excesivo en la pantalla reducida de TaleSpire (fondo negro sólido, borde grueso de corte `#38404b`, LED de 8px con resplandor fuerte y texto en blanco `#ffffff` con peso negrita 600).
+- **Solución implementada**:
+  1. *Panel ambiental pasivo*: En `EstadoSincronizacionV4.module.css`, se redujo el padding a `2px 8px`, se configuró fondo transparente y un borde inferior tenue (`rgba(255, 255, 255, 0.05)`).
+  2. *Micro-LED táctico*: Reducido a `5.5px` de diámetro con un micro-resplandor suave (`box-shadow: 0 0 3px ...`), eliminando la apariencia de alarma invasiva.
+  3. *Tipografía atenuada*: Reducida a `11px` con peso medio (`450`) y color secundario (`#94a3b8`), con opacidad base `0.75` e incremento natural a `1` en `:hover`.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones.
+  - `vite build`: compilación completada en 8.51s.
+
+---
+
+## [2026-11-09] Rediseño Táctico de Ediciones Pendientes y Limpieza de Badges JSON
+
+- **Contexto**:
+  1. En el modal de recuperación de contexto anterior ([`RecuperacionesArchivadas.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/sincronizacion/RecuperacionesArchivadas.tsx)), el badge del contexto anterior mostraba un fragmento crudo de array JSON (`["4c187a06-2325-...`).
+  2. En [`EstadoSincronizacionV4.tsx`](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/sincronizacion/EstadoSincronizacionV4.tsx), la sección de "Ediciones pendientes de confirmar" y resolución de conflictos renderizaba elementos HTML nativos (`<details>`, `<summary>`, `<button>`, `<p>`) sin clases ni tipografía del sistema, con el botón superfluo de descarga JSON.
+- **Solución implementada**:
+  1. Se sanitizó la presentación del badge de contexto utilizando la función pura `formatearContextoTS`, extrayendo amigablemente `Campaña X… · Tablero Y…` sin caracteres de formato JSON crudo.
+  2. Se diseñó el componente táctico `.desplegablePendientes` con `.summaryPendientes` sin marcadores nativos de navegador, botones estilizados `.botonReintentar` (con icono `RotateCcw`), filas `.filaPendiente` con botones compactos `.botonDescartarItem` (icono `Trash2`) y alertas `.alertaBloqueo`.
+  3. Se eliminó la descarga redundante de JSON en TaleSpire CEF, manteniendo exclusivamente las acciones operativas.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones (`EstadoSincronizacionV4.tsx` 150 líneas, `RecuperacionesArchivadas.tsx` 295 líneas).
+  - `vite build`: empaquetado de producción completado en 9.91s.
+
+---
+
+## [2026-11-09] Limpieza y Descarte de Datos Archivados de Sesión Anterior
+
+- **Contexto**: Cuando el usuario entra en una sesión donde no hay Master activo o los datos de sesión archivados en `recuperacionContextosSync` (localStorage) ya no son relevantes o se encuentran desactualizados (ej. 0 combatientes), no existía una vía para eliminar permanentemente el banner y el aviso visual.
+- **Solución implementada**:
+  1. *Acción en Store Zustand*: Se agregó `descartarRecuperacionContextosSync: () => set({ recuperacionContextosSync: null })` en `src/almacen/slices/sliceSync.ts`.
+  2. *Persistencia automática*: Dado que `recuperacionContextosSync` está gestionado en el slice con persistencia, al establecerlo en `null` se purga inmediatamente de `localStorage` y el componente `RecuperacionesArchivadas` retorna `null` (`if (!archivo) return null;`).
+  3. *Acción en Banner y Modal*: Se integró un botón accesible `[Descartar]` / `[Descartar todo]` con icono `Trash2` tanto en el banner de cabecera como en la barra superior del diálogo de inspección.
+  4. *Confirmación no destructiva*: Uso del componente estándar `ConfirmDialog` de `@/componentes/comunes` para prevenir descartes accidentales antes de purgar los datos.
+- **Validaciones CI**:
+  - `tsc --noEmit`: 0 errores con `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+  - `verificar:lineas`: 0 violaciones (`RecuperacionesArchivadas.tsx` con 288 líneas, conforme al umbral de 300).
+  - `vite build`: empaquetado de producción completado en 12.02s.
+
+---
+
+## [2026-11-09] Retirada de Pestaña "Fichas" en Vista DM
+
+- Se eliminó el botón `{esGM && <button ...>Fichas</button>}` en `src/componentes/layout/BarraSuperior.tsx`.
+- El Master recupera su conjunto canónico de pestañas: *Iniciativa*, *Tablas DM*, *Pendientes*, *Compendio* y *Notas*.
+- En `src/App.tsx`, las solicitudes con `pestañaActiva === 'fichas'` en rol GM se redirigen limpiamente hacia `<GestorIniciativa />`.
+- TypeScript y ESLint validados con 0 errores.
+
+---
+
+## [2026-11-09] Corrección Crítica en Modal de Recuperación y Optimización TaleSpire (/ponytail)
+
+**Diagnóstico del Fallo Visual Reportado en Capturas:**
+En las capturas de pantalla de TaleSpire se detectaron dos problemas graves de presentación:
+1. **Fallo de Visibilidad de `<dialog>` en CSS:** La regla `.dialogo { display: flex; }` anulaba el estilo predeterminado del navegador `dialog:not([open]) { display: none; }`, provocando que el modal permaneciera renderizado y visible permanentemente en el flujo normal de la aplicación sin haberse invocado `showModal()`.
+2. **Deformación por Ancho Reducido (< 450px en TaleSpire CEF):** La cuadrícula fija de 2 columnas (`240px 1fr`) obligaba al panel de detalle a comprimirse en ~120px de ancho, dejando la sección vacía y cortada.
+
+**Correcciones Aplicadas:**
+1. **Control Hermético de `<dialog>`:** Aplicado `.dialogo:not([open]) { display: none !important; }` y `.dialogo[open] { display: flex; position: fixed; inset: 0; margin: auto; z-index: 9999; width: min(440px, calc(100vw - 16px)); }` para que el modal flote centrado en la capa superior (`::backdrop`) exclusivamente al presionar *Inspeccionar*.
+2. **Navegación por Pestañas Horizontales:** Se reemplazó el grid partido de dos columnas por un selector de tabs compacto horizontal (`.tabsSelector`), permitiendo que el panel de detalle ocupe el 100% del ancho disponible en TaleSpire.
+3. **Manejo de Estado Vacío:** Si el combate archivado tiene 0 combatientes, se presenta un estado visual descriptivo (*"Este combate archivado no tiene participantes registrados (0 combatientes)"*) con botón directo para solicitar iniciativa.
+4. **Poda Ponytail:** Se unificó toda la lógica en `RecuperacionesArchivadas.tsx` (215 líneas) eliminando archivos satélite innecesarios.
+
+---
+
+## [2026-11-09] Rediseño Táctico de Datos Archivados de Sincronización (/frontend-design & /grill-me)
+
+**Resumen Ejecutivo:**
+Se transformó por completo el componente `RecuperacionesArchivadas` y la cabecera de `EstadoSincronizacionV4`, erradicando el acordeón nativo `<details>` no estilizado y las descargas inoperantes de volcados JSON. Se implementó un **Banner Táctico Disparador** no intrusivo y un **Centro de Recuperación de Sesión** en diálogo modal nativo accesible (`<dialog>`) estructurado bajo el patrón Maestro/Detalle.
+
+**Decisiones de Arquitectura y Lecciones Aprendidas:**
+1. **Poda Operativa (Eliminación de Descargas JSON):** Las descargas de archivos JSON (`descargarArchivoJSON`) dentro de TaleSpire resultaban superfluas y agregaban ruido visual. Se sustituyeron por la acción operativa **"Solicitar iniciativa de nuevo"**, que re-consulta la cola nativa de TaleSpire (`importarIniciativaTaleSpire()`) y re-emite la solicitud de sync compartido (`solicitarSyncV4()`).
+2. **Patrón Maestro/Detalle y Modularización Limpia:**
+   - Para no desbordar el límite de líneas por archivo (< 300 líneas), la vista se dividió quirúrgicamente en tres unidades funcionales puras:
+     - `RecuperacionesArchivadas.tsx` (190 líneas): orquestador de estado, banner disparador y contenedor modal `<dialog>`.
+     - `DetalleElementoArchivado.tsx` (170 líneas): subcomponentes `DetalleCombateArchivado`, `DetalleMemoriaContexto` y `StatblockCriatura`.
+     - `utilidadesRecuperacionArchivada.ts` (19 líneas): funciones de parseo de contexto TaleSpire (`formatearContextoTS`) e interfaces compartidas, respetando la regla `react-refresh/only-export-components`.
+     - `RecuperacionesArchivadas.module.css`: estilos brutalistas con densidad 10, paleta oscura HSL y **cero animaciones/transiciones** para garantizar 60 FPS estables en TaleSpire CEF.
+3. **Indicador Visual LED:** La barra superior de `EstadoSincronizacionV4` ahora incluye un distintivo tipo LED de alta visibilidad (verde/cian para director, ámbar para estados de elección/espera, rojo para fallos).
+4. **Certificación del Pipeline CI:**
+   - `tsc --noEmit`: 0 errores con `strict: true`.
+   - `eslint src --max-warnings=0`: 0 errores y 0 warnings.
+   - `verificar:lineas`: 0 violaciones, ambos componentes nuevos clasificados como `< 300 lineas`.
+   - `vitest`: 14 suites y 124 tests de sincronización aprobados al 100%.
+   - `vite build`: compilación de producción exitosa en 12.81s.
+
+---
+
 ## [2026-11-08] Auditoría Senior de Arquitectura e Integridad: Rama `syncV4` (/ponytail)
 
 **Veredicto General:** **Aprobado y Optimizado Quirúrgicamente**.

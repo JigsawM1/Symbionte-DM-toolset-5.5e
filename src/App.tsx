@@ -66,9 +66,8 @@ const AppContenido: React.FC = () => {
 
     switch (pestañaActiva) {
       case "iniciativa":
-        return <GestorIniciativa />;
       case "fichas":
-        return <VistaJugadores />;
+        return <GestorIniciativa />;
       case "tablas":
         return <TablasDM />;
       case "pendientes":
@@ -101,7 +100,6 @@ const AppContenido: React.FC = () => {
       <main className={estilos.areaContenido}>
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
-        <EstadoSincronizacionV4 />
         <div className={estilos.panelContenido}>
         <Suspense
           fallback={
@@ -116,10 +114,11 @@ const AppContenido: React.FC = () => {
           </LimiteError>
         </Suspense>
         </div>
+        <PanelDados />
       </main>
 
-      {/* Panel flotante premium de dados */}
-      <PanelDados />
+      {/* Pie de interfaz: telemetría ambiental y sincronización */}
+      <EstadoSincronizacionV4 />
 
       {/* Contenedor global de notificaciones/toasts */}
       <NotificacionesContenedor />

@@ -1,3 +1,261 @@
-.panel { flex: 0 0 auto; max-height: 35vh; overflow: auto; padding: 4px 8px; border-bottom: 1px solid var(--color-borde, #38404b); }
-.panel p { margin: 4px 0; }
-.panel button { margin: 2px 4px 2px 0; }
+.panel {
+  --fondo-scroll-cef: var(--color-fondo-profundo);
+  --sync-superficie: var(--dm-fondo-panel);
+  --sync-borde: var(--dm-borde);
+  --sync-texto: var(--dm-texto-principal);
+  --sync-secundario: var(--dm-texto-secundario);
+  --sync-acento: var(--dm-texto-cian);
+  --sync-fondo-acento: var(--dm-superficie-cian);
+  --sync-aviso: var(--dm-texto-advertencia);
+  --sync-fondo-aviso: var(--dm-superficie-advertencia);
+  --sync-peligro: var(--dm-texto-peligro);
+  --sync-fondo-peligro: var(--dm-superficie-peligro);
+  flex: 0 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 35vh;
+  overflow-y: auto;
+  padding: 5px 8px 6px;
+  border-top: 1px solid var(--sync-borde);
+  z-index: 10;
+}
+
+:global([data-tema="jugador"]) .panel {
+  --fondo-scroll-cef: var(--pj-fondo-base);
+  --sync-superficie: var(--pj-fondo-panel);
+  --sync-borde: var(--pj-borde-sutil);
+  --sync-texto: var(--pj-texto-primario);
+  --sync-secundario: var(--pj-texto-terciario);
+  --sync-acento: var(--pj-texto-cian-claro);
+  --sync-fondo-acento: var(--pj-acento-cian-fondo);
+  --sync-aviso: var(--pj-texto-oro);
+  --sync-fondo-aviso: var(--pj-acento-oro-fondo);
+  --sync-peligro: var(--pj-texto-alerta);
+  --sync-fondo-peligro: var(--pj-acento-peligro-fondo);
+}
+
+.barraEstado {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 2px;
+}
+
+.ledEstado {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ledVerde {
+  background-color: var(--sync-acento);
+}
+
+.ledAmbar {
+  background-color: var(--sync-aviso);
+}
+
+.textoEstado {
+  font-size: 11px;
+  color: var(--sync-secundario);
+  line-height: 1.4;
+}
+
+.desplegablePendientes,
+.desplegableConflicto {
+  margin-top: 6px;
+  background-color: var(--sync-superficie);
+  border: 1px solid var(--sync-borde);
+  border-radius: 6px;
+}
+
+.resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  padding: 3px 9px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sync-texto);
+  list-style: none;
+}
+
+.resumen::-webkit-details-marker {
+  display: none;
+}
+
+.resumen:hover {
+  background-color: var(--sync-fondo-acento);
+}
+
+.resumen:focus-visible {
+  outline: 2px solid var(--sync-acento);
+  outline-offset: -2px;
+  border-radius: inherit;
+}
+
+.cabeceraSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.iconoAviso,
+.chevron,
+.alertaBloqueo svg {
+  flex-shrink: 0;
+}
+
+.iconoAviso {
+  color: var(--sync-aviso);
+}
+
+.chevron {
+  color: var(--sync-secundario);
+}
+
+[open] > .resumen .chevron {
+  transform: rotate(180deg);
+}
+
+.contador {
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: var(--sync-fondo-aviso);
+  color: var(--sync-aviso);
+  font: 600 11px/1.4 var(--fuente-codigo);
+}
+
+.cuerpoPendientes {
+  padding: 0 9px 6px;
+  border-top: 1px solid var(--sync-borde);
+}
+
+.listaPendientes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.accionesCola,
+.barraAccionesPendientes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.accionesCola {
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.botonAccion,
+.botonDestructivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border-color: transparent;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: none;
+}
+
+.botonAccion {
+  background-color: var(--sync-fondo-acento);
+  color: var(--sync-acento);
+}
+
+.botonAccion:hover,
+.botonAccion:active {
+  background-color: var(--sync-fondo-acento);
+  border-color: currentColor;
+  color: var(--sync-acento);
+}
+
+.filaPendiente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--sync-borde);
+  font-size: 12px;
+}
+
+.nombreEntidad {
+  font-weight: 600;
+  color: var(--sync-texto);
+  overflow-wrap: anywhere;
+}
+
+.filaPendiente .botonDestructivo {
+  flex-shrink: 0;
+}
+
+.botonDestructivo {
+  background-color: transparent;
+  color: var(--sync-secundario);
+}
+
+.botonDestructivo:hover,
+.botonDestructivo:active {
+  background-color: var(--sync-fondo-peligro);
+  color: var(--sync-peligro);
+}
+
+.alertaBloqueo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--sync-peligro);
+  padding: 5px 0;
+  overflow-wrap: anywhere;
+}
+
+.botonCandidato {
+  composes: botonAccion;
+  margin-top: 4px;
+}
+
+.fieldsetConflicto {
+  min-width: 0;
+  margin: 6px 0 0;
+  padding: 6px 8px;
+  border: 1px solid var(--sync-borde);
+  border-radius: 4px;
+  overflow-wrap: anywhere;
+}
+
+.legendConflicto {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sync-texto);
+  padding: 0 4px;
+}
+
+.filaComparacion {
+  font-size: 11px;
+  margin: 3px 0;
+}
+
+.filaComparacion p {
+  margin: 4px 0;
+}
+
+.etiquetaComparacion {
+  font-weight: 600;
+  color: var(--sync-secundario);
+}

@@ -37,7 +37,11 @@ function gruposFila(c: CriaturaIniciativa): GruposSyncV4 {
 }
 
 /** Las filas nunca se asocian a fichas remotas por nombre. */
-export function capturarSyncV4(s: EstadoDM, jugador: string, campania = s.contextoTaleSpire?.campania.id): DatosLocalesSyncV4 {
+export function capturarEntidadesSyncV4(
+  s: Pick<EstadoDM, 'personajes' | 'colaIniciativa' | 'esGM'>,
+  jugador: string,
+  campania: string | undefined,
+): EntidadSyncV4[] {
   const entidades = new Map<string, EntidadSyncV4>();
   for (const pj of s.personajes) {
     if (campania ? !perteneceACampania(pj, campania) : !!pj.campaniaTaleSpire) continue;
@@ -83,7 +87,11 @@ export function capturarSyncV4(s: EstadoDM, jugador: string, campania = s.contex
       padre: null, revision: 0, revisiones: revisiones(), grupos: gruposFila(c), eliminada: false,
       monstruo: c.esMonstruo, plantilla: c.idPlantillaAsociada });
   }
-  return { entidades: [...entidades.values()], meta: { orden: s.colaIniciativa.map(c => c.id),
+  return [...entidades.values()];
+}
+
+export function capturarSyncV4(s: EstadoDM, jugador: string, campania = s.contextoTaleSpire?.campania.id): DatosLocalesSyncV4 {
+  return { entidades: capturarEntidadesSyncV4(s, jugador, campania), meta: { orden: s.colaIniciativa.map(c => c.id),
     activo: s.colaIniciativa[s.indiceTurnoActivo]?.id ?? null, ronda: s.rondaActual, porcentaje: s.mostrarPorcentajeVidaAJugadores } };
 }
 

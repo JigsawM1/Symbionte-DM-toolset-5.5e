@@ -1,5 +1,20 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-09] Fusión Definitiva y Certificación CI: Rama solucionSync Integrada en main
+
+- **Alcance de la Fusión**: Integración completa de la rama solucionSync en main mediante estrategia ort sin conflictos (97 archivos modificados, +4.231 inserciones, -5.154 eliminaciones, -923 líneas netas de reducción de deuda técnica).
+- **Componentes Consolidados**:
+  1. *Arquitectura Sync V4*: Desacoplamiento total del store Zustand con reducers puros, ingesta serializada FIFO, vector clocks por grupo de atributos y supresión de monolitos de red legados (motorEventosSync.ts, transporteSync.ts, accionesSyncV2.ts, syncV2.test.ts).
+  2. *Resiliencia TaleSpire (Solución A)*: Erradicación estructural de excepciones nativas en WebView CEF al consultar miniaturas y propietarios, soporte de iniciativa física y persistencia de personajes por campaña.
+  3. *UI Táctica y Accesibilidad*: Reubicación de EstadoSincronizacionV4 en footer con micro-LED y tipografía atenuada, modal táctico dialog con descarte de datos archivados (RecuperacionesArchivadas.tsx) y anclaje dinámico de la bandeja de dados.
+- **Certificación del Pipeline CI en main**:
+  - tsc --noEmit: 0 errores bajo strict: true.
+  - eslint src --max-warnings=0: 0 errores y 0 warnings.
+  - verificar:lineas: 0 violaciones críticas no autorizadas (> 500 líneas).
+  - vitest run: 186 suites y 2.720 pruebas unitarias aprobadas al 100%.
+  - test:sync-simulacion: 5 pruebas de estrés de simulación concurrente multijugador (6 PJs, 20 monstruos, 260 turnos) superadas exitosamente.
+  - vite build: empaquetado de producción completado en 10.93s.
+
 ## [2026-11-09] Jerarquía visual del pie de sincronización
 
 - El contador visible vive en el encabezado del acordeón y el aviso de estado lo conserva para lectores de pantalla. La lista, los avisos y el reintento siguen el mismo orden visual y de teclado.

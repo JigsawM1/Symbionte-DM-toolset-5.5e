@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -89,37 +89,42 @@ export const ListaMonstruosHomebrew: React.FC<ListaMonstruosHomebrewProps> = ({
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
   };
 
-  const monstruosSinFiltro = soloLectura
-    ? baseDatosMonstruos
-    : baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
+  // ⚡ Optimización Bolt: Memoización del pipeline de filtrado y ordenamiento de criaturas.
+  // Evita re-ejecutar filter() y sort() con coincidencias difusas sobre más de 520 criaturas
+  // en cada render casual (e.g. cambios de modal de confirmación, inspección o límite de vista).
+  const monstruosOrdenados = useMemo(() => {
+    const monstruosSinFiltro = soloLectura
+      ? baseDatosMonstruos
+      : baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
 
-  const monstruosFiltrados = monstruosSinFiltro.filter((m) =>
-    coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion, m.tamaño], filtroBusqueda)
-  );
+    const monstruosFiltrados = monstruosSinFiltro.filter((m) =>
+      coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion, m.tamaño], filtroBusqueda)
+    );
 
-  const monstruosOrdenados = monstruosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (m) => m.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        } else if (criterioOrden === "cr-asc") {
-          const crA = parsearCR(a.desafio);
-          const crB = parsearCR(b.desafio);
-          if (crA !== crB) return crA - crB;
+    return monstruosFiltrados.sort(
+      compararPorRelevanciaTitulo(
+        (m) => m.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") {
+            return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          } else if (criterioOrden === "cr-asc") {
+            const crA = parsearCR(a.desafio);
+            const crB = parsearCR(b.desafio);
+            if (crA !== crB) return crA - crB;
+            return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+          } else if (criterioOrden === "cr-desc") {
+            const crA = parsearCR(a.desafio);
+            const crB = parsearCR(b.desafio);
+            if (crA !== crB) return crB - crA;
+            return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+          }
           return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-        } else if (criterioOrden === "cr-desc") {
-          const crA = parsearCR(a.desafio);
-          const crB = parsearCR(b.desafio);
-          if (crA !== crB) return crB - crA;
-          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (m) => [m.tipo, m.alineacion, m.tamaño]
-    )
-  );
+        },
+        (m) => [m.tipo, m.alineacion, m.tamaño]
+      )
+    );
+  }, [baseDatosMonstruos, soloLectura, filtroBusqueda, criterioOrden]);
 
   const monstruosVisibles = monstruosOrdenados.slice(0, limiteVista);
 

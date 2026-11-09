@@ -409,7 +409,11 @@ export class MotorSyncV4 {
       }
     } else for (const entidad of local.entidades) if (entidad.duenio === this.deps.cliente.player.id
       || this.replica.base[entidad.id]?.duenio === this.deps.cliente.player.id) {
-      edicion = this.replica.editar({ ...entidad, duenio: this.deps.cliente.player.id }) || edicion;
+      const ant = anterior?.get(entidad.id);
+      if (this.replica.base[entidad.id] || this.replica.pendientes[entidad.id]
+        || !ant || entidad.eliminada !== ant.eliminada || GRUPOS_SYNC_V4.some(g => !igualesGrupoSyncV4(g, entidad.grupos, ant.grupos))) {
+        edicion = this.replica.editar({ ...entidad, duenio: this.deps.cliente.player.id }) || edicion;
+      }
     }
     this.lectura = new Map(this.deps.leer().entidades.map(e => [e.id, e]));
     if (this.soyDirector && revisionAnterior !== this.revision) this.aplicar(); else if (edicion) guardarMemoriaMotor(this.deps, this.replica, this.meta, this.revision);

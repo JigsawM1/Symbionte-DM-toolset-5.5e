@@ -5,7 +5,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
-import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles, UserCheck } from "lucide-react";
+import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles } from "lucide-react";
 import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { logger } from '@/utiles/logger';
@@ -22,7 +22,6 @@ export const ConfiguracionDM: React.FC = () => {
     establecerMetodoVidaMonstruo,
     establecerMostrarPorcentajeVidaAJugadores,
     establecerSistemaMagia,
-    establecerEsGM,
   } = usarAccionesConfiguracion();
 
   const [estadoImportacion, setEstadoImportacion] = useState<"inactivo" | "exito" | "error">("inactivo");
@@ -240,42 +239,11 @@ export const ConfiguracionDM: React.FC = () => {
             <h4 className={estilosClases.subtitulo}>CONFIGURACIÓN DM Y BACKUPS</h4>
           </div>
 
-          {/* PANEL: MODO DE VISTA (ROL DE SESIÓN) */}
-          <div className={estilosClases.tarjetaConfigHP}>
-            <div className={estilosClases.cabeceraConfigHP}>
-              <UserCheck size={14} className="u-texto-cian" />
-              <span className={estilosClases.tituloConfigHP}>MODO DE VISTA (ROL DE SESIÓN)</span>
-            </div>
-            <p className={estilosClases.descripcionConfigHP}>
-              Define la interfaz activa entre la Ficha de Jugador (por defecto) y la Pantalla del Dungeon Master.
-            </p>
-            <div className={estilosClases.selectorHPGrid}>
-              <button
-                type="button"
-                onClick={() => establecerEsGM(false)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  !esGM ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-              >
-                MODO JUGADOR
-              </button>
-              <button
-                type="button"
-                onClick={() => establecerEsGM(true)}
-                className={`${estilosClases.botonHPBrutal} ${
-                  esGM ? estilosClases.botonHPBrutalActivo : ""
-                }`}
-              >
-                MODO DM (MASTER)
-              </button>
-            </div>
-          </div>
-
           {/* PANELES DE COMBATE GOBERNADOS POR EL DM (Transmitidos vía TS.sync) */}
           {esGM && (
             <>
               {/* PANEL PREMIUM: DADOS DE VIDA DE MONSTRUOS */}
-              <div className={`${estilosClases.tarjetaConfigHP} ${estilosClases.tarjetaConfigHPSeparada}`}>
+              <div className={estilosClases.tarjetaConfigHP}>
                 <div className={estilosClases.cabeceraConfigHP}>
                   <Heart size={14} className="u-texto-cian" />
                   <span className={estilosClases.tituloConfigHP}>CÁLCULO DE VIDA (HP) AL INICIAR COMBATE</span>

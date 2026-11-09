@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FragmentoCliente, InfoCliente, EventoClienteTS } from '@/tipos/talespire';
+import { EsquemaObjetoInventario } from '@/tipos/personaje';
 import { usarAlmacenDM as almacen } from '@/almacen/usarAlmacenDM';
 import * as conexion from './conexionSyncV4';
 import { pjSyncV4, filaSyncV4 } from './fixturesSyncV4.pruebas';
@@ -90,6 +91,40 @@ describe('Ciclo nativo v4 con API simulada', () => {
     modoPropio = 'gm'; conexion.eventoClienteSyncV4({ kind: 'clientModeChanged', client: yo });
     await vi.advanceTimersByTimeAsync(2000);
     expect(almacen.getState().personajes[0].hpActual).toBe(19);
+    expect(almacen.getState().conexionSyncV4.pendientes).toBe(0);
+  });
+  it('modificaciones de inventario, recursos o conjuros sin GM no levantan ediciones pendientes', async () => {
+    almacen.setState({ personajes: [pjSyncV4()] });
+    conexion.inicializarConexionSyncV4(); await vi.advanceTimersByTimeAsync(1000);
+    modoPropio = 'player'; conexion.eventoClienteSyncV4({ kind: 'clientModeChanged', client: yo });
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(almacen.getState().conexionSyncV4.pendientes).toBe(0);
+    const pj = almacen.getState().personajes[0];
+    almacen.setState({
+      personajes: [{
+        ...pj,
+        experiencia: (pj.experiencia ?? 0) + 100,
+        conjurosPreparadosIds: ['proyectil-magico'],
+        bolsaMonedas: { ...pj.bolsaMonedas, po: pj.bolsaMonedas.po + 50 },
+      }],
+    });
+    await vi.advanceTimersByTimeAsync(500);
+    expect(almacen.getState().conexionSyncV4.pendientes).toBe(0);
+    const pjActualizado = almacen.getState().personajes[0];
+    almacen.setState({
+      personajes: [{
+        ...pjActualizado,
+        inventario: [...pjActualizado.inventario, EsquemaObjetoInventario.parse({
+          idInstancia: 'item-1',
+          idObjeto: 'pocion-curacion',
+          nombre: 'Poción de curación',
+          cantidad: 1,
+          pesoLb: 0.5,
+          equipado: false,
+        })],
+      }],
+    });
+    await vi.advanceTimersByTimeAsync(500);
     expect(almacen.getState().conexionSyncV4.pendientes).toBe(0);
   });
   it('restaura metadatos de su tablero y no hereda cola ni ronda de otro', async () => {

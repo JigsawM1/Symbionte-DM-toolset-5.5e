@@ -1,5 +1,36 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-09] Supresión de Falsos Positivos de Sincronización en Solitario (Inventario, Recursos y Conjuros)
+
+- **Contexto**: Cuando un jugador interactuaba con su ficha en solitario (sin Director/GM conectado) gastando espacios de conjuro, manipulando el inventario o alterando recursos de clase, el observador de Zustand disparaba `motor.observar()` debido al cambio referencial en `s.personajes`. Al no haber una base confirmada por el GM (`!this.replica.base[id]`), el motor asumía erróneamente que la entidad entera (`9D-2`) era un cambio pendiente de red, desplegando el banner táctico de "Ediciones pendientes" con el botón "Reintentar envío", aun cuando ninguno de los 4 grupos de combate (`vitalidad`, `estados`, `datos`, `acompanantes`) había variado.
+- **Causa Raíz**: En `motorSyncV4.ts`, el ciclo de observación de clientes no directores invocaba `this.replica.editar(entidad)` incondicionalmente para toda criatura propia. En `ReplicaSyncV4.editar`, la comprobación `if (!base || ...)` trataba la ausencia de snapshot del GM como una edición a proponer, ignorando que la entidad no había sufrido variaciones locales reales respecto a la lectura previa (`anterior`).
+- **Solución implementada**:
+  1. *Filtro Quirúrgico de Ediciones Reales en `motorSyncV4.ts`*: En el bucle de entidades del jugador, se evalúa que solo se invoque `this.replica.editar` si la entidad ya cuenta con base o pendiente previo, o bien si hubo un cambio real local (`!ant || entidad.eliminada !== ant.eliminada || GRUPOS_SYNC_V4.some(g => !igualesGrupoSyncV4(g, entidad.grupos, ant.grupos))`).
+  2. *Preservación de Ediciones de Combate*: Modificaciones reales de vitalidad (PV), estados (condiciones/efectos/concentración), datos (CA, pasivas, iniciativa) o acompañantes continúan levantando la edición pendiente de forma autoritativa para cuando el GM se conecte.
+  3. *Suite de Regresión en `conexionSyncV4.test.ts`*: Añadido test que certifica que modificar experiencia, bolsa de monedas, conjuros preparados e inventario sin GM mantiene `pendientes === 0`.
+- **Certificación del Pipeline CI**:
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+  - `verificar:lineas`: 0 violaciones (`motorSyncV4.ts` 499 líneas, dentro del umbral < 500).
+  - `vitest run src/servicios/sincronizacion/`: 12 suites y 92 tests de sincronización aprobados al 100%.
+  - `test:sync-simulacion`: 5 simulaciones de estrés concurrentes aprobadas.
+  - `vite build`: empaquetado de producción exitoso en 13.41s.
+
+## [2026-11-09] Retirada del Selector Manual de Modo de Vista en ConfiguracionDM
+
+- **Contexto**: El panel de configuración (`ConfiguracionDM.tsx`) incluía una tarjeta con selector manual de rol ("MODO DE VISTA (ROL DE SESIÓN)" con botones "MODO JUGADOR" y "MODO DM (MASTER)"). Dicho selector resultaba redundante dado que la alternancia de rol se gobierna por la API nativa de TaleSpire (`ts.clients.esGM()` / `soyGm`) y en desarrollo local mediante el selector de la barra superior (`BarraSuperior.tsx`).
+- **Solución implementada**:
+  1. *Eliminación Quirúrgica en `ConfiguracionDM.tsx`*: Se retiró la tarjeta táctica `MODO DE VISTA (ROL DE SESIÓN)` y sus botones.
+  2. *Limpieza de Dependencias Huérfanas*: Se eliminó la importación del icono `UserCheck` de `lucide-react` y la acción `establecerEsGM` de `usarAccionesConfiguracion()`.
+  3. *Ajuste de Maquetación*: Se retiró la clase `tarjetaConfigHPSeparada` del primer panel subsiguiente (`CÁLCULO DE VIDA (HP) AL INICIAR COMBATE`), unificando los márgenes visuales directos sobre la cabecera de sección.
+- **Certificación del Pipeline CI**:
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+  - `verificar:lineas`: 0 violaciones (`ConfiguracionDM.tsx` optimizado a 460 líneas).
+  - `vitest run`: 186 suites y 2.720 pruebas unitarias aprobadas al 100%.
+  - `vite build`: empaquetado de producción completado en 9.92s.
+
+
 ## [2026-11-09] Fusión Definitiva y Certificación CI: Rama solucionSync Integrada en main
 
 - **Alcance de la Fusión**: Integración completa de la rama solucionSync en main mediante estrategia ort sin conflictos (97 archivos modificados, +4.231 inserciones, -5.154 eliminaciones, -923 líneas netas de reducción de deuda técnica).

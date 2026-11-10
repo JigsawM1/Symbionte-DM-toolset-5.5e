@@ -13,6 +13,7 @@ import { evaluarFormulaDados } from "@/servicios/procesadorConsumibles";
 import { obtenerDadosExtraCriticoArma } from "@/servicios/evaluadorEfectosRasgos";
 import { logger } from "@/utiles/logger";
 import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
+import type { DanoIntegrado } from "./rasgos/resolucionAsistidaRasgos";
 
 export interface ContextoTiradaAtaqueFisico {
   tipoTiradaManual?: "plano" | "ventaja" | "desventaja";
@@ -128,10 +129,18 @@ export async function ejecutarTiradaAtaqueFisico(ctx: ContextoTiradaAtaqueFisico
   }
 }
 
+function grupoDanoIntegrado(nombre: string, ataque: AtaquePersonajeCalculado, extra: DanoIntegrado, critico: boolean): string {
+  const etiqueta = sanitizarEtiqueta(`${nombre} - ${critico ? "CRÍTICO" : "Daño"} ${extra.tipoDano} ${ataque.nombre}`);
+  const formula = critico ? extra.formula.replace(/(\d+)d(\d+)/gi, (_, cantidad, caras) => `${Number(cantidad) * 2}d${caras}`) : extra.formula;
+  return `${etiqueta}:${formula}`;
+}
+
 export async function ejecutarTiradaDanoFisico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
-  modo: boolean | "adicional" = false
+  modo: boolean | "adicional" = false,
+  extra?: DanoIntegrado | DanoIntegrado[],
+  tipoElegido?: string
 ): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
@@ -142,7 +151,7 @@ export async function ejecutarTiradaDanoFisico(
       : (esVersatil && ataque.danoVersatil ? ataque.danoVersatil : ataque.dadoDano);
 
     const subgrupos = formulaRaw.split("/");
-    const subgruposTipos = (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
+    const subgruposTipos = tipoElegido ? subgrupos.map(() => tipoElegido) : (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
     const formulasTaleSpire: string[] = [];
 
     for (let i = 0; i < subgrupos.length; i++) {
@@ -151,7 +160,7 @@ export async function ejecutarTiradaDanoFisico(
       let etiquetaSub: string;
       if (i === 0) {
         const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
-        etiquetaSub = `${nombrePj} - Daño ${ataque.nombre}${sufijoModo}`;
+        etiquetaSub = `${nombrePj} - Daño ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijo = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
@@ -169,6 +178,7 @@ export async function ejecutarTiradaDanoFisico(
       formulasTaleSpire.push(`${etiquetaLimpia}:${formulaSub}`);
     }
 
+    if (extra) for (const grupo of [extra].flat()) formulasTaleSpire.push(grupoDanoIntegrado(nombrePj, ataque, grupo, false));
     const formulaCompuesta = formulasTaleSpire.join("/");
     return await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}`);
   } catch (error) {
@@ -180,7 +190,9 @@ export async function ejecutarTiradaDanoFisico(
 export async function ejecutarTiradaCritico(
   ataque: AtaquePersonajeCalculado,
   personajeActivo: PersonajeJugador | null,
-  modo: boolean | "adicional" = false
+  modo: boolean | "adicional" = false,
+  extra?: DanoIntegrado | DanoIntegrado[],
+  tipoElegido?: string
 ): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
@@ -192,7 +204,7 @@ export async function ejecutarTiradaCritico(
     const mod = ataque.modificadorDano;
 
     const subgruposBase = dadoBaseRaw.split("/");
-    const subgruposTipos = (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
+    const subgruposTipos = tipoElegido ? subgruposBase.map(() => tipoElegido) : (ataque.tipoDano || "").split("/").map((t) => t.trim()).filter(Boolean);
     const formulasTaleSpire: string[] = [];
 
     for (let i = 0; i < subgruposBase.length; i++) {
@@ -201,7 +213,7 @@ export async function ejecutarTiradaCritico(
       let etiquetaSub: string;
       if (i === 0) {
         const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
-        etiquetaSub = `${nombrePj} - CRÍTICO ${ataque.nombre}${sufijoModo}`;
+        etiquetaSub = `${nombrePj} - CRÍTICO ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijoCrit = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
@@ -245,6 +257,7 @@ export async function ejecutarTiradaCritico(
       }
     }
 
+    if (extra) for (const grupo of [extra].flat()) formulasTaleSpire.push(grupoDanoIntegrado(nombrePj, ataque, grupo, true));
     const formulaFinal = formulasTaleSpire.join("/");
     return await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}`);
   } catch (error) {

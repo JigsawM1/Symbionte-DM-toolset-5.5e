@@ -12,10 +12,12 @@ import type { SubSliceRasgos } from "./slicePersonajesTipos";
 import type { TamanoPersonaje } from "@/tipos";
 import { normalizarTextoSeguro } from "./condicionesRasgosHelpers";
 import { generarId } from "@/utiles/generarId";
-import { seleccionOpcionValida, descomponerSeleccion } from "@/servicios/rasgos/seleccionesRasgos";
+import { seleccionOpcionValida, descomponerSeleccion, materializaSelector } from "@/servicios/rasgos/seleccionesRasgos";
 import { evaluarRequisitoDote } from "@/servicios/evaluadorRequisitosDotes";
 import { reconciliarConjurosRasgos } from "@/servicios/rasgos/reconciliarConjurosRasgos";
 import { hidratarSelectorConjuros } from "@/servicios/rasgos/catalogoSelectoresConjuros";
+import { identificarTurnoPropio } from "@/servicios/rasgos/limitesTurnoRasgos";
+import { sincronizarDependientesActivacion } from "@/servicios/rasgos/activacionDeclarativa";
 
 export const crearSliceSelectoresRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "actualizarSeleccionRasgo">> = (set, get) => ({
 actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
@@ -23,7 +25,15 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const rasgoPedido = pj.rasgos.find(r => r.id === idRasgo);
       const selectorBase = rasgoPedido?.selectores?.find(s => s.id === idSelector);
       const selectorPedido = selectorBase && hidratarSelectorConjuros(selectorBase, get().baseDatosHechizos);
-      if (selectorPedido?.momentoEleccion === "activacion") return pj;
+      if (selectorPedido?.momentoEleccion === "activacion") {
+        if (!rasgoPedido?.activo || rasgoPedido.cambiarSelectorAlInicioTurno !== idSelector || valorActual.length !== 1
+          || !selectorPedido.opciones.some(o => o.id === valorActual[0]) || selectorPedido.valorActual.includes(valorActual[0])) return pj;
+        const turno = identificarTurnoPropio(pj, get());
+        if (turno === false || (turno && turno === rasgoPedido.ultimoCambioSelectorTurno)) return pj;
+        const nuevo = { ...rasgoPedido, ultimoCambioSelectorTurno: turno,
+          selectores: rasgoPedido.selectores?.map(s => s.id === idSelector ? { ...s, valorActual } : s) };
+        return sincronizarDependientesActivacion({ ...pj, rasgos: pj.rasgos.map(r => r === rasgoPedido ? nuevo : r) }, nuevo);
+      }
       if (selectorPedido?.momentoEleccion === "descanso_largo" && selectorPedido.valorActual.length && !selectorPedido.cambioDisponible) return pj;
       const maxPedido = [...(selectorPedido?.escaladoMaxSelecciones ?? [])].sort((a, b) => b.nivelMinimo - a.nivelMinimo)
         .find(e => rasgoPedido && obtenerNivelEfectivoParaRasgo(pj, rasgoPedido) >= e.nivelMinimo)?.valor ?? selectorPedido?.maxSelecciones ?? 1;
@@ -94,6 +104,7 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
             for (const s of selectoresActualizados) {
               if (esSelectorDeConjuros(s) && !esSelectorSoloLibro(s)) {
                 (s.opciones || []).forEach((o) => idsOpcionesSelectoresMagicos.add(o.id));
+                if (s.destinoConjuros === "trucos") continue;
                 for (const v of s.valorActual || []) {
                   if (v && !nuevosMagicos.includes(v)) {
                     nuevosMagicos.push(v);
@@ -228,17 +239,14 @@ actualizarSeleccionRasgo: (idPj, idRasgo, idSelector, valorActual) => {
       const hpMaximo = deltaBono !== 0 ? Math.max(1, (pj.hpMaximo || 1) + deltaBono) : pj.hpMaximo;
       const hpActual = deltaBono > 0 ? pj.hpActual + deltaBono : Math.min(pj.hpActual, hpMaximo || pj.hpActual);
 
-      const listasReconciliadas = reconciliarConjurosRasgos(pj, rasgosActualizados);
+      const proyecta = rasgoPedido?.idSelectorOrigen || materializaSelector(selectorPedido);
       return {
         ...pj,
         hpMaximoBase,
         hpMaximo,
         hpActual,
         tamano: tamanoActualizado,
-        trucosConocidosIds: listasReconciliadas.trucosConocidosIds,
-        conjurosSiemprePreparadosIds: listasReconciliadas.conjurosSiemprePreparadosIds,
-        conjurosPreparadosIds: listasReconciliadas.conjurosPreparadosIds,
-        conjurosConocidosIds: listasReconciliadas.conjurosConocidosIds,
+        ...(proyecta ? {} : reconciliarConjurosRasgos(pj, rasgosActualizados)),
         rasgos: rasgosActualizados,
         efectosActivos: efectosActualizados,
         condicionesActivas: condicionesActualizadas

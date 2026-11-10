@@ -3,26 +3,31 @@ import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { resolverRasgoRecurso, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evaluadorExpresionesRasgos";
-import { consumirRecursoConjuro } from "../consumidorRecursosConjuros";
+import { consumirRecursoConjuro, gastarEspacioElegido } from "../consumidorRecursosConjuros";
+import { disponibleEnTurnoPropio } from "./limitesTurnoRasgos";
 import { operarResolucionRasgo, type OperacionResolucionRasgo } from "./resolucionesRasgos";
 import { resolverIniciativaOpcional } from "./iniciativaOpcionalRasgos";
-import { aplicarResolucionAsistida, type SolicitudResolucionAsistida } from "./resolucionAsistidaRasgos";
+import { aplicarResolucionAsistida, prepararDanoIntegrado, prepararResolucionAsistida, type SolicitudResolucionAsistida } from "./resolucionAsistidaRasgos";
 import { establecerRecuperacionDiferida } from "./recuperacionDiferidaRasgos";
 import { resolverCuracionPendiente } from "./curacionDeclarativa";
 import { finalizarConjuroTemporal } from "./conjurosTemporalesRasgos";
+import { calcularPresupuestoRecuperacion } from "./evaluadorRecursosRasgos";
 
 export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucionRasgo
   | { tipo: "finalizarConjuroTemporal"; idRasgo: string; conjuroId: string }
   | { tipo: "curacionPendiente"; idRasgo: string; id: string; propio: boolean; resultado?: number; enTurno?: boolean; dano?: number }
-  | { tipo: "resolverAsistida"; solicitud: SolicitudResolucionAsistida; resultado?: number }
+  | { tipo: "resolverAsistida"; solicitud: SolicitudResolucionAsistida; resultado?: number; curacion?: number }
+  | { tipo: "confirmarAtaqueAsistido"; solicitud: SolicitudResolucionAsistida; turnoPrevio?: string }
+  | { tipo: "confirmarDanoIntegrado"; solicitud: SolicitudResolucionAsistida; turnoPrevio?: string }
   | { tipo: "establecerRecuperacionDiferida"; idRasgo: string; resultado: number }
   | { tipo: "iniciativaOpcional"; idRasgo: string; recuperarAntes: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo?: "espacio"; nivel: number; pacto?: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo: "puntos"; puntos: number; cantidadUsos: number }
   | { tipo: "recargarUsoConPacto"; idRasgo: string }
   | { tipo: "crearEspacio"; idRasgo: string; nivel: number; cantidad: number }
-  | { tipo: "convertirEspacio"; idRasgo: string; nivel: number; origen: "ordinario" | "adicional" | "pacto" }
-  | { tipo: "recuperarDescanso"; idRasgo: string; cantidad: number };
+  | { tipo: "convertirEspacio"; idRasgo: string; nivel: number; origen: "ordinario" | "adicional" | "pacto"; turnoConfirmado?: boolean }
+  | { tipo: "recuperarDescanso"; idRasgo: string; cantidad: number }
+  | { tipo: "recuperarEspaciosDescanso"; idRasgo: string; espacios: Record<number, number> };
 
 /** Los adicionales son espacios disponibles, separados de la progresión ordinaria. */
 export function obtenerMaximosEspaciosEfectivos(pj: PersonajeJugador): Record<string, number> {
@@ -103,10 +108,51 @@ function ejecutarRecuperacionPorPacto(pj: PersonajeJugador, r: RasgoPersonaje): 
 }
 
 /** Toda validación y todo intercambio ocurren sobre el mismo estado vigente. */
-export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRasgo): PersonajeJugador | undefined {
+export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRasgo, turno?: string | false): PersonajeJugador | undefined {
+  if (op.tipo === "recuperarEspaciosDescanso") {
+    const r = pj.rasgos.find(x => x.id === op.idRasgo);
+    if (!r?.recuperarEspaciosTrasDescansoCorto || !r.recuperarEspacios || !r.recuperacionDescansoDisponible || r.activo === false
+      || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1) || (r.usosRestantes ?? 0) < 1) return;
+    const gastos = { ...pj.espaciosConjuroGastados };
+    let coste = 0;
+    for (const [clave, cantidad] of Object.entries(op.espacios)) {
+      const nivel = Number(clave);
+      if (!Number.isInteger(nivel) || nivel < 1 || nivel > r.recuperarEspacios.nivelMaximoEspacio
+        || !Number.isInteger(cantidad) || cantidad < 0 || cantidad > (gastos[clave] ?? 0)) return;
+      if (cantidad) gastos[clave] -= cantidad;
+      coste += nivel * cantidad;
+    }
+    if (coste === 0 || coste > calcularPresupuestoRecuperacion(r, pj)) return;
+    return { ...pj, espaciosConjuroGastados: gastos, rasgos: pj.rasgos.map(x => x === r
+      ? { ...x, recuperacionDescansoDisponible: false, usosRestantes: (r.usosRestantes ?? 0) - 1 } : x) };
+  }
   if (op.tipo === "finalizarConjuroTemporal") return finalizarConjuroTemporal(pj, op.idRasgo, op.conjuroId);
   if (op.tipo === "curacionPendiente") return resolverCuracionPendiente(pj, op.idRasgo, op.id, op.propio, op.resultado, op.enTurno, op.dano);
-  if (op.tipo === "resolverAsistida") return aplicarResolucionAsistida(pj, op.solicitud, op.resultado);
+  if (op.tipo === "confirmarAtaqueAsistido") {
+    const rasgo = pj.rasgos.find(r => r.id === op.solicitud.idRasgo);
+    if (!rasgo?.resolucionAsistida?.ataqueConjuro || turno === false || op.turnoPrevio !== turno
+      || !disponibleEnTurnoPropio(rasgo, turno, pj) || !prepararResolucionAsistida(pj, { ...op.solicitud, confirmado: true })) return;
+    return { ...pj, rasgos: pj.rasgos.map(r => r === rasgo
+      ? { ...r, ataqueAsistidoPendiente: turno ?? "mesa", ultimoUsoTurno: turno } : r) };
+  }
+  if (op.tipo === "resolverAsistida") {
+    const rasgo = pj.rasgos.find(r => r.id === op.solicitud.idRasgo);
+    if (!rasgo || rasgo.resolucionAsistida?.integrarEnDanoDeArma || turno === false && rasgo.resolucionAsistida?.ataqueConjuro) return;
+    const ataque = rasgo.resolucionAsistida?.ataqueConjuro;
+    if (ataque ? rasgo.ataqueAsistidoPendiente !== (turno ?? "mesa") : !disponibleEnTurnoPropio(rasgo, turno, pj)) return;
+    const resuelto = aplicarResolucionAsistida(pj, op.solicitud, op.resultado, op.curacion);
+    return resuelto && (ataque || rasgo.limitePorTurnoPropio && turno) ? { ...resuelto,
+      rasgos: resuelto.rasgos.map(r => r.id === rasgo.id
+        ? { ...r, ultimoUsoTurno: turno || undefined, ataqueAsistidoPendiente: undefined } : r) } : resuelto;
+  }
+  if (op.tipo === "confirmarDanoIntegrado") {
+    const rasgo = pj.rasgos.find(r => r.id === op.solicitud.idRasgo);
+    if (!rasgo || !disponibleEnTurnoPropio(rasgo, turno, pj)
+      || (op.turnoPrevio !== undefined && op.turnoPrevio !== turno) || !prepararDanoIntegrado(pj, op.solicitud)) return;
+    return (rasgo.limitePorTurnoPropio || rasgo.limitePorTurno) && turno ? { ...pj,
+      rasgos: pj.rasgos.map(r => r.id === rasgo.id || r.id === rasgo.idRasgoSelectorOrigen
+        ? { ...r, ultimoUsoTurno: turno } : r) } : pj;
+  }
   if (op.tipo === "establecerRecuperacionDiferida") return establecerRecuperacionDiferida(pj, op.idRasgo, op.resultado);
   if (op.tipo === "iniciativaOpcional") return resolverIniciativaOpcional(pj, op.idRasgo, op.recuperarAntes);
   if (op.tipo === "reservarIntento" || op.tipo === "anotarIntento" || op.tipo === "resolverIntento" || op.tipo === "cancelarIntento") return operarResolucionRasgo(pj, op);
@@ -130,33 +176,28 @@ export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRas
   }
   const cfg = r.conversionEspacios;
   const recurso = resolverRasgoRecurso(r, pj.rasgos);
-  if (!cfg || !recurso?.tieneUsosLimitados || recurso.activo === false || !Number.isInteger(op.nivel) || op.nivel < 1 || op.nivel > 9) return;
+  if (!cfg || !recurso?.tieneUsosLimitados || (recurso.activo === false && !cfg.consumirUsoPropio)
+    || !Number.isInteger(op.nivel) || op.nivel < 1 || op.nivel > 9) return;
   const disponibles = recurso.usosRestantes ?? recurso.usosMaximos ?? 0;
   if (op.tipo === "crearEspacio") {
     const fila = cfg.tabla.find(f => f.nivelEspacio === op.nivel && f.nivelMinimo <= obtenerNivelEfectivoParaRasgo(pj, r));
-    if (!fila || !Number.isInteger(op.cantidad) || op.cantidad < 1 || fila.coste * op.cantidad > disponibles) return;
-    return { ...pj, rasgos: pj.rasgos.map(x => x.id === recurso.id ? { ...x, usosRestantes: disponibles - fila.coste * op.cantidad } : x),
+    const usosPropios = r.usosRestantes ?? r.usosMaximos ?? 0;
+    if (!fila || !Number.isInteger(op.cantidad) || op.cantidad < 1 || fila.coste * op.cantidad > disponibles
+      || (cfg.consumirUsoPropio && (!r.tieneUsosLimitados || usosPropios < 1 || op.cantidad !== 1 || r.id === recurso.id))) return;
+    return { ...pj, rasgos: pj.rasgos.map(x => x.id === recurso.id ? { ...x, usosRestantes: disponibles - fila.coste * op.cantidad }
+      : x.id === r.id && cfg.consumirUsoPropio ? { ...x, usosRestantes: usosPropios - 1 } : x),
       espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales,
         [op.nivel]: (pj.espaciosConjuroAdicionales?.[op.nivel] ?? 0) + op.cantidad } };
   }
   if (!cfg.permiteConvertir || disponibles >= (recurso.usosMaximos ?? 0)) return;
-  let convertido: PersonajeJugador;
-  if (op.origen === "pacto") {
-    if (op.nivel !== pj.nivelEspacioPacto) return;
-    const consumo = consumirRecursoConjuro(pj, { tipo: "pacto", nivel: op.nivel });
-    if (!consumo.permitido) return;
-    convertido = consumo.personaje;
-  } else if (op.origen === "adicional") {
-    if ((pj.espaciosConjuroAdicionales?.[op.nivel] ?? 0) < 1) return;
-    convertido = { ...pj, espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales,
-      [op.nivel]: pj.espaciosConjuroAdicionales[op.nivel] - 1 } };
-  } else {
-    const usados = pj.espaciosConjuroGastados[op.nivel] ?? 0;
-    if ((pj.espaciosConjuroMaximos[op.nivel] ?? 0) <= usados) return;
-    convertido = { ...pj, espaciosConjuroGastados: { ...pj.espaciosConjuroGastados, [op.nivel]: usados + 1 } };
-  }
+  if (r.recuperarRecursoAgotadoConEspacio && disponibles !== 0) return;
+  if (!disponibleEnTurnoPropio(r, turno) || (r.limitePorTurnoPropio && !turno && !op.turnoConfirmado)) return;
+  const convertido = gastarEspacioElegido(pj, op);
+  if (!convertido) return;
+  const recuperados = r.recuperarRecursoAgotadoConEspacio ? 1 : op.nivel;
   return { ...convertido, rasgos: convertido.rasgos.map(x => x.id === recurso.id
-    ? { ...x, usosRestantes: Math.min(recurso.usosMaximos ?? 0, disponibles + op.nivel) } : x) };
+    ? { ...x, usosRestantes: Math.min(recurso.usosMaximos ?? 0, disponibles + recuperados) }
+    : x.id === r.id && r.limitePorTurnoPropio && turno ? { ...x, ultimoUsoTurno: turno } : x) };
 }
 
 export function obtenerPagoActivacionAlternativa(pj: PersonajeJugador, r: RasgoPersonaje) {

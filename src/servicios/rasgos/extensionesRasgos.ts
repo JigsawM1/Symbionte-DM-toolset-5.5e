@@ -19,6 +19,10 @@ export function fusionarExtensionRasgo(
     if (r.conjurosOtorgados) padre.conjurosOtorgados = [...new Set([...(padre.conjurosOtorgados ?? []), ...r.conjurosOtorgados])];
     if (r.tablaAleatoria) padre.tablaAleatoria = { ...padre.tablaAleatoria, ...r.tablaAleatoria };
     if (r.formulaDados) padre.formulaDados = r.formulaDados;
+    if (r.ajustesFormaBestia) padre.ajustesFormaBestia = { ...r.ajustesFormaBestia };
+    if (r.alcanceResolucionPies !== undefined) padre.alcanceResolucionPies = r.alcanceResolucionPies;
+    if (r.cambiarSelectorAlInicioTurno) padre.cambiarSelectorAlInicioTurno = r.cambiarSelectorAlInicioTurno;
+    if (r.costeActivacionPorSelector) padre.costeActivacionPorSelector = { ...r.costeActivacionPorSelector };
     if (r.lanzamientoConRecurso) padre.lanzamientoConRecurso = structuredClone(r.lanzamientoConRecurso);
     if (r.resolucionAsistida) padre.resolucionAsistida = { ...padre.resolucionAsistida, ...structuredClone(r.resolucionAsistida) };
     if (r.curacionAlFinalizar) padre.curacionAlFinalizar = structuredClone(r.curacionAlFinalizar);

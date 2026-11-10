@@ -25,7 +25,8 @@ import { calcularModificadorCaracteristica } from "@/servicios/procesadorDescans
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
 import {
   obtenerBestiaFormaActiva,
-  esDruidaCirculoLuna,
+  inventarioEnFormaBestia,
+  obtenerRasgoFormaBestia,
   extraerSentidosBestia
 } from "@/servicios/reglasFormaSalvaje";
 import {
@@ -92,6 +93,7 @@ export interface EstadisticasCalculadasPersonaje {
     armadurasTexto: string;
     herramientasTexto: string;
     herramientasLista: string[];
+    idiomasTexto?: string;
   };
 }
 
@@ -183,7 +185,7 @@ export function calcularEstadisticasPersonaje(
   };
 
   const personalizacionesCarac = pj?.personalizacionesCaracteristicas || {};
-  const inventario = pj?.inventario || [];
+  const inventario = pj ? inventarioEnFormaBestia(pj) : [];
   const normalizar = (s: string) =>
     s
       .toLowerCase()
@@ -383,14 +385,6 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
-  // Bonos a salvaciones procedentes de efectos mecánicos de rasgos (bono_salvacion)
-  if (pj) {
-    const bonosSalvRasgos = obtenerBonosSalvacionesRasgos(pj);
-    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
-      salvaciones[k] += bonosSalvRasgos[k] || 0;
-    }
-  }
-
   // Enfoque fanático (Senda del Fanático): bono de Daño de Furia a todas las salvaciones si está activo
   const rasgoEnfoque = (pj?.rasgos || []).find(
     (r) => (r.id.includes("enfoque_fanatico") || normalizar(r.nombre).includes("enfoque fanatico")) && r.activo
@@ -417,6 +411,13 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
+  // Bonos a salvaciones procedentes de efectos mecánicos de rasgos (bono_salvacion)
+  if (pj) {
+    const bonosSalvRasgos = obtenerBonosSalvacionesRasgos(pj, modificadores);
+    for (const k of Object.keys(salvaciones) as Caracteristica[]) {
+      salvaciones[k] += bonosSalvRasgos[k] || 0;
+    }
+  }
   const habilidades = {} as Record<Habilidad, number>;
   const gradosHabilidadesEfectivos = {} as Record<Habilidad, GradoCompetencia>;
   const listaHabilidades = Object.keys(MAPA_HABILIDAD_A_CARACTERISTICA) as Habilidad[];
@@ -486,7 +487,7 @@ export function calcularEstadisticasPersonaje(
 
   // Bonos a habilidades procedentes de efectos mecánicos de rasgos (bono_habilidad)
   if (pj) {
-    const bonosHabsRasgos = obtenerBonosHabilidadesRasgos(pj);
+    const bonosHabsRasgos = obtenerBonosHabilidadesRasgos(pj, undefined, modificadores);
     for (const [hab, bono] of Object.entries(bonosHabsRasgos)) {
       if (hab in habilidades && typeof bono === "number") {
         habilidades[hab as Habilidad] += bono;
@@ -727,27 +728,30 @@ export function calcularEstadisticasPersonaje(
   }
 
   let totalCA = caBase + modDesAplicado + bonoEscudo + bonosMagicos;
-  if (bestiaActiva) {
-    const esLuna = pj ? esDruidaCirculoLuna(pj) : false;
+  if (bestiaActiva && (!armaduraObj || !pj?.formaSalvaje?.equipoConservadoIds)) {
+    const ajustes = pj && obtenerRasgoFormaBestia(pj)?.ajustesFormaBestia;
     const modSab = modificadores.sabiduria || 0;
     const caBestia = bestiaActiva.ca || 10;
-    const caFinal = esLuna ? caBestia + modSab : caBestia;
+    const caFinal = ajustes ? Math.max(caBestia, ajustes.baseCaSabiduria + modSab) : caBestia;
 
-    totalCA = caFinal;
+    totalCA = caFinal + bonoEscudo + (pj?.formaSalvaje?.equipoConservadoIds ? bonosMagicos : 0);
     caBase = caFinal;
     modDesAplicado = 0;
-    bonoEscudo = 0;
-    bonosMagicos = 0;
+    if (!pj?.formaSalvaje?.equipoConservadoIds) {
+      totalCA = caFinal;
+      bonoEscudo = 0;
+      bonosMagicos = 0;
+      escudoNombre = null;
+    }
     armaduraNombre = null;
-    escudoNombre = null;
     tipoArmadura = "Sin Armadura";
     desventajaSigiloArmadura = false;
 
-    if (esLuna && modSab !== 0) {
+    if (ajustes && caFinal > caBestia) {
       desglosePartes.splice(
         0,
         desglosePartes.length,
-        `${bestiaActiva.nombre} ${caBestia}`,
+        `Base de forma ${ajustes.baseCaSabiduria}`,
         `SAB ${modSab >= 0 ? `+${modSab}` : modSab}`
       );
     } else {
@@ -804,7 +808,7 @@ export function calcularEstadisticasPersonaje(
     }
   }
 
-  if (bestiaActiva) {
+  if (bestiaActiva && !pj?.formaSalvaje?.equipoConservadoIds) {
     armaduraNoCompetente = null;
     escudoNoCompetente = null;
   }

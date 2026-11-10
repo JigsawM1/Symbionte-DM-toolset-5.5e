@@ -127,6 +127,7 @@ export interface SubSliceMagia {
   quitarTrucoConocido: (id: string, hechizoId: string, clase?: string) => void;
 
   agregarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
+  alternarConjuroIndependiente: (id: string, hechizoId: string) => void;
   quitarConjuroConocido: (id: string, hechizoId: string, clase?: string) => void;
   alternarConjuroPreparado: (id: string, hechizoId: string, clase?: string) => void;
   desprepararConjuroPersonaje: (id: string, hechizoId: string) => void;
@@ -200,7 +201,7 @@ export interface SubSliceRasgos {
   consumirDadoGuardado: (idPj: string, idRasgo: string, indiceDado: number) => void;
   recargarRasgoConEspacio: (idPj: string, idRasgo: string, nivelEspacio: number) => void;
   establecerFormasConocidasDruida: (idPj: string, formasIds: string[]) => void;
-  transformarEnFormaSalvaje: (idPj: string, idBestia: string) => void;
+  transformarEnFormaSalvaje: (idPj: string, idBestia: string, equipoConservadoIds?: string[], conservarPg?: boolean) => void;
   revertirFormaSalvaje: (idPj: string) => void;
 }
 

@@ -1,4 +1,5 @@
 import { finalizarRasgosAlDescansar } from "./rasgos/estadoCondicionesRasgos";
+import { transcurrirDescansoFormaBestia } from "./reglasFormaSalvaje";
 import { reconciliarIntentoRasgo } from "./rasgos/resolucionesRasgos";
 import type { PersonajeJugador } from "@/tipos";
 import { aplicarHpTemporalPorEvento } from "./rasgos/eventosHpTemporal";
@@ -192,18 +193,23 @@ export function ejecutarDescansoCorto(
     }
   }
 
+  for (const r of rasgosActualizadosCorto) {
+    if (r.recuperarEspaciosTrasDescansoCorto && (r.usosRestantes ?? 0) > 0)
+      acciones.push({ tipo: "recurso", descripcion: `${r.nombre} disponible desde Rasgos.` });
+  }
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     hpActual: hpNuevo,
     dadosGolpeRestantes: dadosRestantesNuevos,
     salvacionesMuerte: { exitos: 0, fallos: 0 },
     espaciosPactoGastados: espaciosPactoGastadosNuevos,
-    rasgos: rasgosActualizadosCorto.map(r => r.recuperacionOpcionalDescanso ? { ...r, recuperacionDescansoDisponible: true } : r),
+    rasgos: rasgosActualizadosCorto.map(r => r.recuperacionOpcionalDescanso || r.recuperarEspaciosTrasDescansoCorto
+      ? { ...r, recuperacionDescansoDisponible: true } : r),
     inspiracion: inspiracionNuevaCorto,
     cansancio: cansancioNuevoCorto
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado), "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(transcurrirDescansoFormaBestia(personajeActualizado, false)), "descanso"), acciones };
 }
 
 // ==========================================
@@ -402,6 +408,10 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     }
   }
 
+  for (const r of rasgosActualizadosLargo) {
+    if (r.consultaTablaDescansoLargo)
+      acciones.push({ tipo: "recurso", descripcion: `Puedes consultar ${r.nombre} desde Rasgos.` });
+  }
   const personajeActualizado: PersonajeJugador = {
     ...personaje,
     espaciosConjuroAdicionales: {},
@@ -417,9 +427,12 @@ export function ejecutarDescansoLargo(personaje: PersonajeJugador): ResultadoDes
     concentracionActiva: null,
     condicionesActivas: condicionesLimpias,
     inventario: inventarioActualizado,
-    rasgos: rasgosActualizadosLargo.map(r => ({ ...r, ...(r.reservaDados ? { dadosReserva: 0 } : {}), ...(r.gastarUsoTrasTirada ? { activo: false } : {}), ...(r.recuperacionOpcionalDescanso ? { recuperacionDescansoDisponible: false } : {}) })),
+    rasgos: rasgosActualizadosLargo.map(r => ({ ...r, ...(r.reservaDados ? { dadosReserva: 0 } : {}),
+      ...(r.gastarUsoTrasTirada ? { activo: false } : {}),
+      ...(r.recuperacionOpcionalDescanso || r.recuperarEspaciosTrasDescansoCorto ? { recuperacionDescansoDisponible: false } : {}),
+      ...(r.consultaTablaDescansoLargo ? { recuperacionDescansoDisponible: true, resultadoTabla: undefined } : {}) })),
     inspiracion: inspiracionNueva
   };
 
-  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(personajeActualizado, "descanso_largo"), "descanso"), acciones };
+  return { personajeActualizado: aplicarHpTemporalPorEvento(finalizarRasgosAlDescansar(transcurrirDescansoFormaBestia(personajeActualizado, true), "descanso_largo"), "descanso"), acciones };
 }

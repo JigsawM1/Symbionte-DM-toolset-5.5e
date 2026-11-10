@@ -11,7 +11,7 @@ export function obtenerBloqueoActivacionRasgo(pj: PersonajeJugador | null, r: Ra
   if (r.desactivarSinHp && pj.hpActual <= 0) return fallo("Se necesitan puntos de golpe para activar este rasgo.");
   if (r.requiereRasgosActivos?.some(id => !pj.rasgos.some(a => a.id === id && a.activo))) return fallo("Falta un rasgo requerido activo.");
   if (r.desactivarConArmaduraPesada && tieneArmaduraEquipada(pj).esPesada) return fallo("La armadura pesada impide activar este rasgo.");
-  if (r.tieneUsosLimitados && (r.usosRestantes ?? r.usosMaximos ?? 0) < costeActivacionRasgo(r) && !obtenerPagoActivacionAlternativa(pj, r)) return fallo("No quedan usos disponibles.");
+  if (r.tieneUsosLimitados && !r.noGastarUsoAlActivar && (r.usosRestantes ?? r.usosMaximos ?? 0) < costeActivacionRasgo(r) && !obtenerPagoActivacionAlternativa(pj, r)) return fallo("No quedan usos disponibles.");
   if (r.desactivarConCondiciones?.some(c => pj.condicionesActivas.some(a => claveEstado(c) === claveEstado(a)))) return fallo("Una condición actual impide activar este rasgo.");
   if (!esRasgoHabilitadoPorOpcion(r, pj.rasgos)) return fallo("La opción requerida no está seleccionada.");
   if (r.gastarDePadre && r.idRasgoRecurso) {

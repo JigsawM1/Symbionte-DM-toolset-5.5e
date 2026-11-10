@@ -196,7 +196,8 @@ export function evaluarVentajasDeRasgosEnTirada(
  * (ej. Bendición oscura: +mod Carisma a todas las salvaciones).
  */
 export function obtenerBonosSalvacionesRasgos(
-  personaje: PersonajeJugador
+  personaje: PersonajeJugador,
+  modificadores?: Partial<Record<Caracteristica, number>>
 ): Record<Caracteristica, number> {
   const bonos: Record<Caracteristica, number> = {
     fuerza: 0,
@@ -214,7 +215,7 @@ export function obtenerBonosSalvacionesRasgos(
       let valorNum = 0;
 
       const valStr = String(ef.valor).toLowerCase().trim();
-      const formulaResuelta = resolverFormulaDinamica(valStr, personaje);
+      const formulaResuelta = resolverFormulaDinamica(valStr, personaje, undefined, undefined, modificadores);
       const valorEval = evaluarExpresionNumericaSegura(formulaResuelta);
       valorNum = !isNaN(valorEval) ? valorEval : (Number(ef.valor) || 0);
 
@@ -285,7 +286,7 @@ export function tieneMedioBonoHabilidades(personaje: PersonajeJugador): boolean 
  * otorgadas por rasgos activos o dotes seleccionadas (ej. Lecciones de los Primeros -> Fabricante).
  * Evaluación 100% genérica a través de efectos mecánicos de tipo 'competencia'.
  */
-export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
+export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador, incluirIdiomasDerivados = true): {
   armasGrupos: ("sencillas" | "marciales" | "fuego")[];
   armadurasGrupos: ("ligeras" | "medias" | "pesadas" | "escudos")[];
   armasImprovisadas?: boolean;
@@ -371,7 +372,7 @@ export function obtenerCompetenciasExtraRasgos(personaje: PersonajeJugador): {
       }
 
       // Idiomas adicionales otorgados por rasgos (ej. Jerga de ladrones)
-      if (texto.includes("idioma")) {
+      if (texto.includes("idioma") && (incluirIdiomasDerivados || objNorm !== "idioma.derivado")) {
         if (ef.valor && ef.valor !== "idioma" && ef.valor !== "idiomas" && ef.valor !== "competente") {
           idiomas.add(String(ef.valor).trim());
         }
@@ -563,7 +564,9 @@ const MAPA_OBJETIVO_A_HABILIDAD: Record<string, Habilidad> = {
  * con efecto `bono_habilidad` de forma 100% genérica y declarativa (ej. Taumaturgo: +MOD SAB a Religión y Arcano).
  */
 export function obtenerBonosHabilidadesRasgos(
-  personaje: PersonajeJugador
+  personaje: PersonajeJugador,
+  prueba?: { habilidad: Habilidad; caracteristica: Caracteristica },
+  modificadores?: Partial<Record<Caracteristica, number>>
 ): Partial<Record<Habilidad, number>> {
   const bonos: Partial<Record<Habilidad, number>> = {};
   if (!personaje) return bonos;
@@ -572,7 +575,9 @@ export function obtenerBonosHabilidadesRasgos(
   for (const ef of efectos) {
     if (ef.tipo === "bono_habilidad") {
       const objLimpio = normalizar(ef.objetivo || "").replace(/^habilidad[._]/, "");
-      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje);
+      if (ef.caracteristicaPrueba && prueba && objLimpio === normalizar(prueba.habilidad)
+        && ef.caracteristicaPrueba !== prueba.caracteristica) continue;
+      const formulaResuelta = resolverFormulaDinamica(ef.valor, personaje, undefined, undefined, modificadores);
       const valorNumerico = evaluarExpresionNumericaSegura(formulaResuelta);
       if (valorNumerico <= 0) continue;
 

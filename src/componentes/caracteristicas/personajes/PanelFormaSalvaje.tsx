@@ -2,8 +2,9 @@ import React, { useState, useMemo } from "react";
 import type { PersonajeJugador, MonstruoBase } from "@/tipos";
 import {
   calcularReglasFormaSalvaje,
+  calcularHpTemporalFormaSalvaje,
   obtenerNivelDruida,
-  esDruidaCirculoLuna,
+  obtenerRasgoFormaBestia,
   obtenerBestiasElegiblesCompendio,
   obtenerBestiaFormaActiva
 } from "@/servicios/reglasFormaSalvaje";
@@ -13,7 +14,7 @@ import estilos from "./PanelFormaSalvaje.module.css";
 
 interface PanelFormaSalvajeProps {
   personaje: PersonajeJugador;
-  alTransformar: (idBestia: string) => void;
+  alTransformar: (idBestia: string, equipo?: string[], conservarPg?: boolean) => void;
   alRevertir: () => void;
   alGuardarFormasConocidas: (formasIds: string[]) => void;
 }
@@ -25,10 +26,13 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
   alGuardarFormasConocidas
 }) => {
   const nivelDruida = obtenerNivelDruida(personaje);
-  const esLuna = esDruidaCirculoLuna(personaje);
+  const rasgoForma = obtenerRasgoFormaBestia(personaje);
+  const formas = rasgoForma?.formasBestia;
+  const ajustes = rasgoForma?.ajustesFormaBestia;
+  const pgAlTransformar = calcularHpTemporalFormaSalvaje(nivelDruida, ajustes);
   const reglas = useMemo(
-    () => calcularReglasFormaSalvaje(nivelDruida, esLuna),
-    [nivelDruida, esLuna]
+    () => calcularReglasFormaSalvaje(nivelDruida, ajustes, formas),
+    [nivelDruida, ajustes, formas]
   );
 
   const bestiaActiva = useMemo(
@@ -46,10 +50,14 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
   const [modalGestionAbierto, setModalGestionAbierto] = useState(false);
   const [seleccionBorrador, setSeleccionBorrador] = useState<string[]>([]);
   const [filtroTexto, setFiltroTexto] = useState("");
+  const [transformacion, setTransformacion] = useState<string>();
+  const [equipoConservado, setEquipoConservado] = useState<string[]>([]);
+  const [conservarPg, setConservarPg] = useState(false);
+  const equipado = personaje.inventario.filter(o => o.equipado);
 
   const bestiasDisponibles = useMemo(() => {
-    return obtenerBestiasElegiblesCompendio(nivelDruida, esLuna);
-  }, [nivelDruida, esLuna]);
+    return obtenerBestiasElegiblesCompendio(nivelDruida, ajustes, [], formas);
+  }, [nivelDruida, ajustes, formas]);
 
   const bestiasFiltradasModal = useMemo(() => {
     if (!filtroTexto.trim()) return bestiasDisponibles;
@@ -60,7 +68,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
   }, [bestiasDisponibles, filtroTexto]);
 
   const abrirModalGestion = () => {
-    setSeleccionBorrador([...(personaje.formaSalvaje?.formasConocidasIds || [])]);
+    setSeleccionBorrador((formasConocidasIds ?? []).filter(id => bestiasDisponibles.some(b => b.id === id)));
     setFiltroTexto("");
     setModalGestionAbierto(true);
   };
@@ -80,10 +88,13 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
     setModalGestionAbierto(false);
   };
 
-  const rasgoForma = (personaje.rasgos || []).find(
-    (r) => r.nombre.toLowerCase().trim() === "forma salvaje"
-  );
-  const usosRestantes = rasgoForma?.usosRestantes ?? rasgoForma?.usosMaximos ?? 2;
+  const usosRestantes = rasgoForma?.usosRestantes ?? rasgoForma?.usosMaximos ?? 0;
+  const prepararTransformacion = (id: string) => {
+    if (!equipado.length && !personaje.hpTemporal) { alTransformar(id); return; }
+    setEquipoConservado([]);
+    setConservarPg(personaje.hpTemporal >= pgAlTransformar);
+    setTransformacion(id);
+  };
 
   return (
     <div className={estilos.panelFormaSalvaje}>
@@ -113,7 +124,7 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
         </span>
         <span>•</span>
         <span>
-          <strong>PG Temporales:</strong> {esLuna ? `${nivelDruida * 3} (Círculo Luna)` : `${nivelDruida}`}
+          <strong>PG Temporales:</strong> {pgAlTransformar}
         </span>
         <span>•</span>
         <span>
@@ -129,7 +140,8 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
               Forma Activa: {bestiaActiva.nombre}
             </div>
             <div className={estilos.bannerDetalle}>
-              FUE {bestiaActiva.caracteristicas?.fuerza || 10} • DES {bestiaActiva.caracteristicas?.destreza || 10} • CA {bestiaActiva.ca} • PG Temporales: +{personaje.formaSalvaje?.hpTemporalAlTransformar || nivelDruida}
+              FUE {bestiaActiva.caracteristicas?.fuerza || 10} · DES {bestiaActiva.caracteristicas?.destreza || 10} · CA {bestiaActiva.ca}
+              {personaje.formaSalvaje.minutosRestantes !== undefined && <> · Hasta {personaje.formaSalvaje.minutosRestantes} min de juego</>}
             </div>
           </div>
           <button
@@ -185,31 +197,41 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
                     </div>
                   )}
 
-                  {estaActiva ? (
-                    <button
-                      type="button"
-                      className={estilos.botonRevertir}
-                      onClick={alRevertir}
-                    >
-                      Revertir
-                    </button>
-                  ) : (
                     <button
                       type="button"
                       className={estilos.botonAdoptar}
-                      onClick={() => alTransformar(bestia.id)}
-                      disabled={usosRestantes <= 0}
+                      onClick={() => prepararTransformacion(bestia.id)}
+                      disabled={usosRestantes <= 0 || !bestiasDisponibles.some(b => b.id === bestia.id)}
                     >
                       <Zap size={14} />
-                      Adoptar Forma
+                      {estaActiva ? "Volver a adoptar" : "Adoptar Forma"}
                     </button>
-                  )}
                 </div>
               );
             })}
           </div>
         )}
       </div>
+
+      {transformacion && <div className={estilos.modalSelectorOverlay}>
+        <section className={estilos.modalSelectorContenido} role="dialog" aria-label="Preparar transformación">
+          <h3>Preparar transformación</h3>
+          <div className={estilos.modalSelectorBody}>
+            {equipado.length > 0 && <fieldset><legend>Equipo compatible que seguirá puesto</legend>
+              {equipado.map(o => <label key={o.idInstancia}><input type="checkbox" checked={equipoConservado.includes(o.idInstancia)}
+                onChange={e => setEquipoConservado(ids => e.target.checked ? [...ids, o.idInstancia] : ids.filter(id => id !== o.idInstancia))} /> {o.nombre}</label>)}
+            </fieldset>}
+            {personaje.hpTemporal > 0 && <label><input type="checkbox" checked={conservarPg} onChange={e => setConservarPg(e.target.checked)} /> Conservar mis PG temporales actuales</label>}
+          </div>
+          <div className={estilos.modalSelectorFooter}>
+            <button type="button" onClick={() => setTransformacion(undefined)}>Cancelar</button>
+            <button type="button" className={estilos.botonAdoptar} onClick={() => {
+              alTransformar(transformacion, equipoConservado, conservarPg);
+              setTransformacion(undefined);
+            }}>Transformar</button>
+          </div>
+        </section>
+      </div>}
 
       {/* Modal de Selección / Gestión de la Reserva */}
       {modalGestionAbierto && (
@@ -240,8 +262,10 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
               <div className={estilos.listaOpcionesPool}>
                 {bestiasFiltradasModal.map((bestia) => {
                   const seleccionada = seleccionBorrador.includes(bestia.id);
-                  const deshabilitada =
-                    !seleccionada && seleccionBorrador.length >= reglas.maxFormasConocidas;
+                  const deshabilitada = !seleccionada ? seleccionBorrador.length >= reglas.maxFormasConocidas
+                    : Boolean(formas && formasConocidasIds?.includes(bestia.id)
+                      && (!personaje.formaSalvaje.sustitucionDisponible
+                        || formasConocidasIds.some(id => id !== bestia.id && !seleccionBorrador.includes(id) && bestiasDisponibles.some(b => b.id === id))));
 
                   return (
                     <div

@@ -3,6 +3,7 @@ import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import { generarIdSlug } from "@/utiles/generarId";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { obtenerConjurosSubclasePersonaje } from "./calculadorMagia";
+import { obtenerConcesionRasgo } from "./rasgos/concesionesRasgos";
 import { obtenerEspeciePorNombre, obtenerSubespeciePorNombre } from "./gestorEspecies";
 import { MAPA_ALIAS_HECHIZOS } from "@/constantes/subclasesConjurosConstantes";
 
@@ -93,7 +94,7 @@ export function resolverOrigenConjuro(
   for (const r of personaje.rasgos || []) {
     if (r.activo === false) continue;
     if (r.nivelRequerido && pjNivel < r.nivelRequerido) continue;
-    let otorga = false;
+    let otorga = [...obtenerConcesionRasgo(personaje, r, "conjuros"), ...obtenerConcesionRasgo(personaje, r, "trucos")].some(coincide);
 
     if (Array.isArray(r.conjurosOtorgados) && r.conjurosOtorgados.some(coincide)) {
       otorga = true;
@@ -295,6 +296,8 @@ export function crearResolutorOrigenConjuros(
     if (Array.isArray(r.conjurosOtorgados)) {
       for (const c of r.conjurosOtorgados) registrarCadena(c, badge);
     }
+    for (const tipo of ["conjuros", "trucos"] as const)
+      for (const id of obtenerConcesionRasgo(personaje, r, tipo)) registrarCadena(id, badge);
 
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {

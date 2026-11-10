@@ -10,6 +10,7 @@ import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";
 import { resolverClaseLanzamiento } from "./modificadoresConjuroRasgos";
 import { obtenerConcesionConRecurso } from "./lanzamientoRecursoRasgos";
 import { seleccionesValidas } from "./seleccionesRasgos";
+import { obtenerConcesionRasgo } from "./concesionesRasgos";
 
 export interface EvaluacionRecursosGratuito {
   elegible: boolean;
@@ -116,7 +117,8 @@ export function aplicarConfiguracionConjurosRasgos(pj: PersonajeJugador | undefi
   const coincide = (id: string) => coincideHechizoId(id, solicitud.hechizo.id) || coincideHechizoId(id, solicitud.hechizo.nombre);
   const clases = new Set(pj.rasgos.filter(r => r.claseConjurosOtorgados && r.activo !== false
     && obtenerNivelEfectivoParaRasgo(pj,r) >= (r.nivelRequerido ?? 1) && esRasgoHabilitadoPorOpcion(r,pj.rasgos)
-    && ((r.conjurosOtorgados ?? []).some(coincide) || (r.selectores ?? []).some(s => s.tipoSelector === "conjuro"
+    && (obtenerConcesionRasgo(pj, r, solicitud.hechizo.nivel === 0 ? "trucos" : "conjuros").some(coincide)
+      || (r.conjurosOtorgados ?? []).some(coincide) || (r.selectores ?? []).some(s => s.tipoSelector === "conjuro"
       && s.destinoConjuros !== "referencia" && s.destinoConjuros !== "libro"
       && (s.destinoConjuros !== "arcano_mistico" || solicitud.modo === "arcanoMistico") && seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(coincide))))
     .map(r => r.claseConjurosOtorgados!.toLocaleLowerCase("es")));

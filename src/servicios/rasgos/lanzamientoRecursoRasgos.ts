@@ -4,6 +4,7 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { esRasgoHabilitadoPorOpcion, resolverRasgoRecurso, normalizar } from "./utilidadesRasgos";
 import HECHIZOS from "@/utiles/compendios/all.json";
+import { obtenerConcesionRasgo } from "./concesionesRasgos";
 
 const MAPA_HECHIZOS = new Map(HECHIZOS.map((h) => [h.id, h]));
 
@@ -17,7 +18,9 @@ export function obtenerConcesionConRecurso(pj: PersonajeJugador, idRasgo: string
   const adicional = cfg?.adicionales?.find(a => a.conjuroId === hechizo.id);
   const pertenece = cfg?.conjuros ? canonico && cfg.conjuros.includes(canonico.id) : cfg?.lista ? canonico && (adicional || (canonico.nivel <= cfg.nivelMaximo
     && canonico.clases.some(c => normalizar(c) === normalizar(cfg.lista))))
-    : concesion?.activo !== false && concesion?.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id));
+    : concesion && rasgoMagicoHabilitado(pj, concesion)
+      && [...(concesion.conjurosOtorgados ?? []), ...obtenerConcesionRasgo(pj, concesion, "conjuros")]
+        .some(id => coincideHechizoId(id, hechizo.id));
   if (!r || !cfg || r.activo === false || !pertenece || !recurso?.tieneUsosLimitados || recurso.activo === false
     || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1) || !esRasgoHabilitadoPorOpcion(r, pj.rasgos)
     || nivel !== hechizo.nivel || (canonico && canonico.nivel !== nivel) || nivel < (cfg.lista ? 0 : 1) || (!adicional && nivel > cfg.nivelMaximo)

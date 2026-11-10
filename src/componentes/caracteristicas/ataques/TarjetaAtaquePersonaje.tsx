@@ -23,6 +23,7 @@ function obtenerTooltipPropiedad(propiedadTexto: string): string {
 interface TarjetaAtaquePersonajeProps {
   ataque: AtaquePersonajeCalculado;
   evaluacionCondiciones?: ResultadoEvaluacionCondiciones;
+  permiteDanoAdicional?: boolean;
   alTirarAtaque: (ataque: AtaquePersonajeCalculado) => void;
   alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
   alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
@@ -32,6 +33,7 @@ interface TarjetaAtaquePersonajeProps {
 export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = React.memo(({
   ataque,
   evaluacionCondiciones,
+  permiteDanoAdicional,
   alTirarAtaque,
   alTirarDano,
   alTirarCritico,
@@ -284,7 +286,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
 
           {/* Fila de Acciones Secundarias (Daño, 2M, Crit, Crit 2M) */}
           <div className={estilos.filaAccionesSecundariasAtaque}>
-            {ataque.tieneTiradaAtaque && !ataque.esDanoFijo && (
+            {ataque.tieneTiradaAtaque && (!ataque.esDanoFijo || permiteDanoAdicional) && (
               <button
                 type="button"
                 className={estilos.botonSecundarioDano}
@@ -318,7 +320,7 @@ export const TarjetaAtaquePersonaje: React.FC<TarjetaAtaquePersonajeProps> = Rea
               </button>
             )}
 
-            {!ataque.esDanoFijo && ataque.tieneTiradaAtaque && (
+            {(!ataque.esDanoFijo || permiteDanoAdicional) && ataque.tieneTiradaAtaque && (
               <button
                 type="button"
                 className={estilos.botonSecundarioCrit}

@@ -3,6 +3,20 @@ import { normalizar, tieneArmaduraEquipada, resolverRasgoPadre } from "./utilida
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { normalizarConjurosTemporales } from "./conjurosTemporalesRasgos";
 import { registrarCuracionAlFinalizar } from "./curacionDeclarativa";
+import { obtenerBestiaFormaActiva, obtenerRasgoFormaBestia, terminarFormaBestia } from "../reglasFormaSalvaje";
+import { identificarTurnoPropio } from "./limitesTurnoRasgos";
+
+export function finalizarRasgosDelTurno(pj: PersonajeJugador, anterior: Parameters<typeof identificarTurnoPropio>[1],
+  siguiente: Parameters<typeof identificarTurnoPropio>[1]): PersonajeJugador {
+  const turno = identificarTurnoPropio(pj, anterior);
+  if (!turno || identificarTurnoPropio(pj, siguiente) === turno) return pj;
+  const ids = new Set(pj.rasgos.filter(r => r.activo && r.finalizarAlTerminarTurno).map(r => r.id));
+  if (!ids.size) return pj;
+  const condiciones = new Set(pj.rasgos.filter(r => ids.has(r.id) && r.condicionAlActivar).map(r => claveEstado(r.condicionAlActivar!)));
+  return { ...pj, rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
+    condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c))),
+    efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "")) };
+}
 
 export function claveEstado(texto: string): string {
   const base = normalizar(texto).split(" (")[0];
@@ -28,6 +42,15 @@ export function finalizarRasgosAlDescansar(pj: PersonajeJugador, tipo: "descanso
 /** Finaliza estados por duración o condiciones declaradas, sin reglas por nombre del rasgo. */
 export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number,
   opciones: { conservarConcentracionDesconocida?: boolean } = {}): PersonajeJugador {
+  const forma = pj.formaSalvaje;
+  const rasgoForma = forma?.formaActivaId ? obtenerRasgoFormaBestia(pj) : undefined;
+  if (forma?.formaActivaId && (forma.minutosRestantes !== undefined || rasgoForma?.formasBestia)) {
+    if (!rasgoForma || !obtenerBestiaFormaActiva(pj) || rasgoForma.desactivarConCondiciones?.some(c =>
+      pj.condicionesActivas.some(activa => claveEstado(activa) === claveEstado(c)))
+      || (ronda !== undefined && forma.expiraRonda !== undefined && ronda >= forma.expiraRonda)) {
+      pj = terminarFormaBestia(pj);
+    }
+  }
   pj = normalizarConjurosTemporales(pj, ronda);
   const retirar = new Set<string>();
   let cambio = false;

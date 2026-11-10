@@ -27,6 +27,7 @@ interface FilaConjuroCompendioProps {
   origenBadge?: OrigenConjuroBadge | null;
   esModeloConocidos?: boolean;
   mostrarEstrella?: boolean;
+  tituloEdicionIndependiente?: string;
   alAlternarEnLista: () => void;
   alAlternarPreparado: () => void;
   alAbrirDetalle: (hechizo: HechizoBase) => void;
@@ -59,6 +60,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   origenBadge,
   esModeloConocidos = false,
   mostrarEstrella = true,
+  tituloEdicionIndependiente,
   alAlternarEnLista,
   alAlternarPreparado,
   alAbrirDetalle
@@ -86,7 +88,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   // Manejar acción del checkbox (Lista / Conocidos)
   const manejarClickCheckbox = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!esOtorgado) {
+    if (!esOtorgado || tituloEdicionIndependiente) {
       alAlternarEnLista();
     }
   };
@@ -95,7 +97,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   const estaMarcadoEnLista = esOtorgado ? true : estaEnLista;
   const estrellaVisible = mostrarEstrella && !esModeloConocidos;
 
-  const tituloCheckbox = esOtorgado && configBadge
+  const tituloCheckbox = tituloEdicionIndependiente ?? (esOtorgado && configBadge
     ? `${configBadge.tooltip} (permanente)`
     : esModeloConocidos
     ? estaMarcadoEnLista
@@ -103,7 +105,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
       : "Aprender conjuro (marcar como conocido)"
     : estaMarcadoEnLista
     ? "En tu lista/grimorio (clic para quitar)"
-    : "Añadir a tu lista/grimorio";
+    : "Añadir a tu lista/grimorio");
 
   return (
     <div
@@ -145,7 +147,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
             type="button"
             onClick={manejarClickCheckbox}
             title={tituloCheckbox}
-            className={`${estilos.botonControl} ${estilos.botonCheckbox} ${esOtorgado ? estilos.botonControlDeshabilitado : ""}`}
+            className={`${estilos.botonControl} ${estilos.botonCheckbox} ${esOtorgado && !tituloEdicionIndependiente ? estilos.botonControlDeshabilitado : ""}`}
           >
             <div
               className={`${estilos.cajaCheckbox} ${estaMarcadoEnLista && !esOtorgado ? estilos.cajaCheckboxMarcado : ""}`}

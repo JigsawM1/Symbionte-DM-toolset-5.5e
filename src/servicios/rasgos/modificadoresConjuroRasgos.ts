@@ -7,9 +7,10 @@ import { clasesPropietariasConjuro } from "./listasConjurosRasgos";
 import { conjuroEnAmpliacion, rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
 import { seleccionesValidas } from "./seleccionesRasgos";
+import { obtenerConcesionRasgo } from "./concesionesRasgos";
 
-/** La procedencia es explícita o inequívoca; pertenecer a varias listas no elige una clase. */
-export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoBase, clase?: string): string | undefined {
+/** Distingue las clases válidas de las que registraron el conjuro como elección propia. */
+export function obtenerClasesLanzamiento(pj: PersonajeJugador, hechizo: HechizoBase): { candidatas: string[]; adquiridas: string[] } {
   const propietarias = clasesPropietariasConjuro(pj, hechizo.id);
   const independiente = [...(pj.aprendizajesConjurosIndependientes?.conjuros ?? []), ...(pj.aprendizajesConjurosIndependientes?.trucos ?? [])].some(id => coincideHechizoId(id, hechizo.id));
   const candidatas = pj.clasesLanzadoras.filter(c => ((!propietarias.length || independiente || propietarias.some(p => normalizar(p) === normalizar(c.clase)))
@@ -19,11 +20,19 @@ export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoB
     || (pj.clases ?? []).some(clase => normalizar(clase.nombre) === normalizar(c.clase)
       && obtenerSubclasePorNombre(clase.nombre, clase.subclase)?.progresionConjuros?.some(p => p.nivelClase <= clase.nivel && [...(p.conjuros ?? []), ...(p.trucos ?? [])].some(id => coincideHechizoId(id, hechizo.id))))
     || pj.rasgos.some(r => normalizar(r.claseConjurosOtorgados ?? "") === normalizar(c.clase) && rasgoMagicoHabilitado(pj, r)
-      && (r.conjurosDesdeSelectores ? r.selectores?.some(s => seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(id => coincideHechizoId(id, hechizo.id))) : r.conjurosOtorgados?.some(id => coincideHechizoId(id, hechizo.id)))));
-  if (clase) return candidatas.find(c => normalizar(c.clase) === normalizar(clase))?.clase;
-  const adquiridas = candidatas.filter(c => propietarias.some(p => normalizar(p) === normalizar(c.clase)));
-  if (adquiridas.length === 1) return adquiridas[0].clase;
-  return candidatas.length === 1 ? candidatas[0].clase : undefined;
+      && (obtenerConcesionRasgo(pj, r, hechizo.nivel === 0 ? "trucos" : "conjuros").some(id => coincideHechizoId(id, hechizo.id))
+        || (r.conjurosDesdeSelectores ? [] : r.conjurosOtorgados)?.some(id => coincideHechizoId(id, hechizo.id))
+        || r.selectores?.some(s => (r.conjurosDesdeSelectores || s.destinoConjuros === "trucos")
+          && seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj).some(id => coincideHechizoId(id, hechizo.id))))));
+  const clases = [...new Set(candidatas.map(c => c.clase))];
+  return { candidatas: clases, adquiridas: clases.filter(c => propietarias.some(p => normalizar(p) === normalizar(c))) };
+}
+
+export function resolverClaseLanzamiento(pj: PersonajeJugador, hechizo: HechizoBase, clase?: string): string | undefined {
+  const { candidatas, adquiridas } = obtenerClasesLanzamiento(pj, hechizo);
+  if (clase) return candidatas.find(c => normalizar(c) === normalizar(clase));
+  if (adquiridas.length === 1) return adquiridas[0];
+  return candidatas.length === 1 ? candidatas[0] : undefined;
 }
 
 export function obtenerModificadoresConjuroRasgos(pj: PersonajeJugador, clase?: string) {

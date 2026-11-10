@@ -58,6 +58,7 @@ export const EsquemaPlantillaRasgoClaseJSON = z.object({
   recuperacionConjuro: z.enum(["ninguno", "descanso_largo", "ilimitado"]).optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
+    sinGastarUso: z.boolean().optional(),
     cantidad: z.union([z.literal("maximo"), z.number().int().min(1)]).optional(),
     hastaCantidad: z.number().int().min(1).optional(),
     soloSiMenorOIgual: z.number().int().min(0).optional(),

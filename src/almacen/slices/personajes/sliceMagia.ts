@@ -1,5 +1,6 @@
 import { consumirRecursoConjuro } from "@/servicios/consumidorRecursosConjuros";
-import { elegirConjuroClase, clasesPropietariasConjuro, retirarEleccionConjuro, conjuroElegidoPorClase } from "@/servicios/rasgos/listasConjurosRasgos";
+import { elegirConjuroClase, clasesPropietariasConjuro, retirarEleccionConjuro, conjuroElegidoPorClase, conjuroFueraDeListas, esConjuroIndependiente } from "@/servicios/rasgos/listasConjurosRasgos";
+import { reconciliarConjurosRasgos } from "@/servicios/rasgos/reconciliarConjurosRasgos";
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
@@ -193,6 +194,32 @@ export const crearSubSliceMagia: StateCreator<
     sincronizarConcentracionEnIniciativa(set, id, null);
   },
 
+  alternarConjuroIndependiente: (id, hechizoId) => {
+    mutarPersonaje(set, id, (pj) => {
+      const h = get().baseDatosHechizos.find(h => coincideHechizoId(h.id, hechizoId));
+      if (!h) return pj;
+      const quitar = esConjuroIndependiente(pj, h);
+      if (!quitar && !conjuroFueraDeListas(pj, h)) return pj;
+      const aprendizajes = pj.aprendizajesConjurosIndependientes ?? { trucos: [], conjuros: [] };
+      const tipo = h.nivel === 0 ? "trucos" : "conjuros";
+      const coincide = (otro: string) => coincideHechizoId(otro, h.id);
+      const otorgado = tipo === "trucos"
+        ? obtenerConjurosSubclasePersonaje(pj.clases, pj.clase, pj.subclase, pj.nivel).trucos.some(coincide)
+        : pj.conjurosSiemprePreparadosIds.some(coincide);
+      const clases = clasesPropietariasConjuro(pj, h.id);
+      const actualizar = (lista: string[], conservar = false) => quitar
+        ? conservar ? lista : lista.filter(v => !coincide(v))
+        : lista.some(coincide) ? lista : [...lista, h.id];
+      const origen = { ...aprendizajes, [tipo]: actualizar(aprendizajes[tipo]) };
+      const actual = tipo === "trucos"
+        ? { ...pj, aprendizajesConjurosIndependientes: origen, trucosConocidosIds: actualizar(pj.trucosConocidosIds, otorgado || clases.length > 0) }
+        : { ...pj, aprendizajesConjurosIndependientes: origen,
+            conjurosConocidosIds: actualizar(pj.conjurosConocidosIds, otorgado || clases.length > 0),
+            conjurosPreparadosIds: actualizar(pj.conjurosPreparadosIds, otorgado || clases.some(c => conjuroElegidoPorClase(pj, h.id, c, "preparados"))) };
+      return quitar ? { ...actual, ...reconciliarConjurosRasgos(pj, actual.rasgos, actual) } : actual;
+    });
+  },
+
   agregarTrucoConocido: (id, hechizoId, clase) => {
     mutarPersonaje(set, id, (pj) => {
       const elegida = elegirConjuroClase(pj, hechizoId, "trucos", clase, get().baseDatosHechizos);
@@ -245,6 +272,12 @@ export const crearSubSliceMagia: StateCreator<
   alternarConjuroPreparado: (id, hechizoId, clase) => {
     mutarPersonaje(set, id, (pj) => {
       const preparados = pj.conjurosPreparadosIds || [];
+      if (!clase && esConjuroIndependiente(pj, { id: hechizoId, nivel: 1 })) {
+        const coincide = (otro: string) => coincideHechizoId(otro, hechizoId);
+        if (pj.conjurosSiemprePreparadosIds.some(coincide)
+          || clasesPropietariasConjuro(pj, hechizoId).some(c => conjuroElegidoPorClase(pj, hechizoId, c, "preparados"))) return pj;
+        return { ...pj, conjurosPreparadosIds: preparados.some(coincide) ? preparados.filter(v => !coincide(v)) : [...preparados, hechizoId] };
+      }
       const estaPreparado = clase ? conjuroElegidoPorClase(pj, hechizoId, clase, "preparados") : preparados.some((hId) => coincideHechizoId(hId, hechizoId));
       const elegida = estaPreparado ? retirarEleccionConjuro(pj, hechizoId, clase, "preparados") : elegirConjuroClase(pj, hechizoId, "preparados", clase, get().baseDatosHechizos);
       if (!elegida) return pj;

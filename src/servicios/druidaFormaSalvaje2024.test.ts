@@ -7,7 +7,7 @@ import {
   esBestiaValidaParaDruida,
   calcularHpTemporalFormaSalvaje,
   obtenerBestiaFormaActiva,
-  puedeLanzarConjuroEnFormaSalvaje,
+  evaluarConjuroEnFormaBestia,
   filtrarRasgosFormaSalvaje,
   extraerRasgosBestia
 } from "./reglasFormaSalvaje";
@@ -17,7 +17,8 @@ import {
   obtenerVelocidadesEfectivas,
   obtenerSentidosEfectivos
 } from "@/servicios/rasgos/evaluadorMovilidadRasgos";
-import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
+import { HECHIZOS_INICIALES, MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
+import { aplicarBuildClaseAPersonaje, obtenerRasgosClaseYSubclase } from "./gestorClases";
 
 describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => {
   const lobo = MONSTRUOS_INICIALES.find((m) => m.id === "m_lobo")!;
@@ -28,6 +29,25 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       personajes: [],
       idPersonajeActivo: null
     });
+  });
+
+  it("respeta los ataques del oso pardo y deja la combinación de ataques para la mesa", () => {
+    const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 8);
+    const id = usarAlmacenDM.getState().crearPersonaje(pj);
+    usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_oso_pardo"]);
+    usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_oso_pardo");
+    const personajeActivo = usarAlmacenDM.getState().personajes.find(p => p.id === id)!;
+    const ataques = generarListaAtaquesFisicos({ personajeActivo, statsCalculadas: calcularEstadisticasPersonaje(personajeActivo),
+      baseDatosObjetos: [], caracteristicasArmas: {} });
+    expect(ataques.map(a => [a.nombre, a.bonoAtaque, a.dadoDano])).toEqual([
+      ["Garra (Oso pardo)", 5, "1d4+3"], ["Mordisco (Oso pardo)", 5, "1d8+3"]
+    ]);
+    usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_oso_pardo", "m_arana_gigante"]);
+    usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_arana_gigante");
+    const araña = usarAlmacenDM.getState().personajes.find(p => p.id === id)!;
+    expect(generarListaAtaquesFisicos({ personajeActivo: araña, statsCalculadas: calcularEstadisticasPersonaje(araña),
+      baseDatosObjetos: [], caracteristicasArmas: {} }).find(a => a.nombre.startsWith("Mordisco")))
+      .toMatchObject({ dadoDano: "1d8+3 / 2d6", dadoDanoBase: "1d8 / 2d6", modificadorDano: 3, tipoDano: "perforante / veneno" });
   });
 
   it("mantiene IDs, categorías, orden y notas al integrar rasgos, acciones adicionales y reacciones de bestia", () => {
@@ -52,49 +72,49 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
 
   describe("1. Reglas Canónicas por Nivel (Límites, VD y Vuelo)", () => {
     it("Nivel 2: 4 formas conocidas, VD máx 1/4, No vuela", () => {
-      const reglas = calcularReglasFormaSalvaje(2, false);
+      const reglas = calcularReglasFormaSalvaje(2);
       expect(reglas.maxFormasConocidas).toBe(4);
       expect(reglas.vdMaximo).toBe(0.25);
       expect(reglas.puedeVolar).toBe(false);
 
-      expect(esBestiaValidaParaDruida(lobo, 2, false)).toBe(true); // Lobo es VD 1/4
-      expect(esBestiaValidaParaDruida(cuervo, 2, false)).toBe(false); // Cuervo vuela, no permitida a nivel 2
+      expect(esBestiaValidaParaDruida(lobo, 2)).toBe(true); // Lobo es VD 1/4
+      expect(esBestiaValidaParaDruida(cuervo, 2)).toBe(false); // Cuervo vuela, no permitida a nivel 2
     });
 
     it("Nivel 4: 6 formas conocidas, VD máx 1/2, No vuela", () => {
-      const reglas = calcularReglasFormaSalvaje(4, false);
+      const reglas = calcularReglasFormaSalvaje(4);
       expect(reglas.maxFormasConocidas).toBe(6);
       expect(reglas.vdMaximo).toBe(0.5);
       expect(reglas.puedeVolar).toBe(false);
     });
 
     it("Nivel 8: 8 formas conocidas, VD máx 1, Sí vuela", () => {
-      const reglas = calcularReglasFormaSalvaje(8, false);
+      const reglas = calcularReglasFormaSalvaje(8);
       expect(reglas.maxFormasConocidas).toBe(8);
       expect(reglas.vdMaximo).toBe(1);
       expect(reglas.puedeVolar).toBe(true);
 
-      expect(esBestiaValidaParaDruida(cuervo, 8, false)).toBe(true);
+      expect(esBestiaValidaParaDruida(cuervo, 8)).toBe(true);
     });
 
     it("Círculo de la Luna: Escala el VD máx a Nivel/3", () => {
-      const reglasNv3 = calcularReglasFormaSalvaje(3, true);
+      const reglasNv3 = calcularReglasFormaSalvaje(3, { divisorNivelVD: 3, baseCaSabiduria: 13, multiplicadorPgTemporales: 3 });
       expect(reglasNv3.vdMaximo).toBe(1); // floor(3/3) = 1
 
-      const reglasNv6 = calcularReglasFormaSalvaje(6, true);
+      const reglasNv6 = calcularReglasFormaSalvaje(6, { divisorNivelVD: 3, baseCaSabiduria: 13, multiplicadorPgTemporales: 3 });
       expect(reglasNv6.vdMaximo).toBe(2); // floor(6/3) = 2
     });
   });
 
   describe("2. Puntos de Golpe Temporales según Reglas 2024", () => {
     it("Druida base recibe PG temporales iguales a su nivel", () => {
-      expect(calcularHpTemporalFormaSalvaje(2, false)).toBe(2);
-      expect(calcularHpTemporalFormaSalvaje(5, false)).toBe(5);
+      expect(calcularHpTemporalFormaSalvaje(2)).toBe(2);
+      expect(calcularHpTemporalFormaSalvaje(5)).toBe(5);
     });
 
     it("Druida Círculo de la Luna recibe 3x su nivel en PG temporales", () => {
-      expect(calcularHpTemporalFormaSalvaje(3, true)).toBe(9);
-      expect(calcularHpTemporalFormaSalvaje(6, true)).toBe(18);
+      expect(calcularHpTemporalFormaSalvaje(3, { divisorNivelVD: 3, baseCaSabiduria: 13, multiplicadorPgTemporales: 3 })).toBe(9);
+      expect(calcularHpTemporalFormaSalvaje(6, { divisorNivelVD: 3, baseCaSabiduria: 13, multiplicadorPgTemporales: 3 })).toBe(18);
     });
   });
 
@@ -135,6 +155,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       });
 
       // Transformar en Lobo (Lobo tiene FUE 12, DES 15, CA 13)
+      store.establecerFormasConocidasDruida(idPj, ["m_lobo"]);
       store.transformarEnFormaSalvaje(idPj, "m_lobo");
 
       const pjTransformado = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
@@ -228,6 +249,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       });
 
       // Lobo: FUE 14, DES 15, CON 12. Habilidades: Percepción +3, Sigilo +4.
+      store.establecerFormasConocidasDruida(idPj, ["m_lobo"]);
       store.transformarEnFormaSalvaje(idPj, "m_lobo");
       const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
       const stats = calcularEstadisticasPersonaje(pj);
@@ -252,21 +274,25 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       });
 
       // Lobo tiene velocidad 40 pies
+      store.establecerFormasConocidasDruida(idPj, ["m_lobo", "m_cuervo"]);
       store.transformarEnFormaSalvaje(idPj, "m_lobo");
       let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
       let velocidades = obtenerVelocidadesEfectivas(pj);
       expect(velocidades.caminar).toBe(40);
 
-      // Si se transforma en cuervo pero es nivel 4, no puede volar
+      // El cuervo volador queda fuera de las formas elegibles en nivel 4.
       store.revertirFormaSalvaje(idPj);
       store.transformarEnFormaSalvaje(idPj, "m_cuervo");
       pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
+      expect(pj.formaSalvaje.formaActivaId).toBeNull();
       velocidades = obtenerVelocidadesEfectivas(pj);
       expect(velocidades.volar).toBeUndefined();
 
       // Subimos a nivel 8: ahora sí puede volar con la velocidad del cuervo (50 pies)
-      pj.nivel = 8;
-      velocidades = obtenerVelocidadesEfectivas(pj);
+      store.actualizarPersonaje(idPj, aplicarBuildClaseAPersonaje(pj, "Druida", 8));
+      store.establecerFormasConocidasDruida(idPj, ["m_lobo", "m_cuervo"]);
+      store.transformarEnFormaSalvaje(idPj, "m_cuervo");
+      velocidades = obtenerVelocidadesEfectivas(usarAlmacenDM.getState().personajes.find(p => p.id === idPj)!);
       expect(velocidades.volar).toBe(50);
     });
 
@@ -280,6 +306,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       });
 
       // Lobo no tiene visión en la oscuridad pero tiene percepción pasiva 13
+      store.establecerFormasConocidasDruida(idPj, ["m_lobo"]);
       store.transformarEnFormaSalvaje(idPj, "m_lobo");
       const pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPj)!;
       const sentidos = obtenerSentidosEfectivos(pj);
@@ -287,11 +314,12 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(sentidos.visionOscuridad).toBe(60);
     });
 
-    it("Círculo de la Luna nivel 6+ imbuye Resplandor Lunar (daño Radiante)", () => {
+    it("Círculo de la Luna nivel 6+ ofrece Resplandor lunar sin cambiar el daño base", () => {
       const pjLuna: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         subclase: "Círculo de la Luna",
+        rasgos: obtenerRasgosClaseYSubclase("Druida", 6, "Círculo de la Luna").map(r => r.formasBestia ? { ...r, activo: true } : r),
         nivel: 6,
         formaSalvaje: {
           formasConocidasIds: ["m_lobo"],
@@ -311,12 +339,14 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
 
       const mordisco = ataques.find((a) => a.nombre.includes("Mordisco"));
       expect(mordisco).toBeDefined();
-      expect(mordisco?.propiedades).toContain("Resplandor lunar (Radiante)");
-      expect(mordisco?.tipoDano).toContain("radiante");
-      expect(mordisco?.esMagico).toBe(true);
+      expect(pjLuna.rasgos.some(r => r.cambiarTipoDanoBestia === "Radiante")).toBe(true);
+      expect(mordisco?.tipoDano).toBe("perforante");
     });
 
     it("Restricción canónica de conjuros: Druida base bloqueado, Luna permite su lista, Nv 18 desbloquea", () => {
+      const curarHeridas = HECHIZOS_INICIALES.find(h => h.id === "h_curar-heridas")!;
+      const volutaEstelar = HECHIZOS_INICIALES.find(h => h.id === "h_voluta-estelar")!;
+      const bolaDeFuego = HECHIZOS_INICIALES.find(h => h.id === "h_bola-de-fuego")!;
       const pjBase: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
@@ -330,24 +360,26 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       };
 
       // Druida base no puede lanzar conjuros en forma salvaje
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjBase, "Curar heridas")).toBe(false);
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjBase, "Rayo lunar")).toBe(false);
+      expect(evaluarConjuroEnFormaBestia(pjBase, curarHeridas)).toBe("bloqueado");
+      expect(evaluarConjuroEnFormaBestia(pjBase, volutaEstelar)).toBe("bloqueado");
 
       // Círculo de la Luna sí puede lanzar los conjuros preparados de su subclase
       const pjLuna: PersonajeJugador = {
         ...pjBase,
-        subclase: "Círculo de la Luna"
+        subclase: "Círculo de la Luna",
+        rasgos: obtenerRasgosClaseYSubclase("Druida", 5, "Círculo de la Luna").map(r => r.formasBestia ? { ...r, activo: true } : r)
       };
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Curar heridas")).toBe(true);
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Rayo lunar")).toBe(true);
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjLuna, "Bola de fuego")).toBe(false);
+      expect(evaluarConjuroEnFormaBestia(pjLuna, curarHeridas)).toBe("permitido");
+      expect(evaluarConjuroEnFormaBestia(pjLuna, volutaEstelar)).toBe("permitido");
+      expect(evaluarConjuroEnFormaBestia(pjLuna, bolaDeFuego)).toBe("bloqueado");
 
       // Druida Nivel 18 (Bestia lanzadora) puede lanzar conjuros en forma salvaje
       const pjArchidruida: PersonajeJugador = {
         ...pjBase,
-        nivel: 18
+        nivel: 18,
+        rasgos: obtenerRasgosClaseYSubclase("Druida", 18).filter(r => r.permiteConjurosEnBestia)
       };
-      expect(puedeLanzarConjuroEnFormaSalvaje(pjArchidruida, "Cualquier conjuro")).toBe(true);
+      expect(evaluarConjuroEnFormaBestia(pjArchidruida, curarHeridas)).toBe("permitido");
     });
 
     it("Condición Incapacitado finaliza la Forma Salvaje automáticamente", () => {
@@ -367,7 +399,7 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(obtenerBestiaFormaActiva(pjTransformado)).toBeNull();
     });
 
-    it("No se pueden usar armas ni armadura: se ocultan armas/ataques humanoides y solo quedan los ataques de la bestia", () => {
+    it("En una forma guardada sin equipo confirmado se muestra el perfil de la bestia", () => {
       const pjEquipado: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
@@ -455,21 +487,22 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(ataques.some((a) => a.nombre.includes("Improvisada"))).toBe(false);
       expect(ataques.some((a) => a.nombre.includes("Desarmado"))).toBe(false);
 
-      // Escalado D&D 2024: PB = 3, FUE del lobo = 14 (mod +2) -> Bono impacto = +5 (mayor que el +4 del compendio)
-      expect(mordisco.bonoAtaque).toBe(5);
-      expect(mordisco.dadoDano).toBe("1d6 + 2");
+      // El ataque conserva el bonificador y los dados del perfil del lobo.
+      expect(mordisco.bonoAtaque).toBe(4);
+      expect(mordisco.dadoDano).toBe("1d6+2");
 
       // Rasgos tácticos de la bestia integrados en el ataque
-      expect(mordisco.propiedades).toContain("Atacar en manada (Ventaja con aliado a 5 ft)");
+      expect(mordisco.propiedades).toContain("Atacar en manada (Ventaja con aliado a 5 pies)");
       expect(mordisco.propiedades).toContain("Efecto: Derribo");
       expect(mordisco.notas).toContain("Atacar en manada");
     });
 
-    it("Círculo de la Luna: la CA en Forma salvaje es igual a la CA de la bestia + mod de Sabiduría (sin sumar nada más)", () => {
+    it("Círculo de la Luna: la CA en Forma salvaje es igual a el mayor valor entre la CA de la bestia y 13 + Sabiduría", () => {
       const pjLuna: PersonajeJugador = {
         ...PERSONAJE_POR_DEFECTO,
         clase: "Druida",
         subclase: "Círculo de la Luna",
+        rasgos: obtenerRasgosClaseYSubclase("Druida", 3, "Círculo de la Luna").map(r => r.formasBestia ? { ...r, activo: true } : r),
         nivel: 3,
         caracteristicas: {
           fuerza: 10,
@@ -488,12 +521,12 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       };
 
       const stats = calcularEstadisticasPersonaje(pjLuna);
-      // Lobo tiene CA 12. En Círculo de la Luna: 12 + 3 (SAB) = 15.
-      expect(stats.claseArmadura.total).toBe(15);
-      expect(stats.claseArmadura.base).toBe(15);
+      // Lobo tiene CA 12. En Círculo de la Luna: 13 + 3 (SAB) = 16.
+      expect(stats.claseArmadura.total).toBe(16);
+      expect(stats.claseArmadura.base).toBe(16);
       expect(stats.claseArmadura.bonoEscudo).toBe(0);
       expect(stats.claseArmadura.bonosMagicos).toBe(0);
-      expect(stats.claseArmadura.desglose).toContain("Lobo 12");
+      expect(stats.claseArmadura.desglose).toContain("Base de forma 13");
       expect(stats.claseArmadura.desglose).toContain("SAB +3");
     });
 

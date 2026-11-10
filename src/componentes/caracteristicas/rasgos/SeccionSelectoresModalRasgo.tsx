@@ -9,6 +9,7 @@ import estilos from "./VistaRasgosJugador.module.css";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { opcionesElegiblesConjuros } from "@/servicios/rasgos/seleccionesRasgos";
 import { hidratarSelectorConjuros } from "@/servicios/rasgos/catalogoSelectoresConjuros";
+import { identificarTurnoPropio } from "@/servicios/rasgos/limitesTurnoRasgos";
 
 interface SeccionSelectoresModalRasgoProps {
   selectores: SelectorRasgo[];
@@ -27,6 +28,7 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
   const [paginas, setPaginas] = React.useState<Record<string, number>>({});
   const pj = usarAlmacenDM(s => s.personajes.find(p => p.id === s.idPersonajeActivo));
   const catalogo = usarAlmacenDM(s => s.baseDatosHechizos);
+  const turno = usarAlmacenDM(s => pj && identificarTurnoPropio(pj, s));
   const selectoresElegibles = React.useMemo(() => selectores.map(sel => ({
     ...sel, opciones: opcionesElegiblesConjuros(hidratarSelectorConjuros(sel, catalogo), pj)
   })), [selectores, pj, catalogo]);
@@ -34,6 +36,12 @@ export const SeccionSelectoresModalRasgo: React.FC<SeccionSelectoresModalRasgoPr
   return (
     <div className={estilos.seccionSelectoresModal}>
       {selectoresElegibles.map((sel) => {
+        const cambioTurno = pj?.rasgos.find(r => r.activo && r.cambiarSelectorAlInicioTurno === sel.id);
+        if (cambioTurno && turno !== false && (!turno || cambioTurno.ultimoCambioSelectorTurno !== turno)) return <div key={sel.id} className={estilos.tarjetaSelectorModal}>
+          <SelectorDesplegable titulo="Cambiar al inicio de tu turno" valor={sel.valorActual[0] ?? ""}
+            opciones={sel.opciones.map(o => ({ valor: o.id, etiqueta: o.nombre }))}
+            alCambiar={id => alActualizarSeleccion?.(sel.id, [id])} enFlujo />
+        </div>;
         if (sel.momentoEleccion === "activacion" || (sel.momentoEleccion === "descanso_largo" && sel.valorActual.length > 0 && !sel.cambioDisponible)) return <div key={sel.id} className={estilos.tarjetaSelectorModal}>
           <strong>{sel.etiqueta}</strong><p>{sel.valorActual.map(id => sel.opciones.find(o => o.id === id)?.nombre ?? id).join(", ") || "Sin elección"}</p>
           <p>{sel.momentoEleccion === "activacion" ? "Se elige al activar el rasgo." : "Puedes cambiar esta elección al finalizar un descanso largo."}</p>

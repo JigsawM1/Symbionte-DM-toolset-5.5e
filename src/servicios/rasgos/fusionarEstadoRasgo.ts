@@ -46,12 +46,15 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
     ...nuevo,
     recuperacionDiferida: existente?.recuperacionDiferida,
     conjurosTemporales: nuevo.lanzamientoConRecurso?.duracionRondas ? existente?.conjurosTemporales : undefined,
-    resolucionesCuracionPendientes: nuevo.curacionAlFinalizar || nuevo.curacionConjuros
+    resolucionesCuracionPendientes: nuevo.curacionAlFinalizar || nuevo.curacionConjuros || nuevo.curacionTrasConjuroConEspacio
       ? existente?.resolucionesCuracionPendientes : undefined,
     dadosReserva: existente?.dadosReserva,
     resultadoTabla: existente?.resultadoTabla,
     resultadosTablaPendientes: existente?.resultadosTablaPendientes,
     recuperacionDescansoDisponible: existente?.recuperacionDescansoDisponible,
+    ultimoUsoTurno: nuevo.limitePorTurnoPropio || nuevo.limitePorTurno ? existente?.ultimoUsoTurno : undefined,
+    ultimoCambioSelectorTurno: nuevo.cambiarSelectorAlInicioTurno ? existente?.ultimoCambioSelectorTurno : undefined,
+    ataqueAsistidoPendiente: nuevo.resolucionAsistida?.ataqueConjuro ? existente?.ataqueAsistidoPendiente : undefined,
     selectores: nuevo.selectores?.map((s) => fusionarSelector(s, existente?.selectores?.find((a) => a.id === s.id))),
     vinculoArma: nuevo.vinculoArma ? { ...nuevo.vinculoArma, idInstancia: existente?.vinculoArma?.idInstancia } : undefined,
     condicionAlActivar: nuevo.condicionAlActivar ?? existente?.condicionAlActivar,

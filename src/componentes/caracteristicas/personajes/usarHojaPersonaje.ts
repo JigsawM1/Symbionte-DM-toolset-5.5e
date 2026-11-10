@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useMemo, useCallback } from "react";
-import { dadosAdicionalesTirada, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+import { dadosAdicionalesTirada, emitirTiradaConRasgos, obtenerMinimoNaturalD20 } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { elegirIniciativaOpcional } from "../rasgos/elegirIniciativaOpcional";
 import { emitirSalvacionConRasgos } from "@/servicios/rasgos/emisionSalvacionRasgos";
 import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilidadRasgos";
@@ -9,7 +9,8 @@ import { calcularEstadisticasPersonaje } from '@/servicios/personajes/calculador
 import { usarTipoTirada, usarSistemaMagia, usarPestanaActiva } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
-import { lanzarDadosTaleSpire, sanitizarEtiqueta, type MetadataIniciativa } from "@/utiles/lanzadorDados";
+import { lanzarDadosTaleSpire, sanitizarEtiqueta, solicitarResultadoTirada, type MetadataIniciativa } from "@/utiles/lanzadorDados";
+import { elegirOpcionLanzamiento } from "../rasgos/elegirVarianteConjuro";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
@@ -112,7 +113,8 @@ export function usarHojaPersonaje() {
     metaIniciativa?: MetadataIniciativa,
     tipoTiradaCondicion?: "ventaja" | "desventaja" | "plano",
     sufijoMotivo?: string,
-    objetivoRasgo?: string
+    objetivoRasgo?: string,
+    contextoMinimo?: string
   ) => {
     if (!personajeActivo) return false;
     try {
@@ -123,7 +125,22 @@ export function usarHojaPersonaje() {
         ? " (Ventaja y Desventaja se anulan -> Tirada Plana)"
         : sufijoMotivo && tipoTirada === "plano" ? ` (${sufijoMotivo})` : "";
       const etiquetaLog = `${nombrePj} - ${etiqueta}${sufijoLog}`;
-      const emitir = () => lanzarDadosTaleSpire(formulaDados, etiquetaLog, metaIniciativa, undefined, tipoTiradaCondicion);
+      const minimo = obtenerMinimoNaturalD20(personajeActivo, contextoMinimo);
+      const emitir = async () => {
+        if (minimo <= 1) return lanzarDadosTaleSpire(formulaDados, etiquetaLog, metaIniciativa, undefined, tipoTiradaCondicion);
+        const modo = seAnulan ? "plano" : tipoTirada !== "plano" ? tipoTirada : tipoTiradaCondicion;
+        const grupos = [{ nombre: "Dado natural", formula: "1d20" }];
+        if (modo === "ventaja" || modo === "desventaja") grupos.push({ nombre: "Segundo d20", formula: "1d20" });
+        const adicionales = objetivoRasgo && dadosAdicionalesTirada(personajeActivo, objetivoRasgo).slice(1);
+        if (adicionales) grupos.push({ nombre: "Dados adicionales", formula: adicionales });
+        const { totales } = await solicitarResultadoTirada({ etiqueta: etiquetaLog, grupos });
+        if (totales.length !== grupos.length || !totales.every(Number.isFinite)) return false;
+        const natural = modo === "ventaja" ? Math.max(totales[0], totales[1])
+          : modo === "desventaja" ? Math.min(totales[0], totales[1]) : totales[0];
+        const total = Math.max(minimo, natural) + bono + (adicionales ? totales.at(-1)! : 0);
+        usarAlmacenDM.getState().agregarNotificacion(`${etiquetaLog} · ${total} (d20: ${natural}, mínimo: ${minimo})`, "info");
+        return true;
+      };
 
       return await emitirTiradaConRasgos(personajeActivo, objetivoRasgo ?? "d20", emitir, (id, consumir) => {
         const estado = usarAlmacenDM.getState();
@@ -147,11 +164,20 @@ export function usarHojaPersonaje() {
       desventajaSigiloArmadura, condicionesActivas: personajeActivo.condicionesActivas, personaje: personajeActivo
     });
     const motivos = [...ev.motivosDesventaja, ...ev.motivosVentaja, ...ev.motivosModificadores].join(", ");
-    void lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono + ev.penalizadorD20, undefined, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos);
+    void lanzarTiradaD20Personaje(`Prueba de ${etiqueta}`, bono + ev.penalizadorD20, undefined, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos, undefined, carac);
   }, [personajeActivo, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarSalvacion = useCallback(async (carac: Caracteristica, etiqueta: string, bono: number) => {
     if (!personajeActivo) return;
+    let concentracion = false;
+    if (carac === "constitucion" && personajeActivo.concentracionActiva && obtenerMinimoNaturalD20(personajeActivo, "concentracion") > 1) {
+      const motivo = await elegirOpcionLanzamiento(personajeActivo.id, { nombre: etiqueta, etiqueta: "Motivo de la salvación",
+        descripcion: "El mínimo del d20 se aplica al mantener la concentración.", opciones: [
+          { id: "normal", texto: "Salvación de Constitución" }, { id: "concentracion", texto: "Mantener la concentración" }
+        ] });
+      if (!motivo) return;
+      concentracion = motivo === "concentracion";
+    }
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
     const ev = evaluarEfectosCondicionesEnTirada({
       tipo: "salvacion", caracteristica: carac, penalizacionArmadura: penalizacionSinComp,
@@ -160,7 +186,7 @@ export function usarHojaPersonaje() {
     const motivos = [...ev.motivosDesventaja, ...ev.motivosVentaja, ...ev.motivosModificadores].join(", ");
     await emitirSalvacionConRasgos(personajeActivo, () => lanzarTiradaD20Personaje(
       `Salvación de ${etiquetaLimpia}`, bono + ev.penalizadorD20, undefined,
-      ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos
+      ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos, undefined, concentracion ? "concentracion" : undefined
     ), idRasgo => {
       const estado = usarAlmacenDM.getState();
       if (estado.personajes.find(p => p.id === personajeActivo.id)?.rasgos.find(r => r.id === idRasgo)?.activo)
@@ -178,7 +204,7 @@ export function usarHojaPersonaje() {
     });
     const bonoFinal = (caracteristica ? tirada.bono : bono) + ev.penalizadorD20;
     const motivos = [...ev.motivosDesventaja, ...ev.motivosVentaja, ...ev.motivosModificadores].join(", ");
-    void lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bonoFinal, undefined, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos, `habilidad.${hab}`);
+    void lanzarTiradaD20Personaje(`Prueba de ${nombre}`, bonoFinal, undefined, ev.modoEfectivo !== "plano" ? ev.modoEfectivo : undefined, motivos, `habilidad.${hab}`, tirada.caracteristica);
   }, [personajeActivo, statsCalculadas, penalizacionSinComp, desventajaSigiloArmadura, lanzarTiradaD20Personaje]);
 
   const manejarTirarIniciativa = useCallback(async () => {

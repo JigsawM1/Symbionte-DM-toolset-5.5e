@@ -45,6 +45,13 @@ export function cumpleCondicionEfecto(
   if (!condicion || condicion === "siempre") return true;
 
   const condNorm = normalizar(condicion);
+  if (condNorm === "forma_salvaje") return Boolean(personaje.formaSalvaje?.formaActivaId);
+  if (condNorm.startsWith("seleccion:")) {
+    const [, idRasgo, idSelector, idOpcion] = condicion.split(":");
+    const rasgo = personaje.rasgos.find(r => r.id === idRasgo && r.activo !== false);
+    const selector = rasgo?.selectores?.find(s => s.id === idSelector);
+    return !!rasgo && !!selector && seleccionesValidas(selector, obtenerNivelEfectivoParaRasgo(personaje, rasgo), personaje).includes(idOpcion);
+  }
   if (condNorm.startsWith("rasgo_activo:")) return estaRasgoActivo(personaje, condicion.slice("rasgo_activo:".length));
   if (condNorm.startsWith("sin_condiciones:")) {
     const excluidas = condNorm.slice("sin_condiciones:".length).split(",").map(claveEstado);
@@ -328,7 +335,8 @@ export function resolverFormulaDinamica(
   formula: string | number,
   personaje: PersonajeJugador,
   nombreClaseContexto?: string,
-  rasgo?: RasgoPersonaje
+  rasgo?: RasgoPersonaje,
+  modificadores?: Partial<Record<Caracteristica, number>>
 ): string {
   if (typeof formula === "number") return String(formula);
   if (!formula || typeof formula !== "string") return "";
@@ -353,12 +361,8 @@ export function resolverFormulaDinamica(
 
   // Modificadores de características para tiradas dinámicas (ej. 1d12+constitucion)
   const stats = personaje.caracteristicas || (personaje as { estadisticas?: Record<Caracteristica, number> }).estadisticas;
-  const modCon = stats?.constitucion !== undefined ? Math.floor((stats.constitucion - 10) / 2) : 0;
-  const modFue = stats?.fuerza !== undefined ? Math.floor((stats.fuerza - 10) / 2) : 0;
-  const modDes = stats?.destreza !== undefined ? Math.floor((stats.destreza - 10) / 2) : 0;
-  const modInt = stats?.inteligencia !== undefined ? Math.floor((stats.inteligencia - 10) / 2) : 0;
-  const modSab = stats?.sabiduria !== undefined ? Math.floor((stats.sabiduria - 10) / 2) : 0;
-  const modCar = stats?.carisma !== undefined ? Math.floor((stats.carisma - 10) / 2) : 0;
+  const mod = (caracteristica: Caracteristica, puntuacion = stats?.[caracteristica] ?? 10) =>
+    modificadores?.[caracteristica] ?? Math.floor((puntuacion - 10) / 2);
 
   // Normalizar prefijos de modificadores (ej. "modificador_carisma", "modificador por carisma", "mod_carisma")
   const formulaNormalizada = formula
@@ -384,12 +388,12 @@ export function resolverFormulaDinamica(
       return String(normalizar(personaje.clase || "").includes(clsNorm) ? nivelClase : 0);
     })
     .replace(/\bnivel\b/gi, String(nivelClase))
-    .replace(/\b(constitucion|con)\b/gi, String(modCon))
-    .replace(/\b(fuerza|fue|str)\b/gi, String(modFue))
-    .replace(/\b(destreza|des|dex)\b/gi, String(modDes))
-    .replace(/\b(inteligencia|int)\b/gi, String(modInt))
-    .replace(/\b(sabiduria|sab|wis)\b/gi, String(modSab))
-    .replace(/\b(carisma|car|cha)\b/gi, String(modCar))
+    .replace(/\b(constitucion|con)\b/gi, String(mod("constitucion")))
+    .replace(/\b(fuerza|fue|str)\b/gi, String(mod("fuerza")))
+    .replace(/\b(destreza|des|dex)\b/gi, String(mod("destreza")))
+    .replace(/\b(inteligencia|int)\b/gi, String(mod("inteligencia")))
+    .replace(/\b(sabiduria|sab|wis)\b/gi, String(mod("sabiduria", personaje.overridesFijos?.sabiduria ?? undefined)))
+    .replace(/\b(carisma|car|cha)\b/gi, String(mod("carisma")))
     .replace(/max\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)\s*d(\d+)/gi, (_m, minStr, valStr, caraStr) => {
       const cantDados = Math.max(parseInt(minStr, 10), parseInt(valStr, 10));
       return `${cantDados}d${caraStr}`;

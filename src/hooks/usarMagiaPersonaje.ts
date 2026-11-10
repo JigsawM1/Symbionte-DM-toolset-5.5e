@@ -11,6 +11,7 @@ import {
 import { esClasePacto } from "@/constantes";
 import { crearResolutorOrigenConjuros, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
+import { esConjuroIndependiente, clasesPropietariasConjuro } from "@/servicios/rasgos/listasConjurosRasgos";
 
 export interface EstadoMagiaPersonaje {
   habilidadMagica: Caracteristica;
@@ -214,6 +215,7 @@ export function usarMagiaPersonaje(
     let cSubclase = 0;
     let tLibres = 0;
     let tSubclase = 0;
+    let independientesPreparados = 0;
 
     const esModeloPreparacion = maximos.modelo === "preparados" || maximos.modelo === "grimorio";
 
@@ -232,12 +234,14 @@ export function usarMagiaPersonaje(
       const esSubclase = chequeoEnSet(setSiemprePreparados);
       const origen = resolutorOrigen(h);
       const otorgado = origen !== null || esSubclase;
+      const independiente = personaje && esConjuroIndependiente(personaje, h)
+        && !clasesPropietariasConjuro(personaje, h.id).length;
 
       if (h.nivel === 0) {
         const enLista = chequeoEnSet(setTrucosIds) || otorgado;
         if (otorgado) {
           tSubclase++;
-        } else if (enLista) {
+        } else if (enLista && !independiente) {
           tLibres++;
         }
 
@@ -252,7 +256,8 @@ export function usarMagiaPersonaje(
         if (otorgado) {
           cSubclase++;
         } else if (enLista) {
-          cLibres++;
+          if (independiente) independientesPreparados++;
+          else cLibres++;
         }
 
         if (enLista) {
@@ -274,7 +279,7 @@ export function usarMagiaPersonaje(
       conteoEfectivo: {
         libres: cLibres,
         subclase: cSubclase,
-        total: cLibres + cSubclase,
+        total: cLibres + cSubclase + independientesPreparados,
         trucosLibres: tLibres,
         trucosSubclase: tSubclase
       }

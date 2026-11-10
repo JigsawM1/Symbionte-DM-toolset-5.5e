@@ -33,6 +33,7 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
   if (ataquesFisicos.length === 0) {
     return null;
   }
+  const tieneDanoAdicional = personajeActivo.rasgos?.some(r => r.resolucionAsistida?.integrarEnDanoDeArma && r.activo !== false);
 
   return (
     <div className={estilos.seccionGrupoAtaques}>
@@ -70,6 +71,7 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
                 key={ataque.id}
                 ataque={ataque}
                 evaluacionCondiciones={evalCond}
+                permiteDanoAdicional={ataque.tipo === "Arma" && tieneDanoAdicional}
                 alTirarAtaque={alTirarAtaque}
                 alTirarDano={alTirarDano}
                 alTirarCritico={alTirarCritico}

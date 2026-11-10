@@ -262,6 +262,103 @@
       "Pasos intermitentes (teletransporte hasta 30 pies tras realizar la acción de atacar o magia)"
     ],
     "tipoAccion": "especial",
-    "categoriaMecanica": "pasivo_permanente"
+    "categoriaMecanica": "pasivo_permanente",
+    "selectores": [
+      {
+        "id": "selector_caracteristica_viaje_dimensional",
+        "tipo": "unico",
+        "tipoSelector": "general",
+        "etiqueta": "Característica que aumenta",
+        "valorActual": [],
+        "maxSelecciones": 1,
+        "visualizacion": "lista",
+        "opciones": [
+          {
+            "id": "fuerza",
+            "nombre": "Fuerza",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_fuerza",
+                "tipo": "modificador_stat",
+                "objetivo": "fuerza",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          },
+          {
+            "id": "destreza",
+            "nombre": "Destreza",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_destreza",
+                "tipo": "modificador_stat",
+                "objetivo": "destreza",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          },
+          {
+            "id": "constitucion",
+            "nombre": "Constitución",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_constitucion",
+                "tipo": "modificador_stat",
+                "objetivo": "constitucion",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          },
+          {
+            "id": "inteligencia",
+            "nombre": "Inteligencia",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_inteligencia",
+                "tipo": "modificador_stat",
+                "objetivo": "inteligencia",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          },
+          {
+            "id": "sabiduria",
+            "nombre": "Sabiduría",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_sabiduria",
+                "tipo": "modificador_stat",
+                "objetivo": "sabiduria",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          },
+          {
+            "id": "carisma",
+            "nombre": "Carisma",
+            "descripcion": "+1 (máximo 30)",
+            "efectos": [
+              {
+                "id": "viaje_dimensional_carisma",
+                "tipo": "modificador_stat",
+                "objetivo": "carisma",
+                "valor": 1,
+                "limiteMaximo": 30
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 ]

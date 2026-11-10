@@ -20,16 +20,17 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
   useEffect(() => { if (abierto) dialogo.current?.showModal(); }, [abierto]);
   const pagoAlternativo = pj ? obtenerPagoActivacionAlternativa(pj, rasgo) : undefined;
   const alternar = () => {
-    if ((rasgo.activo && !rasgo.renovarActivacion) || (!selectores.length && !opcionales.length && !pagoAlternativo) || !pj) { alternarOriginal?.(); return; }
+    if ((rasgo.activo && !rasgo.renovarActivacion) || (!selectores.length && !opcionales.length && !pagoAlternativo && !rasgo.renovarActivacion) || !pj) { alternarOriginal?.(); return; }
     confirmando.current = false;
     setDecisiones({ selectores: {}, opcionales: [] }); setError(""); setAbierto(true);
   };
   const confirmar = () => {
     if (!pj || confirmando.current) return;
     confirmando.current = true;
+    const previo = usarAlmacenDM.getState().personajes.find(p => p.id === pj.id)?.rasgos.find(r => r.id === rasgo.id);
     usarAlmacenDM.getState().alternarActivoRasgo(pj.id, rasgo.id, decisiones);
-    const activo = usarAlmacenDM.getState().personajes.find(p => p.id === pj.id)?.rasgos.find(r => r.id === rasgo.id)?.activo;
-    if (activo) setAbierto(false); else { confirmando.current = false; setError("No se pudo activar. Revisa las elecciones, requisitos y usos disponibles."); }
+    const actualizado = usarAlmacenDM.getState().personajes.find(p => p.id === pj.id)?.rasgos.find(r => r.id === rasgo.id);
+    if (actualizado?.activo && actualizado !== previo) setAbierto(false); else { confirmando.current = false; setError("No se pudo activar. Revisa las elecciones, requisitos y usos disponibles."); }
   };
   const modal = abierto && <dialog ref={dialogo} className={modalEstilos.dialogo} aria-label={`Activar ${rasgo.nombre}`}
     onCancel={() => setAbierto(false)} onClick={e => e.stopPropagation()}>
@@ -69,6 +70,10 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
       {error && <p className={modalEstilos.error} role="status">{error}</p>}
     </div>
     <footer className={modalEstilos.acciones}><button type="button" onClick={() => setAbierto(false)}>Cancelar</button>
+      {rasgo.activo && rasgo.renovarActivacion && <button type="button" onClick={() => {
+        if (pj) usarAlmacenDM.getState().alternarActivoRasgo(pj.id, rasgo.id, { selectores: {}, opcionales: [], desactivar: true });
+        setAbierto(false);
+      }}>Disipar</button>}
       <button type="button" className={modalEstilos.principal} aria-label="Confirmar activación" disabled={selectores.some(s => !decisiones.selectores[s.id]?.length)} onClick={confirmar}>Activar {rasgo.nombre}</button></footer>
   </dialog>;
   return { alternar, modal };

@@ -6,11 +6,18 @@ import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 export interface EleccionesActivacionRasgo {
   selectores: Record<string, string[]>;
   opcionales: string[];
+  desactivar?: boolean;
+}
+
+/** Una opción activada habilita sus capacidades pasivas sin tocar reservas ni otros rasgos. */
+export function sincronizarDependientesActivacion(pj: PersonajeJugador, padre: RasgoPersonaje): PersonajeJugador {
+  return { ...pj, rasgos: pj.rasgos.map(r => r.ligadoA === padre.id && r.requiereOpcion && !r.esActivable
+    ? { ...r, activo: Boolean(padre.activo) && esRasgoHabilitadoPorOpcion(r, pj.rasgos) } : r) };
 }
 
 /** Valida todas las decisiones antes de gastar o cambiar el estado del personaje. */
 export function prepararEleccionesActivacion(pj: PersonajeJugador, r: RasgoPersonaje, decisiones?: EleccionesActivacionRasgo): PersonajeJugador | undefined {
-  if (r.activo && !r.renovarActivacion) return pj;
+  if (r.activo && (!r.renovarActivacion || decisiones?.desactivar)) return pj;
   const selectores = (r.selectores ?? []).filter(s => s.momentoEleccion === "activacion");
   if (selectores.some(s => {
     const valores = decisiones?.selectores[s.id];

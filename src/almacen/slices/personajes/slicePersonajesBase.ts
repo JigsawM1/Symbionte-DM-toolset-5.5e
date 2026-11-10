@@ -240,7 +240,7 @@ export const crearSubSlicePersonajesBase: StateCreator<
     set((state) => ({
       personajes: state.personajes.map((pj) => {
         if (pj.id !== id) return pj;
-        return normalizarMecanicasRasgos(pj, aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones), state.baseDatosHechizos);
+        return aplicarBuildClaseAPersonaje(pj, claseNombre, nivel, subclaseNombre, opciones, state.baseDatosHechizos);
       })
     }));
   },

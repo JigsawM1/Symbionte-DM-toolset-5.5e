@@ -437,7 +437,11 @@ export const EsquemaPersonajeJugador = z.object({
   formaSalvaje: z.object({
     formasConocidasIds: z.array(z.string()).default([]),
     formaActivaId: z.string().nullable().default(null),
-    hpTemporalAlTransformar: z.number().default(0)
+    hpTemporalAlTransformar: z.number().default(0),
+    sustitucionDisponible: z.boolean().optional(),
+    equipoConservadoIds: z.array(z.string()).optional(),
+    minutosRestantes: z.number().int().nonnegative().optional(),
+    expiraRonda: z.number().int().positive().optional()
   }).default({
     formasConocidasIds: [],
     formaActivaId: null,

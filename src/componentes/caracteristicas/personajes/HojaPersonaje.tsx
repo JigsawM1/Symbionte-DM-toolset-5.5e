@@ -12,7 +12,7 @@ import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarHojaPersonaje } from "./usarHojaPersonaje";
 import { Swords, Sparkles, PawPrint } from "lucide-react";
-import { esClaseDruida, coincideIdRasgo } from "@/constantes";
+import { obtenerNivelDruida, obtenerRasgoFormaBestia } from "@/servicios/reglasFormaSalvaje";
 import { PanelFormaSalvaje } from "./PanelFormaSalvaje";
 import estilos from "./HojaPersonaje.module.css";
 
@@ -88,11 +88,8 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     );
   }
 
-  const esDruida = Boolean(
-    esClaseDruida(personajeActivo.clase) ||
-    personajeActivo.clases?.some((cls) => esClaseDruida(cls.nombre)) ||
-    personajeActivo.rasgos?.some((r) => coincideIdRasgo(r, "forma_salvaje"))
-  );
+  const formaBestia = obtenerRasgoFormaBestia(personajeActivo);
+  const tieneFormaBestia = !!formaBestia && obtenerNivelDruida(personajeActivo) >= (formaBestia.nivelRequerido ?? 2);
 
   return (
     <main className={estilos.contenedorPrincipal}>
@@ -153,7 +150,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           alClick={() => setSubPestanaActiva("conjuros")}
         />
 
-        {esDruida && (
+        {tieneFormaBestia && (
           <BotonSubPestana
             activa={subPestanaActiva === "formaSalvaje"}
             etiqueta="FORMA SALVAJE"
@@ -205,10 +202,10 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         </>
       )}
 
-      {subPestanaActiva === "formaSalvaje" && esDruida && (
+      {subPestanaActiva === "formaSalvaje" && tieneFormaBestia && (
         <PanelFormaSalvaje
           personaje={personajeActivo}
-          alTransformar={(idBestia) => transformarEnFormaSalvaje(personajeActivo.id, idBestia)}
+          alTransformar={(idBestia, equipo, conservarPg) => transformarEnFormaSalvaje(personajeActivo.id, idBestia, equipo, conservarPg)}
           alRevertir={() => revertirFormaSalvaje(personajeActivo.id)}
           alGuardarFormasConocidas={(formas) => establecerFormasConocidasDruida(personajeActivo.id, formas)}
         />

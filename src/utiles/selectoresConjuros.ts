@@ -13,6 +13,7 @@ type SelectorMinimo = Pick<SelectorRasgo, "id" | "tipoSelector" | "esConjuroGrat
  * Función PURA.
  */
 export function esSelectorDeTrucos(selector: SelectorMinimo): boolean {
+  if (selector.destinoConjuros === "trucos") return true;
   const sid = (selector?.id || "").trim().toLowerCase();
   return SUBCADENAS_TRUCO.some((sub) => sid.includes(sub));
 }

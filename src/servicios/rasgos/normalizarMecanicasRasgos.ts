@@ -11,19 +11,22 @@ import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "
 import { hidratarSelectoresConjuros } from "./catalogoSelectoresConjuros";
 import { reconciliarIntentoRasgo } from "./resolucionesRasgos";
 import { registrarCuracionAlFinalizar } from "./curacionDeclarativa";
+import { calcularEstadisticasPersonaje } from "../personajes/calculadorEstadisticasPersonaje";
 
 /** Resuelve las mismas tablas para catálogo y homebrew, conservando el gasto de recursos. */
 export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined, pj: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
   if (catalogo) pj = { ...pj, rasgos: hidratarSelectoresConjuros(pj.rasgos, catalogo) };
   pj = { ...pj, rasgos: pj.rasgos.map(r => r.conjurosDesdeSelectores ? { ...r, conjurosOtorgados: r.selectores?.flatMap(s => seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj)) ?? [] } : r) };
   let cambio = false;
+  let modificadores: ReturnType<typeof calcularEstadisticasPersonaje>["modificadores"] | undefined;
   const rasgos = (pj.rasgos ?? []).map(r => {
     // El catálogo ya utiliza el mismo resolutor durante su construcción por nivel.
     if (!r.personalizado && r.origen !== "personalizado") {
       // El builder de catálogo no recibe características: estos máximos necesitan la ficha real.
       if (!r.tieneUsosLimitados || r.escaladoUsos?.tipo !== "por_modificador" || !r.escaladoUsos.modificador) return r;
       const stat = r.escaladoUsos.modificador as keyof PersonajeJugador["caracteristicas"];
-      const maximo = Math.max(r.escaladoUsos.minimo, Math.floor(((pj.overridesFijos?.[stat] ?? pj.caracteristicas?.[stat] ?? 10) - 10) / 2));
+      modificadores ??= calcularEstadisticasPersonaje(pj).modificadores;
+      const maximo = Math.max(r.escaladoUsos.minimo, modificadores[stat] ?? 0);
       if (maximo === r.usosMaximos) return r;
       const anteriorMaximo = r.usosMaximos ?? maximo;
       const disponibles = r.usosRestantes ?? anteriorMaximo;
@@ -41,7 +44,8 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
     let maximo = escalados.usosEscalados ?? r.usosMaximos;
     if (r.escaladoUsos?.tipo === "por_modificador" && r.escaladoUsos.modificador) {
       const stat = r.escaladoUsos.modificador as keyof PersonajeJugador["caracteristicas"];
-      maximo = Math.max(r.escaladoUsos.minimo, Math.floor(((pj.overridesFijos?.[stat] ?? pj.caracteristicas?.[stat] ?? 10) - 10) / 2));
+      modificadores ??= calcularEstadisticasPersonaje(pj).modificadores;
+      maximo = Math.max(r.escaladoUsos.minimo, modificadores[stat] ?? 0);
     }
     const actualizado = { ...r, formulaDados: escalados.formulaDados, conjurosOtorgados: escalados.conjurosOtorgados,
       recuperacion: (escalados.recuperacion ?? r.recuperacion) as typeof r.recuperacion, efectos: escalados.efectos,
@@ -59,15 +63,16 @@ export function normalizarMecanicasRasgos(anterior: PersonajeJugador | undefined
   if (retirados.length) actual = { ...actual,
     efectosActivos: actual.efectosActivos.filter(e => !retirados.includes(e)),
     condicionesActivas: actual.condicionesActivas.filter(c => !retirados.some(e => claveEstado(e.nombre) === claveEstado(c))) };
-  const mismaBuild = !anterior || (anterior.clase === actual.clase && anterior.subclase === actual.subclase
-    && anterior.nivel === actual.nivel && JSON.stringify(anterior.clases) === JSON.stringify(actual.clases));
-  if (actual.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(materializaSelector))) {
-    const proyectados = construirRasgosDesdeSelectores(actual);
-    if (JSON.stringify(proyectados) !== JSON.stringify(actual.rasgos)) {
-      actual = { ...actual, rasgos: proyectados, ...(mismaBuild ? reconciliarConjurosRasgos(anterior ?? pj, proyectados) : {}) };
-    }
-    if (anterior && mismaBuild && JSON.stringify(anterior.rasgos) !== JSON.stringify(actual.rasgos))
-      actual = { ...actual, ...reconciliarConjurosRasgos(anterior, actual.rasgos) };
+  const antes = anterior ?? pj;
+  const tieneProyecciones = (ficha: PersonajeJugador) => ficha.rasgos.some(r => r.idSelectorOrigen || r.selectores?.some(materializaSelector));
+  const proyecta = tieneProyecciones(actual);
+  if (proyecta) {
+    const rasgosProyectados = construirRasgosDesdeSelectores(actual);
+    if (JSON.stringify(rasgosProyectados) !== JSON.stringify(actual.rasgos)) actual = { ...actual, rasgos: rasgosProyectados };
+  }
+  const hayConcesiones = actual.rasgos.some(r => r.progresionConcesion) || antes.rasgos.some(r => r.progresionConcesion);
+  if (hayConcesiones || ((proyecta || tieneProyecciones(antes)) && JSON.stringify(antes.rasgos) !== JSON.stringify(actual.rasgos))) {
+    actual = { ...actual, ...reconciliarConjurosRasgos(antes, actual.rasgos, actual) };
   }
   const arcanos = actual.rasgos.flatMap(r => (r.selectores ?? []).filter(s => s.destinoConjuros === "arcano_mistico"));
   if (arcanos.length) {

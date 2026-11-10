@@ -450,6 +450,7 @@ export function importarDesdeJSON(
           componentesSeleccionados,
           descNivelSuperior: h.descNivelSuperior ? aplanarValor(h.descNivelSuperior) : undefined,
           materiales: h.materiales != null ? aplanarValor(h.materiales) || undefined : undefined,
+          materialCostosoOConsumido: typeof h.materialCostosoOConsumido === "boolean" ? h.materialCostosoOConsumido : undefined,
           duracion: h.duracion ? aplanarValor(h.duracion) : undefined,
           clases: Array.isArray(h.clases) ? h.clases.map(aplanarValor).filter(Boolean) : undefined,
           ataqueCd,
@@ -458,6 +459,7 @@ export function importarDesdeJSON(
           dadosDañoNivelSuperior: h.dadosDañoNivelSuperior ? aplanarValor(h.dadosDañoNivelSuperior) : undefined,
           cdSalvacion: h.cdSalvacion ? aplanarValor(h.cdSalvacion) : undefined,
           agregarModificadorHabilidad: Boolean(h.agregarModificadorHabilidad),
+          danoIndirecto: typeof h.danoIndirecto === "boolean" ? h.danoIndirecto : undefined,
           tipoDaño: h.tipoDaño ? aplanarValor(h.tipoDaño) : undefined,
         };
 

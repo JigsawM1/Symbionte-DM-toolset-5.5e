@@ -16,7 +16,7 @@ import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import { ts } from "@/utiles/TaleSpireAdapter";
-import { normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
+import { finalizarRasgosDelTurno, normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import {
   normalizarNombreTaleSpire,
   coincidenNombresTaleSpire,
@@ -125,7 +125,9 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
       colaIniciativa: nuevaCola,
       indiceTurnoActivo: nuevoIndice,
       rondaActual: nuevaRonda,
-      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, nuevaRonda, { conservarConcentracionDesconocida: state.esGM }))
+      personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(finalizarRasgosDelTurno(p, state, {
+        colaIniciativa: nuevaCola, indiceTurnoActivo: nuevoIndice, rondaActual: nuevaRonda
+      }), nuevaRonda, { conservarConcentracionDesconocida: state.esGM }))
     };
   }),
 
@@ -161,10 +163,12 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     if (resultado.rondaActual > state.rondaActual) {
       const pjsBase = state.personajes;
       const nuevosPjs = restablecerMovimientoPersonajes(pjsBase, `Reinicio de ronda TaleSpire (Ronda ${resultado.rondaActual})`);
-      return { ...resultado, personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, resultado.rondaActual, { conservarConcentracionDesconocida: state.esGM })) };
+      return { ...resultado, personajes: nuevosPjs.map(p => normalizarCondicionesRasgos(finalizarRasgosDelTurno(p, state, resultado),
+        resultado.rondaActual, { conservarConcentracionDesconocida: state.esGM })) };
     }
 
-    return resultado;
+    const personajes = state.personajes.map(p => finalizarRasgosDelTurno(p, state, resultado));
+    return personajes.some((p, i) => p !== state.personajes[i]) ? { ...resultado, personajes } : resultado;
   }, undefined, true),
 
   importarIniciativaTaleSpire: async () => {
@@ -322,7 +326,16 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
       colaIniciativa: [],
       indiceTurnoActivo: 0,
       rondaActual: 1,
-      personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
+      personajes: nuevosPjs.map((p) => {
+        const vigente = normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM });
+        const forma = vigente.formaSalvaje;
+        return {
+          ...vigente,
+          rasgos: vigente.rasgos.map(r => r.ultimoUsoTurno ? { ...r, ultimoUsoTurno: undefined } : r),
+          ...(forma?.expiraRonda ? { formaSalvaje: { ...forma,
+            minutosRestantes: Math.ceil((forma.expiraRonda - state.rondaActual) / 10), expiraRonda: undefined } } : {})
+        };
+      })
     };
   }),
 

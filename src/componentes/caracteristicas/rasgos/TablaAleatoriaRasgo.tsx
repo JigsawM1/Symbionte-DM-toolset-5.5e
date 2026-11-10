@@ -44,7 +44,8 @@ export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: Pe
     candado.current = true; bloquear(true);
     try {
       const texto = `${pj.nombre} · ${r.nombre}${tirada ? ` · 1d${cfg.dado}: ${tirada}` : " · Elección de fila"}\n${resolverFilaTabla(fila)}`;
-      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "guardarTabla", idRasgo: accion.id, texto, detalle: { idFila: fila.id } })) {
+      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(pj.id, { tipo: "guardarTabla", idRasgo: accion.id, texto,
+        detalle: { idFila: fila.id, tiradaD100: tirada } })) {
         informar("Los usos o el resultado pendiente cambiaron."); return;
       }
       elegir([]); await enviar(texto);

@@ -216,6 +216,12 @@ export function usarAccionesTarjetaRasgo({
 
   const manejarConfirmarRecuperacion = (espacios: Record<number, number>, puntosConjuro?: number, gastarRecuperacion?: (cantidad?: number) => void) => {
     if (!idPersonaje) return;
+    if (rasgo.recuperarEspaciosTrasDescansoCorto) {
+      const estado = usarAlmacenDM.getState();
+      if (estado.operarRecursoRasgoPersonaje(idPersonaje, { tipo: "recuperarEspaciosDescanso", idRasgo: rasgo.id, espacios }))
+        estado.agregarNotificacion("Espacios recuperados.", "exito");
+      return;
+    }
     const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();
     let totalRanuras = 0;
     for (const [lvlStr, cant] of Object.entries(espacios)) {

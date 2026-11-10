@@ -176,6 +176,7 @@ export const EsquemaHechizoBase = z.object({
   // Campos avanzados enriquecidos
   descNivelSuperior: z.string().optional(),
   materiales: z.string().optional(),
+  materialCostosoOConsumido: z.boolean().optional(),
   componentesSeleccionados: EsquemaComponentesSeleccionados,
   duracion: z.string().optional(),
   clases: z.array(z.string()).optional(),
@@ -194,6 +195,8 @@ export const EsquemaHechizoBase = z.object({
   cdSalvacion: z.string().optional(), // ej. "Destreza", "Sabiduría"
   agregarModificadorHabilidad: z.boolean().optional(),
   bonoModificadorRasgo: z.number().optional(),
+  alcanceBaseRasgo: z.string().optional(),
+  danoIndirecto: z.boolean().optional(),
   tipoDaño: z.string().optional()
 });
 export type HechizoBase = z.infer<typeof EsquemaHechizoBase>;

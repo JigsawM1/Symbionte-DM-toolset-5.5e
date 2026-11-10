@@ -48,6 +48,7 @@ function resolverTablaEfectiva(pj: PersonajeJugador, rasgos: RasgoPersonaje[], i
     : rasgoAccion.tieneUsosLimitados && restantes < 1;
   const motivoBloqueo = motivoRasgoNoDisponible(pj, rasgoTabla) ?? motivoRasgoNoDisponible(pj, rasgoAccion)
     ?? motivoRasgoNoDisponible(pj, solicitado)
+    ?? (rasgoAccion.consultaTablaDescansoLargo && !rasgoAccion.recuperacionDescansoDisponible ? "La consulta está disponible al terminar un descanso largo." : undefined)
     ?? (sinUsos ? recarga ? "El recurso no necesita recarga." : "No quedan usos disponibles." : undefined);
   return { rasgoTabla, rasgoAccion, configuracion: { ...configuracion, filas: configuracion.filas },
     filasCompletas: base.filas, disponible: !motivoBloqueo, motivoBloqueo };

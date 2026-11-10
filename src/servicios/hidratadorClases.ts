@@ -45,7 +45,11 @@ function hidratarSelectoresRasgo(rasgo: PlantillaRasgoClase): PlantillaRasgoClas
   if (!rasgo.selectores || rasgo.selectores.length === 0) return rasgo;
   return {
     ...rasgo,
-    selectores: rasgo.selectores.map((sel: SelectorRasgo) => {
+    selectores: rasgo.selectores.map(hidratarSelectorClase)
+  };
+}
+
+function hidratarSelectorClase(sel: SelectorRasgo): SelectorRasgo {
       let selActualizado = sel;
       if (sel.claveOpcionesDinamicas === "invocaciones_brujo") {
         selActualizado = {
@@ -64,9 +68,9 @@ function hidratarSelectoresRasgo(rasgo: PlantillaRasgoClase): PlantillaRasgoClas
           opcionesDinamicas: obtenerGruposDinamicosEscalados(sel.claveGruposDinamicos)
         };
       }
-      return selActualizado;
-    })
-  };
+      if (!selActualizado.opciones.some(opcion => opcion.selectores?.length)) return selActualizado;
+      return { ...selActualizado, opciones: selActualizado.opciones.map(opcion => opcion.selectores?.length
+        ? { ...opcion, selectores: opcion.selectores.map(hidratarSelectorClase) } : opcion) };
 }
 
 function hidratarClase(clase: DefinicionClase): DefinicionClase {

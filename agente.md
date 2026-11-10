@@ -1,5 +1,116 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-10] Conjuros fuera de las listas de clase
+
+La casilla de `Todos` (u `Otros` para grimorio) permite añadir un conjuro o truco ajeno a las listas del personaje como concesión independiente. Reutiliza `aprendizajesConjurosIndependientes`. Un conjuro añadido así queda preparado inicialmente, se puede despreparar y conserva el aprendizaje al reconstruir y recargar la ficha. La concesión queda fuera del cupo de clase. Al quitarla se conservan otras procedencias. Los conjuros elegidos como parte de la clase conservan su validación de lista, nivel y cupo.
+
+La regresión de Druida comprobó Proyectil mágico y Descarga de fuego, su preparación, el cupo normal de trucos, la reconstrucción y la retirada. En multiclase, la concesión conserva su procedencia al filtrar por clase. Chromium pasó los once recorridos del Druida, incluida la casilla de Proyectil mágico, la recarga y su retirada desde el compendio. `pnpm run ci` pasó 2.741 pruebas y cinco simulaciones. TypeScript y ESLint pasaron tras el ajuste del filtro y Graphify actualizó el índice local.
+
+## [2026-11-10] Círculos druídicos del PHB 2024
+
+La ficha usa las concesiones del catálogo de conjuros por ID, nivel de Druida, elección y estado. Las listas preparadas, el origen visible y el lanzador consultan la misma concesión. El constructor conserva selecciones y reservas, y la hidratación retira las concesiones antiguas que puede identificar por su origen. La comprobación de Luna usa los metadatos de Forma salvaje y del rasgo de conjuros.
+
+| Círculo | Nivel | Rasgo y categoría | Recursos, efectos y alcance de la implementación |
+|---|---:|---|---|
+| Tierra | 3 | Conjuros del círculo · selector informativo | Automatizado. Variante al descanso largo, progresión 3/5/7/9 y procedencia Druida fuera de cupo. |
+| Tierra | 3 | Auxilio de la tierra · consumible | Parcial. Un uso de Forma salvaje para emitir daño necrótico y curación en dos grupos con 2d6/3d6/4d6 a niveles 3/10/14. La ficha puede aplicar la curación propia. La mesa elige objetivos y resuelve salvaciones de Constitución y mitad de daño. |
+| Tierra | 6 | Recuperación natural · consumible | Automatizado. Dos usos independientes por descanso largo. Lanzamiento gratuito desde Conjuros y tienda de espacios de niveles 1–5 tras descanso corto, con presupuesto de media clase redondeada hacia arriba. |
+| Tierra | 10 | Custodia de la naturaleza · pasivo permanente | Parcial. La ficha bloquea la aplicación de Envenenado y muestra la resistencia de la tierra vigente. La reducción de daño se resuelve en mesa. |
+| Tierra | 14 | Santuario de la naturaleza · consumible | Parcial. Gasta Forma salvaje y registra 10 asaltos. La acción adicional asiste el traslado. Posición, cobertura y beneficios a aliados se resuelven en mesa. |
+| Luna | 3 | Conjuros del círculo · pasivo permanente | Automatizado. Filas 3/5/7/9, truco y permiso de lanzamiento en bestia ligado a la concesión de Druida. |
+| Luna | 3 | Formas de círculo · extensión | Automatizado. Amplía Forma salvaje con VD según un tercio del nivel de clase, CA mínima de 13 + Sabiduría y PG temporales triples. |
+| Luna | 6 | Formas de círculo mejoradas · pasivo permanente | Automatizada la salvación de Constitución con Sabiduría efectiva. Al confirmar impacto se elige el daño normal o radiante sin modificar los dados. |
+| Luna | 10 | Paso a la luz de la luna · consumible | Parcial. Usos de Sabiduría, recarga con espacio de nivel 2 o superior y ventaja en el siguiente ataque del turno. El movimiento se resuelve en mesa. |
+| Luna | 14 | Forma lunar · pasivo permanente | Parcial. Daño radiante 2d10 integrado una vez por turno y acumulable con Golpe primordial. La extensión de Paso lunar describe las condiciones del traslado de la criatura voluntaria. |
+| Mar | 3 | Conjuros del círculo · pasivo permanente | Automatizado. Filas 3/5/7/9 y Rayo de escarcha fuera de cupo. |
+| Mar | 3 | Ira del mar · consumible | Parcial. Usa Forma salvaje al activar la emanación de 5 pies. La acción adicional de daño no cobra otro uso. Frío en d6 por Sabiduría, mínimo un dado. La mesa confirma el objetivo y el empuje. |
+| Mar | 6 | Afinidad acuática · extensión y pasivo permanente | Automatizado en ficha. Extiende el alcance a 10 pies y concede nado al margen de la activación. |
+| Mar | 10 | Nacido de la tormenta · extensión | Parcial. Concede vuelo y muestra resistencias a frío, relámpago y trueno en la ficha del druida que porta el aura. |
+| Mar | 14 | Don oceánico · extensión | Parcial. Valida un portador por un uso o dos por dos usos. La mesa confirma al aliado y aplica su aura y beneficios. |
+| Estrellas | 3 | Mapa estelar · consumible | Parcial. Selección de forma del mapa y conmutador para sostenerlo. Otorga Guía y Saeta guía mientras se sostiene. La reserva de lanzamientos gratuitos de Saeta guía usa Sabiduría y se recupera al descanso largo. Canalizador y reemplazo en mesa. |
+| Estrellas | 3 | Forma estelar · consumible | Parcial. Gasta un uso de Forma salvaje, elige constelación y registra 100 asaltos. Arquero emite ataque y daño confirmado. El ajuste de crítico de Arquero se resuelve en mesa. Cáliz registra una curación por lanzamiento con espacio y curación confirmada. Dragón aplica un mínimo natural de 10 a las pruebas indicadas. La luz se resuelve en mesa. |
+| Estrellas | 6 | Presagio cósmico · consumible | Parcial. Consulta de paridad tras descanso largo sin gasto de reacción. Una reserva de Sabiduría cubre las reacciones de +1d6 o −1d6. La mesa confirma y aplica la modificación al objetivo. |
+| Estrellas | 10 | Constelaciones titilantes · extensión | Automatizado en ficha. Arquero y Cáliz pasan de 1d8 a 2d8, Dragón vuela 20 pies y flota, y el cambio de constelación al inicio del turno conserva la forma y su gasto. |
+| Estrellas | 14 | Lleno de estrellas · extensión | Parcial. La ficha muestra las resistencias a contundente, perforante y cortante durante Forma estelar. |
+
+Se reutilizaron las tiendas de recuperación, las solicitudes estructuradas de dados, la elección declarativa, los efectos temporales y la resolución asistida. Los cambios afectan el catálogo de Druida, los consumidores de rasgos, recursos y conjuros, los controles correspondientes de la ficha y las pruebas de Druida, subclases y navegador. El compendio de conjuros ya contenía las entradas necesarias.
+
+Las duraciones se siguen con los asaltos y descansos de la ficha. El tiempo de exploración queda en mesa. Los controles de daño reciben solo una cantidad, así que la mesa aplica la reducción por resistencia antes de ingresarla. Cáliz registra los conjuros que el catálogo identifica como curativos. La ficha pregunta si la salvación de Constitución se hace para mantener concentración cuando Dragón puede modificarla.
+
+### Archivos de los círculos
+
+- Catálogo y contrato en `src/datos/clases/druida.json`, `src/tipos/mecanicasRasgos.ts` y `src/tipos/rasgos.ts`.
+- Almacén en `src/almacen/slices/sliceIniciativa.ts` y en `src/almacen/slices/personajes/` con `condicionesRasgosHelpers.ts`, `sliceActivacionRasgos.ts`, `sliceFormaSalvaje.ts`, `sliceRecursosRasgos.ts` y `sliceSelectoresRasgos.ts`.
+- Ficha y combate en `src/hooks/usarLanzadorConjuros.ts` y en `src/componentes/caracteristicas/` con `ataques/usarCalculoAtaquesJugador.ts`, `personajes/PanelFormaSalvaje.tsx` y `personajes/usarHojaPersonaje.ts`.
+- Controles en `src/componentes/caracteristicas/rasgos/` con `ControlesRecursosDeclarativos.tsx`, `ModalDetalleRasgo.tsx`, `ModalTiendaRecuperacionEspacios.tsx`, `ResolucionAsistidaRasgo.tsx`, `SeccionSelectoresModalRasgo.tsx`, `TablaAleatoriaRasgo.tsx`, `TarjetaRasgo.tsx`, `usarAccionesTarjetaRasgo.ts` y `usarActivacionDeclarativa.tsx`.
+- Servicios en `src/servicios/` con `calculadorAtaquesArmas.ts`, `ejecutorTiradasCombate.ts`, `evaluadorEfectosRasgos.ts`, `personajes/calculadorEstadisticasPersonaje.ts`, `procesadorDescansos.ts`, `reglasFormaSalvaje.ts`, `resolutorOrigenConjuros.ts`, `serializadorPersonaje.ts` y `servicioLanzamientoConjuros.ts`.
+- Consumidores declarativos en `src/servicios/rasgos/` con `activacionDeclarativa.ts`, `bloqueoActivacionRasgo.ts`, `concesionesRasgos.ts`, `conjurosGratuitosRasgos.ts`, `conversionRecursosRasgos.ts`, `curacionDeclarativa.ts`, `emisionTiradaRasgos.ts`, `estadoCondicionesRasgos.ts`, `evaluadorConjurosRasgos.ts`, `evaluadorExpresionesRasgos.ts`, `evaluadorMovilidadRasgos.ts`, `evaluadorSalvacionesRasgos.ts`, `extensionesRasgos.ts`, `fusionarEstadoRasgo.ts`, `lanzamientoRecursoRasgos.ts`, `limitesTurnoRasgos.ts`, `listasConjurosRasgos.ts`, `modificadoresConjuroRasgos.ts`, `normalizarMecanicasRasgos.ts`, `operacionesAvanzadasRasgos.ts`, `reconciliarConjurosRasgos.ts`, `resolucionAsistidaRasgos.ts` y `tablasAleatoriasRasgos.ts`.
+- Regresiones en `scripts/probar-druida.mjs` y en `src/servicios/` con `druidaCirculos2024.test.ts`, `druidaFormaSalvaje2024.test.ts`, `druidaMecanicasDND55.test.ts` y `subclasesMagia.test.ts`.
+
+### Verificación de los círculos
+
+- Pasaron nueve regresiones específicas de los círculos. Cubren progresión multiclase, retirada de concesiones, agotamiento y recuperación, activación y defensas, daño por turno ajeno, ventaja de Paso lunar, estado de la constelación y guardado de usos.
+- `pnpm run test:druida-ui` terminó con salida 0 en Chromium local. Pasaron seis recorridos de la base y cuatro de los círculos. Los de los círculos comprobaron el lanzamiento gratuito y la recuperación de Tierra, la transformación y el daño de Luna, el gasto y disipación de Mar, y el mapa, Dragón y Presagio de Estrellas. El acceso final a la pestaña Rasgos tras el descanso de Estrellas lo abre el fixture. La consulta se hace mediante los controles reales.
+- `pnpm run ci` con pnpm 9.15.4 terminó con salida 0. Pasaron 2.740 pruebas en 188 suites, cinco escenarios simulados, TypeScript, ESLint, la comprobación de tamaño y el build de producción.
+- Graphify actualizó el índice estructural, el informe y la visualización local. TaleSpire real queda pendiente de verificación.
+
+## [2026-11-10] Mejoras de la revisión del Druida
+
+- Los ataques de bestia conservan la fórmula y el tipo de cada grupo de daño, también al tirar un crítico. Golpe primordial y Resurgimiento salvaje reutilizan el vínculo de iniciativa por ficha o miniatura vinculada para comprobar el turno propio.
+- Orden primigenio y Lanzamiento potente calculan sus bonificadores con la Sabiduría efectiva. Cuando un truco se puede lanzar desde varias clases, la ficha reutiliza el diálogo de elección y muestra el alcance de cada procedencia. El selector de Mago concede su truco una sola vez y el almacén conserva el aprendizaje independiente al retirar la clase.
+- Se reutilizó el gasto común de espacios normales y de pacto, se dejó una sola reconciliación de conjuros por reconstrucción y se quitó el control duplicado de daño integrado en la tarjeta del rasgo. La progresión de Forma salvaje se lee del catálogo de clase. Una forma adoptada antes de entrar en iniciativa sigue sin vencimiento automático por rondas.
+- Pasaron 61 pruebas focalizadas de Druida, Bardo y Clérigo, y seis recorridos en Chromium local. El caso multiclase comprobó 360 pies para Druida y 60 para Bardo al lanzar Voluta estelar. Las cuatro subclases coinciden con `HEAD`. TaleSpire real queda pendiente de verificación.
+- `pnpm run ci` con pnpm 9.15.4 terminó con salida 0. Pasaron 2.734 pruebas en 187 suites, cinco escenarios de simulación y el build de producción. Graphify actualizó el índice, el informe y la visualización local.
+
+## [2026-11-09] Ajustes de Compañero salvaje y Furia elemental
+
+- **Compañero salvaje.** Por indicación del usuario, concede Encontrar familiar desde nivel 2 con `conjurosOtorgados` y procedencia Druida. Aparece preparado en Conjuros y usa el lanzador normal. Se retiraron el acceso especial, la elección de pago y la creación del marcador feérico.
+- **Verificación de Compañero salvaje.** Chromium comprobó la entrada en Conjuros y la ausencia del control dedicado. Las pruebas unitarias comprobaron adquisición, recarga, retirada por nivel y gasto ordinario del espacio. `pnpm run ci` terminó con salida 0 en 187 suites, 2.732 pruebas y 5 simulaciones. Graphify quedó actualizado.
+- **Resurgimiento salvaje.** Se comprobó el recorrido existente por `ModalTiendaRecuperacionEspacios` y `DialogoConversionEspacios`. El primero es la entrada común con Recuperación arcana. El segundo se comparte con las conversiones de Hechicero. La recarga de Pacto usa un control propio y comparte la operación del almacén.
+- **Golpe primordial.** La configuración de resolución asistida ahora indica que se integra en el daño de armas y ataques de bestia. La elección confirma el impacto y añade el daño como un grupo separado en la misma emisión. Se duplican sus dados en crítico y se registra el uso tras emitir correctamente. La regresión verifica que cambiar de opción y volver a elegirla no permite repetir el uso durante el mismo turno observado.
+- **Furia elemental mejorada.** El Compendio del jugador proyectaba el conjuro del catálogo directamente. Ahora utiliza el mismo evaluador de alcance que Ataques. La regresión de Chromium comprueba que Voluta estelar muestra 360 pies con Lanzamiento potente.
+- **Verificación de Furia elemental.** La regresión unitaria del crítico verificó una sola emisión con `4d8` de frío junto al daño base. Chromium local verificó el alcance en el Compendio y el daño normal de Golpe primordial desde Mordisco. Queda pendiente el recorrido en TaleSpire real.
+
+## [2026-11-09] Druida base del PHB 2024
+
+La implementación cubre los niveles 1–20 de la clase base. Se comparó `subclases` con `HEAD` y las cuatro entradas resultaron idénticas. Los datos se contrastaron con la referencia local de Druida y las [reglas de 2024](https://www.dndbeyond.com/sources/dnd/br-2024/character-classes#Druid).
+
+| Nivel | Rasgo y categoría | Mecánica, efectos y dependencias | Estado |
+|---|---|---|---|
+| 1 | Druídico · `pasivo_permanente` | Idioma derivado del rasgo y Hablar con los animales siempre preparado como Druida, fuera de cupo. | Parcial. Mensajes ocultos en mesa. |
+| 1 | Orden primigenio · `selector_informativo` | Mago abre un selector de truco adicional del catálogo y suma `max(1, sabiduria)` a pruebas de Inteligencia de Arcanos y Naturaleza. Guardián concede armas marciales y armaduras medias. | Automatizado. El equipo inicial figura en las opciones de clase. |
+| 1 | Lanzamiento de conjuros · `pasivo_permanente` | Lanzador completo de Sabiduría. 2/3/4 trucos en niveles 1/4/10, 4–22 preparados por nivel de Druida y espacios conjuntos en multiclase. Edición libre del repertorio con lista, nivel, cupo y procedencia. | Automatizado en la ficha. |
+| 2 | Compañero salvaje · `pasivo_permanente` | Concede Encontrar familiar como conjuro de Druida siempre preparado, fuera de cupo. | Automatizada la concesión. Las reglas especiales del texto se resuelven en mesa. |
+| 2 | Forma salvaje · `consumible` con activación | Acción adicional. Usos 2/3/4 en niveles 2/6/17, uno recuperado en descanso corto y todos en largo. Formas 4/6/8 y VD ¼/½/1 en niveles 2/4/8, vuelo desde 8. PG temporales iguales al nivel de Druida, duración `floor(nivel / 2)` horas y una sustitución por descanso largo. | Parcial. La mesa confirma equipo compatible, bestias vistas y tiempo fuera de iniciativa y descansos. |
+| 3 | Subclase de druida · `selector_informativo` | Selección de círculo en el editor de clase. | Automatizado mediante el selector existente. |
+| 4/8/12/16 | Mejora de característica · `selector_informativo` | Una dote elegible por hito, con selección explícita y reglas existentes de requisitos y repetibilidad. | Automatizada la elección. Los efectos dependen de la dote escogida. |
+| 5 | Resurgimiento salvaje · `consumible` | Con Forma salvaje agotada, cambia un espacio por un uso una vez por turno propio. La operación inversa gasta un uso para crear un espacio de nivel 1 una vez por descanso largo. | Automatizado el intercambio. Turno confirmado en mesa si falta seguimiento. |
+| 6/10/14 | Hitos de subclase · `pasivo_permanente` | Referencias de la tabla de clase. | Informativos en la clase base. |
+| 7 | Furia elemental · `selector_informativo` | Lanzamiento potente suma Sabiduría al daño directo de trucos lanzados como Druida. Golpe primordial tira `1d8` de un tipo elegido entre frío, fuego, relámpago y trueno tras impacto de arma o bestia, una vez por turno propio. | Parcial. La mesa confirma impacto y el turno sin seguimiento. |
+| 15 | Furia elemental mejorada · `extension` | Se fusiona por ID con Furia elemental. +300 pies a trucos de Druida con alcance base de al menos 10 pies para Lanzamiento potente. Golpe primordial escala a `2d8`. | Automatizados alcance y escalado. |
+| 18 | Conjurar como bestia · `pasivo_permanente` | Permiso en forma de bestia y bloqueo de lanzamientos con materiales costosos o consumidos. | Parcial. Los datos sin clasificación piden confirmación. |
+| 19 | Don épico · `selector_informativo` | Selección explícita. Recomienda Viaje Dimensional, que concede +1 a la característica elegida hasta 30. | Parcial. El teletransporte se resuelve en mesa. |
+| 20 | Archidruida · `consumible` | Con la reserva vacía recupera un uso al tirar iniciativa. Operación independiente de descanso largo que gasta 1–4 usos de Forma salvaje para crear un solo espacio de nivel 2/4/6/8. | Parcial. La longevidad es informativa. |
+
+Se eliminó `costeRecurso` de Compañero salvaje porque Zod lo descartaba. El lanzador y las conversiones validan el origen del espacio contra la ficha vigente. Forma salvaje conserva la reserva separada del estado activo. El bloque de bestia aporta sus propios ataques, mientras que una combinación como el ataque múltiple del oso pardo conserva su texto en el panel. Los componentes materiales se clasificaron en los conjuros de Druida pertinentes. El bestiario oficial, el catálogo de idiomas y el de equipo ya aportaban las entradas necesarias. La ficha conserva las aportaciones de conjuros por origen y la proyección de los campos nuevos usa el contrato existente de serialización.
+
+### Verificación
+
+- `pnpm run ci` con pnpm 9.15.4 terminó con salida 0. TypeScript, ESLint, 2.730 pruebas en 187 suites, 5 escenarios simulados de sincronización, el límite de líneas y el build de producción pasaron.
+- Las dos suites del Druida pasaron sus 27 pruebas, incluidas las veinte filas de progresión, la proyección del oso pardo, la restricción de conjuros de Luna y la reconstrucción de una ficha con su reserva agotada.
+- `pnpm run test:druida-ui` terminó con salida 0 en Chromium local durante la implementación inicial. Se probaron el selector anidado, la transformación con agotamiento, los descansos desde la ficha, la resolución asistida de Furia, las conversiones y la recarga mediante serialización. Se usó la aplicación con una ficha de prueba y el adaptador local de dados. TaleSpire y CEF reales quedan pendientes de verificación.
+- Graphify regeneró y actualizó el índice estructural, el informe y la visualización de `graphify-out/` sin etiquetado por modelo. El extractor notificó archivos sin símbolos. El grafo se usó para navegación, y las comprobaciones de ejecución se realizaron con las pruebas anteriores.
+
+### Archivos de esta implementación
+
+- Configuración y verificación en `.gitignore`, `package.json`, `scripts/probar-druida.mjs`, `src/servicios/druidaBaseDeclarativo.test.ts`, `src/servicios/druidaFormaSalvaje2024.test.ts` y `agente.md`.
+- Datos en `src/datos/clases/druida.json`, `src/datos/dotes/epicas.json` y `src/utiles/compendios/all.json`.
+- Almacén en `src/almacen/importadorJSON.ts`, `src/almacen/slices/sliceIniciativa.ts` y `src/almacen/slices/personajes/` (`sliceActivacionRasgos.ts`, `sliceFormaSalvaje.ts`, `slicePersonajesTipos.ts`, `sliceRecursosRasgos.ts`).
+- Ficha en `src/componentes/caracteristicas/personajes/` (`HojaPersonaje.tsx`, `PanelCompetenciasPersonaje.tsx`, `PanelFormaSalvaje.tsx`) y `src/componentes/caracteristicas/rasgos/` (`ConjurosConRecursoRasgo.tsx`, `DialogoConversionEspacios.tsx`, `ModalDetalleRasgo.tsx`, `ResolucionAsistidaRasgo.tsx`, `TarjetaRasgo.tsx`).
+- Servicios en `src/hooks/usarLanzadorConjuros.ts`, `src/servicios/` (`calculadorAtaquesArmas.ts`, `consumidorRecursosConjuros.ts`, `hidratadorClases.ts`, `procesadorDescansos.ts`, `reglasFormaSalvaje.ts`, `serializadorPersonaje.ts`, `servicioLanzamientoConjuros.ts`), `src/servicios/clases/` (`buildClase.ts`, `constructorRasgosClase.ts`) y `src/servicios/personajes/calculadorEstadisticasPersonaje.ts`.
+- Evaluadores en `src/servicios/rasgos/` (`catalogoSelectoresConjuros.ts`, `conjurosGratuitosRasgos.ts`, `conversionRecursosRasgos.ts`, `estadoCondicionesRasgos.ts`, `evaluadorCombateRasgos.ts`, `evaluadorConjurosRasgos.ts`, `evaluadorExpresionesRasgos.ts`, `evaluadorSalvacionesRasgos.ts`, `fusionarEstadoRasgo.ts`, `lanzamientoRecursoRasgos.ts`, `limitesTurnoRasgos.ts`, `listasConjurosRasgos.ts`, `modificadoresConjuroRasgos.ts`, `normalizarMecanicasRasgos.ts`, `reconciliarConjurosRasgos.ts`, `seleccionesRasgos.ts`, `tiradaHabilidadRasgos.ts`).
+- Contratos en `src/tipos/` (`esquemasCatalogos.ts`, `index.ts`, `mecanicasRasgos.ts`, `personaje.ts`, `rasgos.ts`) y `src/utiles/selectoresConjuros.ts`.
+
 ## [2026-11-09] Supresión de Falsos Positivos de Sincronización en Solitario (Inventario, Recursos y Conjuros)
 
 - **Contexto**: Cuando un jugador interactuaba con su ficha en solitario (sin Director/GM conectado) gastando espacios de conjuro, manipulando el inventario o alterando recursos de clase, el observador de Zustand disparaba `motor.observar()` debido al cambio referencial en `s.personajes`. Al no haber una base confirmada por el GM (`!this.replica.base[id]`), el motor asumía erróneamente que la entidad entera (`9D-2`) era un cambio pendiente de red, desplegando el banner táctico de "Ediciones pendientes" con el botón "Reintentar envío", aun cuando ninguno de los 4 grupos de combate (`vitalidad`, `estados`, `datos`, `acompanantes`) había variado.

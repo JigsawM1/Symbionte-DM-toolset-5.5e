@@ -3,6 +3,8 @@ import { rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evaluadorExpresionesRasgos";
 import { generarId } from "@/utiles/generarId";
 import type { InstruccionGasto } from "../servicioLanzamientoConjuros";
+import { estaRasgoActivo } from "./utilidadesRasgos";
+import { calcularEstadisticasPersonaje } from "../personajes/calculadorEstadisticasPersonaje";
 
 export function nivelEspacioGastado(gasto: InstruccionGasto): number | undefined {
   return gasto.tipo === "espacio" || gasto.tipo === "pacto" ? gasto.nivel : undefined;
@@ -42,6 +44,15 @@ export function registrarAutocuracionConjuro(pj: PersonajeJugador, h: HechizoBas
   return { ...pj, rasgos: pj.rasgos.map(r => {
     const cfg = r.curacionConjuros?.autocuracionPorEspacio;
     if (!rasgoMagicoHabilitado(pj, r)) return r;
+    if (r.curacionTrasConjuroConEspacio && nivel !== undefined && h.curacion) {
+      const padre = pj.rasgos.find(p => p.id === r.ligadoA);
+      const base = r.heredarDadosPadre ? padre?.formulaDados : r.formulaDados;
+      if (!base || (r.ligadoA && !estaRasgoActivo(pj, r.ligadoA))) return r;
+      return { ...r, resolucionesCuracionPendientes: [...(r.resolucionesCuracionPendientes ?? []), {
+        id, etiqueta: h.nombre, formula: resolverFormulaDinamica(base, pj, r.fuente, r, calcularEstadisticasPersonaje(pj).modificadores),
+        confirmacion: "Confirma que el lanzamiento con espacio restauró PG. Elige tu ficha o una criatura a 30 pies o menos."
+      }] };
+    }
     if (cfg && nivel !== undefined) return { ...r, resolucionesCuracionPendientes: [...(r.resolucionesCuracionPendientes ?? []), {
       id, etiqueta: h.nombre, formula: String(cfg.fijo + cfg.porNivel * nivel),
       confirmacion: "Confirma que este lanzamiento con espacio acaba de hacer recuperar PG a otra criatura. Solo se aplica una vez por lanzamiento, aunque haya varios destinatarios."
@@ -84,8 +95,8 @@ export function resolverCuracionPendiente(pj: PersonajeJugador, idRasgo: string,
   propio: boolean, resultado?: number, enTurno = false, dano = 0): PersonajeJugador | undefined {
   const r = pj.rasgos.find(r => r.id === idRasgo);
   const pendiente = r?.resolucionesCuracionPendientes?.find(p => p.id === id);
-  if (!r || !pendiente || (!r.curacionAlFinalizar && !r.curacionConjuros)) return;
-  if (!r.curacionAlFinalizar && !rasgoMagicoHabilitado(pj, r)) return;
+  if (!r || !pendiente || (!r.curacionAlFinalizar && !r.curacionConjuros && !r.curacionTrasConjuroConEspacio)) return;
+  if (!r.curacionAlFinalizar && !r.curacionTrasConjuroConEspacio && !rasgoMagicoHabilitado(pj, r)) return;
   if (resultado !== undefined && (!Number.isFinite(resultado) || resultado < 0)) return;
   const formula = formulaCuracionPendiente(pendiente, enTurno, dano);
   if (resultado !== undefined && !/\d+d\d+/i.test(formula) && resultado !== evaluarExpresionNumericaSegura(formula)) return;

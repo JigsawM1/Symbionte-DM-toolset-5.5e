@@ -22,7 +22,7 @@ import { consumirRecursoConjuro } from './consumidorRecursosConjuros';
 import { obtenerSelectoresArcanos } from "./rasgos/arcanosMisticosRasgos";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { tieneRestriccionRasgos } from "./rasgos/restriccionesRasgos";
-import { puedeLanzarConjuroEnFormaSalvaje } from "./reglasFormaSalvaje";
+import { evaluarConjuroEnFormaBestia } from "./reglasFormaSalvaje";
 import { obtenerConcesionRitual } from "./rasgos/conjurosRitualesRasgos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
@@ -49,6 +49,7 @@ export type ModoLanzamiento =
   | "continuarConjuro";
 
 export interface SolicitudLanzamiento {
+  materialesConfirmados?: boolean;
   curacionEnTurno?: boolean;
   sinConcentracion?: boolean;
   claseLanzamiento?: string;
@@ -91,6 +92,7 @@ export interface ContextoMagicoPersonaje {
 export interface ResultadoValidacion {
   permitido: boolean;
   motivo?: string;
+  requiereConfirmarMaterial?: boolean;
 }
 
 export interface FormulaConstruida {
@@ -147,8 +149,12 @@ export function validarLanzamiento(
   if (contexto.personajeActual && tieneRestriccionRasgos(contexto.personajeActual, "conjuros")) {
     return { permitido: false, motivo: "Un rasgo activo impide lanzar conjuros." };
   }
-  if (contexto.personajeActual && !puedeLanzarConjuroEnFormaSalvaje(contexto.personajeActual, solicitud.hechizo.nombre)) {
-    return { permitido: false, motivo: "No puedes lanzar este conjuro mientras estás en Forma salvaje (PHB 2024)." };
+  if (contexto.personajeActual && solicitud.modo !== "continuarConjuro") {
+    const clase = solicitud.claseLanzamiento ?? resolverClaseLanzamiento(contexto.personajeActual, solicitud.hechizo);
+    const permiso = evaluarConjuroEnFormaBestia(contexto.personajeActual, solicitud.hechizo, clase);
+    if (permiso === "bloqueado") return { permitido: false, motivo: "Este conjuro no está disponible en forma de bestia." };
+    if (permiso === "confirmar" && !solicitud.materialesConfirmados) return { permitido: false, requiereConfirmarMaterial: true,
+      motivo: "Confirma que el lanzamiento no requiere materiales con coste o que se consuman." };
   }
   if (solicitud.sinConcentracion && (!contexto.personajeActual || !obtenerVarianteConjuro(contexto.personajeActual, solicitud.hechizo)))
     return { permitido: false, motivo: "Esta variante de lanzamiento no está disponible." };

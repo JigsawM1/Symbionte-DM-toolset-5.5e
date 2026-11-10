@@ -142,7 +142,7 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
   let excavar = velBestia
     ? velBestia.excavar
     : (typeof personaje.velocidad === "object" ? personaje.velocidad?.excavar : undefined);
-  const planea = velBestia
+  let planea = velBestia
     ? velBestia.planea
     : (typeof personaje.velocidad === "object" ? Boolean(personaje.velocidad?.planea) : false);
 
@@ -158,6 +158,7 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
       } else if (objetivo.includes("volar")) {
         const velVolar = Number(ef.valor) || caminar;
         volar = Math.max(volar || 0, velVolar);
+        if (objetivo === "volar_flota") planea = true;
       } else if (objetivo.includes("escalar") || objetivo.includes("trepar")) {
         const velEscalar = Number(ef.valor) || caminar;
         escalar = Math.max(escalar || 0, velEscalar);

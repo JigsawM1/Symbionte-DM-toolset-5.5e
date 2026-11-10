@@ -135,7 +135,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </h2>
 
               {/* Conmutador ON / OFF si es rasgo activable */}
-              {rasgo.esActivable && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
+              {rasgo.esActivable && !rasgo.formasBestia && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
                 <button
                   type="button"
                   className={`${estilos.botonToggleRasgo} ${
@@ -196,7 +196,8 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         {/* Zona de Recursos y Tiradas */}
         {(tieneUsosPropios || tieneUsosPadre || formulaEfectiva || rasgo.conjurosRituales?.length || rasgo.salvacionObjetivo || rasgo.resolucionAsistida || rasgo.resolucionesCuracionPendientes?.length || rasgo.conversionEspacios || rasgo.lanzamientoConRecurso || rasgo.reservaDados || rasgo.tablaAleatoria || rasgo.varianteSinConcentracion || rasgo.usoGratuitoCondicionado) && (
           <div className={estilos.barraRecursosModal}>
-            {(tieneUsosPropios || tieneUsosPadre) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && alGastarUso && alRecuperarUso && (
+            {(tieneUsosPropios || tieneUsosPadre) && !rasgo.conversionEspacios?.consumirUsoPropio && !rasgo.resolucionAsistida
+              && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && alGastarUso && alRecuperarUso && (
               <div className={estilos.controlUsosModal}>
                 <span className={estilos.etiquetaUsosModal}>
                   {tieneUsosPropios ? "Usos Disponibles:" : `Reserva (${usosPadre?.nombre || "Principal"}):`}
@@ -253,7 +254,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               </div>
             )}
 
-            {formulaEfectiva && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
+            {formulaEfectiva && !rasgo.dadosSoloDependientes && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
               <button
                 type="button"
                 className={estilos.botonLanzarDadosModal}
@@ -288,7 +289,7 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
                 type="button"
                 className={estilos.botonLanzarDadosModal}
                 onClick={() => setMostrarTienda(true)}
-                disabled={sinUsosDisponibles}
+                disabled={sinUsosDisponibles || (rasgo.recuperarEspaciosTrasDescansoCorto && !rasgo.recuperacionDescansoDisponible)}
                 title={
                   sinUsosDisponibles
                     ? "No quedan usos disponibles (requiere descanso largo)"

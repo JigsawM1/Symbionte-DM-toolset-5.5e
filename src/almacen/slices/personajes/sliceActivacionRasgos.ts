@@ -12,14 +12,15 @@ import { resolverIdRasgoObjetivoGasto, resolverCondicionAsociadaRasgo, coincideC
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
 import { obtenerBloqueoActivacionRasgo } from "@/servicios/rasgos/bloqueoActivacionRasgo";
-import { prepararEleccionesActivacion, activarOpcionales, costeActivacionRasgo } from "@/servicios/rasgos/activacionDeclarativa";
+import { prepararEleccionesActivacion, activarOpcionales, costeActivacionRasgo, sincronizarDependientesActivacion } from "@/servicios/rasgos/activacionDeclarativa";
 import { restaurarUsosIniciativa } from "@/servicios/rasgos/iniciativaOpcionalRasgos";
+import { identificarTurnoPropio } from "@/servicios/rasgos/limitesTurnoRasgos";
 
 export const crearSliceActivacionRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "alternarActivoRasgo" | "dispararRasgosIniciativaPersonaje">> = (set, get) => ({
 alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
     mutarPersonaje(set, idPj, (original) => {
       const objetivo = original.rasgos.find(r => r.id === idRasgo);
-      if (!objetivo) return original;
+      if (!objetivo || objetivo.formasBestia) return original;
       if (!objetivo.activo && obtenerBloqueoActivacionRasgo(original, objetivo).bloqueado) return original;
       const pj = prepararEleccionesActivacion(original, objetivo, decisiones);
       if (!pj) return original;
@@ -28,12 +29,14 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
       const targetTrait = (pj.rasgos || []).find((r) => r.id === idRasgo);
       if (!targetTrait) return original;
 
-      const nuevoActivo = targetTrait.renovarActivacion ? true : !targetTrait.activo;
+      if (decisiones?.desactivar && !targetTrait.activo) return original;
+      const nuevoActivo = !decisiones?.desactivar && (targetTrait.renovarActivacion || !targetTrait.activo);
+      if (nuevoActivo && targetTrait.finalizarAlTerminarTurno && identificarTurnoPropio(pj, get()) === false) return original;
       if (nuevoActivo && targetTrait.lanzamientoConActivacion) return original;
       const coste = costeActivacionRasgo(targetTrait);
       const pagoAlternativo = nuevoActivo ? obtenerPagoActivacionAlternativa(pj, targetTrait) : undefined;
       if (nuevoActivo && obtenerBloqueoActivacionRasgo(pj, targetTrait).bloqueado) return original;
-      if (nuevoActivo && targetTrait.tieneUsosLimitados && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1) && !pagoAlternativo) return original;
+      if (nuevoActivo && targetTrait.tieneUsosLimitados && !targetTrait.noGastarUsoAlActivar && (targetTrait.usosRestantes ?? targetTrait.usosMaximos ?? 0) < (targetTrait.costeFijo ?? 1) && !pagoAlternativo) return original;
       if (nuevoActivo && targetTrait.restaurarUsosAlActivar) {
         const cfg = targetTrait.restaurarUsosAlActivar;
         const objetivo = (pj.rasgos ?? []).find(r => r.id === cfg.idRasgoObjetivo || normalizar(r.nombre) === normalizar(cfg.idRasgoObjetivo));
@@ -158,12 +161,13 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         if (pagoAlternativo && r.id === pagoAlternativo.recurso.id) return { ...r, usosRestantes: (r.usosRestantes ?? r.usosMaximos ?? 0) - pagoAlternativo.coste };
         if (r.id === idRasgo) {
           let usosRest = r.usosRestantes;
-          if (nuevoActivo && !pagoAlternativo && !esDiferidoAIniciativa && !r.gastarUsoAlEmitirSalvacion && !r.gastarUsoTrasTirada && r.tieneUsosLimitados) {
+          if (nuevoActivo && !pagoAlternativo && !esDiferidoAIniciativa && !r.noGastarUsoAlActivar && !r.gastarUsoAlEmitirSalvacion && !r.gastarUsoTrasTirada && r.tieneUsosLimitados) {
             const actuales = r.usosRestantes ?? r.usosMaximos ?? 0;
             usosRest = Math.max(0, actuales - (r.costeFijo ?? 1));
           }
           const debeAutoDesactivar = !!(nuevoActivo && !esDiferidoAIniciativa && r.autoDesactivar);
-          return { ...r, activo: debeAutoDesactivar ? false : nuevoActivo, usosRestantes: usosRest };
+          return { ...r, activo: debeAutoDesactivar ? false : nuevoActivo, usosRestantes: usosRest,
+            ultimoCambioSelectorTurno: nuevoActivo && r.cambiarSelectorAlInicioTurno ? identificarTurnoPropio(pj, get()) || undefined : r.ultimoCambioSelectorTurno };
         }
 
         // Si este elemento es el rasgo padre del activado, descontar usos al activar
@@ -181,9 +185,12 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         condicionesActualizadas = condicionesActualizadas.filter(c => !retiradas.has(claveEstado(c)));
         efectosActualizados = efectosActualizados.filter(e => !retiradas.has(claveEstado(e.nombre)));
       }
-      const pjPrevio = activarOpcionales({
+      let pjPrevio = activarOpcionales({
         ...pj, rasgos: rasgosActualizados, condicionesActivas: condicionesActualizadas, efectosActivos: efectosActualizados
       }, idRasgo, nuevoActivo ? decisiones : undefined, get().rondaActual || 1);
+      const padreActual = pjPrevio.rasgos.find(r => r.id === idRasgo);
+      if (padreActual?.selectores?.some(s => s.momentoEleccion === "activacion"))
+        pjPrevio = sincronizarDependientesActivacion(pjPrevio, padreActual);
       const tieneEfectoHP = (targetTrait.efectos || []).some((e) => e.tipo === "modificador_hp_maximo");
       let hpMaximo = pj.hpMaximo;
       let hpActual = pj.hpActual;
@@ -250,7 +257,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         const estaHabilitado = r.activo !== false && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1)
           && esRasgoHabilitadoPorOpcion(r, pj.rasgos);
         const restantes = r.usosRestantes ?? r.usosMaximos ?? 0;
-        const tieneUsos = !r.tieneUsosLimitados || restantes >= (r.costeFijo ?? 1);
+        const tieneUsos = r.restaurarUsosAlActivar?.sinGastarUso || !r.tieneUsosLimitados || restantes >= (r.costeFijo ?? 1);
         if (!estaHabilitado || !tieneUsos) return r;
 
         const cfg = r.restaurarUsosAlActivar;
@@ -267,7 +274,8 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         huboCambios = true;
         disparados.add(r.id);
 
-        const usosRest = r.tieneUsosLimitados ? Math.max(0, restantes - (r.costeFijo ?? 1)) : r.usosRestantes;
+        const usosRest = r.tieneUsosLimitados && !r.restaurarUsosAlActivar?.sinGastarUso
+          ? Math.max(0, restantes - (r.costeFijo ?? 1)) : r.usosRestantes;
         const debeAutoDesactivar = Boolean(r.autoDesactivar || r.esActivable);
 
         return { ...r, activo: debeAutoDesactivar ? false : r.activo, usosRestantes: usosRest };

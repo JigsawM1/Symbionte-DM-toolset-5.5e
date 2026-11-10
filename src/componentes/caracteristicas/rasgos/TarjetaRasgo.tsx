@@ -156,7 +156,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
         {/* Zona de Recursos y Botones Interactivos */}
         <div className={estilos.zonaAccionesTarjeta}>
           {/* Conmutador ON / OFF si el rasgo es activable */}
-          {rasgo.esActivable && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
+          {rasgo.esActivable && !rasgo.formasBestia && alAlternarActivo && (!rasgo.lanzamientoConActivacion || rasgo.activo) && (
             <button
               type="button"
               className={`${estilos.botonToggleRasgo} ${
@@ -182,7 +182,8 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Contador de Usos (Propios, de Rasgo Padre o Espacios de Pacto) */}
-          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && (
+          {(tieneUsosPropios || tieneUsosPadre || esRecursoEspacioPacto) && !rasgo.conversionEspacios?.consumirUsoPropio
+            && !rasgo.resolucionAsistida && !rasgo.lanzamientoConRecurso?.lista && !rasgo.lanzamientoConRecurso?.conjuros && (
             <div
               className={estilos.contadorUsos}
               title={
@@ -270,7 +271,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
           )}
 
           {/* Botón de Tirada de Dados 3D / Curación regular */}
-          {formulaEfectiva && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
+          {formulaEfectiva && !rasgo.dadosSoloDependientes && !rasgo.guardaDadosTirada && !rasgo.tiradaCuracion && !rasgo.tiradaCuracionManual && !rasgo.resolucionAsistida && (
             <button
               type="button"
               className={estilos.botonTirarDados}
@@ -317,7 +318,7 @@ export const TarjetaRasgo: React.FC<TarjetaRasgoProps> = ({
               type="button"
               className={estilos.botonTirarDados}
               onClick={manejarAplicarHpTemporal}
-              disabled={!alGastarUso || sinUsosDisponibles}
+              disabled={!alGastarUso || sinUsosDisponibles || (rasgo.recuperarEspaciosTrasDescansoCorto && !rasgo.recuperacionDescansoDisponible)}
               title={
                 tieneUsosPropios
                   ? `Gastar 1 uso (${usosRestantes}/${usosMaximos}) y obtener ${valorHpTemporalCalculado} PG temporales`

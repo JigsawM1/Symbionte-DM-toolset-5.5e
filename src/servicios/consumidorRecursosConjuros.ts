@@ -8,6 +8,37 @@ import { consumirLanzamientoEstado } from "./rasgos/lanzamientoEstadoRasgo";
 import { registrarAutocuracionConjuro } from "./rasgos/curacionDeclarativa";
 
 export type ResultadoConsumoConjuro = { permitido: true; personaje: PersonajeJugador } | { permitido: false; motivo: string };
+export type EspacioConjuroElegido = { nivel: number; origen: "ordinario" | "adicional" | "pacto" };
+
+export function obtenerEspaciosElegibles(pj: PersonajeJugador): (EspacioConjuroElegido & { disponibles: number })[] {
+  const espacios: (EspacioConjuroElegido & { disponibles: number })[] = [];
+  for (let nivel = 1; nivel <= 9; nivel++) {
+    const ordinarios = (pj.espaciosConjuroMaximos[nivel] ?? 0) - (pj.espaciosConjuroGastados[nivel] ?? 0);
+    const adicionales = pj.espaciosConjuroAdicionales?.[nivel] ?? 0;
+    if (ordinarios > 0) espacios.push({ nivel, origen: "ordinario", disponibles: ordinarios });
+    if (adicionales > 0) espacios.push({ nivel, origen: "adicional", disponibles: adicionales });
+  }
+  const pacto = pj.espaciosPactoMaximos - pj.espaciosPactoGastados;
+  if (pacto > 0 && pj.nivelEspacioPacto) espacios.push({ nivel: pj.nivelEspacioPacto, origen: "pacto", disponibles: pacto });
+  return espacios;
+}
+
+export function gastarEspacioElegido(pj: PersonajeJugador, espacio: EspacioConjuroElegido): PersonajeJugador | undefined {
+  const { nivel, origen } = espacio;
+  if (!Number.isInteger(nivel) || nivel < 1 || nivel > 9) return;
+  if (origen === "pacto") {
+    return nivel === pj.nivelEspacioPacto && pj.espaciosPactoGastados < pj.espaciosPactoMaximos
+      ? { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1 } : undefined;
+  }
+  if (origen === "adicional") {
+    const disponibles = pj.espaciosConjuroAdicionales?.[nivel] ?? 0;
+    return disponibles > 0 ? { ...pj, espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales, [nivel]: disponibles - 1 } } : undefined;
+  }
+  if (origen !== "ordinario") return;
+  const usados = pj.espaciosConjuroGastados[nivel] ?? 0;
+  return usados < (pj.espaciosConjuroMaximos[nivel] ?? 0)
+    ? { ...pj, espaciosConjuroGastados: { ...pj.espaciosConjuroGastados, [nivel]: usados + 1 } } : undefined;
+}
 
 /** Valida el estado vigente y devuelve la nueva ficha en una única operación síncrona. */
 export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionGasto): ResultadoConsumoConjuro {
@@ -28,25 +59,22 @@ export function consumirRecursoConjuro(pj: PersonajeJugador, gasto: InstruccionG
     }
     case 'ninguno': break;
     case 'espacio': {
-      const clave = String(gasto.nivel);
-      const adicionales = pj.espaciosConjuroAdicionales?.[clave] ?? 0;
-      if (adicionales > 0) {
-        personaje = { ...pj, espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales, [clave]: adicionales - 1 } };
-        break;
-      }
-      const usados = pj.espaciosConjuroGastados[clave] ?? 0;
-      if ((pj.espaciosConjuroMaximos[clave] ?? 0) <= usados) return insuficiente;
-      personaje = { ...pj, espaciosConjuroGastados: { ...pj.espaciosConjuroGastados, [clave]: usados + 1 } };
+      const origen = (pj.espaciosConjuroAdicionales?.[gasto.nivel] ?? 0) > 0 ? "adicional" : "ordinario";
+      const pagado = gastarEspacioElegido(pj, { nivel: gasto.nivel, origen });
+      if (!pagado) return insuficiente;
+      personaje = pagado;
       break;
     }
     case 'puntos':
       if (!Number.isFinite(gasto.cantidad) || gasto.cantidad <= 0 || pj.puntosConjuroMaximos - pj.puntosConjuroGastados < gasto.cantidad) return insuficiente;
       personaje = { ...pj, puntosConjuroGastados: pj.puntosConjuroGastados + gasto.cantidad };
       break;
-    case 'pacto':
-      if (pj.espaciosPactoGastados >= pj.espaciosPactoMaximos) return insuficiente;
-      personaje = { ...pj, espaciosPactoGastados: pj.espaciosPactoGastados + 1 };
+    case 'pacto': {
+      const pagado = gastarEspacioElegido(pj, { nivel: gasto.nivel, origen: "pacto" });
+      if (!pagado) return insuficiente;
+      personaje = pagado;
       break;
+    }
     case 'arcanoMistico':
       if (obtenerSelectoresArcanos(pj).length && !obtenerSelectoresArcanos(pj,true).some(s =>
         s.nivelConjuro === gasto.nivel && s.valorActual.some(id => s.opciones.some(o => o.id === id)))) return insuficiente;

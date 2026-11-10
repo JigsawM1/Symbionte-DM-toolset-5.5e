@@ -10,12 +10,15 @@ import { obtenerNivelEfectivoParaRasgo } from "@/servicios/clases/catalogoClases
 import { esRasgoHabilitadoPorOpcion } from "@/servicios/rasgos/utilidadesRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { operarRecursoRasgo } from "@/servicios/rasgos/conversionRecursosRasgos";
+import { identificarTurnoPropio, identificarTurnoRasgo } from "@/servicios/rasgos/limitesTurnoRasgos";
 
 export const crearSliceRecursosRasgos: StateCreator<EstadoDM, [], [], Pick<SubSliceRasgos, "operarRecursoRasgoPersonaje" | "gastarUsoRasgoPersonaje" | "recuperarUsoRasgoPersonaje" | "establecerUsosRestantesRasgoPersonaje" | "guardarDadosRasgo" | "consumirDadoGuardado" | "recargarRasgoConEspacio" | "recargarUsoRasgoConPadre">> = (set, get) => ({
 operarRecursoRasgoPersonaje: (idPj, op) => {
     let aplicado = false;
     mutarPersonaje(set, idPj, pj => {
-      const nuevo = operarRecursoRasgo(pj, op);
+      const rasgo = "solicitud" in op ? pj.rasgos.find(r => r.id === op.solicitud.idRasgo) : undefined;
+      const estado = get();
+      const nuevo = operarRecursoRasgo(pj, op, rasgo ? identificarTurnoRasgo(rasgo, pj, estado) : identificarTurnoPropio(pj, estado));
       aplicado = Boolean(nuevo);
       return nuevo ?? pj;
     });

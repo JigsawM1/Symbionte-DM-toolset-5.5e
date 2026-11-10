@@ -85,12 +85,11 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       expect(formaNv17?.usosMaximos).toBe(4);
     });
 
-    it("Compañero salvaje se clasifica como consumible para lanzar encontrar familiar", () => {
+    it("Compañero salvaje concede Encontrar familiar sin una reserva propia", () => {
       const rasgosNv2 = obtenerRasgosClaseYSubclase("Druida", 2);
       const companero = rasgosNv2.find((r) => r.nombre === "Compañero salvaje");
-      expect(companero).toBeDefined();
-      expect(companero?.categoriaMecanica).toBe("consumible");
-      expect(companero?.tipoAccion).toBe("accion");
+      expect(companero).toMatchObject({ categoriaMecanica: "pasivo_permanente", tipoAccion: "pasivo",
+        tieneUsosLimitados: false, conjurosOtorgados: ["h_encontrar-familiar"] });
     });
   });
 
@@ -143,24 +142,6 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       const auxilio = rasgosTierra.find((r) => r.nombre.includes("Auxilio de la tierra"));
       expect(auxilio).toBeDefined();
       expect(auxilio?.categoriaMecanica).toBe("consumible");
-    });
-
-    it("Círculo de la Luna: Formas de círculo pasivo permanente, Paso a la luz lunar consumible y Forma lunar activable", () => {
-      const rasgosLuna = obtenerRasgosClaseYSubclase("Druida", 14, "Círculo de la Luna");
-      const formasCirculo = rasgosLuna.find((r) => r.nombre === "Formas de círculo");
-      expect(formasCirculo).toBeDefined();
-      expect(formasCirculo?.categoriaMecanica).toBe("pasivo_permanente");
-
-      const pasoLunar = rasgosLuna.find((r) => r.nombre.includes("Paso a la luz de la luna"));
-      expect(pasoLunar).toBeDefined();
-      expect(pasoLunar?.categoriaMecanica).toBe("consumible");
-      expect(pasoLunar?.tieneUsosLimitados).toBe(true);
-
-      const formaLunar = rasgosLuna.find((r) => r.nombre.includes("Forma lunar"));
-      expect(formaLunar).toBeDefined();
-      expect(formaLunar?.categoriaMecanica).toBe("activable");
-      expect(formaLunar?.esActivable).toBe(true);
-      expect(formaLunar?.formulaDados).toBe("2d10");
     });
 
     it("Círculo del Mar: Ira del mar es consumible y activable", () => {

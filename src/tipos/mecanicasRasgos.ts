@@ -39,9 +39,46 @@ export type DefinicionSubtirada = z.infer<typeof EsquemaDefinicionSubtirada>;
 
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
+  formasBestia: z.object({
+    progresion: z.array(z.object({
+      nivelMinimo: z.number().int().min(1).max(20),
+      conocidas: z.number().int().positive(),
+      vdMaximo: z.number().nonnegative(),
+      vuelo: z.boolean()
+    })).min(1)
+  }).optional(),
+  ajustesFormaBestia: z.object({
+    divisorNivelVD: z.number().int().positive(),
+    baseCaSabiduria: z.number().int().positive(),
+    multiplicadorPgTemporales: z.number().int().positive()
+  }).optional(),
+  cambiarTipoDanoBestia: z.string().min(1).optional(),
+  alcanceResolucionPies: z.number().int().positive().optional(),
+  dadosSoloDependientes: z.boolean().optional(),
+  limitePorTurno: z.boolean().optional(),
+  recuperarEspaciosTrasDescansoCorto: z.boolean().optional(),
+  noGastarUsoAlActivar: z.boolean().optional(),
+  finalizarAlTerminarTurno: z.boolean().optional(),
+  cambiarSelectorAlInicioTurno: z.string().optional(),
+  ultimoCambioSelectorTurno: z.string().optional(),
+  ataqueAsistidoPendiente: z.string().optional(),
+  curacionTrasConjuroConEspacio: z.boolean().optional(),
+  consultaTablaDescansoLargo: z.boolean().optional(),
+  permiteConjurosEnBestia: z.boolean().optional(),
+  recuperarRecursoAgotadoConEspacio: z.boolean().optional(),
+  limitePorTurnoPropio: z.boolean().optional(),
+  ultimoUsoTurno: z.string().optional(),
   nivelMinimoRecuperarUsosConEspacio: z.number().int().min(1).max(9).optional(),
   iniciativaOpcional: z.boolean().optional(),
   conjurosDesdeSelectores: z.boolean().optional(),
+  progresionConcesion: z.array(z.object({
+    nivel: z.number().int().min(1).max(20),
+    opcion: z.object({ selector: z.string(), valor: z.string() }).optional(),
+    conjuros: z.array(z.string()).optional(),
+    trucos: z.array(z.string()).optional()
+  })).optional(),
+  lanzarConcesionEnBestia: z.boolean().optional(),
+  concesionLegadaIncondicional: z.boolean().optional(),
   gastoSegunResultado: z.boolean().optional(),
   multiplicadorResultadoManual: z.number().positive().optional(),
   trasLanzarConjuro: z.object({ escuelas: z.array(z.string()).min(1) }).optional(),
@@ -56,6 +93,7 @@ export const EsquemaMecanicasRasgo = z.object({
   costeRecargaPadre: z.number().int().positive().optional(),
   costeActivacionPorSelector: z.object({ idSelector: z.string().min(1), costePorOpcion: z.number().int().positive() }).optional(),
   lanzamientoConRecurso: z.object({
+    soloEnConjuros: z.boolean().optional(),
     idRasgoConcesion: z.string().min(1).optional(),
     lista: z.string().min(1).optional(),
     conjuros: z.array(z.string().min(1)).min(1).optional(),
@@ -87,11 +125,19 @@ export const EsquemaMecanicasRasgo = z.object({
     z.object({ estado: z.literal("contando"), restantes: z.number().int().positive() })
   ]).optional(),
   resolucionAsistida: z.object({
+    integrarEnDanoDeArma: z.boolean().optional(),
+    soloAtaqueBestia: z.boolean().optional(),
+    requiereActivo: z.boolean().optional(),
+    curacionSimultanea: z.boolean().optional(),
+    ataqueConjuro: EsquemaCaracteristica.optional(),
     opciones: z.array(z.object({
       id: z.string().min(1), etiqueta: z.string().min(1),
       tipo: z.enum(["curacion", "dano", "hp_temporal", "informativo", "modificador_tirada"]),
       formula: z.string().optional(),
-      tipoAccion: z.enum(["especial", "reaccion"]).optional(),
+      tipoAccion: z.enum(["especial", "reaccion", "accion_adicional"]).optional(),
+      resultadoTabla: z.string().optional(),
+      restar: z.boolean().optional(),
+      mitadAlSalvar: z.boolean().optional(),
       tipoDano: z.string().optional(),
       salvacion: EsquemaCaracteristica.optional()
     })).min(1),
@@ -146,7 +192,8 @@ export const EsquemaMecanicasRasgo = z.object({
   finalizarAlDescansar: z.union([z.boolean(), z.literal("descanso_largo")]).optional(),
   conversionEspacios: z.object({
     tabla: z.array(z.object({ nivelEspacio: z.number().int().min(1).max(9), coste: z.number().int().positive(), nivelMinimo: z.number().int().min(1).max(20) })).min(1),
-    permiteConvertir: z.boolean().default(true)
+    permiteConvertir: z.boolean().default(true),
+    consumirUsoPropio: z.boolean().optional()
   }).optional(),
   recuperacionOpcionalDescanso: z.object({ idRasgoObjetivo: z.string().min(1), formulaCantidad: z.string().min(1) }).optional(),
   recuperacionDescansoDisponible: z.boolean().optional(),

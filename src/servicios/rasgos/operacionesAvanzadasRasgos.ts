@@ -22,6 +22,7 @@ export function operarCapacidadRasgo(pj: PersonajeJugador, op: OperacionAvanzada
     const fila = tabla?.configuracion.filas.find(f => f.id === op.detalle?.idFila);
     if (!tabla?.disponible || !fila) return;
     const tirada = op.detalle.tiradaD100;
+    if (tabla.rasgoAccion.consultaTablaDescansoLargo && tirada === undefined) return;
     if (tirada !== undefined && (!Number.isInteger(tirada) || tirada < fila.desde || tirada > fila.hasta)) return;
   }
   const r = pj.rasgos.find(x => x.id === (tabla?.rasgoAccion.id ?? op.idRasgo));
@@ -102,7 +103,8 @@ export function operarCapacidadRasgo(pj: PersonajeJugador, op: OperacionAvanzada
       ...pj,
       rasgos: pj.rasgos.map(x => x === r ? {
         ...x,
-        usosRestantes: r.tieneUsosLimitados ? recarga ? r.usosMaximos : restantesPropios - 1 : r.usosRestantes,
+        usosRestantes: r.tieneUsosLimitados && !r.consultaTablaDescansoLargo ? recarga ? r.usosMaximos : restantesPropios - 1 : r.usosRestantes,
+        ...(r.consultaTablaDescansoLargo ? { recuperacionDescansoDisponible: false } : {}),
         resultadosTablaPendientes: r.resultadoTabla && !r.resultadoTabla.enviado && r.resultadoTabla.estadoEnvio !== "local"
           ? [...(r.resultadosTablaPendientes ?? []), r.resultadoTabla]
           : r.resultadosTablaPendientes,

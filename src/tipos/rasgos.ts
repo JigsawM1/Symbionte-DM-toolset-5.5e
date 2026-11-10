@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EsquemaCaracteristica } from "./capacidadesBase";
 import { EsquemaMecanicasRasgo, type MecanicasRasgo } from "./mecanicasRasgos";
 
 // ==========================================
@@ -61,6 +62,7 @@ export const EsquemaTipoEfectoMecanico = z.enum([
   "bono_salvacion",
   "inmunidad_condicion",
   "resistencia_dano",
+  "minimo_d20",
   "inmunidad_dano",
   "competencia",
   "habilidad_con_fuerza",
@@ -85,6 +87,8 @@ export type TipoEfectoMecanico = z.infer<typeof EsquemaTipoEfectoMecanico>;
 
 export const EsquemaEfectoMecanicoRasgo = z.object({
   claseConjuro: z.string().optional(),
+  alcanceMinimo: z.number().nonnegative().optional(),
+  caracteristicaPrueba: EsquemaCaracteristica.optional(),
   selectorObjetivo: z.string().optional(),
   id: z.string().optional(),
   tipo: EsquemaTipoEfectoMecanico,
@@ -248,7 +252,7 @@ export const EsquemaSelectorRasgo = z.object({
   // ── Indica si las opciones seleccionadas se lanzan sin gastar espacios de conjuro ──
   esConjuroGratuito: z.boolean().default(false).optional(),
   // ── Destino de los conjuros elegidos: "libro" solo los añade a conocidos (grimorio), sin prepararlos ──
-  destinoConjuros: z.enum(["siempre_preparados", "libro", "referencia", "arcano_mistico"]).optional(),
+  destinoConjuros: z.enum(["siempre_preparados", "trucos", "libro", "referencia", "arcano_mistico"]).optional(),
   nivelConjuro: z.number().int().min(0).max(9).optional(),
   filtroConjuros: z.object({
     listas: z.array(z.string()).min(1).optional(),
@@ -258,6 +262,7 @@ export const EsquemaSelectorRasgo = z.object({
     requiereDano: z.boolean().optional(),
     requiereAtaque: z.boolean().optional(),
     alcanceMinimo: z.number().min(0).optional(),
+    excluirAprendidosDeClase: z.string().optional(),
     excluirPreparados: z.boolean().optional()
   }).optional(),
   // ── NUEVO: opciones que se desbloquean por nivel ──
@@ -319,6 +324,7 @@ export interface PlantillaRasgoClase extends MecanicasRasgo {
   recuperacionConjuro?: "ninguno" | "descanso_largo" | "ilimitado";
   restaurarUsosAlActivar?: {
     idRasgoObjetivo: string;
+    sinGastarUso?: boolean;
     cantidad?: number | "maximo";
     hastaCantidad?: number;
     soloSiMenorOIgual?: number;
@@ -449,6 +455,7 @@ export const EsquemaRasgoPersonaje = z.object({
   noGastarAlTirarDados: z.boolean().default(false).optional(),
   restaurarUsosAlActivar: z.object({
     idRasgoObjetivo: z.string(),
+    sinGastarUso: z.boolean().optional(),
     cantidad: z.union([z.literal("maximo"), z.number().int().min(1)]).optional(),
     hastaCantidad: z.number().int().min(1).optional(),
     soloSiMenorOIgual: z.number().int().min(0).optional(),

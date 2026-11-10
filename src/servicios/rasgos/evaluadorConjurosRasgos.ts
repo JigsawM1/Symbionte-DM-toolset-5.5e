@@ -10,6 +10,7 @@ import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import { seleccionesValidas } from "./seleccionesRasgos";
 import { cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
+import { obtenerConcesionRasgo } from "./concesionesRasgos";
 
 /**
  * Obtiene la lista consolidada de nombres de conjuros siempre preparados otorgados directamente por rasgos
@@ -23,6 +24,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
     if (r.nivelRequerido && obtenerNivelEfectivoParaRasgo(personaje, r) < r.nivelRequerido) continue;
     if (!esRasgoHabilitadoPorOpcion(r, personaje.rasgos)) continue;
 
+    for (const id of obtenerConcesionRasgo(personaje, r, "conjuros")) conjuros.add(id);
     if (!r.conjurosDesdeSelectores && Array.isArray(r.conjurosOtorgados)) {
       for (const c of r.conjurosOtorgados) {
         if (c && c.trim()) conjuros.add(c.trim());
@@ -31,7 +33,7 @@ export function obtenerConjurosOtorgadosPorRasgos(personaje: PersonajeJugador): 
 
     if (Array.isArray(r.selectores)) {
       for (const sel of r.selectores) {
-        if (sel.destinoConjuros === "libro") continue;
+        if (sel.destinoConjuros === "libro" || sel.destinoConjuros === "trucos") continue;
         if (esSelectorDeConjuros(sel)) {
           if (Array.isArray(sel.valorActual)) {
             for (const val of seleccionesValidas(sel, obtenerNivelEfectivoParaRasgo(personaje, r), personaje)) {

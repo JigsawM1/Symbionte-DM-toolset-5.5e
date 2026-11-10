@@ -78,6 +78,10 @@ function opcionConjuroElegible(
   if (!filtro) return true;
   const h = op.datosConjuro ? { id: op.id, ...op.datosConjuro } : obtenerHechizoCatalogo(op.id);
   if (!h) return false;
+  if (selector.destinoConjuros === "trucos" && h.nivel !== 0) return false;
+  if (filtro.excluirAprendidosDeClase && Object.entries(pj?.eleccionesConjurosClase ?? {}).some(([clase, eleccion]) =>
+    normalizar(clase) === normalizar(filtro.excluirAprendidosDeClase) &&
+      (h.nivel === 0 ? eleccion.trucos : eleccion.conjuros).some(id => coincideHechizoId(id, h.id)))) return false;
   if (filtro.listas && !h.clases.some(c => filtro.listas!.some(lista => normalizar(lista) === normalizar(c)))) return false;
   if (filtro.nivelMaximoPorClase) {
     const clase = pj?.clasesLanzadoras.find(c => normalizar(c.clase) === normalizar(filtro.nivelMaximoPorClase));

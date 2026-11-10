@@ -31,6 +31,13 @@ export function dadosAdicionalesTirada(personaje: PersonajeJugador, objetivo: st
     .map(e => `+${e.valor}`).join("");
 }
 
+export function obtenerMinimoNaturalD20(pj: PersonajeJugador, contexto?: string): number {
+  if (!contexto) return 1;
+  return evaluarEfectosRasgosActivos(pj).reduce((minimo, e) =>
+    e.tipo === "minimo_d20" && e.objetivo.split(",").includes(contexto)
+      ? Math.max(minimo, Number(e.valor) || 1) : minimo, 1);
+}
+
 /** La finalización solo ocurre tras una emisión correcta. Un personaje tiene una emisión pendiente. */
 export async function emitirTiradaConRasgos(
   personaje: PersonajeJugador, objetivo: string, emitir: () => Promise<boolean>, desactivar: (id: string, consumirPreparacion?: boolean) => void

@@ -52,6 +52,7 @@
   },
   {
     "id": "h_adivinacion",
+    "materialCostosoOConsumido": true,
     "nombre": "Adivinación",
     "nivel": 4,
     "escuela": "Adivinación",
@@ -104,6 +105,7 @@
   },
   {
     "id": "h_agrandar-reducir",
+    "materialCostosoOConsumido": false,
     "nombre": "Agrandar/Reducir",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -375,6 +377,7 @@
   },
   {
     "id": "h_antipatia-simpatia",
+    "materialCostosoOConsumido": false,
     "nombre": "Antipatía/Simpatía",
     "nivel": 8,
     "escuela": "Encantamiento",
@@ -614,6 +617,7 @@
   },
   {
     "id": "h_atadura-planar",
+    "materialCostosoOConsumido": true,
     "nombre": "Atadura planar",
     "nivel": 5,
     "escuela": "Abjuración",
@@ -645,6 +649,7 @@
   },
   {
     "id": "h_augurio",
+    "materialCostosoOConsumido": true,
     "nombre": "Augurio",
     "nivel": 2,
     "escuela": "Adivinación",
@@ -799,6 +804,7 @@
   },
   {
     "id": "h_auxilio",
+    "materialCostosoOConsumido": false,
     "nombre": "Auxilio",
     "nivel": 2,
     "escuela": "Abjuración",
@@ -1019,6 +1025,7 @@
   },
   {
     "id": "h_buenas-bayas",
+    "materialCostosoOConsumido": false,
     "nombre": "Buenas bayas",
     "nivel": 1,
     "escuela": "Conjuración",
@@ -1099,6 +1106,7 @@
   },
   {
     "id": "h_calentar-metal",
+    "materialCostosoOConsumido": false,
     "nombre": "Calentar metal",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -1154,6 +1162,7 @@
   },
   {
     "id": "h_cambiar-de-forma",
+    "materialCostosoOConsumido": true,
     "nombre": "Cambiar de forma",
     "nivel": 9,
     "escuela": "Transmutación",
@@ -1179,6 +1188,7 @@
   },
   {
     "id": "h_caminar-sobre-el-agua",
+    "materialCostosoOConsumido": false,
     "nombre": "Caminar sobre el agua",
     "nivel": 3,
     "escuela": "Transmutación",
@@ -1751,6 +1761,7 @@
   },
   {
     "id": "h_confusion",
+    "materialCostosoOConsumido": false,
     "nombre": "Confusión",
     "nivel": 4,
     "escuela": "Encantamiento",
@@ -2009,6 +2020,7 @@
   },
   {
     "id": "h_cono-de-frio",
+    "materialCostosoOConsumido": false,
     "nombre": "Cono de frío",
     "nivel": 5,
     "escuela": "Evocación",
@@ -2218,6 +2230,7 @@
   },
   {
     "id": "h_controlar-agua",
+    "materialCostosoOConsumido": false,
     "nombre": "Controlar agua",
     "nivel": 4,
     "escuela": "Transmutación",
@@ -2247,6 +2260,7 @@
   },
   {
     "id": "h_controlar-el-clima",
+    "materialCostosoOConsumido": false,
     "nombre": "Controlar el clima",
     "nivel": 8,
     "escuela": "Transmutación",
@@ -2455,6 +2469,7 @@
   },
   {
     "id": "h_crear-o-destruir-agua",
+    "materialCostosoOConsumido": false,
     "nombre": "Crear o destruir agua",
     "nivel": 1,
     "escuela": "Transmutación",
@@ -2481,6 +2496,7 @@
   },
   {
     "id": "h_crecimiento-espinoso",
+    "materialCostosoOConsumido": false,
     "nombre": "Crecimiento espinoso",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -2534,6 +2550,7 @@
   },
   {
     "id": "h_cuchillo-de-hielo",
+    "materialCostosoOConsumido": false,
     "nombre": "Cuchillo de hielo",
     "nivel": 1,
     "escuela": "Conjuración",
@@ -2826,6 +2843,7 @@
   },
   {
     "id": "h_de-la-carne-a-la-piedra",
+    "materialCostosoOConsumido": false,
     "nombre": "De la carne a la piedra",
     "nivel": 6,
     "escuela": "Transmutación",
@@ -2986,6 +3004,7 @@
   },
   {
     "id": "h_despertar",
+    "materialCostosoOConsumido": true,
     "nombre": "Despertar",
     "nivel": 5,
     "escuela": "Transmutación",
@@ -3036,6 +3055,7 @@
   },
   {
     "id": "h_desplazamiento-entre-planos",
+    "materialCostosoOConsumido": true,
     "nombre": "Desplazamiento entre planos",
     "nivel": 7,
     "escuela": "Conjuración",
@@ -3200,6 +3220,7 @@
   },
   {
     "id": "h_detectar-venenos-y-enfermedades",
+    "materialCostosoOConsumido": false,
     "nombre": "Detectar venenos y enfermedades",
     "nivel": 1,
     "escuela": "Adivinación",
@@ -3570,6 +3591,7 @@
   },
   {
     "id": "h_encantar-animal",
+    "materialCostosoOConsumido": false,
     "nombre": "Encantar animal",
     "nivel": 1,
     "escuela": "Encantamiento",
@@ -3598,6 +3620,7 @@
   },
   {
     "id": "h_encontrar-el-camino",
+    "materialCostosoOConsumido": true,
     "nombre": "Encontrar el camino",
     "nivel": 6,
     "escuela": "Adivinación",
@@ -3624,6 +3647,7 @@
   },
   {
     "id": "h_encontrar-familiar",
+    "materialCostosoOConsumido": true,
     "nombre": "Encontrar familiar",
     "nivel": 1,
     "escuela": "Conjuración",
@@ -3856,6 +3880,7 @@
   },
   {
     "id": "h_escudo-de-fuego",
+    "materialCostosoOConsumido": false,
     "nombre": "Escudo de fuego",
     "nivel": 4,
     "escuela": "Evocación",
@@ -3884,6 +3909,7 @@
   },
   {
     "id": "h_escudrinar",
+    "materialCostosoOConsumido": true,
     "nombre": "Escudriñar",
     "nivel": 5,
     "escuela": "Adivinación",
@@ -3973,6 +3999,7 @@
   },
   {
     "id": "h_esfera-de-llamas",
+    "materialCostosoOConsumido": false,
     "nombre": "Esfera de llamas",
     "nivel": 2,
     "escuela": "Conjuración",
@@ -4194,6 +4221,7 @@
   },
   {
     "id": "h_explosion-solar",
+    "materialCostosoOConsumido": false,
     "nombre": "Explosión Solar",
     "nivel": 8,
     "escuela": "Evocación",
@@ -4299,6 +4327,7 @@
   },
   {
     "id": "h_festin-de-heroes",
+    "materialCostosoOConsumido": true,
     "nombre": "Festín de Héroes",
     "nivel": 6,
     "escuela": "Conjuración",
@@ -4327,6 +4356,7 @@
   },
   {
     "id": "h_fingir-muerte",
+    "materialCostosoOConsumido": false,
     "nombre": "Fingir muerte",
     "nivel": 3,
     "escuela": "Nigromancia",
@@ -4869,6 +4899,7 @@
   },
   {
     "id": "h_guia",
+    "danoIndirecto": true,
     "nombre": "Guía",
     "nivel": 0,
     "escuela": "Adivinación",
@@ -5138,6 +5169,7 @@
   },
   {
     "id": "h_hoja-de-fuego",
+    "materialCostosoOConsumido": false,
     "nombre": "Hoja de fuego",
     "nivel": 2,
     "escuela": "Evocación",
@@ -5466,6 +5498,7 @@
   },
   {
     "id": "h_inmovilizar-persona",
+    "materialCostosoOConsumido": false,
     "nombre": "Inmovilizar persona",
     "nivel": 2,
     "escuela": "Encantamiento",
@@ -5521,6 +5554,7 @@
   },
   {
     "id": "h_invertir-la-gravedad",
+    "materialCostosoOConsumido": false,
     "nombre": "Invertir la gravedad",
     "nivel": 7,
     "escuela": "Transmutación",
@@ -5676,6 +5710,7 @@
   },
   {
     "id": "h_invocar-bestia",
+    "materialCostosoOConsumido": true,
     "nombre": "Invocar bestia",
     "nivel": 2,
     "escuela": "Conjuración",
@@ -5753,6 +5788,7 @@
   },
   {
     "id": "h_invocar-elemental",
+    "materialCostosoOConsumido": true,
     "nombre": "Invocar elemental",
     "nivel": 4,
     "escuela": "Conjuración",
@@ -5780,6 +5816,7 @@
   },
   {
     "id": "h_invocar-feerico",
+    "materialCostosoOConsumido": true,
     "nombre": "Invocar feérico",
     "nivel": 3,
     "escuela": "Conjuración",
@@ -5986,6 +6023,7 @@
   },
   {
     "id": "h_libertad-de-movimiento",
+    "materialCostosoOConsumido": false,
     "nombre": "Libertad de movimiento",
     "nivel": 4,
     "escuela": "Abjuración",
@@ -6013,6 +6051,7 @@
   },
   {
     "id": "h_llama-permanente",
+    "materialCostosoOConsumido": true,
     "nombre": "Llama permanente",
     "nivel": 2,
     "escuela": "Evocación",
@@ -6093,6 +6132,7 @@
   },
   {
     "id": "h_localizar-animales-o-plantas",
+    "materialCostosoOConsumido": false,
     "nombre": "Localizar animales o plantas",
     "nivel": 2,
     "escuela": "Adivinación",
@@ -6119,6 +6159,7 @@
   },
   {
     "id": "h_localizar-criatura",
+    "materialCostosoOConsumido": false,
     "nombre": "Localizar criatura",
     "nivel": 4,
     "escuela": "Adivinación",
@@ -6148,6 +6189,7 @@
   },
   {
     "id": "h_localizar-objeto",
+    "materialCostosoOConsumido": false,
     "nombre": "Localizar objeto",
     "nivel": 2,
     "escuela": "Adivinación",
@@ -6257,6 +6299,7 @@
   },
   {
     "id": "h_latigo-de-espinas",
+    "materialCostosoOConsumido": false,
     "nombre": "Látigo de espinas",
     "nivel": 0,
     "escuela": "Transmutación",
@@ -6555,6 +6598,7 @@
   },
   {
     "id": "h_mensaje",
+    "materialCostosoOConsumido": false,
     "nombre": "Mensaje",
     "nivel": 0,
     "escuela": "Transmutación",
@@ -6582,6 +6626,7 @@
   },
   {
     "id": "h_mensajero-animal",
+    "materialCostosoOConsumido": false,
     "nombre": "Mensajero animal",
     "nivel": 2,
     "escuela": "Encantamiento",
@@ -6634,6 +6679,7 @@
   },
   {
     "id": "h_moldear-la-piedra",
+    "materialCostosoOConsumido": false,
     "nombre": "Moldear la piedra",
     "nivel": 4,
     "escuela": "Transmutación",
@@ -6660,6 +6706,7 @@
   },
   {
     "id": "h_mover-la-tierra",
+    "materialCostosoOConsumido": false,
     "nombre": "Mover la tierra",
     "nivel": 6,
     "escuela": "Transmutación",
@@ -6686,6 +6733,7 @@
   },
   {
     "id": "h_muro-de-espinas",
+    "materialCostosoOConsumido": false,
     "nombre": "Muro de espinas",
     "nivel": 6,
     "escuela": "Conjuración",
@@ -6715,6 +6763,7 @@
   },
   {
     "id": "h_muro-de-fuego",
+    "materialCostosoOConsumido": false,
     "nombre": "Muro de fuego",
     "nivel": 4,
     "escuela": "Evocación",
@@ -6799,6 +6848,7 @@
   },
   {
     "id": "h_muro-de-piedra",
+    "materialCostosoOConsumido": false,
     "nombre": "Muro de piedra",
     "nivel": 5,
     "escuela": "Evocación",
@@ -6826,6 +6876,7 @@
   },
   {
     "id": "h_muro-de-viento",
+    "materialCostosoOConsumido": false,
     "nombre": "Muro de viento",
     "nivel": 3,
     "escuela": "Evocación",
@@ -7023,6 +7074,7 @@
   },
   {
     "id": "h_ofuscacion",
+    "materialCostosoOConsumido": false,
     "nombre": "Ofuscación",
     "nivel": 8,
     "escuela": "Encantamiento",
@@ -7508,6 +7560,7 @@
   },
   {
     "id": "h_pasar-sin-rastro",
+    "materialCostosoOConsumido": false,
     "nombre": "Pasar sin rastro",
     "nivel": 2,
     "escuela": "Abjuración",
@@ -7688,6 +7741,7 @@
   },
   {
     "id": "h_piel-petrea",
+    "materialCostosoOConsumido": true,
     "nombre": "Piel pétrea",
     "nivel": 4,
     "escuela": "Transmutación",
@@ -7715,6 +7769,7 @@
   },
   {
     "id": "h_piel-robliza",
+    "materialCostosoOConsumido": false,
     "nombre": "Piel robliza",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -7740,6 +7795,7 @@
   },
   {
     "id": "h_plaga-de-insectos",
+    "materialCostosoOConsumido": false,
     "nombre": "Plaga de insectos",
     "nivel": 5,
     "escuela": "Conjuración",
@@ -7802,6 +7858,7 @@
   },
   {
     "id": "h_polimorfar",
+    "materialCostosoOConsumido": false,
     "nombre": "Polimorfar",
     "nivel": 4,
     "escuela": "Transmutación",
@@ -7884,6 +7941,7 @@
   },
   {
     "id": "h_potenciar-caracteristica",
+    "materialCostosoOConsumido": false,
     "nombre": "Potenciar característica",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -7914,6 +7972,7 @@
   },
   {
     "id": "h_presciencia",
+    "materialCostosoOConsumido": false,
     "nombre": "Presciencia",
     "nivel": 9,
     "escuela": "Adivinación",
@@ -8021,6 +8080,7 @@
   },
   {
     "id": "h_proteccion-contra-el-bien-y-el-mal",
+    "materialCostosoOConsumido": true,
     "nombre": "Protección contra el bien y el mal",
     "nivel": 1,
     "escuela": "Abjuración",
@@ -8370,6 +8430,7 @@
   },
   {
     "id": "h_rayo-de-luna",
+    "materialCostosoOConsumido": false,
     "nombre": "Rayo de luna",
     "nivel": 2,
     "escuela": "Evocación",
@@ -8454,6 +8515,7 @@
   },
   {
     "id": "h_rayo-solar",
+    "materialCostosoOConsumido": false,
     "nombre": "Rayo solar",
     "nivel": 6,
     "escuela": "Evocación",
@@ -8534,6 +8596,7 @@
   },
   {
     "id": "h_reencarnar",
+    "materialCostosoOConsumido": true,
     "nombre": "Reencarnar",
     "nivel": 5,
     "escuela": "Nigromancia",
@@ -8559,6 +8622,7 @@
   },
   {
     "id": "h_regenerar",
+    "materialCostosoOConsumido": false,
     "nombre": "Regenerar",
     "nivel": 7,
     "escuela": "Transmutación",
@@ -8650,6 +8714,7 @@
   },
   {
     "id": "h_reparar",
+    "materialCostosoOConsumido": false,
     "nombre": "Reparar",
     "nivel": 0,
     "escuela": "Transmutación",
@@ -8706,6 +8771,7 @@
   },
   {
     "id": "h_resistencia",
+    "danoIndirecto": true,
     "nombre": "Resistencia",
     "nivel": 0,
     "escuela": "Abjuración",
@@ -8732,6 +8798,7 @@
   },
   {
     "id": "h_respirar-bajo-el-agua",
+    "materialCostosoOConsumido": false,
     "nombre": "Respirar bajo el agua",
     "nivel": 3,
     "escuela": "Transmutación",
@@ -8759,6 +8826,7 @@
   },
   {
     "id": "h_restablecimiento-mayor",
+    "materialCostosoOConsumido": true,
     "nombre": "Restablecimiento mayor",
     "nivel": 5,
     "escuela": "Abjuración",
@@ -8842,6 +8910,7 @@
   },
   {
     "id": "h_resurreccion-verdadera",
+    "materialCostosoOConsumido": true,
     "nombre": "Resurrección verdadera",
     "nivel": 9,
     "escuela": "Nigromancia",
@@ -8895,6 +8964,7 @@
   },
   {
     "id": "h_revivir",
+    "materialCostosoOConsumido": true,
     "nombre": "Revivir",
     "nivel": 3,
     "escuela": "Nigromancia",
@@ -9037,6 +9107,7 @@
   },
   {
     "id": "h_rafaga-de-viento",
+    "materialCostosoOConsumido": false,
     "nombre": "Ráfaga de viento",
     "nivel": 2,
     "escuela": "Evocación",
@@ -9142,6 +9213,7 @@
   },
   {
     "id": "h_salto",
+    "materialCostosoOConsumido": false,
     "nombre": "Salto",
     "nivel": 1,
     "escuela": "Transmutación",
@@ -9293,6 +9365,8 @@
   },
   {
     "id": "h_shillelagh",
+    "materialCostosoOConsumido": false,
+    "danoIndirecto": true,
     "nombre": "Shillelagh",
     "nivel": 0,
     "escuela": "Transmutación",
@@ -9506,6 +9580,7 @@
   },
   {
     "id": "h_simbolo",
+    "materialCostosoOConsumido": true,
     "nombre": "Símbolo",
     "nivel": 7,
     "escuela": "Abjuración",
@@ -9718,6 +9793,7 @@
   },
   {
     "id": "h_terremoto",
+    "materialCostosoOConsumido": false,
     "nombre": "Terremoto",
     "nivel": 8,
     "escuela": "Transmutación",
@@ -9747,6 +9823,7 @@
   },
   {
     "id": "h_terreno-alucinatorio",
+    "materialCostosoOConsumido": false,
     "nombre": "Terreno alucinatorio",
     "nivel": 4,
     "escuela": "Ilusionismo",
@@ -9916,6 +9993,7 @@
   },
   {
     "id": "h_tormenta-de-aguanieve",
+    "materialCostosoOConsumido": false,
     "nombre": "Tormenta de aguanieve",
     "nivel": 3,
     "escuela": "Conjuración",
@@ -9999,6 +10077,7 @@
   },
   {
     "id": "h_tormenta-de-hielo",
+    "materialCostosoOConsumido": false,
     "nombre": "Tormenta de hielo",
     "nivel": 4,
     "escuela": "Evocación",
@@ -10271,6 +10350,7 @@
   },
   {
     "id": "h_viajar-con-el-viento",
+    "materialCostosoOConsumido": false,
     "nombre": "Viajar con el viento",
     "nivel": 6,
     "escuela": "Transmutación",
@@ -10343,6 +10423,7 @@
   },
   {
     "id": "h_vision-en-la-oscuridad",
+    "materialCostosoOConsumido": false,
     "nombre": "Visión en la oscuridad",
     "nivel": 2,
     "escuela": "Transmutación",
@@ -10476,6 +10557,7 @@
   },
   {
     "id": "h_zancada-prodigiosa",
+    "materialCostosoOConsumido": false,
     "nombre": "Zancada prodigiosa",
     "nivel": 1,
     "escuela": "Transmutación",

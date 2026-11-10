@@ -6,9 +6,8 @@ import { resolverGruposYSustitutosCompetencias } from "@/constantes/competencias
 import { obtenerCompetenciasExtraRasgos, sonHerramientasEquivalentes } from "@/servicios/evaluadorEfectosRasgos";
 import { normalizarTextoClase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
 import { obtenerRasgosClaseYSubclase, obtenerConjurosSubclaseBuild } from "./constructorRasgosClase";
-import { reconciliarEleccionesConjuros } from "../rasgos/listasConjurosRasgos";
-import { reconciliarIntentoRasgo } from "../rasgos/resolucionesRasgos";
-import { normalizarCondicionesRasgos } from "../rasgos/estadoCondicionesRasgos";
+import type { CatalogoEleccionesConjuros } from "../rasgos/listasConjurosRasgos";
+import { normalizarMecanicasRasgos } from "../rasgos/normalizarMecanicasRasgos";
 
 /**
  * Construye la estructura completa de build para una clase y subclase a un nivel dado.
@@ -57,7 +56,8 @@ export function aplicarBuildClaseAPersonaje(
   claseNombreOBuild: string | BuildClaseCalculada,
   nivelOOpciones?: number | OpcionesAplicarBuild,
   subclaseNombre?: string,
-  opcionesParam?: OpcionesAplicarBuild
+  opcionesParam?: OpcionesAplicarBuild,
+  catalogo?: CatalogoEleccionesConjuros
 ): PersonajeJugador {
   let build: BuildClaseCalculada | null = null;
   let opciones: OpcionesAplicarBuild = {
@@ -193,7 +193,7 @@ export function aplicarBuildClaseAPersonaje(
   }
 
   // Equipo y habilidades de rasgos se calculan como aportaciones derivadas en sus consumidores.
-  const compSubclase = obtenerCompetenciasExtraRasgos({ ...personajeIntermedio, rasgos: rasgosFinales });
+  const compSubclase = obtenerCompetenciasExtraRasgos({ ...personajeIntermedio, rasgos: rasgosFinales }, false);
 
   // Fusión de salvaciones procedentes de rasgos de clase o subclase (ej. Mente escurridiza)
   const salvacionesPersistentes: CompetenciasSalvacion = {
@@ -249,5 +249,5 @@ export function aplicarBuildClaseAPersonaje(
 
   // 7. Sincronizar conjuros de subclase
   const sincronizado = opciones.sincronizarConjurosSubclase ? sincronizarConjurosSubclaseHelper(personajeConRasgos) : personajeConRasgos;
-  return normalizarCondicionesRasgos(reconciliarIntentoRasgo(reconciliarEleccionesConjuros(sincronizado)));
+  return normalizarMecanicasRasgos(personaje, sincronizado, catalogo);
 }

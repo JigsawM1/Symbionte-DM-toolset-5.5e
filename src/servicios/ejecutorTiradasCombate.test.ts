@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ejecutarTiradaAtaqueFisico } from "./ejecutorTiradasCombate";
+import { ejecutarTiradaAtaqueFisico, ejecutarTiradaCritico } from "./ejecutorTiradasCombate";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador, AtaquePersonajeCalculado, RasgoPersonaje, ObjetoInventario } from "@/tipos";
 
@@ -79,6 +79,22 @@ describe("ejecutorTiradasCombate - Tiradas con Ventaja de Ataque Temerario", () 
       modificarCantidadObjeto: vi.fn(),
       agregarNotificacion: vi.fn()
     });
+
+  it("emite los dados adicionales de impacto en el mismo crítico y con su tipo de daño", async () => {
+    await ejecutarTiradaCritico(ataqueFuerza, basePj, false, { formula: "2d8", tipoDano: "Frío" });
+    expect(lanzarDadosTaleSpire).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls[0][0]).toBe(
+      "Conan el Bárbaro - CRÍTICO Hacha de Batalla:2d8+3/Conan el Bárbaro - CRÍTICO Frío Hacha de Batalla:4d8"
+    );
+  });
+
+  it("mantiene el modificador principal y duplica los dos grupos de un crítico de bestia", async () => {
+    await ejecutarTiradaCritico({ ...ataqueFuerza, nombre: "Mordisco", dadoDanoBase: "1d8 / 2d6",
+      tipoDano: "perforante / veneno" }, basePj);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls[0][0]).toBe(
+      "Conan el Bárbaro - CRÍTICO Mordisco:2d8+3/Conan el Bárbaro - CRÍTICO veneno Mordisco:4d6"
+    );
+  });
 
   it("cuando Ataque Temerario está en condicionesActivas, envía la fórmula estándar 1d20+5 y tipoTiradaForzado 'ventaja' a TaleSpire", async () => {
     const pjConCondicion: PersonajeJugador = {

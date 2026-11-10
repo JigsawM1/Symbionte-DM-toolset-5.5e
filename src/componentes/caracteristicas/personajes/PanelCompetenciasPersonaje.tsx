@@ -53,7 +53,7 @@ export const PanelCompetenciasPersonaje: React.FC<Props> = ({ personaje, statsCa
             onClick={() => alAbrirSelectorCompetencias("idiomas")}
             title={"Haz clic para editar Idiomas conocidos"}
           >
-            {personaje.idiomas || "Común"}
+            {statsCalculadas?.competenciasEfectivas?.idiomasTexto || personaje.idiomas || "Común"}
           </button>
         </div>
 

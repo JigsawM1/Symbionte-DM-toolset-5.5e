@@ -19,7 +19,7 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
   alCerrar,
   alConfirmar
 }) => {
-  const tienePuntosConjuro = (personaje.puntosConjuroMaximos || 0) > 0;
+  const tienePuntosConjuro = !rasgo.recuperarEspaciosTrasDescansoCorto && (personaje.puntosConjuroMaximos || 0) > 0;
   const puntosMaximos = personaje.puntosConjuroMaximos || 0;
   const puntosGastados = personaje.puntosConjuroGastados || 0;
   const puntosDisponibles = Math.max(0, puntosMaximos - puntosGastados);
@@ -137,7 +137,8 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
   const puedeConfirmar = modo === "puntos" ? totalPuntosARecuperar > 0 : totalEspaciosARecuperar > 0;
 
   return (
-    <div className={estilos.overlay} role="dialog" aria-modal="true" aria-labelledby="titulo-tienda-recuperacion">
+    <div className={estilos.overlay} role="dialog" aria-modal="true" aria-labelledby="titulo-tienda-recuperacion"
+      onClick={e => e.stopPropagation()}>
       <div className={estilos.modal}>
         {/* Cabecera */}
         <div className={estilos.cabecera}>

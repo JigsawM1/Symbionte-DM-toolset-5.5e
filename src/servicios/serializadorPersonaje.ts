@@ -4,6 +4,8 @@ import { reconciliarEleccionesConjuros, type CatalogoEleccionesConjuros } from "
 import { hidratarSelectoresConjuros } from "./rasgos/catalogoSelectoresConjuros";
 import { reconciliarIntentoRasgo } from "./rasgos/resolucionesRasgos";
 import { normalizarCondicionesRasgos } from "./rasgos/estadoCondicionesRasgos";
+import { normalizarMecanicasRasgos } from "./rasgos/normalizarMecanicasRasgos";
+import { sincronizarConjurosSubclaseHelper } from "./sincronizadorConjurosSubclase";
 
 /**
  * Determina si un rasgo proviene formalmente del compendio canónico (clase, especie, subclase).
@@ -66,6 +68,9 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     resultadoTabla: rasgo.resultadoTabla,
     resultadosTablaPendientes: rasgo.resultadosTablaPendientes,
     recuperacionDescansoDisponible: rasgo.recuperacionDescansoDisponible,
+    ultimoUsoTurno: rasgo.ultimoUsoTurno,
+    ultimoCambioSelectorTurno: rasgo.ultimoCambioSelectorTurno,
+    ataqueAsistidoPendiente: rasgo.ataqueAsistidoPendiente,
     recuperacion: rasgo.recuperacion,
     formulaDados: rasgo.formulaDados,
     personalizado: false,
@@ -112,9 +117,12 @@ export function deshidratarPersonaje(personaje: PersonajeJugador): PersonajeJuga
 export function hidratarPersonaje(personaje: PersonajeJugador, catalogo?: CatalogoEleccionesConjuros): PersonajeJugador {
   if (!personaje) return personaje;
 
-  return normalizarCondicionesRasgos(reconciliarIntentoRasgo(reconciliarEleccionesConjuros({
+  const hidratado = {
     ...personaje,
     conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
     rasgos: catalogo ? hidratarSelectoresConjuros(sincronizarRasgosAutomaticos(personaje), catalogo) : sincronizarRasgosAutomaticos(personaje)
-  }, catalogo)));
+  };
+  if (hidratado.rasgos.some(r => r.progresionConcesion))
+    return normalizarMecanicasRasgos(personaje, sincronizarConjurosSubclaseHelper(hidratado), catalogo);
+  return normalizarCondicionesRasgos(reconciliarIntentoRasgo(reconciliarEleccionesConjuros(hidratado, catalogo)));
 }

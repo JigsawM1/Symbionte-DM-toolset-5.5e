@@ -113,10 +113,10 @@ export function activarRasgosPorCondicionOEfecto(
 
       if (!r.activo) {
         let usosRest = r.usosRestantes;
-        if (r.tieneUsosLimitados) {
+        if (!r.noGastarUsoAlActivar && r.tieneUsosLimitados) {
           const actuales = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
           usosRest = Math.max(0, actuales - (r.costeFijo ?? 1));
-        } else if (typeof r.usosRestantes === "number") {
+        } else if (!r.noGastarUsoAlActivar && typeof r.usosRestantes === "number") {
           usosRest = Math.max(0, r.usosRestantes - 1);
         }
         return {

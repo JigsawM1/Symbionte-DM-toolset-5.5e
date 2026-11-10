@@ -1,11 +1,17 @@
 import type {
   PersonajeJugador,
   MonstruoBase,
+  HechizoBase,
   RasgoPersonaje,
   VelocidadEstructurada,
   SentidosEstructurados
 } from "@/tipos";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
+import { obtenerClasePorNombre, obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
+import { coincideIdRasgo } from "@/constantes/identificadoresDND";
+import { coincideHechizoId } from "./comparadorHechizos";
+import { obtenerConcesionRasgo } from "./rasgos/concesionesRasgos";
+import { normalizar } from "./rasgos/utilidadesRasgos";
 
 interface VelocidadBestiaObjeto extends Partial<VelocidadEstructurada> {
   volando?: number;
@@ -130,6 +136,8 @@ export interface ReglasFormaSalvajeNivel {
  * Obtiene el nivel efectivo de Druida de un personaje (soporta multiclase).
  */
 export function obtenerNivelDruida(pj: PersonajeJugador): number {
+  const rasgo = obtenerRasgoFormaBestia(pj);
+  if (rasgo?.formasBestia) return obtenerNivelEfectivoParaRasgo(pj, rasgo);
   if (Array.isArray(pj.clases) && pj.clases.length > 0) {
     const claseDruida = pj.clases.find(
       (c) => c.nombre.toLowerCase().trim() === "druida"
@@ -139,20 +147,8 @@ export function obtenerNivelDruida(pj: PersonajeJugador): number {
   return Math.max(1, pj.nivel || 1);
 }
 
-/**
- * Determina si el druida pertenece al Círculo de la Luna (Circle of the Moon).
- */
-export function esDruidaCirculoLuna(pj: PersonajeJugador): boolean {
-  const sub = normalizarTexto(pj.subclase);
-  if (sub.includes("luna") || sub.includes("moon")) return true;
-
-  if (Array.isArray(pj.clases)) {
-    return pj.clases.some((c) => {
-      const s = normalizarTexto(c.subclase);
-      return s.includes("luna") || s.includes("moon");
-    });
-  }
-  return false;
+export function obtenerRasgoFormaBestia(pj: PersonajeJugador): RasgoPersonaje | undefined {
+  return pj.rasgos?.find(r => r.formasBestia) ?? pj.rasgos?.find(r => coincideIdRasgo(r, "forma_salvaje"));
 }
 
 /**
@@ -164,38 +160,18 @@ export function esDruidaCirculoLuna(pj: PersonajeJugador): boolean {
  */
 export function calcularReglasFormaSalvaje(
   nivelDruida: number,
-  esCirculoLuna: boolean = false
+  ajustes: RasgoPersonaje["ajustesFormaBestia"] = undefined,
+  formas?: RasgoPersonaje["formasBestia"]
 ): ReglasFormaSalvajeNivel {
-  let maxFormasConocidas = 4;
-  let vdMaximo = 0.25;
-  let vdMaximoTexto = "1/4";
-  let puedeVolar = false;
-
-  if (nivelDruida >= 8) {
-    maxFormasConocidas = 8;
-    puedeVolar = true;
-    vdMaximo = 1;
-    vdMaximoTexto = "1";
-  } else if (nivelDruida >= 4) {
-    maxFormasConocidas = 6;
-    vdMaximo = 0.5;
-    vdMaximoTexto = "1/2";
-  }
-
-  // Círculo de la Luna (2024): VD máx = floor(nivel / 3) a partir de nv 3 (ej. Nv 3 -> VD 1, Nv 6 -> VD 2, Nv 9 -> VD 3)
-  if (esCirculoLuna && nivelDruida >= 3) {
-    const vdLuna = Math.floor(nivelDruida / 3);
-    if (vdLuna > vdMaximo) {
-      vdMaximo = vdLuna;
-      vdMaximoTexto = String(vdLuna);
-    }
-  }
-
+  const progresion = formas?.progresion ?? obtenerClasePorNombre("Druida")?.rasgos.find(r => r.formasBestia)?.formasBestia?.progresion;
+  const fila = progresion?.reduce<NonNullable<typeof progresion>[number] | undefined>((actual, forma) =>
+    forma.nivelMinimo <= nivelDruida && (!actual || actual.nivelMinimo < forma.nivelMinimo) ? forma : actual, undefined);
+  const vdMaximo = Math.max(fila?.vdMaximo ?? 0, ajustes ? Math.floor(nivelDruida / ajustes.divisorNivelVD) : 0);
   return {
-    maxFormasConocidas,
+    maxFormasConocidas: fila?.conocidas ?? 0,
     vdMaximo,
-    vdMaximoTexto,
-    puedeVolar
+    vdMaximoTexto: vdMaximo === 0.25 ? "1/4" : vdMaximo === 0.5 ? "1/2" : String(vdMaximo),
+    puedeVolar: fila?.vuelo ?? false
   };
 }
 
@@ -205,12 +181,14 @@ export function calcularReglasFormaSalvaje(
 export function esBestiaValidaParaDruida(
   bestia: MonstruoBase,
   nivelDruida: number,
-  esCirculoLuna: boolean = false
+  ajustes: RasgoPersonaje["ajustesFormaBestia"] = undefined,
+  formas?: RasgoPersonaje["formasBestia"]
 ): boolean {
   const tipo = (bestia.tipo || "").toLowerCase();
-  if (!tipo.includes("bestia") && !tipo.includes("beast")) return false;
+  if (tipo.trim() !== "bestia" && tipo.trim() !== "beast") return false;
 
-  const reglas = calcularReglasFormaSalvaje(nivelDruida, esCirculoLuna);
+  const reglas = calcularReglasFormaSalvaje(nivelDruida, ajustes, formas);
+  if (reglas.maxFormasConocidas === 0 || !/^\d+(?:\/\d+|\.\d+)?$/.test(bestia.desafio?.trim() ?? "")) return false;
   const vdNum = convertirVDANumero(bestia.desafio);
 
   if (vdNum > reglas.vdMaximo) return false;
@@ -224,14 +202,15 @@ export function esBestiaValidaParaDruida(
  */
 export function obtenerBestiasElegiblesCompendio(
   nivelDruida: number,
-  esCirculoLuna: boolean = false,
-  catalogoHomebrew: MonstruoBase[] = []
+  ajustes: RasgoPersonaje["ajustesFormaBestia"] = undefined,
+  catalogoHomebrew: MonstruoBase[] = [],
+  formas?: RasgoPersonaje["formasBestia"]
 ): MonstruoBase[] {
   const todas = [...MONSTRUOS_INICIALES, ...catalogoHomebrew];
   const mapa = new Map<string, MonstruoBase>();
 
   for (const criatura of todas) {
-    if (esBestiaValidaParaDruida(criatura, nivelDruida, esCirculoLuna)) {
+    if (esBestiaValidaParaDruida(criatura, nivelDruida, ajustes, formas)) {
       if (!mapa.has(criatura.id)) {
         mapa.set(criatura.id, criatura);
       }
@@ -253,9 +232,9 @@ export function obtenerBestiasElegiblesCompendio(
  */
 export function calcularHpTemporalFormaSalvaje(
   nivelDruida: number,
-  esCirculoLuna: boolean = false
+  ajustes?: RasgoPersonaje["ajustesFormaBestia"]
 ): number {
-  return esCirculoLuna ? nivelDruida * 3 : nivelDruida;
+  return nivelDruida * (ajustes?.multiplicadorPgTemporales ?? 1);
 }
 
 /**
@@ -269,7 +248,7 @@ export function obtenerBestiaFormaActiva(
   catalogoHomebrew: MonstruoBase[] = []
 ): MonstruoBase | null {
   const idActiva = pj.formaSalvaje?.formaActivaId;
-  if (!idActiva) return null;
+  if (!idActiva || pj.salvacionesMuerte?.fallos >= 3) return null;
 
   // Condiciones que finalizan de inmediato la Forma salvaje según PHB 2024
   const conds = (pj.condicionesActivas || []).map((c) => c.toLowerCase().trim());
@@ -285,56 +264,60 @@ export function obtenerBestiaFormaActiva(
   }
 
   // Si la condición "Forma salvaje" fue retirada explícitamente y el rasgo está inactivo
-  const rasgoForma = (pj.rasgos || []).find((r) => r.nombre.toLowerCase().trim() === "forma salvaje");
+  const rasgoForma = obtenerRasgoFormaBestia(pj);
   const tieneCondicion = conds.some((c) => c.includes("forma salvaje") || c.includes("wild shape"));
   if (!tieneCondicion && rasgoForma && !rasgoForma.activo) {
     return null;
   }
 
-  const enHomebrew = catalogoHomebrew.find((m) => m.id === idActiva);
-  if (enHomebrew) return enHomebrew;
-
-  const enOficiales = MONSTRUOS_INICIALES.find((m) => m.id === idActiva);
-  return enOficiales || null;
+  const bestia = catalogoHomebrew.find(m => m.id === idActiva) ?? MONSTRUOS_INICIALES.find(m => m.id === idActiva);
+  if (rasgoForma?.formasBestia && (!rasgoForma.activo || !bestia || !esBestiaValidaParaDruida(
+    bestia, obtenerNivelDruida(pj), rasgoForma.ajustesFormaBestia, rasgoForma.formasBestia))) return null;
+  return bestia ?? null;
 }
 
-/** Lista canónica de conjuros que el Círculo de la Luna puede lanzar en Forma salvaje (PHB 2024) */
-export const CONJUROS_CIRCULO_LUNA_PERMITIDOS = new Set([
-  "curar heridas",
-  "rayo lunar",
-  "voluta estelar",
-  "conjurar animales",
-  "fuente de luz lunar",
-  "curar heridas en masa",
-  "cure wounds",
-  "moonbeam",
-  "starry wisp",
-  "conjure animals",
-  "moonlight step",
-  "mass cure wounds"
-]);
+export function terminarFormaBestia(pj: PersonajeJugador): PersonajeJugador {
+  const rasgo = obtenerRasgoFormaBestia(pj);
+  return {
+    ...pj,
+    formaSalvaje: { formasConocidasIds: pj.formaSalvaje.formasConocidasIds,
+      sustitucionDisponible: pj.formaSalvaje.sustitucionDisponible, formaActivaId: null, hpTemporalAlTransformar: 0 },
+    rasgos: pj.rasgos.map(r => r === rasgo ? { ...r, activo: false } : r),
+    condicionesActivas: pj.condicionesActivas.filter(c => normalizarTexto(c) !== normalizarTexto(rasgo?.condicionAlActivar ?? "Forma salvaje")),
+    efectosActivos: pj.efectosActivos.filter(e => !rasgo || e.idRasgoOrigen !== rasgo.id)
+  };
+}
 
-/**
- * Comprueba si un personaje transformado en Forma salvaje puede lanzar un conjuro dado.
- * PHB 2024:
- * - Druida estándar: No puede lanzar conjuros hasta nivel 18 (Bestia lanzadora / Beast Spells).
- * - Círculo de la Luna: Puede lanzar los conjuros preparados de su lista de subclase.
- */
-export function puedeLanzarConjuroEnFormaSalvaje(
-  pj: PersonajeJugador,
-  nombreHechizo: string
-): boolean {
-  if (!obtenerBestiaFormaActiva(pj)) return true; // No está transformado
+export function transcurrirDescansoFormaBestia(pj: PersonajeJugador, largo: boolean): PersonajeJugador {
+  const forma = pj.formaSalvaje;
+  if (!forma || !obtenerRasgoFormaBestia(pj)?.formasBestia) return pj;
+  const minutos = largo ? 480 : 60;
+  const minutosRestantes = forma.minutosRestantes === undefined ? undefined : Math.max(0, forma.minutosRestantes - minutos);
+  const expiraRonda = forma.expiraRonda === undefined ? undefined : Math.max(1, forma.expiraRonda - minutos * 10);
+  const actualizado = { ...pj, formaSalvaje: { ...forma, minutosRestantes, expiraRonda,
+    sustitucionDisponible: largo || forma.sustitucionDisponible } };
+  return forma.formaActivaId && minutosRestantes === 0 ? terminarFormaBestia(actualizado) : actualizado;
+}
 
-  const nivelDruida = obtenerNivelDruida(pj);
-  if (nivelDruida >= 18) return true; // Bestia lanzadora (PHB 2024 nivel 18)
+export function inventarioEnFormaBestia(pj: PersonajeJugador): PersonajeJugador["inventario"] {
+  const ids = pj.formaSalvaje?.equipoConservadoIds;
+  const inventario = pj.inventario ?? [];
+  return ids && obtenerBestiaFormaActiva(pj) ? inventario.filter(o => ids.includes(o.idInstancia)) : inventario;
+}
 
-  if (esDruidaCirculoLuna(pj)) {
-    const norm = nombreHechizo.toLowerCase().trim();
-    return CONJUROS_CIRCULO_LUNA_PERMITIDOS.has(norm);
-  }
-
-  return false;
+export function evaluarConjuroEnFormaBestia(pj: PersonajeJugador, hechizo?: HechizoBase, clase?: string): "permitido" | "bloqueado" | "confirmar" {
+  if (!obtenerBestiaFormaActiva(pj)) return "permitido";
+  const permiso = pj.rasgos.some(r => r.permiteConjurosEnBestia && r.activo !== false
+    && obtenerNivelEfectivoParaRasgo(pj, r) >= (r.nivelRequerido ?? 1));
+  const permiteConcesion = pj.rasgos.some(r => r.lanzarConcesionEnBestia
+    && (!clase || normalizar(clase) === normalizar(r.claseConjurosOtorgados))
+    && obtenerConcesionRasgo(pj, r, hechizo?.nivel === 0 ? "trucos" : "conjuros")
+      .some(id => !hechizo || coincideHechizoId(id, hechizo.id)));
+  if (permiteConcesion) return "permitido";
+  if (!permiso) return "bloqueado";
+  if (!hechizo?.componentesSeleccionados.material) return "permitido";
+  if (hechizo.materialCostosoOConsumido === true) return "bloqueado";
+  return hechizo.materialCostosoOConsumido === false ? "permitido" : "confirmar";
 }
 
 
@@ -433,6 +416,7 @@ export function filtrarRasgosFormaSalvaje(
   bestia: MonstruoBase
 ): RasgoPersonaje[] {
   const rasgosBestia = extraerRasgosBestia(bestia);
-  const rasgosDruida = (rasgosPersonaje || []).filter(esRasgoDeDruida);
-  return [...rasgosBestia, ...rasgosDruida];
+  const canonicos = rasgosPersonaje.some(r => r.formasBestia);
+  return [...rasgosBestia, ...rasgosPersonaje.filter(r => canonicos
+    ? r.origen === "clase" || r.origen === "subclase" || r.origen === "dote" : esRasgoDeDruida(r))];
 }

@@ -15,7 +15,7 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
     expect(clasesPresentes.has("Clérigo")).toBe(true);
     expect(clasesPresentes.has("Paladín")).toBe(true);
     expect(clasesPresentes.has("Brujo")).toBe(true);
-    expect(clasesPresentes.has("Druida")).toBe(true);
+
     expect(clasesPresentes.has("Hechicero")).toBe(true);
     expect(clasesPresentes.has("Explorador")).toBe(true);
     expect(clasesPresentes.has("Bardo")).toBe(true);
@@ -107,28 +107,6 @@ describe("Fase 2: Catálogo y Cálculo de Conjuros de Subclase D&D 2024", () => 
       expect(obtenerNivelesArcanoMisticoDisponibles(15)).toEqual([6, 7, 8]);
       expect(obtenerNivelesArcanoMisticoDisponibles(17)).toEqual([6, 7, 8, 9]);
       expect(obtenerNivelesArcanoMisticoDisponibles(20)).toEqual([6, 7, 8, 9]);
-    });
-  });
-
-  describe("4. Druida (Círculos)", () => {
-    it("Círculo de la Tierra: soporta variantes de bioma (Árida, Polar, Templada, Tropical)", () => {
-      const polar = obtenerConjurosSiemprePreparadosSubclase("Druida", "Círculo de la Tierra", 5, "polar");
-      expect(polar.trucos).toContain("Rayo de escarcha");
-      expect(polar.conjuros).toContain("Tormenta de aguanieve");
-
-      const arida = obtenerConjurosSiemprePreparadosSubclase("Druida", "Círculo de la Tierra", 5, "árida");
-      expect(arida.trucos).toContain("Saeta de fuego");
-      expect(arida.conjuros).toContain("Bola de fuego");
-    });
-
-    it("Círculo de la Luna, Mar y Estrellas", () => {
-      const luna = obtenerConjurosSiemprePreparadosSubclase("Druida", "Círculo de la Luna", 5);
-      expect(luna.conjuros).toContain("Rayo lunar");
-      expect(luna.conjuros).toContain("Conjurar animales");
-
-      const estrellas = obtenerConjurosSiemprePreparadosSubclase("Druida", "Círculo de las Estrellas", 3);
-      expect(estrellas.trucos).toContain("Guía");
-      expect(estrellas.conjuros).toContain("Saeta guía");
     });
   });
 

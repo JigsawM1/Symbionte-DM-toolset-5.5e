@@ -76,7 +76,7 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
     } finally { queueMicrotask(() => { bloqueado.current = false; }); }
   };
   return <>
-    {rasgo.resolucionAsistida && <ResolucionAsistidaRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
+    {rasgo.resolucionAsistida && !rasgo.resolucionAsistida.integrarEnDanoDeArma && <ResolucionAsistidaRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
     {!!rasgo.resolucionesCuracionPendientes?.length && <CuracionesPendientesRasgo idPersonaje={pj.id} rasgo={rasgo} />}
     {rasgo.recuperacionDiferida && <section className={estilos.rituales} aria-label="Recuperación pendiente">
       {rasgo.recuperacionDiferida.estado === "contando" ? (
@@ -112,7 +112,8 @@ export function ControlesRecursosDeclarativos({ rasgo, idPersonaje, vista = "tar
       )}
     </section>}
     {rasgo.recuperarUsosConEspacio && <RecuperarUsosConEspacio personaje={pj} rasgo={rasgo} />}
-    {(rasgo.lanzamientoConRecurso || (vista === "detalle" && rasgo.varianteSinConcentracion)) && <ConjurosConRecursoRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
+    {((rasgo.lanzamientoConRecurso && !rasgo.lanzamientoConRecurso.soloEnConjuros) || (vista === "detalle" && rasgo.varianteSinConcentracion))
+      && <ConjurosConRecursoRasgo key={`${pj.id}:${rasgo.id}`} personaje={pj} rasgo={rasgo} />}
     {rasgo.reservaDados && <ReservaDadosRasgo personaje={pj} rasgo={rasgo} />}
     {rasgo.tablaAleatoria && <TablaAleatoriaRasgo personaje={pj} rasgo={rasgo} />}
     {gratis && <div className={estilos.botonesRituales}>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useDeferredValue, useCallback } from "react";
-import { conjuroElegidoPorClase } from "@/servicios/rasgos/listasConjurosRasgos";
+import { conjuroElegidoPorClase, conjuroFueraDeListas, esConjuroIndependiente } from "@/servicios/rasgos/listasConjurosRasgos";
+import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/rasgos/evaluadorCombateRasgos";
 import {
   Star,
   CheckSquare,
@@ -67,6 +68,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     alternarConjuroPreparado
   } = usarAccionesPersonajes();
   const sincronizarConjurosSubclase = usarAlmacenDM((state) => state.sincronizarConjurosSubclase);
+  const alternarConjuroIndependiente = usarAlmacenDM(state => state.alternarConjuroIndependiente);
 
   const personajeActivo = useMemo(() => {
     if (personajeProp !== undefined) return personajeProp;
@@ -101,9 +103,9 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     conteoEfectivo
   } = usarMagiaPersonaje(personajeActivo, baseDatosHechizos);
   const perfilEleccion = personajeActivo?.clasesLanzadoras.find(c => c.clase === claseEleccion);
-  const estaPreparado = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo ? preparadoGlobal(h)
+  const estaPreparado = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo || esConjuroIndependiente(personajeActivo, h) ? preparadoGlobal(h)
     : !!obtenerOrigenConjuro(h) || conjuroElegidoPorClase(personajeActivo, h.id, perfilEleccion.clase, h.nivel === 0 ? "trucos" : "preparados"), [perfilEleccion, personajeActivo, preparadoGlobal, obtenerOrigenConjuro]);
-  const estaEnLista = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo ? enListaGlobal(h)
+  const estaEnLista = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo || esConjuroIndependiente(personajeActivo, h) ? enListaGlobal(h)
     : !!obtenerOrigenConjuro(h) || conjuroElegidoPorClase(personajeActivo, h.id, perfilEleccion.clase, h.nivel === 0 ? "trucos" : "conjuros"), [perfilEleccion, personajeActivo, enListaGlobal, obtenerOrigenConjuro]);
 
   const esGrimorio = useMemo(() => {
@@ -410,13 +412,9 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
                 ? "No tienes conjuros conocidos actualmente. Marca la estrella en tu 'Libro de conjuros' para seleccionarlos."
                 : "No tienes conjuros preparados actualmente."
             )}
-            {pestañaActiva === "miLista" && (
-              esModeloConocidos
-                ? "No tienes conjuros conocidos actualmente. Explora las pestañas 'Disponibles' o 'Todos' para aprenderlos."
-                : esGrimorio
-                ? "No tienes conjuros inscritos en tu libro de conjuros. Explora las pestañas 'Disponibles' u 'Otros' para añadirlos."
-                : "No tienes conjuros añadidos a tu lista. Explora las pestañas 'Disponibles' o 'Todos' para agregarlos."
-            )}
+            {pestañaActiva === "miLista" && (esGrimorio
+              ? "El grimorio está vacío. Busca conjuros en Disponibles u Otros."
+              : "La lista está vacía. Busca conjuros en Disponibles o Todos.")}
             {pestañaActiva === "disponibles" &&
               (personajeActivo && !personajeActivo.esLanzador && (personajeActivo.clasesLanzadoras?.length ?? 0) === 0
                 ? "Este personaje no posee clases ni rasgos lanzadores de conjuros."
@@ -429,6 +427,9 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
             const origenBadge = obtenerOrigenConjuro(hechizo);
             const enLista = estaEnLista(hechizo);
             const preparado = estaPreparado(hechizo);
+            const independiente = !!personajeActivo && esConjuroIndependiente(personajeActivo, hechizo);
+            const edicionIndependiente = !!personajeActivo && (independiente
+              || (pestañaActiva === "todos" && !enLista && conjuroFueraDeListas(personajeActivo, hechizo)));
             const mostrarEstrella =
               !esModeloConocidos &&
               (esPreparadorSinGrimorio || pestañaActiva === "miLista" || pestañaActiva === "preparados");
@@ -436,15 +437,18 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
             return (
               <FilaConjuroCompendio
                 key={hechizo.id}
-                hechizo={hechizo}
+                hechizo={aplicarModificadoresInvocacionesAHechizo(hechizo, personajeActivo)}
                 estaEnLista={enLista}
                 estaPreparado={preparado}
                 esDeSubclase={esSubclase}
                 origenBadge={origenBadge}
                 esModeloConocidos={esModeloConocidos}
-                mostrarEstrella={mostrarEstrella}
-                alAlternarEnLista={() => manejarAlternarEnLista(hechizo)}
-                alAlternarPreparado={() => manejarAlternarPreparado(hechizo)}
+                mostrarEstrella={mostrarEstrella && (!edicionIndependiente || independiente)}
+                tituloEdicionIndependiente={edicionIndependiente ? independiente ? "Quitar concesión independiente" : "Añadir como concesión independiente" : undefined}
+                alAlternarEnLista={() => edicionIndependiente && personajeActivo
+                  ? alternarConjuroIndependiente(personajeActivo.id, hechizo.id) : manejarAlternarEnLista(hechizo)}
+                alAlternarPreparado={() => independiente && personajeActivo
+                  ? alternarConjuroPreparado(personajeActivo.id, hechizo.id) : manejarAlternarPreparado(hechizo)}
                 alAbrirDetalle={(h) => setHechizoModal(h)}
               />
             );

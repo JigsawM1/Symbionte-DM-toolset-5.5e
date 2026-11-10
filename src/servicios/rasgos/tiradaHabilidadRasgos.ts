@@ -1,6 +1,6 @@
 import type { Caracteristica, Habilidad, PersonajeJugador } from "@/tipos";
 import { MAPA_HABILIDAD_A_CARACTERISTICA } from "@/constantes/personajeConstantes";
-import { obtenerHabilidadesConFuerzaRasgos } from "./evaluadorSalvacionesRasgos";
+import { obtenerBonosHabilidadesRasgos, obtenerHabilidadesConFuerzaRasgos } from "./evaluadorSalvacionesRasgos";
 
 /** El bono derivado ya incluye equipo, competencia y personalizaciones: solo cambia el atributo. */
 export function resolverTiradaHabilidadRasgos(pj: PersonajeJugador, habilidad: Habilidad,
@@ -11,7 +11,10 @@ export function resolverTiradaHabilidadRasgos(pj: PersonajeJugador, habilidad: H
   const alternativa = habitual !== "fuerza" && fija == null && (habilidadesConFuerza ?? obtenerHabilidadesConFuerzaRasgos(pj)).has(habilidad);
   if (!alternativa) return { caracteristica: habitual, bono: bonoCalculado, opciones: [] };
   const resto = bonoCalculado - Math.max(modificadores[habitual], modificadores.fuerza);
-  const opciones = [habitual, "fuerza" as const].map(caracteristica => ({ caracteristica, bono: resto + modificadores[caracteristica] }));
+  const bonoHabitual = obtenerBonosHabilidadesRasgos(pj, undefined, modificadores)[habilidad] ?? 0;
+  const opciones = [habitual, "fuerza" as const].map(caracteristica => ({ caracteristica,
+    bono: resto + modificadores[caracteristica]
+      + (obtenerBonosHabilidadesRasgos(pj, { habilidad, caracteristica }, modificadores)[habilidad] ?? 0) - bonoHabitual }));
   const predeterminada = modificadores.fuerza >= modificadores[habitual] ? "fuerza" : habitual;
   const opcion = opciones.find(o => o.caracteristica === (elegida ?? predeterminada)) ?? opciones[0];
   return { ...opcion, opciones };

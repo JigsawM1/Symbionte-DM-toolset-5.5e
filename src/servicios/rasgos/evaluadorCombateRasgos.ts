@@ -19,6 +19,7 @@ import {
 import { resolverClaseLanzamiento } from "./modificadoresConjuroRasgos";
 import { obtenerDadoInspiracionBardica } from "./evaluadorSalvacionesRasgos";
 import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
+import { calcularEstadisticasPersonaje } from "../personajes/calculadorEstadisticasPersonaje";
 
 /**
  * Contexto de un ataque físico o mágico para evaluar si aplican efectos de rasgos.
@@ -542,7 +543,8 @@ export function aplicarModificadoresInvocacionesAHechizo(
 
   let modificado = false;
   let nuevoAgregarModificadorHabilidad = hechizo.agregarModificadorHabilidad;
-  let nuevoAlcance = hechizo.alcance;
+  const alcanceOriginal = hechizo.alcanceBaseRasgo ?? hechizo.alcance;
+  let nuevoAlcance = alcanceOriginal;
 
   // 2. Evaluar bonificación de daño por modificador de característica para trucos
   // (Lanzamiento Potente de Clérigo, Descarga Agónica de Brujo, etc.)
@@ -558,6 +560,7 @@ export function aplicarModificadoresInvocacionesAHechizo(
     if (!objNorm.includes("modificador_habilidad")) return false;
 
     const aplNorm = normalizar(ef.aplicaA || "");
+    if (aplNorm === "trucos_dano_directo") return Boolean(hechizo.dadosDaño && hechizo.tipoDaño && !hechizo.danoIndirecto);
     // Si aplica a todos los trucos/conjuros o sin restricción
     if (!aplNorm || aplNorm === "trucos" || aplNorm === "todos_conjuros" || aplNorm === "todos") {
       return true;
@@ -581,7 +584,10 @@ export function aplicarModificadoresInvocacionesAHechizo(
   });
 
   const bonosConAptitudExplicita = bonosHabilidad.filter(e => e.claseConjuro);
-  const bonoDeclarado = bonosConAptitudExplicita.length ? Math.max(...bonosConAptitudExplicita.map(e => evaluarExpresionNumericaSegura(resolverFormulaDinamica(e.valor, personaje)))) : undefined;
+  const modificadores = bonosConAptitudExplicita.length && personaje.caracteristicas
+    ? calcularEstadisticasPersonaje(personaje).modificadores : undefined;
+  const bonoDeclarado = bonosConAptitudExplicita.length ? Math.max(...bonosConAptitudExplicita.map(e =>
+    evaluarExpresionNumericaSegura(resolverFormulaDinamica(e.valor, personaje, undefined, undefined, modificadores)))) : undefined;
   if (hechizo.bonoModificadorRasgo !== undefined && bonoDeclarado === undefined) nuevoAgregarModificadorHabilidad = false;
   if (bonoDeclarado !== hechizo.bonoModificadorRasgo) modificado = true;
   if (bonosHabilidad.length && !nuevoAgregarModificadorHabilidad) {
@@ -593,18 +599,21 @@ export function aplicarModificadoresInvocacionesAHechizo(
   if (baseAlcance) {
     let bono = 0;
     for (const ef of efectosRasgosActivos) if (ef.tipo === "modificador_alcance_conjuro" && ef.aplicaA
-      && (coincideHechizoId(ef.aplicaA, hechizo.id) || coincideHechizoId(ef.aplicaA, hechizo.nombre))) {
+      && (!ef.claseConjuro || (claseEfectiva && normalizar(ef.claseConjuro) === normalizar(claseEfectiva)))
+      && Number(baseAlcance[1]) >= (ef.alcanceMinimo ?? 0)
+      && (ef.aplicaA === "trucos" || coincideHechizoId(ef.aplicaA, hechizo.id) || coincideHechizoId(ef.aplicaA, hechizo.nombre))) {
       bono += evaluarExpresionNumericaSegura(resolverFormulaDinamica(ef.valor, personaje));
     }
-    if (bono) { nuevoAlcance = String(Number(baseAlcance[1]) + bono) + " pies"; modificado = true; }
+    if (bono) nuevoAlcance = String(Number(baseAlcance[1]) + bono) + " pies";
   }
 
-  if (!modificado) return hechizo;
+  if (!modificado && nuevoAlcance === hechizo.alcance) return hechizo;
 
   return {
     ...hechizo,
     agregarModificadorHabilidad: nuevoAgregarModificadorHabilidad,
     bonoModificadorRasgo: bonoDeclarado,
-    alcance: nuevoAlcance
+    alcance: nuevoAlcance,
+    alcanceBaseRasgo: nuevoAlcance === alcanceOriginal ? undefined : alcanceOriginal
   };
 }

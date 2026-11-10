@@ -5,6 +5,9 @@ import { coincideHechizoId } from "../comparadorHechizos";
 
 import { calcularMaximosConjurosYTrucos, obtenerNivelMaximoConjuroPorTipoClase } from "../calculadorMagia";
 import { normalizar } from "./utilidadesRasgos";
+import { obtenerConcesionRasgo } from "./concesionesRasgos";
+import { seleccionesValidas } from "./seleccionesRasgos";
+import { obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 
 export type CatalogoEleccionesConjuros = readonly Pick<HechizoBase, "id" | "nombre" | "nivel" | "clases">[];
 type TipoEleccion = "trucos" | "conjuros" | "preparados";
@@ -26,10 +29,22 @@ export function clasesPropietariasConjuro(pj: PersonajeJugador, id: string): str
   return Object.entries(pj.eleccionesConjurosClase ?? {}).filter(([, e]) => [...e.trucos, ...e.conjuros].some(v => coincideHechizoId(v, id))).map(([clase]) => clase);
 }
 
+function perteneceALista(pj: PersonajeJugador, h: Pick<HechizoBase, "nivel" | "clases">, c: PersonajeJugador["clasesLanzadoras"][number]): boolean {
+  return !!h.clases?.some(n => normalizar(n) === normalizar(c.listaConjuros ?? c.clase)) || conjuroEnAmpliacion(pj, h, c.clase);
+}
+
+export function conjuroFueraDeListas(pj: PersonajeJugador, h: Pick<HechizoBase, "nivel" | "clases">): boolean {
+  return !pj.clasesLanzadoras.some(c => perteneceALista(pj, h, c));
+}
+
+export function esConjuroIndependiente(pj: PersonajeJugador, h: Pick<HechizoBase, "id" | "nivel">): boolean {
+  return !!pj.aprendizajesConjurosIndependientes?.[h.nivel === 0 ? "trucos" : "conjuros"].some(id => coincideHechizoId(id, h.id));
+}
+
 function disponibleParaClase(pj: PersonajeJugador, h: Pick<HechizoBase, "nivel" | "clases">, clase: string): boolean {
   const c = pj.clasesLanzadoras.find(c => normalizar(c.clase) === normalizar(clase));
   return !!c && h.nivel <= obtenerNivelMaximoConjuroPorTipoClase(c.tipoLanzador, c.nivel)
-    && (!!h.clases?.some(n => normalizar(n) === normalizar(c.listaConjuros ?? c.clase)) || conjuroEnAmpliacion(pj, h, clase));
+    && perteneceALista(pj, h, c);
 }
 
 /** Solo las nuevas elecciones inequívocas reciben procedencia; los guardados antiguos se conservan. */
@@ -47,13 +62,19 @@ export function elegirConjuroClase(pj: PersonajeJugador, id: string, tipo: TipoE
   const libro = lanzador.modeloConjuros === "grimorio";
   if (clave === "preparados" && !elecciones.conjuros.some(v => coincideHechizoId(v, id)) && !pj.conjurosConocidosIds.some(v => coincideHechizoId(v, id))) return;
   const max = calcularMaximosConjurosYTrucos([lanzador], pj.nivel);
-  const otorgados = pj.rasgos.filter(r => habilitado(pj, r)).flatMap(r => r.conjurosOtorgados ?? []);
+  const otorgados = pj.rasgos.filter(r => habilitado(pj, r) && (!r.claseConjurosOtorgados || normalizar(r.claseConjurosOtorgados) === normalizar(elegida)))
+    .flatMap(r => [...(r.conjurosOtorgados ?? []), ...obtenerConcesionRasgo(pj, r, tipo === "trucos" ? "trucos" : "conjuros"),
+      ...(r.selectores ?? []).filter(s => s.destinoConjuros === "trucos")
+      .flatMap(s => seleccionesValidas(s, obtenerNivelEfectivoParaRasgo(pj, r), pj))]);
   if (!(libro && clave === "conjuros") && otorgados.some(v => coincideHechizoId(v, id))) return pj;
   const valores = elecciones[clave] ?? [];
   const yaElegido = valores.some(v => coincideHechizoId(v, id));
   const lista = tipo === "trucos" ? pj.trucosConocidosIds : pj.conjurosPreparadosIds;
   // En monoclase también cuentan los preparados heredados sin origen registrado.
-  const usados = pj.clasesLanzadoras.length === 1 ? Math.max(valores.length, lista.filter(v => !otorgados.some(o => coincideHechizoId(o, v))).length) : valores.length;
+  const siemprePreparados = [...otorgados, ...(tipo === "trucos"
+    ? pj.aprendizajesConjurosIndependientes?.trucos ?? []
+    : [...(pj.conjurosSiemprePreparadosIds ?? []), ...(pj.aprendizajesConjurosIndependientes?.conjuros ?? [])])];
+  const usados = pj.clasesLanzadoras.length === 1 ? Math.max(valores.length, lista.filter(v => !siemprePreparados.some(o => coincideHechizoId(o, v))).length) : valores.length;
   if (!(libro && clave === "conjuros") && !yaElegido && usados >= (tipo === "trucos" ? max.maxTrucos : max.maxConjuros)) return;
   return { ...pj, eleccionesConjurosClase: { ...pj.eleccionesConjurosClase, [elegida]: { ...elecciones,
     ...(libro && clave === "preparados" && !elecciones.conjuros.some(v => coincideHechizoId(v, id)) ? { conjuros: [...elecciones.conjuros, id] } : {}),
@@ -86,7 +107,9 @@ export function reconciliarEleccionesConjuros(pj: PersonajeJugador, catalogo: Ca
     return [clase, { trucos: filtrar(e.trucos), conjuros: filtrar(e.conjuros), ...(e.preparados ? { preparados: filtrar(e.preparados) } : {}) }];
   }));
   if (!retirados.length) return pj;
-  const otorgados = pj.rasgos.filter(r => habilitado(pj, r)).flatMap(r => r.conjurosOtorgados ?? []);
+  const otorgados = pj.rasgos.filter(r => habilitado(pj, r)).flatMap(r => [
+    ...(r.conjurosOtorgados ?? []), ...obtenerConcesionRasgo(pj, r, "trucos"), ...obtenerConcesionRasgo(pj, r, "conjuros")
+  ]);
   const independientes = pj.aprendizajesConjurosIndependientes;
   const protegidosPreparados = Object.entries(elecciones).flatMap(([c, e]) => pj.clasesLanzadoras.find(l => normalizar(l.clase) === normalizar(c))?.modeloConjuros === "grimorio" ? e.preparados ?? [] : e.conjuros);
   const conservar = (ids: string[], protegidos: string[]) => ids.filter(id => !retirados.some(v => coincideHechizoId(v, id))

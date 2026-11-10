@@ -21,14 +21,11 @@ import {
 } from "@/servicios/servicioLanzamientoConjuros";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesConfiguracion, usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
-import { tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { aplicarModificadoresInvocacionesAHechizo, tieneConjuroGratuitoActivo, obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerClasesLanzamiento } from "@/servicios/rasgos/modificadoresConjuroRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { tieneRestriccionRasgos } from "@/servicios/rasgos/restriccionesRasgos";
-import {
-  obtenerBestiaFormaActiva,
-  obtenerNivelDruida,
-  esDruidaCirculoLuna
-} from "@/servicios/reglasFormaSalvaje";
+import { evaluarConjuroEnFormaBestia } from "@/servicios/reglasFormaSalvaje";
 import { opcionesLanzamientoEstado, obtenerLanzamientoEstado } from "@/servicios/rasgos/lanzamientoEstadoRasgo";
 import { rasgoMagicoHabilitado } from "@/servicios/rasgos/ampliacionesListaConjuros";
 import { normalizar } from "@/servicios/rasgos/utilidadesRasgos";
@@ -132,15 +129,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
   // 2. Estado general de bloqueo por armadura, rasgos y Forma salvaje
   const estaBloqueadoPorArmadura = Boolean(penalizacionArmadura?.sinCompetencia);
   const estaBloqueadoPorRasgo = useMemo(() => Boolean(personaje && tieneRestriccionRasgos(personaje, "conjuros")), [personaje]);
-  const estaBloqueadoPorFormaSalvaje = useMemo(() => {
-    if (!personaje) return false;
-    const bestia = obtenerBestiaFormaActiva(personaje);
-    if (!bestia) return false;
-    const nivelDruida = obtenerNivelDruida(personaje);
-    if (nivelDruida >= 18) return false;
-    if (esDruidaCirculoLuna(personaje)) return false;
-    return true;
-  }, [personaje]);
+  const estaBloqueadoPorFormaSalvaje = useMemo(() =>
+    Boolean(personaje && evaluarConjuroEnFormaBestia(personaje) === "bloqueado"), [personaje]);
 
   const motivoBloqueoArmadura = estaBloqueadoPorArmadura
     ? `No puedes lanzar conjuros mientras vistas ${[
@@ -208,7 +198,8 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     (solicitudIncompleta: Partial<SolicitudLanzamiento> & { hechizo: HechizoBase; modo: ModoLanzamiento }): ResultadoValidacion => {
       if (personaje && lanzamientosEnCurso.has(personaje.id)) return { permitido: false, motivo: "Ya hay un lanzamiento en curso." };
       const { contextoEfectivo, solicitudCompleta } = prepararSolicitud(solicitudIncompleta);
-      return validarLanzamiento(solicitudCompleta, contextoEfectivo);
+      const resultado = validarLanzamiento(solicitudCompleta, contextoEfectivo);
+      return resultado.requiereConfirmarMaterial ? { ...resultado, permitido: true } : resultado;
     },
     [personaje, prepararSolicitud]
   );
@@ -220,6 +211,19 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
     ): Promise<boolean> => {
       if (personaje && lanzamientosEnCurso.has(personaje.id)) return false;
       const actual = personaje && usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
+      const { hechizo, modo } = solicitudIncompleta;
+      if (actual && hechizo.nivel === 0 && (modo === "truco" || modo === "ataqueMagico")
+        && !solicitudIncompleta.claseLanzamiento && !opciones.claseLanzamiento) {
+        const { candidatas: clases } = obtenerClasesLanzamiento(actual, hechizo);
+        if (clases.length > 1) {
+          const clase = await elegirOpcionLanzamiento(actual.id, { nombre: hechizo.nombre, etiqueta: "Clase de lanzamiento",
+            descripcion: "Elige la clase con la que lanzas el truco.", opciones: clases.map(c => ({
+              id: c, texto: c, detalle: aplicarModificadoresInvocacionesAHechizo(hechizo, actual, c).alcance
+            })) });
+          if (!clase || !clases.includes(clase)) return false;
+          solicitudIncompleta = { ...solicitudIncompleta, claseLanzamiento: clase };
+        }
+      }
       const alternativas = actual && solicitudIncompleta.modo === "espacio" ? obtenerOpcionesRecursoConjuro(actual,
         solicitudIncompleta.hechizo, solicitudIncompleta.claseLanzamiento ?? opciones.claseLanzamiento) : [];
       const estados = actual && solicitudIncompleta.modo === "espacio" ? opcionesLanzamientoEstado(actual, solicitudIncompleta.hechizo, solicitudIncompleta.claseLanzamiento ?? opciones.claseLanzamiento) : [];
@@ -232,9 +236,9 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           ...estados.map(r => ({ id: r.id, texto: `Con ${r.nombre}`, detalle: `Acción adicional · ${r.activo ? "Repetir sin gastar usos" : "1 uso · Concentración, 1 minuto"}`,
             deshabilitado: !obtenerLanzamientoEstado(actual, r.id, solicitudIncompleta.hechizo, r.lanzamientoConActivacion!.nivel) })), ...alternativas.map(a => {
             const disponibles = a.recurso.usosRestantes ?? a.recurso.usosMaximos ?? 0;
-            const unidad = a.rasgo.lanzamientoConRecurso?.costeFijo ? "usos" : "puntos";
-            return { id: a.rasgo.id, texto: `Con ${a.coste} ${unidad} de ${a.recurso.nombre}`,
-              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} ${unidad} disponibles.`,
+            const unidad = a.rasgo.lanzamientoConRecurso?.costeFijo ? "uso" : "punto";
+            return { id: a.rasgo.id, texto: `Con ${a.coste} ${unidad}${a.coste === 1 ? "" : "s"} de ${a.recurso.nombre}`,
+              detalle: `${a.rasgo.nombre} · Nivel ${solicitudIncompleta.hechizo.nivel} · ${disponibles} ${unidad}${disponibles === 1 ? " disponible" : "s disponibles"}.`,
               deshabilitado: disponibles < a.coste || Boolean(a.recurso.recuperacionDiferida) };
           })] });
         if (eleccion === undefined) return false;
@@ -252,6 +256,16 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
         const variante = await elegirVarianteConjuro(vigenteTrasEleccion.id, solicitudIncompleta.hechizo.nombre);
         if (variante === undefined) return false;
         solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: variante };
+      }
+      const previa = prepararSolicitud(solicitudIncompleta);
+      if (vigenteTrasEleccion && validarLanzamiento(previa.solicitudCompleta, previa.contextoEfectivo).requiereConfirmarMaterial) {
+        const confirmada = await elegirOpcionLanzamiento(vigenteTrasEleccion.id, {
+          nombre: solicitudIncompleta.hechizo.nombre, etiqueta: "Componentes en forma de bestia",
+          descripcion: "Comprueba los componentes del conjuro antes de lanzar.",
+          opciones: [{ id: "confirmar", texto: "Confirmo que los materiales carecen de coste y se conservan" }]
+        });
+        if (confirmada !== "confirmar") return false;
+        solicitudIncompleta = { ...solicitudIncompleta, materialesConfirmados: true };
       }
       const { contextoEfectivo, solicitudCompleta } = prepararSolicitud(solicitudIncompleta);
 

@@ -2,7 +2,7 @@ import { fusionarExtensionRasgo } from "../rasgos/extensionesRasgos";
 import { copiarMecanicasRasgo } from "@/tipos/mecanicasRasgos";
 import type { RasgoPersonaje, EfectoMecanicoRasgo, SelectorRasgo, RecuperacionRasgo, OpcionSelector } from "@/tipos";
 import { normalizarTextoClase, esRasgoPlaceholderSubclase, obtenerClasePorNombre, obtenerSubclasePorNombre } from "./catalogoClases";
-import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate, obtenerOpcionesDotesEstiloCombate, obtenerOpcionesDotesParaSelector, obtenerOpcionesDotesDonEpicoParaSelector } from "./dotesClase";
+import { esRasgoMejoraCaracteristica, esRasgoDonEpico, esRasgoEstiloCombate, crearSelectorDoteMejoraCaracteristica, crearSelectorDoteDonEpico, crearSelectorDoteEstiloCombate, obtenerOpcionesDotesEstiloCombate, obtenerOpcionesDotesParaSelector, obtenerOpcionesDotesDonEpicoParaSelector, resolverDoteDonEpicoRecomendada } from "./dotesClase";
 import { evaluarFormulaUsos, resolverEscaladosRasgo } from "./escaladosRasgos";
 
 function resolverOpcionesBaseSelector(s: SelectorRasgo, idClase?: string): OpcionSelector[] {
@@ -12,7 +12,7 @@ function resolverOpcionesBaseSelector(s: SelectorRasgo, idClase?: string): Opcio
   }
   if (s.tipoSelector === "dote") {
     return s.categoriaDote === "don_epico"
-      ? obtenerOpcionesDotesDonEpicoParaSelector("")
+      ? obtenerOpcionesDotesDonEpicoParaSelector(resolverDoteDonEpicoRecomendada(undefined, idClase))
       : obtenerOpcionesDotesParaSelector();
   }
   return s.opciones;

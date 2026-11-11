@@ -218,8 +218,8 @@ export function usarAccionesTarjetaRasgo({
     if (!idPersonaje) return;
     if (rasgo.recuperarEspaciosTrasDescansoCorto) {
       const estado = usarAlmacenDM.getState();
-      if (estado.operarRecursoRasgoPersonaje(idPersonaje, { tipo: "recuperarEspaciosDescanso", idRasgo: rasgo.id, espacios }))
-        estado.agregarNotificacion("Espacios recuperados.", "exito");
+      if (estado.operarRecursoRasgoPersonaje(idPersonaje, { tipo: "recuperarEspaciosDescanso", idRasgo: rasgo.id, espacios, ...(puntosConjuro ? { puntos: puntosConjuro } : {}) }))
+        estado.agregarNotificacion(puntosConjuro ? "Puntos de conjuro recuperados." : "Espacios recuperados.", "exito");
       return;
     }
     const { recuperarEspacioConjuro, recuperarPuntosConjuro, gastarUsoRasgoPersonaje, agregarNotificacion } = usarAlmacenDM.getState();

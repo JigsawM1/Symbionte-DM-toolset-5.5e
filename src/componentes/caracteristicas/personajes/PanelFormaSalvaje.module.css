@@ -1,12 +1,25 @@
+/* ==========================================================================
+   PanelFormaSalvaje.module.css
+   Sistema de Diseño: Dark Fantasy Zafiro/Índigo Táctico (DESIGN.md)
+   ToolSet D&D 5.5e — Vista de Jugador / TaleSpire Symbiote
+   Tokens canónicos: --pj-* definidos en src/estilos/temaJugador.css
+   Sin transiciones ni animaciones para compatibilidad total con TaleSpire CEF
+   ========================================================================== */
+
 .panelFormaSalvaje {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: var(--pj-fondo-secundario, #1a1e24);
-  border: 1px solid var(--pj-borde, #2e3846);
-  border-radius: 8px;
+  background: var(--pj-fondo-panel, #0d121c);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-panel, 8px);
   padding: 16px;
+  box-shadow: var(--pj-sombra-panel, 0 4px 12px rgba(0, 0, 0, 0.5));
 }
+
+/* ==========================================================================
+   1. CABECERA PRINCIPAL (Zafiro / Índigo)
+   ========================================================================== */
 
 .cabeceraForma {
   display: flex;
@@ -14,29 +27,239 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  border-bottom: 1px solid var(--pj-borde, #2e3846);
   padding-bottom: 12px;
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+}
+
+.tituloCabeceraBloque {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.emblemaCabecera {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--pj-radio-control, 6px);
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-cian, #38bdf8);
+  box-shadow: var(--pj-sombra-tarjeta, 0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.iconoEmblema {
+  color: var(--pj-texto-cian, #38bdf8);
 }
 
 .tituloCabecera {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: var(--pj-fuente-titulo, 16px);
   font-weight: 700;
-  color: var(--pj-texto-principal, #e2e8f0);
+  color: var(--pj-texto-primario, #ffffff);
   display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.2px;
+}
+
+.tagEdicion {
+  background: var(--pj-acento-primario-fondo, rgba(129, 140, 248, 0.12));
+  color: var(--pj-texto-acento, #a5b4fc);
+  border: 1px solid var(--pj-borde-acento-tenue, rgba(129, 140, 248, 0.25));
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.subtituloCabecera {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  margin-top: 1px;
+}
+
+.botonGestionarPool {
+  background: transparent;
+  color: var(--pj-texto-cian, #38bdf8);
+  border: 1px solid var(--pj-borde-cian-fuerte, #38bdf8);
+  padding: 7px 14px;
+  border-radius: var(--pj-radio-control, 6px);
+  cursor: pointer;
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
+.botonGestionarPool:hover {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+/* ==========================================================================
+   2. HUD DE REGLAS Y RECURSOS (4 Cuadrantes Tácticos)
+   ========================================================================== */
+
+.hudReglasContenedor {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.hudModulo {
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: var(--pj-radio-control, 6px);
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  box-shadow: var(--pj-sombra-tarjeta, 0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.hudModulo:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+}
+
+.hudModuloActivo {
+  border-color: var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, var(--pj-fondo-tarjeta, #121722) 100%);
+}
+
+.hudModuloAlerta {
+  border-color: var(--pj-borde-peligro, rgba(239, 68, 68, 0.5));
+  background: linear-gradient(180deg, var(--pj-acento-peligro-fondo, rgba(239, 68, 68, 0.14)) 0%, var(--pj-fondo-tarjeta, #121722) 100%);
+}
+
+.hudModuloIcono {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--pj-radio-control, 6px);
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-cian, #38bdf8);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.hudModuloAlerta .hudModuloIcono {
+  color: var(--pj-texto-alerta, #fca5a5);
+  background: var(--pj-acento-peligro-fondo, rgba(239, 68, 68, 0.14));
+  border-color: var(--pj-borde-peligro, rgba(239, 68, 68, 0.5));
+}
+
+.hudModuloCuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.hudModuloEtiqueta {
+  font-size: var(--pj-fuente-label, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.hudModuloValorPrincipal {
+  font-size: var(--pj-fuente-numero-md, 15px);
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
+  line-height: 1.2;
+}
+
+.hudModuloMaximo {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 600;
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+.hudModuloSufijo {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 600;
+  color: var(--pj-texto-cian, #38bdf8);
+}
+
+.hudModuloNota {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-apagado, #8896ab);
+}
+
+.hudPipsFila {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.hudPip {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--pj-borde-cian-tenue, rgba(56, 189, 248, 0.25));
+  display: inline-block;
+}
+
+.hudPipLleno {
+  background: var(--pj-texto-cian, #38bdf8);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+}
+
+.hudPipVacio {
+  background: var(--pj-fondo-hundido, #080c14);
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
+}
+
+/* ==========================================================================
+   3. BANNER DE FORMA ACTIVA (Éxito Semántico Verde / Alerta Roja)
+   ========================================================================== */
+
 .bannerActiva {
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid #22c55e;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, var(--pj-fondo-tarjeta, #121722) 100%);
+  border: 1px solid var(--pj-borde-exito, rgba(16, 185, 129, 0.5));
+  border-radius: var(--pj-radio-panel, 8px);
   padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 14px;
+  box-shadow: var(--pj-sombra-tarjeta, 0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.bannerLadoIzquierdo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bannerAvatarEmblema {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--pj-acento-exito-fondo, rgba(16, 185, 129, 0.14));
+  border: 1.5px solid var(--pj-acento-exito, #10b981);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-exito, #6ee7b7);
+  flex-shrink: 0;
+}
+
+.iconoPawPulsante {
+  color: var(--pj-texto-exito, #6ee7b7);
 }
 
 .bannerInfo {
@@ -45,273 +268,1158 @@
   gap: 4px;
 }
 
+.bannerTituloFila {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .bannerTitulo {
+  font-weight: 800;
+  color: var(--pj-texto-exito, #6ee7b7);
+  font-size: var(--pj-fuente-titulo, 16px);
+}
+
+.bannerVdBadge {
+  background: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
+  color: var(--pj-texto-oro, #fde047);
+  border: 1px solid var(--pj-borde-oro, rgba(234, 179, 8, 0.5));
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: var(--pj-fuente-micro, 11px);
   font-weight: 700;
-  color: #22c55e;
-  font-size: 1rem;
+}
+
+.badgeFormaActiva {
+  background: var(--pj-acento-exito-fondo, rgba(16, 185, 129, 0.14));
+  color: var(--pj-texto-exito, #6ee7b7);
+  border: 1px solid var(--pj-borde-exito, rgba(16, 185, 129, 0.5));
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .bannerDetalle {
-  font-size: 0.85rem;
-  color: var(--pj-texto-secundario, #94a3b8);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bannerPillStat,
+.bannerPillTiempo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-secundario, #cbd5e1);
+  background: var(--pj-fondo-hundido, #080c14);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+}
+
+.bannerPillTiempo {
+  color: var(--pj-texto-cian, #38bdf8);
+  border-color: var(--pj-borde-cian-tenue, rgba(56, 189, 248, 0.25));
 }
 
 .botonRevertir {
-  background: #ef4444;
+  background: var(--pj-acento-peligro, #ef4444);
   color: #ffffff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
+  border: 1px solid var(--pj-borde-peligro, rgba(239, 68, 68, 0.5));
+  padding: 8px 16px;
+  border-radius: var(--pj-radio-control, 6px);
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: opacity 0.2s;
+  font-weight: 700;
+  font-size: var(--pj-fuente-boton, 12px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .botonRevertir:hover {
-  opacity: 0.9;
+  background: var(--pj-acento-peligro-medio, #dc2626);
 }
 
-.reglasResumen {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  background: rgba(0, 0, 0, 0.2);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  color: var(--pj-texto-secundario, #94a3b8);
-}
+/* ==========================================================================
+   4. CATÁLOGO DE BESTIAS CONOCIDAS EN RESERVA
+   ========================================================================== */
 
 .seccionPool {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.barraTituloPool {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+
+.ladoIzquierdoTituloPool {
+  display: flex;
+  align-items: center;
   gap: 10px;
+}
+
+.controlesOrdenReserva {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.labelOrdenReserva {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-weight: 600;
+}
+
+.botonOrdenPill {
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
+  color: var(--pj-texto-terciario, #94a3b8);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.botonOrdenPill:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.botonOrdenPillActivo {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  color: var(--pj-texto-cian, #38bdf8);
 }
 
 .subtituloPool {
   margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--pj-texto-principal, #e2e8f0);
+  font-size: var(--pj-fuente-subtitulo, 12.5px);
+  font-weight: 700;
+  color: var(--pj-texto-primario, #ffffff);
+  letter-spacing: -0.1px;
+}
+
+.badgeConteoPool {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  background: var(--pj-fondo-tarjeta, #121722);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 .gridBestias {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+.estadoVacioReserva {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 36px 20px;
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px dashed var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-panel, 8px);
   gap: 12px;
 }
 
-.tarjetaBestia {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--pj-borde, #2e3846);
-  border-radius: 6px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: border-color 0.2s;
+.iconoEstadoVacio {
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
-.tarjetaBestia .botonRevertir {
-  margin-top: auto;
+.textoSinFormas {
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  max-width: 440px;
+  margin: 0;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   5. TARJETA DE BESTIA EN RESERVA (Dark Fantasy Zafiro/Índigo)
+   ========================================================================== */
+
+.tarjetaBestia {
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-panel, 8px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--pj-sombra-tarjeta, 0 2px 8px rgba(0, 0, 0, 0.4));
+  position: relative;
+}
+
+.tarjetaBestia:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-fuerte, rgba(148, 163, 184, 0.45));
 }
 
 .tarjetaBestia.activa {
-  border-color: #22c55e;
-  background: rgba(34, 197, 94, 0.05);
+  border-color: var(--pj-borde-exito, rgba(16, 185, 129, 0.5));
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--pj-fondo-tarjeta, #121722) 100%);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
 .cabeceraTarjeta {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ladoIzquierdoTarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nombreFila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .nombreBestia {
-  font-weight: 700;
-  color: var(--pj-texto-principal, #e2e8f0);
-  font-size: 1rem;
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
+  font-size: var(--pj-fuente-titulo, 16px);
+  letter-spacing: -0.2px;
 }
 
-.vdBadge {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+.subtituloBestia {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-style: italic;
 }
 
-.statsBestia {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+.ladoDerechoBadges {
+  display: flex;
+  align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
-  color: var(--pj-texto-secundario, #94a3b8);
 }
 
-.accionesBestia {
-  font-size: 0.8rem;
-  color: var(--pj-texto-terciario, #64748b);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 6px;
-}
-
-.botonAdoptar {
-  margin-top: auto;
-  background: var(--pj-boton-primario, #3b82f6);
-  color: white;
-  border: none;
-  padding: 6px 12px;
+.vdMedallon {
+  background: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
+  border: 1px solid var(--pj-borde-oro, rgba(234, 179, 8, 0.5));
   border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
+  padding: 3px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.vdTexto {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 800;
+  color: var(--pj-texto-oro, #fde047);
+  letter-spacing: 0.4px;
+}
+
+/* Métricas Principales (CA, PG, Velocidad) */
+.metricasPrincipalesBestia {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
-  transition: opacity 0.2s;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: var(--pj-radio-control, 6px);
+  padding: 8px 6px;
+  box-shadow: var(--pj-sombra-hundida);
+}
+
+.metricaItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+}
+
+.metricaCabecera {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iconoMetrica {
+  color: var(--pj-texto-cian, #38bdf8);
+}
+
+.metricaEtiqueta {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.metricaValor {
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  color: var(--pj-texto-primario, #ffffff);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.formulaDadosPg {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 500;
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+/* Cuadrícula de 6 Características */
+.gridCaracteristicasBestia {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.itemCaract {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: 4px;
+  padding: 5px 2px;
+}
+
+.caractFisica {
+  border-color: var(--pj-borde-cian-tenue, rgba(56, 189, 248, 0.25));
+  background: rgba(56, 189, 248, 0.04);
+}
+
+.caractMental {
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+}
+
+.nombreCaract {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  color: var(--pj-texto-terciario, #94a3b8);
+  letter-spacing: 0.4px;
+}
+
+.valorCaract {
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
+  line-height: 1.1;
+}
+
+.modCaract {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  color: var(--pj-texto-acento, #a5b4fc);
+}
+
+.caractFisica .modCaract {
+  color: var(--pj-texto-cian, #38bdf8);
+}
+
+/* Sentidos */
+.filaSentidosBestia {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-secundario, #cbd5e1);
+  background: var(--pj-fondo-hundido, #080c14);
+  padding: 5px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 2px solid var(--pj-borde-cian-fuerte, #38bdf8);
+}
+
+.iconoSentidos {
+  color: var(--pj-texto-cian, #38bdf8);
+  flex-shrink: 0;
+}
+
+/* Rasgos Especiales */
+.rasgosEspecialesBestia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  padding-top: 8px;
+}
+
+.etiquetaSeccionInterna {
+  font-size: var(--pj-fuente-label, 11px);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--pj-texto-acento, #a5b4fc);
+  letter-spacing: 0.6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.listaRasgosInternos,
+.listaAccionesInternas {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.itemRasgoBestia {
+  font-size: var(--pj-fuente-micro, 11px);
+  line-height: 1.4;
+  color: var(--pj-texto-secundario, #cbd5e1);
+  background: var(--pj-fondo-hundido, #080c14);
+  border-left: 2px solid var(--pj-borde-acento-fuerte, #818cf8);
+  padding: 4px 8px;
+  border-radius: 0 4px 4px 0;
+}
+
+.tituloRasgoBestia {
+  color: var(--pj-texto-primario, #ffffff);
+  margin-right: 4px;
+}
+
+/* Acciones y Ataques */
+.accionesBestia {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  padding-top: 8px;
+}
+
+.itemAccionBestia {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--pj-fondo-hundido, #080c14);
+  border-left: 2px solid var(--pj-borde-cian-fuerte, #38bdf8);
+  padding: 5px 8px;
+  border-radius: 0 4px 4px 0;
+}
+
+.accionCabecera {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.accionNombre {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.chipAtaque {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  color: var(--pj-texto-cian, #38bdf8);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+}
+
+.chipDanio {
+  background: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
+  color: var(--pj-texto-oro, #fde047);
+  border: 1px solid var(--pj-borde-oro, rgba(234, 179, 8, 0.5));
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+}
+
+.accionDescripcion {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  line-height: 1.35;
+}
+
+/* Botonera de Tarjeta */
+.botoneraTarjetaBestia {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.botonVerFicha {
+  flex: 1;
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  color: var(--pj-texto-cian, #38bdf8);
+  padding: 8px 12px;
+  border-radius: var(--pj-radio-control, 6px);
+  cursor: pointer;
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.botonVerFicha:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.botonAdoptar {
+  flex: 1;
+  background: var(--pj-acento-primario-solido, #4f46e5);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 12px;
+  border-radius: var(--pj-radio-control, 6px);
+  cursor: pointer;
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .botonAdoptar:hover:not(:disabled) {
-  opacity: 0.9;
+  background: var(--pj-acento-primario-solido-hover, #4338ca);
 }
 
 .botonAdoptar:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
+  filter: grayscale(0.5);
+  box-shadow: none;
 }
 
-.botonGestionarPool {
-  background: transparent;
-  color: var(--pj-texto-cian, #38bdf8);
-  border: 1px solid var(--pj-texto-cian, #38bdf8);
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.botonGestionarPool:hover {
-  background: rgba(56, 189, 248, 0.1);
-}
+/* ==========================================================================
+   6. MODALES TÁCTICOS (Gestión y Preparación)
+   ========================================================================== */
 
 .modalSelectorOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--pj-fondo-modal-overlay, rgba(0, 0, 0, 0.85));
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 8px;
 }
 
 .modalSelectorContenido {
-  background: var(--pj-fondo-modal, #1e293b);
-  border: 1px solid var(--pj-borde, #334155);
-  border-radius: 8px;
+  background: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-control, 6px);
   width: 100%;
-  max-width: 650px;
-  max-height: 85vh;
+  max-width: 590px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-shadow: var(--pj-sombra-modal, 0 10px 30px rgba(0, 0, 0, 0.9));
+}
+
+.modalTransformacionContenido {
+  max-width: 480px;
 }
 
 .modalSelectorHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--pj-borde, #334155);
-}
-
-.modalSelectorHeader h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: white;
-}
-
-.modalSelectorBody {
-  padding: 14px 18px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.inputBusqueda {
-  width: 100%;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--pj-borde, #334155);
-  border-radius: 4px;
-  color: white;
-  font-size: 0.9rem;
+  background: var(--pj-fondo-modal-cabecera, #141a26);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
-.listaOpcionesPool {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.itemOpcionPool {
+.modalHeaderTituloBloque {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--pj-borde, #334155);
+  gap: 8px;
+}
+
+.modalHeaderIcono {
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
-  cursor: pointer;
-}
-
-.itemOpcionPool:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.itemOpcionPool.seleccionado {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.1);
-}
-
-.modalSelectorFooter {
-  padding: 12px 18px;
-  border-top: 1px solid var(--pj-borde, #334155);
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-cian, #38bdf8);
+  flex-shrink: 0;
 }
 
-.textoSinFormas {
-  color: var(--pj-texto-terciario, #64748b);
-  font-size: 0.9rem;
+.modalTituloTexto {
   margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--pj-texto-primario, #ffffff);
 }
 
-.velocidadBestia {
-  font-size: 0.8rem;
-  color: var(--pj-texto-secundario, #94a3b8);
+.modalSubtituloCapacidad {
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
 .botonCerrarModal {
   background: transparent;
   border: none;
-  color: white;
+  color: var(--pj-texto-terciario, #94a3b8);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px;
+  border-radius: 4px;
+}
+
+.botonCerrarModal:hover {
+  color: var(--pj-texto-primario, #ffffff);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.barraProgresoCapacidadContenedor {
+  height: 2px;
+  background: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  width: 100%;
+}
+
+.modalSelectorBody {
+  padding: 8px 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Barra de Buscador y Ordenación en Modal */
+.filaBuscadorYOrden {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.buscadorContenedor {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.buscadorContenedor:focus-within {
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+}
+
+.iconoBuscador {
+  color: var(--pj-texto-cian, #38bdf8);
+  flex-shrink: 0;
+}
+
+.inputBusqueda {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--pj-texto-primario, #ffffff);
+  font-size: 11.5px;
+}
+
+.inputBusqueda::placeholder {
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+.botonLimpiarBusqueda {
+  background: transparent;
+  border: none;
+  color: var(--pj-texto-terciario, #94a3b8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+}
+
+.botonLimpiarBusqueda:hover {
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.grupoOrdenacionModal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: 4px;
+  padding: 2px 4px;
+  flex-shrink: 0;
+}
+
+.labelOrden {
+  font-size: 10px;
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+.botonOrdenModal {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--pj-texto-secundario, #cbd5e1);
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.botonOrdenModal:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.botonOrdenModalActivo {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.14));
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  color: var(--pj-texto-cian, #38bdf8);
+}
+
+/* Fila de Chips de Filtro Rápido (Estado y Desafío VD) */
+.filaChipsFiltro {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.grupoChipsEstado {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.separadorChips {
+  width: 1px;
+  height: 14px;
+  background: var(--pj-borde-sutil, rgba(148, 163, 184, 0.25));
+  margin: 0 2px;
+}
+
+.grupoChipsVd {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.labelFiltroVd {
+  font-size: 10px;
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-right: 1px;
+}
+
+.chipFiltro {
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.2));
+  color: var(--pj-texto-terciario, #94a3b8);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chipFiltro:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.chipFiltroActivo {
+  background: var(--pj-acento-cian-solido, #075985);
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  color: #ffffff;
+}
+
+/* Subbarra de Conteo de Resultados */
+.subbarraResultadosModal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2px;
+  font-size: 10px;
+}
+
+.textoConteoResultados {
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: 10px;
+}
+
+.botonRestablecerFiltros {
+  background: transparent;
+  border: none;
+  color: var(--pj-texto-cian, #38bdf8);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.botonRestablecerFiltros:hover {
+  color: #ffffff;
+}
+
+/* Opciones de la lista de selección */
+.listaOpcionesPool {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 56vh;
+  overflow-y: auto;
+}
+
+.itemOpcionPool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.itemOpcionPool:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+}
+
+.itemOpcionPool.seleccionado {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.12));
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
 }
 
 .itemOpcionPool.deshabilitada {
   opacity: 0.4;
   cursor: not-allowed;
+  background: var(--pj-fondo-hundido, #080c14);
+}
+
+.itemPoolCheckContenedor {
+  flex-shrink: 0;
+}
+
+.checkVisual {
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  border: 1.5px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.4));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+}
+
+.checkVisualActivo {
+  background: var(--pj-acento-cian, #0284c7);
+  border-color: var(--pj-borde-cian-fuerte, #38bdf8);
+  color: #ffffff;
+}
+
+.itemPoolInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.itemPoolTituloFila {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemPoolNombre {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.itemPoolVdBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--pj-texto-oro, #fde047);
+  background: var(--pj-acento-oro-fondo, rgba(234, 179, 8, 0.14));
+  border: 1px solid var(--pj-borde-oro, rgba(234, 179, 8, 0.5));
+  padding: 0 4px;
+  border-radius: 2px;
+}
+
+.itemPoolStatsFila {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+.estadoVacioBuscador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  justify-content: center;
+  color: var(--pj-texto-terciario, #94a3b8);
+  font-size: 11.5px;
+}
+
+.modalSelectorFooter {
+  padding: 8px 12px;
+  background: var(--pj-fondo-modal-cabecera, #141a26);
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modalSelectorFooter .botonGestionarPool,
+.modalSelectorFooter .botonAdoptar {
+  padding: 6px 14px;
+  font-size: 11.5px;
+  border-radius: 4px;
+}
+
+/* Modal Preparar Transformación */
+.fieldsetEquipo {
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: var(--pj-radio-control, 6px);
+  padding: 10px 14px;
+  background: var(--pj-fondo-hundido, #080c14);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legendEquipo {
+  font-size: var(--pj-fuente-micro, 11px);
+  font-weight: 700;
+  color: var(--pj-texto-cian, #38bdf8);
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.listaEquipoCheckboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.labelOpcionEquipo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  color: var(--pj-texto-secundario, #cbd5e1);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.labelOpcionEquipo:hover {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+}
+
+.labelOpcionEquipoActivo {
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.cajaOpcionPg {
+  background: var(--pj-acento-cian-fondo, rgba(56, 189, 248, 0.08));
+  border: 1px solid var(--pj-borde-cian-tenue, rgba(56, 189, 248, 0.25));
+  border-radius: var(--pj-radio-control, 6px);
+  padding: 10px 12px;
+}
+
+.labelConservarPg {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.textoConservarPgBloque {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tituloConservarPg {
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  font-weight: 700;
+  color: var(--pj-texto-cian, #38bdf8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subtituloConservarPg {
+  font-size: var(--pj-fuente-micro, 11px);
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+/* ==========================================================================
+   7. MODAL FICHA OFICIAL (PanelFichaDnD)
+   ========================================================================== */
+
+.modalFichaOverlay {
+  position: fixed;
+  inset: 0;
+  background: var(--pj-fondo-modal-overlay, rgba(0, 0, 0, 0.85));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+
+.modalFichaContenido {
+  background: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-panel, 8px);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--pj-sombra-modal, 0 10px 30px rgba(0, 0, 0, 0.9));
+}
+
+.modalFichaCabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--pj-fondo-modal-cabecera, #141a26);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+}
+
+.modalFichaTituloBloque {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalFichaTitulo {
+  margin: 0;
+  font-size: var(--pj-fuente-titulo, 16px);
+  font-weight: 700;
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.modalFichaCuerpo {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalFichaPie {
+  padding: 12px 18px;
+  background: var(--pj-fondo-modal-cabecera, #141a26);
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   8. ADAPTACIÓN TÁCTICA PARA PANTALLAS COMPACTAS (TaleSpire CEF <= 599px)
+   ========================================================================== */
+
+@media (max-width: 599px) {
+  .modalSelectorOverlay {
+    padding: 4px;
+  }
+
+  .modalSelectorContenido {
+    max-height: 94vh;
+    border-radius: 4px;
+  }
+
+  .modalSelectorHeader {
+    padding: 6px 10px;
+  }
+
+  .modalSelectorBody {
+    padding: 6px 10px;
+    gap: 5px;
+  }
+
+  .filaBuscadorYOrden {
+    gap: 4px;
+  }
+
+  .buscadorContenedor {
+    min-width: 130px;
+    padding: 3px 6px;
+  }
+
+  .botonOrdenModal {
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+
+  .itemOpcionPool {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+
+  .modalSelectorFooter {
+    padding: 6px 10px;
+  }
 }

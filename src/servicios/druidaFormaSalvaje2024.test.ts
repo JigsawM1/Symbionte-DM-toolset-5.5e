@@ -601,4 +601,127 @@ describe("Druida D&D 5.5e (2024) - Reglas y Mecánicas de Forma Salvaje", () => 
       expect(rasgosFiltrados.some((r) => r.nombre === "Furia")).toBe(false);
     });
   });
+
+  describe("Sincronización bidireccional entre Forma salvaje y Vida temporal (D&D 5.5e)", () => {
+    it("Revertir la forma salvaje elimina los PG temporales otorgados al transformar", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 4);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      // Al transformar en nivel 4, recibe 4 PG temporales
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let transformado = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(transformado.formaSalvaje.formaActivaId).toBe("m_lobo");
+      expect(transformado.formaSalvaje.hpTemporalAlTransformar).toBe(4);
+      expect(transformado.hpTemporal).toBe(4);
+      expect(transformado.condicionesActivas).toContain("Forma salvaje");
+
+      // Revertir voluntariamente la forma salvaje retira los PG temporales
+      usarAlmacenDM.getState().revertirFormaSalvaje(id);
+      let revertido = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(revertido.formaSalvaje.formaActivaId).toBeNull();
+      expect(revertido.formaSalvaje.hpTemporalAlTransformar).toBe(0);
+      expect(revertido.hpTemporal).toBe(0);
+      expect(revertido.condicionesActivas).not.toContain("Forma salvaje");
+    });
+
+    it("Revertir la forma salvaje tras haber sufrido daño parcial retira los PG temporales residuales", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 6);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.hpTemporal).toBe(6);
+
+      // Recibe 2 de daño (quedan 4 PG temporales)
+      usarAlmacenDM.getState().aplicarDanoPersonaje(id, 2);
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.hpTemporal).toBe(4);
+      expect(actual.formaSalvaje.formaActivaId).toBe("m_lobo");
+
+      // Al revertir la forma salvaje, se eliminan los 4 PG temporales residuales
+      usarAlmacenDM.getState().revertirFormaSalvaje(id);
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.formaSalvaje.formaActivaId).toBeNull();
+      expect(actual.hpTemporal).toBe(0);
+    });
+
+    it("Agotar los PG temporales por daño finaliza automáticamente la Forma salvaje", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 3);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.hpTemporal).toBe(3);
+      expect(actual.formaSalvaje.formaActivaId).toBe("m_lobo");
+
+      // Recibe 3 de daño: rompe el escudo exacto (HP temporal = 0)
+      usarAlmacenDM.getState().aplicarDanoPersonaje(id, 3);
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.hpTemporal).toBe(0);
+      expect(actual.formaSalvaje.formaActivaId).toBeNull();
+      expect(actual.formaSalvaje.hpTemporalAlTransformar).toBe(0);
+      expect(actual.condicionesActivas).not.toContain("Forma salvaje");
+    });
+
+    it("El exceso de daño sobre los PG temporales daña la vida real y revierte la Forma salvaje", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 3);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      const hpActualInicial = actual.hpActual;
+      expect(actual.hpTemporal).toBe(3);
+
+      // Recibe 5 de daño (3 absorben el escudo, 2 dañan hpActual)
+      usarAlmacenDM.getState().aplicarDanoPersonaje(id, 5);
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.hpTemporal).toBe(0);
+      expect(actual.hpActual).toBe(hpActualInicial - 2);
+      expect(actual.formaSalvaje.formaActivaId).toBeNull();
+      expect(actual.condicionesActivas).not.toContain("Forma salvaje");
+    });
+
+    it("Reducir manualmente la vida temporal a 0 revierte la Forma salvaje", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 4);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.formaSalvaje.formaActivaId).toBe("m_lobo");
+      expect(actual.hpTemporal).toBe(4);
+
+      // El usuario o DM pone la vida temporal en 0 en la ficha
+      usarAlmacenDM.getState().modificarHPTemporalPersonaje(id, 0);
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.formaSalvaje.formaActivaId).toBeNull();
+      expect(actual.formaSalvaje.hpTemporalAlTransformar).toBe(0);
+      expect(actual.hpTemporal).toBe(0);
+      expect(actual.condicionesActivas).not.toContain("Forma salvaje");
+    });
+
+    it("Quitar la condición 'Forma salvaje' revierte la bestia y elimina la vida temporal", () => {
+      const pj = aplicarBuildClaseAPersonaje(PERSONAJE_POR_DEFECTO, "Druida", 5);
+      const id = usarAlmacenDM.getState().crearPersonaje(pj);
+      usarAlmacenDM.getState().establecerFormasConocidasDruida(id, ["m_lobo"]);
+
+      usarAlmacenDM.getState().transformarEnFormaSalvaje(id, "m_lobo");
+      let actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.formaSalvaje.formaActivaId).toBe("m_lobo");
+      expect(actual.hpTemporal).toBe(5);
+      expect(actual.condicionesActivas).toContain("Forma salvaje");
+
+      // Quitar la condición desde la barra o lista de condiciones
+      usarAlmacenDM.getState().quitarCondicionPersonaje(id, "Forma salvaje");
+      actual = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(actual.formaSalvaje.formaActivaId).toBeNull();
+      expect(actual.formaSalvaje.hpTemporalAlTransformar).toBe(0);
+      expect(actual.hpTemporal).toBe(0);
+      expect(actual.condicionesActivas).not.toContain("Forma salvaje");
+    });
+  });
 });

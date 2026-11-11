@@ -119,4 +119,33 @@ describe("TablaProgresionRasgo - Indicador de nivel actual (badge Actual y filaN
     expect(htmlNivelBajo).not.toContain("Actual");
     expect(htmlNivelBajo).not.toContain("filaNivelActual");
   });
+
+  it("renderiza titulo de tabla cuando está definido", () => {
+    const tablaConTitulo: TablaEscaladoRasgo = {
+      titulo: "Terreno polar",
+      columnas: ["Nivel de druida", "Conjuros preparados"],
+      filas: [{ nivel: 3, valores: ["Inmovilizar persona, Nube de oscurecimiento"] }]
+    };
+    const html = renderToStaticMarkup(<TablaProgresionRasgo tabla={tablaConTitulo} />);
+    expect(html).toContain("Terreno polar");
+    expect(html).toContain("Inmovilizar persona, Nube de oscurecimiento");
+  });
+
+  it("renderiza correctamente tablas de dos columnas puramente descriptivas sin campo nivel", () => {
+    const tablaResistencias: TablaEscaladoRasgo = {
+      columnas: ["Tipo de terreno", "Resistencia"],
+      filas: [
+        { valores: ["Árido", "Fuego"] },
+        { valores: ["Polar", "Frío"] }
+      ]
+    };
+    const html = renderToStaticMarkup(<TablaProgresionRasgo tabla={tablaResistencias} nivelPersonaje={10} />);
+    expect(html).toContain("Tipo de terreno");
+    expect(html).toContain("Resistencia");
+    expect(html).toContain("Árido");
+    expect(html).toContain("Fuego");
+    expect(html).toContain("Polar");
+    expect(html).toContain("Frío");
+    expect(html).not.toContain("Actual");
+  });
 });

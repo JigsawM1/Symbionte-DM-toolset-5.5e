@@ -383,6 +383,49 @@ describe("calculadorAccionesCombate - Resolución de Conjuros en Acciones de Com
       expect(detectarMagia?.categoriasCombate).toContain("consumible");
       expect(detectarMagia?.esConsumible).toBe(true);
     });
+
+    it("marca esDeFormaSalvaje: true para rasgos procedentes de la bestia y false para la clase", () => {
+      const pjDruida: PersonajeJugador = {
+        ...PERSONAJE_POR_DEFECTO,
+        id: "pj-druida-lobo",
+        clase: "Druida",
+        nivel: 2,
+        rasgos: [
+          {
+            id: "rasgo_cls_druida_forma_salvaje",
+            nombre: "Forma salvaje",
+            descripcion: "Puedes usar Forma salvaje como acción adicional.",
+            tipoAccion: "accion_adicional",
+            tieneUsosLimitados: true,
+            usosMaximos: 2,
+            usosRestantes: 1,
+            recuperacion: "descanso_dinamico",
+            activo: true,
+            personalizado: false,
+            origen: "clase",
+            fuente: "Druida",
+            notas: "",
+            formasBestia: {
+              progresion: [{ nivelMinimo: 2, conocidas: 4, vdMaximo: 0.25, vuelo: false }]
+            }
+          }
+        ],
+        formaSalvaje: {
+          formasConocidasIds: ["m_lobo"],
+          formaActivaId: "m_lobo",
+          hpTemporalAlTransformar: 2
+        },
+        condicionesActivas: ["Forma salvaje"]
+      };
+
+      const res = resolverRasgosAcciones(pjDruida);
+      const rasgosBestia = res.filter((r) => r.esDeFormaSalvaje);
+      const rasgosClase = res.filter((r) => !r.esDeFormaSalvaje);
+
+      expect(rasgosBestia.length).toBeGreaterThan(0);
+      expect(rasgosClase.length).toBeGreaterThan(0);
+      expect(rasgosClase.some((r) => r.rasgo.nombre === "Forma salvaje")).toBe(true);
+    });
   });
 
   describe("resolverHechizosObjetosMagicos - Objetos Mágicos en Combate (D&D 5.5e)", () => {

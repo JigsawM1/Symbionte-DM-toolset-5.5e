@@ -758,6 +758,50 @@
   border-color: var(--pj-borde-acento);
 }
 
+.seccionFormaSalvajeAtaques {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: rgba(34, 197, 94, 0.04);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: var(--pj-radio-panel);
+  padding: 8px 10px;
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+.cabeceraFormaSalvajeAtaques {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.cabeceraFormaSalvajeAtaques:hover {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
+.badgeFormaSalvajeAtaques {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 700;
+  background-color: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #22c55e;
+  padding: 0.5px 6px;
+  border-radius: var(--pj-radio-panel);
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.tituloFormaSalvajeAtaques {
+  color: #22c55e;
+  font-weight: 700;
+}
+
 .cabeceraNivelMagico {
   display: flex;
   justify-content: space-between;

@@ -69,9 +69,18 @@ try {
   await pagina.goto(ruta, { waitUntil: "domcontentloaded", timeout: 60000 });
 
   await detalle("Orden primigenio");
-  await pulsar('button[title="Mago"]');
+  await pulsar('button[title="Naturalista"],button[title="Mago"]');
   await cerrar();
-  await detalle("Mago");
+  const detalleNaturalista = async () => {
+    const nodo = await pagina.waitForFunction(() => [...document.querySelectorAll("article")].find(a => {
+      const nom = a.querySelector('[class*="nombreRasgo"]')?.textContent.trim().replace(/^Nv \d+: /, "");
+      return nom === "Orden primigenio: Naturalista" || nom === "Naturalista" || nom === "Mago";
+    })?.querySelector('button[title="Ver descripción completa en modal"]'));
+    await nodo.asElement().scrollIntoView();
+    await nodo.asElement().click();
+    await nodo.dispose();
+  };
+  await detalleNaturalista();
   await pulsar('button[title="Guía"]');
   await pagina.waitForFunction(() => window.pj().trucosConocidosIds.includes("h_guia"));
   await cerrar();
@@ -153,7 +162,7 @@ try {
   await cerrar();
   await ataques();
   await pulsar('button[title^="Tirar Daño normal"]');
-  await pulsar('dialog[open] button[aria-label="Golpe primordial · Frío"]');
+  await pulsar('dialog[open] button[aria-label$="Golpe primordial · Frío"]');
   await pagina.waitForFunction(() => !document.querySelector('dialog[open][aria-label="Daño adicional al impactar"]'));
   assert(mensajes.some(m => /Fr[ií]o.*Mordisco/i.test(m)), "La tirada contiene un grupo de daño frío del Mordisco");
   console.log("Furia elemental en el compendio y en la tirada de daño del ataque");

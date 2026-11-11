@@ -1,5 +1,330 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-11] Auditoría Ponytail y Refactorización con Vercel React Best Practices (druida-cambios vs main)
+
+- **Contexto**:
+  - Tras la auditoría inicial de sobreingenierías, violaciones DRY/SOLID y optimizaciones, se procedió a aplicar las correcciones quirúrgicas y optimizaciones de rendimiento validadas bajo las reglas de `vercel-react-best-practices`.
+- **Implementaciones y Mejoras Aplicadas**:
+  1. *DRY & SOLID en Slices y Servicios*:
+     - **Centralización de Reversión Reactiva**: Se creó la función pura `verificarReversionHpTemporal` en `reglasFormaSalvaje.ts`, eliminando 5 repeticiones de la guarda `if (temp === 0 && pj.formaSalvaje?.formaActivaId && ...)` en `sliceVitalidad.ts` y `sincronizadorVidaIniciativa.ts`.
+     - **Sincronización de Vida Temporal en Iniciativa**: Se extrajo el helper `sincronizarVidaTemporalEnIniciativa` en `sincronizadorVidaIniciativa.ts`, erradicando 3 bloques idénticos de mutación de `colaIniciativa` en `sliceFormaSalvaje.ts` y `sliceCondiciones.ts`.
+     - **Purga Unificada de Estados**: En `estadoCondicionesRasgos.ts`, se unificó la desactivación de rasgos y purga de condiciones/efectos en `purgarEstadosDeRasgos`, compartida entre `finalizarRasgosDelTurno` y `finalizarRasgosAlDescansar`.
+  2. *Optimizaciones de Rendimiento (Vercel Best Practices)*:
+     - **`js-set-map-lookups`**: En `sliceFormaSalvaje.ts:establecerFormasConocidasDruida`, se sustituyeron búsquedas anidadas $O(M \times N)$ (`elegibles.some(...)`) por un `Set` con comprobaciones $O(1)$.
+     - **`js-cache-function-results` / `native`**: En `ModalGestionFormasSalvajes.tsx` y `PanelFormaSalvaje.tsx`, se elevó fuera del componente la instancia estática `const comparadorEspanol = new Intl.Collator("es", { sensitivity: "base" }).compare;`, eliminando instanciaciones de comparador por cada comparación y render.
+     - **Memoización de Índices Numéricos de Orden**: En `ModalGestionFormasSalvajes.tsx`, se precalculó un mapa `vdsNumericos` (`Map<string, number>`) evitando evaluar `convertirVDANumero` $O(N \log N)$ veces en el callback de `.sort()`.
+     - **`rerender-simple-expression-in-memo`**: En `SeccionRasgosAtaque.tsx`, se unificaron 5 hooks `useMemo` casi idénticos en un predicado único `esVisibleDeClase` con `useCallback`.
+     - **Eliminación de Búsqueda Dinámica**: En `reglasFormaSalvaje.ts:calcularReglasFormaSalvaje`, se introdujo la constante `PROGRESION_FORMA_SALVAJE_BASE`, evitando el recorrido dinámico del catálogo de clases en tiempo de ejecución.
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 warnings con `--max-warnings=0`.
+  - `vitest`: 99 de 99 pruebas pasadas con 100% de éxito en todas las suites afectadas.
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas de tamaño de archivos.
+  - `pnpm run build`: Compilación de producción con Vite exitosa en 9.88s.
+
+## [2026-11-10] Compactación y Densidad Táctica del Modal de Forma Salvaje para TaleSpire CEF (599px)
+
+- **Contexto**:
+  - En resoluciones contenidas (ancho de referencia canónico de 599px en TaleSpire CEF), el modal de selección de bestias (`ModalGestionFormasSalvajes`) consumía demasiado espacio vertical en cabecera, buscador, chips de filtro y tarjetas de criaturas, limitando a 3-4 las bestias visibles simultáneamente.
+  - El usuario solicitó compactar la interfaz para maximizar la superficie útil visible a 599px.
+- **Decisiones arquitectónicas y soluciones implementadas**:
+  1. *Densificación Vertical y Horizontal (`PanelFormaSalvaje.module.css`)*:
+     - Cabecera: padding reducido de `14px 18px` a `8px 12px`, icono de `32x32px` a `24x24px`, tipografía a `13.5px` y subtítulo a `10px`.
+     - Buscador y Ordenación: contenedor ultra-esbelto (`padding: 4px 8px; font-size: 11.5px`), botones de orden de `3px 6px` con iconos de `12px`, permitiendo que buscador y ordenación convivan en una sola fila sin saltos a 599px.
+     - Chips de filtro: padding ceñido `2px 6px`, font `10px`, border-radius táctico `4px`, reduciendo la altura vertical del bloque de filtros en más del 40%.
+     - Subbarra de conteo: padding `0 2px`, font `10px`, sin espacio vertical muerto.
+     - Elementos de lista (`.itemOpcionPool`): padding reducido a `5px 8px` (antes `10px 12px`), checkbox de `15x15px`, altura por ítem optimizada a ~33px (prácticamente la mitad de la altura previa), permitiendo visualizar el doble de criaturas de un solo vistazo.
+     - Capacidad del viewport: incremento del `max-height` efectivo de la lista a `56vh` y contenedor a `90vh`.
+     - Adaptación `@media (max-width: 599px)`: paddings de 4-6px en overlay y contenedor para aprovechar al máximo los 599px exactos del panel lateral de TaleSpire.
+  2. *Refactorización Quirúrgica de Iconos (`ModalGestionFormasSalvajes.tsx`)*:
+     - Reducción proporcional de los iconos Lucide (`PawPrint`, `Search`, `X`, `ArrowUpZA`, `ArrowDownAZ`, `ArrowUpDown`, `Filter`, `Check`, `Shield`) a 10-15px para evitar desbordes y estiramiento de líneas.
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores de tipado.
+  - `pnpm run lint`: 0 errores y 0 warnings con `--max-warnings=0`.
+  - `pnpm test formaSalvaje`: 29 de 29 pruebas pasadas con 100% de éxito.
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas de tamaño de archivos.
+  - `pnpm run build`: Compilación de producción con Vite exitosa en 9.78s.
+
+## [2026-11-10] Filtros y Ordenación Táctica de Bestias en Forma Salvaje (/frontend-design)
+
+- **Contexto**:
+  - En la selección de bestias para la reserva de *Forma salvaje* (`ModalGestionFormasSalvajes`), la lista contenía decenas de opciones sin herramientas de filtrado por Desafío (VD) ni ordenación, obligando a navegar manualmente.
+  - El usuario solicitó filtros rápidos y la capacidad de ordenar por letra (alfabético A-Z / Z-A) o por Desafío (VD menor/mayor).
+- **Decisiones arquitectónicas y soluciones implementadas**:
+  1. *Filtros de Desafío (VD) y Estado de Reserva (`ModalGestionFormasSalvajes.tsx`)*:
+     - Chips de estado: `Todas (${total})` y `En reserva (${seleccionadas})` para aislar instantáneamente las formas marcadas.
+     - Chips dinámicos de VD: extracción automática y sin duplicados de los valores de desafío presentes en las bestias elegibles (`VD 0`, `VD 1/8`, `VD 1/4`, etc.), ordenados numéricamente mediante `convertirVDANumero`.
+     - Contador reactivo de resultados (`Mostrando X de Y bestias`) y botón rápido de `Limpiar filtros`.
+  2. *Controles de Ordenación Bidireccional (`ModalGestionFormasSalvajes.tsx`)*:
+     - Botón `Nombre`: alterna entre orden alfabético ascendente `(A-Z)` y descendente `(Z-A)` con iconos `ArrowDownAZ` / `ArrowUpZA`.
+     - Botón `VD`: alterna entre orden numérico por Desafío `(Menor)` y `(Mayor)` mediante `convertirVDANumero`, resolviendo empates por nombre.
+  3. *Ordenación en Tarjetas de Reserva (`PanelFormaSalvaje.tsx`)*:
+     - Se añadió un control de ordenación compacto (`A-Z` / `VD`) en la cabecera de la reserva (`barraTituloPool`) cuando el personaje tiene más de 1 forma conocida.
+  4. *Modularización Limpia (`ModalFichaOficialBestia.tsx`)*:
+     - Para mantener `PanelFormaSalvaje.tsx` por debajo del umbral de aviso (< 300 líneas en CI), se extrajo el modal de inspección de la ficha oficial D&D a su propio subcomponente puro.
+  5. *Estética Canónica Dark Fantasy Zafiro/Índigo (`PanelFormaSalvaje.module.css`)*:
+     - Chips y botones de ordenación estilizados según `DESIGN.md` con tokens `--pj-*`, sin estilos inline y con cero animaciones/transiciones para rendimiento en TaleSpire CEF.
+- **Validación y Certificación**:
+  - `vitest`: 4 pruebas dedicadas en `PanelFormaSalvaje.test.tsx` y 67 pruebas de Druida aprobadas con 100% de éxito.
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+  - `verificar-limite-lineas.js`: 0 violaciones críticas; `PanelFormaSalvaje.tsx` (256 líneas) y `ModalGestionFormasSalvajes.tsx` (280 líneas) en categoría `[CORRECTO]`.
+  - `vite build`: Compilación de producción exitosa en 9.95s.
+
+
+## [2026-11-10] Sincronización Bidireccional de Vida Temporal y Reversión en Forma Salvaje (D&D 5.5e)
+
+- **Contexto**:
+  - Se identificó un fallo de sincronización bidireccional entre la *Forma salvaje* y la vida temporal otorgada al transformarse:
+    1. Al revertir la transformación (voluntariamente mediante el botón de la UI, por transcurso de descansos o por remoción de la condición "Forma salvaje"), la vida temporal otorgada (`hpTemporalAlTransformar`) no se retiraba del personaje (`pj.hpTemporal`).
+    2. Viceversa: cuando la vida temporal de la bestia se agotaba por daño en combate o se modificaba manualmente a 0 en la ficha, la criatura continuaba en Forma salvaje en lugar de revertirse automáticamente.
+- **Causas Raíz Identificadas**:
+  1. `terminarFormaBestia` (`src/servicios/reglasFormaSalvaje.ts`) reseteaba `formaActivaId: null` y `hpTemporalAlTransformar: 0`, pero omitía actualizar `pj.hpTemporal`.
+  2. `aplicarDanoPersonaje` y `modificarHPTemporalPersonaje` (`src/almacen/slices/personajes/sliceVitalidad.ts`) reducían `hpTemporal`, pero no comprobaban si el personaje tenía una forma salvaje activa con vida temporal dependiente para desencadenar la reversión.
+  3. `quitarCondicionPersonaje` (`src/almacen/slices/personajes/sliceCondiciones.ts`) eliminaba la condición "Forma salvaje" del array de condiciones activas, pero no invocaba `terminarFormaBestia` ni sincronizaba la vida temporal con la iniciativa.
+  4. Los sincronizadores de iniciativa (`sincronizadorVidaIniciativa.ts`) y la normalización de rasgos (`normalizarCondicionesRasgos.ts`) no contemplaban la regla de que `(forma.hpTemporalAlTransformar > 0 && hpTemporal <= 0)` revierte de forma reactiva la transformación.
+- **Decisiones Arquitectónicas y Soluciones Quirúrgicas**:
+  1. *Retiro de Vida Temporal en Reversión (`terminarFormaBestia`)*:
+     - Se implementó la sustracción segura de los PG temporales otorgados:
+       `const tempOtorgado = pj.formaSalvaje?.hpTemporalAlTransformar ?? 0;`
+       `const hpTemporalFinal = tempOtorgado > 0 ? Math.max(0, (pj.hpTemporal ?? 0) - tempOtorgado) : (pj.hpTemporal ?? 0);`
+     - Al revertir la bestia, los PG temporales remanentes de la forma se eliminan inmediatamente, preservando cualquier vida temporal previa o superior si existiera de otra fuente.
+  2. *Reversión Automática por Daño y Ajuste Manual (`sliceVitalidad.ts`)*:
+     - En `aplicarDanoPersonaje`: si el daño absorbe el escudo temporal llevándolo a 0 (con o sin daño remanente a `hpActual`), y el personaje poseía `formaActivaId` con `hpTemporalAlTransformar > 0`, se invoca inmediatamente `terminarFormaBestia`. Si hay excedente de daño, se absorbe el escudo, se revierte la forma y el remanente reduce la vida base del druida.
+     - En `modificarHPTemporalPersonaje`: si el usuario o DM asigna manualmente el HP temporal a 0, se detecta y revierte la transformación.
+  3. *Reversión al Quitar la Condición (`sliceCondiciones.ts`)*:
+     - En `quitarCondicionPersonaje`: cuando la condición retirada coincide con "Forma salvaje" (o su equivalente internacional / canónico del rasgo), se ejecuta `terminarFormaBestia` sobre el objetivo y se actualiza reactivamente la iniciativa si la miniatura está en combate.
+     - Se evitó el antipatrón de variable mutable capturada por closures (`pjObjetivo`) que provocaba narrowing a `never` en TypeScript, consultando directamente el estado persistido con `get().personajes.find(...)`.
+  4. *Sincronización Reactiva en Combate (`normalizarCondicionesRasgos` y `sincronizadorVidaIniciativa.ts`)*:
+     - En `normalizarCondicionesRasgos`: se agregó la guarda `const sinHpTemporalForma = (forma.hpTemporalAlTransformar ?? 0) > 0 && (pj.hpTemporal ?? 0) <= 0;` para que cualquier transición de ronda o mutación reactiva asegure la consistencia del estado.
+     - En `sincronizarDanoPersonajes` y `sincronizarVidaTemporalPersonajes`: al llegar la vida temporal a 0 en la cola de iniciativa, se aplica `terminarFormaBestia` sobre el personaje asociado.
+     - En `sliceFormaSalvaje.ts`: `transformarEnFormaSalvaje` y `revertirFormaSalvaje` ahora sincronizan reactivamente el campo `vidaTemporal` de la fila de combate en `colaIniciativa`.
+- **Validación y Certificación**:
+  - `vitest`: Suite dedicada añadida a `src/servicios/druidaFormaSalvaje2024.test.ts` con 6 pruebas específicas de reversión voluntaria, daño parcial, daño letal al escudo, exceso de daño a vida real, edición manual y retiro de condición.
+  - Suite completa: 190 archivos de prueba pasados (100%), 2.762 pruebas unitarias e integración aprobadas (0 fallos).
+  - TypeScript: `pnpm tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - ESLint: 0 errores y 0 advertencias en todos los archivos modificados.
+  - Auditoría CI de líneas: `verificar-limite-lineas.js` con 0 errores críticos.
+  - Build de producción: `pnpm vite build` completado con éxito en 11.37s.
+
+## [2026-11-10] Rediseño Visual y Modularización Táctica de Forma Salvaje (/frontend-design)
+
+- **Contexto**:
+  1. La subpestaña de *Forma salvaje* de la hoja de personaje (`PanelFormaSalvaje`) presentaba un aspecto visual genérico y plano: el resumen de reglas era una cadena plana de texto con viñetas (`VD Máximo: 2 • Vuelo: No permitido...`), la cuadrícula de estadísticas era densa y monótona, y los rasgos y ataques se mostraban como bloques de texto corrido difíciles de escanear en combate.
+  2. Arquitectónicamente, el archivo `PanelFormaSalvaje.tsx` acumulaba 462 líneas de código monolítico, encontrándose en categoría `[AVISO]` de CI y próximo al límite crítico de 500 líneas.
+- **Decisiones arquitectónicas y soluciones implementadas**:
+  1. *Desacoplamiento Modular y Principio de Responsabilidad Única (SRP)*:
+     - Se creó el submódulo `src/componentes/caracteristicas/personajes/formaSalvaje/` con subcomponentes puros:
+       - `HudReglasFormaSalvaje.tsx`: HUD táctico de 4 cuadrantes (Usos disponibles con pips visuales reactivos, PG temporales, VD máximo y permiso de vuelo).
+       - `BannerFormaActiva.tsx`: Banner de metamorfosis activa con resplandor esmeralda, telemetría física (FUE, DES, CON, CA), tiempo de juego restante y botón táctico de reversión.
+       - `TarjetaBestiaReserva.tsx`: Tarjetas ricas con medallón dorado de Desafío (VD), módulos tácticos de vitales (CA, PG con fórmula de dados, velocidad), deck de 6 atributos con distinción entre físicos y mentales, sentidos destacados, rasgos especiales con bordes esmeralda y chips de combate (ataque en cian y daño en ámbar).
+       - `ModalGestionFormasSalvajes.tsx`: Modal con buscador táctico, lista de bestias con badges e indicadores de capacidad.
+       - `ModalPrepararTransformacion.tsx`: Diálogo para conservar equipo compatible y gestionar PG temporales.
+     - `PanelFormaSalvaje.tsx` se redujo de 462 a 180 líneas, pasando a categoría `[CORRECTO]` (< 300 líneas) en la auditoría de CI.
+  2. *Alineación Canónica con DESIGN.md (Zafiro / Índigo Táctico) y TaleSpire CEF*:
+     - Se auditó y corrigió la paleta de colores para adherir estrictamente al sistema de diseño canónico de la vista de jugador (`DESIGN.md` y `temaJugador.css`), eliminando tonos verdes/ámbar heterogéneos y adoptando la identidad **Dark Fantasy Zafiro/Índigo Táctico**:
+       - Superficies: `--pj-fondo-panel` (`#0d121c`), `--pj-fondo-tarjeta` (`#121722`), `--pj-fondo-tarjeta-elevada` (`#161e2c`), `--pj-fondo-hundido` (`#080c14`).
+       - Delimitadores: `--pj-borde-sutil`, `--pj-borde-medio` y bordes de acento `--pj-borde-cian` / `--pj-borde-acento-fuerte`.
+       - Tipografía y badges: Escala `--pj-fuente-*` con contraste WCAG, acento índigo `--pj-texto-acento`, azul D&D `--pj-texto-cian`, estado de éxito canónico `--pj-texto-exito` (`#6ee7b7`) para forma activa y alerta `--pj-texto-alerta` para reversión.
+       - Botonería sólida: Acciones principales con `--pj-acento-primario-solido` (`#4f46e5`) e inspección con botón táctico zafiro.
+     - Cumplimiento estricto de la regla de entorno TaleSpire CEF (Sección 1.B de `DESIGN.md`): Cero transiciones y cero animaciones (`transition: none;`), garantizando latencia 0ms y respuesta instantánea en texturas Unity.
+     - Se erradicaron los estilos inline conforme a la regla `react/forbid-dom-props` de ESLint, trasladando toda la presentación a `PanelFormaSalvaje.module.css`.
+- **Validación y Certificación**:
+  - `vitest`: 100% aprobado en todas las suites de Druida, Forma Salvaje y Acciones (70 pruebas en 5 suites).
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+  - `verificar-limite-lineas.js`: 0 violaciones críticas, reducción exitosa a < 300 líneas.
+  - `vite build`: Compilación de producción completada con éxito en 11.09s.
+
+
+## [2026-11-10] Segregación de Rasgos de Forma Salvaje en Acciones e Inspección Oficial de Bestias en Reserva
+
+- **Contexto**:
+  1. En la vista de acciones (`VistaAtaquesJugador` / `SeccionRasgosAtaque`), cuando un Druida se transformaba en una bestia mediante *Forma salvaje*, los rasgos de combate de la bestia se mezclaban indistintamente con los rasgos de la clase y subclase del druida bajo las subsecciones genéricas (*Activables*, *Consumibles*, *Acciones*, etc.), o peor aún, los rasgos pasivos de la criatura (como *Tácticas de manada* o *Olfato agudo*) eran excluidos por `categorias.length === 0`.
+  2. En la subpestaña de *Forma salvaje* de la hoja de personaje (`PanelFormaSalvaje`), las tarjetas de "Formas Conocidas en Reserva" eran rudimentarias: no mostraban las 6 características con modificadores, ni los Puntos de Golpe, ni la velocidad formateada, ni los sentidos de la criatura, ni sus rasgos especiales, y carecían de una opción para ver la ficha completa oficial de la bestia.
+- **Decisiones arquitectónicas y soluciones implementadas**:
+  1. *Discriminador semántico en Dominio (`calculadorAccionesCombate.ts`)*:
+     - Se añadió `esDeFormaSalvaje?: boolean` a la interfaz `RasgoAccionCombate`.
+     - En `resolverRasgosAcciones`, se calcula `esDeFormaSalvaje` mediante `Boolean(bestiaActiva && (rasgo.id.includes("_bestia_") || rasgo.fuente?.startsWith("Forma salvaje:")))`.
+     - Los rasgos pasivos de la bestia ya no se descartan silenciosamente: se les asigna la categoría `"especial"` para que figuren en la sección táctica de combate.
+  2. *Segregación visual en Vista de Acciones (`SeccionRasgosAtaque.tsx` y CSS)*:
+     - Se detecta la bestia activa mediante `obtenerBestiaFormaActiva(personajeActivo)`.
+     - Se separa la lista en `rasgosFormaSalvaje` y `rasgosClase`.
+     - Se renderiza un bloque destacado independiente con temática esmeralda (`#22c55e`), icono `PawPrint`, badge de conteo y colapso persistente `formaSalvaje: true`, análogo a la vista de rasgos (`SeccionesRasgosActivos.tsx`).
+     - En las vistas filtradas (`filtro !== "todas"`), se mantiene la demarcación clara entre los rasgos de la bestia y los de clase.
+  3. *Rediseño completo de Tarjetas de Criaturas en Reserva (`PanelFormaSalvaje.tsx` y CSS)*:
+     - Cabecera con nombre, subtítulo (`formatearSubtituloCriatura`), badge de `VD`, y badge verde `"Activa"` si la forma está adoptada.
+     - Métricas principales en cajas tácticas: CA, PG base y Velocidad.
+     - Cuadrícula compacta de las 6 características (FUE, DES, CON, INT, SAB, CAR) con valores base y modificadores formateados.
+     - Despliegue de Sentidos especiales (`formatearSentidos`), Rasgos Especiales de la criatura (`bestia.rasgos`, ej. *Tácticas de manada*, *Olfato agudo*) y Acciones de combate.
+     - Botón secundario `"Ver Ficha"` con icono `Eye` que abre un modal con el componente oficial `PanelFichaDnD` de D&D 5e, permitiendo consultar el bloque completo de la criatura.
+     - Botón principal `"Adoptar Forma"` integrado con el flujo de confirmación.
+- **Validación y Certificación**:
+  - `vitest`: 34 pruebas en `calculadorAccionesCombate.test.ts`, `SeccionRasgosAtaque.test.tsx` y `PanelFormaSalvaje.test.tsx` aprobadas al 100%.
+  - `vitest`: 57 pruebas de druida aprobadas con 0 fallos.
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint`: 0 errores y 0 advertencias.
+  - `verificar:lineas`: 0 violaciones críticas de límites de líneas en CI.
+  - `vite build`: compilación de producción exitosa en 12.09s.
+
+- **Contexto**: El diálogo modal `DialogoConversionEspacios.tsx` (usado por *Resurgimiento salvaje*, *Puntos de brujería*, *Archidruida*, etc.) presentaba una apariencia precaria y plana:
+  1. Los recursos actuales se mostraban en una sola línea de texto plano (`Forma salvaje: 4 / 4 · Puntos de conjuro: 133 / 133`) sin jerarquía visual.
+  2. El selector de modo consistía en dos botones rectangulares toscos sin iconografía ni indicación direccional.
+  3. El flujo de balance y transmutación entre coste y ganancia se expresaba en párrafos desconectados (`Gasto: X`, `Recuperarás Y`) en lugar de una tarjeta de flujo estructurada.
+  4. La regla de requisito de reserva agotada (*Resurgimiento salvaje* en PHB 2024 exige que la reserva esté en 0 para recuperar un uso) se renderizaba como un párrafo plano, provocando confusión en el jugador al ver "Recuperarás 0 uso" y el botón de confirmar deshabilitado.
+  5. Un defecto de CSS (`.cuerpo label { flex-direction: column; }`) provocaba que el checkbox de confirmación de turno apareciera desalineado arriba y el texto centrado debajo.
+- **Solución e Implementación (/frontend-design)**:
+  1. *HUD Táctico de Recursos (`HudRecursosConversion.tsx`)*:
+     - Tarjetas en cuadrícula con métricas en gran formato, iconos temáticos (`Layers` para recursos de clase, `Zap` para maná/espacios) e insignias dinámicas de estado (`Agotado` en rojo/alerta, `Completo` en esmeralda, `Disponible` en acento).
+  2. *Control Segmentado Táctico (`selectorModo` / `botonModo`)*:
+     - Dock hundido con relieve, transiciones suaves y micro-iconos (`Sparkles` para creación/restauración y `RefreshCw` para conversión).
+  3. *Tarjeta de Flujo de Transmutación (`TarjetaFlujoConversion.tsx`)*:
+     - Visualización táctica `[ Entregas ] ➔ [ Recuperas ]` conectada por una insignia central con `ArrowRight`, cifras contrastadas y etiquetas semánticas claras.
+  4. *Banner de Regla Canónica de 2024 (`bannerAlerta` / `bannerAdvertencia`)*:
+     - Cuando la reserva no está agotada (`agotado && disponibles > 0`), se despliega una tarjeta de aviso con icono `AlertCircle` que explica detalladamente la regla del PHB 2024.
+  5. *Tarjeta Interactiva de Confirmación de Turno (`TarjetaConfirmacionTurno.tsx`)*:
+     - Contenedor horizontal clickable con accesibilidad por teclado, icono `Clock`, checkbox alineado y badge `"1 vez / turno"`.
+  6. *Modularización y Principios SOLID*:
+     - Desacoplamiento de subcomponentes puros (`HudRecursosConversion`, `TarjetaFlujoConversion`, `TarjetaConfirmacionTurno`), reduciendo la complejidad ciclomática y manteniendo los archivos dentro de los umbrales de CI.
+- **Validación y Certificación**:
+  - `vitest`: 46 pruebas unitarias aprobadas al 100% (incluyendo la nueva suite `DialogoConversionEspacios.test.tsx`).
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `eslint src --max-warnings=0`: 0 errores y 0 advertencias.
+  - `verificar:lineas`: 0 violaciones críticas en todo el repositorio.
+  - `vite build`: empaquetado de producción exitoso en 10.12s.
+
+## [2026-11-10] Unificación del Patrón Strategy (Puntos de Conjuro DMG) en Conversión y Recuperación de Recursos de Druida y Hechicero
+
+- **Contexto**: El usuario detectó que al activar el modo de **Puntos de Conjuro (variante DMG)** en lugar de espacios tradicionales, los rasgos que crean o convierten espacios de conjuro (*Resurgimiento salvaje*, *Archidruida*, *Recuperación natural* y *Paso a la luz de la luna*) ignoraban dicho modo y solo operaban con ranuras tradicionales.
+- **Diagnóstico de Brechas Arquitectónicas**:
+  1. `DialogoConversionEspacios.tsx` no consultaba `usarSistemaMagia()`, mostrando únicamente `obtenerEspaciosElegibles(pj)` y despachando operaciones rígidas sobre `espaciosConjuroAdicionales`.
+  2. `conversionRecursosRasgos.ts` carecía de la rama `"puntos"` en `crearEspacio` y `convertirEspacio`.
+  3. `RecuperarUsosConEspacio.tsx` y `ejecutarRecuperacionPorPuntos` bloqueaban el modo puntos cuando `nivelMinimoRecuperarUsosConEspacio > 1` (afectando a *Paso a la luz de la luna* Nv 2 y *Manto de majestad* Nv 3).
+  4. `ModalTiendaRecuperacionEspacios.tsx` tenía la guarda `!rasgo.recuperarEspaciosTrasDescansoCorto` que impedía usar puntos en *Recuperación natural* (Círculo de la Tierra).
+- **Solución e Implementación (Patrón Strategy)**:
+  1. *Generalización en Dominio (`conversionRecursosRasgos.ts`)*:
+     - `calcularCostePuntosRecuperacion(vecesPrevias, cantidadUsos, nivelMinimo = 1)` generalizado en $O(1)$ con $\text{base} = \text{COSTE\_PUNTOS\_POR\_NIVEL}[\text{nivelMinimo}] ?? 2$ y $\text{Coste}(m, U) = U \cdot (2m + U + \text{base} - 1)$.
+     - `crearEspacio` con `modo: "puntos"` restaura puntos en `puntosConjuroGastados` según `COSTE_PUNTOS_POR_NIVEL[nivel] * cantidad`.
+     - `convertirEspacio` con `origen: "puntos"` consume puntos mediante `consumirRecursoConjuro` aplicando coste escalonado para reservas agotadas (*Resurgimiento salvaje*) o equivalencia directa por nivel (*Hechicero*).
+     - `recuperarEspaciosDescanso` admite `puntos` para *Recuperación natural* tras descanso corto.
+  2. *Adaptación Reactiva en UI (`DialogoConversionEspacios.tsx`, `RecuperarUsosConEspacio.tsx`, `ModalTiendaRecuperacionEspacios.tsx`, `usarAccionesTarjetaRasgo.ts`)*:
+     - Inyección de `usarSistemaMagia()` en `DialogoConversionEspacios.tsx` y `ModalTiendaRecuperacionEspacios.tsx`.
+     - Eliminación del bloqueo artificial por `nivelMinimoRecuperarUsosConEspacio` en `RecuperarUsosConEspacio.tsx`.
+- **Validación y Certificación**:
+  - `vitest`: 221 pruebas en 8 suites aprobadas al 100%.
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+
+## [2026-11-10] Migración de Furia Elemental (Druida Nv 7) al Modelo Jerárquico Declarativo de Clérigo (`requiereOpcion` / `ligadoA`)
+
+- **Contexto**: El usuario reportó que al seleccionar *Golpe primordial* en *Furia elemental* (Nivel 7), el rasgo aparecía al final absoluto de la lista de la ficha (después de rasgos de niveles 8 y 12), en lugar de ordenarse contiguamente debajo de *Furia elemental* como ocurría en *Orden primigenio*. La causa era que *Furia elemental* todavía utilizaba `materializarRasgos: true`, lo que provocaba que `construirRasgosDesdeSelectores` insertara el rasgo sintetizado con `resultado.push(hijo)` al final de la lista de rasgos del personaje.
+- **Decisiones arquitectónicas y adaptaciones**:
+  1. *Eliminación de materialización dinámica en Furia elemental*:
+     - En `src/datos/clases/druida.json`, se retiró `materializarRasgos: true` de `selector_furia_elemental`, convirtiendo `rasgo_cls_druida_furia_elemental` en un `selector_informativo` puro con `requiereEleccionExplicita: true`.
+  2. *Declaración estática contigua de rasgos hermanos a Nivel 7*:
+     - `rasgo_cls_druida_furia_elemental_lanzamiento_potente`: Declarado físicamente justo después de *Furia elemental* a nivel 7, con `ligadoA: "rasgo_cls_druida_furia_elemental"`, `requiereOpcion: "lanzamiento_potente"`, efecto `furia_sabiduria_trucos` y tabla de progresión canónica.
+     - `rasgo_cls_druida_furia_elemental_golpe_primordial`: Declarado físicamente contiguo a nivel 7, con `ligadoA: "rasgo_cls_druida_furia_elemental"`, `requiereOpcion: "golpe_primordial"`, `formulaDados: "1d8"`, `escaladoFormulaDados` a `2d8` en nivel 15, `resolucionAsistida` con daño integrado de 4 elementos y tabla de progresión.
+  3. *Resultado visual y técnico*:
+     - La opción seleccionada (*Golpe primordial* o *Lanzamiento potente*) se renderiza ahora de forma natural inmediatamente debajo de *Furia elemental* (Nivel 7), preservando el orden estático y canónico de la progresión de clase de la misma manera que *Golpes benditos* en Clérigo.
+     - Reactividad y preservación de estado garantizadas sin reconstruir el array en memoria.
+- **Validación y Certificación**:
+  - `vitest`: 56 pruebas de Druida aprobadas con 100% de éxito (añadida prueba de conmutación reactiva en Zustand para Furia elemental en `druidaMecanicasDND55.test.ts`).
+  - TypeScript: `pnpm tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+## [2026-11-10] Migración de Orden Primigenio (Druida) al Modelo Jerárquico Declarativo de Clérigo (`requiereOpcion` / `ligadoA`)
+
+- **Contexto**: Se identificó una disparidad arquitectónica entre dos rasgos funcionalmente idénticos en D&D 5.5e (2024): *Orden divina* (Clérigo) y *Orden primigenio* (Druida). Mientras Clérigo utilizaba un modelo estático y declarativo con rasgos hermanos (`requiereOpcion` y `ligadoA`), Druida recurría a la metaprogramación en tiempo de ejecución con `materializarRasgos: true`, instanciando y destruyendo rasgos en memoria en cada ciclo de normalización.
+- **Decisiones arquitectónicas y modificaciones**:
+  1. *Desacoplamiento y eliminación de sobreingeniería*:
+     - En `src/datos/clases/druida.json`, se retiró `materializarRasgos: true` de `selector_orden_primigenio`, así como los efectos y selectores anidados dentro de las opciones. El rasgo contenedor `rasgo_cls_druida_orden_primigenio` se mantiene como un `selector_informativo` puro con `requiereEleccionExplicita: true`.
+  2. *Definición de rasgos hermanos de primer orden*:
+     - `rasgo_cls_druida_orden_primigenio_guardian`: Definido estáticamente con `ligadoA: "rasgo_cls_druida_orden_primigenio"` y `requiereOpcion: "guardian"`. Declara competencias en armas marciales y armaduras medias.
+     - `rasgo_cls_druida_orden_primigenio_mago`: Definido estáticamente con `ligadoA: "rasgo_cls_druida_orden_primigenio"` y `requiereOpcion: "mago"`. Declara los bonos de habilidad basados en Sabiduría (`habilidad.arcanos` y `habilidad.naturaleza`) y contiene el selector nativo de truco adicional `selector_truco_orden_primigenio` con su filtro canónico de conjuros de Druida.
+  3. *Beneficios en el ciclo de vida y rendimiento*:
+     - **Preservación inmutable de elecciones**: Al conmutar entre Guardián y Naturalista, el selector de trucos retiene su selección sin depender del mapa efímero de `fusionarEstadoRasgo`.
+     - **Reducción del coste computacional**: Se eliminaron llamadas a `structuredClone` e inspecciones por `JSON.stringify` en `normalizarMecanicasRasgos` para la elección de Nivel 1.
+     - **Homogeneidad**: Druida y Clérigo comparten ahora exactamente el mismo patrón declarativo en el compendio y en las utilidades de comprobación (`esRasgoHabilitadoPorOpcion` y `estaRasgoActivo`).
+- **Validación y Certificación**:
+  - `vitest`: 55 pruebas de Druida aprobadas con 100% de éxito (`druidaMecanicasDND55.test.ts`, `druidaBaseDeclarativo.test.ts`, `druidaFormaSalvaje2024.test.ts`, `druidaCirculos2024.test.ts`).
+  - Suite de regresión ampliada: Añadida prueba específica de reactividad reactiva con conmutación en Zustand y verificación de efectos condicionados de Guardián y Naturalista.
+  - TypeScript: `pnpm tsc --noEmit` completado con 0 errores bajo `strict: true`.
+
+
+## [2026-11-10] Tablas estructuradas en subclases de Druida y soporte de tablas descriptivas
+
+- **Contexto**: Tras la incorporación de tablas en la clase base de Druida, se implementaron las tablas de progresión estructuradas (`tablaProgresion` y `tablasProgresion`) para los círculos druídicos oficiales según las 8 capturas visuales:
+  1. *Círculo de la Tierra*:
+     - `Conjuros del Círculo de la Tierra` (Nivel 3): 4 tablas con `titulo` ("Terreno árido", "Terreno polar", "Terreno templado", "Terreno tropical") bajo `tablasProgresion`, con progresión de niveles 3, 5, 7, 9 y sus conjuros.
+     - `Auxilio de la tierra` (Nivel 3): `tablaProgresion` con columnas `["Nivel", "Descripción"]`, filas nivel 10 (`3d6`) y nivel 14 (`4d6`), pie `"Cada nivel reemplaza al anterior"`.
+     - `Custodia de la naturaleza` (Nivel 10): `tablaProgresion` con columnas `["Tipo de terreno", "Resistencia"]` y 4 filas: Árido (Fuego), Polar (Frío), Templado (Relámpago), Tropical (Veneno).
+  2. *Círculo de la Luna*:
+     - `Conjuros del círculo de la luna` (Nivel 3): `tablaProgresion` con columnas `["Nivel de druida", "Conjuros preparados"]` y 4 filas (niveles 3, 5, 7, 9).
+     - `Formas del círculo` (Nivel 3): `tablaProgresion` con columnas `["Nivel", "Descripción"]`, fila nivel 6 (*Resplandor lunar* y *Aguante aumentado*), pie `"Se apilan los niveles"`.
+  3. *Círculo de las Estrellas*:
+     - `Mapa estelar` (Nivel 3): `tablaProgresion` con columnas `["1d6", "Forma del mapa"]` y 6 filas del 1 al 6 con las opciones canónicas.
+  4. *Círculo del Mar*:
+     - `Conjuros del círculo del mar` (Nivel 3): `tablaProgresion` con columnas `["Nivel de druida", "Conjuros preparados"]` y 4 filas (niveles 3, 5, 7, 9).
+- **Mejoras en el componente y esquemas de tipos**:
+  - *Esquema Zod (`src/tipos/rasgos.ts`)*:
+    - `EsquemaFilaTablaEscalado`: se hizo el campo `nivel` opcional (`z.number().int().min(1).max(20).optional()`) para validar tablas puramente descriptivas sin columna de nivel numérico (como *Custodia de la naturaleza*).
+    - `EsquemaTablaEscaladoRasgo`: se agregó `titulo: z.string().optional()` para preservar el título de múltiples tablas en rasgos con biomas o listas compuestas.
+  - *Componente visual (`TablaProgresionRasgo.tsx` y `.module.css`)*:
+    - Renderizado de `tabla.titulo` encima de la tabla si existe.
+    - Soporte en tablas de 2 columnas para filas sin `nivel`: la primera celda renderiza `fila.valores[0]` y la segunda `fila.valores[1]`.
+    - No marcar badge `Actual` si la columna 0 no contiene `"nivel"`.
+  - *Tests de regresión*:
+    - 2 pruebas añadidas en `TablaProgresionRasgo.test.tsx` cubriendo títulos y tablas descriptivas de 2 columnas sin `nivel`.
+    - Prueba dedicada en `druidaCirculos2024.test.ts` validando con `EsquemaDefinicionClaseJSON` que todas las subclases exponen sus tablas canónicas.
+- **Validación del Pipeline**:
+  - `vitest`: 54 pruebas de Druida aprobadas (100% de éxito).
+  - TypeScript: `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - ESLint: 0 errores y 0 advertencias (`src --max-warnings=0`).
+  - Límites de líneas: 0 errores críticos en todo el repositorio.
+  - Vite build: compilación completada con éxito en 11.30s.
+
+## [2026-11-10] Incorporación de tablas de progresión estructuradas de Druida (PHB 2024)
+
+- **Contexto**: A partir de las referencias visuales de la aplicación y del compendio canónico (5 capturas), se integraron las tablas de progresión estructuradas (`tablaProgresion` y `tablasProgresion`) para los rasgos de Druida que cuentan con escalado visual por nivel:
+  1. *Lanzamiento de conjuros (Nivel 1)*: Tabla de 20 filas con columnas `["Nivel", "Trucos", "Preparados"]` (escalado 2 a 4 trucos, 4 a 22 conjuros preparados) y pie `"Cada nivel reemplaza al anterior"`.
+  2. *Forma salvaje (Nivel 2)*: Doble tabla estructurada:
+     - `tablaProgresion`: Usos de Forma salvaje por nivel (2 usos a nivel 2, 3 a nivel 6, 4 a nivel 17) con pie `"Cada nivel reemplaza al anterior"`.
+     - `tablasProgresion`: Formas de bestia conocidas, VD máximo y velocidad volando (nivel 2: 4 formas, VD 1/4, No vuela; nivel 4: 6 formas, VD 1/2, No vuela; nivel 8: 8 formas, VD 1, Sí vuela).
+  3. *Furia elemental (Nivel 7)*:
+     - *Golpe primordial*: Tabla de progresión con `1d8` a nivel 7 y `2d8` a nivel 15, pie `"Cada nivel reemplaza al anterior"`.
+     - *Lanzamiento potente*: Tabla de progresión con `Trucos + Sabiduría` a nivel 7 y `Trucos de druida 3 m o más pasan a 90 m` a nivel 15, pie `"Se apilan los niveles"`.
+- **Decisiones arquitectónicas y tipado**:
+  - *Extensión de EsquemaOpcionSelector*: Se reubicó `EsquemaTablaEscaladoRasgo` antes de `EsquemaOpcionSelector` en `src/tipos/rasgos.ts` para que Zod no descarte (`strip`) las tablas configuradas dentro de opciones de selectores.
+  - *Propagación en seleccionesRasgos.ts*: En `construirRasgosDesdeSelectores`, se aseguró la copia explícita de `tablaProgresion` y `tablasProgresion` hacia el `RasgoPersonaje` materializado para que `ModalDetalleRasgo` renderice la tabla en los modales de opciones elegidas.
+  - *Suite de regresión*: Se agregó una prueba dedicada en `druidaBaseDeclarativo.test.ts` certificando las 20 filas de Lanzamiento, las tablas de Forma salvaje y la herencia de tablas al materializar Golpe primordial y Lanzamiento potente.
+- **Validación del Pipeline**:
+  - Vitest: 53 pruebas de Druida aprobadas (12 en `druidaBaseDeclarativo.test.ts`).
+  - TypeScript: `tsc --noEmit` completado con 0 errores (`strict: true`).
+  - ESLint: 0 errores y 0 warnings en los archivos afectados.
+  - Límites de líneas: 0 violaciones críticas.
+  - Vite build: compilación completada en 9.94s.
+
+## [2026-11-10] Actualización y adaptación canónica de descripciones de Druida (PHB 2024)
+
+- **Contexto**: Se solicitó cambiar y adaptar las descripciones de `src/datos/clases/druida.json` a partir del compendio actualizado de descripciones (`descripciones druida.json`), que incorpora la redacción y terminología estándar del PHB 2024 en español neutro (por ejemplo "condición de incapacitado" en lugar de "estado de incapacitado", "bloque de estadísticas" en vez de "perfil", "velocidad de vuelo/natación", etc.).
+- **Decisiones arquitectónicas y adaptaciones quirúrgicas**:
+  1. *Preservación de esquemas e IDs mecánicos*: Se conservaron al 100% todos los metadatos declarativos del catálogo (`id`, `categoriaMecanica`, `selectores`, `efectos`, `escaladoUsos`, `resolucionAsistida`, `formasBestia`, etc.), asegurando compatibilidad absoluta con el esquema Zod `EsquemaDefinicionClaseJSON`.
+  2. *Corrección de regla en Formas de círculo (Luna)*: La nueva descripción corrige la redacción anterior en la que se calculaba la CA como "la CA de la bestia más tu modificador por Sabiduría", alineándola con la regla canónica de 2024 y la implementación real del motor (`13 + Sabiduría si es mayor que la CA de la bestia`).
+  3. *Enriquecimiento contextual de tablas de referencia*: En aquellos rasgos cuya redacción alude explícitamente a tablas (como *Formas de bestia* en *Forma salvaje*, *Custodia de la naturaleza* en *Círculo de la Tierra*, y *Conjuros del Círculo de la Luna*), se adaptó e integró la tabla Markdown informativa de referencia para que los modales de la ficha y el compendio presenten la información completa al jugador.
+  4. *Alineación de opciones de selector*: En *Orden primigenio*, se conservó el `id: "mago"` requerido por los tests de serialización y reducers, adaptando la descripción de la opción a la variante *Naturalista* y actualizando la opción *Guardián*.
+  5. *Sub-rasgos auxiliares*: Se armonizaron las descripciones de los rasgos satélite internos (`Luz de luna compartida`, `Velocidad de nado`, `Cáliz estelar`) con la nueva terminología.
+- **Validación y Certificación**:
+  - `EsquemaDefinicionClaseJSON.safeParse`: Válido (éxito).
+  - Vitest: 52 pruebas unitarias de Druida aprobadas (`druidaBaseDeclarativo.test.ts`, `druidaFormaSalvaje2024.test.ts`, `druidaCirculos2024.test.ts`, `druidaMecanicasDND55.test.ts`).
+  - TypeScript: `tsc --noEmit` completado con 0 errores bajo `strict: true`.
+  - ESLint: `eslint src --max-warnings=0` completado con 0 errores y 0 advertencias.
+  - Límites de líneas: `node scripts/verificar-limite-lineas.js` con 0 violaciones críticas.
+  - Empaquetado Vite: `vite build` completado exitosamente en 10.04s.
+
+## [2026-11-10] Auditoría comparativa y documentación técnica (druida-cambios vs main)
+
+Se consolidó el análisis técnico de los cambios frente a `main` (90 archivos, +3377 / -944 líneas). Se generó el artefacto formal `analisis_cambios_druida_2024.md` inventariando las funciones agregadas y modificadas en los subsistemas de Forma Salvaje declarativa, límites de turno e iniciativa, integración de daño en tiradas físicas, concesiones independientes y adaptación al PHB 2024.
+
+La auditoría de principio DRY confirmó que la mayoría de funciones agregadas eliminaron duplicaciones previas (`obtenerEspaciosElegibles` y `gastarEspacioElegido` unificaron tres implementaciones dispersas; `obtenerRasgoFormaBestia` eliminó cinco búsquedas ad-hoc por string; `terminarFormaBestia` centralizó la reversión de estado). Como oportunidad de mejora DRY menor, se identificó que `finalizarRasgosDelTurno` y `finalizarRasgosAlDescansar` en `estadoCondicionesRasgos.ts` comparten el mismo patrón de desactivación y purga de condiciones/efectos, siendo candidatas a compartir un helper común.
+
 ## [2026-11-10] Conjuros fuera de las listas de clase
 
 La casilla de `Todos` (u `Otros` para grimorio) permite añadir un conjuro o truco ajeno a las listas del personaje como concesión independiente. Reutiliza `aprendizajesConjurosIndependientes`. Un conjuro añadido así queda preparado inicialmente, se puede despreparar y conserva el aprendizaje al reconstruir y recargar la ficha. La concesión queda fuera del cupo de clase. Al quitarla se conservan otras procedencias. Los conjuros elegidos como parte de la clase conservan su validación de lista, nivel y cupo.

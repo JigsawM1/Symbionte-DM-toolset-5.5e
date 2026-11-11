@@ -208,6 +208,7 @@ export interface RasgoAccionCombate {
   tieneDados: boolean;
   usosRestantes: number;
   usosMaximos: number;
+  esDeFormaSalvaje?: boolean;
 }
 
 /**
@@ -362,8 +363,17 @@ export function resolverRasgosAcciones(
       categorias.push("accion");
     }
 
-    // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
+    const esDeFormaSalvaje = Boolean(
+      bestiaActiva &&
+      (rasgo.id.includes("_bestia_") || rasgo.fuente?.startsWith("Forma salvaje:"))
+    );
 
+    // Los rasgos de la Forma salvaje (p. ej. Tácticas de manada, Embestida) son de alta relevancia táctica en combate
+    if (esDeFormaSalvaje && categorias.length === 0) {
+      categorias.push("especial");
+    }
+
+    // 3. Excluir si es puramente pasivo permanente sin mecánicas activas
     if (categorias.length === 0) {
       continue;
     }
@@ -374,6 +384,8 @@ export function resolverRasgosAcciones(
       tipoAccionCalculado = "accionAdicional";
     } else if (rasgo.tipoAccion === "reaccion") {
       tipoAccionCalculado = "reaccion";
+    } else if (rasgo.tipoAccion === "especial" || (esDeFormaSalvaje && rasgo.tipoAccion === "pasivo")) {
+      tipoAccionCalculado = "especial";
     }
 
     let usosMaximos = rasgo.usosMaximos ?? 1;
@@ -405,7 +417,8 @@ export function resolverRasgosAcciones(
       esActivable,
       tieneDados,
       usosRestantes,
-      usosMaximos
+      usosMaximos,
+      esDeFormaSalvaje
     });
   }
 

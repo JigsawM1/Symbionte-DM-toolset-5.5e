@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { ejecutarDescansoCorto, ejecutarDescansoLargo } from "@/servicios/procesadorDescansos";
+import { verificarReversionHpTemporal } from "@/servicios/reglasFormaSalvaje";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceVitalidad } from "./slicePersonajesTipos";
 
@@ -29,12 +30,13 @@ export const crearSubSliceVitalidad: StateCreator<
       if (temp > 0) {
         if (cantidad <= temp) {
           // El daño es absorbido completamente por el escudo (HP temporal)
-          return { ...pj, hpTemporal: temp - cantidad };
+          const nuevoTemp = temp - cantidad;
+          return verificarReversionHpTemporal({ ...pj, hpTemporal: nuevoTemp }, nuevoTemp);
         } else {
           // El escudo se rompe y el excedente daña la vida actual
           const excedente = cantidad - temp;
           const hpNuevo = Math.max(0, pj.hpActual - excedente);
-          return { ...pj, hpTemporal: 0, hpActual: hpNuevo };
+          return verificarReversionHpTemporal({ ...pj, hpTemporal: 0, hpActual: hpNuevo }, 0);
         }
       } else {
         // Sin escudo, todo el daño va directo a la vida actual
@@ -87,11 +89,10 @@ export const crearSubSliceVitalidad: StateCreator<
   },
 
   modificarHPTemporalPersonaje: (id, valor) => {
-
-    mutarPersonaje(set, id, (pj) => ({
-      ...pj,
-      hpTemporal: Math.max(0, valor)
-    }));
+    mutarPersonaje(set, id, (pj) => {
+      const nuevoTemp = Math.max(0, valor);
+      return verificarReversionHpTemporal({ ...pj, hpTemporal: nuevoTemp }, nuevoTemp);
+    });
   },
 
   gastarDadoGolpePersonaje: (id) => {

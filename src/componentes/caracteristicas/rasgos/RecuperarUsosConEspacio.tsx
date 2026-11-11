@@ -39,12 +39,13 @@ export function RecuperarUsosConEspacio({ personaje, rasgo }: { personaje: Perso
   const usosFaltantes = Math.max(0, usosMaximos - usosActuales);
 
   // Detección de estrategia: Puntos de Conjuro vs. Espacios tradicionales
-  const esModoPuntos = sistemaMagia === "puntos" && (pj.puntosConjuroMaximos ?? 0) > 0 && (r.nivelMinimoRecuperarUsosConEspacio ?? 1) <= 1;
+  const nivelMinimo = r.nivelMinimoRecuperarUsosConEspacio ?? 1;
+  const esModoPuntos = sistemaMagia === "puntos" && (pj.puntosConjuroMaximos ?? 0) > 0;
   const puntosDisponibles = Math.max(0, (pj.puntosConjuroMaximos ?? 0) - (pj.puntosConjuroGastados ?? 0));
   const vecesPrevias = r.usosRecuperadosConPuntos ?? 0;
-  const costeSiguienteUso = (vecesPrevias + 1) * 2;
-  const costeTotalPuntos = calcularCostePuntosRecuperacion(vecesPrevias, cantidadPuntos);
-  const maximoUsosRecuperablesPuntos = calcularMaxUsosPagablesConPuntos(vecesPrevias, puntosDisponibles, usosFaltantes);
+  const costeSiguienteUso = calcularCostePuntosRecuperacion(vecesPrevias, 1, nivelMinimo);
+  const costeTotalPuntos = calcularCostePuntosRecuperacion(vecesPrevias, cantidadPuntos, nivelMinimo);
+  const maximoUsosRecuperablesPuntos = calcularMaxUsosPagablesConPuntos(vecesPrevias, puntosDisponibles, usosFaltantes, nivelMinimo);
 
   // Opciones de espacios calculadas de forma compacta
   const opcionesEspacios: OpcionEspacio[] = useMemo(() => {

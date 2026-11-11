@@ -173,7 +173,9 @@ export function construirRasgosDesdeSelectores(pj: PersonajeJugador, anteriores:
       ligadoA: op.categoriaMecanica === "extension" && op.ligadoA ? `${padre.id}_${op.ligadoA}` : padre.id,
       requiereOpcion: op.categoriaMecanica === "extension" ? undefined : valor,
       formulaDados: escalados.formulaDados, efectos: escalados.efectos, conjurosOtorgados: escalados.conjurosOtorgados,
-      selectores: escalados.selectores, notas: ""
+      selectores: escalados.selectores, notas: "",
+      tablaProgresion: op.tablaProgresion ? JSON.parse(JSON.stringify(op.tablaProgresion)) : undefined,
+      tablasProgresion: op.tablasProgresion ? JSON.parse(JSON.stringify(op.tablasProgresion)) : undefined
     };
     hijo = fusionarEstadoRasgo(hijo, estados.get(hijo.id));
     resultado.push(hijo);

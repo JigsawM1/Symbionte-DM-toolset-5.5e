@@ -1,6 +1,7 @@
 import { DialogoConversionEspacios } from "./DialogoConversionEspacios";
 import React, { useState, useMemo } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
+import { usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { Sparkles, RotateCcw, X, Plus, Minus, AlertCircle, Layers, Flame } from "lucide-react";
 import { calcularPresupuestoRecuperacion } from "@/servicios/rasgos";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
@@ -19,7 +20,9 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
   alCerrar,
   alConfirmar
 }) => {
-  const tienePuntosConjuro = !rasgo.recuperarEspaciosTrasDescansoCorto && (personaje.puntosConjuroMaximos || 0) > 0;
+  const sistemaMagia = usarSistemaMagia();
+  const tienePuntosConjuro = (personaje.puntosConjuroMaximos || 0) > 0
+    && (!rasgo.recuperarEspaciosTrasDescansoCorto || sistemaMagia === "puntos" || (personaje.puntosConjuroGastados || 0) > 0);
   const puntosMaximos = personaje.puntosConjuroMaximos || 0;
   const puntosGastados = personaje.puntosConjuroGastados || 0;
   const puntosDisponibles = Math.max(0, puntosMaximos - puntosGastados);

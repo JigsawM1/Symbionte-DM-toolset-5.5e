@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { obtenerRasgosClaseYSubclase } from "./gestorClases";
+import { obtenerRasgosClaseYSubclase, aplicarBuildClaseAPersonaje } from "./gestorClases";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
+import { estaRasgoActivo } from "./rasgos/utilidadesRasgos";
+import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 
 describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario", () => {
   // ── BESTIARIO Y FORMAS SALVAJES (D&D 5.5) ──
@@ -52,7 +56,7 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       expect(druidico?.tipoAccion).toBe("pasivo");
     });
 
-    it("Orden primigenio se clasifica como selector informativo con opciones Mago y Guardián", () => {
+    it("Orden primigenio se clasifica como selector informativo con opciones Mago y Guardián y rasgos hijos separados", () => {
       const rasgosNv1 = obtenerRasgosClaseYSubclase("Druida", 1);
       const orden = rasgosNv1.find((r) => r.nombre === "Orden primigenio");
       expect(orden).toBeDefined();
@@ -63,6 +67,61 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       const opciones = orden?.selectores?.[0].opciones.map((o) => o.id);
       expect(opciones).toContain("mago");
       expect(opciones).toContain("guardian");
+
+      const guardian = rasgosNv1.find((r) => r.nombre === "Orden primigenio: Guardián");
+      expect(guardian).toBeDefined();
+      expect(guardian?.ligadoA).toBe("rasgo_cls_druida_orden_primigenio");
+      expect(guardian?.requiereOpcion).toBe("guardian");
+      expect(guardian?.efectos?.some((e) => e.objetivo === "armas_marciales")).toBe(true);
+      expect(guardian?.efectos?.some((e) => e.objetivo === "armaduras_medias")).toBe(true);
+
+      const naturalista = rasgosNv1.find((r) => r.nombre === "Orden primigenio: Naturalista");
+      expect(naturalista).toBeDefined();
+      expect(naturalista?.ligadoA).toBe("rasgo_cls_druida_orden_primigenio");
+      expect(naturalista?.requiereOpcion).toBe("mago");
+      expect(naturalista?.efectos?.some((e) => e.tipo === "bono_habilidad" && e.objetivo === "habilidad.arcanos")).toBe(true);
+      expect(naturalista?.efectos?.some((e) => e.tipo === "bono_habilidad" && e.objetivo === "habilidad.naturaleza")).toBe(true);
+      expect(naturalista?.selectores?.some((s) => s.id === "selector_truco_orden_primigenio")).toBe(true);
+    });
+
+    it("Alternar selector de Orden primigenio preserva la reactividad mecánica de Guardián y Naturalista", () => {
+      const store = usarAlmacenDM.getState();
+      const personaje = aplicarBuildClaseAPersonaje({
+        ...structuredClone(PERSONAJE_POR_DEFECTO),
+        caracteristicas: { fuerza: 10, destreza: 10, constitucion: 10, inteligencia: 10, sabiduria: 16, carisma: 10 }
+      }, "Druida", 1);
+
+      const id = store.crearPersonaje(personaje);
+      const idOrden = "rasgo_cls_druida_orden_primigenio";
+
+      // 1. Seleccionar Naturalista (mago)
+      store.actualizarSeleccionRasgo(id, idOrden, "selector_orden_primigenio", ["mago"]);
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Orden primigenio: Guardián")).toBe(false);
+      expect(estaRasgoActivo(pj, "Orden primigenio: Naturalista")).toBe(true);
+      let efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_medias")).toBe(false);
+      expect(efectos.some((e) => e.objetivo === "habilidad.arcanos")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "habilidad.naturaleza")).toBe(true);
+
+      // 2. Conmutar a Guardián
+      store.actualizarSeleccionRasgo(id, idOrden, "selector_orden_primigenio", ["guardian"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Orden primigenio: Guardián")).toBe(true);
+      expect(estaRasgoActivo(pj, "Orden primigenio: Naturalista")).toBe(false);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_medias")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "armas_marciales")).toBe(true);
+      expect(efectos.some((e) => e.objetivo === "habilidad.arcanos")).toBe(false);
+
+      // 3. Regresar a Naturalista
+      store.actualizarSeleccionRasgo(id, idOrden, "selector_orden_primigenio", ["mago"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Orden primigenio: Guardián")).toBe(false);
+      expect(estaRasgoActivo(pj, "Orden primigenio: Naturalista")).toBe(true);
+      efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.objetivo === "armaduras_medias")).toBe(false);
+      expect(efectos.some((e) => e.objetivo === "habilidad.arcanos")).toBe(true);
     });
 
     it("Forma salvaje es consumible y activable con recarga dinámica (1 en descanso corto)", () => {
@@ -104,7 +163,7 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       expect(resurgimiento?.recuperacion).toBe("descanso_largo");
     });
 
-    it("Furia elemental (Nv 7) es selector informativo con Lanzamiento potente y Golpe primordial", () => {
+    it("Furia elemental (Nv 7) es selector informativo con Lanzamiento potente y Golpe primordial como rasgos hijos separados", () => {
       const rasgosNv7 = obtenerRasgosClaseYSubclase("Druida", 7);
       const furia = rasgosNv7.find((r) => r.nombre === "Furia elemental");
       expect(furia).toBeDefined();
@@ -114,6 +173,50 @@ describe("Druida D&D 5.5e (PHB 2024) - Reglas, Mecánicas Canónicas y Bestiario
       const opciones = furia?.selectores?.[0].opciones.map((o) => o.id);
       expect(opciones).toContain("lanzamiento_potente");
       expect(opciones).toContain("golpe_primordial");
+
+      const potente = rasgosNv7.find((r) => r.nombre === "Furia elemental: Lanzamiento potente");
+      expect(potente).toBeDefined();
+      expect(potente?.ligadoA).toBe("rasgo_cls_druida_furia_elemental");
+      expect(potente?.requiereOpcion).toBe("lanzamiento_potente");
+      expect(potente?.efectos?.some((e) => e.tipo === "bono_dano_conjuro")).toBe(true);
+
+      const golpe = rasgosNv7.find((r) => r.nombre === "Furia elemental: Golpe primordial");
+      expect(golpe).toBeDefined();
+      expect(golpe?.ligadoA).toBe("rasgo_cls_druida_furia_elemental");
+      expect(golpe?.requiereOpcion).toBe("golpe_primordial");
+      expect(golpe?.formulaDados).toBe("1d8");
+      expect(golpe?.resolucionAsistida?.integrarEnDanoDeArma).toBe(true);
+    });
+
+    it("Alternar selector de Furia elemental preserva la reactividad mecánica de Golpe primordial y Lanzamiento potente", () => {
+      const store = usarAlmacenDM.getState();
+      const personaje = aplicarBuildClaseAPersonaje({
+        ...structuredClone(PERSONAJE_POR_DEFECTO),
+        caracteristicas: { fuerza: 10, destreza: 10, constitucion: 10, inteligencia: 10, sabiduria: 16, carisma: 10 }
+      }, "Druida", 7);
+
+      const id = store.crearPersonaje(personaje);
+      const idFuria = "rasgo_cls_druida_furia_elemental";
+
+      // 1. Seleccionar Golpe primordial
+      store.actualizarSeleccionRasgo(id, idFuria, "selector_furia_elemental", ["golpe_primordial"]);
+      let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Furia elemental: Golpe primordial")).toBe(true);
+      expect(estaRasgoActivo(pj, "Furia elemental: Lanzamiento potente")).toBe(false);
+
+      // 2. Conmutar a Lanzamiento potente
+      store.actualizarSeleccionRasgo(id, idFuria, "selector_furia_elemental", ["lanzamiento_potente"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Furia elemental: Golpe primordial")).toBe(false);
+      expect(estaRasgoActivo(pj, "Furia elemental: Lanzamiento potente")).toBe(true);
+      const efectos = evaluarEfectosRasgosActivos(pj);
+      expect(efectos.some((e) => e.tipo === "bono_dano_conjuro")).toBe(true);
+
+      // 3. Regresar a Golpe primordial
+      store.actualizarSeleccionRasgo(id, idFuria, "selector_furia_elemental", ["golpe_primordial"]);
+      pj = usarAlmacenDM.getState().personajes.find((p) => p.id === id)!;
+      expect(estaRasgoActivo(pj, "Furia elemental: Golpe primordial")).toBe(true);
+      expect(estaRasgoActivo(pj, "Furia elemental: Lanzamiento potente")).toBe(false);
     });
 
     it("Archidruida (Nv 20) es consumible para conversión de espacios y recuperación en iniciativa", () => {

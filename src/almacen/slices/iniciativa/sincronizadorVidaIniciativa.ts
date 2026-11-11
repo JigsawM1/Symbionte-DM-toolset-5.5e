@@ -5,8 +5,9 @@
  * desde la iniciativa hacia los personajes y sus acompañantes.
  */
 
-import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
+import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
+import { verificarReversionHpTemporal } from "@/servicios/reglasFormaSalvaje";
 import {
   coincidePersonajeEnIniciativa,
   coincideAcompananteEnIniciativa
@@ -64,11 +65,12 @@ export function sincronizarDanoPersonajes(
   return personajes.map((pj) => {
     const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaPrevia, id, criaturaAfectadaNombre);
     if (coincidePj) {
-      return {
+      const modificado: PersonajeJugador = {
         ...pj,
         hpActual: vidaAct,
         hpTemporal: vidaTemp
       };
+      return verificarReversionHpTemporal(modificado, vidaTemp);
     }
 
     if (!criaturaPrevia?.esAcompanante && !criaturaPrevia?.idAcompanante) {
@@ -150,7 +152,8 @@ export function sincronizarVidaTemporalPersonajes(
   return personajes.map((pj) => {
     const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
     if (coincidePj) {
-      return { ...pj, hpTemporal: vidaTempSegura };
+      const modificado: PersonajeJugador = { ...pj, hpTemporal: vidaTempSegura };
+      return verificarReversionHpTemporal(modificado, vidaTempSegura);
     }
 
     if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
@@ -172,5 +175,27 @@ export function sincronizarVidaTemporalPersonajes(
     }
 
     return pj;
+  });
+}
+
+/**
+ * Sincroniza la vida temporal de un personaje con su correspondiente fila en la cola de iniciativa.
+ */
+export function sincronizarVidaTemporalEnIniciativa(
+  set: (fn: (state: EstadoDM) => Partial<EstadoDM>) => void,
+  idPj: string,
+  vidaTemporal: number
+): void {
+  set((state) => {
+    if (!state.colaIniciativa || state.colaIniciativa.length === 0) return {};
+    let huboCambio = false;
+    const nuevaCola = state.colaIniciativa.map((c) => {
+      if (!c.esMonstruo && !c.esAcompanante && (c.id === idPj || c.idPersonajeDuenio === idPj)) {
+        huboCambio = true;
+        return { ...c, vidaTemporal };
+      }
+      return c;
+    });
+    return huboCambio ? { colaIniciativa: nuevaCola } : {};
   });
 }

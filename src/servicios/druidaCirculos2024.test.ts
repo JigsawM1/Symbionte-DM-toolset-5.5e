@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
+import druida from "@/datos/clases/druida.json";
+import { EsquemaDefinicionClaseJSON } from "@/tipos/esquemasCatalogos";
 import type { PersonajeJugador } from "@/tipos";
 import { aplicarBuildClaseAPersonaje, construirBuildClase } from "./gestorClases";
 import { deshidratarPersonaje, hidratarPersonaje } from "./serializadorPersonaje";
@@ -115,7 +117,7 @@ describe("Círculos de 2024 en el almacén de la ficha", () => {
     expect(operarRecursoRasgo(usado, { ...gasto, turnoPrevio: "otra-ficha:3" }, "otra-ficha:3")).toBeDefined();
   });
 
-  it("Paso lunar da ventaja y acepta recarga con un espacio de nivel 2", () => {
+  it("Paso lunar da ventaja y acepta recarga con un espacio de nivel 2 o con Puntos de Conjuro", () => {
     const ficha = crear(10, "Círculo de la Luna");
     const paso = rasgo(ficha(), "paso_a_la_luz_de_la_luna");
     activar(ficha(), paso.id);
@@ -129,6 +131,14 @@ describe("Círculos de 2024 en el almacén de la ficha", () => {
     expect(rasgo(finalizarRasgosDelTurno(ficha(), turno, { ...turno, indiceTurnoActivo: 1 }), "paso_a_la_luz_de_la_luna").activo).toBe(false);
     activar(ficha(), paso.id);
     expect(evaluarVentajasDeRasgosEnTirada(ficha(), { tipoTirada: "ataque" }).tieneVentaja).toBe(false);
+
+    // En modo Puntos de Conjuro: nivel mínimo 2 implica coste inicial de 3 puntos (COSTE_PUNTOS_POR_NIVEL[2])
+    const conPuntos = { ...ficha(), puntosConjuroMaximos: 64, puntosConjuroGastados: 0, rasgos: ficha().rasgos.map(r => r.id === paso.id ? { ...r, usosRestantes: 1 } : r) };
+    expect(operarRecursoRasgo(conPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: paso.id, puntos: 2, cantidadUsos: 1 })).toBeUndefined();
+    const recPuntos = operarRecursoRasgo(conPuntos, { tipo: "recuperarUsosConEspacio", modo: "puntos", idRasgo: paso.id, puntos: 3, cantidadUsos: 1 });
+    expect(recPuntos).toBeDefined();
+    expect(rasgo(recPuntos!, "paso_a_la_luz_de_la_luna").usosRestantes).toBe(2);
+    expect(recPuntos!.puntosConjuroGastados).toBe(3);
   });
 
   it("Mar gasta dos usos solo al activar ambos portadores y retira las defensas al terminar", () => {
@@ -202,5 +212,65 @@ describe("Círculos de 2024 en el almacén de la ficha", () => {
     expect(restaurada.trucosConocidosIds).not.toContain("Guía");
     expect(hidratarPersonaje({ ...legado, aprendizajesConjurosIndependientes: { conjuros: [], trucos: ["h_guia"] } },
       HECHIZOS_INICIALES).trucosConocidosIds).toContain("Guía");
+  });
+
+  it("las subclases de Druida exponen sus tablas canónicas de progresión y descripciones estructuradas", () => {
+    const parseo = EsquemaDefinicionClaseJSON.safeParse(druida);
+    expect(parseo.success).toBe(true);
+    if (!parseo.success) return;
+    const definicion = parseo.data;
+
+    // 1. Círculo de la Tierra
+    const tierra = definicion.subclases.find((s) => s.id === "circulo_de_la_tierra");
+    expect(tierra).toBeDefined();
+    const conjurosTierra = tierra?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_la_tierra_conjuros_del_circulo_de_la_tierra");
+    expect(conjurosTierra?.tablasProgresion).toHaveLength(4);
+    expect(conjurosTierra?.tablasProgresion?.map((t) => t.titulo)).toEqual([
+      "Terreno árido",
+      "Terreno polar",
+      "Terreno templado",
+      "Terreno tropical"
+    ]);
+    const ayudaTierra = tierra?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_la_tierra_auxilio_de_la_tierra");
+    expect(ayudaTierra?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Descripción"],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+    expect(ayudaTierra?.tablaProgresion?.filas).toHaveLength(2);
+    const custodia = tierra?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_la_tierra_custodia_de_la_naturaleza");
+    expect(custodia?.tablaProgresion).toMatchObject({
+      columnas: ["Tipo de terreno", "Resistencia"]
+    });
+    expect(custodia?.tablaProgresion?.filas).toHaveLength(4);
+
+    // 2. Círculo de la Luna
+    const luna = definicion?.subclases.find((s) => s.id === "circulo_de_la_luna");
+    const conjurosLuna = luna?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_la_luna_conjuros_del_circulo_de_la_luna");
+    expect(conjurosLuna?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel de druida", "Conjuros preparados"]
+    });
+    expect(conjurosLuna?.tablaProgresion?.filas).toHaveLength(4);
+    const formasLuna = luna?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_la_luna_formas_de_circulo");
+    expect(formasLuna?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Descripción"],
+      notaPie: "Se apilan los niveles"
+    });
+    expect(formasLuna?.tablaProgresion?.filas).toHaveLength(1);
+
+    // 3. Círculo de las Estrellas
+    const estrellas = definicion?.subclases.find((s) => s.id === "circulo_de_las_estrellas");
+    const mapaEstelar = estrellas?.rasgos.find((r) => r.id === "rasgo_sub_circulo_de_las_estrellas_mapa_estelar");
+    expect(mapaEstelar?.tablaProgresion).toMatchObject({
+      columnas: ["1d6", "Forma del mapa"]
+    });
+    expect(mapaEstelar?.tablaProgresion?.filas).toHaveLength(6);
+
+    // 4. Círculo del Mar
+    const mar = definicion?.subclases.find((s) => s.id === "circulo_del_mar");
+    const conjurosMar = mar?.rasgos.find((r) => r.id === "rasgo_sub_circulo_del_mar_conjuros_del_circulo_del_mar");
+    expect(conjurosMar?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel de druida", "Conjuros preparados"]
+    });
+    expect(conjurosMar?.tablaProgresion?.filas).toHaveLength(4);
   });
 });

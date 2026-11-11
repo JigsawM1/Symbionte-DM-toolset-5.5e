@@ -6,6 +6,13 @@
   gap: 6px;
 }
 
+.tituloTabla {
+  margin: 4px 0 2px;
+  font-weight: 700;
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
 .tablaEstilizada {
   width: 100%;
   border-collapse: collapse;

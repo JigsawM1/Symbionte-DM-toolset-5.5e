@@ -6,6 +6,21 @@ import { registrarCuracionAlFinalizar } from "./curacionDeclarativa";
 import { obtenerBestiaFormaActiva, obtenerRasgoFormaBestia, terminarFormaBestia } from "../reglasFormaSalvaje";
 import { identificarTurnoPropio } from "./limitesTurnoRasgos";
 
+function purgarEstadosDeRasgos(
+  pj: PersonajeJugador,
+  ids: Set<string>,
+  condiciones: Set<string>,
+  cancelarConcentracion = false
+): PersonajeJugador {
+  return {
+    ...pj,
+    rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
+    concentracionActiva: cancelarConcentracion && ids.has(pj.concentracionActiva?.idRasgoOrigen ?? "") ? null : pj.concentracionActiva,
+    efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "") && !condiciones.has(claveEstado(e.nombre))),
+    condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c)))
+  };
+}
+
 export function finalizarRasgosDelTurno(pj: PersonajeJugador, anterior: Parameters<typeof identificarTurnoPropio>[1],
   siguiente: Parameters<typeof identificarTurnoPropio>[1]): PersonajeJugador {
   const turno = identificarTurnoPropio(pj, anterior);
@@ -13,9 +28,7 @@ export function finalizarRasgosDelTurno(pj: PersonajeJugador, anterior: Paramete
   const ids = new Set(pj.rasgos.filter(r => r.activo && r.finalizarAlTerminarTurno).map(r => r.id));
   if (!ids.size) return pj;
   const condiciones = new Set(pj.rasgos.filter(r => ids.has(r.id) && r.condicionAlActivar).map(r => claveEstado(r.condicionAlActivar!)));
-  return { ...pj, rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
-    condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c))),
-    efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "")) };
+  return purgarEstadosDeRasgos(pj, ids, condiciones);
 }
 
 export function claveEstado(texto: string): string {
@@ -33,10 +46,7 @@ export function finalizarRasgosAlDescansar(pj: PersonajeJugador, tipo: "descanso
   if (!rasgos.length) return pj;
   const ids = new Set(rasgos.map(r => r.id));
   const condiciones = new Set(rasgos.flatMap(r => r.condicionAlActivar ? [claveEstado(r.condicionAlActivar)] : []));
-  return { ...pj, rasgos: pj.rasgos.map(r => ids.has(r.id) ? { ...r, activo: false } : r),
-    concentracionActiva: ids.has(pj.concentracionActiva?.idRasgoOrigen ?? "") ? null : pj.concentracionActiva,
-    efectosActivos: pj.efectosActivos.filter(e => !ids.has(e.idRasgoOrigen ?? "") && !condiciones.has(claveEstado(e.nombre))),
-    condicionesActivas: pj.condicionesActivas.filter(c => !condiciones.has(claveEstado(c))) };
+  return purgarEstadosDeRasgos(pj, ids, condiciones, true);
 }
 
 /** Finaliza estados por duración o condiciones declaradas, sin reglas por nombre del rasgo. */
@@ -45,7 +55,8 @@ export function normalizarCondicionesRasgos(pj: PersonajeJugador, ronda?: number
   const forma = pj.formaSalvaje;
   const rasgoForma = forma?.formaActivaId ? obtenerRasgoFormaBestia(pj) : undefined;
   if (forma?.formaActivaId && (forma.minutosRestantes !== undefined || rasgoForma?.formasBestia)) {
-    if (!rasgoForma || !obtenerBestiaFormaActiva(pj) || rasgoForma.desactivarConCondiciones?.some(c =>
+    const sinHpTemporalForma = (forma.hpTemporalAlTransformar ?? 0) > 0 && (pj.hpTemporal ?? 0) <= 0;
+    if (!rasgoForma || !obtenerBestiaFormaActiva(pj) || sinHpTemporalForma || rasgoForma.desactivarConCondiciones?.some(c =>
       pj.condicionesActivas.some(activa => claveEstado(activa) === claveEstado(c)))
       || (ronda !== undefined && forma.expiraRonda !== undefined && ronda >= forma.expiraRonda)) {
       pj = terminarFormaBestia(pj);

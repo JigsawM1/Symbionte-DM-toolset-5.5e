@@ -7,11 +7,20 @@ import type {
   SentidosEstructurados
 } from "@/tipos";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
-import { obtenerClasePorNombre, obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
+import { obtenerNivelEfectivoParaRasgo } from "./clases/catalogoClases";
 import { coincideIdRasgo } from "@/constantes/identificadoresDND";
 import { coincideHechizoId } from "./comparadorHechizos";
 import { obtenerConcesionRasgo } from "./rasgos/concesionesRasgos";
 import { normalizar } from "./rasgos/utilidadesRasgos";
+
+const REGEX_DESAFIO_NUMERICO = /^\d+(?:\/\d+|\.\d+)?$/;
+
+/** Progresión canónica de Forma salvaje de Druida (PHB 2024 / D&D 5.5e) */
+export const PROGRESION_FORMA_SALVAJE_BASE = [
+  { nivelMinimo: 2, conocidas: 4, vdMaximo: 0.25, vuelo: false },
+  { nivelMinimo: 4, conocidas: 6, vdMaximo: 0.5, vuelo: false },
+  { nivelMinimo: 8, conocidas: 8, vdMaximo: 1, vuelo: true }
+] as const;
 
 interface VelocidadBestiaObjeto extends Partial<VelocidadEstructurada> {
   volando?: number;
@@ -163,8 +172,8 @@ export function calcularReglasFormaSalvaje(
   ajustes: RasgoPersonaje["ajustesFormaBestia"] = undefined,
   formas?: RasgoPersonaje["formasBestia"]
 ): ReglasFormaSalvajeNivel {
-  const progresion = formas?.progresion ?? obtenerClasePorNombre("Druida")?.rasgos.find(r => r.formasBestia)?.formasBestia?.progresion;
-  const fila = progresion?.reduce<NonNullable<typeof progresion>[number] | undefined>((actual, forma) =>
+  const progresion = formas?.progresion ?? PROGRESION_FORMA_SALVAJE_BASE;
+  const fila = progresion.reduce<NonNullable<typeof progresion>[number] | undefined>((actual, forma) =>
     forma.nivelMinimo <= nivelDruida && (!actual || actual.nivelMinimo < forma.nivelMinimo) ? forma : actual, undefined);
   const vdMaximo = Math.max(fila?.vdMaximo ?? 0, ajustes ? Math.floor(nivelDruida / ajustes.divisorNivelVD) : 0);
   return {
@@ -188,7 +197,7 @@ export function esBestiaValidaParaDruida(
   if (tipo.trim() !== "bestia" && tipo.trim() !== "beast") return false;
 
   const reglas = calcularReglasFormaSalvaje(nivelDruida, ajustes, formas);
-  if (reglas.maxFormasConocidas === 0 || !/^\d+(?:\/\d+|\.\d+)?$/.test(bestia.desafio?.trim() ?? "")) return false;
+  if (reglas.maxFormasConocidas === 0 || !REGEX_DESAFIO_NUMERICO.test(bestia.desafio?.trim() ?? "")) return false;
   const vdNum = convertirVDANumero(bestia.desafio);
 
   if (vdNum > reglas.vdMaximo) return false;
@@ -266,7 +275,7 @@ export function obtenerBestiaFormaActiva(
   // Si la condición "Forma salvaje" fue retirada explícitamente y el rasgo está inactivo
   const rasgoForma = obtenerRasgoFormaBestia(pj);
   const tieneCondicion = conds.some((c) => c.includes("forma salvaje") || c.includes("wild shape"));
-  if (!tieneCondicion && rasgoForma && !rasgoForma.activo) {
+  if (!tieneCondicion && (rasgoForma ? !rasgoForma.activo : true)) {
     return null;
   }
 
@@ -278,14 +287,36 @@ export function obtenerBestiaFormaActiva(
 
 export function terminarFormaBestia(pj: PersonajeJugador): PersonajeJugador {
   const rasgo = obtenerRasgoFormaBestia(pj);
+  const tempOtorgado = pj.formaSalvaje?.hpTemporalAlTransformar ?? 0;
+  const hpTemporalActual = pj.hpTemporal ?? 0;
+  const hpTemporalFinal = tempOtorgado > 0 ? Math.max(0, hpTemporalActual - tempOtorgado) : hpTemporalActual;
+
   return {
     ...pj,
-    formaSalvaje: { formasConocidasIds: pj.formaSalvaje.formasConocidasIds,
-      sustitucionDisponible: pj.formaSalvaje.sustitucionDisponible, formaActivaId: null, hpTemporalAlTransformar: 0 },
-    rasgos: pj.rasgos.map(r => r === rasgo ? { ...r, activo: false } : r),
-    condicionesActivas: pj.condicionesActivas.filter(c => normalizarTexto(c) !== normalizarTexto(rasgo?.condicionAlActivar ?? "Forma salvaje")),
-    efectosActivos: pj.efectosActivos.filter(e => !rasgo || e.idRasgoOrigen !== rasgo.id)
+    hpTemporal: hpTemporalFinal,
+    formaSalvaje: {
+      formasConocidasIds: pj.formaSalvaje?.formasConocidasIds ?? [],
+      sustitucionDisponible: pj.formaSalvaje?.sustitucionDisponible ?? true,
+      formaActivaId: null,
+      hpTemporalAlTransformar: 0
+    },
+    rasgos: (pj.rasgos ?? []).map((r) => (r === rasgo ? { ...r, activo: false } : r)),
+    condicionesActivas: (pj.condicionesActivas ?? []).filter(
+      (c) => normalizarTexto(c) !== normalizarTexto(rasgo?.condicionAlActivar ?? "Forma salvaje")
+    ),
+    efectosActivos: (pj.efectosActivos ?? []).filter((e) => !rasgo || e.idRasgoOrigen !== rasgo.id)
   };
+}
+
+/**
+ * Si el daño o la modificación agotan a 0 los PG temporales otorgados por una Forma salvaje activa,
+ * revierte reactivamente la transformación a la forma natural.
+ */
+export function verificarReversionHpTemporal(pj: PersonajeJugador, nuevoHpTemporal: number): PersonajeJugador {
+  if (nuevoHpTemporal === 0 && pj.formaSalvaje?.formaActivaId && (pj.formaSalvaje.hpTemporalAlTransformar ?? 0) > 0) {
+    return terminarFormaBestia(pj);
+  }
+  return pj;
 }
 
 export function transcurrirDescansoFormaBestia(pj: PersonajeJugador, largo: boolean): PersonajeJugador {

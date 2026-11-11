@@ -130,6 +130,21 @@ export const EsquemaEscaladoFormulaDados = z.array(z.object({
 }));
 export type EscaladoFormulaDados = z.infer<typeof EsquemaEscaladoFormulaDados>;
 
+// Tablas de escalado/progresión por nivel en el rasgo
+export const EsquemaFilaTablaEscalado = z.object({
+  nivel: z.number().int().min(1).max(20).optional(),
+  valores: z.array(z.string())
+});
+export type FilaTablaEscalado = z.infer<typeof EsquemaFilaTablaEscalado>;
+
+export const EsquemaTablaEscaladoRasgo = z.object({
+  titulo: z.string().optional(),
+  columnas: z.array(z.string()).default(["Nivel", "Descripción"]),
+  filas: z.array(EsquemaFilaTablaEscalado).default([]),
+  notaPie: z.string().default("Cada nivel reemplaza al anterior").optional()
+});
+export type TablaEscaladoRasgo = z.infer<typeof EsquemaTablaEscaladoRasgo>;
+
 export const EsquemaOpcionSelector = z.object({
   datosConjuro: z.object({ nivel: z.number().int().min(0).max(9), clases: z.array(z.string()), alcance: z.string().optional(), dadosDaño: z.string().optional(), requiereAtaque: z.boolean().optional() }).optional(),
   costeFijo: z.number().int().positive().optional(),
@@ -151,6 +166,8 @@ export const EsquemaOpcionSelector = z.object({
   escaladoFormulaDados: EsquemaEscaladoFormulaDados.optional(),
   efectos: z.array(EsquemaEfectoMecanicoRasgo).optional(),
   selectores: z.array(z.any()).optional(),
+  tablaProgresion: EsquemaTablaEscaladoRasgo.optional(),
+  tablasProgresion: z.array(EsquemaTablaEscaladoRasgo).optional(),
   tieneUsosLimitados: z.boolean().optional(),
   usosMaximos: z.number().int().optional(),
   usosRestantes: z.number().int().optional(),
@@ -160,6 +177,8 @@ export const EsquemaOpcionSelector = z.object({
 });
 export type OpcionSelector = Omit<z.infer<typeof EsquemaOpcionSelector>, "selectores"> & {
   selectores?: SelectorRasgo[];
+  tablaProgresion?: TablaEscaladoRasgo;
+  tablasProgresion?: TablaEscaladoRasgo[];
 };
 
 export interface InvocacionSobrenatural extends MecanicasRasgo {
@@ -390,20 +409,6 @@ export interface PlantillaRasgoEspecie {
   recargaDescansoCorto?: number;
 }
 
-
-// Tablas de escalado/progresión por nivel en el rasgo
-export const EsquemaFilaTablaEscalado = z.object({
-  nivel: z.number().int().min(1).max(20),
-  valores: z.array(z.string())
-});
-export type FilaTablaEscalado = z.infer<typeof EsquemaFilaTablaEscalado>;
-
-export const EsquemaTablaEscaladoRasgo = z.object({
-  columnas: z.array(z.string()).default(["Nivel", "Descripción"]),
-  filas: z.array(EsquemaFilaTablaEscalado).default([]),
-  notaPie: z.string().default("Cada nivel reemplaza al anterior").optional()
-});
-export type TablaEscaladoRasgo = z.infer<typeof EsquemaTablaEscaladoRasgo>;
 
 export const EsquemaRasgoPersonaje = z.object({
   ...EsquemaMecanicasRasgo.shape,

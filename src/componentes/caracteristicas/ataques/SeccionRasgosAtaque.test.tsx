@@ -314,4 +314,70 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     expect(posAcciones).toBeLessThan(posAdicionales);
     expect(posAdicionales).toBeLessThan(posReacciones);
   });
+
+  it("renderiza la subsección dedicada de Forma Salvaje separada de la clase cuando hay una bestia activa", () => {
+    const pjDruidaLobo: PersonajeJugador = {
+      ...personajeBase,
+      clase: "Druida",
+      nivel: 2,
+      formaSalvaje: {
+        formasConocidasIds: ["m_lobo"],
+        formaActivaId: "m_lobo",
+        hpTemporalAlTransformar: 2
+      },
+      condicionesActivas: ["Forma salvaje"]
+    };
+
+    const rasgoLobo = crearRasgoPrueba({
+      id: "rasgo_bestia_m_lobo_0_tacticas_manada",
+      nombre: "Tácticas de manada",
+      descripcion: "El lobo tiene ventaja en tiradas de ataque contra una criatura si al menos uno de sus aliados está a 5 pies.",
+      tipoAccion: "pasivo",
+      origen: "personalizado",
+      fuente: "Forma salvaje: Lobo",
+      personalizado: false,
+      activo: true
+    });
+
+    const rasgoFormaSalvajeClase = crearRasgoPrueba({
+      id: "rasgo_cls_druida_forma_salvaje",
+      nombre: "Forma salvaje",
+      descripcion: "Puedes usar Forma salvaje como acción adicional.",
+      tipoAccion: "accion_adicional",
+      origen: "clase",
+      fuente: "Druida",
+      tieneUsosLimitados: true,
+      usosMaximos: 2,
+      usosRestantes: 1,
+      personalizado: false,
+      activo: true
+    });
+
+    const itemBestia = {
+      ...crearRasgoAccionPrueba(rasgoLobo, ["activable"]),
+      esDeFormaSalvaje: true
+    };
+
+    const itemClase = {
+      ...crearRasgoAccionPrueba(rasgoFormaSalvajeClase, ["accionAdicional", "consumible"]),
+      esDeFormaSalvaje: false
+    };
+
+    const html = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        personajeActivo={pjDruidaLobo}
+        rasgosFiltrados={[itemBestia, itemClase]}
+        rasgosAccionesAdicionales={[itemClase]}
+        rasgosConsumibles={[itemClase]}
+        rasgosActivables={[itemBestia]}
+      />
+    );
+
+    // Debe contener el bloque dedicado de Forma salvaje con el nombre de la criatura
+    expect(html).toContain("Forma salvaje: Lobo");
+    // Y el rasgo de clase debe estar en su respectiva subsección
+    expect(html).toContain("Forma salvaje");
+    expect(html).toContain("Acciones Adicionales");
+  });
 });

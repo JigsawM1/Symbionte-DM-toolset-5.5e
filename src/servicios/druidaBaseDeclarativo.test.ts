@@ -269,4 +269,89 @@ describe("Druida base desde los consumidores de la ficha", () => {
     expect(obtenerClasesLanzamiento({ ...multi, rasgos: ficha(id).rasgos, eleccionesConjurosClase: { Bardo: eleccion } }, voluta))
       .toEqual({ candidatas: ["Druida", "Bardo"], adquiridas: ["Bardo"] });
   });
+
+  it("expone las tablas de progresión estructuradas en Lanzamiento, Forma salvaje y Furia elemental", () => {
+    const rMagia = druida.rasgos.find(r => r.nombre === "Lanzamiento de conjuros")!;
+    expect(rMagia.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Trucos", "Preparados"],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+    expect(rMagia.tablaProgresion?.filas).toHaveLength(20);
+
+    const rForma = druida.rasgos.find(r => r.nombre === "Forma salvaje")!;
+    expect(rForma.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Descripción"],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+    expect(rForma.tablasProgresion?.[0]).toMatchObject({
+      columnas: ["Nivel de druida", "Formas conocidas", "VD máx.", "Velocidad volando"],
+      filas: [
+        { nivel: 2, valores: ["4", "1/4", "No"] },
+        { nivel: 4, valores: ["6", "1/2", "No"] },
+        { nivel: 8, valores: ["8", "1", "Sí"] }
+      ]
+    });
+
+    const id = estado().crearPersonaje(base(7));
+    estado().actualizarSeleccionRasgo(id, rasgo(ficha(id), "furia_elemental").id, "selector_furia_elemental", ["golpe_primordial"]);
+    const golpe = ficha(id).rasgos.find(r => r.id === "rasgo_cls_druida_furia_elemental_golpe_primordial");
+    expect(golpe?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 7, valores: ["1d8"] },
+        { nivel: 15, valores: ["2d8"] }
+      ],
+      notaPie: "Cada nivel reemplaza al anterior"
+    });
+
+    estado().actualizarSeleccionRasgo(id, rasgo(ficha(id), "furia_elemental").id, "selector_furia_elemental", ["lanzamiento_potente"]);
+    const potente = ficha(id).rasgos.find(r => r.id === "rasgo_cls_druida_furia_elemental_lanzamiento_potente");
+    expect(potente?.tablaProgresion).toMatchObject({
+      columnas: ["Nivel", "Descripción"],
+      filas: [
+        { nivel: 7, valores: ["Trucos + Sabiduría"] },
+        { nivel: 15, valores: ["Trucos de druida 3 m o más pasan a 90 m"] }
+      ],
+      notaPie: "Se apilan los niveles"
+    });
+  });
+
+  it("aplica el patrón Strategy en modo Puntos de Conjuro para Resurgimiento salvaje y Archidruida", () => {
+    const pj = { ...base(20), puntosConjuroMaximos: 133, puntosConjuroGastados: 20 };
+    const id = estado().crearPersonaje(pj);
+    const resurgimiento = rasgo(ficha(id), "resurgimiento_salvaje");
+    const archidruida = rasgo(ficha(id), "archidruida");
+    const forma = rasgo(ficha(id), "forma_salvaje");
+
+    // Archidruida en modo puntos: gasta 4 usos de Forma salvaje (nivel 8 = 11 pts) y recupera 11 puntos
+    expect(estado().operarRecursoRasgoPersonaje(id, { tipo: "crearEspacio", idRasgo: archidruida.id, nivel: 8, cantidad: 1, modo: "puntos" })).toBe(true);
+    expect(ficha(id).puntosConjuroGastados).toBe(9);
+    expect(rasgo(ficha(id), "forma_salvaje").usosRestantes).toBe(0);
+    expect(rasgo(ficha(id), "archidruida").usosRestantes).toBe(0);
+
+    // Resurgimiento salvaje (convertir en modo puntos): Forma salvaje agotada (0 usos) -> gasta 2 puntos (1er uso) y recupera 1 uso de Forma salvaje
+    const rec1 = operarRecursoRasgo(ficha(id), { tipo: "convertirEspacio", idRasgo: resurgimiento.id, nivel: 1, origen: "puntos", puntos: 2 }, "turno:1");
+    expect(rec1).toBeDefined();
+    expect(rasgo(rec1!, "forma_salvaje").usosRestantes).toBe(1);
+    expect(rec1!.puntosConjuroGastados).toBe(11);
+    expect(rasgo(rec1!, "resurgimiento_salvaje").usosRecuperadosConPuntos).toBe(1);
+
+    // Resurgimiento salvaje (crear en modo puntos): gasta el uso recién recuperado de Forma salvaje y recupera 2 puntos (Nv 1 = 2 pts)
+    const creadoPuntos = operarRecursoRasgo(rec1!, { tipo: "crearEspacio", idRasgo: resurgimiento.id, nivel: 1, cantidad: 1, modo: "puntos" });
+    expect(creadoPuntos).toBeDefined();
+    expect(creadoPuntos!.puntosConjuroGastados).toBe(9);
+    expect(rasgo(creadoPuntos!, "forma_salvaje").usosRestantes).toBe(0);
+    expect(rasgo(creadoPuntos!, "resurgimiento_salvaje").usosRestantes).toBe(0);
+
+    // 2ª recuperación con puntos en el siguiente turno exige coste escalonado de 4 puntos
+    expect(operarRecursoRasgo(creadoPuntos!, { tipo: "convertirEspacio", idRasgo: resurgimiento.id, nivel: 1, origen: "puntos", puntos: 2 }, "turno:2")).toBeUndefined();
+    const rec2 = operarRecursoRasgo(creadoPuntos!, { tipo: "convertirEspacio", idRasgo: resurgimiento.id, nivel: 1, origen: "puntos", puntos: 4 }, "turno:2");
+    expect(rec2).toBeDefined();
+    expect(rasgo(rec2!, "forma_salvaje").usosRestantes).toBe(1);
+    expect(rec2!.puntosConjuroGastados).toBe(13);
+    expect(rasgo(rec2!, "resurgimiento_salvaje").usosRecuperadosConPuntos).toBe(2);
+
+    // Rechaza si Forma salvaje no está agotada
+    expect(operarRecursoRasgo({ ...rec2!, rasgos: rec2!.rasgos.map(r => r.id === forma.id ? { ...r, usosRestantes: 1 } : r) }, { tipo: "convertirEspacio", idRasgo: resurgimiento.id, nivel: 1, origen: "puntos", puntos: 6 }, "turno:3")).toBeUndefined();
+  });
 });

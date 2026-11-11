@@ -3,6 +3,8 @@ import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, RegistroMovimiento } from "@/tipos";
 import { aplicarCondicion, quitarCondicion } from "@/servicios/procesadorCondiciones";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { terminarFormaBestia, obtenerRasgoFormaBestia } from "@/servicios/reglasFormaSalvaje";
+import { sincronizarVidaTemporalEnIniciativa } from "../iniciativa/sincronizadorVidaIniciativa";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCondiciones } from "./slicePersonajesTipos";
 import {
@@ -251,11 +253,27 @@ export const crearSubSliceCondiciones: StateCreator<
         concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
         rasgos: rasgosActualizados
       };
+
+      const rasgoForma = obtenerRasgoFormaBestia(pj);
+      const condForma = (rasgoForma?.condicionAlActivar || "Forma salvaje").toLowerCase().trim();
+      const esCondicionFormaSalvaje =
+        normalizada.includes("forma salvaje") ||
+        normalizada.includes("wild shape") ||
+        normalizada === condForma;
+
+      if (esCondicionFormaSalvaje && pj.formaSalvaje?.formaActivaId) {
+        pjObjetivo = terminarFormaBestia(pjObjetivo);
+      }
+
       return pjObjetivo;
     });
 
-    if (pjObjetivo) {
-      sincronizarCondicionesEnIniciativa(set, pjObjetivo, condicionesFinales, condicion);
+    const pjFinal = get().personajes.find((p) => p.id === id);
+    if (pjFinal) {
+      sincronizarCondicionesEnIniciativa(set, pjFinal, condicionesFinales, condicion);
+      if (pjFinal.formaSalvaje?.formaActivaId === null) {
+        sincronizarVidaTemporalEnIniciativa(set, id, pjFinal.hpTemporal || 0);
+      }
     }
   },
 

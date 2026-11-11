@@ -12,6 +12,7 @@ import { establecerRecuperacionDiferida } from "./recuperacionDiferidaRasgos";
 import { resolverCuracionPendiente } from "./curacionDeclarativa";
 import { finalizarConjuroTemporal } from "./conjurosTemporalesRasgos";
 import { calcularPresupuestoRecuperacion } from "./evaluadorRecursosRasgos";
+import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes/personajeConstantes";
 
 export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucionRasgo
   | { tipo: "finalizarConjuroTemporal"; idRasgo: string; conjuroId: string }
@@ -24,10 +25,10 @@ export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucion
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo?: "espacio"; nivel: number; pacto?: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo: "puntos"; puntos: number; cantidadUsos: number }
   | { tipo: "recargarUsoConPacto"; idRasgo: string }
-  | { tipo: "crearEspacio"; idRasgo: string; nivel: number; cantidad: number }
-  | { tipo: "convertirEspacio"; idRasgo: string; nivel: number; origen: "ordinario" | "adicional" | "pacto"; turnoConfirmado?: boolean }
+  | { tipo: "crearEspacio"; idRasgo: string; nivel: number; cantidad: number; modo?: "espacios" | "puntos" }
+  | { tipo: "convertirEspacio"; idRasgo: string; nivel: number; origen: "ordinario" | "adicional" | "pacto" | "puntos"; puntos?: number; turnoConfirmado?: boolean }
   | { tipo: "recuperarDescanso"; idRasgo: string; cantidad: number }
-  | { tipo: "recuperarEspaciosDescanso"; idRasgo: string; espacios: Record<number, number> };
+  | { tipo: "recuperarEspaciosDescanso"; idRasgo: string; espacios: Record<number, number>; puntos?: number };
 
 /** Los adicionales son espacios disponibles, separados de la progresión ordinaria. */
 export function obtenerMaximosEspaciosEfectivos(pj: PersonajeJugador): Record<string, number> {
@@ -47,17 +48,18 @@ export function obtenerMaximoRecuperacionDescanso(pj: PersonajeJugador, r: Rasgo
 }
 
 /** Calcula el coste acumulado en puntos para U usos habiendo consumido m previamente (2, 4, 6... n+2) */
-export function calcularCostePuntosRecuperacion(vecesPrevias: number, cantidadUsos: number): number {
+export function calcularCostePuntosRecuperacion(vecesPrevias: number, cantidadUsos: number, nivelMinimo = 1): number {
   if (!Number.isInteger(cantidadUsos) || cantidadUsos <= 0) return 0;
   const m = Math.max(0, Number.isInteger(vecesPrevias) ? vecesPrevias : 0);
-  return cantidadUsos * (2 * m + cantidadUsos + 1);
+  const base = COSTE_PUNTOS_POR_NIVEL[nivelMinimo] ?? 2;
+  return cantidadUsos * (2 * m + cantidadUsos + base - 1);
 }
 
 /** Calcula cuántos usos puede costear un personaje según sus puntos disponibles y el escalado */
-export function calcularMaxUsosPagablesConPuntos(vecesPrevias: number, puntosDisponibles: number, maxFaltantes: number): number {
+export function calcularMaxUsosPagablesConPuntos(vecesPrevias: number, puntosDisponibles: number, maxFaltantes: number, nivelMinimo = 1): number {
   let usos = 0;
   while (usos < maxFaltantes) {
-    const coste = calcularCostePuntosRecuperacion(vecesPrevias, usos + 1);
+    const coste = calcularCostePuntosRecuperacion(vecesPrevias, usos + 1, nivelMinimo);
     if (coste > puntosDisponibles) break;
     usos++;
   }
@@ -86,15 +88,15 @@ function ejecutarRecuperacionPorEspacio(pj: PersonajeJugador, r: RasgoPersonaje,
   return consumo.permitido ? aplicarRecuperacion(r, consumo, r.recuperarUsosConEspacio ?? 1) : undefined;
 }
 
-/** Estrategia de recuperación mediante puntos de conjuro (coste escalonado 2, 4, 6, 8... pts) */
+/** Estrategia de recuperación mediante puntos de conjuro (coste escalonado según nivel mínimo del rasgo) */
 function ejecutarRecuperacionPorPuntos(pj: PersonajeJugador, r: RasgoPersonaje, op: { puntos: number; cantidadUsos: number }): PersonajeJugador | undefined {
-  if ((r.nivelMinimoRecuperarUsosConEspacio ?? 1) > 1) return;
+  const nivelMinimo = r.nivelMinimoRecuperarUsosConEspacio ?? 1;
   const cantidad = op.cantidadUsos;
   const previos = r.usosRecuperadosConPuntos ?? 0;
-  const costeEsperado = calcularCostePuntosRecuperacion(previos, cantidad);
+  const costeEsperado = calcularCostePuntosRecuperacion(previos, cantidad, nivelMinimo);
   if (!Number.isInteger(cantidad) || cantidad < 1 || !Number.isInteger(op.puntos) || op.puntos !== costeEsperado
     || (pj.puntosConjuroMaximos ?? 0) - (pj.puntosConjuroGastados ?? 0) < op.puntos) return;
-  const consumo = consumirRecursoConjuro(pj, { tipo: "puntos", cantidad: op.puntos, nivel: 1 });
+  const consumo = consumirRecursoConjuro(pj, { tipo: "puntos", cantidad: op.puntos, nivel: nivelMinimo });
   return consumo.permitido ? aplicarRecuperacion(r, consumo, cantidad, { usosRecuperadosConPuntos: previos + cantidad }) : undefined;
 }
 
@@ -113,6 +115,13 @@ export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRas
     const r = pj.rasgos.find(x => x.id === op.idRasgo);
     if (!r?.recuperarEspaciosTrasDescansoCorto || !r.recuperarEspacios || !r.recuperacionDescansoDisponible || r.activo === false
       || obtenerNivelEfectivoParaRasgo(pj, r) < (r.nivelRequerido ?? 1) || (r.usosRestantes ?? 0) < 1) return;
+    if (op.puntos !== undefined && op.puntos > 0) {
+      const gastados = pj.puntosConjuroGastados ?? 0;
+      const maxPuntosPresupuesto = calcularPresupuestoRecuperacion(r, pj) * (COSTE_PUNTOS_POR_NIVEL[1] ?? 2);
+      if ((pj.puntosConjuroMaximos ?? 0) <= 0 || gastados <= 0 || !Number.isInteger(op.puntos) || op.puntos > maxPuntosPresupuesto) return;
+      return { ...pj, puntosConjuroGastados: Math.max(0, gastados - op.puntos), rasgos: pj.rasgos.map(x => x === r
+        ? { ...x, recuperacionDescansoDisponible: false, usosRestantes: (r.usosRestantes ?? 0) - 1 } : x) };
+    }
     const gastos = { ...pj.espaciosConjuroGastados };
     let coste = 0;
     for (const [clave, cantidad] of Object.entries(op.espacios)) {
@@ -184,6 +193,14 @@ export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRas
     const usosPropios = r.usosRestantes ?? r.usosMaximos ?? 0;
     if (!fila || !Number.isInteger(op.cantidad) || op.cantidad < 1 || fila.coste * op.cantidad > disponibles
       || (cfg.consumirUsoPropio && (!r.tieneUsosLimitados || usosPropios < 1 || op.cantidad !== 1 || r.id === recurso.id))) return;
+    if (op.modo === "puntos") {
+      const gastados = pj.puntosConjuroGastados ?? 0;
+      if ((pj.puntosConjuroMaximos ?? 0) <= 0 || gastados <= 0) return;
+      const puntosGenerados = (COSTE_PUNTOS_POR_NIVEL[op.nivel] ?? op.nivel) * op.cantidad;
+      return { ...pj, rasgos: pj.rasgos.map(x => x.id === recurso.id ? { ...x, usosRestantes: disponibles - fila.coste * op.cantidad }
+        : x.id === r.id && cfg.consumirUsoPropio ? { ...x, usosRestantes: usosPropios - 1 } : x),
+        puntosConjuroGastados: Math.max(0, gastados - puntosGenerados) };
+    }
     return { ...pj, rasgos: pj.rasgos.map(x => x.id === recurso.id ? { ...x, usosRestantes: disponibles - fila.coste * op.cantidad }
       : x.id === r.id && cfg.consumirUsoPropio ? { ...x, usosRestantes: usosPropios - 1 } : x),
       espaciosConjuroAdicionales: { ...pj.espaciosConjuroAdicionales,
@@ -192,7 +209,23 @@ export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRas
   if (!cfg.permiteConvertir || disponibles >= (recurso.usosMaximos ?? 0)) return;
   if (r.recuperarRecursoAgotadoConEspacio && disponibles !== 0) return;
   if (!disponibleEnTurnoPropio(r, turno) || (r.limitePorTurnoPropio && !turno && !op.turnoConfirmado)) return;
-  const convertido = gastarEspacioElegido(pj, op);
+  if (op.origen === "puntos") {
+    const previos = r.usosRecuperadosConPuntos ?? 0;
+    const costePuntos = r.recuperarRecursoAgotadoConEspacio
+      ? calcularCostePuntosRecuperacion(previos, 1, 1)
+      : (COSTE_PUNTOS_POR_NIVEL[op.nivel] ?? op.nivel);
+    if (op.puntos !== undefined && op.puntos !== costePuntos) return;
+    const consumo = consumirRecursoConjuro(pj, { tipo: "puntos", cantidad: costePuntos, nivel: op.nivel });
+    if (!consumo.permitido) return;
+    const recuperados = r.recuperarRecursoAgotadoConEspacio ? 1 : op.nivel;
+    return { ...consumo.personaje, rasgos: consumo.personaje.rasgos.map(x => ({
+      ...x,
+      ...(x.id === recurso.id ? { usosRestantes: Math.min(recurso.usosMaximos ?? 0, disponibles + recuperados) } : {}),
+      ...(x.id === r.id && r.recuperarRecursoAgotadoConEspacio ? { usosRecuperadosConPuntos: previos + 1 } : {}),
+      ...(x.id === r.id && r.limitePorTurnoPropio && turno ? { ultimoUsoTurno: turno } : {})
+    })) };
+  }
+  const convertido = gastarEspacioElegido(pj, { nivel: op.nivel, origen: op.origen });
   if (!convertido) return;
   const recuperados = r.recuperarRecursoAgotadoConEspacio ? 1 : op.nivel;
   return { ...convertido, rasgos: convertido.rasgos.map(x => x.id === recurso.id

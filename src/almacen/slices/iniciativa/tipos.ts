@@ -5,10 +5,11 @@
  */
 
 import type { StateCreator } from "zustand";
-import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { CriaturaIniciativa, EstadoDM, ModoDanoHorda } from "@/almacen/usarAlmacenDM";
 import type { Caracteristica, PersonajeJugador } from "@/tipos";
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { ReferenciaIniciativaFisica } from '@/servicios/seguimientoIniciativaFisica';
+import type { DetalleSalvacionHorda } from "@/servicios/combateHordas";
 
 export interface ResultadoSalvacionCriatura {
   id: string;
@@ -19,6 +20,7 @@ export interface ResultadoSalvacionCriatura {
   exito: boolean;
   dañoSufrido?: number;
   condicionAplicada?: boolean;
+  detalleHorda?: DetalleSalvacionHorda;
 }
 
 export interface ResultadoSalvacionArea {
@@ -70,12 +72,16 @@ export interface SliceIniciativa {
     esMonstruo: boolean,
     velocidad: string,
     bonifInic: number,
-    idPlantillaAsociada?: string
+    idPlantillaAsociada?: string,
+    cantidadHorda?: number
   ) => void;
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
   dañarCriaturaIniciativa: (id: string, cantidad: number) => void;
   modificarVidaMaximaCriaturaIniciativa: (id: string, nuevaVidaMax: number) => void;
+  configurarBarrasHordaCriatura: (idCriatura: string, cantidadMiembros: number, vidaPorMiembro?: number) => void;
+  seleccionarBarraActivaHorda: (idCriatura: string, indiceBarra: number) => void;
+  alternarModoDanoHorda: (idCriatura: string, modo?: ModoDanoHorda) => void;
   agregarCondicionACriatura: (id: string, condicion: string) => void;
   quitarCondicionDeCriatura: (id: string, condicion: string) => void;
   agregarEfectoACriatura: (idCriatura: string, nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }) => void;
@@ -90,7 +96,7 @@ export interface SliceIniciativa {
 
   actualizarSeleccionCriaturas: (seleccionadas: CriaturaSeleccionadaTS[]) => void;
   agregarCriaturasSeleccionadasAIniciativa: () => void;
-  aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[]) => void;
+  aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[], limiteMiembrosHorda?: number) => void;
   aplicarCondicionEnArea: (condicion: string, idsObjetivo?: string[]) => void;
   aplicarEfectoEnArea: (nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }, idsObjetivo?: string[]) => void;
   ejecutarSalvacionEnArea: (
@@ -99,7 +105,8 @@ export interface SliceIniciativa {
     dañoBruto?: number,
     condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
     mitigacion?: "mitad" | "nada",
-    idsObjetivo?: string[]
+    idsObjetivo?: string[],
+    limiteMiembrosHorda?: number
   ) => ResultadoSalvacionArea | null;
 }
 

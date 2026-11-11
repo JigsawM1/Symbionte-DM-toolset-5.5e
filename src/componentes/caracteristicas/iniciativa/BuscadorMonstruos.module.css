@@ -71,6 +71,50 @@
   overflow-y: auto;
 }
 
+.barraTamanoHorda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 5px 8px;
+  background: rgba(0, 245, 212, 0.06);
+  border-bottom: 1px solid var(--color-borde-brutal);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.etiquetaHordaBuscador {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--color-borde-cian, #00f5d4);
+}
+
+.chipsHordaBuscador {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.chipTamanoHorda {
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 800;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+}
+
+.chipTamanoHorda[data-activo="true"] {
+  border-color: var(--color-borde-cian, #00f5d4);
+  background: rgba(0, 245, 212, 0.18);
+  color: var(--color-borde-cian, #00f5d4);
+}
+
 .sugerenciaItem {
   padding: 6px 8px;
   cursor: pointer;

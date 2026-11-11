@@ -4,8 +4,10 @@ import {
   usarEstadoIniciativa,
   usarAccionesIniciativa,
   usarEstadoHomebrew,
+  usarEstadoConfiguracion,
 } from "@/almacen/selectores";
 import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura, resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
+import { esCriaturaHorda, obtenerResumenHorda } from "@/servicios/combateHordas";
 import type { PasivasCombatePJ } from "@/tipos/sync";
 import {
   esIdInvocacionEscalable,
@@ -21,6 +23,7 @@ import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
 import { TarjetaCriaturaIniciativa } from "./TarjetaCriaturaIniciativa";
 import { PanelFichaDnD } from "./PanelFichaDnD";
 import { VinculadorPlantilla } from "./VinculadorPlantilla";
+import { ModalAtaqueHorda, type DatosAtaqueHordaModal } from "./horda/ModalAtaqueHorda";
 import { Activity, FileText, X } from "lucide-react";
 import estilosClases from "./GestorIniciativa.module.css";
 import { ConfirmDialog } from "@/componentes/comunes";
@@ -49,33 +52,18 @@ interface ItemCriaturaIniciativaProps {
   onEstablecerIniciativa: (id: string, nuevaInic: number) => void;
   onEstablecerVidaMaxima?: (id: string, nuevaMax: number) => void;
   onAlternarRol: (id: string) => void;
+  onConfigurarBarrasHorda: (id: string, cantidad: number) => void;
+  onSeleccionarBarraHorda: (id: string, indice: number) => void;
+  onAlternarModoDanoHorda: (id: string) => void;
   refTarjetaActiva: (nodo: HTMLDivElement | null) => void;
 }
 
 const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo(({
-  criatura,
-  esTurnoActivo,
-  estaSeleccionadaEnTS,
-  plantilla,
-  pasivasJugador,
-  avatarUrlPJ,
-  rondaActual,
-  onEliminar,
-  onSeleccionar,
-  onCurar,
-  onDañar,
-  onCambiarTempHP,
-  onAñadirCondicion,
-  onQuitarCondicion,
-  onAñadirEfecto,
-  onQuitarEfecto,
-  onLanzarIniciativa,
-  onLanzarAtaqueRapido,
-  obtenerPercepcionPasiva,
-  onEstablecerIniciativa,
-  onEstablecerVidaMaxima,
-  onAlternarRol,
-  refTarjetaActiva
+  criatura, esTurnoActivo, estaSeleccionadaEnTS, plantilla, pasivasJugador, avatarUrlPJ, rondaActual,
+  onEliminar, onSeleccionar, onCurar, onDañar, onCambiarTempHP, onAñadirCondicion, onQuitarCondicion,
+  onAñadirEfecto, onQuitarEfecto, onLanzarIniciativa, onLanzarAtaqueRapido, obtenerPercepcionPasiva,
+  onEstablecerIniciativa, onEstablecerVidaMaxima, onAlternarRol,
+  onConfigurarBarrasHorda, onSeleccionarBarraHorda, onAlternarModoDanoHorda, refTarjetaActiva
 }) => {
   const manejarEliminar = useCallback(() => onEliminar(criatura.id), [onEliminar, criatura.id]);
   const manejarSeleccionar = useCallback(() => onSeleccionar(criatura.id), [onSeleccionar, criatura.id]);
@@ -91,12 +79,12 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
   const manejarEstablecerVidaMaxima = useCallback((nuevaMax: number) => onEstablecerVidaMaxima?.(criatura.id, nuevaMax), [onEstablecerVidaMaxima, criatura.id]);
   const manejarLanzarAtaqueRapido = useCallback((accNom: string, accBono: string, accDados: string, accTipo: string) => onLanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo), [onLanzarAtaqueRapido, criatura.nombre]);
   const manejarAlternarRol = useCallback(() => onAlternarRol(criatura.id), [onAlternarRol, criatura.id]);
+  const manejarConfigurarHorda = useCallback((cant: number) => onConfigurarBarrasHorda(criatura.id, cant), [onConfigurarBarrasHorda, criatura.id]);
+  const manejarSeleccionarBarra = useCallback((idx: number) => onSeleccionarBarraHorda(criatura.id, idx), [onSeleccionarBarraHorda, criatura.id]);
+  const manejarAlternarModoHorda = useCallback(() => onAlternarModoDanoHorda(criatura.id), [onAlternarModoDanoHorda, criatura.id]);
 
   return (
-    <div
-      ref={esTurnoActivo ? refTarjetaActiva : undefined}
-      data-turno-activo={esTurnoActivo ? "true" : undefined}
-    >
+    <div ref={esTurnoActivo ? refTarjetaActiva : undefined} data-turno-activo={esTurnoActivo ? "true" : undefined}>
       <TarjetaCriaturaIniciativa
         criatura={criatura}
         esTurnoActivo={esTurnoActivo}
@@ -120,6 +108,9 @@ const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo
         onEstablecerIniciativa={manejarEstablecerIniciativa}
         onEstablecerVidaMaxima={onEstablecerVidaMaxima ? manejarEstablecerVidaMaxima : undefined}
         onAlternarRol={manejarAlternarRol}
+        onConfigurarBarrasHorda={manejarConfigurarHorda}
+        onSeleccionarBarraHorda={manejarSeleccionarBarra}
+        onAlternarModoDanoHorda={manejarAlternarModoHorda}
       />
     </div>
   );
@@ -143,15 +134,20 @@ export const GestorIniciativa: React.FC = () => {
     importarIniciativaTaleSpire,
     establecerIniciativaCriatura,
     modificarVidaMaximaCriaturaIniciativa,
+    configurarBarrasHordaCriatura,
+    seleccionarBarraActivaHorda,
+    alternarModoDanoHorda,
     alternarRolCriatura,
   } = usarAccionesIniciativa();
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
+  const { tipoTirada } = usarEstadoConfiguracion();
 
   const indiceMonstruos = usarIndiceMonstruos();
 
   // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
+  const [ataqueHordaModal, setAtaqueHordaModal] = useState<DatosAtaqueHordaModal | null>(null);
   const [confirmarAccion, setConfirmarAccion] = useState<{
     titulo: string;
     mensaje: string;
@@ -232,11 +228,25 @@ export const GestorIniciativa: React.FC = () => {
     return 10;
   }, []);
 
-  // Lanzar Ataques y Habilidades en TaleSpire 3D
+  // Lanzar Ataques y Habilidades en TaleSpire 3D (o abrir Calculadora de Hordas si es una Horda)
   const lanzarAtaqueRapido = useCallback((criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
+    const criaturaHorda = colaIniciativa.find((c) => c.nombre === criaturaNombre && esCriaturaHorda(c));
+    if (criaturaHorda) {
+      const resumen = obtenerResumenHorda(criaturaHorda);
+      setAtaqueHordaModal({
+        criaturaId: criaturaHorda.id,
+        criaturaNombre: criaturaHorda.nombre,
+        miembrosVivos: resumen?.vivos ?? 1,
+        ataqueNombre,
+        bonificadorAtaqueStr: bonoAtaqueStr,
+        dadosDano: dadosDaño,
+        tipoDano: tipoDaño
+      });
+      return;
+    }
     const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño, criaturaNombre);
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
-  }, []);
+  }, [colaIniciativa]);
 
   const lanzarTiradaD20Interactiva = useCallback((criaturaNombre: string, etiqueta: string, bonificador: number) => {
     const etiquetaCompleta = `${sanitizarEtiqueta(criaturaNombre)} - ${sanitizarEtiqueta(etiqueta)}`;
@@ -364,6 +374,9 @@ export const GestorIniciativa: React.FC = () => {
                     onEstablecerIniciativa={establecerIniciativaCriatura}
                     onEstablecerVidaMaxima={modificarVidaMaximaCriaturaIniciativa}
                     onAlternarRol={alternarRolCriatura}
+                    onConfigurarBarrasHorda={configurarBarrasHordaCriatura}
+                    onSeleccionarBarraHorda={seleccionarBarraActivaHorda}
+                    onAlternarModoDanoHorda={alternarModoDanoHorda}
                     refTarjetaActiva={refTarjetaActiva}
                   />
                 );
@@ -450,6 +463,17 @@ export const GestorIniciativa: React.FC = () => {
             />
           </div>
         </div>
+      )}
+
+      {/* Modal de Ataque de Horda (Tabla de Hordas D&D 5.5e) */}
+      {ataqueHordaModal && (
+        <ModalAtaqueHorda
+          datos={ataqueHordaModal}
+          colaIniciativa={colaIniciativa}
+          tipoTiradaGlobal={tipoTirada}
+          onAplicarDanoDirecto={dañarCriaturaIniciativa}
+          onCerrar={() => setAtaqueHordaModal(null)}
+        />
       )}
 
       {/* Modal de confirmación personalizado de alta calidad */}

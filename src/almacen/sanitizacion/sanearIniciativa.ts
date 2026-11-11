@@ -4,6 +4,14 @@ import type { CriaturaIniciativa, ElementoPendiente, EncuentroGuardado } from "@
 import { generarId } from "@/utiles/generarId";
 import { logger } from "@/utiles/logger";
 
+export const EsquemaBarraVidaHorda = z.object({
+  id: z.string().min(1).default(() => generarId("bh")),
+  etiqueta: z.string().optional(),
+  vidaActual: z.coerce.number().default(10),
+  vidaMaxima: z.coerce.number().default(10),
+  vidaTemporal: z.coerce.number().optional()
+});
+
 export const EsquemaCriaturaIniciativa = z.object({
   id: z.string().min(1).default(() => generarId('cr')),
   nombre: z.string().default("Criatura"),
@@ -18,6 +26,10 @@ export const EsquemaCriaturaIniciativa = z.object({
   velocidad: z.string().default("30 pies"),
   vidaTemporal: z.coerce.number().optional(),
   idPlantillaAsociada: z.string().optional(),
+  barrasVida: z.array(EsquemaBarraVidaHorda).optional(),
+  indiceBarraActiva: z.coerce.number().int().nonnegative().optional(),
+  modoDanoHorda: z.enum(["individual", "cascada"]).optional(),
+  resumenHorda: z.object({ vivos: z.coerce.number(), totales: z.coerce.number() }).optional(),
   avatarUrl: z.string().optional(), idPersonajeDuenio: z.string().optional(), idAcompanante: z.string().optional(),
   esAcompanante: z.boolean().optional(), movimientoGastado: z.number().optional(),
   movimientoMaximoTemporal: z.number().nullable().optional(),

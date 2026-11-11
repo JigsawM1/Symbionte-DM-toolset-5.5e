@@ -11,6 +11,8 @@ import { formatearDetalleAtaqueRapido } from "@/utiles/procesadorAtaques";
 import type { PasivasCombatePJ } from "@/tipos/sync";
 import { InsigniasPasivasJugador } from "./InsigniasPasivasJugador";
 import { ModalRetratoPersonaje } from "@/componentes/caracteristicas/personajes/ModalRetratoPersonaje";
+import { PanelBarrasHorda } from "./horda/PanelBarrasHorda";
+import { esCriaturaHorda } from "@/servicios/combateHordas";
 import estilosClases from "./TarjetaCriaturaIniciativa.module.css";
 
 interface TarjetaCriaturaIniciativaProps {
@@ -35,6 +37,9 @@ interface TarjetaCriaturaIniciativaProps {
   onLanzarAtaqueRapido: (ataqueNombre: string, bonoAtaque: string, dadosDaño: string, tipoDaño: string) => void;
   obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
   onAlternarRol?: () => void;
+  onConfigurarBarrasHorda?: (cantidad: number) => void;
+  onSeleccionarBarraHorda?: (indice: number) => void;
+  onAlternarModoDanoHorda?: () => void;
   rondaActual?: number;
 }
 
@@ -54,6 +59,8 @@ function obtenerCondicionesVisibles(condiciones: string[] = [], efectos: { nombr
     return !nombresEfectosSet.has(condMin) && !nombresEfectosSet.has(condBase);
   });
 }
+
+const NOOP = () => {};
 
 export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps> = React.memo(({
   criatura,
@@ -77,10 +84,21 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
   onEstablecerVidaMaxima,
   onLanzarAtaqueRapido,
   obtenerPercepcionPasiva,
-  onAlternarRol
+  onAlternarRol,
+  onConfigurarBarrasHorda,
+  onSeleccionarBarraHorda,
+  onAlternarModoDanoHorda
 }) => {
   const pasivasEfectivas = pasivasJugador || criatura.pasivas || null;
   const avatarEfectivo = !criatura.esMonstruo ? (criatura.avatarUrl || avatarUrlPJ || undefined) : undefined;
+  const esHordaActiva = esCriaturaHorda(criatura) && Boolean(criatura.barrasVida && criatura.barrasVida.length > 1);
+  const idxBarraActiva = esHordaActiva
+    ? Math.max(0, Math.min((criatura.barrasVida?.length ?? 1) - 1, criatura.indiceBarraActiva ?? 0))
+    : 0;
+  const barraActiva = esHordaActiva ? criatura.barrasVida?.[idxBarraActiva] : undefined;
+  const vidaActualMostrar = barraActiva ? barraActiva.vidaActual : criatura.vidaActual;
+  const vidaMaximaMostrar = barraActiva ? barraActiva.vidaMaxima : criatura.vidaMaxima;
+  const vidaTemporalMostrar = barraActiva ? (barraActiva.vidaTemporal ?? 0) : (criatura.vidaTemporal ?? 0);
   const [verRetrato, setVerRetrato] = useState(false);
   const [hpInput, setHpInput] = useState("");
   const [dropdownAbierto, setDropdownAbierto] = useState<"condicion" | "efecto" | null>(null);
@@ -97,9 +115,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     if (!isNaN(valor) && valor > 0) { aplicar(valor); setHpInput(""); }
   };
 
-  const activarEdicionIniciativa = () => {    setEditandoIniciativa(true);
-  };
-
+  const activarEdicionIniciativa = () => setEditandoIniciativa(true);
   useEffect(() => {
     if (editandoIniciativa && refInputIniciativa.current) {
       refInputIniciativa.current.focus();
@@ -107,9 +123,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
     }
   }, [editandoIniciativa]);
 
-  const activarEdicionVidaMaxima = () => {    setEditandoVidaMaxima(true);
-  };
-
+  const activarEdicionVidaMaxima = () => setEditandoVidaMaxima(true);
   useEffect(() => {
     if (editandoVidaMaxima && refInputVidaMaxima.current) {
       refInputVidaMaxima.current.focus();
@@ -145,13 +159,8 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               alt={criatura.nombre}
               className={estilosClases.avatarPjIniciativa}
               title="Ver retrato ampliado"
-              onClick={(e) => {
-                e.stopPropagation();
-                setVerRetrato(true);
-              }}
-              onError={(e) => {
-                (e.currentTarget as HTMLElement).style.display = "none";
-              }}
+              onClick={(e) => { e.stopPropagation(); setVerRetrato(true); }}
+              onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }}
             />
             {verRetrato && (
               <ModalRetratoPersonaje
@@ -170,10 +179,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
         >
           {/* Botón de dado en la parte superior */}
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onLanzarIniciativa();
-            }}
+            onClick={(e) => { e.stopPropagation(); onLanzarIniciativa(); }}
             className={estilosClases.botonDadoIniciativa}
             title="Lanzar dado de iniciativa en TaleSpire"
           >
@@ -348,7 +354,24 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
               </div>
             )}
           </div>
+          {criatura.esMonstruo && !esHordaActiva && onConfigurarBarrasHorda && (
+            <PanelBarrasHorda
+              criatura={criatura}
+              onConfigurarBarras={onConfigurarBarrasHorda}
+              onSeleccionarBarra={onSeleccionarBarraHorda ?? NOOP}
+              onAlternarModoDano={onAlternarModoDanoHorda ?? NOOP}
+            />
+          )}
         </div>
+
+        {criatura.esMonstruo && esHordaActiva && onConfigurarBarrasHorda && (
+          <PanelBarrasHorda
+            criatura={criatura}
+            onConfigurarBarras={onConfigurarBarrasHorda}
+            onSeleccionarBarra={onSeleccionarBarraHorda ?? NOOP}
+            onAlternarModoDano={onAlternarModoDanoHorda ?? NOOP}
+          />
+        )}
       </div>
 
       {/* Acciones Rápidas */}
@@ -378,17 +401,17 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
 
       {/* Salud e Inputs de Alta Densidad */}
       <div className={estilosClases.cajaControlesSaludTarjetas}>
-        <div className={estilosClases.filaHPArea}>
+        <div className={estilosClases.filaHPArea} title={barraActiva ? `Editando unidad #${idxBarraActiva + 1} (Total horda: ${criatura.vidaActual}/${criatura.vidaMaxima} PG)` : undefined}>
           <Heart size={12} fill={estaMuerto ? "none" : "var(--color-peligro)"} className={estilosClases.iconoCorazonPeligro} />
           <span className={estilosClases.hpGiganteTexto}>
-            {criatura.vidaActual}{" "}
+            {barraActiva ? `#${idxBarraActiva + 1} ${vidaActualMostrar}` : vidaActualMostrar}{" "}
             {editandoVidaMaxima ? (
               <span className={estilosClases.textoVidaMaxima}>
                 /{" "}
                 <CampoNumerico
                   ref={refInputVidaMaxima}
                   min="1"
-                  value={criatura.vidaMaxima}
+                  value={vidaMaximaMostrar}
                   alConfirmar={(valor) => onEstablecerVidaMaxima?.(valor)}
                   onBlur={() => setEditandoVidaMaxima(false)}
                   className={estilosClases.inputVidaMaximaEditable}
@@ -401,12 +424,12 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
                 className={`${estilosClases.textoVidaMaxima} ${onEstablecerVidaMaxima ? estilosClases.textoVidaMaximaEditable : ""}`}
                 title={onEstablecerVidaMaxima ? "Clic para editar vida máxima" : undefined}
               >
-                / {criatura.vidaMaxima}
+                / {vidaMaximaMostrar}
               </span>
             )}
           </span>
-          {criatura.vidaTemporal && criatura.vidaTemporal > 0 ? (
-            <span className={estilosClases.tagHPTemporal}>+{criatura.vidaTemporal}</span>
+          {vidaTemporalMostrar > 0 ? (
+            <span className={estilosClases.tagHPTemporal}>+{vidaTemporalMostrar}</span>
           ) : null}
         </div>
 
@@ -437,7 +460,7 @@ export const TarjetaCriaturaIniciativa: React.FC<TarjetaCriaturaIniciativaProps>
             <CampoNumerico
               placeholder="0"
               min="0"
-              value={criatura.vidaTemporal ?? 0}
+              value={vidaTemporalMostrar}
               alConfirmar={onCambiarTempHP}
               className={estilosClases.inputTempVertical}
               title="Vida Temporal"

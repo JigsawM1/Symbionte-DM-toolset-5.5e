@@ -7,6 +7,7 @@
 import type { CriaturaIniciativa, EfectoActivo } from "@/almacen/usarAlmacenDM";
 import type { Caracteristica, MonstruoBase, PersonajeJugador } from "@/tipos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
+import { esCriaturaHorda, resolverSalvacionHordaEnArea } from "@/servicios/combateHordas";
 import { resolverPlantillaPorCriatura } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import { generarId } from "@/utiles/generarId";
@@ -70,6 +71,7 @@ export interface ParamsEjecutarSalvacionArea {
   condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean };
   mitigacion?: "mitad" | "nada";
   idsObjetivo?: string[];
+  limiteMiembrosHorda?: number;
   colaIniciativa: CriaturaIniciativa[];
   indiceTurnoActivo: number;
   criaturasSeleccionadas: CriaturaSeleccionadaTS[];
@@ -91,6 +93,7 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
     condicionOEfecto,
     mitigacion = "mitad",
     idsObjetivo,
+    limiteMiembrosHorda,
     colaIniciativa,
     indiceTurnoActivo,
     criaturasSeleccionadas,
@@ -125,6 +128,43 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
       } else if (plantilla.caracteristicas?.[caracteristica] !== undefined) {
         bonoSalvacion = Math.floor((plantilla.caracteristicas[caracteristica] - 10) / 2);
       }
+    }
+
+    if (esCriaturaHorda(c) && c.barrasVida && c.barrasVida.length > 1) {
+      const { criaturaActualizada: criHorda, detalle } = resolverSalvacionHordaEnArea(c, {
+        cd,
+        bonoSalvacion,
+        danoBruto: dañoBruto,
+        mitigacion,
+        limiteMiembros: limiteMiembrosHorda
+      });
+      const criFinal = { ...criHorda };
+      const huboFallo = detalle.fallos > 0;
+      if (condicionOEfecto && huboFallo) {
+        if (condicionOEfecto.tipo === "condicion") {
+          criFinal.condiciones = aplicarCondicion(criFinal.condiciones, condicionOEfecto.nombre);
+        } else {
+          const esConc = Boolean(condicionOEfecto.esConcentracion || /^concentraci[oó]n$/i.test(condicionOEfecto.nombre.trim()));
+          criFinal.efectos = [...(criFinal.efectos || []), {
+            id: generarId(condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20)),
+            nombre: condicionOEfecto.nombre,
+            expiraRonda: esConc ? undefined : rondaActual + (condicionOEfecto.duracion || 10),
+            concentracion: esConc || undefined
+          }];
+        }
+      }
+      resultadosLog.push({
+        id: c.id,
+        nombre: c.nombre,
+        bono: bonoSalvacion,
+        d20: detalle.d20Necesario,
+        total: cd,
+        exito: detalle.fallos === 0,
+        dañoSufrido: dañoBruto && dañoBruto > 0 ? detalle.danoTotalAplicado : undefined,
+        condicionAplicada: Boolean(condicionOEfecto && huboFallo),
+        detalleHorda: detalle
+      });
+      return criFinal;
     }
 
     const d20 = Math.floor(Math.random() * 20) + 1;

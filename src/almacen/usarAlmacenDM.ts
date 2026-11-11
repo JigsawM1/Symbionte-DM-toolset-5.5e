@@ -19,6 +19,21 @@ export interface EfectoActivo {
   duracion?: number;      // Para compatibilidad con efectos antiguos
 }
 
+export type ModoDanoHorda = "individual" | "cascada";
+
+export interface BarraVidaHorda {
+  id: string;
+  etiqueta?: string;
+  vidaActual: number;
+  vidaMaxima: number;
+  vidaTemporal?: number;
+}
+
+export interface ResumenHorda {
+  vivos: number;
+  totales: number;
+}
+
 export interface CriaturaIniciativa {
   id: string; // ID único (de TaleSpire o local)
   avatarUrl?: string;
@@ -34,6 +49,12 @@ export interface CriaturaIniciativa {
   velocidad: string;
   vidaTemporal?: number;
   idPlantillaAsociada?: string;
+
+  // Propiedades de Combate por Hordas (D&D 5.5e)
+  barrasVida?: BarraVidaHorda[];
+  indiceBarraActiva?: number;
+  modoDanoHorda?: ModoDanoHorda;
+  resumenHorda?: ResumenHorda;
 
   // Propiedades dinámicas de movimiento y vinculación a jugador / acompañante
   movimientoGastado?: number;

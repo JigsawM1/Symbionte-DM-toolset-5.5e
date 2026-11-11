@@ -6,6 +6,7 @@
 
 import type { EfectoActivo, EstadoDM } from "@/almacen/usarAlmacenDM";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
+import { esCriaturaHorda, sincronizarAgregadosHorda } from "@/servicios/combateHordas";
 import { generarId } from "@/utiles/generarId";
 import {
   obtenerIdsObjetivoMasivo,
@@ -17,10 +18,39 @@ export function despacharAplicarDanoEnArea(
   state: EstadoDM,
   _get: () => EstadoDM,
   cantidad: number,
-  idsObjetivo?: string[]
+  idsObjetivo?: string[],
+  limiteMiembrosHorda?: number
 ): Partial<EstadoDM> {
   if (state.colaIniciativa.length === 0 || cantidad === 0) return {};
   return aplicarTransformacionEnArea(state, idsObjetivo, (c) => {
+    if (esCriaturaHorda(c) && c.barrasVida && c.barrasVida.length > 1) {
+      const barras = c.barrasVida.map((b) => ({ ...b }));
+      const indicesVivos = barras.map((b, idx) => (b.vidaActual > 0 ? idx : -1)).filter((idx) => idx >= 0);
+      const maxAfectar = limiteMiembrosHorda && limiteMiembrosHorda > 0
+        ? Math.min(indicesVivos.length, Math.trunc(limiteMiembrosHorda))
+        : indicesVivos.length;
+      if (cantidad > 0) {
+        for (let i = 0; i < maxAfectar; i++) {
+          const idx = indicesVivos[i];
+          let restante = cantidad;
+          let temp = barras[idx].vidaTemporal ?? 0;
+          if (temp > 0) {
+            const abs = Math.min(temp, restante);
+            temp -= abs;
+            restante -= abs;
+          }
+          barras[idx].vidaTemporal = temp;
+          barras[idx].vidaActual = Math.max(0, barras[idx].vidaActual - restante);
+        }
+      } else {
+        const curacion = Math.abs(cantidad);
+        for (let i = 0; i < maxAfectar; i++) {
+          const idx = indicesVivos[i];
+          barras[idx].vidaActual = Math.min(barras[idx].vidaMaxima, barras[idx].vidaActual + curacion);
+        }
+      }
+      return { ...c, ...sincronizarAgregadosHorda(barras, c.indiceBarraActiva ?? 0, true) };
+    }
     if (cantidad > 0) {
       let dañoRestante = cantidad;
       let vidaTemp = c.vidaTemporal || 0;

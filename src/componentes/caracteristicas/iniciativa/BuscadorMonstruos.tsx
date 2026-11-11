@@ -5,7 +5,7 @@ import {
   usarEstadoConfiguracion,
   usarAccionesIniciativa,
 } from "@/almacen/selectores";
-import { Skull, Plus, X } from "lucide-react";
+import { Skull, Plus, X, Users } from "lucide-react";
 import estilosClases from "./BuscadorMonstruos.module.css";
 import { logger } from "@/utiles/logger";
 
@@ -16,6 +16,7 @@ export const BuscadorMonstruos: React.FC = () => {
 
   const [busquedaMonstruo, setBusquedaMonstruo] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+  const [cantidadHorda, setCantidadHorda] = useState<number>(1);
 
   // Filtrar monstruos por la búsqueda usando normalización de acentos precalculada
   const queryNormalizada = normalizarTexto(busquedaMonstruo);
@@ -45,7 +46,8 @@ export const BuscadorMonstruos: React.FC = () => {
       true, // esMonstruo
       formatearVelocidad(plantilla.velocidad),
       plantilla.iniciativaBonificador,
-      plantilla.id
+      plantilla.id,
+      cantidadHorda
     );
 
     logger.debug(`Añadido monstruo ${plantilla.nombre} a la iniciativa local. Tirada: ${tiradaInic} + ${plantilla.iniciativaBonificador} = ${totalInic}`);
@@ -93,6 +95,28 @@ export const BuscadorMonstruos: React.FC = () => {
       {/* Menú de sugerencias flotantes */}
       {mostrarSugerencias && monstruosFiltrados.length > 0 && (
         <div className={estilosClases.sugerenciasContenedor}>
+          <div
+            className={estilosClases.barraTamanoHorda}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            <span className={estilosClases.etiquetaHordaBuscador}>
+              <Users size={10} /> BARRAS DE VIDA:
+            </span>
+            <div className={estilosClases.chipsHordaBuscador}>
+              {[1, 2, 3, 5, 8, 10].map((num) => (
+                <button
+                  key={num}
+                  type="button"
+                  onClick={() => setCantidadHorda(num)}
+                  className={estilosClases.chipTamanoHorda}
+                  data-activo={cantidadHorda === num}
+                  title={num === 1 ? "Añadir como ficha individual (1 barra)" : `Añadir como Horda de ${num} barras de vida`}
+                >
+                  x{num}
+                </button>
+              ))}
+            </div>
+          </div>
           {monstruosFiltrados.slice(0, 15).map((m) => (
             <div
               key={m.id}

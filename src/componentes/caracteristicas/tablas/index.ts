@@ -5,3 +5,4 @@ export { ConsolaCriticosPifias } from "./ConsolaCriticosPifias";
 export { ConversorDivisas } from "./ConversorDivisas";
 export { DiccionarioCondiciones } from "./DiccionarioCondiciones";
 export { ReglasBasicas } from "./ReglasBasicas";
+export { ReglasCombateHordas } from "./ReglasCombateHordas";

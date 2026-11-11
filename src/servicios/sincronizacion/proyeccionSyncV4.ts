@@ -30,10 +30,13 @@ function condicionesMecanicas(e: GruposSyncV4['estados']): string[] {
 }
 
 function gruposFila(c: CriaturaIniciativa): GruposSyncV4 {
+  const horda: [number, number] | undefined = c.barrasVida && c.barrasVida.length > 1
+    ? [c.barrasVida.filter(b => b.vidaActual > 0).length, c.barrasVida.length]
+    : c.resumenHorda && c.resumenHorda.totales > 1 ? [c.resumenHorda.vivos, c.resumenHorda.totales] : undefined;
   return { vitalidad: { actual: Math.max(0, Math.min(c.vidaActual, c.vidaMaxima)), maxima: Math.max(1, c.vidaMaxima), temporal: Math.max(0, c.vidaTemporal ?? 0) },
     estados: estadosTransmitidos({ condiciones: c.condiciones ?? [], efectos: c.efectos ?? [], concentracion: null }),
     datos: { nombre: c.nombre, iniciativa: c.iniciativa, ca: c.ca ?? 10, avatar: c.avatarUrl,
-      pasivas: [c.pasivas?.percepcion ?? 10, c.pasivas?.investigacion ?? 10, c.pasivas?.perspicacia ?? 10] }, acompanantes: [] };
+      pasivas: [c.pasivas?.percepcion ?? 10, c.pasivas?.investigacion ?? 10, c.pasivas?.perspicacia ?? 10], ...(horda ? { horda } : {}) }, acompanantes: [] };
 }
 
 /** Las filas nunca se asocian a fichas remotas por nombre. */
@@ -102,6 +105,7 @@ function filaDesdeEntidad(e: EntidadSyncV4, anterior?: CriaturaIniciativa): Cria
     condiciones: estados.condiciones, efectos: estados.efectos.map(ef => ({ ...anterior?.efectos?.find(a => a.id === ef.id), ...ef })),
     esMonstruo: e.monstruo ?? false, esAcompanante: !!e.padre, idAcompanante: e.padre ? e.ficha : undefined,
     idPersonajeDuenio: e.padre ?? e.ficha, avatarUrl: d.avatar, idPlantillaAsociada: e.plantilla,
+    resumenHorda: d.horda ? { vivos: d.horda[0], totales: d.horda[1] } : undefined,
     pasivas: { percepcion: d.pasivas[0], investigacion: d.pasivas[1], perspicacia: d.pasivas[2] },
     velocidad: anterior?.velocidad ?? '30 pies', bonificadorIniciativa: anterior?.bonificadorIniciativa ?? 0 };
 }

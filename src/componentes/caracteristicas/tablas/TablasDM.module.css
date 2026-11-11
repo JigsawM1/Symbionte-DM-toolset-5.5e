@@ -14,7 +14,7 @@
 
 .subNavegacion {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 4px;
   padding: 3px;
   background: var(--dm-fondo-panel, var(--color-fondo-panel));
@@ -86,7 +86,13 @@
   min-height: 0;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 580px) {
+  .subNavegacion {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
   .subNavegacion {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

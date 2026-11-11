@@ -44,8 +44,12 @@ import {
   despacharModificarVida,
   despacharDano,
   despacharModificarVidaMaxima,
-  despacharActualizarVidaTemporal
+  despacharActualizarVidaTemporal,
+  despacharConfigurarBarrasHorda,
+  despacharSeleccionarBarraHorda,
+  despacharAlternarModoDanoHorda
 } from "./iniciativa/manejadorVidaIniciativa";
+import { construirBarrasHorda, sincronizarAgregadosHorda } from "@/servicios/combateHordas";
 import {
   despacharAgregarCondicion,
   despacharQuitarCondicion,
@@ -226,9 +230,10 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     )
   })),
 
-  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada) => set((state) => {
+  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada, cantidadHorda) => set((state) => {
     const idCriatura = generarId('c_local');
-    const nuevaCriatura: CriaturaIniciativa = {
+    const numMiembros = cantidadHorda && cantidadHorda > 1 ? Math.min(50, Math.trunc(cantidadHorda)) : 1;
+    const baseCriatura: CriaturaIniciativa = {
       id: idCriatura,
       nombre,
       iniciativa,
@@ -243,6 +248,13 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
       vidaTemporal: 0,
       idPlantillaAsociada
     };
+    const nuevaCriatura: CriaturaIniciativa = numMiembros > 1
+      ? {
+          ...baseCriatura,
+          modoDanoHorda: "individual",
+          ...sincronizarAgregadosHorda(construirBarrasHorda(numMiembros, vidaMax))
+        }
+      : baseCriatura;
 
     let nuevasAsociaciones = state.asociacionesFichas;
     if (idPlantillaAsociada) {
@@ -290,6 +302,18 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
 
   modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => set((state) =>
     despacharModificarVidaMaxima(state, get, id, nuevaVidaMax)
+  ),
+
+  configurarBarrasHordaCriatura: (idCriatura, cantidadMiembros, vidaPorMiembro) => set((state) =>
+    despacharConfigurarBarrasHorda(state, idCriatura, cantidadMiembros, vidaPorMiembro)
+  ),
+
+  seleccionarBarraActivaHorda: (idCriatura, indiceBarra) => set((state) =>
+    despacharSeleccionarBarraHorda(state, idCriatura, indiceBarra)
+  ),
+
+  alternarModoDanoHorda: (idCriatura, modo) => set((state) =>
+    despacharAlternarModoDanoHorda(state, idCriatura, modo)
   ),
 
   agregarCondicionACriatura: (id, condicion) => set((state) =>
@@ -384,8 +408,8 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     return { colaIniciativa: [...state.colaIniciativa, ...nuevasCriaturas] };
   }),
 
-  aplicarDañoEnArea: (cantidad, idsObjetivo) => set((state) =>
-    despacharAplicarDanoEnArea(state, get, cantidad, idsObjetivo)
+  aplicarDañoEnArea: (cantidad, idsObjetivo, limiteMiembrosHorda) => set((state) =>
+    despacharAplicarDanoEnArea(state, get, cantidad, idsObjetivo, limiteMiembrosHorda)
   ),
 
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) =>
@@ -396,7 +420,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     despacharAplicarEfectoEnArea(state, nombreEfecto, duracion, opciones, idsObjetivo)
   ),
 
-  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo) => {
+  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo, limiteMiembrosHorda) => {
     const state = get();
     const resultadoCalculo = ejecutarCalculoSalvacionArea({
       caracteristica,
@@ -405,6 +429,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
       condicionOEfecto,
       mitigacion,
       idsObjetivo,
+      limiteMiembrosHorda,
       colaIniciativa: state.colaIniciativa,
       indiceTurnoActivo: state.indiceTurnoActivo,
       criaturasSeleccionadas: state.criaturasSeleccionadas,

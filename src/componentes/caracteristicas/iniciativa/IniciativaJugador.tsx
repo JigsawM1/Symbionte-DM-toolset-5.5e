@@ -3,6 +3,7 @@ import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selecto
 import { ChipCondicion } from "@/componentes/comunes";
 import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
 import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { obtenerResumenHorda } from "@/servicios/combateHordas";
 import { Users, Swords, Heart } from "lucide-react";
 import { ModalRetratoPersonaje } from "@/componentes/caracteristicas/personajes/ModalRetratoPersonaje";
 import estilos from "./IniciativaJugador.module.css";
@@ -50,6 +51,7 @@ export const IniciativaJugador: React.FC = () => {
               const porcentaje = Math.max(0, Math.min(100, Math.round((hpActual / hpMaximo) * 100)));
               const estadoSalud: "saludable" | "herido" | "critico" = porcentaje > 50 ? "saludable" : porcentaje > 25 ? "herido" : "critico";
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";
+              const resumenHorda = obtenerResumenHorda(item);
 
               const tieneEfectoConcentracion = (item.efectos || []).some(
                 (ef) => esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion)
@@ -112,6 +114,12 @@ export const IniciativaJugador: React.FC = () => {
                           {esTurnoActual && <Swords size={16} className={estilos.iconoTurnoActivo} />}
                           <span className={estilos.posicionTexto}>#{index + 1}</span>
                           <h3 className={estilos.nombreCriatura}>{item.nombre}</h3>
+                          {resumenHorda && (
+                            <span className={estilos.insigniaHordaJugador} title="Miembros activos de la horda">
+                              <Users size={11} />
+                              <strong>{resumenHorda.vivos} / {resumenHorda.totales} en pie</strong>
+                            </span>
+                          )}
                         </div>
 
                         <div className={estilos.iniciativaBadge}>

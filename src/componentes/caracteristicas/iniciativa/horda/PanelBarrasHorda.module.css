@@ -1,0 +1,228 @@
+/* PanelBarrasHorda.module.css - Estilo oficial DM (DESIGN_MASTER.md) */
+
+.botonConvertirHorda {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid var(--dm-borde-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.55));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.08));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+  cursor: pointer;
+  transition: none;
+}
+
+.botonConvertirHorda:hover {
+  background: rgba(var(--dm-rgb-cian, 12, 233, 203), 0.2);
+  border-color: var(--dm-cian, var(--color-borde-cian));
+}
+
+.contenedorHorda {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 7px 9px;
+  border-radius: var(--dm-radio-panel, 4px);
+  background: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-left: 3px solid var(--dm-cian, var(--color-borde-cian));
+  box-shadow: var(--dm-sombra-panel, var(--sombra-tarjeta));
+  position: relative;
+  transition: none;
+}
+
+.cabeceraHorda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.insigniaEstadoHorda {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.iconoHorda {
+  color: var(--dm-cian, var(--color-borde-cian));
+}
+
+.conteoVivosTotales {
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-weight: 800;
+}
+
+.controlesCabeceraHorda {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.botonModoDano {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: var(--dm-radio-control, 2px);
+  cursor: pointer;
+  transition: none;
+}
+
+.botonModoIndividual {
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.08));
+  border: 1px solid var(--dm-borde-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.55));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.botonModoIndividual:hover {
+  background: rgba(var(--dm-rgb-cian, 12, 233, 203), 0.2);
+}
+
+.botonModoCascada {
+  background: var(--dm-superficie-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.12));
+  border: 1px solid var(--dm-borde-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.55));
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
+}
+
+.botonModoCascada:hover {
+  background: rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.22);
+}
+
+.grupoCantidadBarras {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--dm-fondo-profundo, var(--color-fondo-profundo));
+  padding: 1px;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+}
+
+.botonPasoBarra,
+.botonPasoBarraLote {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 6px;
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  cursor: pointer;
+  transition: none;
+}
+
+.botonPasoBarra:hover,
+.botonPasoBarraLote:hover {
+  border-color: var(--dm-borde-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.08));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.botonPasoBarraLote {
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.rejillaBarras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 140px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.pildoraBarra {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: var(--dm-fuente-minima, 12px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: none;
+}
+
+.pildoraBarra:hover {
+  border-color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  background: var(--dm-fondo-foco, var(--color-fondo-tarjeta-foco));
+}
+
+.pildoraBarra[data-salud="saludable"] {
+  border-left: 3px solid var(--dm-borde-exito, var(--color-exito));
+}
+
+.pildoraBarra[data-salud="herido"] {
+  border-left: 3px solid var(--dm-borde-advertencia, var(--color-advertencia));
+}
+
+.pildoraBarra[data-salud="critico"] {
+  border-left: 3px solid var(--dm-borde-peligro, var(--color-peligro));
+}
+
+.pildoraBarra[data-salud="muerto"] {
+  opacity: 0.45;
+  border-left: 3px solid var(--dm-texto-apagado, var(--color-texto-apagado));
+  background: var(--dm-fondo-profundo, var(--color-fondo-profundo));
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+}
+
+.pildoraBarra[data-activa="true"] {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.12));
+  box-shadow: inset 0 0 0 1px var(--dm-cian, var(--color-borde-cian));
+}
+
+.etiquetaIndice {
+  font-size: 11px;
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  font-weight: 700;
+}
+
+.pildoraBarra[data-activa="true"] .etiquetaIndice {
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.valorVidaBarra {
+  display: inline-flex;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.iconoCalaveraBarra {
+  color: var(--dm-texto-peligro, var(--color-peligro));
+}
+
+.badgeTempBarra {
+  font-size: 11px;
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+  font-weight: 800;
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+  padding: 0 4px;
+  border-radius: var(--dm-radio-control, 2px);
+}

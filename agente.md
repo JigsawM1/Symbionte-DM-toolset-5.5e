@@ -1,5 +1,166 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-11] Auditoría y Refactorización de Calidad con /ponytail y /vercel-react-best-practices en Combate por Hordas
+
+- **Contexto**:
+  - Revisión exhaustiva de todos los cambios incorporados para el soporte de Combate por Hordas (D&D 5.5e) y Tablas de DM, aplicando la escalera de simplificación de `/ponytail` (evitar sobreingeniería, código aburrido y predecible sobre artificios, APIs estándar, cero allocations innecesarias) y las directrices de rendimiento de `/vercel-react-best-practices`.
+- **Acciones y Optimizaciones Aplicadas**:
+  1. *Elevación de Expresiones Regulares (`js-hoist-regexp`)*:
+     - En [combateHordas.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/combateHordas.ts), se extrajo la constante `REGEX_TERMINO_DANO = /([+-]?\d+)d(\d+)|([+-]?\d+)/gi` a nivel de módulo y se migró a `limpia.matchAll(REGEX_TERMINO_DANO)`. Esto elimina la recompilación repetitiva del patrón RegExp en cada tecla o slider y previene efectos secundarios de estado en `lastIndex`.
+  2. *Fusión de Pasadas en Bucle Único (`js-combine-iterations`)*:
+     - En `sincronizarAgregadosHorda`, se reemplazó la secuencia previa de 5 pasadas sobre el array (`.map()`, 3 `.reduce()` y 1 `.filter()`) por un único bucle `for` lineal $O(N)$ indexado que normaliza cada barra y acumula `vidaMaxima`, `vidaActual`, `vidaTemporal` y `vivos` simultáneamente, preasignando el array (`new Array(barras.length)`).
+  3. *Eliminación de Asignaciones Intermedias en Cascada y Área (Ponytail Level 3 & 5)*:
+     - En `aplicarDanoBarrasHorda`, se sustituyó la creación de arrays intermedios `[indiceInicial, ...barras.map(...).filter(...)]` por una evaluación directa en dos fases (objetivo inicial y recorrido secuencial de sobrevivientes).
+     - En `resolverSalvacionHordaEnArea`, se erradicó el patrón `.map(...).filter(...)` para `indicesVivos`, recolectando directamente los índices activos en un solo paso.
+  4. *Erradicación de `useMemo` en Expresiones Matemáticas Simples (`rerender-simple-expression-in-memo`)*:
+     - En [ReglasCombateHordas.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/tablas/ReglasCombateHordas.tsx), se removió `useMemo` de `filaResaltadaIndex`. Una búsqueda `findIndex` sobre 8 números estáticos no justifica la sobrecarga de asignación y tracking de dependencias en React.
+     - En [ModalAtaqueHorda.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/iniciativa/horda/ModalAtaqueHorda.tsx), se removió `useMemo` de `bonoNumerico`, convirtiéndolo en un cálculo unilínea directo `parseInt(...) || 0`.
+  5. *Estabilidad Referencial en Callbacks y Memoización (`rerender-memo`)*:
+     - En [TarjetaCriaturaIniciativa.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/iniciativa/TarjetaCriaturaIniciativa.tsx), se reemplazaron los fallbacks inline `(() => {})` pasados a [PanelBarrasHorda.tsx](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/componentes/caracteristicas/iniciativa/horda/PanelBarrasHorda.tsx) por una constante estática de nivel de módulo `const NOOP = () => {};`, garantizando que la memoización de `React.memo` no se invalide en cada render del padre.
+  6. *Hoisting de Colecciones Estáticas y Accesibilidad Nativa*:
+     - Extracción de constantes inmutables fuera del ciclo de render: `MODOS_TIRADA` en `ReglasCombateHordas.tsx`, y `OPCIONES_MULTIATAQUE` junto a `MODOS_CIRCUNSTANCIA` en `ModalAtaqueHorda.tsx`.
+     - Inclusión de atributos accesibles nativos (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`, `role="group"`).
+     - Corrección en render condicional de valores numéricos en `PanelBarrasHorda.tsx` (`(barra.vidaTemporal ?? 0) > 0 ? ... : null`).
+- **Validación y Certificación**:
+  - `pnpm vitest run src/servicios/combateHordas.test.ts src/componentes/caracteristicas/tablas/ReglasCombateHordas.test.tsx`: 8 de 8 pruebas unitarias aprobadas (41 ms).
+  - `pnpm tsc --noEmit`: 0 errores de tipado estricto (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 archivos críticos (`combateHordas.ts`: 297 líneas, `ReglasCombateHordas.tsx`: 262 líneas, `ModalAtaqueHorda.tsx`: 264 líneas, `PanelBarrasHorda.tsx`: 136 líneas).
+  - `pnpm run build`: Compilación con Vite completada con éxito en 14.31s.
+
+## [2026-11-11] Alineación Simétrica y Erradicación de Asimetrías a 599px en ReglasCombateHordas
+
+- **Contexto**:
+  - En la vista de TaleSpire CEF (599px), el simulador de impactos de hordas presentaba una asimetría de 4 columnas en la fila superior y 2 en la inferior (dejando 2 huecos vacíos), además de desniveles verticales en los inputs debido a etiquetas con diferente número de líneas.
+- **Acción Realizada**:
+  - Se configuró la cuadrícula a un esquema balanceado $3 \times 2$ (`grid-template-columns: repeat(3, minmax(0, 1fr));`):
+    - Fila 1 (3 campos): `CA OBJETIVO / CD`, `BONO ATAQUE / SALVACIÓN`, `MIEMBROS ATACANDO`.
+    - Fila 2 (3 campos): `ATAQUES POR MIEMBRO`, `TIRADA`, `FÓRMULA DE DAÑO`.
+  - Se unificó la altura base de las etiquetas (`min-height: 26px; display: flex; align-items: flex-end;`) para que todos los inputs comiencen exactamente en la misma cota horizontal sin saltos.
+  - Se homogeneizó la altura de los inputs y del grupo de botones de tirada a `28px` con `box-sizing: border-box`.
+  - Se añadió media query a $\le 440\text{px}$ con fallback $2 \times 3$ para pantallas muy compactas.
+- **Validación**:
+  - Vitest: 8/8 tests aprobados.
+  - TypeScript y ESLint: 0 errores.
+  - Build: Producción completada con éxito.
+
+## [2026-11-11] Eliminación del Banner de Cabecera Redundante en ReglasCombateHordas
+
+- **Contexto**:
+  - En la pestaña de Hordas de las Tablas de DM, la cabecera con el título "Combate por Hordas · Reglas D&D 5.5e (DMG)" y su subtítulo descriptivo resultaban redundantes respecto a la navegación superior y restaban espacio vertical útil en TaleSpire CEF.
+- **Acción Realizada**:
+  - Eliminado el elemento `<header className={estilos.cabeceraSeccion}>` de `ReglasCombateHordas.tsx`.
+  - Eliminadas las clases asociadas (`.cabeceraSeccion`, `.medallonCabecera`, `.iconoCabecera`, `.textosCabecera`, `.kickerSeccion`, `.tituloPrincipal`, `.subtituloPrincipal`) de `ReglasCombateHordas.module.css`.
+  - Actualizado el test unitario en `ReglasCombateHordas.test.tsx`.
+- **Validación**:
+  - Vitest: 8/8 tests aprobados.
+  - TypeScript y ESLint: 0 errores.
+  - Build: Producción exitosa.
+
+## [2026-11-11] Alineación Estricta con DESIGN.md y DESIGN_MASTER.md (Tokens Oficiales y Cero Animaciones CEF)
+
+- **Contexto**:
+  - El usuario recordó que los colores y la arquitectura visual del proyecto ya están formalizados en `DESIGN.md` (Jugador) y `DESIGN_MASTER.md` (DM). Se procedió a sustituir los valores hexadecimales crudos, gradientes improvisados y keyframes/transiciones por los tokens oficiales del sistema.
+- **Acciones y Correcciones Aplicadas**:
+  1. *Alineación de Tokens Oficiales del DM (`src/estilos/temaMaster.css` / `DESIGN_MASTER.md`)*:
+     - En `PanelBarrasHorda.module.css`, `ModalAtaqueHorda.module.css` y `ReglasCombateHordas.module.css`:
+       - Superficies: `--dm-fondo-profundo`, `--dm-fondo-panel`, `--dm-fondo-tarjeta`, `--dm-fondo-foco`, `--dm-fondo-hundido`, `--dm-fondo-modal`, `--dm-overlay`.
+       - Bordes: `--dm-borde`, `--dm-cian`, `--dm-borde-cian`, `--dm-borde-exito`, `--dm-borde-peligro`, `--dm-borde-advertencia`.
+       - Textos y Badges: `--dm-texto-principal`, `--dm-texto-secundario`, `--dm-texto-apagado`, `--dm-texto-cian`, `--dm-texto-exito`, `--dm-texto-peligro`, `--dm-texto-advertencia`, `--dm-texto-acento`.
+       - Superficies coloreadas semánticas: `--dm-superficie-cian`, `--dm-superficie-exito`, `--dm-superficie-peligro`, `--dm-superficie-advertencia`.
+       - Radios y Tipografía: `--dm-radio-control`, `--dm-radio-panel`, `--dm-fuente-minima` (`12.5px`), `var(--dm-fuente-titulo)`, `var(--dm-fuente-codigo)`.
+  2. *Cumplimiento Riguroso de TaleSpire CEF (Off-Screen Rendering)*:
+     - Eliminación total de `@keyframes` (`fadeInOverlay`, `slideUpModal`), transiciones temporizadas y `transform: translateY/scale()` en hover.
+     - Aplicación estricta de `transition: none !important; animation: none !important;` con respuestas estáticas instantáneas de superficie, borde e iluminación.
+  3. *Vista de Jugador (`IniciativaJugador.module.css` / `DESIGN.md`)*:
+     - Verificación del uso exclusivo de la familia `--pj-*` (`--pj-fondo-tarjeta`, `--pj-borde-sutil`, `--pj-texto-cian`, `--pj-borde-acento`, etc.).
+     - Remoción de transiciones de escala en `.avatarPjIniciativa` para garantizar latencia cero en CEF.
+- **Validación y Certificación**:
+  - `pnpm vitest run src/servicios/combateHordas.test.ts src/componentes/caracteristicas/tablas/ReglasCombateHordas.test.tsx`: 8 de 8 pruebas unitarias aprobadas.
+  - `pnpm tsc --noEmit`: 0 errores de tipado estricto (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos (`< 300` líneas en todos los archivos).
+  - `pnpm run build`: Compilación con Vite completada con éxito en 13.78s.
+
+## [2026-11-11] Rediseño Táctico Grim-Dark con /frontend-design en Combate por Hordas y Tablas DM
+
+- **Contexto**:
+  - Tras implementar la funcionalidad del sistema de combate por hordas y su pestaña en las tablas de DM, el usuario solicitó revisar las interfaces creadas bajo las directrices de la skill `/frontend-design`, elevando el acabado visual más allá de estilos neutros o genéricos hacia una experiencia de alta fantasía táctica y precisión de centro de mando (*War-Room HUD*).
+- **Decisiones de Diseño y Refactorización**:
+  1. *`PanelBarrasHorda` (Tarjeta de Iniciativa)*:
+     - Botón `+ HORDA` rediseñado con micro-borde cian luminoso (`#00f5d4`), gradiente de profundidad y elevación táctica.
+     - Marco de contenedor con acento lateral cian de resplandor suave y barra de información `HORDA · X/Y EN PIE` con números tabulares de alta visibilidad.
+     - Botones `INDIVIDUAL` (retícula cian) y `CASCADA` (fuego ámbar `#fbbf24`) con micro-sombras y contrastes claros de regla.
+     - Rejilla de pastillas de unidades `#1..#N`:
+       - Unidad activa destacada con anillo de enfoque, resplandor cian `scale(1.03)` e índice resaltado.
+       - Unidades muertas con textura rayada (*cross-hatch repeating-linear-gradient*) en escala de grises y calavera atenuada.
+       - Acento de vida temporal cian integrado.
+  2. *`ModalAtaqueHorda` (Asistente de Ataque de Hordas)*:
+     - Medallón de icono heráldico con halo radial cian y kicker jerárquico `COMBATE DE MASAS · TABLA DMG 5.5e`.
+     - Objetivos en combate estilizados como pastillas de radar táctico fijadas con chip de CA dorada/ámbar de alto contraste.
+     - Panel de resultados central transformado en HUD holográfico con métrica de impactos automáticos ampliada y destello visual.
+     - Botones de acción reforzados: `TIRAR DAÑO 3D` con gradiente cian de profundidad y micro-elevación, y `DAÑO PROMEDIO` con rayo ámbar de ejecución directa.
+  3. *`ReglasCombateHordas` (Módulo de Tablas DM)*:
+     - Banner de cabecera con medallón de espadas cruzadas y kicker heráldico del Dungeon Master.
+     - Simulador interactivo con botones de tirada de semántica cromática (Verde esmeralda para Ventaja -5, Carmesí para Desventaja +5, Cian para Normal) y panel de resultados tipo terminal táctica.
+     - Fila resaltada de la Tabla Canónica DMG con gradiente cian luminoso en vivo que se sincroniza con los cálculos del simulador.
+     - Tarjetas de directivas 5.5e en cajas modulares oscuras con títulos cian e iconos de sección.
+- **Validación y Certificación**:
+  - `pnpm vitest run src/servicios/combateHordas.test.ts src/componentes/caracteristicas/tablas/ReglasCombateHordas.test.tsx`: 8 de 8 pruebas unitarias aprobadas.
+  - `pnpm tsc --noEmit`: 0 errores de tipado estricto (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos (`< 300` líneas en todos los archivos).
+  - `pnpm run build`: Compilación con Vite completada con éxito en 15.14s.
+
+## [2026-11-11] Integración de Reglas de Combate por Hordas (D&D 5.5e) en las Tablas de DM
+
+- **Contexto**:
+  - Se solicitó añadir las reglas y la tabla oficial de combate por hordas (Mob Combat D&D 5.5e / DMG) al módulo de Tablas de DM (`TablasDM.tsx`).
+- **Decisiones Técnicas y de Diseño**:
+  1. *Subpestaña Táctica y Simulador Interactivo (`ReglasCombateHordas.tsx` y `ReglasCombateHordas.module.css`)*:
+     - Se creó el componente `ReglasCombateHordas` (260 líneas, categoría `[CORRECTO]` de CI < 300 líneas) con:
+       - **Tabla Canónica de Hordas DMG**: Desglose con intervalos de tirada d20 ($1\text{–}5$, $6\text{–}12$, $13\text{–}14$, $15\text{–}16$, $17\text{–}18$, $19$, $20$, $21+$), número de criaturas requeridas por impacto/éxito y probabilidades matemáticas.
+       - **Simulador Interactivo en Tiempo Real**: Inputs controlados para CA/CD, Bonificador de Ataque/Salvación, Miembros atacando, Multiataques por miembro, Conmutador de Ventaja/Desventaja ($\pm 5$) y fórmula de daño. Resalta en vivo la fila activa correspondiente en la tabla canónica reutilizando `calcularAtaqueHorda` de `combateHordas.ts`.
+       - **Directivas y Reglas 5.5e**: Tarjetas de consulta rápida que explican la determinación de impactos, ajuste de ventaja/desventaja, salvaciones en área y diferencias entre los modos de daño *Individual* y *Cascada*.
+  2. *Navegación en Tablas de DM (`TablasDM.tsx`, `TablasDM.module.css`, `index.ts`)*:
+     - Se añadió la subpestaña `{ id: "hordas", titulo: "Hordas", detalle: "Combate en masa · D&D 5.5e", Icono: Swords }`.
+     - Se adaptó la cuadrícula de navegación con CSS Grid a 5 columnas fluidas con media queries responsivos (3 columnas en tablet y 2 columnas en mobile).
+  3. *Resumen Ejecutivo en Reglas Básicas (`ReglasBasicas.tsx`)*:
+     - Se incorporó la tarjeta `COMBATE POR HORDAS (D&D 5.5e)` con la tabla compacta y reglas clave para acceso directo desde la consulta de reglas generales.
+- **Validación y Certificación**:
+  - `pnpm vitest run src/componentes/caracteristicas/tablas/ReglasCombateHordas.test.tsx`: 3 de 3 pruebas unitarias aprobadas.
+  - `pnpm tsc --noEmit`: 0 errores de tipado estricto.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`, sin estilos inline).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos; todos los archivos nuevos `< 300` líneas.
+  - `pnpm run build`: Compilación de producción con Vite completada con éxito en 10.21s.
+
+## [2026-11-11] Sistema de Combate por Hordas (D&D 5.5e) y Múltiples Barras de Vida por Ficha
+
+- **Contexto**:
+  - Se implementó el sistema de **Combate por Hordas (Mob Combat D&D 5.5e)** dentro del Gestor de Iniciativa del Simbionte DM, permitiendo que una sola tarjeta (`CriaturaIniciativa`) almacene múltiples barras de vida individuales y resuelva ataques masivos y salvaciones en área mediante la Tabla de Hordas del DMG.
+- **Decisiones Arquitectónicas y de Diseño (`/grill-me` & `/plan`)**:
+  1. *Motor Puro de Dominio (`src/servicios/combateHordas.ts`, 297 líneas)*:
+     - **Tabla de Hordas DMG (`obtenerCriaturasNecesariasPorExito`)**: Determina cuántos miembros se requieren por cada éxito según el objetivo en `1d20` (`1–5: 1`, `6–12: 2`, `13–14: 3`, `15–16: 4`, `17–18: 5`, `19: 10`, `20: 20`, `21+: ∞`).
+     - **Escalado de Fórmulas y Promedios (`escalarFormulaDano`, `calcularAtaqueHorda`)**: Escala dados y bonificadores planos por el número de impactos efectivos (`Math.floor(totalAtaques / criaturasPorImpacto)`), soportando ajuste $\pm 5$ por ventaja/desventaja y multiplicador de multiataques por miembro.
+     - **Doble Modo de Daño (`aplicarDanoBarrasHorda`)**:
+       - **Individual**: El daño se aplica exclusivamente a la barra activa seleccionada (`#1..#N`); el exceso (*overkill*) al llegar a `0 PG` se pierde y el selector avanza automáticamente a la siguiente barra viva.
+       - **Cascada (`cascada`)**: El daño excedente desborda automáticamente a las siguientes barras vivas de la horda.
+     - **Salvaciones en Área por Tabla de Hordas (`resolverSalvacionHordaEnArea`)**: Evalúa `CD - Bono de salvación` sobre las barras vivas dentro del área (con soporte para limitar cuántos miembros están dentro del área), repartiendo automáticamente fallos (daño completo) y éxitos (mitad de daño o `0` en evasión/nada).
+     - **Sincronización de Agregados (`sincronizarAgregadosHorda`)**: Mantiene `vidaActual`, `vidaMaxima`, `vidaTemporal` y `resumenHorda: { vivos, totales }` sincronizados en la raíz de `CriaturaIniciativa` para preservar la compatibilidad con los cálculos de porcentaje de vida y deltas de red.
+  2. *Persistencia y Sincronización Multicliente (`sanearIniciativa.ts`, `protocoloSync.ts`, `sync.ts`, `proyeccionSyncV4.ts`)*:
+     - Validación con Zod para `barrasVida`, `indiceBarraActiva`, `modoDanoHorda` y `resumenHorda`.
+     - Transmisión compacta de la tupla `hr` / `horda: [vivos, totales]` tanto en protocolo Sync v2 como en `EntidadSyncV4.grupos.datos`, permitiendo que `IniciativaJugador.tsx` muestre el badge `X / Y en pie` en tiempo real sin sobrecargar el payload de red.
+  3. *Interfaz Táctica del DM (`PanelBarrasHorda.tsx`, `ModalAtaqueHorda.tsx`, `BuscadorMonstruos.tsx`, `SelectorCondiciones.tsx`)*:
+     - Chips rápidos (`x1`, `x2`, `x3`, `x5`, `x8`, `x10`) en el buscador de monstruos para instanciar hordas en un clic.
+     - `PanelBarrasHorda.tsx`: Conversión de cualquier monstruo en horda (`+ HORDA`), selector de modo (`INDIVIDUAL` / `CASCADA`), botones para redimensionar miembros (`-`, `+`, `+5`) y cuadrícula interactiva de barras individuales (`#1..#N`).
+     - `ModalAtaqueHorda.tsx`: Asistente de ataque por Tabla de Hordas con selección de CA de combatientes activos, opción de tirar únicamente los dados de daño escalados en TaleSpire 3D o aplicar el daño promedio directo al objetivo.
+- **Validación y Certificación**:
+  - `pnpm vitest run src/servicios/combateHordas.test.ts`: 5 de 5 pruebas unitarias y de integración (incluyendo Sync v2 y Sync v4) aprobadas.
+  - `pnpm tsc --noEmit`: 0 errores de tipado estricto.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos; todos los archivos nuevos (`combateHordas.ts`, `PanelBarrasHorda.tsx`, `ModalAtaqueHorda.tsx`) por debajo de 300 líneas.
+  - `pnpm run build`: Compilación de producción completada con éxito en 10.17s.
+
 ## [2026-11-11] Integración y Fusión de la Rama druida-cambios en main
 
 - **Contexto**:

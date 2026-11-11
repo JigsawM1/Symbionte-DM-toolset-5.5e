@@ -26,7 +26,8 @@ export const EsquemaGruposSyncV4 = z.object({
       nombre: z.string().max(256) }).nullable() }),
   datos: z.object({ nombre: z.string().max(256), avatar: z.string().max(8192).optional(),
     iniciativa: z.number().finite(), ca: z.number().finite(),
-    pasivas: z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]) }),
+    pasivas: z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]),
+    horda: z.tuple([z.number().int().nonnegative(), z.number().int().positive()]).optional() }),
   acompanantes: z.array(z.object({ id: idSyncV4, miniatura: idSyncV4.nullable() })).max(256),
 });
 export type GruposSyncV4 = z.infer<typeof EsquemaGruposSyncV4>;
@@ -182,6 +183,7 @@ export const EsquemaResumenCriaturaDMWire = z.object({
   idAc: z.string().optional(),
   av: z.string().optional(),
   p: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  hr: z.tuple([z.number().int().nonnegative(), z.number().int().positive()]).optional(),
 });
 export type ResumenCriaturaDMWire = z.infer<typeof EsquemaResumenCriaturaDMWire>;
 
@@ -343,6 +345,11 @@ export function empaquetarResumenCriaturaDM(criatura: CriaturaIniciativa): Resum
       criatura.pasivas.perspicacia,
     ];
   }
+  if (criatura.barrasVida && criatura.barrasVida.length > 1) {
+    wire.hr = [criatura.barrasVida.filter((b) => b.vidaActual > 0).length, criatura.barrasVida.length];
+  } else if (criatura.resumenHorda && criatura.resumenHorda.totales > 1) {
+    wire.hr = [criatura.resumenHorda.vivos, criatura.resumenHorda.totales];
+  }
   return wire;
 }
 
@@ -368,6 +375,7 @@ export function desempaquetarResumenCriaturaDM(wire: ResumenCriaturaDMWire): Cri
     esAcompanante: wire.acomp ?? false,
     idPersonajeDuenio: wire.duenio,
     idAcompanante: wire.idAc,
+    resumenHorda: wire.hr ? { vivos: wire.hr[0], totales: wire.hr[1] } : undefined,
     pasivas: wire.p
       ? {
           percepcion: wire.p[0],

@@ -1,16 +1,18 @@
 import React, { useId, useState } from "react";
-import { BookOpen, Footprints, Sparkles, HelpCircle } from "lucide-react";
+import { BookOpen, Footprints, Sparkles, HelpCircle, Swords } from "lucide-react";
 import { DiccionarioCondiciones } from "./DiccionarioCondiciones";
 import { CalculadoraViaje } from "./CalculadoraViaje";
 import { CalculadoraSalto } from "./CalculadoraSalto";
 import { ConversorDivisas } from "./ConversorDivisas";
 import { ConsolaCriticosPifias } from "./ConsolaCriticosPifias";
 import { ReglasBasicas } from "./ReglasBasicas";
+import { ReglasCombateHordas } from "./ReglasCombateHordas";
 import estilos from "./TablasDM.module.css";
 
 const SUBPESTANAS = [
   { id: "condiciones", titulo: "Condiciones", detalle: "Estados y efectos", Icono: BookOpen },
   { id: "fisica", titulo: "Calculadoras", detalle: "Viaje, salto y divisas", Icono: Footprints },
+  { id: "hordas", titulo: "Hordas", detalle: "Combate en masa · D&D 5.5e", Icono: Swords },
   { id: "pifias", titulo: "Críticos y pifias", detalle: "Tablas de combate · d12", Icono: Sparkles },
   { id: "reglas", titulo: "Reglas básicas", detalle: "Referencia rápida", Icono: HelpCircle },
 ] as const;
@@ -57,6 +59,7 @@ export const TablasDM: React.FC = () => {
             <CalculadoraViaje /><CalculadoraSalto /><ConversorDivisas />
           </div>
         )}
+        {subCategoria === "hordas" && <ReglasCombateHordas />}
         {subCategoria === "pifias" && <ConsolaCriticosPifias />}
         {subCategoria === "reglas" && <ReglasBasicas />}
       </div>

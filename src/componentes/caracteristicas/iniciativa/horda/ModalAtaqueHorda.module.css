@@ -1,0 +1,410 @@
+/* ModalAtaqueHorda.module.css - Estilo oficial DM (DESIGN_MASTER.md) */
+
+.overlayModal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: var(--dm-overlay, rgba(0, 0, 0, 0.85));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  transition: none;
+  animation: none;
+}
+
+.contenedorModal {
+  width: 100%;
+  max-width: 530px;
+  background: var(--dm-fondo-modal, var(--color-fondo-panel));
+  border: 1px solid var(--dm-borde-cian, var(--color-borde-cian));
+  border-radius: var(--dm-radio-panel, 4px);
+  box-shadow: var(--sombra-overlay, 0 16px 40px rgba(0, 0, 0, 0.8));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  position: relative;
+  transition: none;
+  animation: none;
+}
+
+.cabeceraModal {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  padding-bottom: 8px;
+}
+
+.tituloGrupo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.medallonIcono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--dm-radio-control, 2px);
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.08));
+  border: 1px solid var(--dm-borde-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.55));
+  flex-shrink: 0;
+}
+
+.iconoEspadas {
+  color: var(--dm-cian, var(--color-borde-cian));
+}
+
+.kickerModal {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.tituloModal {
+  margin: 0;
+  font-family: var(--dm-fuente-titulo, var(--fuente-titulo));
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.subtituloModal {
+  font-size: var(--dm-fuente-minima, 12.5px);
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  display: block;
+  margin-top: 2px;
+}
+
+.subtituloModal strong {
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.botonCerrar {
+  background: transparent;
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: none;
+}
+
+.botonCerrar:hover {
+  color: var(--dm-texto-peligro, var(--color-peligro));
+  border-color: var(--dm-borde-peligro, var(--color-peligro));
+  background: var(--dm-superficie-peligro, rgba(var(--dm-rgb-peligro, 230, 25, 43), 0.12));
+}
+
+.seccionObjetivos {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.etiquetaSeccion {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+}
+
+.listaObjetivosPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 84px;
+  overflow-y: auto;
+  padding: 1px;
+}
+
+.pillObjetivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  font-size: var(--dm-fuente-minima, 12.5px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: none;
+}
+
+.pillObjetivo:hover {
+  border-color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  background: var(--dm-fondo-foco, var(--color-fondo-tarjeta-foco));
+}
+
+.pillObjetivo[data-seleccionado="true"] {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--dm-cian, var(--color-borde-cian));
+}
+
+.caPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 4px;
+  border-radius: var(--dm-radio-control, 2px);
+  background: var(--dm-superficie-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.12));
+  border: 1px solid var(--dm-borde-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.55));
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pillObjetivo[data-seleccionado="true"] .caPill {
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+  border-color: var(--dm-borde-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.55));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.rejillaParametros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.cajaParametro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-control, 2px);
+  padding: 6px 8px;
+}
+
+.labelParametro {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  text-transform: uppercase;
+}
+
+.inputParametro {
+  width: 100%;
+  height: 28px;
+  background: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  transition: none;
+}
+
+.inputParametro:focus {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  outline: none;
+}
+
+.selectorMultiataque {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+
+.botonMultiataque {
+  height: 28px;
+  background: var(--dm-fondo-hundido, hsl(222, 25%, 5%));
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: none;
+}
+
+.botonMultiataque:hover {
+  background: var(--dm-fondo-foco, var(--color-fondo-tarjeta-foco));
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.botonMultiataque[data-activo="true"] {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.filaModoTirada {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.grupoBotonesModo {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.botonModoTirada {
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: var(--dm-radio-control, 2px);
+  border: 1px solid var(--dm-borde, var(--color-borde-brutal));
+  background: var(--dm-fondo-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  cursor: pointer;
+  transition: none;
+}
+
+.botonModoTirada:hover {
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  background: var(--dm-fondo-foco, var(--color-fondo-tarjeta-foco));
+}
+
+.botonModoTirada[data-activo="true"][data-modo="plano"] {
+  border-color: var(--dm-cian, var(--color-borde-cian));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+}
+
+.botonModoTirada[data-activo="true"][data-modo="ventaja"] {
+  border-color: var(--dm-borde-exito, var(--color-exito));
+  color: var(--dm-texto-exito, var(--color-exito));
+  background: var(--dm-superficie-exito, rgba(var(--dm-rgb-exito, 21, 193, 107), 0.15));
+}
+
+.botonModoTirada[data-activo="true"][data-modo="desventaja"] {
+  border-color: var(--dm-borde-peligro, var(--color-peligro));
+  color: var(--dm-texto-peligro, var(--color-peligro));
+  background: var(--dm-superficie-peligro, rgba(var(--dm-rgb-peligro, 230, 25, 43), 0.15));
+}
+
+.panelResultadoTabla {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.35fr;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--dm-radio-panel, 4px);
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.08));
+  border: 1px solid var(--dm-borde-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.55));
+}
+
+.metricaTabla,
+.metricaTablaDestacada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.labelMetrica {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.valorMetrica {
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  font-variant-numeric: tabular-nums;
+}
+
+.valorImpactos {
+  font-family: var(--dm-fuente-codigo, var(--fuente-codigo));
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+  font-variant-numeric: tabular-nums;
+}
+
+.valorImpactos small {
+  font-size: 11px;
+  color: var(--dm-texto-apagado, var(--color-texto-apagado));
+  font-weight: 600;
+}
+
+.pieAcciones {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.botonLanzarDano3D,
+.botonDanoPromedio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--dm-radio-control, 2px);
+  font-size: var(--dm-fuente-minima, 12.5px);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: none;
+}
+
+.botonLanzarDano3D {
+  background: var(--dm-superficie-cian, rgba(var(--dm-rgb-cian, 12, 233, 203), 0.15));
+  border: 1px solid var(--dm-cian, var(--color-borde-cian));
+  color: var(--dm-texto-cian, var(--color-borde-cian));
+}
+
+.botonLanzarDano3D:hover:not(:disabled) {
+  background: rgba(var(--dm-rgb-cian, 12, 233, 203), 0.28);
+}
+
+.botonDanoPromedio {
+  background: var(--dm-superficie-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.12));
+  border: 1px solid var(--dm-borde-advertencia, rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.55));
+  color: var(--dm-texto-advertencia, var(--color-advertencia));
+}
+
+.botonDanoPromedio:hover:not(:disabled) {
+  background: rgba(var(--dm-rgb-advertencia, 249, 176, 31), 0.24);
+}
+
+.botonLanzarDano3D:disabled,
+.botonDanoPromedio:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px) {
+  .rejillaParametros {
+    grid-template-columns: 1fr;
+  }
+  .panelResultadoTabla {
+    grid-template-columns: 1fr;
+  }
+}

@@ -126,6 +126,7 @@ export interface WireCriaturaIniciativa {
   ac?: boolean; // esAcompanante
   du?: string; // idPersonajeDuenio
   acId?: string; // idAcompanante
+  hr?: [number, number]; // resumenHorda [vivos, totales]
 }
 
 export interface WireEstadoIniciativaDM {
@@ -216,6 +217,7 @@ const EsquemaWireCriaturaIniciativa = z.object({
   ac: z.boolean().optional(),
   du: z.string().nullable().optional().transform((v) => v ?? undefined),
   acId: z.string().nullable().optional().transform((v) => v ?? undefined),
+  hr: z.tuple([z.number().int().nonnegative(), z.number().int().positive()]).optional(),
 });
 
 const EsquemaWireEstadoIniciativaDM = z.object({
@@ -446,6 +448,11 @@ export function serializarIniciativaDM(dm: EstadoIniciativaDM): WireEstadoInicia
 
       if (criatura.esMonstruo) {
         item.m = true;
+        if (criatura.barrasVida && criatura.barrasVida.length > 1) {
+          item.hr = [criatura.barrasVida.filter((b) => b.vidaActual > 0).length, criatura.barrasVida.length];
+        } else if (criatura.resumenHorda && criatura.resumenHorda.totales > 1) {
+          item.hr = [criatura.resumenHorda.vivos, criatura.resumenHorda.totales];
+        }
       } else {
         if (criatura.ca !== undefined && criatura.ca !== 10) item.ca = criatura.ca;
         if (criatura.bonificadorIniciativa) item.bon = criatura.bonificadorIniciativa;
@@ -497,6 +504,7 @@ export function deserializarIniciativaDM(wire: WireEstadoIniciativaDM): EstadoIn
       esAcompanante: Boolean(w.ac),
       idPersonajeDuenio: w.du ?? undefined,
       idAcompanante: w.acId ?? undefined,
+      resumenHorda: w.hr ? { vivos: w.hr[0], totales: w.hr[1] } : undefined,
     })),
     indiceTurnoActivo: wire.t ?? 0,
     rondaActual: wire.r ?? 1,

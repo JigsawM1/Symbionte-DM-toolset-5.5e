@@ -65,6 +65,35 @@ export const ReglasBasicas: React.FC = () => {
           Cuando se le acaba el aire, sobrevive una cantidad de asaltos igual a su <strong>modificador de Constitución</strong> (mínimo 1 asalto). Al inicio de su siguiente turno, cae a <strong>0 Puntos de Golpe</strong> y empieza a morir (realizar salvaciones de muerte).
         </div>
       </div>
+
+      <div className={estilosClases.tarjetaReglaBrutal}>
+        <div className={estilosClases.cabeceraReglaBrutal}>COMBATE POR HORDAS (D&D 5.5e)</div>
+        <div className={estilosClases.textoCuerpoRegla}>
+          Permite resolver ataques y salvaciones masivas sin tiradas individuales mediante la <strong>Tabla de Hordas DMG</strong> (consulta la pestaña dedicada <em>Hordas</em> para el simulador completo):
+        </div>
+        <table className={estilosClases.tablaRegla}>
+          <thead>
+            <tr className={estilosClases.filaTablaReglaHead}>
+              <th>d20 NECESARIO (CA/CD - BONO)</th>
+              <th>CRIATURAS / IMPACTO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className={estilosClases.filaTablaRegla}><td>1 – 5</td><td className="dato-numerico">1</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>6 – 12</td><td className="dato-numerico">2</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>13 – 14</td><td className="dato-numerico">3</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>15 – 16</td><td className="dato-numerico">4</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>17 – 18</td><td className="dato-numerico">5</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>19</td><td className="dato-numerico">10</td></tr>
+            <tr className={estilosClases.filaTablaRegla}><td>20</td><td className="dato-numerico">20</td></tr>
+          </tbody>
+        </table>
+        <div className={estilosClases.textoCuerpoRegla}>
+          • <strong>Ventaja / Desventaja:</strong> Ajusta en <strong>±5</strong> el objetivo del d20 requerido.<br />
+          • <strong>Salvaciones en área:</strong> Misma tabla con <code>CD - Salvación</code>; los éxitos sufren mitad de daño y los fallos daño completo.<br />
+          • <strong>Salud:</strong> Modo <em>Individual</em> (overkill perdido) o <em>Cascada</em> (el exceso desborda al siguiente vivo).
+        </div>
+      </div>
     </div>
   );
 };

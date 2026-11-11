@@ -9,6 +9,7 @@ import {
 import { CONDICIONES_2024, EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import type { Caracteristica } from "@/tipos";
 import type { ResultadoSalvacionArea } from "@/almacen/slices/sliceIniciativa";
+import { esCriaturaHorda } from "@/servicios/combateHordas";
 import { ShieldAlert, X } from "lucide-react";
 import estilosClases from "./SelectorCondiciones.module.css";
 
@@ -50,6 +51,7 @@ export const SelectorCondiciones: React.FC = () => {
   const [dropdownCaracAbierto, setDropdownCaracAbierto] = useState(false);
   const [dropdownMitigAbierto, setDropdownMitigAbierto] = useState(false);
   const [resultadoSalvacion, setResultadoSalvacion] = useState<ResultadoSalvacionArea | null>(null);
+  const [limiteMiembrosHorda, setLimiteMiembrosHorda] = useState("");
 
   // Criaturas de TaleSpire seleccionadas que coinciden en la cola de iniciativa
   const seleccionadasEnCola = (criaturasSeleccionadas || []).filter((s) =>
@@ -63,9 +65,7 @@ export const SelectorCondiciones: React.FC = () => {
 
   // Determinar los IDs de las criaturas objetivo
   const resolverIdsObjetivo = (): string[] | undefined => {
-    if (modoEfectivo === "SELECCION") {
-      return seleccionadasEnCola.map((s) => s.id);
-    }
+    if (modoEfectivo === "SELECCION") return seleccionadasEnCola.map((s) => s.id);
     if (modoEfectivo === "ACTIVO") {
       const act = colaIniciativa[indiceTurnoActivo];
       return act ? [act.id] : undefined;
@@ -75,22 +75,22 @@ export const SelectorCondiciones: React.FC = () => {
 
   // Etiqueta para el botón de objetivo
   const obtenerEtiquetaTarget = (): string => {
-    if (modoEfectivo === "SELECCION") {
-      return `SELECCIÓN (${numSeleccionadas})`;
-    }
-    if (modoEfectivo === "ACTIVO") {
-      return "[ACTIVO]";
-    }
+    if (modoEfectivo === "SELECCION") return `SELECCIÓN (${numSeleccionadas})`;
+    if (modoEfectivo === "ACTIVO") return "[ACTIVO]";
     const cri = colaIniciativa.find((c) => c.id === modoEfectivo);
     return cri ? (cri.nombre.length > 13 ? cri.nombre.substring(0, 13) + "..." : cri.nombre) : "[ACTIVO]";
   };
 
   // Daño y Curación en Área Directo
+  const idsActuales = resolverIdsObjetivo();
+  const hayHordaEnObjetivo = colaIniciativa.some((c) => idsActuales?.includes(c.id) && esCriaturaHorda(c));
+  const numLimiteHorda = Number(limiteMiembrosHorda) > 0 ? Math.trunc(Number(limiteMiembrosHorda)) : undefined;
+
   const manejarAplicarDaño = (esCuracion: boolean) => {
     const val = Number(cantidadDaño);
     if (isNaN(val) || val <= 0) return;
     const finalCantidad = esCuracion ? -val : val;
-    aplicarDañoEnArea(finalCantidad, resolverIdsObjetivo());
+    aplicarDañoEnArea(finalCantidad, idsActuales, numLimiteHorda);
     setCantidadDaño("");
   };
 
@@ -153,7 +153,8 @@ export const SelectorCondiciones: React.FC = () => {
       dañoBruto,
       condicionObj,
       mitigacionSalvacion,
-      resolverIdsObjetivo()
+      idsActuales,
+      numLimiteHorda
     );
 
     if (res) {
@@ -184,33 +185,15 @@ export const SelectorCondiciones: React.FC = () => {
 
         {dropdownTargetAbierto && (
           <div className={estilosClases.dropdownDestinatarios}>
-            <div
-              onClick={() => {
-                setTargetModo("AUTO");
-                setDropdownTargetAbierto(false);
-              }}
-              className={estilosClases.dropdownItemActivo}
-            >
+            <div onClick={() => { setTargetModo("AUTO"); setDropdownTargetAbierto(false); }} className={estilosClases.dropdownItemActivo}>
               AUTO ({numSeleccionadas > 0 ? `SELECCIÓN ${numSeleccionadas}` : "ACTIVO"})
             </div>
             {numSeleccionadas > 0 && (
-              <div
-                onClick={() => {
-                  setTargetModo("SELECCION");
-                  setDropdownTargetAbierto(false);
-                }}
-                className={estilosClases.dropdownItemSeleccion}
-              >
+              <div onClick={() => { setTargetModo("SELECCION"); setDropdownTargetAbierto(false); }} className={estilosClases.dropdownItemSeleccion}>
                 SELECCIÓN TALESPIRE ({numSeleccionadas})
               </div>
             )}
-            <div
-              onClick={() => {
-                setTargetModo("ACTIVO");
-                setDropdownTargetAbierto(false);
-              }}
-              className={estilosClases.dropdownItemActivo}
-            >
+            <div onClick={() => { setTargetModo("ACTIVO"); setDropdownTargetAbierto(false); }} className={estilosClases.dropdownItemActivo}>
               TURNO ACTIVO
             </div>
             {colaIniciativa.map((cri) => (
@@ -236,6 +219,17 @@ export const SelectorCondiciones: React.FC = () => {
 
       {/* 2. Sección de Daño / Curación Directa */}
       <div className={estilosClases.seccionDaño}>
+        {hayHordaEnObjetivo && (
+          <CampoNumerico
+            min="1"
+            value={limiteMiembrosHorda}
+            alConfirmar={(valor) => setLimiteMiembrosHorda(String(valor))}
+            placeholder="Miem."
+            className={estilosClases.inputCD}
+            title="Miembros de la horda dentro del área (vacío = todos los vivos)"
+            alVaciar={() => setLimiteMiembrosHorda("")}
+          />
+        )}
         <CampoNumerico
           min="0"
           value={cantidadDaño}
@@ -392,24 +386,14 @@ export const SelectorCondiciones: React.FC = () => {
           {dropdownMitigAbierto && (
             <div className={`${estilosClases.dropdownCustomMenu} ${estilosClases.dropdownMitigMenu}`}>
               <div
-                onClick={() => {
-                  setMitigacionSalvacion("mitad");
-                  setDropdownMitigAbierto(false);
-                }}
-                className={`${estilosClases.dropdownCustomItem} ${
-                  mitigacionSalvacion === "mitad" ? estilosClases.dropdownCustomItemActivo : ""
-                }`}
+                onClick={() => { setMitigacionSalvacion("mitad"); setDropdownMitigAbierto(false); }}
+                className={`${estilosClases.dropdownCustomItem} ${mitigacionSalvacion === "mitad" ? estilosClases.dropdownCustomItemActivo : ""}`}
               >
                 1/2 DAÑO EN ÉXITO
               </div>
               <div
-                onClick={() => {
-                  setMitigacionSalvacion("nada");
-                  setDropdownMitigAbierto(false);
-                }}
-                className={`${estilosClases.dropdownCustomItem} ${
-                  mitigacionSalvacion === "nada" ? estilosClases.dropdownCustomItemActivo : ""
-                }`}
+                onClick={() => { setMitigacionSalvacion("nada"); setDropdownMitigAbierto(false); }}
+                className={`${estilosClases.dropdownCustomItem} ${mitigacionSalvacion === "nada" ? estilosClases.dropdownCustomItemActivo : ""}`}
               >
                 0 DAÑO EN ÉXITO
               </div>
@@ -443,14 +427,25 @@ export const SelectorCondiciones: React.FC = () => {
             {resultadoSalvacion.resultados.map((r) => (
               <div key={r.id} className={estilosClases.filaResultadoSalvacion}>
                 <span className={estilosClases.nombreResumen}>{r.nombre}:</span>
-                <span className={estilosClases.formulaTirada}>
-                  d20({r.d20}){r.bono >= 0 ? `+${r.bono}` : r.bono} = <strong>{r.total}</strong>
-                </span>
-                <span
-                  className={r.exito ? estilosClases.badgeExito : estilosClases.badgeFallo}
-                >
-                  {r.exito ? "ÉXITO" : "FALLO"}
-                </span>
+                {r.detalleHorda ? (
+                  <>
+                    <span className={estilosClases.formulaTirada}>
+                      d20≥{r.detalleHorda.d20Necesario} · <strong>{r.detalleHorda.exitos}✓ / {r.detalleHorda.fallos}✗</strong>
+                    </span>
+                    <span className={r.detalleHorda.fallos === 0 ? estilosClases.badgeExito : estilosClases.badgeFallo}>
+                      HORDA ({r.detalleHorda.afectados})
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className={estilosClases.formulaTirada}>
+                      d20({r.d20}){r.bono >= 0 ? `+${r.bono}` : r.bono} = <strong>{r.total}</strong>
+                    </span>
+                    <span className={r.exito ? estilosClases.badgeExito : estilosClases.badgeFallo}>
+                      {r.exito ? "ÉXITO" : "FALLO"}
+                    </span>
+                  </>
+                )}
                 {r.dañoSufrido !== undefined && (
                   <span className={estilosClases.textoDanoSalvacion}>
                     (-{r.dañoSufrido} HP)

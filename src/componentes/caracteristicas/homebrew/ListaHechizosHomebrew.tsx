@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -45,27 +45,28 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
     setLimiteVista(LIMITE_PASO);
   }, [filtroBusqueda, criterioOrden]);
 
-  const hechizosSinFiltro = soloLectura
-    ? baseDatosHechizos
-    : baseDatosHechizos.filter((h) => !IDS_INICIALES_HECHIZOS.has(h.id));
+  // ponytail / vercel-best-practices: memoizar filtrado y ordenamiento de conjuros (390+ elementos)
+  // combinando iteraciones en un solo paso (js-combine-iterations) y evitando recomputaciones en re-renders.
+  const hechizosOrdenados = useMemo(() => {
+    const filtrados = baseDatosHechizos.filter((h) => {
+      if (!soloLectura && IDS_INICIALES_HECHIZOS.has(h.id)) return false;
+      return coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda);
+    });
 
-  const hechizosFiltrados = hechizosSinFiltro.filter((h) =>
-    coincideBusquedaTolerante([h.nombre, h.escuela, h.descripcion], filtroBusqueda)
-  );
-
-  const hechizosOrdenados = hechizosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (h) => h.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (h) => [h.escuela, h.descripcion]
-    )
-  );
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (h) => h.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") {
+            return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          }
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        },
+        (h) => [h.escuela, h.descripcion]
+      )
+    );
+  }, [baseDatosHechizos, soloLectura, filtroBusqueda, criterioOrden]);
 
   const hechizosVisibles = hechizosOrdenados.slice(0, limiteVista);
 

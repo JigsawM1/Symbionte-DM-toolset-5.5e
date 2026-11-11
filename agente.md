@@ -15608,3 +15608,40 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
 - Las filas físicas provisionales no deben sustituir los PV de una ficha recién afiliada. Una lectura pendiente de `getQueue` tampoco debe pasar al contexto nuevo ni limpiar su caché vigente.
 - Archivar antes de migrar: memoria local de formato 2 conserva metadatos confirmados; los originales permanecen descargables/importables sin reenvío. Recuperación de fichas por decisión del dueño; monstruos por decisión del director.
 - Conservar las adiciones anteriores de este archivo y de AGENTS.md. Evidencias y límites de aceptación nativa: `informes/implementacion-contextos-cola-v4-2026-11-08.md`. No equiparar CI/simulación/renderizado estático con TaleSpire/CEF real.
+
+
+## [2026-11-11] Evaluación técnica y factibilidad de integración de ramas Bolt
+
+- Ramas evaluadas:
+  1. `origin/bolt-memoize-monstruos-homebrew-6303494551338067086` (commit `3c650e8`): memoización en `ListaMonstruosHomebrew.tsx`.
+  2. `origin/bolt-optimizar-comparar-relevancia-15817075335101745885` (commit `359eaf1`): optimización de `compararPorRelevanciaTitulo` en `src/utiles/busquedaTolerante.ts` y test unitario en `busquedaTolerante.test.ts`.
+  3. `origin/bolt/memoizar-listas-homebrew-18285933554412304901` (commit `9398ec9`): memoización completa en `ListaHechizosHomebrew.tsx`, `ListaMonstruosHomebrew.tsx` y `ListaObjetosHomebrew.tsx`.
+- Relación y solapamiento:
+  - La rama 1 es un subconjunto estricto y redundante de la rama 3. La rama 3 absorbe y amplía la optimización a las 3 listas homebrew (monstruos, hechizos y objetos).
+  - La rama 2 actúa sobre un archivo ortogonal (`busquedaTolerante.ts`), beneficiando transversalmente a todas las listas compendio/homebrew que usan ordenamiento por relevancia.
+- Verificación técnica y viabilidad:
+  - Integrabilidad en Git: 100% limpia sin conflictos con `main` (`git apply --check` y `git merge-tree` limpios).
+  - TypeScript: `pnpm exec tsc --noEmit` exit 0 (0 errores de tipado estricto).
+  - ESLint: 0 errores, 0 advertencias con `--max-warnings=0`.
+  - Pruebas unitarias: 190 suites y 2765 pruebas superadas exitosamente (salida 0).
+  - Límites de tamaño (CI): `verificar-limite-lineas.js` aprobado (`busquedaTolerante.ts` en 329 líneas, umbral < 500).
+  - Compilación de producción: `pnpm run build` (Vite v5.4.21) completado con éxito en 13.17s.
+- Dictamen arquitectónico: Factibilidad ALTA. Se recomienda descartar la rama 1 por redundancia e incorporar la rama 2 y la rama 3.
+
+### Revisión /ponytail & /vercel-react-best-practices e Integración Quirúrgica
+
+- Revisión bajo `/vercel-react-best-practices`:
+  - `rerender-memo`: se valida la necesidad de memoizar las listas ordenadas (`hechizosOrdenados`, `monstruosOrdenados`, `objetosOrdenados`), evitando cálculos computacionalmente caros en listas de 200 a 520 elementos ante re-renders secundarios de UI.
+  - `rerender-simple-expression-in-memo`: se corrigió el anti-patrón de Bolt de envolver `array.slice(0, limiteVista)` en `useMemo`. Al mapearse directamente en el JSX sin pasar por componentes memoizados, el `useMemo` en el `.slice()` agregaba sobrecarga de closures y dependencias sin ningún beneficio. Se mantuvo como expresión directa.
+  - `js-combine-iterations`: se refactorizó el filtrado en las tres listas para ejecutar un solo pase `.filter()` en lugar de dos iteraciones con array intermedio (`!IDS_INICIALES` + `coincideBusquedaTolerante`).
+  - `js-early-exit` & `js-cache-function-results`: la elevación (`hoisting`) de tokens y consulta normalizada en `compararPorRelevanciaTitulo` reduce drásticamente las operaciones por segundo durante el ordenamiento.
+- Revisión bajo `/ponytail`:
+  - En la rama original de Bolt, se duplicaron 40 líneas de cálculo de relevancia copiadas de `calcularRelevanciaBusqueda` en `compararPorRelevanciaTitulo`.
+  - Se aplicó la regla de DRY y código mínimo: se extrajo la función pura `calcularPuntajeTitulo(tituloNorm, consultaNorm, tokens)` para compartir la lógica de puntuación de títulos entre ambas funciones.
+  - Se simplificó la comparación de Desafío (CR) en monstruos mediante resta directa `parsearCR(a.desafio) - parsearCR(b.desafio)` respetando el sentido ascendente/descendente y evitando 15 líneas de ramas condicionales redundantes.
+- Verificación técnica final:
+  - TypeScript: `pnpm exec tsc --noEmit` salida 0.
+  - ESLint: 0 errores y 0 advertencias.
+  - Vitest: 190 suites y 2765 pruebas aprobadas (100%).
+  - Límite de líneas: `scripts/verificar-limite-lineas.js` [ÉXITO CI]. `busquedaTolerante.ts` reducida a 315 líneas.
+  - Compilación de producción: Vite completó la generación de bundles en 10.17s reduciendo el tamaño final de los chunks.

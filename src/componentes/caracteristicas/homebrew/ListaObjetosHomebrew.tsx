@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -52,27 +52,28 @@ export const ListaObjetosHomebrew: React.FC<ListaObjetosHomebrewProps> = ({
     setLimiteVista(LIMITE_PASO);
   }, [filtroBusqueda, criterioOrden]);
 
-  const objetosSinFiltro = soloLectura
-    ? objetosHomebrew
-    : objetosHomebrew.filter((o) => !IDS_INICIALES_OBJETOS.has(o.id));
+  // ponytail / vercel-best-practices: memoizar filtrado y ordenamiento de objetos (200+ elementos),
+  // combinando iteraciones en un solo paso (js-combine-iterations) y evitando recomputaciones en re-renders.
+  const objetosOrdenados = useMemo(() => {
+    const filtrados = objetosHomebrew.filter((o) => {
+      if (!soloLectura && IDS_INICIALES_OBJETOS.has(o.id)) return false;
+      return coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria, o.descripcion], filtroBusqueda);
+    });
 
-  const objetosFiltrados = objetosSinFiltro.filter((o) =>
-    coincideBusquedaTolerante([o.nombre, o.categoria, o.subcategoria, o.descripcion], filtroBusqueda)
-  );
-
-  const objetosOrdenados = objetosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (o) => o.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (o) => [o.categoria, o.subcategoria, o.descripcion]
-    )
-  );
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (o) => o.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") {
+            return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          }
+          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+        },
+        (o) => [o.categoria, o.subcategoria, o.descripcion]
+      )
+    );
+  }, [objetosHomebrew, soloLectura, filtroBusqueda, criterioOrden]);
 
   const objetosVisibles = objetosOrdenados.slice(0, limiteVista);
 

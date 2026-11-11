@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
   usarEstadoHomebrew,
@@ -89,37 +89,30 @@ export const ListaMonstruosHomebrew: React.FC<ListaMonstruosHomebrewProps> = ({
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
   };
 
-  const monstruosSinFiltro = soloLectura
-    ? baseDatosMonstruos
-    : baseDatosMonstruos.filter((m) => !IDS_INICIALES_MONSTRUOS.has(m.id));
+  // ponytail / vercel-best-practices: memoizar filtrado y ordenamiento de 520+ criaturas,
+  // combinando iteraciones en un solo paso (js-combine-iterations) y simplificando comparación de CR.
+  const monstruosOrdenados = useMemo(() => {
+    const filtrados = baseDatosMonstruos.filter((m) => {
+      if (!soloLectura && IDS_INICIALES_MONSTRUOS.has(m.id)) return false;
+      return coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion, m.tamaño], filtroBusqueda);
+    });
 
-  const monstruosFiltrados = monstruosSinFiltro.filter((m) =>
-    coincideBusquedaTolerante([m.nombre, m.tipo, m.alineacion, m.tamaño], filtroBusqueda)
-  );
-
-  const monstruosOrdenados = monstruosFiltrados.sort(
-    compararPorRelevanciaTitulo(
-      (m) => m.nombre,
-      filtroBusqueda,
-      (a, b) => {
-        if (criterioOrden === "nombre-desc") {
-          return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
-        } else if (criterioOrden === "cr-asc") {
-          const crA = parsearCR(a.desafio);
-          const crB = parsearCR(b.desafio);
-          if (crA !== crB) return crA - crB;
+    return filtrados.sort(
+      compararPorRelevanciaTitulo(
+        (m) => m.nombre,
+        filtroBusqueda,
+        (a, b) => {
+          if (criterioOrden === "nombre-desc") return b.nombre.localeCompare(a.nombre, "es", { sensitivity: "base" });
+          if (criterioOrden === "cr-asc" || criterioOrden === "cr-desc") {
+            const crDiff = parsearCR(a.desafio) - parsearCR(b.desafio);
+            if (crDiff !== 0) return criterioOrden === "cr-asc" ? crDiff : -crDiff;
+          }
           return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-        } else if (criterioOrden === "cr-desc") {
-          const crA = parsearCR(a.desafio);
-          const crB = parsearCR(b.desafio);
-          if (crA !== crB) return crB - crA;
-          return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-        }
-        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-      },
-      (m) => [m.tipo, m.alineacion, m.tamaño]
-    )
-  );
+        },
+        (m) => [m.tipo, m.alineacion, m.tamaño]
+      )
+    );
+  }, [baseDatosMonstruos, soloLectura, filtroBusqueda, criterioOrden]);
 
   const monstruosVisibles = monstruosOrdenados.slice(0, limiteVista);
 

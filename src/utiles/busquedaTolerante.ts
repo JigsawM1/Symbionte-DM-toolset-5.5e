@@ -198,6 +198,34 @@ export function desduplicarEntidades<T extends { id: string; nombre: string }>(
  * - 100: Coincidencia exclusiva en campos secundarios (descripción, tipo, notas, etc.)
  * - 0: Sin coincidencia
  */
+/**
+ * Evalúa el puntaje de coincidencia sobre un título pre-normalizado con tokens de consulta.
+ * ponytail: función pura extraída para evitar duplicar reglas de puntuación entre
+ * calcularRelevanciaBusqueda y compararPorRelevanciaTitulo.
+ */
+function calcularPuntajeTitulo(
+  tituloNorm: string,
+  consultaNorm: string,
+  tokens: string[]
+): number {
+  if (!tituloNorm) return 0;
+  if (tituloNorm === consultaNorm) return 1000;
+  if (tituloNorm.startsWith(consultaNorm)) return 800;
+  if (tituloNorm.includes(consultaNorm)) return 600;
+
+  let coincidencias = 0;
+  const numTokens = tokens.length;
+  for (let i = 0; i < numTokens; i++) {
+    if (tituloNorm.includes(tokens[i])) {
+      coincidencias++;
+    }
+  }
+
+  if (coincidencias === numTokens) return 400;
+  if (coincidencias > 0) return 300;
+  return 0;
+}
+
 export function calcularRelevanciaBusqueda(
   titulo: string | undefined | null,
   consulta: string,
@@ -206,30 +234,15 @@ export function calcularRelevanciaBusqueda(
   if (!consulta || !consulta.trim()) return 0;
   // ponytail: reutiliza tokens cacheados para evitar split/regex repetitivo en bucles .sort()
   const tokens = obtenerTokensConsulta(consulta);
-  const numTokens = tokens.length;
-  if (numTokens === 0) return 0;
+  if (tokens.length === 0) return 0;
 
   const consultaNorm = normalizarParaBusqueda(consulta);
   const tituloNorm = normalizarParaBusqueda(titulo || "");
 
-  if (tituloNorm) {
-    if (tituloNorm === consultaNorm) return 1000;
-    if (tituloNorm.startsWith(consultaNorm)) return 800;
-    if (tituloNorm.includes(consultaNorm)) return 600;
+  const rel = calcularPuntajeTitulo(tituloNorm, consultaNorm, tokens);
+  if (rel > 0) return rel;
 
-    let coincidencias = 0;
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-      if (tituloNorm.includes(t)) {
-        coincidencias++;
-      }
-    }
-
-    if (coincidencias === numTokens) return 400;
-    if (coincidencias > 0) return 300;
-  }
-
-  // Comprobar coincidencia en campos secundarios si se proporcionan
+  // Comprobar coincidencia en campos secundarios si se proporcionan (evaluación perezosa)
   if (secundarios && secundarios.length > 0) {
     const coincideSecundarios = coincideBusquedaTolerante(secundarios, consulta);
     if (coincideSecundarios) return 100;
@@ -253,14 +266,30 @@ export function compararPorRelevanciaTitulo<T>(
     return desempate || (() => 0);
   }
 
+  // ponytail / bolt: hoisting de tokens y consulta normalizada fuera del comparador interno
+  const tokens = obtenerTokensConsulta(consulta);
+  if (tokens.length === 0) {
+    return desempate || (() => 0);
+  }
+  const consultaNorm = normalizarParaBusqueda(consulta);
+
   const cacheRelevancia = new Map<T, number>();
 
   const obtenerRelevancia = (item: T): number => {
     let rel = cacheRelevancia.get(item);
     if (rel === undefined) {
       const titulo = obtenerTitulo(item);
-      const sec = obtenerSecundarios ? obtenerSecundarios(item) : undefined;
-      rel = calcularRelevanciaBusqueda(titulo, consulta, sec);
+      const tituloNorm = normalizarParaBusqueda(titulo || "");
+      rel = calcularPuntajeTitulo(tituloNorm, consultaNorm, tokens);
+
+      // Evaluación perezosa: solo verificar campos secundarios si el título no coincidió
+      if (rel === 0 && obtenerSecundarios) {
+        const sec = obtenerSecundarios(item);
+        if (sec && sec.length > 0 && coincideBusquedaTolerante(sec, consulta)) {
+          rel = 100;
+        }
+      }
+
       cacheRelevancia.set(item, rel);
     }
     return rel;

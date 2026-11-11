@@ -9,7 +9,8 @@ import { mutarPersonaje } from "../helpers/mutarPersonaje";
 import type { SubSliceCondiciones } from "./slicePersonajesTipos";
 import {
   activarRasgosPorCondicionOEfecto,
-  desactivarRasgosPorCondicionOEfecto
+  desactivarRasgosPorCondicionOEfecto,
+  coincideCondicionConRasgo
 } from "./condicionesRasgosHelpers";
 import { EFECTOS_PREDEFINIDOS } from "@/utiles/datosIniciales";
 import { generarId } from "@/utiles/generarId";
@@ -255,14 +256,11 @@ export const crearSubSliceCondiciones: StateCreator<
       };
 
       const rasgoForma = obtenerRasgoFormaBestia(pj);
-      const condForma = (rasgoForma?.condicionAlActivar || "Forma salvaje").toLowerCase().trim();
-      const esCondicionFormaSalvaje =
-        normalizada.includes("forma salvaje") ||
-        normalizada.includes("wild shape") ||
-        normalizada === condForma;
-
-      if (esCondicionFormaSalvaje && pj.formaSalvaje?.formaActivaId) {
-        pjObjetivo = terminarFormaBestia(pjObjetivo);
+      if (rasgoForma && pj.formaSalvaje?.formaActivaId) {
+        const condForma = (rasgoForma.condicionAlActivar || "Forma salvaje").toLowerCase().trim();
+        if (normalizada === condForma || coincideCondicionConRasgo(condicion, rasgoForma)) {
+          pjObjetivo = terminarFormaBestia(pjObjetivo);
+        }
       }
 
       return pjObjetivo;

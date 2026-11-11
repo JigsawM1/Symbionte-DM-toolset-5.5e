@@ -9,18 +9,22 @@
      - **Centralización de Reversión Reactiva**: Se creó la función pura `verificarReversionHpTemporal` en `reglasFormaSalvaje.ts`, eliminando 5 repeticiones de la guarda `if (temp === 0 && pj.formaSalvaje?.formaActivaId && ...)` en `sliceVitalidad.ts` y `sincronizadorVidaIniciativa.ts`.
      - **Sincronización de Vida Temporal en Iniciativa**: Se extrajo el helper `sincronizarVidaTemporalEnIniciativa` en `sincronizadorVidaIniciativa.ts`, erradicando 3 bloques idénticos de mutación de `colaIniciativa` en `sliceFormaSalvaje.ts` y `sliceCondiciones.ts`.
      - **Purga Unificada de Estados**: En `estadoCondicionesRasgos.ts`, se unificó la desactivación de rasgos y purga de condiciones/efectos en `purgarEstadosDeRasgos`, compartida entre `finalizarRasgosDelTurno` y `finalizarRasgosAlDescansar`.
-  2. *Optimizaciones de Rendimiento (Vercel Best Practices)*:
+  2. *Optimizaciones de Rendimiento y Erradicación de Sobreingeniería (Vercel Best Practices & Ponytail)*:
+     - **Eliminación de Wrapper Redundante (`ModalFichaOficialBestia.tsx`)**: Se eliminó este componente passthrough de 87 líneas, integrando la inspección oficial de la bestia directamente en `PanelFormaSalvaje.tsx` (273 líneas, manteniéndose en categoría `[CORRECTO]` de CI).
+     - **OCP en Manejo de Condiciones (`sliceCondiciones.ts`)**: Se eliminaron las cadenas mágicas hardcodeadas (`"forma salvaje"`, `"wild shape"`), utilizando la función declarativa canónica `coincideCondicionConRasgo(condicion, rasgoForma)`.
+     - **Optimización de Ciclo de Render en Modal (`ModalGestionFormasSalvajes.tsx`)**: Se sustituyeron búsquedas anidadas $O(N^3)$ en el `.map` por comprobaciones con `Set` (`disponiblesSet`, `seleccionBorradorSet`), reduciendo la complejidad del render a $O(N)$.
      - **`js-set-map-lookups`**: En `sliceFormaSalvaje.ts:establecerFormasConocidasDruida`, se sustituyeron búsquedas anidadas $O(M \times N)$ (`elegibles.some(...)`) por un `Set` con comprobaciones $O(1)$.
      - **`js-cache-function-results` / `native`**: En `ModalGestionFormasSalvajes.tsx` y `PanelFormaSalvaje.tsx`, se elevó fuera del componente la instancia estática `const comparadorEspanol = new Intl.Collator("es", { sensitivity: "base" }).compare;`, eliminando instanciaciones de comparador por cada comparación y render.
      - **Memoización de Índices Numéricos de Orden**: En `ModalGestionFormasSalvajes.tsx`, se precalculó un mapa `vdsNumericos` (`Map<string, number>`) evitando evaluar `convertirVDANumero` $O(N \log N)$ veces en el callback de `.sort()`.
      - **`rerender-simple-expression-in-memo`**: En `SeccionRasgosAtaque.tsx`, se unificaron 5 hooks `useMemo` casi idénticos en un predicado único `esVisibleDeClase` con `useCallback`.
      - **Eliminación de Búsqueda Dinámica**: En `reglasFormaSalvaje.ts:calcularReglasFormaSalvaje`, se introdujo la constante `PROGRESION_FORMA_SALVAJE_BASE`, evitando el recorrido dinámico del catálogo de clases en tiempo de ejecución.
+     - **Compactación de CSS**: En `PanelFormaSalvaje.module.css`, se eliminó la sección duplicada de modal para reutilizar `.modalSelector*`, reduciendo 65 líneas de estilos redundantes.
 - **Validación y Certificación**:
   - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
   - `pnpm run lint`: 0 errores y 0 warnings con `--max-warnings=0`.
   - `vitest`: 99 de 99 pruebas pasadas con 100% de éxito en todas las suites afectadas.
-  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas de tamaño de archivos.
-  - `pnpm run build`: Compilación de producción con Vite exitosa en 9.88s.
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas de tamaño de archivos; `PanelFormaSalvaje.tsx` reducido a 273 líneas (`[CORRECTO]`).
+  - `pnpm run build`: Compilación de producción con Vite exitosa en 9.94s (2.221 módulos transformados, 1 menos por eliminación de wrapper).
 
 ## [2026-11-10] Compactación y Densidad Táctica del Modal de Forma Salvaje para TaleSpire CEF (599px)
 

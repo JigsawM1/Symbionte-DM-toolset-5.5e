@@ -7,17 +7,18 @@ import {
   obtenerRasgoFormaBestia,
   obtenerBestiasElegiblesCompendio,
   obtenerBestiaFormaActiva,
-  convertirVDANumero
+  convertirVDANumero,
+  extraerSentidosBestia
 } from "@/servicios/reglasFormaSalvaje";
 import { MONSTRUOS_INICIALES } from "@/utiles/datosIniciales";
-import { PawPrint, SlidersHorizontal } from "lucide-react";
+import { PawPrint, SlidersHorizontal, X, Zap } from "lucide-react";
+import { PanelFichaDnD } from "@/componentes/caracteristicas/iniciativa/PanelFichaDnD";
 import {
   HudReglasFormaSalvaje,
   BannerFormaActiva,
   TarjetaBestiaReserva,
   ModalGestionFormasSalvajes,
-  ModalPrepararTransformacion,
-  ModalFichaOficialBestia
+  ModalPrepararTransformacion
 } from "./formaSalvaje";
 import estilos from "./PanelFormaSalvaje.module.css";
 
@@ -249,13 +250,48 @@ export const PanelFormaSalvaje: React.FC<PanelFormaSalvajeProps> = ({
 
       {/* Modal Ficha Oficial de Bestia (PanelFichaDnD) */}
       {bestiaFichaModal && (
-        <ModalFichaOficialBestia
-          bestia={bestiaFichaModal}
-          alCerrar={() => setBestiaFichaModal(null)}
-          alAdoptar={prepararTransformacion}
-          estaActiva={bestiaActiva?.id === bestiaFichaModal.id}
-          puedeAdoptar={usosRestantes > 0 && bestiasDisponibles.some((b) => b.id === bestiaFichaModal.id)}
-        />
+        <div className={estilos.modalSelectorOverlay} onClick={() => setBestiaFichaModal(null)}>
+          <div className={estilos.modalSelectorContenido} onClick={(e) => e.stopPropagation()}>
+            <header className={estilos.modalSelectorHeader}>
+              <div className={estilos.modalTituloBloque}>
+                <PawPrint size={18} className={estilos.iconoEmblema} />
+                <h3 className={estilos.modalTituloTexto}>Ficha Oficial: {bestiaFichaModal.nombre}</h3>
+              </div>
+              <button type="button" onClick={() => setBestiaFichaModal(null)} className={estilos.botonCerrarModal} title="Cerrar ficha">
+                <X size={18} />
+              </button>
+            </header>
+            <div className={estilos.modalSelectorBody}>
+              <PanelFichaDnD
+                criaturaNombre={bestiaFichaModal.nombre}
+                plantilla={bestiaFichaModal}
+                baseDatosHechizos={[]}
+                alHacerClicHechizo={() => {}}
+                lanzarAtaqueRapido={() => {}}
+                lanzarTiradaD20Interactiva={() => {}}
+                obtenerPercepcionPasiva={(p) => extraerSentidosBestia(p ?? bestiaFichaModal).percepcionPasiva ?? 10}
+              />
+            </div>
+            <footer className={estilos.modalSelectorFooter}>
+              <button type="button" className={estilos.botonGestionarPool} onClick={() => setBestiaFichaModal(null)}>
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className={estilos.botonAdoptar}
+                onClick={() => {
+                  const id = bestiaFichaModal.id;
+                  setBestiaFichaModal(null);
+                  prepararTransformacion(id);
+                }}
+                disabled={usosRestantes <= 0 || !bestiasDisponibles.some((b) => b.id === bestiaFichaModal.id)}
+              >
+                <Zap size={14} />
+                {bestiaActiva?.id === bestiaFichaModal.id ? "Volver a adoptar" : "Adoptar Esta Forma"}
+              </button>
+            </footer>
+          </div>
+        </div>
       )}
     </div>
   );

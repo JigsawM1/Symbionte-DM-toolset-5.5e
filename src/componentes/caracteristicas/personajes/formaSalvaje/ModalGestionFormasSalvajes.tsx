@@ -141,6 +141,21 @@ export const ModalGestionFormasSalvajes: React.FC<ModalGestionFormasSalvajesProp
     vdsNumericos
   ]);
 
+  const disponiblesSet = useMemo(
+    () => new Set(bestiasDisponibles.map((b) => b.id)),
+    [bestiasDisponibles]
+  );
+  const seleccionBorradorSet = useMemo(
+    () => new Set(seleccionBorrador),
+    [seleccionBorrador]
+  );
+
+  const formasPreviasRetiradas = useMemo(() => {
+    return formasConocidasActualesIds.filter(
+      (id) => !seleccionBorradorSet.has(id) && disponiblesSet.has(id)
+    );
+  }, [formasConocidasActualesIds, seleccionBorradorSet, disponiblesSet]);
+
   if (!abierto) return null;
 
   const alternarSeleccion = (id: string) => {
@@ -341,19 +356,14 @@ export const ModalGestionFormasSalvajes: React.FC<ModalGestionFormasSalvajesProp
               </div>
             ) : (
               bestiasFiltradas.map((bestia) => {
-                const seleccionada = seleccionBorrador.includes(bestia.id);
+                const seleccionada = seleccionBorradorSet.has(bestia.id);
                 const deshabilitada = !seleccionada
                   ? seleccionBorrador.length >= maxFormasConocidas
                   : Boolean(
                       formas &&
                         formasConocidasActualesIds.includes(bestia.id) &&
                         (!sustitucionDisponible ||
-                          formasConocidasActualesIds.some(
-                            (id) =>
-                              id !== bestia.id &&
-                              !seleccionBorrador.includes(id) &&
-                              bestiasDisponibles.some((b) => b.id === id)
-                          ))
+                          formasPreviasRetiradas.some((id) => id !== bestia.id))
                     );
 
                 return (

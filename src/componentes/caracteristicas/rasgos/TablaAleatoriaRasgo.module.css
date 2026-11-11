@@ -1,0 +1,485 @@
+/* ==========================================================================
+   TablaAleatoriaRasgo.module.css
+   Estética de Alta Fantasía Táctica y Oráculo Celestial (D&D 5.5e)
+   Optimizado para el visor TaleSpire (CEF a 599px) y vista de Jugador
+   ========================================================================== */
+
+.dialogoTabla {
+  width: min(520px, calc(100vw - 20px));
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.45));
+  border-radius: var(--pj-radio-panel, 8px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(129, 140, 248, 0.15);
+}
+
+/* Cabecera mística con gradiente y medallón */
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(180deg, #161e2c 0%, #101520 100%);
+  border-bottom: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  flex-shrink: 0;
+}
+
+.medallonIcono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: radial-gradient(circle at 30% 30%, rgba(129, 140, 248, 0.25) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border: 1px solid var(--pj-borde-acento-luminoso, #a5b4fc);
+  color: var(--pj-texto-cian-claro, #7dd3fc);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.2);
+  flex-shrink: 0;
+}
+
+.titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.kicker {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pj-texto-cian-claro, #7dd3fc);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--pj-fuente-titulo, 16px);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--pj-texto-primario, #ffffff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.botonCerrarCabecera {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--pj-radio-control, 6px);
+  color: var(--pj-texto-terciario, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.botonCerrarCabecera:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+/* Contenido del cuerpo */
+.cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--pj-fondo-modal-cuerpo, #0b0f16);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* Panel de aviso de recarga */
+.panelRecarga {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid var(--pj-borde-magia, rgba(139, 92, 246, 0.5));
+  border-radius: var(--pj-radio-control, 6px);
+  box-sizing: border-box;
+}
+
+.iconoAvisoRecarga {
+  color: var(--pj-texto-magia, #d8b4fe);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.textoAvisoRecarga {
+  margin: 0;
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  line-height: 1.45;
+  color: var(--pj-texto-secundario-claro, #e2e8f0);
+}
+
+/* Panel de directiva e instrucciones */
+.panelDirectiva {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-left: 3px solid var(--pj-borde-acento-fuerte, #818cf8);
+  border-radius: var(--pj-radio-control, 6px);
+  box-sizing: border-box;
+}
+
+.iconoDirectiva {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pj-texto-acento, #a5b4fc);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cuerpoDirectiva {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tituloDirectiva {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-acento-brillante, #c7d2fe);
+}
+
+.textoDirectiva {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--pj-texto-secundario, #cbd5e1);
+}
+
+/* Zona de tirada inicial (Determinar resultado) */
+.contenedorTiradaInicial {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 4px 0;
+}
+
+.botonDeterminar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.28) 0%, rgba(17, 24, 39, 0.85) 100%);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+  border-radius: var(--pj-radio-control, 6px);
+  color: var(--pj-texto-primario, #ffffff);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.botonDeterminar:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.42) 0%, rgba(30, 41, 59, 0.95) 100%);
+  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.botonDeterminar:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
+.iconoDadoDeterminar {
+  color: var(--pj-texto-oro-brillante, #fef08a);
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(254, 240, 138, 0.4));
+}
+
+.textoBotonDeterminar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.accionPrincipalDeterminar {
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.subtextoDado {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--pj-texto-cian-claro, #7dd3fc);
+}
+
+/* Lista de tarjetas de opciones obtenidas */
+.listaResultados {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tarjetaOpcion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--pj-fondo-panel, #0d121c);
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.45));
+  border-radius: var(--pj-radio-control, 6px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.tarjetaOpcion:hover {
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+}
+
+.cabeceraOpcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badgesOpcion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badgeTirada {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pj-texto-cian-claro, #7dd3fc);
+}
+
+.badgeTirada strong {
+  font-weight: 800;
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.badgeRango {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--pj-texto-secundario, #cbd5e1);
+}
+
+.numeroOpcion {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+/* Efecto enriquecido */
+.textoEfecto {
+  padding: 10px 12px;
+  background: var(--pj-fondo-hundido, #080c14);
+  border: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  line-height: 1.5;
+  color: var(--pj-texto-primario-suave, #f8fafc);
+  word-break: break-word;
+}
+
+.pieOpcion {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.botonResolverOpcion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 14px;
+  background: var(--pj-acento-primario-solido, #4f46e5);
+  border: 1px solid var(--pj-borde-acento-fuerte, #818cf8);
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.botonResolverOpcion:hover:not(:disabled) {
+  background: var(--pj-acento-primario-solido-hover, #4338ca);
+  border-color: var(--pj-borde-acento-luminoso, #a5b4fc);
+  box-shadow: 0 4px 16px rgba(129, 140, 248, 0.45);
+  transform: translateY(-1px);
+}
+
+.botonResolverOpcion:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+}
+
+.iconoResolver {
+  color: var(--pj-texto-oro-brillante, #fef08a);
+  flex-shrink: 0;
+}
+
+/* Tarjeta de resultado ya resuelto / activo */
+.tarjetaResultadoFijado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: radial-gradient(circle at top left, rgba(16, 185, 129, 0.12) 0%, rgba(8, 12, 20, 0.95) 100%);
+  border: 1px solid var(--pj-borde-exito, rgba(16, 185, 129, 0.5));
+  border-radius: var(--pj-radio-control, 6px);
+  box-sizing: border-box;
+}
+
+.cabeceraResultadoFijado {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.iconoExitoFijado {
+  color: var(--pj-texto-exito-brillante, #a7f3d0);
+  flex-shrink: 0;
+}
+
+.tituloResultadoFijado {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pj-texto-exito-brillante, #a7f3d0);
+}
+
+.cuerpoResultadoFijado {
+  font-size: var(--pj-fuente-cuerpo, 12.5px);
+  line-height: 1.5;
+  color: var(--pj-texto-primario-suave, #f8fafc);
+  padding: 6px 0;
+  word-break: break-word;
+}
+
+.botonReintentarEnvio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: flex-start;
+  min-height: 30px;
+  padding: 5px 11px;
+  background: var(--pj-fondo-tarjeta, #121722);
+  border: 1px solid var(--pj-borde-acento, rgba(129, 140, 248, 0.45));
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--pj-texto-acento, #a5b4fc);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonReintentarEnvio:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: #ffffff;
+}
+
+/* Mensajes de feedback o error */
+.mensajeEstado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid var(--pj-borde-cian, rgba(56, 189, 248, 0.45));
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: 11.5px;
+  color: var(--pj-texto-cian-claro, #7dd3fc);
+  box-sizing: border-box;
+}
+
+/* Pie del diálogo */
+.pie {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #101520 0%, #141a26 100%);
+  border-top: 1px solid var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  flex-shrink: 0;
+}
+
+.botonCerrarFooter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 16px;
+  background: var(--pj-fondo-panel, #0d121c);
+  border: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  border-radius: var(--pj-radio-control, 6px);
+  font-size: var(--pj-fuente-boton, 12px);
+  font-weight: 600;
+  color: var(--pj-texto-secundario, #cbd5e1);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.botonCerrarFooter:hover:not(:disabled) {
+  background: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-fuerte, rgba(148, 163, 184, 0.45));
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+.botonCerrarFooter:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

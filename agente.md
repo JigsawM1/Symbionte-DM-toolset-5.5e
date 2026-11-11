@@ -1,5 +1,31 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-11] Rediseño Visual de Alta Fantasía Táctica para Tablas Aleatorias de Rasgos (/frontend-design)
+
+- **Contexto**:
+  - El modal de resolución de tablas de rasgos (`TablaAleatoriaRasgo.tsx`, como "Presagio cósmico" del Círculo de las Estrellas de Druida o "Oleada de magia salvaje") presentaba una apariencia plana, tosca y desarticulada: textos planos sin jerarquía, botones genéricos sin acción afirmativa, ausencia de iconos semánticos y contenedores sin estructura de tarjeta.
+  - El usuario solicitó mejorar visualmente este componente aplicando la skill `/frontend-design`.
+- **Decisiones de Diseño y Arquitectura**:
+  1. *Identidad Visual Celestial y Arcana Táctica (`TablaAleatoriaRasgo.module.css`)*:
+     - **Cabecera Mística y Medallón**: Creación de cabecera con gradiente de profundidad `#161e2c` a `#101520`, medallón de icono radial con resplandor (`Sparkles`, `Flame` o `Dices` reactivo al nombre del rasgo), kicker semántico (`TABLA DE RASGO · AUGURIO & AZAR`) y botón ergonómico de cierre rápido en la esquina superior derecha (`X`).
+     - **Panel de Directiva Táctica**: Sustitución de los `<p>` crudos por un contenedor estructurado con acento lateral índigo/cian (`border-left: 3px solid #818cf8`), icono de información y tipografía jerárquica con subtítulo de directiva y texto de regla en alto contraste WCAG.
+     - **Botón Heroico de Determinación**: Cuando la tabla aún no se ha tirado, el botón inicial adopta elevación, resplandor dorado suave (`#fef08a`), icono `Dices` destacado y subetiqueta con el dado involucrado (`1d2`, `1d100`, etc.).
+     - **Tarjetas Oraculares de Resultados**:
+       - Cada fila obtenida se renderiza en una tarjeta `.tarjetaOpcion` con borde reactivo al hover (`rgba(129, 140, 248, 0.45)`).
+       - Cabecera con chips tácticos: badge de tirada (`1d2: 2`) con icono de dado en cian luminoso y badge de rango (`Rango 2–2`).
+       - Contenedor de efecto en fondo hundido (`#080c14`) para máxima legibilidad de `TextoEnriquecidoDND`.
+       - Botón afirmativo `.botonResolverOpcion` a ancho completo con acento sólido (`#4f46e5`), icono `Sparkles` y feedback visual en hover.
+     - **Resultado Activo / Registrado**: Tarjeta de sello esmeralda (`#10b981`) con icono `CheckCircle2` y soporte para reintento de sincronización con TaleSpire.
+  2. *Compatibilidad e Integración Segura (`TablaAleatoriaRasgo.tsx`)*:
+     - Se mantuvieron todos los textos exactos de los botones (`Determinar resultado`, `Resolver resultado 1`, `Cerrar tabla`, `Tirar en la tabla`) requeridos por los tests automatizados (`scripts/probar-druida.mjs` y suites de Vitest).
+     - Componente modularizado y tipado bajo `strict: true`, manteniéndose en categoría `[CORRECTO]` de CI (248 líneas, límite < 300).
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores de tipado.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `pnpm vitest run src/servicios/magiaSalvaje/ src/servicios/druida`: 104 de 104 pruebas unitarias aprobadas al 100%.
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas de tamaño.
+  - `pnpm run build`: Compilación de producción con Vite completada con éxito en 10.68s.
+
 ## [2026-11-11] Auditoría Ponytail y Refactorización con Vercel React Best Practices (druida-cambios vs main)
 
 - **Contexto**:

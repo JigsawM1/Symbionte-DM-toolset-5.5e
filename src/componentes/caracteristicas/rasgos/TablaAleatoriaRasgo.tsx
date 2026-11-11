@@ -1,12 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { resolverTablaRasgo, tirarFilasTabla, resolverFilaTabla, type FilaTablaRasgo } from "@/servicios/rasgos/tablasAleatoriasRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import { TextoEnriquecidoDND } from "@/componentes/comunes";
+import { Sparkles, Dices, X, Send, Info, CheckCircle2, Flame } from "lucide-react";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 import modal from "./DialogoRasgo.module.css";
+import estilosTabla from "./TablaAleatoriaRasgo.module.css";
+
+function obtenerIconoRasgoTabla(nombre: string): ReactNode {
+  const norm = nombre.toLowerCase();
+  if (norm.includes("presagio") || norm.includes("estrella") || norm.includes("cosmico") || norm.includes("augurio")) {
+    return <Sparkles size={18} />;
+  }
+  if (norm.includes("caos") || norm.includes("oleada") || norm.includes("salvaje") || norm.includes("fuego")) {
+    return <Flame size={18} />;
+  }
+  return <Dices size={18} />;
+}
 
 export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: PersonajeJugador; rasgo: RasgoPersonaje }) {
   const [abierto, abrir] = useState(false);
@@ -62,33 +75,174 @@ export function TablaAleatoriaRasgo({ personaje: pj, rasgo: r }: { personaje: Pe
   return <>
     <button type="button" className={estilos.botonCompacto} disabled={!pendiente && agotado} onClick={e => { e.stopPropagation(); preparar(); }}>
       {pendiente ? "Ver resultado pendiente" : recarga ? "Confirmar conjuro y recargar" : cfg.modo === "elegir" ? "Elegir efecto de oleada" : "Tirar en la tabla"}</button>
-    {abierto && <dialog ref={dialogo} className={modal.dialogo} aria-label={`Tabla: ${r.nombre}`} onClick={e => e.stopPropagation()}
+    {abierto && <dialog ref={dialogo} className={`${modal.dialogo} ${estilosTabla.dialogoTabla}`} aria-label={`Tabla: ${r.nombre}`} onClick={e => e.stopPropagation()}
       onCancel={e => { if (ocupado) e.preventDefault(); else abrir(false); }}>
-      <header className={modal.cabecera}><h3>{r.nombre}</h3></header>
-      <div className={`u-scroll-cef ${modal.cuerpo}`}>
-        {recarga && <p>Confirma que has lanzado un conjuro de hechicero con un espacio. Recuperarás el uso y resolverás una oleada.</p>}
-        <p>Elige el resultado antes de resolver las subtiradas. Las consecuencias se aplican manualmente.</p>
-        {!pendiente && !filas.length && <button type="button" disabled={ocupado || agotado} onClick={() => {
-          try {
-            elegir(tirarFilasTabla(cfg));
-          } catch (err) {
-            logger.error("[TablaAleatoriaRasgo] Error al tirar filas de tabla:", err);
-            informar("La configuración de la tabla es inválida.");
-          }
-        }}>
-          {recarga ? "Confirmar conjuro y determinar oleada" : `Determinar ${cfg.tiradas === 2 ? "dos resultados" : "resultado"}`}</button>}
-        {!pendiente && filas.map((f, i) => <div key={`${f.fila.id}_${i}`}>
-          <TextoEnriquecidoDND texto={`${f.tirada ? `1d${cfg.dado}: ${f.tirada}. ` : ""}${f.fila.desde}–${f.fila.hasta}: ${f.fila.texto}`} />
-          <button type="button" disabled={ocupado} onClick={() => void resolver(f.fila, f.tirada)}>Resolver resultado {i + 1}</button>
-        </div>)}
-        {accion.resultadoTabla && <><TextoEnriquecidoDND texto={accion.resultadoTabla.texto} />
-          {pendiente && <button type="button" disabled={ocupado} onClick={async () => {
-            if (candado.current) return; candado.current = true; bloquear(true);
-            try { await enviar(accion.resultadoTabla!.texto); } finally { candado.current = false; bloquear(false); }
-          }}>Reintentar envío</button>}</>}
-        {mensaje && <p role="status">{mensaje}</p>}
+      <header className={estilosTabla.cabecera}>
+        <div className={estilosTabla.medallonIcono} aria-hidden="true">
+          {obtenerIconoRasgoTabla(r.nombre)}
+        </div>
+        <div className={estilosTabla.titulos}>
+          <span className={estilosTabla.kicker}>
+            {cfg.modo === "elegir" ? "Selección de efecto" : "Tabla de rasgo · Augurio & Azar"}
+          </span>
+          <h3 className={estilosTabla.titulo}>{r.nombre}</h3>
+        </div>
+        <button
+          type="button"
+          className={estilosTabla.botonCerrarCabecera}
+          title="Cerrar tabla"
+          aria-label="Cerrar tabla"
+          disabled={ocupado}
+          onClick={() => abrir(false)}
+        >
+          <X size={16} />
+        </button>
+      </header>
+
+      <div className={`u-scroll-cef ${modal.cuerpo} ${estilosTabla.cuerpo}`}>
+        {recarga && (
+          <div className={estilosTabla.panelRecarga}>
+            <Sparkles size={15} className={estilosTabla.iconoAvisoRecarga} />
+            <p className={estilosTabla.textoAvisoRecarga}>
+              Confirma que has lanzado un conjuro de hechicero con un espacio. Recuperarás el uso y resolverás una oleada.
+            </p>
+          </div>
+        )}
+
+        <div className={estilosTabla.panelDirectiva}>
+          <div className={estilosTabla.iconoDirectiva} aria-hidden="true">
+            <Info size={15} />
+          </div>
+          <div className={estilosTabla.cuerpoDirectiva}>
+            <span className={estilosTabla.tituloDirectiva}>Directiva de resolución</span>
+            <p className={estilosTabla.textoDirectiva}>
+              Elige el resultado antes de resolver las subtiradas. Las consecuencias se aplican manualmente.
+            </p>
+          </div>
+        </div>
+
+        {!pendiente && !filas.length && (
+          <div className={estilosTabla.contenedorTiradaInicial}>
+            <button
+              type="button"
+              className={estilosTabla.botonDeterminar}
+              disabled={ocupado || agotado}
+              onClick={() => {
+                try {
+                  elegir(tirarFilasTabla(cfg));
+                } catch (err) {
+                  logger.error("[TablaAleatoriaRasgo] Error al tirar filas de tabla:", err);
+                  informar("La configuración de la tabla es inválida.");
+                }
+              }}
+            >
+              <Dices size={20} className={estilosTabla.iconoDadoDeterminar} />
+              <div className={estilosTabla.textoBotonDeterminar}>
+                <span className={estilosTabla.accionPrincipalDeterminar}>
+                  {recarga ? "Confirmar conjuro y determinar oleada" : `Determinar ${cfg.tiradas === 2 ? "dos resultados" : "resultado"}`}
+                </span>
+                <span className={estilosTabla.subtextoDado}>
+                  {cfg.dado ? `Tirada en dado 1d${cfg.dado}` : "Tirada en tabla"}
+                </span>
+              </div>
+            </button>
+          </div>
+        )}
+
+        {!pendiente && filas.length > 0 && (
+          <div className={estilosTabla.listaResultados}>
+            {filas.map((f, i) => (
+              <div key={`${f.fila.id}_${i}`} className={estilosTabla.tarjetaOpcion}>
+                <div className={estilosTabla.cabeceraOpcion}>
+                  <div className={estilosTabla.badgesOpcion}>
+                    {f.tirada !== undefined && (
+                      <span className={estilosTabla.badgeTirada}>
+                        <Dices size={13} />
+                        <span>1d{cfg.dado}: <strong>{f.tirada}</strong></span>
+                      </span>
+                    )}
+                    <span className={estilosTabla.badgeRango}>
+                      Rango {f.fila.desde === f.fila.hasta ? f.fila.desde : `${f.fila.desde}–${f.fila.hasta}`}
+                    </span>
+                  </div>
+                  {filas.length > 1 && (
+                    <span className={estilosTabla.numeroOpcion}>Opción {i + 1} de {filas.length}</span>
+                  )}
+                </div>
+
+                <div className={estilosTabla.textoEfecto}>
+                  <TextoEnriquecidoDND texto={`${f.fila.desde === f.fila.hasta ? `${f.fila.desde}: ` : `${f.fila.desde}–${f.fila.hasta}: `}${f.fila.texto}`} />
+                </div>
+
+                <div className={estilosTabla.pieOpcion}>
+                  <button
+                    type="button"
+                    className={estilosTabla.botonResolverOpcion}
+                    disabled={ocupado}
+                    onClick={() => void resolver(f.fila, f.tirada)}
+                  >
+                    <Sparkles size={14} className={estilosTabla.iconoResolver} />
+                    <span>Resolver resultado {i + 1}</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {accion.resultadoTabla && (
+          <div className={estilosTabla.tarjetaResultadoFijado}>
+            <div className={estilosTabla.cabeceraResultadoFijado}>
+              <CheckCircle2 size={16} className={estilosTabla.iconoExitoFijado} />
+              <span className={estilosTabla.tituloResultadoFijado}>
+                {pendiente ? "Resultado pendiente de envío" : "Resultado activo en el personaje"}
+              </span>
+            </div>
+            <div className={estilosTabla.cuerpoResultadoFijado}>
+              <TextoEnriquecidoDND texto={accion.resultadoTabla.texto} />
+            </div>
+            {pendiente && (
+              <button
+                type="button"
+                className={estilosTabla.botonReintentarEnvio}
+                disabled={ocupado}
+                onClick={async () => {
+                  if (candado.current) return;
+                  candado.current = true;
+                  bloquear(true);
+                  try {
+                    await enviar(accion.resultadoTabla!.texto);
+                  } finally {
+                    candado.current = false;
+                    bloquear(false);
+                  }
+                }}
+              >
+                <Send size={13} />
+                <span>Reintentar envío</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {mensaje && (
+          <div className={estilosTabla.mensajeEstado} role="status">
+            <Info size={14} />
+            <span>{mensaje}</span>
+          </div>
+        )}
       </div>
-      <footer className={modal.acciones}><button type="button" disabled={ocupado} onClick={() => abrir(false)}>Cerrar tabla</button></footer>
+
+      <footer className={`${modal.acciones} ${estilosTabla.pie}`}>
+        <button
+          type="button"
+          className={estilosTabla.botonCerrarFooter}
+          disabled={ocupado}
+          onClick={() => abrir(false)}
+        >
+          Cerrar tabla
+        </button>
+      </footer>
     </dialog>}
   </>;
 }

@@ -1,5 +1,17 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-11] Integración y Fusión de la Rama druida-cambios en main
+
+- **Contexto**:
+  - Tras finalizar la implementación declarativa del Druida (D&D 5.5 / 2024), la optimización con patrones de rendimiento de Vercel y el rediseño táctico de `TablaAleatoriaRasgo`, se procedió a la fusión (*merge*) de `druida-cambios` sobre la rama principal `main`.
+- **Detalle de la Operación**:
+  - Estado inicial: `druida-cambios` 4 commits por delante de `main` (`c6b98cc`, `77831d2`, `3c5ced2`, `2b6469a`).
+  - Tipo de integración: Avance rápido (*Fast-forward* `8d82ac5..2b6469a`).
+  - Modificaciones netas consolidadas: 116 archivos modificados, +9,479 inserciones, -1,455 eliminaciones.
+- **Certificación de la Suite de Pruebas en main**:
+  - `pnpm test` (Vitest): **190 suites superadas (190)** y **2.764 pruebas unitarias aprobadas (2.764)** con 0 fallos.
+  - Árbol de trabajo en `main` completamente limpio y sincronizado.
+
 ## [2026-11-11] Rediseño Visual de Alta Fantasía Táctica para Tablas Aleatorias de Rasgos (/frontend-design)
 
 - **Contexto**:

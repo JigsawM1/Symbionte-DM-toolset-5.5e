@@ -1,0 +1,101 @@
+.barraInferior {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-around;
+  width: 100%;
+  height: 58px;
+  background-color: var(--dm-fondo-panel, #0a0d14);
+  border-top: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  flex-shrink: 0;
+  box-sizing: border-box;
+  z-index: 50;
+  user-select: none;
+}
+
+.botonPestana {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background-color: transparent;
+  border: none;
+  border-top: 2.5px solid transparent;
+  color: var(--dm-texto-apagado, #64748b);
+  cursor: pointer;
+  padding: 4px 2px 6px 2px;
+  min-width: 0;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.botonPestana:hover {
+  background-color: var(--dm-fondo-tarjeta, rgba(255, 255, 255, 0.03));
+  color: var(--dm-texto-secundario, #94a3b8);
+}
+
+.botonPestanaActiva {
+  background-color: var(--dm-fondo-foco, rgba(0, 245, 212, 0.06));
+  border-top-color: var(--dm-cian, #00f5d4);
+  color: var(--dm-texto-cian, #00f5d4);
+}
+
+.iconoContenedor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  position: relative;
+}
+
+.etiquetaTexto {
+  font-family: var(--fuente-principal);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.1;
+}
+
+.dotSecundarioActivo {
+  position: absolute;
+  top: 1px;
+  right: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--dm-cian, #00f5d4);
+  box-shadow: 0 0 6px var(--dm-cian, #00f5d4);
+}
+
+/* Identidad Visual del Jugador (DESIGN.md): Dark Fantasy Zafiro/Índigo */
+:global([data-tema="jugador"]) .barraInferior {
+  background-color: var(--pj-fondo-panel, #0d121c);
+  border-top-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+}
+
+:global([data-tema="jugador"]) .botonPestana {
+  color: var(--pj-texto-terciario, #94a3b8);
+}
+
+:global([data-tema="jugador"]) .botonPestana:hover {
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  color: var(--pj-texto-secundario, #cbd5e1);
+}
+
+:global([data-tema="jugador"]) .botonPestanaActiva {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-top-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-acento, #a5b4fc);
+}
+
+:global([data-tema="jugador"]) .dotSecundarioActivo {
+  background-color: var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: 0 0 6px var(--pj-borde-acento-fuerte, #818cf8);
+}

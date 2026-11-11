@@ -4,21 +4,39 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--pj-fondo-modal-overlay);
+  background-color: var(--color-overlay, rgba(0, 0, 0, 0.72));
   z-index: 1000;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px;
+  justify-content: flex-end;
+  padding: 0;
+  box-sizing: border-box;
   transition: none;
 }
 
 .contenedorModal {
-  max-width: 550px;
+  max-width: 599px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 44px);
   overflow-y: auto;
   background-color: var(--pj-fondo-modal-cuerpo);
-  border-radius: var(--pj-radio-panel);
+  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--pj-borde-magia);
+  border-bottom: none;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+  padding: 16px;
+  position: relative;
+  box-sizing: border-box;
   transition: none;
+}
+
+.contenedorModal::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--pj-borde-medio);
+  margin: 0 auto 12px auto;
 }

@@ -48,171 +48,137 @@ interface TarjetaConjuroCompactaProps {
   alLanzarGratis?: () => Promise<void>;
 }
 
-/**
- * Componente de tarjeta compacta de conjuro/truco en la hoja de personaje y combat tracker.
- * Optimizado con React.memo para evitar re-renderizados innecesarios de decenas de instancias
- * al actualizar otros estados del personaje (vitalidad, iniciativa, movimiento, dados).
- */
-export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = React.memo(({
-  hechizo,
-  nombrePersonaje,
-  nivelPersonaje = 1,
-  bonoAtaqueMagico,
-  bonoDanoMagico = 0,
-  modificadorHabilidad = 0,
-  estaPreparado: _estaPreparado,
-  esDeSubclase = false,
-  origenBadge,
-  mostrarTogglePreparado: _mostrarTogglePreparado = false,
-  esConcentracionActual = false,
-  esOculto = false,
-  alAlternarOcultar,
-  alAlternarPreparado: _alAlternarPreparado,
-  alQuitarDeLista,
-  alAbrirDetalleCompleto,
-  alLanzar,
-  alGastarEspacio,
-  alGastarPuntos,
-  alGastarEspacioPacto,
-  esLanzadorPacto = false,
-  nivelEspacioPacto = 0,
-  espaciosPactoMaximos = 0,
-  espaciosPactoGastados = 0,
-  espaciosConjuroMaximos = {},
-  nivelConjuroMaximo = 0,
-  alEstablecerConcentracion,
-  costePuntosPorNivel,
-  sistemaMagia = "espacios",
-  bloqueadoPorArmadura = false,
-  motivoBloqueoArmadura,
-  permitirUpcastLibre,
-  tieneLanzamientoGratisDisponible = false,
-  alLanzarGratis
-}) => {
+export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = React.memo((props) => {
+  const {
+    hechizo, nombrePersonaje, nivelPersonaje = 1, bonoAtaqueMagico, bonoDanoMagico = 0,
+    modificadorHabilidad = 0, esDeSubclase = false, origenBadge, esConcentracionActual = false,
+    esOculto = false, alAlternarOcultar, alQuitarDeLista, alAbrirDetalleCompleto, alLanzar,
+    alGastarEspacio, alGastarPuntos, alGastarEspacioPacto, esLanzadorPacto = false,
+    nivelEspacioPacto = 0, espaciosPactoMaximos = 0, espaciosPactoGastados = 0,
+    espaciosConjuroMaximos = {}, nivelConjuroMaximo = 0, alEstablecerConcentracion,
+    costePuntosPorNivel, sistemaMagia = "espacios", bloqueadoPorArmadura = false,
+    motivoBloqueoArmadura, permitirUpcastLibre, tieneLanzamientoGratisDisponible = false,
+    alLanzarGratis
+  } = props;
+
   const esTruco = hechizo.nivel === 0;
   const origenEfectivo: OrigenConjuroBadge | null = origenBadge ?? (esDeSubclase ? "subclase" : null);
   const esOtorgado = Boolean(origenEfectivo);
   const configBadge = origenEfectivo ? CONFIG_BADGES_ORIGEN_CONJURO[origenEfectivo] : null;
 
   const {
-    opcionesLanzamiento,
-    nivelUpcast,
-    setNivelUpcast,
-    manejarLanzamientoRapido,
-    manejarLanzamientoRitual,
-    manejarLanzamientoGratis
+    opcionesLanzamiento, nivelUpcast, setNivelUpcast,
+    manejarLanzamientoRapido, manejarLanzamientoRitual, manejarLanzamientoGratis
   } = usarLanzamientoTarjetaConjuro({
-    hechizo,
-    nombrePersonaje,
-    nivelPersonaje,
-    bonoAtaqueMagico,
-    bonoDanoMagico,
-    modificadorHabilidad,
-    bloqueadoPorArmadura,
-    alLanzar,
-    alGastarEspacio,
-    alGastarPuntos,
-    alGastarEspacioPacto,
-    esLanzadorPacto,
-    nivelEspacioPacto,
-    espaciosPactoMaximos,
-    espaciosPactoGastados,
-    espaciosConjuroMaximos,
-    nivelConjuroMaximo,
-    alEstablecerConcentracion,
-    costePuntosPorNivel,
-    sistemaMagia,
-    permitirUpcastLibre,
-    alLanzarGratis
+    hechizo, nombrePersonaje, nivelPersonaje, bonoAtaqueMagico, bonoDanoMagico,
+    modificadorHabilidad, bloqueadoPorArmadura, alLanzar, alGastarEspacio, alGastarPuntos,
+    alGastarEspacioPacto, esLanzadorPacto, nivelEspacioPacto, espaciosPactoMaximos,
+    espaciosPactoGastados, espaciosConjuroMaximos, nivelConjuroMaximo,
+    alEstablecerConcentracion, costePuntosPorNivel, sistemaMagia, permitirUpcastLibre, alLanzarGratis
   });
 
   const infoTruco = esTruco ? calcularInfoTruco(hechizo, nivelPersonaje, bonoDanoMagico, modificadorHabilidad) : null;
-
   const claseEstadoTarjeta = esConcentracionActual
     ? estilos.tarjetaConcentracion
     : estilos.tarjetaPreparada;
 
   return (
     <div className={`${estilos.tarjeta} ${claseEstadoTarjeta}`}>
-      {/* Lado Izquierdo: Nombre y Badges */}
-      <div className={estilos.ladoIzquierdo}>
-        <div className={estilos.bloqueNombre}>
-          <div className={estilos.filaTitulo}>
+      {/* 1. Cabecera del Conjuro: Nombre, Badges de Reglas y Acciones de Visibilidad */}
+      <div className={estilos.filaSuperiorConjuro}>
+        <div className={estilos.filaTitulo}>
+          <button
+            type="button"
+            onClick={() => alAbrirDetalleCompleto(hechizo)}
+            title="Ver descripción y ficha completa del conjuro"
+            className={estilos.nombreConjuro}
+          >
+            {hechizo.nombre}
+          </button>
+
+          {hechizo.concentracion && (
+            <span title="Requiere Concentración" className={estilos.tagConcentracion}>
+              C
+            </span>
+          )}
+
+          {hechizo.ritual && (
+            <span title="Puede lanzarse como Ritual" className={estilos.tagRitual}>
+              Ritual
+            </span>
+          )}
+
+          {bloqueadoPorArmadura && (
+            <span
+              title={motivoBloqueoArmadura || "Lanzamiento bloqueado por armadura sin competencia"}
+              className={estilos.iconoAlertaArmadura}
+            >
+              <AlertTriangle size={11} color="var(--pj-texto-alerta)" />
+            </span>
+          )}
+        </div>
+
+        {/* Acciones Secundarias Rápidas en la Cabecera */}
+        <div className={estilos.accionesCabeceraConjuro}>
+          {alAlternarOcultar ? (
+            <button
+              type="button"
+              onClick={alAlternarOcultar}
+              title={esOculto ? "Mostrar conjuro (restaurar a su nivel)" : "Ocultar conjuro"}
+              className={`${estilos.botonIcono} ${esOculto ? estilos.botonOcultoActivo : ""}`}
+            >
+              {esOculto ? <EyeOff size={13} /> : <Eye size={13} />}
+            </button>
+          ) : (
             <button
               type="button"
               onClick={() => alAbrirDetalleCompleto(hechizo)}
-              title="Ver descripción y ficha completa del conjuro"
-              className={estilos.nombreConjuro}
+              title="Ver ficha completa"
+              className={estilos.botonIcono}
             >
-              {hechizo.nombre}
+              <Eye size={13} />
             </button>
+          )}
 
-            {/* Badges */}
-            {hechizo.concentracion && (
-              <span
-                title="Requiere Concentración"
-                className={estilos.tagConcentracion}
-              >
-                C
-              </span>
-            )}
-
-            {hechizo.ritual && (
-              <span
-                title="Puede lanzarse como Ritual"
-                className={estilos.tagRitual}
-              >
-                R
-              </span>
-            )}
-
-            {bloqueadoPorArmadura && (
-              <span
-                title={motivoBloqueoArmadura || "Lanzamiento bloqueado por armadura sin competencia"}
-                className={estilos.iconoAlertaArmadura}
-              >
-                <AlertTriangle size={11} color="var(--pj-texto-alerta)" />
-              </span>
-            )}
-          </div>
-
-          <span className={estilos.filaMetadatos}>
-            {hechizo.escuela} {hechizo.alcance ? `• ${hechizo.alcance}` : ""}
-            {esTruco && infoTruco?.etiquetaVisual ? (
-              <strong
-                className={estilos.trucoEscalado}
-                data-potenciado={infoTruco.multiplicador > 1}
-              >
-                • {infoTruco.etiquetaVisual} {infoTruco.multiplicador > 1 ? `(Nv.${nivelPersonaje})` : ""}
-              </strong>
-            ) : hechizo.dadosDaño ? (
-              (() => {
-                const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
-                const bonoTotal = bonoDanoMagico + modHab;
-                return ` • ${bonoTotal !== 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoTotal) : hechizo.dadosDaño}`;
-              })()
-            ) : (
-              ""
-            )}
-          </span>
-
-          {/* Badge de Origen dinámico (clase, subclase, especie, legado, rasgos) */}
-          {esOtorgado && configBadge && origenEfectivo && (
-            <div className={estilos.filaSubclaseInferior}>
-              <span
-                title={configBadge.tooltip}
-                className={estilos.badgeSubclaseTexto}
-                data-origen={origenEfectivo}
-              >
-                <Sparkles size={8} /> {configBadge.etiqueta}
-              </span>
-            </div>
+          {alQuitarDeLista && (
+            <button
+              type="button"
+              onClick={alQuitarDeLista}
+              title="Quitar conjuro de la lista"
+              className={`${estilos.botonIcono} ${estilos.botonIconoEliminar}`}
+            >
+              <Trash2 size={13} />
+            </button>
           )}
         </div>
       </div>
-      {/* Lado Derecho: Selector de Nivel de Ranura (Upcast) o Badge Fijo + Acciones */}
-      <div className={estilos.ladoDerecho}>
-        {/* Selector Upcast o Badge Informativo Fijo */}
+
+      {/* 2. Metadatos y Origen Mágico */}
+      <div className={estilos.filaMetadatosConjuro}>
+        <span className={estilos.textoMetadatosBase}>
+          {hechizo.escuela} {hechizo.alcance ? `• ${hechizo.alcance}` : ""}
+          {esTruco && infoTruco?.etiquetaVisual ? (
+            <strong className={estilos.trucoEscalado} data-potenciado={infoTruco.multiplicador > 1}>
+              • {infoTruco.etiquetaVisual} {infoTruco.multiplicador > 1 ? `(Nv.${nivelPersonaje})` : ""}
+            </strong>
+          ) : hechizo.dadosDaño ? (
+            (() => {
+              const modHab = hechizo.agregarModificadorHabilidad ? modificadorHabilidad : 0;
+              const bonoTotal = bonoDanoMagico + modHab;
+              return ` • ${bonoTotal !== 0 ? aplicarBonoNumericoAFormulaDados(hechizo.dadosDaño, bonoTotal) : hechizo.dadosDaño}`;
+            })()
+          ) : null}
+        </span>
+
+        {esOtorgado && configBadge && origenEfectivo && (
+          <span title={configBadge.tooltip} className={estilos.badgeSubclaseTexto} data-origen={origenEfectivo}>
+            <Sparkles size={8} /> {configBadge.etiqueta}
+          </span>
+        )}
+      </div>
+
+      {/* 3. Touchpad Táctico de Lanzamiento (Selector Upcast + Botón Lanzar + Ritual/Gratis) */}
+      <div className={estilos.touchpadLanzamientoConjuro}>
         {!esTruco && (
           opcionesLanzamiento.length > 1 ? (
             <div className={estilos.selectUpcastContenedor}>
@@ -241,9 +207,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
           )
         )}
 
-        {/* Columna de Acciones: Botón Lanzar Principal + Fila de Acciones Secundarias */}
-        <div className={estilos.columnaAcciones}>
-          {/* Botón Lanzamiento Rápido */}
+        <div className={estilos.botonesLanzamientoFila}>
           <button
             type="button"
             onClick={manejarLanzamientoRapido}
@@ -252,94 +216,44 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
               bloqueadoPorArmadura
                 ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
                 : esTruco
-                ? "Lanzar truco a TaleSpire"
-                : esLanzadorPacto
-                ? `Lanzar con ranura de Pacto Nivel ${nivelEspacioPacto || nivelUpcast} (descuenta 1 espacio de pacto)`
-                : `Lanzar con ranura de Nivel ${nivelUpcast} (descuenta ${
-                    sistemaMagia === "puntos"
-                      ? `${costePuntosPorNivel?.[nivelUpcast] ?? 2} puntos`
-                      : "1 espacio"
-                  })`
+                ? "Lanzar truco en TaleSpire"
+                : `Lanzar con ranura de Nivel ${nivelUpcast}`
             }
             className={`${estilos.botonLanzar} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
           >
-            <Zap size={11} />
+            <Zap size={12} />
             <span>Lanzar</span>
           </button>
 
-          {/* Fila de Acciones Secundarias (Gratis, Ritual, Ver/Ocultar, Quitar) */}
-          <div className={estilos.filaAccionesSecundarias}>
-            {/* Botón Lanzamiento Gratuito Diario (1/Descanso Largo) */}
-            {tieneLanzamientoGratisDisponible && !esTruco && (
-              <button
-                type="button"
-                onClick={manejarLanzamientoGratis}
-                disabled={bloqueadoPorArmadura}
-                title={
-                  bloqueadoPorArmadura
-                    ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
-                    : "Lanzar gratis (1 uso por descanso largo, sin gastar ranuras ni puntos)"
-                }
-                className={`${estilos.botonLanzarGratis} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
-              >
-                <Sparkles size={11} color="var(--pj-texto-exito)" />
-                <span>Gratis</span>
-              </button>
-            )}
+          {tieneLanzamientoGratisDisponible && !esTruco && (
+            <button
+              type="button"
+              onClick={manejarLanzamientoGratis}
+              disabled={bloqueadoPorArmadura}
+              title="Lanzar gratis (1/Descanso Largo)"
+              className={`${estilos.botonLanzarGratis} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
+            >
+              <Sparkles size={11} color="var(--pj-texto-exito)" />
+              <span>Gratis</span>
+            </button>
+          )}
 
-            {/* Botón Lanzamiento como Ritual (D&D 2024: +10 min, sin gastar ranura) */}
-            {hechizo.ritual && !esTruco && (
-              <button
-                type="button"
-                onClick={manejarLanzamientoRitual}
-                disabled={bloqueadoPorArmadura}
-                title={
-                  bloqueadoPorArmadura
-                    ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
-                    : "Lanzar como Ritual (+10 min adicionales, sin consumir ranuras ni puntos de magia)"
-                }
-                className={`${estilos.botonRitual} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
-              >
-                <Sparkles size={11} />
-                <span>Ritual</span>
-              </button>
-            )}
-
-            {/* Botón Ocultar/Mostrar o Ver Ficha Completa */}
-            {alAlternarOcultar ? (
-              <button
-                type="button"
-                onClick={alAlternarOcultar}
-                title={esOculto ? "Mostrar conjuro (restaurar a su nivel)" : "Ocultar conjuro"}
-                className={`${estilos.botonIcono} ${esOculto ? estilos.botonOcultoActivo : ""}`}
-              >
-                {esOculto ? <EyeOff size={13} /> : <Eye size={13} />}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => alAbrirDetalleCompleto(hechizo)}
-                title="Ver ficha completa y opciones de lanzamiento"
-                className={estilos.botonIcono}
-              >
-                <Eye size={13} />
-              </button>
-            )}
-
-            {/* Botón Quitar de Lista */}
-            {alQuitarDeLista && (
-              <button
-                type="button"
-                onClick={alQuitarDeLista}
-                title="Quitar conjuro de la lista del personaje"
-                className={`${estilos.botonIcono} ${estilos.botonIconoEliminar}`}
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
-          </div>
+          {hechizo.ritual && !esTruco && (
+            <button
+              type="button"
+              onClick={manejarLanzamientoRitual}
+              disabled={bloqueadoPorArmadura}
+              title="Lanzar como Ritual (+10 min adicionales)"
+              className={`${estilos.botonRitual} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
+            >
+              <Sparkles size={11} />
+              <span>Ritual</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
   );
 });
+
+TarjetaConjuroCompacta.displayName = "TarjetaConjuroCompacta";

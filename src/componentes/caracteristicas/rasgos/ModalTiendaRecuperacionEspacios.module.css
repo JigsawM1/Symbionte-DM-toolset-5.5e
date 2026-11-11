@@ -4,24 +4,42 @@
   background-color: var(--pj-fondo-modal-overlay);
   backdrop-filter: none;
   display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
-  justify-content: center;
   z-index: 1000;
-  padding: 1rem;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .modal {
   background-color: var(--pj-fondo-modal-cuerpo);
-  border: 1px solid var(--pj-borde-fuerte);
-  border-radius: 0.75rem;
+  border-top: 2px solid var(--pj-borde-acento-fuerte, #818cf8);
+  border-left: 1px solid var(--pj-borde-fuerte);
+  border-right: 1px solid var(--pj-borde-fuerte);
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
   width: 100%;
-  max-width: 520px;
-  max-height: 90vh;
+  max-width: 599px;
+  margin: 0 auto;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--pj-sombra-modal);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.85);
   overflow: hidden;
+  box-sizing: border-box;
   color: var(--pj-texto-primario-suave);
+}
+
+.modal::before {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.22);
+  margin: 8px auto 4px auto;
+  flex-shrink: 0;
 }
 
 .cabecera {

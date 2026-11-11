@@ -10,28 +10,46 @@
   right: 0;
   bottom: 0;
   background-color: var(--dm-overlay, rgba(2, 4, 8, 0.75));
-  backdrop-filter: var(--dm-filtro-fondo, blur(5px));
+  backdrop-filter: none;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
   z-index: 9999;
-  padding: 16px;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .contenedor {
   position: relative;
   width: 100%;
-  max-width: 320px;
+  max-width: 599px;
+  margin: 0 auto;
   background-color: var(--dm-fondo-modal, rgba(9, 13, 22, 0.94));
-  border: 1px solid var(--color-borde-cian, #00f5d4);
-  box-shadow: 0 0 25px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25), inset 0 0 15px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.05);
-  border-radius: var(--dm-radio-panel, 4px);
+  border-top: 2px solid var(--color-borde-cian, #00f5d4);
+  border-left: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  border-right: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  border-bottom: none;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.85);
+  border-radius: 16px 16px 0 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  backdrop-filter: var(--dm-filtro-fondo, blur(12px));
-  padding: 16px;
+  backdrop-filter: none;
+  padding: 10px 16px 20px 16px;
   gap: 12px;
+  box-sizing: border-box;
+}
+
+.contenedor::before {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.22);
+  margin: 0 auto 4px auto;
+  flex-shrink: 0;
 }
 
 .titulo {
@@ -59,22 +77,30 @@
   background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
   border: 1px solid var(--color-borde-brutal, rgba(148, 163, 184, 0.2));
   color: var(--color-texto-secundario, #94a3b8);
-  padding: 4px 10px;
-  font-size: var(--dm-fuente-minima, 10px);
+  height: 34px;
+  padding: 0 14px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
-  border-radius: var(--dm-radio-control, 3px);
+  border-radius: var(--dm-radio-control, 4px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .botonConfirmar {
   background-color: rgba(var(--dm-rgb-peligro, 255, 0, 85), 0.15);
   border: 1px solid var(--color-peligro, #ef4444);
   color: var(--dm-texto-peligro, var(--color-peligro, #ef4444));
-  padding: 4px 10px;
-  font-size: var(--dm-fuente-minima, 10px);
+  height: 34px;
+  padding: 0 14px;
+  font-size: var(--dm-fuente-minima, 11px);
   font-weight: bold;
   cursor: pointer;
-  border-radius: var(--dm-radio-control, 3px);
+  border-radius: var(--dm-radio-control, 4px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo.

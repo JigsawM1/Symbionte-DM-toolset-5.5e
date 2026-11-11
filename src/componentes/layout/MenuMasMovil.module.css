@@ -1,0 +1,214 @@
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--dm-overlay, rgba(0, 0, 0, 0.75));
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
+}
+
+.hojaInferior {
+  width: 100%;
+  max-width: 599px;
+  margin: 0 auto;
+  max-height: 80vh;
+  background-color: var(--dm-fondo-modal, #0f141d);
+  border-top: 2px solid var(--dm-cian, #00f5d4);
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.manijaArrastre {
+  width: 40px;
+  height: 4px;
+  background-color: var(--dm-borde, rgba(255, 255, 255, 0.2));
+  border-radius: 2px;
+  margin: 8px auto 4px auto;
+  flex-shrink: 0;
+}
+
+.cabeceraHoja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px 10px 16px;
+  border-bottom: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.08));
+  flex-shrink: 0;
+}
+
+.titulosCabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kicker {
+  font-family: var(--fuente-codigo);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dm-texto-cian, #00f5d4);
+}
+
+.tituloPrincipal {
+  font-family: var(--fuente-titulo, var(--fuente-principal));
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dm-texto-principal, #ffffff);
+  margin: 0;
+}
+
+.botonCerrar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  border-radius: var(--dm-radio-control, 6px);
+  color: var(--dm-texto-secundario, #94a3b8);
+  cursor: pointer;
+  padding: 0;
+}
+
+.botonCerrar:hover {
+  background-color: var(--dm-superficie-peligro, rgba(239, 68, 68, 0.2));
+  border-color: var(--dm-borde-peligro, #ef4444);
+  color: var(--dm-texto-peligro, #ef4444);
+}
+
+.cuerpoOpciones {
+  padding: 12px 14px 20px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.tarjetaOpcion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  color: var(--dm-texto-principal, #ffffff);
+  cursor: pointer;
+  text-align: left;
+  box-sizing: border-box;
+  min-height: 58px;
+}
+
+.tarjetaOpcion:hover {
+  background-color: var(--dm-fondo-foco, #1f2737);
+  border-color: var(--dm-cian, #00f5d4);
+}
+
+.tarjetaOpcionActiva {
+  background-color: var(--dm-fondo-foco, #1f2737);
+  border-color: var(--dm-cian, #00f5d4);
+  box-shadow: inset 0 0 0 1px var(--dm-cian, #00f5d4);
+}
+
+.iconoMedallon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: var(--dm-fondo-profundo, #070a10);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dm-texto-cian, #00f5d4);
+  flex-shrink: 0;
+}
+
+.textosOpcion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tituloOpcion {
+  font-family: var(--fuente-principal);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dm-texto-principal, #ffffff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.descripcionOpcion {
+  font-family: var(--fuente-principal);
+  font-size: 10.5px;
+  color: var(--dm-texto-apagado, #64748b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Tema de Jugador (DESIGN.md): Dark Fantasy Zafiro/Índigo */
+:global([data-tema="jugador"]) .hojaInferior {
+  background-color: var(--pj-fondo-panel, #0d121c);
+  border-top: 2px solid var(--pj-borde-acento-fuerte, #818cf8);
+}
+
+:global([data-tema="jugador"]) .kicker {
+  color: var(--pj-texto-acento, #a5b4fc);
+}
+
+:global([data-tema="jugador"]) .tituloPrincipal {
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+:global([data-tema="jugador"]) .botonCerrar {
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  color: var(--pj-texto-secundario, #cbd5e1);
+}
+
+:global([data-tema="jugador"]) .tarjetaOpcion {
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+}
+
+:global([data-tema="jugador"]) .tarjetaOpcion:hover {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+}
+
+:global([data-tema="jugador"]) .tarjetaOpcionActiva {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  box-shadow: inset 0 0 0 1px var(--pj-borde-acento-fuerte, #818cf8);
+}
+
+:global([data-tema="jugador"]) .iconoMedallon {
+  background-color: var(--pj-fondo-hundido, #080c14);
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  color: var(--pj-texto-cian, #38bdf8);
+}
+
+:global([data-tema="jugador"]) .tituloOpcion {
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+:global([data-tema="jugador"]) .descripcionOpcion {
+  color: var(--pj-texto-terciario, #94a3b8);
+}

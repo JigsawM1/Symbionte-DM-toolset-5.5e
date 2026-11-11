@@ -115,18 +115,33 @@
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
   padding: 4px;
-  flex-wrap: wrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.barraFiltros::-webkit-scrollbar {
+  display: none;
+}
+
+.grupoPestanasPrincipales {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 .botonFiltro {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
+  min-height: 34px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-secundario);
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 6px 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -550,7 +565,8 @@
   border: 1px solid var(--pj-borde-exito);
   color: var(--pj-texto-exito);
   cursor: pointer;
-  padding: 3px 8px;
+  padding: 6px 12px;
+  min-height: 34px;
   border-radius: var(--pj-radio-control);
   font-size: var(--pj-fuente-boton);
   font-weight: 700;
@@ -558,7 +574,7 @@
   letter-spacing: 0.3px;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   box-shadow: var(--pj-sombra-tarjeta);
   transition: none;
   flex-shrink: 0;
@@ -705,31 +721,46 @@
   gap: 2px;
 }
 
-/* Modal de Hechizo */
+/* Modal de Hechizo Móvil (Bottom Sheet) */
 .backdropModalHechizo {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--pj-fondo-modal-cuerpo);
+  background-color: var(--color-overlay, rgba(0, 0, 0, 0.72));
   z-index: 1000;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 16px;
+  justify-content: flex-end;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .contenedorModalHechizo {
-  max-width: 550px;
+  max-width: 599px;
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 44px);
   overflow-y: auto;
   background-color: var(--pj-fondo-modal-cuerpo);
-  border-radius: var(--pj-radio-panel);
-  border: 1px solid var(--pj-borde-acento);
+  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--pj-borde-magia);
+  border-bottom: none;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+  padding: 16px;
+  position: relative;
   box-sizing: border-box;
+}
+
+.contenedorModalHechizo::before {
+  content: "";
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--pj-borde-medio);
+  margin: 0 auto 12px auto;
 }
 
 /* ==========================================
@@ -927,159 +958,211 @@
 }
 
 /* =========================================================================
-   DISEÑO UNIFICADO DE TARJETA DE ATAQUE (SIMILAR A TARJETA CONJURO COMPACTA)
+   DISEÑO MÓVIL DE TARJETA TÁCTICA DE ATAQUE (599px MOBILE TOUCHPAD)
    ========================================================================= */
 
 .tarjetaAtaqueCompacta {
   background: var(--pj-fondo-cabecera-gradiente);
   border: 1px solid var(--pj-borde-sutil);
-  border-left: 3px solid var(--pj-texto-cian);
-  border-radius: var(--pj-radio-control);
-  padding: 6px 10px;
+  border-left: 3.5px solid var(--pj-texto-cian);
+  border-radius: var(--pj-radio-panel);
+  padding: 8px 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  gap: 7px;
   box-shadow: var(--pj-sombra-tarjeta);
   transition: none;
 }
 
-.ladoIzquierdoAtaque {
+.filaSuperiorTarjetaAtaque {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
 }
 
-.filaTituloAtaque {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 4px;
-}
-
-.filaMetadatosAtaque {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px;
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-  flex-wrap: wrap;
-}
-
-.danoMetadatoTexto {
-  color: var(--pj-texto-primario-suave);
-  font-weight: 700;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.impactoMetadatoTexto {
-  color: var(--pj-texto-cian);
-  font-weight: 800;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.filaPropiedadesAtaqueCompacta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.ladoDerechoAtaque {
+.ladoIdentidadAtaque {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-shrink: 0;
-  align-items: flex-start
+  min-width: 0;
+  flex: 1;
 }
 
-.columnaAccionesAtaque {
+.medallonIconoAtaque {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bloqueNombresAtaque {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.nombreAtaque {
+  font-size: var(--pj-fuente-cuerpo);
+  font-weight: 700;
+  color: var(--pj-texto-primario-suave);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subtipoAtaqueTexto {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ladoBadgesAtaque {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.filaReglasYPropiedades {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: var(--pj-fuente-micro);
+}
+
+.chipAlcanceAtaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  color: var(--pj-texto-cian);
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  padding: 2px 6px;
+  border-radius: var(--pj-radio-control);
+}
+
+.touchpadTiradasAtaque {
+  display: flex;
   align-items: stretch;
-  min-width: 80px;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .botonAtacarPrincipal {
+  flex: 1 1 auto;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   background-color: var(--pj-acento-cian-solido);
   border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
-  padding: 4px 10px;
   cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 6px 12px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  box-sizing: border-box;
   transition: none;
 }
 
 .botonAtacarPrincipal:hover {
   background-color: var(--pj-acento-cian-solido);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
-.filaAccionesSecundariasAtaque {
+.etiquetaBotonAtaque {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  opacity: 0.9;
+}
+
+.valorBonoAtaque {
+  font-size: var(--pj-fuente-subtitulo);
+  font-weight: 900;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  color: #ffffff;
+}
+
+.bandejaDanoYCritico {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 3px;
+  align-items: stretch;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .botonSecundarioDano {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta-brillante);
-  cursor: pointer;
-  padding: 3px 6px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 4px;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-alerta-brillante);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-weight: 700;
   white-space: nowrap;
+  transition: none;
 }
 
 .botonSecundarioDano:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   border-color: var(--pj-borde-peligro);
   color: var(--pj-texto-primario);
 }
 
-.botonSecundarioCrit {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-  cursor: pointer;
-  padding: 3px 5px;
-  border-radius: var(--pj-radio-control);
+.etiquetaDanoBoton {
   font-size: var(--pj-fuente-micro);
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+}
+
+.formulaDanoBoton {
+  font-size: var(--pj-fuente-micro);
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-weight: 800;
+}
+
+.botonSecundarioCrit {
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 3px;
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border: 1px solid var(--pj-borde-oro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-oro);
+  cursor: pointer;
+  padding: 6px 10px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   white-space: nowrap;
+  transition: none;
 }
 
 .botonSecundarioCrit:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   border-color: var(--pj-borde-oro);
   color: var(--pj-texto-primario);
 }

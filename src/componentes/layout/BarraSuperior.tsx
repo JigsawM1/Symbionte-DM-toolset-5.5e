@@ -5,245 +5,138 @@ import {
   usarEstadoHomebrew,
   usarAccionesHomebrew,
 } from "@/almacen/selectores";
+import { usarPersonajeActivo } from "@/almacen/selectores/usarEstadoPersonajes";
 import {
   Menu,
-  Play,
-  Table,
-  ListTodo,
-  BookOpen,
-  FileText,
   Settings,
   Plus,
   Edit2,
-  Gamepad2,
-  Backpack,
-  Sparkles,
-  Swords,
-  BookMarked
+  Shield,
+  Crown,
 } from "lucide-react";
-import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
-import estilosClases from "./BarraSuperior.module.css";
-
-const pestanasAdicionalesJugador = [
-  { valor: "rasgos", etiqueta: "Rasgos", icono: <BookMarked size={13} /> },
-  { valor: "notas", etiqueta: "Notas", icono: <FileText size={13} /> },
-  { valor: "iniciativa", etiqueta: "Iniciativa", icono: <Play size={13} /> },
-];
+import estilos from "./BarraSuperior.module.css";
 
 export const BarraSuperior: React.FC = () => {
   const { pestañaActiva, campañaNombre, esGM } = usarEstadoConfiguracion();
   const { establecerPestaña, establecerEsGM } = usarAccionesConfiguracion();
   const { modoHomebrew } = usarEstadoHomebrew();
   const { establecerModoHomebrew } = usarAccionesHomebrew();
+  const personajeActivo = usarPersonajeActivo();
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
-  const esPestanaAdicional = pestanasAdicionalesJugador.some(({ valor }) => valor === pestañaActiva);
+
+  const esModoDev = typeof window !== "undefined" && !window.TS;
+
+  const alternarRolDev = () => {
+    if (esModoDev) {
+      establecerEsGM(!esGM);
+    }
+  };
+
+  const tituloContexto = !esGM
+    ? personajeActivo?.nombre || "Hoja de Personaje"
+    : campañaNombre || "Campaña DM";
+
+  const kickerContexto = !esGM
+    ? `${personajeActivo ? `Nv ${personajeActivo.nivel} · ` : ""}D&D 5.5e`
+    : "DM SCREEN · D&D 5.5e";
 
   return (
-    <header className={estilosClases.cabecera}>
-      {/* Fila Superior: Título y Configuración / Campaña */}
-      <div className={estilosClases.filaSuperior}>
-        <div className={estilosClases.tituloSeccion}>
-          <div className="u-pos-relativo">
-            <button
-              onClick={() => setMostrarMenuHomebrew(!mostrarMenuHomebrew)}
-              className={`${estilosClases.botonHamburguesa} ${
-                pestañaActiva === "homebrew" ? estilosClases.botonActivo : ""
-              }`}
-              title="Opciones de Homebrew"
-              type="button"
-            >
-              <Menu size={14} />
-            </button>
-
-            {mostrarMenuHomebrew && (
-              <div className={estilosClases.menuHomebrewDesplegable}>
-                <div className={estilosClases.cabeceraDesplegable}>Homebrew</div>
-                <button
-                  onClick={() => {
-                    establecerPestaña("homebrew");
-                    establecerModoHomebrew("crear");
-                    setMostrarMenuHomebrew(false);
-                  }}
-                  className={`${estilosClases.itemMenuDesplegable} ${
-                    pestañaActiva === "homebrew" && modoHomebrew === "crear" ? estilosClases.itemMenuActivo : ""
-                  }`}
-                  type="button"
-                >
-                  <Plus size={12} />
-                  <span>Crear Nuevo</span>
-                </button>
-                <button
-                  onClick={() => {
-                    establecerPestaña("homebrew");
-                    establecerModoHomebrew("lista");
-                    setMostrarMenuHomebrew(false);
-                  }}
-                  className={`${estilosClases.itemMenuDesplegable} ${
-                    pestañaActiva === "homebrew" && modoHomebrew === "lista" ? estilosClases.itemMenuActivo : ""
-                  }`}
-                  type="button"
-                >
-                  <Edit2 size={12} />
-                  <span>Listado / Editar</span>
-                </button>
-              </div>
-            )}
-          </div>
-          <span
-            className={`${estilosClases.tituloTexto} ${typeof window !== "undefined" && !window.TS ? estilosClases.tituloTextoClickable : ""}`}
-            onClick={() => {
-              if (typeof window !== "undefined" && !window.TS) {
-                establecerEsGM(!esGM);
-              }
-            }}
-            title={typeof window !== "undefined" && !window.TS ? "Haz clic para alternar rol (DM / Jugador) en modo desarrollo local" : undefined}
-          >
-            {!esGM ? "PLAYER SHEET" : "DM SCREEN"}
-          </span>
-        </div>
-
-        <div className={estilosClases.zonaDerecha}>
-          <span className={estilosClases.campañaTexto} title={campañaNombre}>
-            {campañaNombre.length > 22 ? `${campañaNombre.substring(0, 19)}...` : campañaNombre}
-          </span>
-          <button
-            onClick={() => establecerPestaña("configuracion")}
-            className={`${estilosClases.botonConfiguracion} ${
-              pestañaActiva === "configuracion" ? estilosClases.botonActivo : ""
-            }`}
-            title="Configuración e Importación JSON"
-            type="button"
-          >
-            <Settings size={14} />
-          </button>
-        </div>
+    <header className={estilos.cabecera}>
+      {/* 1. Zona Izquierda: Badge de Rol */}
+      <div className={estilos.zonaIzquierda}>
+        <button
+          type="button"
+          onClick={alternarRolDev}
+          className={`${estilos.badgeRol} ${esModoDev ? estilos.badgeRolClickable : ""}`}
+          title={
+            esModoDev
+              ? "Haz clic para alternar rol (DM / Jugador) en desarrollo local"
+              : esGM
+              ? "Rol activo: Dungeon Master"
+              : "Rol activo: Jugador"
+          }
+        >
+          {esGM ? <Crown size={12} aria-hidden="true" /> : <Shield size={12} aria-hidden="true" />}
+          <span>{esGM ? "DM" : "PJ"}</span>
+        </button>
       </div>
 
-      {/* Fila Inferior: Pestañas adaptadas automáticamente al rol detectado */}
-      <nav className={estilosClases.navPestañas}>
-        {!esGM ? (
-          <>
-            <button
-              onClick={() => establecerPestaña("jugadores")}
-              className={`${estilosClases.pestanaBoton} ${
-                !["acciones", "ataques", "conjuros", "compendio", "hechizos", "rasgos", "inventario", "tablas", "notas", "iniciativa", "configuracion", "homebrew"].includes(pestañaActiva) ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Ficha y Características del Personaje"
-              type="button"
-            >
-              <Gamepad2 size={13} />
-              <span className={estilosClases.pestanaTexto}>Características</span>
-            </button>
+      {/* 2. Zona Centro: Título Contextual Dinámico */}
+      <div className={estilos.zonaCentro}>
+        <span className={estilos.kickerContexto}>{kickerContexto}</span>
+        <span className={estilos.tituloContexto} title={tituloContexto}>
+          {tituloContexto}
+        </span>
+      </div>
 
-            <button
-              onClick={() => establecerPestaña("acciones")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "acciones" || pestañaActiva === "ataques" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Acciones de Combate, Armas y Conjuros"
-              type="button"
-            >
-              <Swords size={13} />
-              <span className={estilosClases.pestanaTexto}>Acciones</span>
-            </button>
+      {/* 3. Zona Derecha: Quick Actions */}
+      <div className={estilos.zonaDerecha}>
+        {/* Botón y Menú Homebrew */}
+        <div className="u-pos-relativo">
+          <button
+            type="button"
+            onClick={() => setMostrarMenuHomebrew(!mostrarMenuHomebrew)}
+            className={`${estilos.botonAccion} ${
+              pestañaActiva === "homebrew" ? estilos.botonActivo : ""
+            }`}
+            title="Herramientas de Homebrew"
+            aria-label="Abrir menú de Homebrew"
+          >
+            <Menu size={14} />
+          </button>
 
-            <button
-              onClick={() => establecerPestaña("conjuros")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "conjuros" || pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Gestor y Compendio de Conjuros"
-              type="button"
-            >
-              <Sparkles size={13} />
-              <span className={estilosClases.pestanaTexto}>Conjuros</span>
-            </button>
+          {mostrarMenuHomebrew && (
+            <div className={estilos.menuHomebrewDesplegable}>
+              <div className={estilos.cabeceraDesplegable}>Taller Homebrew</div>
+              <button
+                type="button"
+                onClick={() => {
+                  establecerPestaña("homebrew");
+                  establecerModoHomebrew("crear");
+                  setMostrarMenuHomebrew(false);
+                }}
+                className={`${estilos.itemMenuDesplegable} ${
+                  pestañaActiva === "homebrew" && modoHomebrew === "crear"
+                    ? estilos.itemMenuActivo
+                    : ""
+                }`}
+              >
+                <Plus size={12} />
+                <span>Crear Nuevo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  establecerPestaña("homebrew");
+                  establecerModoHomebrew("lista");
+                  setMostrarMenuHomebrew(false);
+                }}
+                className={`${estilos.itemMenuDesplegable} ${
+                  pestañaActiva === "homebrew" && modoHomebrew === "lista"
+                    ? estilos.itemMenuActivo
+                    : ""
+                }`}
+              >
+                <Edit2 size={12} />
+                <span>Listado / Editar</span>
+              </button>
+            </div>
+          )}
+        </div>
 
-            <button
-              onClick={() => establecerPestaña("inventario")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "inventario" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Inventario, Equipamiento y Monedas"
-              type="button"
-            >
-              <Backpack size={13} />
-              <span className={estilosClases.pestanaTexto}>Inventario</span>
-            </button>
-
-            <SelectorDesplegable
-              valor={esPestanaAdicional ? pestañaActiva : ""}
-              alCambiar={establecerPestaña}
-              opciones={pestanasAdicionalesJugador}
-              placeholder="Más"
-              titulo="Más pestañas: Rasgos, Notas e Iniciativa"
-              className={`${estilosClases.selectorPestanas} ${esPestanaAdicional ? estilosClases.selectorPestanasActivo : ""}`}
-            />
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => establecerPestaña("iniciativa")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "iniciativa" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Gestor de Iniciativa"
-              type="button"
-            >
-              <Play size={13} fill={pestañaActiva === "iniciativa" ? "currentColor" : "none"} />
-              <span className={estilosClases.pestanaTexto}>Iniciativa</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("tablas")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "tablas" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Tablas del DM"
-              type="button"
-            >
-              <Table size={13} />
-              <span className={estilosClases.pestanaTexto}>Tablas DM</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("pendientes")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "pendientes" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Lista de Tareas Pendientes"
-              type="button"
-            >
-              <ListTodo size={13} />
-              <span className={estilosClases.pestanaTexto}>Pendientes</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("compendio")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Compendio de Reglas"
-              type="button"
-            >
-              <BookOpen size={13} />
-              <span className={estilosClases.pestanaTexto}>Compendio</span>
-            </button>
-
-            <button
-              onClick={() => establecerPestaña("notas")}
-              className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "notas" ? estilosClases.pestanaActiva : ""
-              }`}
-              title="Notas del DM"
-              type="button"
-            >
-              <FileText size={13} />
-              <span className={estilosClases.pestanaTexto}>Notas</span>
-            </button>
-          </>
-        )}
-      </nav>
+        {/* Botón Configuración */}
+        <button
+          type="button"
+          onClick={() => establecerPestaña("configuracion")}
+          className={`${estilos.botonAccion} ${
+            pestañaActiva === "configuracion" ? estilos.botonActivo : ""
+          }`}
+          title="Configuración de Sesión e Importación"
+          aria-label="Configuración"
+        >
+          <Settings size={14} />
+        </button>
+      </div>
     </header>
   );
 };

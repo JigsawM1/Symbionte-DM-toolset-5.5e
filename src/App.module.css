@@ -2,12 +2,15 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 599px;
+  margin: 0 auto;
   height: 100vh;
   max-height: 100vh;
   background-color: var(--color-fondo-profundo);
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
+  position: relative;
   transform: translate3d(0, 0, 0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -26,7 +29,14 @@
   overflow: hidden;
 }
 
-.panelContenido { flex: 1; min-height: 0; overflow: hidden; }
+.panelContenido {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
 .cargadorPestana {
   display: flex;
@@ -71,4 +81,3 @@
 :global([data-tema="jugador"]) .cargadorBarra {
   background-color: var(--pj-acento-primario-solido);
 }
-

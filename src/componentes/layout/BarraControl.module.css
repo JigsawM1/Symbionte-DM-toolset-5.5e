@@ -3,45 +3,57 @@
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  justify-content: space-around;
-  background-color: var(--color-fondo-panel);
-  border-bottom: 1px solid var(--color-borde-brutal);
+  gap: 6px;
+  justify-content: space-between;
+  background-color: var(--dm-fondo-panel, #0a0d14);
+  border-bottom: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
   padding: 6px 8px;
   width: 100%;
   z-index: 10;
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .bloqueBusqueda {
   display: flex;
   flex-direction: row;
   gap: 6px;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.bloqueBusqueda > * {
+  flex: 1;
+  min-width: 0;
 }
 
 .grupoAcciones {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 4px;
 }
 
 .botonAccionPrincipal {
   height: 30px;
-  font-size: var(--dm-fuente-minima, 12px);
+  font-size: var(--dm-fuente-minima, 11.5px);
+  font-weight: 700;
   padding: 4px 8px;
   display: flex;
   align-items: center;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-principal);
+  gap: 4px;
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  color: var(--dm-texto-principal, #ffffff);
   cursor: pointer;
-  border-radius: var(--dm-radio-control, 2px);
+  border-radius: var(--dm-radio-control, 4px);
+  box-sizing: border-box;
 }
 
 .botonAccionPrincipal:hover,
 .botonNavegacionTurno:hover {
-  background-color: var(--color-fondo-profundo);
-  border-color: var(--color-borde-cian);
+  background-color: var(--dm-fondo-foco, #1f2737);
+  border-color: var(--dm-cian, #00f5d4);
 }
 
 .botonNavegacionTurno {
@@ -51,106 +63,103 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-principal);
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  color: var(--dm-texto-principal, #ffffff);
   cursor: pointer;
-  border-radius: var(--dm-radio-control, 2px);
+  border-radius: var(--dm-radio-control, 4px);
+  box-sizing: border-box;
 }
 
 .grupoVentaja {
   display: flex;
   flex-direction: row;
-  border: 1px solid var(--color-borde-brutal);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.15));
+  border-radius: 6px;
   padding: 2px;
-  background-color: var(--color-fondo-tarjeta);
+  background-color: var(--dm-fondo-profundo, #070a10);
+  box-sizing: border-box;
 }
 
 .botonTirada {
-  height: 24px;
-  font-size: var(--dm-fuente-minima, 11px);
+  height: 26px;
+  font-size: 11px;
+  font-weight: 600;
   padding: 2px 8px;
   border: none;
-  background: none;
+  background: transparent;
   cursor: pointer;
-  color: var(--color-texto-secundario);
-  border-radius: var(--dm-radio-control, 2px);
+  color: var(--dm-texto-apagado, #64748b);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .botonTirada:hover {
-  color: var(--color-texto-principal);
-  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.05);
+  color: var(--dm-texto-principal, #ffffff);
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .botonDesventajaActivo {
-  background-color: rgba(var(--dm-rgb-peligro, 242, 92, 84), 0.2) !important;
-  color: var(--dm-texto-peligro, var(--color-peligro)) !important;
-  font-weight: bold;
+  background-color: var(--dm-superficie-peligro, rgba(239, 68, 68, 0.2)) !important;
+  color: var(--dm-texto-peligro, #ef4444) !important;
+  border: 1px solid var(--dm-borde-peligro, #ef4444);
+  font-weight: 700;
 }
 
 .botonPlanoActivo {
-  background-color: var(--color-primario) !important;
+  background-color: var(--dm-primario-hover, #7b2cbf) !important;
   color: var(--dm-texto-principal, #ffffff) !important;
-  font-weight: bold;
+  border: 1px solid var(--dm-borde-cian, #00f5d4);
+  font-weight: 700;
 }
 
 .botonVentajaActivo {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2) !important;
-  color: var(--dm-texto-exito, var(--color-exito)) !important;
-  font-weight: bold;
+  background-color: var(--dm-superficie-exito, rgba(16, 185, 129, 0.2)) !important;
+  color: var(--dm-texto-exito, #10b981) !important;
+  border: 1px solid var(--dm-borde-exito, #10b981);
+  font-weight: 700;
 }
 
 .indicadorRonda {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
-  border: 1px solid var(--color-borde-brutal);
-  background-color: var(--color-fondo-tarjeta);
-  padding: 3px 6px;
+  gap: 4px;
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border-radius: var(--dm-radio-control, 4px);
+  padding: 2px 6px;
   height: 30px;
-  margin-left: auto;
+  box-sizing: border-box;
 }
 
 .botonRondaPaso {
   border: none;
   background: none;
-  color: var(--color-texto-secundario);
+  color: var(--dm-texto-secundario, #94a3b8);
   font-weight: bold;
   cursor: pointer;
-  padding: 0 6px;
-  font-size: 14px;
+  padding: 0 4px;
+  font-size: 13px;
 }
 
-.botonRondaPaso:hover,
+.botonRondaPaso:hover {
+  color: var(--dm-texto-cian, #00f5d4);
+}
+
 .numeroRonda {
-  color: var(--color-borde-cian);
+  color: var(--dm-texto-cian, #00f5d4);
+  font-weight: 700;
 }
 
 .rondaTexto {
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
+  font-family: var(--fuente-codigo);
+  font-size: 11px;
+  font-weight: 700;
   white-space: nowrap;
-  color: var(--color-texto-principal);
+  color: var(--dm-texto-principal, #ffffff);
 }
 
 .iconoAlerta {
-  color: var(--dm-texto-advertencia, var(--color-advertencia));
-  margin-right: 4px;
-}
-
-@media (max-width: 620px) {
-  :global([data-tema="dm"]) .barraControles {
-    justify-content: space-between;
-  }
-
-  :global([data-tema="dm"]) .bloqueBusqueda {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
-  :global([data-tema="dm"]) .bloqueBusqueda > * {
-    flex: 1;
-    min-width: 0;
-  }
+  color: var(--dm-texto-advertencia, #fbbf24);
 }

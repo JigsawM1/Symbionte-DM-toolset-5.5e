@@ -1,8 +1,13 @@
 .tarjeta {
   display: flex;
-  justify-content: space-between;
-  border-radius: var(--pj-radio-control);
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: var(--pj-radio-panel);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  box-shadow: var(--pj-sombra-tarjeta);
+  transition: none;
 }
 
 .tarjetaConcentracion {
@@ -13,6 +18,53 @@
 .tarjetaPreparada {
   background-color: var(--pj-fondo-tarjeta-hover);
   border: 1px solid var(--pj-borde-cian);
+}
+
+.filaSuperiorConjuro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.accionesCabeceraConjuro {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.filaMetadatosConjuro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+.textoMetadatosBase {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.touchpadLanzamientoConjuro {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.botonesLanzamientoFila {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
 
 

@@ -676,12 +676,13 @@
 @media (max-width: 620px) {
   :global([data-tema="dm"]) .tarjetaCriaturaBrutal {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) 104px 24px;
+    grid-template-columns: auto minmax(0, 1fr) auto 28px;
     grid-template-areas:
       "iniciativa datos salud eliminar"
       "iniciativa acciones salud eliminar";
-    gap: 6px 8px;
-    padding: 8px;
+    gap: 6px 10px;
+    padding: 8px 10px;
+    border-radius: var(--dm-radio-panel, 6px);
   }
 
   :global([data-tema="dm"]) .columnaIniciativaYAvatar,
@@ -702,19 +703,28 @@
   :global([data-tema="dm"]) .nombreCriaturaLink {
     flex-wrap: wrap;
     overflow-wrap: anywhere;
+    font-size: 13.5px;
   }
 
   :global([data-tema="dm"]) .cajaAccionesRapidasColumn {
     grid-area: acciones;
     min-width: 0;
+    margin-top: 4px;
+  }
+
+  :global([data-tema="dm"]) .botonAccionRapidaMedieval {
+    min-height: 28px;
+    padding: 3px 8px;
   }
 
   :global([data-tema="dm"]) .miniBotonAdd {
-    height: 24px;
+    height: 26px;
+    padding: 2px 7px;
   }
 
   :global([data-tema="dm"]) .filaCondicionesChips {
     align-items: flex-start;
+    gap: 4px;
   }
 
   :global([data-tema="dm"]) .contenedorMiniSelector {
@@ -728,25 +738,55 @@
 
   :global([data-tema="dm"]) .dropdownItem {
     overflow-wrap: anywhere;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
   }
 
   :global([data-tema="dm"]) .cajaControlesSaludTarjetas {
     grid-area: salud;
-    width: 104px;
+    width: 118px;
   }
 
   :global([data-tema="dm"]) .controlHPVertical {
-    width: 52px;
+    width: 60px;
+  }
+
+  :global([data-tema="dm"]) .botonCurarVertical {
+    height: 22px;
+    font-size: var(--dm-fuente-minima, 9.5px);
+  }
+
+  :global([data-tema="dm"]) .botonDañoVertical {
+    height: 22px;
+    font-size: var(--dm-fuente-minima, 9.5px);
+  }
+
+  :global([data-tema="dm"]) .inputHPVertical {
+    height: 24px;
+    font-size: var(--dm-fuente-minima, 13px);
+  }
+
+  :global([data-tema="dm"]) .cajaTempVertical {
+    width: 50px;
+    height: 68px;
   }
 
   :global([data-tema="dm"]) .filaHPArea {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 4px;
+    margin-bottom: 3px;
   }
 
   :global([data-tema="dm"]) .botonEliminarDeCola {
     grid-area: eliminar;
     align-self: start;
     justify-self: end;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }

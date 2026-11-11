@@ -1,10 +1,11 @@
 .botonFlotante,
 .contenedorPanel {
-  --separacion-dados: 20px;
+  --separacion-dados-lateral: 14px;
+  --separacion-dados-inferior: calc(58px + 12px);
   position: absolute;
-  bottom: var(--separacion-dados);
-  right: var(--separacion-dados);
-  z-index: 9999;
+  bottom: var(--separacion-dados-inferior);
+  right: var(--separacion-dados-lateral);
+  z-index: 90;
 }
 
 .botonFlotante {
@@ -25,8 +26,8 @@
 .contenedorPanel {
   box-sizing: border-box;
   width: 320px;
-  max-width: calc(100% - 2 * var(--separacion-dados));
-  max-height: calc(100% - 2 * var(--separacion-dados));
+  max-width: calc(100% - 2 * var(--separacion-dados-lateral));
+  max-height: calc(100% - var(--separacion-dados-inferior) - 60px);
   border-radius: var(--dm-radio-panel, 16px);
   background-color: var(--dm-fondo-modal, rgba(18, 18, 22, 0.95));
   backdrop-filter: var(--dm-filtro-fondo, blur(12px));

@@ -1,132 +1,128 @@
 .cabecera {
   display: flex;
-  flex-direction: column;
-  background-color: var(--color-fondo-panel);
-  border-bottom: 2px solid var(--color-borde-brutal);
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.filaSuperior {
-  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 8px;
-  height: 32px;
   width: 100%;
+  height: 44px;
+  min-height: 44px;
+  background-color: var(--dm-fondo-panel, #0a0d14);
+  border-bottom: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  padding: 0 10px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  z-index: 40;
 }
 
-.tituloSeccion,
-.zonaDerecha {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-}
-
-.botonHamburguesa {
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-principal);
-  padding: 2px;
-  cursor: pointer;
+.zonaIzquierda {
   display: flex;
   align-items: center;
-  justify-content: center;
-  height: 24px;
-  width: 28px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.tituloTexto {
-  font-size: 13px;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  color: var(--color-borde-cian);
-  text-transform: uppercase;
+.badgeRol {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde-cian, #00f5d4);
+  border-radius: var(--dm-radio-control, 4px);
+  color: var(--dm-texto-cian, #00f5d4);
   font-family: var(--fuente-codigo);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 
-.tituloTextoClickable {
+.badgeRolClickable {
   cursor: pointer;
   user-select: none;
 }
 
-.campañaTexto {
-  font-size: var(--dm-fuente-minima, 12px);
-  font-family: var(--fuente-codigo);
-  color: var(--color-texto-secundario);
-  max-width: 180px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.badgeRolClickable:hover {
+  background-color: var(--dm-superficie-cian, rgba(0, 245, 212, 0.15));
 }
 
-.botonConfiguracion {
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  padding: 2px;
+.zonaCentro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+  flex: 1;
+  padding: 0 8px;
+}
+
+.kickerContexto {
+  font-family: var(--fuente-codigo);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dm-texto-apagado, #64748b);
+  line-height: 1;
+}
+
+.tituloContexto {
+  font-family: var(--fuente-titulo, var(--fuente-principal));
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dm-texto-principal, #ffffff);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  line-height: 1.2;
+}
+
+.zonaDerecha {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.botonAccion {
+  background-color: var(--dm-fondo-tarjeta, #161c28);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.12));
+  border-radius: var(--dm-radio-control, 4px);
+  color: var(--dm-texto-secundario, #94a3b8);
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-  width: 28px;
+  height: 28px;
+  width: 30px;
+  box-sizing: border-box;
+}
+
+.botonAccion:hover {
+  background-color: var(--dm-fondo-foco, #1f2737);
+  border-color: var(--dm-cian, #00f5d4);
+  color: var(--dm-texto-cian, #00f5d4);
 }
 
 .botonActivo {
-  background-color: var(--color-primario);
-  border-color: var(--color-borde-cian);
+  background-color: var(--dm-primario-hover, #7b2cbf);
+  border-color: var(--dm-cian, #00f5d4);
   color: var(--dm-texto-principal, #ffffff);
-}
-
-.navPestañas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  border-top: 1px solid var(--color-borde-brutal);
-}
-
-.pestanaBoton {
-  flex: 1;
-  background-color: var(--color-fondo-panel);
-  border: none;
-  border-right: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  padding: 4px 2px;
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  text-transform: uppercase;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  height: 30px;
-}
-
-.pestanaActiva {
-  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
-  color: var(--dm-texto-principal, #ffffff);
-  border-bottom: 1px solid var(--color-borde-cian);
-}
-
-.pestanaTexto {
-  font-size: var(--dm-fuente-minima, 11px);
-  letter-spacing: -0.01em;
 }
 
 .menuHomebrewDesplegable {
   position: absolute;
-  top: 28px;
-  left: 0px;
-  background-color: var(--color-fondo-panel);
-  border: 2px solid var(--color-borde-brutal);
+  top: 40px;
+  right: 42px;
+  background-color: var(--dm-fondo-panel, #0f141d);
+  border: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.15));
+  border-radius: 6px;
   z-index: 1000;
-  width: 160px;
-  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.9);
+  width: 150px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -134,10 +130,10 @@
 }
 
 .cabeceraDesplegable {
-  font-size: var(--dm-fuente-minima, 10px);
-  font-weight: bold;
-  color: var(--color-texto-secundario);
-  border-bottom: 1px solid var(--color-borde-brutal);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dm-texto-apagado, #64748b);
+  border-bottom: 1px solid var(--dm-borde, rgba(255, 255, 255, 0.1));
   padding-bottom: 3px;
   margin-bottom: 3px;
   text-transform: uppercase;
@@ -148,8 +144,8 @@
 .itemMenuDesplegable {
   background-color: transparent;
   border: none;
-  color: var(--color-texto-principal);
-  font-size: var(--dm-fuente-minima, 12px);
+  color: var(--dm-texto-principal, #ffffff);
+  font-size: 11.5px;
   padding: 6px 8px;
   text-align: left;
   cursor: pointer;
@@ -158,153 +154,81 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  font-family: var(--dm-fuente-principal, var(--fuente-inter));
+  font-family: var(--fuente-principal);
   font-weight: 500;
+  border-radius: 4px;
+}
+
+.itemMenuDesplegable:hover {
+  background-color: var(--dm-fondo-foco, #1f2737);
 }
 
 .itemMenuActivo {
-  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
+  background-color: var(--dm-primario-hover, #7b2cbf);
   color: var(--dm-texto-principal, #ffffff);
-  border: 1px solid var(--color-borde-cian);
-  border-radius: var(--dm-radio-panel, 2px);
 }
 
-/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
-
+/* Identidad Visual del Jugador (DESIGN.md): Dark Fantasy Zafiro/Índigo */
 :global([data-tema="jugador"]) .cabecera {
-  background-color: var(--pj-fondo-panel);
-  border-bottom: 2px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-panel, #0d121c);
+  border-bottom: 1px solid var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
 }
 
-:global([data-tema="jugador"]) .botonHamburguesa {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-primario);
+:global([data-tema="jugador"]) .badgeRol {
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-acento, #a5b4fc);
 }
 
-:global([data-tema="jugador"]) .tituloTexto {
-  font-size: var(--pj-fuente-subtitulo);
-  font-family: var(--fuente-principal);
-  color: var(--pj-borde-cian-fuerte);
+:global([data-tema="jugador"]) .badgeRolClickable:hover {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
 }
 
-:global([data-tema="jugador"]) .campañaTexto {
-  font-size: var(--pj-fuente-cuerpo);
-  color: var(--pj-texto-secundario);
+:global([data-tema="jugador"]) .kickerContexto {
+  color: var(--pj-texto-terciario, #94a3b8);
 }
 
-:global([data-tema="jugador"]) .botonConfiguracion {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
+:global([data-tema="jugador"]) .tituloContexto {
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+:global([data-tema="jugador"]) .botonAccion {
+  background-color: var(--pj-fondo-tarjeta, #121722);
+  border-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
+  color: var(--pj-texto-secundario, #cbd5e1);
+}
+
+:global([data-tema="jugador"]) .botonAccion:hover {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 :global([data-tema="jugador"]) .botonActivo {
-  background-color: var(--pj-acento-primario-solido);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .navPestañas {
-  border-top: 1px solid var(--pj-borde-medio);
-  display: grid;
-  grid-template-columns: minmax(80px, 1.25fr) repeat(auto-fit, minmax(0, 1fr));
-}
-
-:global([data-tema="jugador"]) .pestanaBoton {
-  background-color: var(--pj-fondo-panel);
-  border-right: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-}
-
-:global([data-tema="jugador"]) .pestanaActiva {
-  background-color: var(--pj-acento-primario-solido-hover);
-  color: var(--pj-texto-primario);
-  border-bottom: 1px solid var(--pj-borde-cian-fuerte);
-}
-
-:global([data-tema="jugador"]) .pestanaTexto {
-  font-size: var(--pj-fuente-label);
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-:global([data-tema="jugador"]) .filaSuperior {
-  min-height: 40px;
-  height: auto;
-}
-
-:global([data-tema="jugador"]) .pestanaBoton {
-  min-width: 0;
-  height: auto;
-  min-height: 32px;
-  border-radius: 0;
-}
-
-.selectorPestanas {
-  min-width: 0;
-}
-
-:global([data-tema="jugador"]) .selectorPestanas > button {
-  height: 100%;
-  min-height: 32px;
-  padding: 4px;
-  border: 0;
-  border-radius: 0;
-  background-color: var(--pj-fondo-panel);
-  font-size: var(--pj-fuente-label);
-}
-
-:global([data-tema="jugador"]) .selectorPestanasActivo > button {
-  background-color: var(--pj-acento-primario-solido-hover);
-  border-bottom: 1px solid var(--pj-borde-cian-fuerte);
-}
-
-.selectorPestanas > button > div {
-  justify-content: center;
-}
-
-@media (max-width: 480px) {
-  :global([data-tema="jugador"]) .pestanaBoton,
-  .selectorPestanas > button > div {
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  :global([data-tema="jugador"]) .pestanaTexto {
-    white-space: nowrap;
-    overflow-wrap: normal;
-  }
-
-  .selectorPestanas > button > svg {
-    position: absolute;
-    right: 3px;
-    top: 4px;
-  }
+  background-color: var(--pj-acento-primario-solido, #4f46e5);
+  border-color: var(--pj-borde-acento-fuerte, #818cf8);
+  color: var(--pj-texto-primario, #ffffff);
 }
 
 :global([data-tema="jugador"]) .menuHomebrewDesplegable {
-  background-color: var(--pj-fondo-panel);
-  border: 2px solid var(--pj-borde-medio);
-  box-shadow: var(--pj-sombra-tarjeta);
+  background-color: var(--pj-fondo-panel, #0d121c);
+  border-color: var(--pj-borde-medio, rgba(148, 163, 184, 0.26));
+  box-shadow: var(--pj-sombra-panel, 0 8px 24px rgba(0, 0, 0, 0.7));
 }
 
 :global([data-tema="jugador"]) .cabeceraDesplegable {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-secundario);
-  border-bottom: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-terciario, #94a3b8);
+  border-bottom-color: var(--pj-borde-sutil, rgba(148, 163, 184, 0.16));
 }
 
 :global([data-tema="jugador"]) .itemMenuDesplegable {
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-cuerpo);
-  font-family: var(--fuente-principal);
+  color: var(--pj-texto-primario, #ffffff);
+}
+
+:global([data-tema="jugador"]) .itemMenuDesplegable:hover {
+  background-color: var(--pj-fondo-tarjeta-hover, #1b2434);
 }
 
 :global([data-tema="jugador"]) .itemMenuActivo {
-  background-color: var(--pj-acento-primario-solido-hover);
-  color: var(--pj-texto-primario);
-  border: 1px solid var(--pj-borde-cian-fuerte);
-  border-radius: var(--pj-radio-panel);
+  background-color: var(--pj-acento-primario-solido, #4f46e5);
 }

@@ -1,11 +1,17 @@
 import { CambiosSyncPendientes } from "@/componentes/comunes/CambiosSyncPendientes";
 import { AvisoCargaDatos } from "@/componentes/comunes/AvisoCargaDatos";
 import { EstadoSincronizacionV4 } from "@/componentes/caracteristicas/sincronizacion/EstadoSincronizacionV4";
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { usarEstadoConfiguracion } from "@/almacen/selectores";
 import { usarConexionTaleSpire } from "./hooks/usarConexionTaleSpire";
 import { LimiteError, NotificacionesContenedor } from "@/componentes/comunes";
-import { BarraSuperior, BarraControl, PanelDados } from "@/componentes/layout";
+import {
+  BarraSuperior,
+  BarraControl,
+  PanelDados,
+  BarraNavegacionInferior,
+  MenuMasMovil,
+} from "@/componentes/layout";
 const GestorIniciativa = React.lazy(() => import("@/componentes/caracteristicas/iniciativa").then((m) => ({ default: m.GestorIniciativa })));
 import estilos from "./App.module.css";
 
@@ -25,6 +31,7 @@ const VistaMagiaSalvaje = React.lazy(() => import("@/componentes/caracteristicas
 
 const AppContenido: React.FC = () => {
   const { pestañaActiva, esGM } = usarEstadoConfiguracion();
+  const [menuMasAbierto, setMenuMasAbierto] = useState(false);
 
   // Sincronización híbrida mediante hook modular
   usarConexionTaleSpire();
@@ -87,40 +94,51 @@ const AppContenido: React.FC = () => {
     }
   };
 
-
   return (
     <div className={estilos.contenedorGeneral} data-tema={esGM ? "dm" : "jugador"}>
-      {/* Barra de título y navegación superior */}
+      {/* 1. Barra de estado y cabecera superior móvil */}
       <BarraSuperior />
 
-      {/* Controles del DM (Solo visibles si esGM es true) */}
+      {/* 2. Subheader de Controles de Combate del DM (Solo visible si esGM en iniciativa) */}
       {esGM && pestañaActiva === "iniciativa" && <BarraControl />}
 
-      {/* Panel de Contenido Principal Reactivo de Alta Densidad */}
+      {/* 3. Panel de Contenido Principal Móvil */}
       <main className={estilos.areaContenido}>
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
         <div className={estilos.panelContenido}>
-        <Suspense
-          fallback={
-            <div className={estilos.cargadorPestana}>
-              Cargando módulo...
-              <div className={estilos.cargadorBarra} />
-            </div>
-          }
-        >
-          <LimiteError modoModular key={pestañaActiva}>
-            {renderContenidoPestaña()}
-          </LimiteError>
-        </Suspense>
+          <Suspense
+            fallback={
+              <div className={estilos.cargadorPestana}>
+                Cargando módulo...
+                <div className={estilos.cargadorBarra} />
+              </div>
+            }
+          >
+            <LimiteError modoModular key={pestañaActiva}>
+              {renderContenidoPestaña()}
+            </LimiteError>
+          </Suspense>
         </div>
         <PanelDados />
       </main>
 
-      {/* Pie de interfaz: telemetría ambiental y sincronización */}
+      {/* 4. Pie de sincronización ambiental */}
       <EstadoSincronizacionV4 />
 
-      {/* Contenedor global de notificaciones/toasts */}
+      {/* 5. Barra de Navegación Inferior Móvil (Bottom Navigation Bar) */}
+      <BarraNavegacionInferior
+        alAlternarMenuMas={() => setMenuMasAbierto((prev) => !prev)}
+        menuMasAbierto={menuMasAbierto}
+      />
+
+      {/* 6. Hoja Inferior Táctica Móvil (Bottom Sheet de Herramientas Adicionales) */}
+      <MenuMasMovil
+        abierto={menuMasAbierto}
+        alCerrar={() => setMenuMasAbierto(false)}
+      />
+
+      {/* 7. Contenedor global de notificaciones/toasts */}
       <NotificacionesContenedor />
     </div>
   );

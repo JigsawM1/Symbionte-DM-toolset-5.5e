@@ -1032,3 +1032,72 @@
   font-weight: 400;
   color: var(--pj-texto-terciario);
 }
+
+/* ==========================================================================
+   Selector Horizontal Deslizable de Niveles de Conjuro (Mobile 599px)
+   ========================================================================== */
+.barraSelectorNivelesMovil {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 2px;
+  margin-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.barraSelectorNivelesMovil::-webkit-scrollbar {
+  display: none;
+}
+
+.pildoraNivelMovil {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  min-height: 34px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: none !important;
+  animation: none !important;
+}
+
+.pildoraNivelMovil:hover {
+  background-color: var(--pj-fondo-secundario);
+  color: var(--pj-texto-primario);
+}
+
+.pildoraNivelMovilActiva {
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-alerta);
+  font-weight: 700;
+}
+
+.badgePildoraNivel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background-color: var(--pj-fondo-principal);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-label);
+  font-weight: 700;
+}
+
+.pildoraNivelMovilActiva .badgePildoraNivel {
+  background-color: var(--pj-acento-primario);
+  color: var(--pj-texto-alerta);
+}

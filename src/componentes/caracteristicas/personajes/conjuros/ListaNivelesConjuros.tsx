@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento, SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
-import { Sparkles, BookOpen } from "lucide-react";
+import { Sparkles, BookOpen, Layers } from "lucide-react";
 import { SeccionNivelConjuros } from "../SeccionNivelConjuros";
 import estilos from "../PanelConjurosPersonaje.module.css";
+
+type FiltroNivelMovil = "todos" | "trucos" | number;
 
 interface ListaNivelesConjurosProps {
   personaje: PersonajeJugador;
@@ -67,42 +69,97 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
   alternarSeccion,
   hayFiltrosActivos
 }) => {
+  const [filtroNivel, setFiltroNivel] = useState<FiltroNivelMovil>("todos");
+
   const ejecutarLanzamiento = (modo: ModoLanzamiento, niv?: number, hechizo?: HechizoBase) => {
     if (hechizo) return lanzar({ modo, hechizo, nivelLanzamiento: niv });
     return Promise.resolve(false);
   };
 
+  const tieneTrucos = trucosConocidos.length > 0 || trucosVisibles.length > 0;
+  const nivelesConConjuros = Array.from({ length: 9 }, (_, idx) => idx + 1).filter((nivel) => {
+    const visibles = conjurosVisiblesPorNivel[nivel] || [];
+    return visibles.length > 0;
+  });
+
   return (
     <>
+      {/* Selector Horizontal Deslizable de Niveles (Móvil 599px) */}
+      {(tieneTrucos || nivelesConConjuros.length > 0) && (
+        <div className={estilos.barraSelectorNivelesMovil} role="tablist" aria-label="Nivel de conjuro">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={filtroNivel === "todos"}
+            className={`${estilos.pildoraNivelMovil} ${filtroNivel === "todos" ? estilos.pildoraNivelMovilActiva : ""}`}
+            onClick={() => setFiltroNivel("todos")}
+          >
+            <Layers size={13} />
+            <span>Todos</span>
+          </button>
+          {tieneTrucos && (
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filtroNivel === "trucos"}
+              className={`${estilos.pildoraNivelMovil} ${filtroNivel === "trucos" ? estilos.pildoraNivelMovilActiva : ""}`}
+              onClick={() => setFiltroNivel("trucos")}
+            >
+              <Sparkles size={13} />
+              <span>Trucos</span>
+              <span className={estilos.badgePildoraNivel}>{trucosVisibles.length}</span>
+            </button>
+          )}
+          {nivelesConConjuros.map((nivel) => {
+            const total = (conjurosVisiblesPorNivel[nivel] || []).length;
+            return (
+              <button
+                key={`pildora-nv-${nivel}`}
+                type="button"
+                role="tab"
+                aria-selected={filtroNivel === nivel}
+                className={`${estilos.pildoraNivelMovil} ${filtroNivel === nivel ? estilos.pildoraNivelMovilActiva : ""}`}
+                onClick={() => setFiltroNivel(nivel)}
+              >
+                <span>Nv {nivel}</span>
+                <span className={estilos.badgePildoraNivel}>{total}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Sección: Trucos Listos */}
-      <SeccionNivelConjuros
-        titulo="Trucos Listos"
-        icono={<Sparkles size={14} color="var(--pj-texto-magia)" />}
-        nivel={0}
-        esTruco={true}
-        conjurosVisibles={trucosVisibles}
-        conjurosFiltrados={trucosFiltrados}
-        estaAbierta={seccionesAbiertas.trucos !== false}
-        alAlternar={() => alternarSeccion("trucos")}
-        hayFiltrosActivos={hayFiltrosActivos}
-        personaje={personaje}
-        bonoAtaqueMagico={bonoAtaqueMagico}
-        estaPreparado={() => true}
-        esHechizoDeSubclase={esHechizoDeSubclase}
-        obtenerOrigenConjuro={obtenerOrigenConjuro}
-        requierePreparacion={false}
-        esLanzadorPacto={esLanzadorPacto}
-        nivelEspacioPacto={nivelEspacioPacto || 1}
-        sistemaMagia={sistemaMagia}
-        estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
-        motivoBloqueoArmadura={motivoBloqueoArmadura}
-        alAlternarOcultar={alternarOculto}
-        alQuitarDeLista={alQuitarTruco}
-        alAbrirDetalleCompleto={(h: HechizoBase) => setHechizoModal(h)}
-        alLanzar={ejecutarLanzamiento}
-        alAnadirTrucos={() => establecerPestaña("compendio")}
-        totalTrucosConocidos={trucosConocidos.length}
-      />
+      {(filtroNivel === "todos" || filtroNivel === "trucos") && (
+        <SeccionNivelConjuros
+          titulo="Trucos Listos"
+          icono={<Sparkles size={14} color="var(--pj-texto-magia)" />}
+          nivel={0}
+          esTruco={true}
+          conjurosVisibles={trucosVisibles}
+          conjurosFiltrados={trucosFiltrados}
+          estaAbierta={filtroNivel === "trucos" ? true : (seccionesAbiertas.trucos !== false)}
+          alAlternar={() => alternarSeccion("trucos")}
+          hayFiltrosActivos={hayFiltrosActivos}
+          personaje={personaje}
+          bonoAtaqueMagico={bonoAtaqueMagico}
+          estaPreparado={() => true}
+          esHechizoDeSubclase={esHechizoDeSubclase}
+          obtenerOrigenConjuro={obtenerOrigenConjuro}
+          requierePreparacion={false}
+          esLanzadorPacto={esLanzadorPacto}
+          nivelEspacioPacto={nivelEspacioPacto || 1}
+          sistemaMagia={sistemaMagia}
+          estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
+          motivoBloqueoArmadura={motivoBloqueoArmadura}
+          alAlternarOcultar={alternarOculto}
+          alQuitarDeLista={alQuitarTruco}
+          alAbrirDetalleCompleto={(h: HechizoBase) => setHechizoModal(h)}
+          alLanzar={ejecutarLanzamiento}
+          alAnadirTrucos={() => establecerPestaña("compendio")}
+          totalTrucosConocidos={trucosConocidos.length}
+        />
+      )}
 
       {/* Estado Vacío de Conjuros */}
       {conteoEfectivo.total === 0 && (
@@ -132,6 +189,8 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
       {/* Secciones por Nivel de Conjuro (1 a 9) */}
       {Array.from({ length: 9 }).map((_, idx) => {
         const nivel = idx + 1;
+        if (filtroNivel !== "todos" && filtroNivel !== nivel) return null;
+
         const conjurosNivelTotal = conjurosPorNivel[nivel] || [];
         if (conjurosNivelTotal.length === 0) return null;
 
@@ -148,7 +207,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
             esTruco={false}
             conjurosVisibles={conjurosNivelVisiblesBase}
             conjurosFiltrados={conjurosNivelVisibles}
-            estaAbierta={seccionesAbiertas[`nv_${nivel}`] !== false}
+            estaAbierta={filtroNivel === nivel ? true : (seccionesAbiertas[`nv_${nivel}`] !== false)}
             alAlternar={() => alternarSeccion(`nv_${nivel}`)}
             hayFiltrosActivos={hayFiltrosActivos}
             personaje={personaje}

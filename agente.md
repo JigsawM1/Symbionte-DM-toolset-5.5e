@@ -1,5 +1,164 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-11] Rediseño Táctico de la Vista General del Simbionte a Mobile App HUD (599px)
+
+- **Contexto**:
+  - El simbionte de TaleSpire se renderiza dentro de un panel lateral de exactamente 599px de ancho por 100vh de altura.
+  - La interfaz previa utilizaba una distribución de escritorio con cabecera de 2 filas saturada (título con botones pequeños y una barra apretada de 5 pestañas con dropdown genérico para opciones adicionales).
+  - El usuario solicitó aprovechar el ancho de 599px para migrar hacia una vista similar a aplicaciones móviles ("apps mobiles"), aplicando la skill `/frontend-design` y respetando los tokens de `DESIGN.md` (Jugador) y `DESIGN_MASTER.md` (DM) sin animaciones en CEF.
+- **Decisiones Arquitectónicas y de Diseño**:
+  1. *Fidelidad Canónica a las Vistas Originales de «Más» y Barra DM*:
+     - Se corrigió la inclusión excesiva de opciones en «Más»: el menú de herramientas secundarias del Jugador se restringió **estricta y exclusivamente** a las 3 opciones que existían previamente en `pestanasAdicionalesJugador` (`Rasgos`, `Notas`, `Iniciativa`).
+     - Para el Dungeon Master, se eliminó el botón «Más» innecesario, dejando las **5 pestañas canónicas directas** en la barra inferior (*Iniciativa*, *Tablas DM*, *Pendientes*, *Compendio*, *Notas*), preservando la paridad total con la funcionalidad original.
+  2. *Bottom Navigation Bar (`BarraNavegacionInferior.tsx` y `.module.css`)*:
+     - Reubicación de las pestañas a una barra inferior ergonómica fija de 58px (`bottom: 0`, altura táctil $\ge 44\text{px}$).
+     - Para Jugador: *Ficha*, *Acciones*, *Conjuros*, *Inventario* y *Más*.
+     - Para DM: *Iniciativa*, *Tablas DM*, *Pendientes*, *Compendio* y *Notas*.
+     - Indicador de pestaña activa con píldora superior de 2.5px en el color acento del rol (`--dm-cian` en DM, `--pj-borde-acento-fuerte` en Jugador) y micro-dot luminoso en «Más» cuando una de las 3 vistas secundarias del jugador está activa.
+  3. *Bottom Sheet Táctico Móvil (`MenuMasMovil.tsx` y `.module.css`)*:
+     - Hoja inferior deslizante con tirador táctil (*handle bar*), cabecera con botón de cierre `X` y lista de 3 tarjetas verticales para *Rasgos*, *Notas* e *Iniciativa*.
+     - Cierre accesible con tecla `Escape`, clic en backdrop y cambio inmediato de pestaña.
+  4. *Top App Bar Esbelta (`BarraSuperior.tsx` y `.module.css`)*:
+     - Reducción a 44px fija de altura en una sola fila limpia.
+     - Lado izquierdo: Badge/Píldora interactiva de rol (`PLAYER SHEET` / `DM SCREEN`) para alternar en desarrollo (`!window.TS`).
+     - Centro: Título contextual dinámico con kicker `D&D 5.5e` (nombre del personaje activo con clase/nivel en jugador; nombre de campaña en DM).
+     - Lado derecho: Acciones rápidas (Homebrew y Configuración).
+  5. *HUD de Combate del DM y Posicionamiento de Botón Flotante (`BarraControl.module.css`, `PanelDados.module.css`)*:
+     - `BarraControl`: Segmented control encapsulado para *DesVent / Plano / Vent*, buscadores fluidos y botones de navegación de turnos con contraste táctil.
+     - `PanelDados`: Elevación del botón flotante (`bottom: calc(58px + 12px)`) para garantizar que flote limpiamente sobre la barra inferior móvil sin solapamientos.
+  6. *Rendimiento TaleSpire CEF*:
+     - Cero `@keyframes` y cero transiciones (`transition: none !important; animation: none !important;`).
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas; todos los archivos nuevos `< 300` líneas (categoría `[CORRECTO]`).
+  - `pnpm test`: 192 suites pasadas y 2.773 pruebas unitarias aprobadas al 100%.
+  - `pnpm run build`: Compilación de producción con Vite completada con éxito en 14.73s.
+
+## [2026-11-11] Fase 2: Estandarización de Modales del Sistema a Bottom Sheets Móviles (599px)
+
+- **Contexto**:
+  - En la vista móvil lateral de 599px, los diálogos y modales centrados en pantalla generaban márgenes muertos innecesarios (12-24px por lado), obligaban al usuario a estirar el pulgar al centro/arriba de la pantalla y provocaban desbordamientos verticales si el contenido crecía.
+  - El usuario seleccionó la opción de estandarizar todos los modales del sistema hacia el patrón móvil de **Bottom Sheet** (hoja deslizante anclada al pie).
+- **Decisiones de Diseño e Implementación**:
+  1. *Patrón de Hoja Deslizante Inferior (Bottom Sheet)*:
+     - El overlay cubre la pantalla con fondo oscuro semitransparente (`rgba(0, 0, 0, 0.72)` / `--color-overlay`) y orienta el layout con `display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 0;`.
+     - El contenedor modal se ancla a la base con `width: 100%; max-width: 599px; max-height: calc(100vh - 44px);` (respetando la Top App Bar de 44px), bordes superiores redondeados (`border-radius: 16px 16px 0 0; border-bottom: none;`), sombra de elevación táctil y tirador superior visual (*drag handle* / manija de 36×4px redondeada).
+  2. *Clases Utilitarias Globales (`src/estilos/utilidades.css`)*:
+     - Definidas `.u-overlay-bottom-sheet`, `.u-modal-bottom-sheet` y `.u-manija-bottom-sheet` para homogeneizar futuras hojas inferiores.
+  3. *Modales Migrados Quirúrgicamente*:
+     - `HojaPersonaje.module.css`: Modales de descanso (`.overlayModal` / `.cuerpoModal`) y selector para agregar objetos (`.overlayAgregarObjeto` / `.modalAgregarObjeto`).
+     - `ModalResumenDescanso.module.css`: Resumen de descanso corto y largo con manija superior y scroll táctil interno.
+     - `ConfirmDialog.module.css`: Transformado en un **Action Sheet** inferior móvil ergonómico con botones táctiles de 34px y bordes redondeados.
+     - `VistaRasgosJugador.module.css`: Modal de detalle de rasgos de clase y subclase (`.overlayModalDetalle` / `.contenedorModalDetalle`).
+     - `ModalAtaqueHorda.module.css`: Modal de resolución de ataque/salvación de hordas (`.overlayModal` / `.contenedorModal`).
+     - `ModalDetalleObjetoInventario.module.css`: Detalle táctil de ítems del inventario (`.backdropModal` / `.ventanaModal`).
+     - `ModalTiendaRecuperacionEspacios.module.css`: Interfaz de recuperación arcana / espacios de magia.
+     - `PanelFormaSalvaje.module.css`: Selector de bestias para forma salvaje (`.modalSelectorOverlay` / `.modalSelectorContenido`).
+     - `ModalDetalleCaracteristica.module.css` y `ModalDetalleHabilidad.module.css`: Ajustados a ancho completo con `max-width: 599px`.
+     - `SelectorCompetencias.module.css`: Contenedor y scroll táctil optimizados para el viewport de 599px.
+  4. *Rendimiento y Restricciones*:
+     - `transition: none !important; animation: none !important;` en todo el espectro para garantizar cero parpadeos y máxima fluidez en CEF/TaleSpire.
+- **Validación**:
+  - `pnpm tsc --noEmit`: 0 errores.
+  - `pnpm run lint`: 0 errores y 0 warnings.
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas.
+  - `pnpm test`: 192 suites pasadas / 2.773 tests aprobados.
+  - `pnpm run build`: Compilación exitosa en 14.48s.
+
+## [2026-11-11] Fase 3: Rediseño Móvil Táctico de Acciones y Combate (Hero Action Cards a 599px)
+
+- **Contexto**:
+  - En la vista móvil lateral de 599px, las tarjetas de ataques presentaban una distribución horizontal de escritorio (metadatos a la izquierda y una columna vertical comprimida a la derecha con botones minúsculos para tirar impacto, daño a 1 mano, 2 manos y crítico). Esto dificultaba la lectura en combate y la precisión táctil del pulgar en TaleSpire.
+  - El usuario solicitó adaptar la vista de **Acciones y Combate** (Tarjetas tácticas de ataques y tiradas).
+- **Decisiones de Diseño y Arquitectura**:
+  1. *Patrón Hero Action Card (`TarjetaAtaquePersonaje.tsx` y `.module.css`)*:
+     - Disposición táctil vertical organizada en 3 niveles de lectura:
+       - **Cabecera Táctica**: Medallón con icono según tipo de ataque (espadas para armas, rayo para desarmado, chispa para conjuros), nombre en tipografía legible, subtipo en microtexto, badges de tipo de acción (`Acción`, `Bonus`, `Reacción`), contador de munición prominente (`Target` o `AlertTriangle`) y selector compacto de característica/atributo para armas sutiles o aptitud mágica.
+       - **Data Badges de Reglas D&D 5.5e**: Chips horizontales para Alcance (`1.5 m` o `24/96 m`), Maestría en Armas con badge acento destacado, propiedades (`Sutil`, `Versátil`, `Ligera`) con tooltips universales, y avisos de estado (`Ventaja`, `Desventaja`, `No Competente`).
+       - **Touchpad Táctico de Tiradas**:
+         - Botón Primario Heroico de Impacto/Ataque (`ATACAR +X` o `CD Y SALV`) con altura táctil $\ge 38\text{px}$, fondo cian sólido y modificador en tipografía monoespaciada grande.
+         - Bandeja Táctica de Daño y Crítico: Botón de daño directo con la fórmula explícita en el botón (`DAÑO 1d8+3`, `2M 1d10+3`, `+1d4`), y botón dorado con altura $\ge 38\text{px}$ para tiradas de Crítico (`CRIT` / `CRIT 2M`).
+  2. *Refactorización Modular y Reducción de Deuda Técnica*:
+     - `TarjetaAtaquePersonaje.tsx` se redujo de 351 líneas a 296 líneas, pasando de la lista de advertencia `[AVISO]` a la categoría `[CORRECTO]` (< 300 líneas) en la auditoría de CI.
+  3. *Barra de Filtros Tácticos (`CabeceraAtaquesJugador.tsx` y `.module.css`)*:
+     - Contenedor con scroll horizontal táctil suave (`scrollbar-width: none`), chips de filtro de altura $\ge 34\text{px}$ con badges de conteo numérico contrastados y selectores desplegables optimizados.
+  4. *Tarjetas de Consumibles (`TarjetaConsumibleAccion.tsx` y `.module.css`)*:
+     - Botón de uso táctil con altura $\ge 34\text{px}$ (`Beber` / `Usar`) y visualización de curación/efecto clara.
+  5. *Modal de Detalle de Conjuro en Combate*:
+     - `.backdropModalHechizo` y `.contenedorModalHechizo` estandarizados a **Bottom Sheet** anclado al pie con tirador táctil superior, borde superior redondeado de 16px y `max-height: calc(100vh - 44px)`.
+  6. *Tokens Oficiales y TaleSpire CEF*:
+     - Uso exclusivo de tokens `--pj-*` de `DESIGN.md`.
+     - `transition: none !important; animation: none !important;` en todas las reglas CSS.
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 archivos críticos; `TarjetaAtaquePersonaje.tsx` pasa a 296 líneas (`[CORRECTO]`).
+  - `pnpm test`: 192 suites pasadas / 2.773 pruebas unitarias aprobadas al 100%.
+  - `pnpm run build`: Compilación con Vite completada con éxito en 10.25s.
+
+## [2026-11-11] Fase 4: Rediseño Móvil del Gestor de Iniciativa del DM (Combatant Feed y Bottom Sheet a 599px)
+
+- **Contexto**:
+  - En la vista móvil lateral de 599px, la cola de combate del Dungeon Master forzaba un grid estrecho de 4 columnas (`auto minmax(0, 1fr) 104px 24px`), confinando los controles de vida a 104px con botones de "CURAR" / "DAÑO" aplastados a solo 18px de altura, difíciles de pulsar con precisión en TaleSpire.
+  - Además, la ficha de monstruo abierta (`panelDetalleInferior`) ocupaba el espacio sin la ergonomía de un Bottom Sheet móvil moderno.
+- **Decisiones de Diseño y Arquitectura**:
+  1. *Patrón Combatant Feed Card (`TarjetaCriaturaIniciativa.module.css`)*:
+     - Reorganización de la cuadrícula a $\le 620\text{px}$ para dar mayor amplitud a los controles y facilitar el toque táctil:
+       - **Iniciativa & Identidad**: Píldora de iniciativa con tipografía grande, botón de dado integrado, avatar de PJ y enlace al statblock con nombre nítido y badges de estado (`ACTIVO`, `SEL`, conmutador táctil `MON` / `PJ`).
+       - **Métricas Tácticas**: `CA`, `PP` (Percepción Pasiva), `VEL` e `INIC` claramente espaciados.
+       - **Chips y Selectores de Condiciones/Efectos**: Altura de botones `+ Condición` y `+ Efecto` elevada a $\ge 26\text{px}$ con dropdowns integrados.
+       - **Touchpad de Vitalidad**: Ancho de la caja de salud ampliado a 118px; botones `CURAR` y `DAÑO` elevados a 22px de altura útil, input numérico amplio de 24px e input de vida temporal de 68px de alto.
+       - **Ataques Rápidos**: Botones con altura $\ge 28\text{px}$ para lanzar dados en TaleSpire 3D instantáneamente al toque.
+  2. *Despliegue Lateral de Fichas (Lateral Drawer en vez de Bottom Sheet)*:
+     - **Regla Arquitectónica de Fichas**: A diferencia de los modales de confirmación, descansos o menús cortos (que van como Bottom Sheet desde abajo), los documentos extensos como **fichas completas de monstruos, criaturas o conjuros** (`PanelFichaDnD`, `FichaHechizo`) deben desplegarse **de manera lateral** ocupando el 100% de la altura de la pantalla (`top: 0; bottom: 0; left: 0; right: 0; width: 100%; height: 100%;` con borde lateral acento y sombra lateral).
+     - Esto otorga la máxima altura vertical útil (100vh) para scrollear el statblock sin recortes ni dobles scrolls.
+     - `.panelDetalleInferior` en `GestorIniciativa.module.css`: Lateral de 100% de alto con borde izquierdo cian (`--color-borde-cian`), sombra lateral y cabecera de 38px con botón de cierre `X` de 28×28px.
+     - `.overlayFlotante` y `.modalContenedor` en `GestorIniciativa.module.css`: Lateral drawer de derecha a izquierda a pantalla completa.
+     - `.panelDetalleOverlay` en `ListaHechizos.module.css`: Panel lateral completo para la ficha del hechizo.
+     - `.backdropModalHechizo` y `.contenedorModalHechizo` en `VistaAtaquesJugador.module.css`: Lateral drawer a pantalla completa.
+  3. *Barra de Herramientas del Tracker (`.barraHerramientasTracker`)*:
+     - Altura táctil $\ge 36\text{px}$, contador de combatientes en mayúsculas acentuadas y botón `SINCRONIZAR TALESPIRE` con altura táctil ergonómica.
+  4. *Tokens Oficiales y TaleSpire CEF*:
+     - Uso exclusivo de tokens `--dm-*` de `DESIGN_MASTER.md`.
+     - `transition: none !important; animation: none !important;`.
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas (`[EXITO CI]`).
+  - `pnpm test`: 192 suites pasadas / 2.773 pruebas unitarias aprobadas al 100%.
+  - `pnpm run build`: Compilación con Vite completada con éxito en 11.75s.
+
+## [2026-11-11] Fase 5: Rediseño Móvil del Gestor de Conjuros (Spell Action Cards, Selector Horizontal y Pips a 599px)
+
+- **Contexto**:
+  - En la vista móvil lateral de 599px, el Gestor de Conjuros (`PanelConjurosPersonaje`) presentaba un apilamiento vertical excesivo de niveles 0 a 9 que obligaba al usuario a un scroll largo para localizar sus hechizos.
+  - Además, las tarjetas de conjuro (`TarjetaConjuroCompacta`) tenían botones pequeños y poco ergonómicos, los pips de ranuras mágicas (`TrackerRecursoMagico`) medían solo 22px (difíciles de pulsar en TaleSpire) y el modal de ficha de hechizo (`ModalFichaHechizoFlotante`) no seguía el patrón móvil unificado.
+- **Decisiones de Diseño y Arquitectura**:
+  1. *Spell Action Cards (`TarjetaConjuroCompacta.tsx` y `.module.css`)*:
+     - Disposición táctil en 3 niveles de lectura:
+       - **Cabecera**: Nombre del conjuro en botón accesible para ver ficha completa, badges de reglas (`C` para Concentración, `Ritual`, alerta de bloqueo por armadura sin competencia) y botones de acción rápida (`Ocultar / Mostrar`, `Eliminar`).
+       - **Metadatos y Origen**: Escuela de magia, alcance, fórmula de daño escalado/dados, y badge con chip de origen otorgado (`Subclase`, `Raza`, `Dote`, etc.).
+       - **Touchpad Táctil de Lanzamiento**: Selector desplegable táctil para upcasting (`Nivel de ranura`), botón de lanzamiento heroico (`Lanzar`) con icono de rayo y altura táctil $\ge 36\text{px}$, y botones dedicados para `Gratis` (1/Descanso Largo) y `Ritual` (+10 min).
+     - Refactorización modular de `TarjetaConjuroCompacta.tsx` a 259 líneas (< 300 líneas de CI), pasando de `[AVISO]` a `[CORRECTO]`.
+  2. *Selector Horizontal Deslizable de Niveles (`ListaNivelesConjuros.tsx` y `PanelConjurosPersonaje.module.css`)*:
+     - Carrusel horizontal deslizable tipo tabs/chips (`.barraSelectorNivelesMovil`) con `overflow-x: auto` y `scrollbar-width: none`.
+     - Píldoras táctiles (`Todos`, `Trucos`, `Nv 1` ... `Nv 9`) con altura $\ge 34\text{px}$, badge numérico con el conteo de conjuros de cada nivel y estado activo destacado (`.pildoraNivelMovilActiva`).
+     - Al seleccionar un nivel específico, la sección se enfoca y abre automáticamente, eliminando la necesidad de scroll vertical prolongado en el viewport de 599px.
+  3. *Pips Táctiles de Ranuras de Magia (`TrackerRecursoMagico.module.css`)*:
+     - Diámetro de los botones circulares de ranura (`.botonRanuraCircular`) ampliado de 22px a **26px** con feedback táctil claro al gastar y recuperar ranuras.
+  4. *Modal de Ficha de Hechizo (`ModalFichaHechizoFlotante.module.css`)*:
+     - Rediseñado como **Bottom Sheet** anclado al pie de la pantalla, borde superior redondeado de 16px, manija superior táctil (`::before`) y `max-height: calc(100vh - 44px)`.
+  5. *Tokens Oficiales y Rendimiento TaleSpire CEF*:
+     - Tokens `--pj-*` oficiales de `DESIGN.md`.
+     - `transition: none !important; animation: none !important;` en todas las reglas CSS.
+- **Validación y Certificación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 violaciones críticas; `TarjetaConjuroCompacta.tsx` (259 líneas) y `ListaNivelesConjuros.tsx` (235 líneas) en `[CORRECTO]`.
+  - `pnpm test`: 192 suites pasadas y 2.773 pruebas unitarias aprobadas al 100%.
+  - `pnpm run build`: Compilación con Vite completada con éxito en 11.30s.
+
 ## [2026-11-11] Auditoría y Refactorización de Calidad con /ponytail y /vercel-react-best-practices en Combate por Hordas
 
 - **Contexto**:

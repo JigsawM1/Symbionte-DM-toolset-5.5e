@@ -97,7 +97,7 @@ const AppContenido: React.FC = () => {
       {esGM && pestañaActiva === "iniciativa" && <BarraControl />}
 
       {/* Panel de Contenido Principal Reactivo de Alta Densidad */}
-      <main className={estilos.areaContenido}>
+      <main className={estilos.areaContenido} data-pestana={pestañaActiva}>
         <AvisoCargaDatos />
         <CambiosSyncPendientes />
         <div className={estilos.panelContenido}>

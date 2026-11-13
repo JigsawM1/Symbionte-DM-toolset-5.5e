@@ -1,5 +1,26 @@
-import { MonstruoBase, HechizoBase, ObjetoHomebrew, EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego, PersonajeJugador, VelocidadEstructurada, SentidosEstructurados } from '@/tipos';
-import { aplanarValor, sanearObjetoHomebrew, sanearHechizoCD, parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva, sanearPersonaje } from '@/almacen/sanitizacion';
+import {
+  MonstruoBase,
+  HechizoBase,
+  ObjetoHomebrew,
+  PlantillaInvocacion,
+  EsquemaMonstruoBase,
+  EsquemaHechizoBase,
+  EsquemaObjetoJuego,
+  EsquemaPlantillaInvocacion,
+  PersonajeJugador,
+  VelocidadEstructurada,
+  SentidosEstructurados
+} from '@/tipos';
+import {
+  aplanarValor,
+  sanearObjetoHomebrew,
+  sanearHechizoCD,
+  parsearVelocidad,
+  parsearSentidos,
+  sanearMonstruoSentidosYPasiva,
+  sanearPlantillaInvocacion,
+  sanearPersonaje
+} from '@/almacen/sanitizacion';
 import { generarIdSlug } from '@/utiles/generarId';
 import { logger } from '@/utiles/logger';
 
@@ -9,6 +30,7 @@ export interface ResultadoImportacion {
   baseDatosMonstruos: MonstruoBase[];
   baseDatosHechizos: HechizoBase[];
   objetosHomebrew: ObjetoHomebrew[];
+  baseDatosInvocaciones: PlantillaInvocacion[];
 }
 
 function limpiarTipoCriatura(tipoRaw: unknown): string {
@@ -38,6 +60,7 @@ export function importarDesdeJSON(
     baseDatosMonstruos: MonstruoBase[];
     baseDatosHechizos: HechizoBase[];
     objetosHomebrew: ObjetoHomebrew[];
+    baseDatosInvocaciones?: PlantillaInvocacion[];
   }
 ): ResultadoImportacion {
   try {
@@ -46,10 +69,12 @@ export function importarDesdeJSON(
     let monstruosFinales = estadoActual.baseDatosMonstruos;
     let hechizosFinales = estadoActual.baseDatosHechizos;
     let objetosFinales = estadoActual.objetosHomebrew;
+    let invocacionesFinales = estadoActual.baseDatosInvocaciones || [];
 
     let monstruosCandidatos: unknown[] = [];
     let hechizosCandidatos: unknown[] = [];
     let objetosCandidatos: unknown[] = [];
+    let invocacionesCandidatos: unknown[] = [];
 
     const datosObj = (datosJSON && typeof datosJSON === "object" ? datosJSON : {}) as Record<string, unknown>;
 
@@ -69,13 +94,25 @@ export function importarDesdeJSON(
       objetosCandidatos = Array.isArray(fuenteObjetos) ? fuenteObjetos : Object.values(fuenteObjetos as Record<string, unknown>);
     }
 
+    const fuenteInvocaciones = datosObj.invocaciones || datosObj.invocacionesHomebrew || datosObj.invocaciones_homebrew || datosObj.baseDatosInvocaciones;
+    if (fuenteInvocaciones) {
+      invocacionesCandidatos = Array.isArray(fuenteInvocaciones) ? fuenteInvocaciones : Object.values(fuenteInvocaciones as Record<string, unknown>);
+    }
+
     // 2. Si el archivo JSON es en sí mismo una lista o diccionario plano
-    if (monstruosCandidatos.length === 0 && hechizosCandidatos.length === 0 && objetosCandidatos.length === 0) {
+    if (
+      monstruosCandidatos.length === 0 &&
+      hechizosCandidatos.length === 0 &&
+      objetosCandidatos.length === 0 &&
+      invocacionesCandidatos.length === 0
+    ) {
       const listaElementos = Array.isArray(datosJSON) ? datosJSON : Object.values(datosObj);
       
       if (listaElementos.length > 0) {
         const primerElem = listaElementos[0] as Record<string, unknown> | undefined;
-        if (primerElem && (primerElem.equipment_category !== undefined || primerElem.equipment_categories !== undefined || primerElem.weapon_category !== undefined || primerElem.armor_category !== undefined || primerElem.tool_category !== undefined || primerElem.cost !== undefined)) {
+        if (primerElem && primerElem.conjuroAsociado !== undefined && primerElem.formulaCA !== undefined) {
+          invocacionesCandidatos = listaElementos;
+        } else if (primerElem && (primerElem.equipment_category !== undefined || primerElem.equipment_categories !== undefined || primerElem.weapon_category !== undefined || primerElem.armor_category !== undefined || primerElem.tool_category !== undefined || primerElem.cost !== undefined)) {
           objetosCandidatos = listaElementos;
         } else if (primerElem && (primerElem.HP !== undefined || primerElem.AC !== undefined || primerElem.vidaMaxima !== undefined || primerElem.vidaActual !== undefined)) {
           monstruosCandidatos = listaElementos;
@@ -670,11 +707,35 @@ export function importarDesdeJSON(
       modificado = true;
     }
 
+    // Procesar Invocaciones PJ importadas
+    if (invocacionesCandidatos.length > 0) {
+      const nuevasInvocacionesFormateadas: PlantillaInvocacion[] = invocacionesCandidatos.map((item) => {
+        const inv = (item && typeof item === "object" ? item : {}) as Record<string, unknown>;
+        const nombre = aplanarValor(inv.nombre || "Invocación Desconocida");
+        const id = inv.id ? String(inv.id) : generarIdSlug("inv_homebrew", nombre);
+        const candidata = { ...inv, id, nombre };
+        const val = EsquemaPlantillaInvocacion.safeParse(candidata);
+        if (val.success) {
+          return sanearPlantillaInvocacion(val.data);
+        }
+        logger.warn("[Importador] Invocación omitida por inconsistencias en el esquema Zod:", nombre, val.error.format());
+        return null;
+      }).filter((inv): inv is PlantillaInvocacion => inv !== null);
+
+      if (nuevasInvocacionesFormateadas.length > 0) {
+        const porId = new Map(invocacionesFinales.map(inv => [inv.id, inv]));
+        for (const inv of nuevasInvocacionesFormateadas) porId.set(inv.id, inv);
+        invocacionesFinales = [...porId.values()];
+        modificado = true;
+      }
+    }
+
     return {
       modificado,
       baseDatosMonstruos: monstruosFinales,
       baseDatosHechizos: hechizosFinales,
-      objetosHomebrew: objetosFinales
+      objetosHomebrew: objetosFinales,
+      baseDatosInvocaciones: invocacionesFinales
     };
   } catch (e) {
     logger.error("[Importador] Falló la importación del JSON:", e);
@@ -683,7 +744,8 @@ export function importarDesdeJSON(
       modificado: false,
       baseDatosMonstruos: estadoActual.baseDatosMonstruos,
       baseDatosHechizos: estadoActual.baseDatosHechizos,
-      objetosHomebrew: estadoActual.objetosHomebrew
+      objetosHomebrew: estadoActual.objetosHomebrew,
+      baseDatosInvocaciones: estadoActual.baseDatosInvocaciones || []
     };
   }
 }

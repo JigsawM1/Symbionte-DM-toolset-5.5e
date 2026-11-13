@@ -87,6 +87,11 @@ export const Criatura_Tipos = [
   { clave: "Planta", etiqueta: "Planta" },
 ];
 
+export const SUGERENCIAS_TIPO_CRIATURA = [
+  ...Criatura_Tipos.map((t) => t.clave),
+  "Enjambre de Bestias Diminutas"
+];
+
 export const TAMAÑOS_CRIATURA = [
   "Diminuto",
   "Pequeño",
@@ -106,5 +111,15 @@ export const ALINEAMIENTOS_DND = [
   "Legal malvado",
   "Neutral malvado",
   "Caótico malvado",
+  "Sin alineamiento",
+  "Cualquier alineamiento",
   "-"
+];
+
+export const SUGERENCIAS_CR_CRIATURA = [
+  "0", "1/8", "1/4", "1/2",
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+  "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+  "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
+  "—"
 ];

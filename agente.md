@@ -359,6 +359,24 @@
      - Cabecera con nombre, subtítulo (`formatearSubtituloCriatura`), badge de `VD`, y badge verde `"Activa"` si la forma está adoptada.
      - Métricas principales en cajas tácticas: CA, PG base y Velocidad.
      - Cuadrícula compacta de las 6 características (FUE, DES, CON, INT, SAB, CAR) con valores base y modificadores formateados.
+
+## [2026-11-12] Paridad Completa de Criaturas Homebrew y Soporte de Invocaciones PJ Escalables
+
+- **Contexto**:
+  1. `FormularioCriatura` ocultaba o restringía campos reales de `MonstruoBase`: `velocidad` y `sentidos` como texto plano, `tipo` y `alineacion` cerrados sin subtipos ni `"Sin alineamiento"`, `desafio` numérico que impedía `"—"` o texto, defensas sin valores personalizados, `uso` y `recarga` mezclados/omitidos en ataques rápidos y listas, y `SeccionListasAtaques.tsx` con 879 líneas.
+  2. Las invocaciones escalables de PJ (`PlantillaInvocacion`) no tenían creación, edición, persistencia ni importación/exportación JSON en `CreadorHomebrew`.
+- **Decisiones arquitectónicas y errores resueltos**:
+  - Se mantuvieron `SeccionDefensas.tsx` libre de hooks (`useState`) extrayendo `InputDefensaPersonalizada.tsx` fuera de `contenedorChecksDefensas`, preservando compatibilidad con llamadas funcionales directas en tests unitarios.
+  - Se respetaron los nombres exactos de `EsquemaFormulaCAInvocacion` (`sumaNivelConjuro`, `bonificadorAdicional`), `EsquemaFormulaVidaInvocacion` (`porNivel`, `porNivelPorEncimaDelMinimo`), `EsquemaAtaqueInvocacion` (`tipo`, `usaModificadorAtaqueConjuros`, `dadosDanoBase`, `modificadorDanoFijo`, `sumaNivelAlDano`) y `EsquemaVelocidadEspecialInvocacion` (`nivelMinimo`, `velocidadTexto`).
+  - `parsearVelocidad` ahora reconoce `"planea"` además de `"suspenderse"`/`"hover"`, `"escalar"` además de `"trepar"`/`"climb"`, y unidades opcionales (`ft`, `pies` o solo número).
+  - La 4.ª pestaña `Invocaciones PJ` persiste localmente en `invocaciones_homebrew` y se importa/exporta vía JSON sin alterar el protocolo Sync v4.
+  - Tras la auditoría, el catálogo Homebrew arranca vacío y el buscador de acompañantes ofrece las invocaciones personalizadas. La factoría conserva las plantillas oficiales como respaldo por ID para fichas existentes.
+  - Importación e hidratación usan el ID como identidad. La última versión del mismo ID prevalece y dos plantillas homónimas con IDs distintos se conservan. La entrada de la cola física entrega el catálogo local a la factoría.
+  - El editor conserva el texto de subtipos hasta guardar y monta el borrador por ID. La vista previa reutiliza los cálculos de la factoría y respeta el nivel máximo. Las listas de criatura reciben el editor tipado de cada sección.
+  - Verificación de la auditoría: CI con 2779 pruebas y 5 escenarios Sync simulados. Chromium local verificó catálogo inicial vacío, guardado y edición de subtipos, conservación del borrador al cambiar el catálogo y guardado de rasgos, uso y recarga de acciones. Pendiente la comprobación nativa en TaleSpire. Graphify no pudo actualizar el índice local porque el lanzador de `uv` no pudo resolver la ruta del ejecutable.
+  - Revisión visual del 13 de noviembre: navegación con contadores, listado de invocaciones con tarjetas y vista de escalado tabular. El pie de los editores de criatura e invocación ocupa su propia fila y reserva el espacio del botón de dados desde el contenedor de la aplicación. Los borradores se inicializan al montar por ID y los controles numéricos se confirman antes de agregar un ataque.
+  - Chromium con la aplicación completa verificó listado, búsqueda, creación y edición a 599 y 433 px en modo director y a 433 px en modo jugador. El contenido de los editores no desbordó en horizontal y el botón de dados quedó separado de Guardar. La comprobación nativa en TaleSpire y la actualización de Graphify siguen pendientes.
+  - Se depuraron las sugerencias de tipos de criatura (`SUGERENCIAS_TIPO_CRIATURA`) en `homebrewConstantes.ts`, eliminando subtipos redundantes con paréntesis (`Humanoide (elfo)`, `Dragón (cromático)`, etc.) y agrupaciones múltiples (`Celestial, Feérico o Infernal`), manteniendo únicamente los tipos base limpios y enjambres.
      - Despliegue de Sentidos especiales (`formatearSentidos`), Rasgos Especiales de la criatura (`bestia.rasgos`, ej. *Tácticas de manada*, *Olfato agudo*) y Acciones de combate.
      - Botón secundario `"Ver Ficha"` con icono `Eye` que abre un modal con el componente oficial `PanelFichaDnD` de D&D 5e, permitiendo consultar el bloque completo de la criatura.
      - Botón principal `"Adoptar Forma"` integrado con el flujo de confirmación.

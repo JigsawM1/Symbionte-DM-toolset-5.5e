@@ -1,6 +1,7 @@
 import React from "react";
 import { TIPOS_DAÑO_DND, CONDICIONES_DND } from "@/constantes/homebrewConstantes";
 import estilos from "../FormularioCriatura.module.css";
+import { InputDefensaPersonalizada } from "./InputDefensaPersonalizada";
 
 interface SeccionDefensasProps {
   monstruoForm: {
@@ -18,13 +19,12 @@ const defensas: {
   pestana: SeccionDefensasProps["subDefensas"];
   campo: keyof SeccionDefensasProps["monstruoForm"];
   etiqueta: string;
-  prefijo: string;
   opciones: string[];
 }[] = [
-  { pestana: "inmunidades", campo: "inmunidadesDaño", etiqueta: "Inm. Daño", prefijo: "inm", opciones: TIPOS_DAÑO_DND },
-  { pestana: "resistencias", campo: "resistencias", etiqueta: "Res. Daño", prefijo: "res", opciones: TIPOS_DAÑO_DND },
-  { pestana: "vulnerabilidades", campo: "vulnerabilidades", etiqueta: "Vuln. Daño", prefijo: "vuln", opciones: TIPOS_DAÑO_DND },
-  { pestana: "condiciones", campo: "inmunidadesCondicion", etiqueta: "Inm. Condic", prefijo: "inm_cond", opciones: CONDICIONES_DND }
+  { pestana: "inmunidades", campo: "inmunidadesDaño", etiqueta: "Inmunidades", opciones: TIPOS_DAÑO_DND },
+  { pestana: "resistencias", campo: "resistencias", etiqueta: "Resistencias", opciones: TIPOS_DAÑO_DND },
+  { pestana: "vulnerabilidades", campo: "vulnerabilidades", etiqueta: "Vulnerabilidades", opciones: TIPOS_DAÑO_DND },
+  { pestana: "condiciones", campo: "inmunidadesCondicion", etiqueta: "Condiciones", opciones: CONDICIONES_DND }
 ];
 
 export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
@@ -33,6 +33,9 @@ export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
   setSubDefensas,
   alternarCheckArray
 }) => {
+  const defensaActiva = defensas.find((d) => d.pestana === subDefensas) ?? defensas[0];
+  const valoresActuales = monstruoForm[defensaActiva.campo] ?? [];
+
   return (
     <div className={estilos.seccionContenido}>
       <div className={estilos.selectorDefensasNavegacion}>
@@ -40,6 +43,7 @@ export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
           <button
             key={pestana}
             type="button"
+            aria-pressed={subDefensas === pestana}
             onClick={() => setSubDefensas(pestana)}
             className={`${estilos.subDefBoton} ${subDefensas === pestana ? estilos.subDefBotonActivo : ""}`}
           >
@@ -49,22 +53,26 @@ export const SeccionDefensas: React.FC<SeccionDefensasProps> = ({
       </div>
 
       <div className={estilos.contenedorChecksDefensas}>
-        {defensas.map(({ pestana, campo, prefijo, opciones }) => subDefensas === pestana && (
-          <div key={pestana} className={estilos.gridCheckboxMini}>
-            {opciones.map((valor) => (
-              <label key={`${prefijo}_${valor}`} className={estilos.labelCheckMini}>
-                <input
-                  type="checkbox"
-                  checked={monstruoForm[campo]?.includes(valor) || false}
-                  onChange={() => alternarCheckArray(campo, valor)}
-                  className={estilos.checkMini}
-                />
-                {valor}
-              </label>
-            ))}
-          </div>
-        ))}
+        <div className={estilos.gridCheckboxMini}>
+          {defensaActiva.opciones.map((valor) => (
+            <label key={valor} className={estilos.labelCheckMini}>
+              <input
+                type="checkbox"
+                checked={valoresActuales.includes(valor)}
+                onChange={() => alternarCheckArray(defensaActiva.campo, valor)}
+                className={estilos.checkMini}
+              />
+              {valor}
+            </label>
+          ))}
+        </div>
       </div>
+
+      <InputDefensaPersonalizada
+        valoresActuales={valoresActuales}
+        opcionesEstandar={defensaActiva.opciones}
+        alAlternar={(valor) => alternarCheckArray(defensaActiva.campo, valor)}
+      />
     </div>
   );
 };

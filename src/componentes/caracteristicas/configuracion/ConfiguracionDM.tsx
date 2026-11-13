@@ -6,7 +6,11 @@ import {
   usarAccionesConfiguracion,
 } from "@/almacen/selectores";
 import { Upload, Download, Trash2, ShieldAlert, CheckCircle, Heart, Copy, X, Eye, Settings, Sparkles } from "lucide-react";
-import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from "@/utiles/datosIniciales";
+import {
+  IDS_INICIALES_MONSTRUOS,
+  IDS_INICIALES_HECHIZOS,
+  IDS_INICIALES_OBJETOS
+} from "@/utiles/datosIniciales";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { logger } from '@/utiles/logger';
 import { copiarAlPortapapeles, descargarArchivoJSON } from "@/servicios/sistemaTaleSpire";
@@ -113,6 +117,7 @@ export const ConfiguracionDM: React.FC = () => {
       monstruos: monstruosHomebrew,
       hechizos: hechizosHomebrew,
       objetos: objetosHomebrewSolo,
+      invocaciones: estadoActual.baseDatosInvocaciones,
       personajes: (estadoActual.personajes || []).map(deshidratarPersonaje),
       idPersonajeActivo: estadoActual.idPersonajeActivo,
       notasDM: estadoActual.notasDM,

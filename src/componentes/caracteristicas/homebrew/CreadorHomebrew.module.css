@@ -1,204 +1,171 @@
 .contenedorHomebrew {
+  --homebrew-fondo: var(--color-fondo-profundo);
+  --homebrew-panel: var(--color-fondo-panel);
+  --homebrew-tarjeta: var(--color-fondo-tarjeta);
+  --homebrew-borde: var(--color-borde-brutal);
+  --homebrew-texto: var(--color-texto-principal);
+  --homebrew-secundario: var(--color-texto-secundario);
+  --homebrew-acento: var(--dm-texto-cian, var(--color-borde-cian));
+  --homebrew-accion: var(--dm-primario-hover, var(--color-primario));
+  --homebrew-radio: var(--dm-radio-control, 6px);
   display: flex;
   flex-direction: column;
+  gap: 10px;
   width: 100%;
   height: 100%;
-  background-color: var(--color-fondo-profundo);
-  padding: 6px;
+  min-height: 0;
+  padding: 10px;
   overflow: hidden;
-  position: relative;
   box-sizing: border-box;
+  background: var(--homebrew-fondo);
+}
+
+:global([data-tema="jugador"]) .contenedorHomebrew {
+  --homebrew-fondo: var(--pj-fondo-base);
+  --homebrew-panel: var(--pj-fondo-panel);
+  --homebrew-tarjeta: var(--pj-fondo-tarjeta);
+  --homebrew-borde: var(--pj-borde-medio);
+  --homebrew-texto: var(--pj-texto-primario);
+  --homebrew-secundario: var(--pj-texto-secundario);
+  --homebrew-acento: var(--pj-texto-acento);
+  --homebrew-accion: var(--pj-acento-primario-solido);
+  --homebrew-radio: var(--pj-radio-control);
 }
 
 .subNavegacion {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
-  background-color: var(--color-fondo-panel);
-  border-bottom: 2px solid var(--color-borde-brutal);
-  padding: 8px;
-  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.25fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--homebrew-borde);
+  border-radius: 8px;
+  background: var(--homebrew-panel);
 }
 
-.subBotonNav {
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  font-size: 12.5px;
-  font-weight: 600;
-  padding: 7px 14px;
+.subBotonNav,
+.botonModoHomebrew {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  min-height: 34px;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--homebrew-radio);
+  background: transparent;
+  color: var(--homebrew-secundario);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: left;
   cursor: pointer;
-  border-radius: var(--dm-radio-control, 6px);
 }
 
-.subBotonNav:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.12);
-  border-color: var(--color-borde-cian);
-  color: var(--color-borde-cian);
+.subBotonNav > svg,
+.botonModoHomebrew > svg {
+  flex-shrink: 0;
 }
 
-.subBotonNavActivo {
-  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
-  border-color: var(--color-borde-cian);
-  color: var(--dm-texto-principal, #ffffff);
+.subBotonNav:hover,
+.botonModoHomebrew:hover {
+  background: var(--homebrew-tarjeta);
+  color: var(--homebrew-texto);
+}
+
+.subBotonNav[aria-pressed="true"] {
+  border-color: var(--homebrew-acento);
+  background: var(--homebrew-tarjeta);
+  color: var(--homebrew-acento);
+}
+
+.contador {
+  margin-left: auto;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: var(--homebrew-fondo);
+  color: inherit;
+  font-family: var(--fuente-codigo);
+  font-variant-numeric: tabular-nums;
+}
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 4px 0 4px 10px;
+  border-left: 3px solid var(--homebrew-acento);
+}
+
+.titulo {
+  margin: 0;
+  color: var(--homebrew-texto);
+  font-family: var(--fuente-titulo);
+  font-size: 21px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .pestanasModoHomebrew {
   display: flex;
-  flex-direction: row;
-  gap: 6px;
-  padding: 8px;
-  border-bottom: 1.5px solid var(--color-borde-brutal);
-  flex-shrink: 0;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--homebrew-borde);
+  border-radius: var(--homebrew-radio);
+  background: var(--homebrew-panel);
 }
 
 .botonModoHomebrew {
-  flex: 1;
-  background-color: var(--color-fondo-tarjeta);
-  border: 1.5px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  font-size: var(--dm-fuente-minima, 12px);
-  font-weight: bold;
-  padding: 8px 12px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  border-radius: var(--dm-radio-control, 6px);
-  transition: none;
+  min-height: 31px;
 }
 
-.botonModoHomebrew:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
-  color: var(--color-borde-cian);
+.botonModoHomebrew[aria-pressed="true"] {
+  background: var(--homebrew-accion);
+  color: var(--homebrew-texto);
 }
 
-.botonModoHomebrewActivo {
-  background-color: var(--dm-primario-hover, var(--color-primario-brillante));
-  border-color: var(--color-borde-cian);
-  color: var(--dm-texto-principal, #ffffff);
-  box-shadow: 0 2px 8px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
+.subBotonNav:focus-visible,
+.botonModoHomebrew:focus-visible {
+  outline: 2px solid var(--homebrew-acento);
+  outline-offset: 1px;
 }
 
-.cuerpoSeccion {
+.cuerpoSeccion,
+.panelFormulario {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
-  padding: 8px;
-  overflow: hidden;
+  min-width: 0;
 }
 
 .panelFormulario {
-  flex: 1 1 0%;
-  background-color: var(--color-fondo-panel);
-  border: 1px solid var(--color-borde-brutal);
-  border-radius: var(--dm-radio-panel, 8px);
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 100%;
-  min-height: 0;
-  overflow-y: auto;
+  --fondo-scroll-cef: var(--homebrew-panel);
+  overflow: auto;
+  padding: 12px;
+  background: var(--homebrew-panel);
+  border: 1px solid var(--homebrew-borde);
+  border-radius: 8px;
 }
 
-.cabeceraPanel {
-  font-size: var(--dm-fuente-minima, 11px);
-  font-weight: 700;
-  color: var(--color-borde-cian);
-  border-bottom: 2px solid var(--color-borde-cian);
-  padding-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.panelConPie {
+  overflow: hidden;
+  padding: 0;
 }
 
-@media (max-width: 620px) {
-  :global([data-tema="dm"]) .subNavegacion {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    padding: 4px;
+@media (max-width: 480px) {
+  .contenedorHomebrew {
+    padding: 8px;
   }
 
-  :global([data-tema="dm"]) .subBotonNav {
-    min-width: 0;
-    padding: 6px 8px;
-    white-space: normal;
+  .subNavegacion {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-/* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
-
-:global([data-tema="jugador"]) .contenedorHomebrew {
-  background-color: var(--pj-fondo-base);
-}
-
-:global([data-tema="jugador"]) .subNavegacion {
-  background-color: var(--pj-fondo-panel);
-  border-bottom: 2px solid var(--pj-borde-medio);
-}
-
-:global([data-tema="jugador"]) .subBotonNav {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .subBotonNav:hover {
-  background-color: rgba(var(--pj-rgb-cian), 0.12);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-borde-cian-fuerte);
-}
-
-:global([data-tema="jugador"]) .subBotonNavActivo {
-  background-color: var(--pj-acento-primario-solido-hover);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-primario);
-}
-
-:global([data-tema="jugador"]) .pestanasModoHomebrew {
-  border-bottom: 1.5px solid var(--pj-borde-medio);
-}
-
-:global([data-tema="jugador"]) .botonModoHomebrew {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1.5px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .botonModoHomebrew:hover {
-  background-color: rgba(var(--pj-rgb-cian), 0.08);
-  color: var(--pj-borde-cian-fuerte);
-}
-
-:global([data-tema="jugador"]) .botonModoHomebrewActivo {
-  background-color: var(--pj-acento-primario-solido-hover);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-primario);
-  box-shadow: var(--pj-sombra-brillo-acento);
-}
-
-:global([data-tema="jugador"]) .panelFormulario {
-  background-color: var(--pj-fondo-panel);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-panel);
-}
-
-:global([data-tema="jugador"]) .cabeceraPanel {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-borde-cian-fuerte);
-  border-bottom: 2px solid var(--pj-borde-cian-fuerte);
+  .titulo {
+    font-size: 18px;
+  }
 }

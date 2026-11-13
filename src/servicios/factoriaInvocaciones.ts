@@ -70,24 +70,30 @@ const MAPA_INVOCACIONES_POR_ID = new Map<string, PlantillaInvocacion>(
 );
 
 /**
- * Busca una plantilla de invocación por su ID único.
+ * Busca una plantilla de invocación por su ID único, consultando primero un catálogo personalizado si se provee.
  */
-export function obtenerPlantillaInvocacionPorId(id: string): PlantillaInvocacion | undefined {
-  return MAPA_INVOCACIONES_POR_ID.get(id);
+export function obtenerPlantillaInvocacionPorId(
+  id: string,
+  catalogo?: PlantillaInvocacion[]
+): PlantillaInvocacion | undefined {
+  return catalogo?.find(inv => inv.id === id) ?? MAPA_INVOCACIONES_POR_ID.get(id);
 }
 
 /**
  * Determina si un identificador de criatura o plantilla corresponde a una invocación escalable.
  */
-export function esIdInvocacionEscalable(id: string): boolean {
-  return MAPA_INVOCACIONES_POR_ID.has(id);
+export function esIdInvocacionEscalable(
+  id: string,
+  catalogo?: PlantillaInvocacion[]
+): boolean {
+  return obtenerPlantillaInvocacionPorId(id, catalogo) !== undefined;
 }
 
 /**
  * Calcula la Clase de Armadura (CA) escalada según la fórmula de la plantilla.
  */
 export function calcularCAInvocacion(
-  plantilla: PlantillaInvocacion,
+  plantilla: Pick<PlantillaInvocacion, "formulaCA" | "nivelMinimo">,
   nivelConjuro: number
 ): number {
   const { formulaCA } = plantilla;
@@ -104,7 +110,7 @@ export function calcularCAInvocacion(
  * Calcula la Vida Máxima (PV) escalada según la fórmula de la plantilla.
  */
 export function calcularVidaInvocacion(
-  plantilla: PlantillaInvocacion,
+  plantilla: Pick<PlantillaInvocacion, "formulaVida" | "nivelMinimo">,
   nivelConjuro: number
 ): number {
   const { formulaVida, nivelMinimo } = plantilla;
@@ -120,7 +126,7 @@ export function calcularVidaInvocacion(
  * Determina la cantidad de ataques por acción que realiza la invocación.
  */
 export function calcularAtaquesPorAccionInvocacion(
-  plantilla: PlantillaInvocacion,
+  plantilla: Pick<PlantillaInvocacion, "formulaAtaquesPorAccion" | "nivelMinimo">,
   nivelConjuro: number
 ): number {
   const nivelSeguro = Number.isFinite(nivelConjuro) ? Number(nivelConjuro) : plantilla.nivelMinimo;

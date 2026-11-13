@@ -1,8 +1,17 @@
 import { EsquemaMemoriaSyncV4 } from "@/tipos/estadoSyncV4";
-import { EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego } from "@/tipos";
+import { EsquemaMonstruoBase, EsquemaHechizoBase, EsquemaObjetoJuego, EsquemaPlantillaInvocacion } from "@/tipos";
 import { z } from 'zod';
 import type { EstadoDM } from './usarAlmacenDM';
-import { sanearPersonaje, sanearCriaturaIniciativa, sanearElementoPendiente, sanearEncuentroGuardado, sanearObjetoHomebrew, sanearHechizoCD, sanearMonstruoSentidosYPasiva } from './sanitizacion';
+import {
+  sanearPersonaje,
+  sanearCriaturaIniciativa,
+  sanearElementoPendiente,
+  sanearEncuentroGuardado,
+  sanearObjetoHomebrew,
+  sanearHechizoCD,
+  sanearMonstruoSentidosYPasiva,
+  sanearPlantillaInvocacion
+} from './sanitizacion';
 import { hidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
 import { desduplicarEntidades } from '@/utiles/busquedaTolerante';
@@ -10,7 +19,7 @@ import { deserializarBorradorSync } from './borradoresSync';
 
 const coleccion = z.array(z.record(z.string(), z.unknown())).optional();
 const esquema = z.object({
-  monstruos_homebrew: coleccion, hechizos_homebrew: coleccion, objetos_homebrew: coleccion,
+  monstruos_homebrew: coleccion, hechizos_homebrew: coleccion, objetos_homebrew: coleccion, invocaciones_homebrew: coleccion,
   personajes: coleccion, pendientes: coleccion, encuentros: coleccion, cola_iniciativa: coleccion,
   sync_v4: EsquemaMemoriaSyncV4.optional(),
   version_contextos_sync: z.number().int().nonnegative().optional(),
@@ -46,6 +55,10 @@ export function prepararCargaPersistida(raw: Record<string, unknown>): Partial<E
   if (datos.monstruos_homebrew) cambios.baseDatosMonstruos = desduplicarEntidades(MONSTRUOS_INICIALES, datos.monstruos_homebrew.map(d => sanearMonstruoSentidosYPasiva(EsquemaMonstruoBase.parse(d))));
   if (datos.hechizos_homebrew) cambios.baseDatosHechizos = desduplicarEntidades(HECHIZOS_INICIALES, datos.hechizos_homebrew.map(d => sanearHechizoCD(EsquemaHechizoBase.parse(d))));
   if (datos.objetos_homebrew) cambios.objetosHomebrew = desduplicarEntidades(OBJETOS_INICIALES.map(sanearObjetoHomebrew), datos.objetos_homebrew.map(d => EsquemaObjetoJuego.parse(sanearObjetoHomebrew(d))));
+  if (datos.invocaciones_homebrew) {
+    const invocaciones = datos.invocaciones_homebrew.map(d => sanearPlantillaInvocacion(EsquemaPlantillaInvocacion.parse(d)));
+    cambios.baseDatosInvocaciones = [...new Map(invocaciones.map(inv => [inv.id, inv])).values()];
+  }
   if (datos.personajes) {
     cambios.personajes = datos.personajes.map(sanearPersonaje).map(p => hidratarPersonaje(p, cambios.baseDatosHechizos ?? HECHIZOS_INICIALES));
     cambios.idPersonajeActivo = cambios.personajes.some(p => p.id === datos.id_personaje_activo)

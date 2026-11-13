@@ -1,4 +1,4 @@
-import type { MonstruoBase, VelocidadEstructurada, SentidosEstructurados } from "@/tipos";
+import type { MonstruoBase, VelocidadEstructurada, SentidosEstructurados, PlantillaInvocacion } from "@/tipos";
 import { aplanarValor, normalizarTexto } from "./comun";
 
 export function calcularVidaPorDados(
@@ -53,17 +53,17 @@ export function parsearVelocidad(velStr: string): VelocidadEstructurada {
 
   const partes = velStr.toLowerCase().split(",");
   for (const parte of partes) {
-    const numMatch = parte.match(/(\d+)\s*pies?/);
+    const numMatch = parte.match(/(\d+)(?:\s*(?:pies?|ft))?/i);
     const valor = numMatch ? parseInt(numMatch[1], 10) : 30;
 
     if (parte.includes("nadar") || parte.includes("swim")) {
       result.nadar = valor;
     } else if (parte.includes("volar") || parte.includes("fly")) {
       result.volar = valor;
-      if (parte.includes("suspenderse") || parte.includes("hover")) {
+      if (parte.includes("suspenderse") || parte.includes("hover") || parte.includes("planea")) {
         result.planea = true;
       }
-    } else if (parte.includes("trepar") || parte.includes("climb")) {
+    } else if (parte.includes("trepar") || parte.includes("escalar") || parte.includes("climb")) {
       result.escalar = valor;
     } else if (parte.includes("excavar") || parte.includes("burrow")) {
       result.excavar = valor;
@@ -80,7 +80,7 @@ export function parsearSentidos(sentidosStr: string): SentidosEstructurados {
 
   const partes = sentidosStr.toLowerCase().split(",");
   for (const parte of partes) {
-    const numMatch = parte.match(/(\d+)\s*pies?/);
+    const numMatch = parte.match(/(\d+)(?:\s*(?:pies?|ft))?/i);
     const valor = numMatch ? parseInt(numMatch[1], 10) : 60;
 
     if (parte.includes("oscuridad") || parte.includes("darkvision")) {
@@ -212,40 +212,26 @@ export function sanearMonstruoSentidosYPasiva<T extends Partial<MonstruoBase>>(m
     }
   }
 
+  const sanearUsoYRecarga = <T extends { recarga?: unknown; uso?: unknown }>(lista?: T[]): T[] => (
+    Array.isArray(lista)
+      ? lista.map((item) => ({
+          ...item,
+          recarga: typeof item.recarga === "string" ? item.recarga.trim() : "",
+          uso: typeof item.uso === "string" ? item.uso.trim() : ""
+        }))
+      : []
+  );
+
   return {
     ...m,
     tamaño: typeof m.tamaño === "string" ? m.tamaño.trim() : "",
     alineacion: typeof m.alineacion === "string" ? m.alineacion.trim() : "",
-    acciones: Array.isArray(m.acciones) ? m.acciones.map((a) => ({
-      ...a,
-      recarga: typeof a.recarga === "string" ? a.recarga.trim() : (typeof a.uso === "string" ? a.uso.trim() : ""),
-      uso: typeof a.uso === "string" ? a.uso.trim() : ""
-    })) : [],
-    accionesAdicionales: Array.isArray(m.accionesAdicionales) ? m.accionesAdicionales.map((a) => ({
-      ...a,
-      recarga: typeof a.recarga === "string" ? a.recarga.trim() : (typeof a.uso === "string" ? a.uso.trim() : ""),
-      uso: typeof a.uso === "string" ? a.uso.trim() : ""
-    })) : [],
-    reacciones: Array.isArray(m.reacciones) ? m.reacciones.map((r) => ({
-      ...r,
-      recarga: typeof r.recarga === "string" ? r.recarga.trim() : (typeof r.uso === "string" ? r.uso.trim() : ""),
-      uso: typeof r.uso === "string" ? r.uso.trim() : ""
-    })) : [],
-    rasgos: Array.isArray(m.rasgos) ? m.rasgos.map((r) => ({
-      ...r,
-      recarga: typeof r.recarga === "string" ? r.recarga.trim() : (typeof r.uso === "string" ? r.uso.trim() : ""),
-      uso: typeof r.uso === "string" ? r.uso.trim() : ""
-    })) : [],
-    accionesLegendarias: Array.isArray(m.accionesLegendarias) ? m.accionesLegendarias.map((l) => ({
-      ...l,
-      recarga: typeof l.recarga === "string" ? l.recarga.trim() : (typeof l.uso === "string" ? l.uso.trim() : ""),
-      uso: typeof l.uso === "string" ? l.uso.trim() : ""
-    })) : [],
-    accionesRapidas: Array.isArray(m.accionesRapidas) ? m.accionesRapidas.map((q) => ({
-      ...q,
-      recarga: typeof q.recarga === "string" ? q.recarga.trim() : (typeof q.uso === "string" ? q.uso.trim() : ""),
-      uso: typeof q.uso === "string" ? q.uso.trim() : ""
-    })) : [],
+    acciones: sanearUsoYRecarga(m.acciones),
+    accionesAdicionales: sanearUsoYRecarga(m.accionesAdicionales),
+    reacciones: sanearUsoYRecarga(m.reacciones),
+    rasgos: sanearUsoYRecarga(m.rasgos),
+    accionesLegendarias: sanearUsoYRecarga(m.accionesLegendarias),
+    accionesRapidas: sanearUsoYRecarga(m.accionesRapidas),
     accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null
       ? String(m.accionesLegendariasTotal).trim()
       : "3",
@@ -253,5 +239,21 @@ export function sanearMonstruoSentidosYPasiva<T extends Partial<MonstruoBase>>(m
     tesoros: typeof m.tesoros === "string" ? m.tesoros.trim() : (m.tesoros ? aplanarValor(m.tesoros) : ""),
     nombreNormalizado: normalizarTexto(m.nombre || ""),
     sentidos: sentidosObj
+  };
+}
+
+/**
+ * Sanea una plantilla de invocación asegurando su nombre normalizado y campos limpios.
+ */
+export function sanearPlantillaInvocacion(inv: PlantillaInvocacion): PlantillaInvocacion {
+  return {
+    ...inv,
+    nombre: (inv.nombre || "").trim(),
+    conjuroAsociado: (inv.conjuroAsociado || "").trim(),
+    tipoCriatura: (inv.tipoCriatura || "").trim(),
+    tamano: (inv.tamano || "Mediano").trim(),
+    alineacion: (inv.alineacion || "Neutral").trim(),
+    fuente: (inv.fuente || "Homebrew").trim(),
+    nombreNormalizado: normalizarTexto(inv.nombre || "")
   };
 }

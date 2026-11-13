@@ -25,7 +25,7 @@ export interface SliceConfiguracion {
   pestañaActiva: string;
   tablaRasgoAbierta: { idPersonaje: string; idRasgo: string } | null;
   modoHomebrew: "crear" | "lista";
-  tipoHomebrewActivo: "criatura" | "hechizo" | "objeto";
+  tipoHomebrewActivo: "criatura" | "hechizo" | "objeto" | "invocacion";
   metodoVidaMonstruo: "estandar" | "maximo" | "azar";
   sistemaMagia: "espacios" | "puntos";
   campañaNombre: string;
@@ -46,7 +46,7 @@ export interface SliceConfiguracion {
 
   establecerPestaña: (pestaña: string) => void;
   establecerModoHomebrew: (modo: "crear" | "lista") => void;
-  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => void;
+  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto" | "invocacion") => void;
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => void;
   establecerSistemaMagia: (sistema: "espacios" | "puntos") => void;
   establecerEsGM: (esGM: boolean) => void;
@@ -102,7 +102,7 @@ export const crearSliceConfiguracion: StateCreator<
 
   establecerPestaña: (pestaña: string) => set({ pestañaActiva: pestaña, ...(pestaña !== "magia_salvaje" ? { tablaRasgoAbierta: null } : {}) }),
   establecerModoHomebrew: (modo: "crear" | "lista") => set({ modoHomebrew: modo }),
-  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto") => set({ tipoHomebrewActivo: tipo }),
+  establecerTipoHomebrew: (tipo: "criatura" | "hechizo" | "objeto" | "invocacion") => set({ tipoHomebrewActivo: tipo }),
   establecerMetodoVidaMonstruo: (metodo: "estandar" | "maximo" | "azar") => {
     set({ metodoVidaMonstruo: metodo });
   },
@@ -234,7 +234,8 @@ export const crearSliceConfiguracion: StateCreator<
     const result = importarDesdeJSON(datosJSON, {
       baseDatosMonstruos: estado.baseDatosMonstruos,
       baseDatosHechizos: estado.baseDatosHechizos,
-      objetosHomebrew: estado.objetosHomebrew
+      objetosHomebrew: estado.objetosHomebrew,
+      baseDatosInvocaciones: estado.baseDatosInvocaciones
     });
     if (result.error) throw new Error(result.error);
 
@@ -244,6 +245,7 @@ export const crearSliceConfiguracion: StateCreator<
       cambiosParciales.baseDatosMonstruos = result.baseDatosMonstruos;
       cambiosParciales.baseDatosHechizos = result.baseDatosHechizos;
       cambiosParciales.objetosHomebrew = result.objetosHomebrew;
+      cambiosParciales.baseDatosInvocaciones = result.baseDatosInvocaciones;
     }
 
     if (datosJSON && typeof datosJSON === "object") {
@@ -354,6 +356,7 @@ export const crearSliceConfiguracion: StateCreator<
         baseDatosMonstruos: MONSTRUOS_INICIALES,
         baseDatosHechizos: HECHIZOS_INICIALES,
         objetosHomebrew: OBJETOS_INICIALES.map(sanearObjetoHomebrew),
+        baseDatosInvocaciones: [],
         listaPendientes: [
           { id: "p_1", texto: "Revisar hojas de personaje de los jugadores", completado: false },
           { id: "p_2", texto: "Preparar encuentro en el puente levadizo", completado: false },

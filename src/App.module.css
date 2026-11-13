@@ -28,6 +28,10 @@
 
 .panelContenido { flex: 1; min-height: 0; overflow: hidden; }
 
+.areaContenido[data-pestana="homebrew"] {
+  --homebrew-espacio-dados: 66px;
+}
+
 .cargadorPestana {
   display: flex;
   flex-direction: column;

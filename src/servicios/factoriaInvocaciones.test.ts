@@ -9,7 +9,7 @@ import {
   proyectarInvocacionAMonstruo,
   extraerContextoLanzador
 } from "./factoriaInvocaciones";
-import type { ContextoLanzadorInvocacion } from "@/tipos/invocaciones";
+import type { ContextoLanzadorInvocacion, PlantillaInvocacion } from "@/tipos/invocaciones";
 import type { PersonajeJugador } from "@/tipos";
 
 describe("factoriaInvocaciones (DND 5.5e / PHB 2024)", () => {
@@ -168,6 +168,48 @@ describe("factoriaInvocaciones (DND 5.5e / PHB 2024)", () => {
       expect(proyectado.ca).toBeGreaterThan(0);
       expect(proyectado.vidaMaxima).toBeGreaterThan(0);
       expect(proyectado.nombre).not.toContain("NaN");
+    });
+
+    it("resuelve invocaciones homebrew cuando se provee un catálogo personalizado", () => {
+      const customInv: PlantillaInvocacion = {
+        id: "inv_homebrew_custom_1",
+        nombre: "Gólem Arcano",
+        conjuroAsociado: "Invocar Constructo",
+        nivelMinimo: 4,
+        nivelMaximo: 9,
+        tipoCriatura: "Constructo",
+        tamano: "Mediano",
+        alineacion: "Neutral",
+        subtiposDisponibles: [],
+        velocidadBase: { caminar: 30, planea: false },
+        velocidadesEspeciales: [],
+        sentidos: "Visión en la oscuridad 60 pies",
+        idiomas: "Entiende los idiomas que tú hablas",
+        caracteristicas: { fuerza: 18, destreza: 10, constitucion: 18, inteligencia: 14, sabiduria: 11, carisma: 5 },
+        formulaCA: { base: 13, sumaNivelConjuro: true, bonificadorAdicional: 0 },
+        formulaVida: { base: 40, porNivel: 15, porNivelPorEncimaDelMinimo: true },
+        formulaAtaquesPorAccion: "mitad_nivel_abajo",
+        ataques: [
+          {
+            nombre: "Golpe Rúnico",
+            tipo: "cuerpo_a_cuerpo",
+            usaModificadorAtaqueConjuros: true,
+            alcance: "5 pies",
+            dadosDanoBase: "1d8",
+            modificadorDanoFijo: 4,
+            sumaNivelAlDano: true,
+            tipoDano: "contundente"
+          }
+        ],
+        rasgos: [],
+        accionesAdicionales: [],
+        reacciones: [],
+        fuente: "Homebrew"
+      };
+
+      expect(esIdInvocacionEscalable("inv_homebrew_custom_1", [customInv])).toBe(true);
+      const encontrada = obtenerPlantillaInvocacionPorId("inv_homebrew_custom_1", [customInv]);
+      expect(encontrada?.nombre).toBe("Gólem Arcano");
     });
   });
 });

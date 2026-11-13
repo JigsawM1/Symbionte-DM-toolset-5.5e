@@ -161,6 +161,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
       rondaActual: state.rondaActual,
       referenciaIniciativaFisica: state.referenciaIniciativaFisica,
       personajes: state.personajes,
+      baseDatosInvocaciones: state.baseDatosInvocaciones,
       idsMiniaturasJugadores
     });
 

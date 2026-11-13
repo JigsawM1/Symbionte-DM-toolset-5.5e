@@ -1,7 +1,15 @@
 import { useState, useCallback } from "react";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarAccionesHomebrew, usarAccionesConfiguracion } from "@/almacen/selectores";
-import { MonstruoBase, RasgoBase, AccionMonstruo, AccionRapida } from "@/tipos";
-import { parsearVelocidad, parsearSentidos, formatearVelocidad, formatearSentidos, sanearMonstruoSentidosYPasiva } from "@/almacen/sanitizacion";
+import {
+  MonstruoBase,
+  RasgoBase,
+  AccionMonstruo,
+  AccionRapida,
+  VelocidadEstructurada,
+  SentidosEstructurados
+} from "@/tipos";
+import { parsearVelocidad, parsearSentidos, sanearMonstruoSentidosYPasiva } from "@/almacen/sanitizacion";
 import {
   desglosarAtaqueRapido,
   ComponenteDano,
@@ -18,33 +26,33 @@ export const estadoInicialCriatura = {
   vidaMaxima: 10,
   vidaNotas: "",
   iniciativaBonificador: 0,
-  velocidad: "30 pies",
-  sentidos: "",
+  velocidad: { caminar: 30, planea: false } as VelocidadEstructurada,
+  sentidos: { percepcionPasiva: 10 } as SentidosEstructurados,
   tamaño: "",
   alineacion: "",
   idiomas: "",
   desafio: "1",
   fuente: "Manual de Monstruos",
   caracteristicas: { fuerza: 10, destreza: 10, constitucion: 10, inteligencia: 10, sabiduria: 10, carisma: 10 },
-  salvaciones: {},
-  habilidades: {},
-  vulnerabilidades: [],
-  resistencias: [],
-  inmunidadesDaño: [],
-  inmunidadesCondicion: [],
-  accionesRapidas: [],
-  rasgos: [],
-  acciones: [],
-  accionesAdicionales: [],
-  reacciones: [],
+  salvaciones: {} as MonstruoBase["salvaciones"],
+  habilidades: {} as MonstruoBase["habilidades"],
+  vulnerabilidades: [] as string[],
+  resistencias: [] as string[],
+  inmunidadesDaño: [] as string[],
+  inmunidadesCondicion: [] as string[],
+  accionesRapidas: [] as AccionRapida[],
+  rasgos: [] as RasgoBase[],
+  acciones: [] as AccionMonstruo[],
+  accionesAdicionales: [] as AccionMonstruo[],
+  reacciones: [] as RasgoBase[],
   accionesLegendariasTotal: "3",
-  accionesLegendarias: [],
+  accionesLegendarias: [] as RasgoBase[],
   equipo: "",
   tesoros: ""
 };
 
-const rasgoInicial: RasgoBase = { nombre: "", descripcion: "", uso: "", recarga: "" };
-type AccionFormulario = Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque: string };
+type AccionFormulario = Omit<AccionMonstruo, "bonificadorAtaque"> & { bonificadorAtaque?: string };
+const rasgoInicial: AccionFormulario = { nombre: "", descripcion: "", uso: "", recarga: "" };
 
 const accionInicial: AccionFormulario = {
   nombre: "",
@@ -69,8 +77,8 @@ function accionAFormulario(a: AccionMonstruo): AccionFormulario {
     descripcion: a.descripcion,
     bonificadorAtaque: a.bonificadorAtaque !== undefined ? String(a.bonificadorAtaque) : "",
     daño: a.daño || "",
-    uso: a.uso || a.recarga || "",
-    recarga: a.recarga || a.uso || ""
+    uso: a.uso || "",
+    recarga: a.recarga || ""
   };
 }
 
@@ -81,7 +89,46 @@ function accionAModelo(a: AccionFormulario): AccionMonstruo {
     bonificadorAtaque: a.bonificadorAtaque ? parseInt(a.bonificadorAtaque, 10) : undefined,
     daño: a.daño || undefined,
     uso: a.uso || undefined,
-    recarga: a.recarga || a.uso || undefined
+    recarga: a.recarga || undefined
+  };
+}
+
+function datosDeCriatura(m: MonstruoBase): typeof estadoInicialCriatura {
+  return {
+    nombre: m.nombre,
+    tipo: m.tipo || "Humanoide",
+    ca: m.ca,
+    caNotas: m.caNotas || "",
+    vidaMaxima: m.vidaMaxima,
+    vidaNotas: m.vidaNotas || "",
+    iniciativaBonificador: m.iniciativaBonificador || 0,
+    velocidad: typeof m.velocidad === "string"
+      ? parsearVelocidad(m.velocidad)
+      : (m.velocidad || { caminar: 30, planea: false }),
+    sentidos: typeof m.sentidos === "string"
+      ? parsearSentidos(m.sentidos)
+      : (m.sentidos || { percepcionPasiva: 10 }),
+    tamaño: m.tamaño || "",
+    alineacion: m.alineacion || "",
+    idiomas: m.idiomas || "",
+    desafio: m.desafio || "1",
+    fuente: m.fuente || "Manual de Monstruos",
+    caracteristicas: m.caracteristicas || { fuerza: 10, destreza: 10, constitucion: 10, inteligencia: 10, sabiduria: 10, carisma: 10 },
+    salvaciones: m.salvaciones || {},
+    habilidades: m.habilidades || {},
+    vulnerabilidades: m.vulnerabilidades || [],
+    resistencias: m.resistencias || [],
+    inmunidadesDaño: m.inmunidadesDaño || [],
+    inmunidadesCondicion: m.inmunidadesCondicion || [],
+    accionesRapidas: m.accionesRapidas || [],
+    rasgos: m.rasgos || [],
+    acciones: m.acciones || [],
+    accionesAdicionales: m.accionesAdicionales || [],
+    reacciones: m.reacciones || [],
+    accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null ? String(m.accionesLegendariasTotal) : "3",
+    accionesLegendarias: m.accionesLegendarias || [],
+    equipo: m.equipo || "",
+    tesoros: m.tesoros || ""
   };
 }
 
@@ -89,7 +136,10 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
   const { agregarMonstruoHomebrew, actualizarMonstruoHomebrew } = usarAccionesHomebrew();
   const { agregarNotificacion } = usarAccionesConfiguracion();
 
-  const [monstruoForm, setMonstruoForm] = useState<Omit<MonstruoBase, "id" | "vidaActual">>(estadoInicialCriatura);
+  const [monstruoForm, setMonstruoForm] = useState<Omit<MonstruoBase, "id" | "vidaActual">>(() => {
+    const criatura = usarAlmacenDM.getState().baseDatosMonstruos.find(m => m.id === idEnEdicion);
+    return criatura ? datosDeCriatura(criatura) : estadoInicialCriatura;
+  });
   const [subPestanaCriatura, setSubPestanaCriatura] = useState<"general" | "atributos" | "pericias" | "defensas" | "listas">("general");
   const [subDefensas, setSubDefensas] = useState<"inmunidades" | "resistencias" | "vulnerabilidades" | "condiciones">("inmunidades");
 
@@ -187,7 +237,9 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
       nombre: listaQuickActions.itemForm.nombre.trim(),
       bonificadorAtaque: listaQuickActions.itemForm.bonificadorAtaque || "+0",
       dadosDaño: dadosCombinados,
-      tipoDaño: tiposCombinados
+      tipoDaño: tiposCombinados,
+      uso: listaQuickActions.itemForm.uso?.trim() || undefined,
+      recarga: listaQuickActions.itemForm.recarga?.trim() || undefined
     };
 
     const listaActual = monstruoForm.accionesRapidas || [];
@@ -247,43 +299,6 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     listaLegendarias.limpiarItemForm,
     listaQuickActions.limpiarItemForm
   ]);
-
-  const cargarCriatura = useCallback((m: MonstruoBase) => {
-    setMonstruoForm({
-      nombre: m.nombre,
-      tipo: m.tipo || "Humanoide",
-      ca: m.ca,
-      caNotas: m.caNotas || "",
-      vidaMaxima: m.vidaMaxima,
-      vidaNotas: m.vidaNotas || "",
-      iniciativaBonificador: m.iniciativaBonificador || 0,
-      velocidad: m.velocidad ? formatearVelocidad(m.velocidad) : "30 pies",
-      sentidos: m.sentidos ? formatearSentidos(m.sentidos) : "",
-      tamaño: m.tamaño || "",
-      alineacion: m.alineacion || "",
-      idiomas: m.idiomas || "",
-      desafio: m.desafio || "1",
-      fuente: m.fuente || "Manual de Monstruos",
-      caracteristicas: m.caracteristicas || { fuerza: 10, destreza: 10, constitucion: 10, inteligencia: 10, sabiduria: 10, carisma: 10 },
-      salvaciones: m.salvaciones || {},
-      habilidades: m.habilidades || {},
-      vulnerabilidades: m.vulnerabilidades || [],
-      resistencias: m.resistencias || [],
-      inmunidadesDaño: m.inmunidadesDaño || [],
-      inmunidadesCondicion: m.inmunidadesCondicion || [],
-      accionesRapidas: m.accionesRapidas || [],
-      rasgos: m.rasgos || [],
-      acciones: m.acciones || [],
-      accionesAdicionales: m.accionesAdicionales || [],
-      reacciones: m.reacciones || [],
-      accionesLegendariasTotal: m.accionesLegendariasTotal !== undefined && m.accionesLegendariasTotal !== null ? String(m.accionesLegendariasTotal) : "3",
-      accionesLegendarias: m.accionesLegendarias || [],
-      equipo: m.equipo || "",
-      tesoros: m.tesoros || ""
-    });
-    setSubPestanaCriatura("general");
-    setSubDefensas("inmunidades");
-  }, []);
 
   const actualizarGeneral = useCallback((campo: string, valor: unknown) => {
     setMonstruoForm((prev) => ({ ...prev, [campo]: valor }));
@@ -374,69 +389,19 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     subPestanaCriatura, setSubPestanaCriatura,
     subDefensas, setSubDefensas,
     
-    // Mapeo adaptativo compatible con props antiguas para no romper la UI en caliente
-    tRasgoNombre: listaRasgos.itemForm.nombre, setTRasgoNombre: (v: string) => listaRasgos.actualizarCampoItem("nombre", v),
-    tRasgoDesc: listaRasgos.itemForm.descripcion || "", setTRasgoDesc: (v: string) => listaRasgos.actualizarCampoItem("descripcion", v),
-    tRasgoUso: listaRasgos.itemForm.uso || "", setTRasgoUso: (v: string) => listaRasgos.actualizarCampoItem("uso", v),
-    rasgoEdicionIdx: listaRasgos.edicionIdx,
-    agregarRasgo: listaRasgos.agregarItem,
-    iniciarEditarRasgo: listaRasgos.iniciarEdicion,
-    cancelarEditarRasgo: listaRasgos.cancelarEdicion,
-    eliminarRasgoIdx: listaRasgos.eliminarItem,
-
-    tAccionNombre: listaAcciones.itemForm.nombre, setTAccionNombre: (v: string) => listaAcciones.actualizarCampoItem("nombre", v),
-    tAccionDesc: listaAcciones.itemForm.descripcion || "", setTAccionDesc: (v: string) => listaAcciones.actualizarCampoItem("descripcion", v),
-    tAccionBono: listaAcciones.itemForm.bonificadorAtaque, setTAccionBono: (v: string) => listaAcciones.actualizarCampoItem("bonificadorAtaque", v),
-    tAccionDaño: listaAcciones.itemForm.daño || "", setTAccionDaño: (v: string) => listaAcciones.actualizarCampoItem("daño", v),
-    tAccionUso: listaAcciones.itemForm.uso || "", setTAccionUso: (v: string) => listaAcciones.actualizarCampoItem("uso", v),
-    accionEdicionIdx: listaAcciones.edicionIdx,
-    agregarAccion: listaAcciones.agregarItem,
-    iniciarEditarAccion: listaAcciones.iniciarEdicion,
-    cancelarEditarAccion: listaAcciones.cancelarEdicion,
-    eliminarAccionIdx: listaAcciones.eliminarItem,
-
-    tAccionAdicionalNombre: listaAccionesAdicionales.itemForm.nombre, setTAccionAdicionalNombre: (v: string) => listaAccionesAdicionales.actualizarCampoItem("nombre", v),
-    tAccionAdicionalDesc: listaAccionesAdicionales.itemForm.descripcion || "", setTAccionAdicionalDesc: (v: string) => listaAccionesAdicionales.actualizarCampoItem("descripcion", v),
-    tAccionAdicionalBono: listaAccionesAdicionales.itemForm.bonificadorAtaque, setTAccionAdicionalBono: (v: string) => listaAccionesAdicionales.actualizarCampoItem("bonificadorAtaque", v),
-    tAccionAdicionalDaño: listaAccionesAdicionales.itemForm.daño || "", setTAccionAdicionalDaño: (v: string) => listaAccionesAdicionales.actualizarCampoItem("daño", v),
-    tAccionAdicionalUso: listaAccionesAdicionales.itemForm.uso || "", setTAccionAdicionalUso: (v: string) => listaAccionesAdicionales.actualizarCampoItem("uso", v),
-    accionAdicionalEdicionIdx: listaAccionesAdicionales.edicionIdx,
-    agregarAccionAdicional: listaAccionesAdicionales.agregarItem,
-    iniciarEditarAccionAdicional: listaAccionesAdicionales.iniciarEdicion,
-    cancelarEditarAccionAdicional: listaAccionesAdicionales.cancelarEdicion,
-    eliminarAccionAdicionalIdx: listaAccionesAdicionales.eliminarItem,
-
-    tReaccionNombre: listaReacciones.itemForm.nombre, setTReaccionNombre: (v: string) => listaReacciones.actualizarCampoItem("nombre", v),
-    tReaccionDesc: listaReacciones.itemForm.descripcion || "", setTReaccionDesc: (v: string) => listaReacciones.actualizarCampoItem("descripcion", v),
-    tReaccionUso: listaReacciones.itemForm.uso || "", setTReaccionUso: (v: string) => listaReacciones.actualizarCampoItem("uso", v),
-    reaccionEdicionIdx: listaReacciones.edicionIdx,
-    agregarReaccion: listaReacciones.agregarItem,
-    iniciarEditarReaccion: listaReacciones.iniciarEdicion,
-    cancelarEditarReaccion: listaReacciones.cancelarEdicion,
-    eliminarReaccionIdx: listaReacciones.eliminarItem,
-
-    tLegendariaNombre: listaLegendarias.itemForm.nombre, setTLegendariaNombre: (v: string) => listaLegendarias.actualizarCampoItem("nombre", v),
-    tLegendariaDesc: listaLegendarias.itemForm.descripcion || "", setTLegendariaDesc: (v: string) => listaLegendarias.actualizarCampoItem("descripcion", v),
-    tLegendariaUso: listaLegendarias.itemForm.uso || "", setTLegendariaUso: (v: string) => listaLegendarias.actualizarCampoItem("uso", v),
-    legendariaEdicionIdx: listaLegendarias.edicionIdx,
-    agregarLegendaria: listaLegendarias.agregarItem,
-    iniciarEditarLegendaria: listaLegendarias.iniciarEdicion,
-    cancelarEditarLegendaria: listaLegendarias.cancelarEdicion,
-    eliminarLegendariaIdx: listaLegendarias.eliminarItem,
-
-    tQNombre: listaQuickActions.itemForm.nombre, setTQNombre: (v: string) => listaQuickActions.actualizarCampoItem("nombre", v),
-    tQBono: listaQuickActions.itemForm.bonificadorAtaque || "+0", setTQBono: (v: string) => listaQuickActions.actualizarCampoItem("bonificadorAtaque", v),
-    tQDados: listaQuickActions.itemForm.dadosDaño || "1d6", setTQDados: (v: string) => listaQuickActions.actualizarCampoItem("dadosDaño", v),
-    tQTipo: listaQuickActions.itemForm.tipoDaño || "fuerza", setTQTipo: (v: string) => listaQuickActions.actualizarCampoItem("tipoDaño", v),
+    listaRasgos,
+    listaAcciones,
+    listaAccionesAdicionales,
+    listaReacciones,
+    listaLegendarias,
+    listaQuickActions,
     danyosExtraQA,
     agregarDanoExtraQA,
     actualizarDanoExtraQA,
     eliminarDanoExtraQA,
-    quickActionEdicionIdx: listaQuickActions.edicionIdx,
     agregarQuickAction: agregarQuickActionPersonalizado,
     iniciarEditarQuickAction,
     cancelarEditarQuickAction,
-    eliminarQuickActionIdx: listaQuickActions.eliminarItem,
     preRellenarAtaqueRapido,
 
     actualizarGeneral,
@@ -444,8 +409,6 @@ export function usarFormularioCriatura(idEnEdicion: string | null, alGuardarExit
     actualizarSalvacion,
     actualizarHabilidad,
     alternarCheckArray,
-    limpiarFormulario,
-    cargarCriatura,
     manejarGuardarCriatura
   };
 }

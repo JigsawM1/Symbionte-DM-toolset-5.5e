@@ -1,14 +1,16 @@
 import React from "react";
-import type { MonstruoBase, HechizoBase, ObjetoHomebrew } from "@/tipos";
+import type { MonstruoBase, HechizoBase, ObjetoHomebrew, PlantillaInvocacion } from "@/tipos";
 import { ListaMonstruosHomebrew } from "./ListaMonstruosHomebrew";
 import { ListaHechizosHomebrew } from "./ListaHechizosHomebrew";
 import { ListaObjetosHomebrew } from "./ListaObjetosHomebrew";
+import { ListaInvocacionesHomebrew } from "./ListaInvocacionesHomebrew";
 
 export interface ListaHomebrewProps {
-  tipoHomebrew: "criatura" | "hechizo" | "objeto";
+  tipoHomebrew: "criatura" | "hechizo" | "objeto" | "invocacion";
   iniciarEdicionCriatura?: (m: MonstruoBase) => void;
   iniciarEdicionHechizo?: (h: HechizoBase) => void;
   iniciarEdicionObjeto?: (o: ObjetoHomebrew) => void;
+  iniciarEdicionInvocacion?: (inv: PlantillaInvocacion) => void;
   iniciarPlantillaObjeto?: (o: ObjetoHomebrew) => void;
   cancelarEdicion?: () => void;
   idEnEdicion?: string | null;
@@ -16,7 +18,7 @@ export interface ListaHomebrewProps {
 }
 
 /**
- * ListaHomebrew: Orquestador modular del catálogo y compendio de creaciones (Monstruos, Hechizos y Objetos).
+ * ListaHomebrew: Orquestador modular del catálogo y compendio de creaciones (Monstruos, Hechizos, Objetos e Invocaciones PJ).
  * Delega en vistas especializadas de única responsabilidad cumpliendo los principios SOLID y Clean Architecture.
  */
 export const ListaHomebrew: React.FC<ListaHomebrewProps> = ({
@@ -24,6 +26,7 @@ export const ListaHomebrew: React.FC<ListaHomebrewProps> = ({
   iniciarEdicionCriatura,
   iniciarEdicionHechizo,
   iniciarEdicionObjeto,
+  iniciarEdicionInvocacion,
   iniciarPlantillaObjeto,
   cancelarEdicion,
   idEnEdicion,
@@ -57,6 +60,16 @@ export const ListaHomebrew: React.FC<ListaHomebrewProps> = ({
           iniciarEdicionObjeto={iniciarEdicionObjeto}
           iniciarPlantillaObjeto={iniciarPlantillaObjeto}
           iniciarEdicionHechizo={iniciarEdicionHechizo}
+          cancelarEdicion={cancelarEdicion}
+          idEnEdicion={idEnEdicion}
+          soloLectura={soloLectura}
+        />
+      );
+
+    case "invocacion":
+      return (
+        <ListaInvocacionesHomebrew
+          iniciarEdicionInvocacion={iniciarEdicionInvocacion}
           cancelarEdicion={cancelarEdicion}
           idEnEdicion={idEnEdicion}
           soloLectura={soloLectura}

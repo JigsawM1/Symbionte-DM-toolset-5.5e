@@ -1,5 +1,19 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-15] Integración de la Rama no-se-que-era-esto en main: Invocaciones Homebrew y Refactorización
+
+- **Contexto**:
+  - Se procedió a comparar y fusionar la rama `no-se-que-era-esto` sobre la rama principal `main`.
+  - La rama incorporaba la suite completa de creación, gestión, escalado y combate para Invocaciones Homebrew, además de la modularización de `FormularioCriatura.tsx` y `SeccionListasAtaques.tsx`.
+- **Detalle de la Fusión**:
+  - Punto de partida común (*merge-base*): `7db9fe5`.
+  - En `main` se conservaron los cambios de configuración de agentes (`.codex/` y `AGENTS.md`).
+  - En `no-se-que-era-esto` se integraron 44 archivos con +3.294 inserciones y -1.794 eliminaciones.
+  - Fusión resuelta limpiamente mediante estrategia `ort` (commit `64a61bc`).
+- **Validación Técnica**:
+  - `tsc --noEmit`: 0 errores bajo `strict: true`.
+  - Pruebas unitarias de factoría de invocaciones, importador/exportador homebrew y sincronización de iniciativa: 3 suites y 35 tests aprobados al 100%.
+
 ## [2026-11-11] Auditoría y Refactorización de Calidad con /ponytail y /vercel-react-best-practices en Combate por Hordas
 
 - **Contexto**:

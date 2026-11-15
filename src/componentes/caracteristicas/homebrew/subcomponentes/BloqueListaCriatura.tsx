@@ -6,14 +6,8 @@ import type { AccionMonstruo } from "@/tipos";
 import type { usarFormularioCriatura } from "@/hooks/usarFormularioCriatura";
 import { ParametrosExtraccionAtaque } from "@/utiles/procesadorAtaques";
 import { formatearRecargaTexto } from "@/almacen/sanitizacion";
+import { calcularFilasTextarea } from "@/utiles/formatoTextoDND";
 import estilos from "../FormularioCriatura.module.css";
-
-const calcFilas = (valor: string, minFilas = 2, maxFilas = 20): number => {
-  if (!valor) return minFilas;
-  const lineas = valor.split("\n").length;
-  const porLongitud = Math.ceil(valor.length / 80);
-  return Math.min(maxFilas, Math.max(minFilas, lineas, porLongitud));
-};
 
 export interface BloqueListaCriaturaProps {
   titulo: string;
@@ -124,7 +118,7 @@ export const BloqueListaCriatura: React.FC<BloqueListaCriaturaProps> = ({
           onChange={(e) => actualizarCampoItem("descripcion", e.target.value)}
           placeholder={placeholderDescripcion}
           className={estilos.textareaDinamico}
-          rows={calcFilas(descripcion, 3)}
+          rows={calcularFilasTextarea(descripcion, 3)}
           spellCheck={false}
         />
 

@@ -8,6 +8,7 @@ import {
   VelocidadEspecialInvocacion
 } from "@/tipos";
 import { logger } from "@/utiles/logger";
+import { usarEditorLista } from "./usarListaDinamica";
 
 export type DatosFormularioInvocacion = Omit<PlantillaInvocacion, "id" | "nombreNormalizado" | "subtiposDisponibles"> & {
   subtiposDisponibles: string;
@@ -24,7 +25,7 @@ const estadoInicialInvocacion: DatosFormularioInvocacion = {
   subtiposDisponibles: "",
   velocidadBase: { caminar: 30, planea: false },
   velocidadesEspeciales: [],
-  sentidos: "Visión en la oscuridad 60 pies, Percepción pasiva 10",
+  sentidos: { percepcionPasiva: 10 },
   idiomas: "Entiende los idiomas que tú hablas",
   caracteristicas: {
     fuerza: 14,
@@ -53,6 +54,63 @@ const estadoInicialInvocacion: DatosFormularioInvocacion = {
   fuente: "Homebrew"
 };
 
+const ataqueInvocacionInicial: AtaqueInvocacion = {
+  nombre: "",
+  tipo: "cuerpo_a_cuerpo",
+  alcance: "5 pies",
+  usaModificadorAtaqueConjuros: true,
+  dadosDanoBase: "1d8",
+  modificadorDanoFijo: 3,
+  sumaNivelAlDano: true,
+  tipoDano: "fuerza",
+  descripcionExtra: ""
+};
+
+const rasgoInvocacionInicial: RasgoInvocacion = {
+  nombre: "",
+  subtipoRequerido: "",
+  uso: "",
+  recarga: "",
+  descripcion: ""
+};
+
+function normalizarAtaque(ataque: AtaqueInvocacion): AtaqueInvocacion | null {
+  const nombre = ataque.nombre.trim();
+  const dadosDanoBase = ataque.dadosDanoBase.trim();
+  if (!nombre || !dadosDanoBase) return null;
+  return {
+    ...ataque,
+    nombre,
+    alcance: ataque.alcance.trim() || "5 pies",
+    dadosDanoBase,
+    tipoDano: ataque.tipoDano.trim() || "fuerza",
+    descripcionExtra: ataque.descripcionExtra?.trim() || undefined
+  };
+}
+
+function normalizarRasgo(rasgo: RasgoInvocacion): RasgoInvocacion | null {
+  const nombre = rasgo.nombre.trim();
+  const descripcion = rasgo.descripcion.trim();
+  if (!nombre || !descripcion) return null;
+  return {
+    ...rasgo,
+    nombre,
+    subtipoRequerido: rasgo.subtipoRequerido?.trim() || undefined,
+    uso: rasgo.uso?.trim() || undefined,
+    recarga: rasgo.recarga?.trim() || undefined,
+    descripcion
+  };
+}
+
+function normalizarVelocidadEspecial(velocidad: VelocidadEspecialInvocacion): VelocidadEspecialInvocacion | null {
+  const velocidadTexto = velocidad.velocidadTexto.trim();
+  if (!velocidadTexto) return null;
+  return { nivelMinimo: Math.max(1, Math.min(9, velocidad.nivelMinimo)), velocidadTexto };
+}
+
+/**
+ * Hook de estado y acciones para el formulario de creación y edición de invocaciones PJ.
+ */
 export function usarFormularioInvocacion(idEnEdicion: string | null, alGuardarExitoso: () => void) {
   const [invocacionForm, setInvocacionForm] = useState<DatosFormularioInvocacion>(() => {
     const existente = usarAlmacenDM.getState().baseDatosInvocaciones.find(inv => inv.id === idEnEdicion);
@@ -62,70 +120,44 @@ export function usarFormularioInvocacion(idEnEdicion: string | null, alGuardarEx
   });
   const [subPestana, setSubPestana] = useState<"general" | "escalado" | "habilidades">("general");
 
-  const actualizarCampo = <K extends keyof DatosFormularioInvocacion>(
-    campo: K,
-    valor: DatosFormularioInvocacion[K]
-  ) => {
-    setInvocacionForm((prev) => ({ ...prev, [campo]: valor }));
+  const actualizarCampo = <K extends keyof DatosFormularioInvocacion>(campo: K, valor: DatosFormularioInvocacion[K]) => {
+    setInvocacionForm(prev => ({ ...prev, [campo]: valor }));
   };
 
   const actualizarCaracteristica = (caract: keyof DatosFormularioInvocacion["caracteristicas"], valor: number) => {
-    setInvocacionForm((prev) => ({
+    setInvocacionForm(prev => ({
       ...prev,
       caracteristicas: { ...prev.caracteristicas, [caract]: valor }
     }));
   };
 
-  const agregarVelocidadEspecial = (vel: VelocidadEspecialInvocacion) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      velocidadesEspeciales: [...prev.velocidadesEspeciales, vel]
-    }));
-  };
-
-  const eliminarVelocidadEspecial = (idx: number) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      velocidadesEspeciales: prev.velocidadesEspeciales.filter((_, i) => i !== idx)
-    }));
-  };
-
-  const agregarAtaque = (ataque: AtaqueInvocacion) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      ataques: [...prev.ataques, ataque]
-    }));
-  };
-
-  const eliminarAtaque = (idx: number) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      ataques: prev.ataques.filter((_, i) => i !== idx)
-    }));
-  };
-
-  const agregarRasgoLista = (
-    lista: "rasgos" | "accionesAdicionales" | "reacciones",
-    rasgo: RasgoInvocacion
-  ) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      [lista]: [...prev[lista], rasgo]
-    }));
-  };
-
-  const eliminarRasgoLista = (
-    lista: "rasgos" | "accionesAdicionales" | "reacciones",
-    idx: number
-  ) => {
-    setInvocacionForm((prev) => ({
-      ...prev,
-      [lista]: prev[lista].filter((_, i) => i !== idx)
-    }));
-  };
+  const listaVelocidades = usarEditorLista(
+    { nivelMinimo: invocacionForm.nivelMinimo, velocidadTexto: "" },
+    items => actualizarCampo("velocidadesEspeciales", items),
+    invocacionForm.velocidadesEspeciales,
+    normalizarVelocidadEspecial
+  );
+  const listaAtaques = usarEditorLista(
+    ataqueInvocacionInicial, items => actualizarCampo("ataques", items), invocacionForm.ataques, normalizarAtaque
+  );
+  const listaRasgos = usarEditorLista(
+    rasgoInvocacionInicial, items => actualizarCampo("rasgos", items), invocacionForm.rasgos, normalizarRasgo
+  );
+  const listaAccionesAdicionales = usarEditorLista(
+    rasgoInvocacionInicial,
+    items => actualizarCampo("accionesAdicionales", items),
+    invocacionForm.accionesAdicionales,
+    normalizarRasgo
+  );
+  const listaReacciones = usarEditorLista(
+    rasgoInvocacionInicial, items => actualizarCampo("reacciones", items), invocacionForm.reacciones, normalizarRasgo
+  );
+  const hayBorradores = [listaVelocidades, listaAtaques, listaRasgos, listaAccionesAdicionales, listaReacciones]
+    .some(lista => lista.hayBorrador);
 
   const manejarGuardarInvocacion = (e: React.FormEvent) => {
     e.preventDefault();
+    if (hayBorradores) return;
     const { agregarNotificacion, baseDatosInvocaciones, agregarInvocacionHomebrew, actualizarInvocacionHomebrew } = usarAlmacenDM.getState();
     if (!invocacionForm.nombre.trim()) {
       agregarNotificacion("El nombre de la invocación es obligatorio", "error");
@@ -174,12 +206,12 @@ export function usarFormularioInvocacion(idEnEdicion: string | null, alGuardarEx
     setSubPestana,
     actualizarCampo,
     actualizarCaracteristica,
-    agregarVelocidadEspecial,
-    eliminarVelocidadEspecial,
-    agregarAtaque,
-    eliminarAtaque,
-    agregarRasgoLista,
-    eliminarRasgoLista,
+    hayBorradores,
+    listaVelocidades,
+    listaAtaques,
+    listaRasgos,
+    listaAccionesAdicionales,
+    listaReacciones,
     manejarGuardarInvocacion
   };
 }

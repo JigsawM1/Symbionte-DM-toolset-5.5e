@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { EsquemaCaracteristicas, EsquemaVelocidad } from "./personaje";
+import { EsquemaCaracteristicas, EsquemaSentidos, EsquemaVelocidad } from "./personaje";
 
 /**
  * Fórmula para el cálculo dinámico de la Clase de Armadura (CA).
@@ -84,7 +84,7 @@ export const EsquemaPlantillaInvocacion = z.object({
   subtiposDisponibles: z.array(z.string()).default([]),
   velocidadBase: z.union([z.string(), EsquemaVelocidad]).default("30 pies"),
   velocidadesEspeciales: z.array(EsquemaVelocidadEspecialInvocacion).default([]),
-  sentidos: z.string().default("Percepción pasiva 10"),
+  sentidos: z.union([z.string(), EsquemaSentidos]).default("Percepción pasiva 10"),
   idiomas: z.string().default("Entiende los idiomas que tú hablas"),
   caracteristicas: EsquemaCaracteristicas,
   formulaCA: EsquemaFormulaCAInvocacion,

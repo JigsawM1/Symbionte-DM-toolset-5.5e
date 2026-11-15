@@ -220,4 +220,23 @@ describe("Filtrado y Exportación/Importación de Homebrew", () => {
     expect(recargadas?.[0].formulaCA.base).toBe(17);
     expect(prepararCargaPersistida({ invocaciones_homebrew: [] }).baseDatosInvocaciones).toEqual([]);
   });
+
+  it("conserva velocidadBase y sentidos estructurados en invocaciones al importar y persistir", () => {
+    const invocacionEstructurada = {
+      ...CATALOGO_INVOCACIONES[0],
+      id: "inv_homebrew_sentidos",
+      nombre: "Sombra Guardiana",
+      velocidadBase: { caminar: 40, volar: 40, planea: true },
+      sentidos: { visionOscuridad: 60, visionCiega: 10, percepcionPasiva: 13 }
+    };
+
+    const { baseDatosInvocaciones } = importarDesdeJSON(
+      { invocaciones: [invocacionEstructurada] },
+      { baseDatosMonstruos: [], baseDatosHechizos: [], objetosHomebrew: [], baseDatosInvocaciones: [] }
+    );
+
+    const recargadas = prepararCargaPersistida(construirBlobPersistencia({ baseDatosInvocaciones })).baseDatosInvocaciones;
+    expect(recargadas?.[0].velocidadBase).toEqual({ caminar: 40, volar: 40, planea: true });
+    expect(recargadas?.[0].sentidos).toEqual({ visionOscuridad: 60, visionCiega: 10, percepcionPasiva: 13 });
+  });
 });

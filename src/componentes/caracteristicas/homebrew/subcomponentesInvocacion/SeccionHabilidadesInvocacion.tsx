@@ -1,18 +1,21 @@
-import React, { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import React, { useId } from "react";
+import { Check, Edit2, Plus, Trash2, X } from "lucide-react";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
-import { SelectorDesplegable, type OpcionDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { SelectorDesplegable, SelectorSugerencias, type OpcionDesplegable } from "@/componentes/comunes";
 import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
-import type { DatosFormularioInvocacion } from "@/hooks/usarFormularioInvocacion";
-import type { AtaqueInvocacion, RasgoInvocacion } from "@/tipos";
+import { TIPOS_DAÑO_DND } from "@/constantes/homebrewConstantes";
+import type { DatosFormularioInvocacion, usarFormularioInvocacion } from "@/hooks/usarFormularioInvocacion";
+import type { AtaqueInvocacion } from "@/tipos";
+import { BloqueRasgosInvocacion } from "./BloqueRasgosInvocacion";
+import { enfocarEditorFila } from "./focoEditorFila";
 import estilos from "../FormularioCriatura.module.css";
 
 interface SeccionHabilidadesInvocacionProps {
   invocacionForm: DatosFormularioInvocacion;
-  agregarAtaque: (ataque: AtaqueInvocacion) => void;
-  eliminarAtaque: (idx: number) => void;
-  agregarRasgoLista: (lista: "rasgos" | "accionesAdicionales" | "reacciones", rasgo: RasgoInvocacion) => void;
-  eliminarRasgoLista: (lista: "rasgos" | "accionesAdicionales" | "reacciones", idx: number) => void;
+  listaAtaques: ReturnType<typeof usarFormularioInvocacion>["listaAtaques"];
+  listaRasgos: ReturnType<typeof usarFormularioInvocacion>["listaRasgos"];
+  listaAccionesAdicionales: ReturnType<typeof usarFormularioInvocacion>["listaAccionesAdicionales"];
+  listaReacciones: ReturnType<typeof usarFormularioInvocacion>["listaReacciones"];
 }
 
 const OPCIONES_TIPO_ATAQUE: OpcionDesplegable<AtaqueInvocacion["tipo"]>[] = [
@@ -21,170 +24,56 @@ const OPCIONES_TIPO_ATAQUE: OpcionDesplegable<AtaqueInvocacion["tipo"]>[] = [
   { valor: "ambos", etiqueta: "Cuerpo a cuerpo o distancia" }
 ];
 
-interface BloqueRasgoInvProps {
-  titulo: string;
-  items: RasgoInvocacion[];
-  alAgregar: (r: RasgoInvocacion) => void;
-  alEliminar: (idx: number) => void;
+function formatearModificadorFijo(mod: number): string {
+  if (mod > 0) return `+${mod}`;
+  if (mod < 0) return String(mod);
+  return "";
 }
-
-const BloqueRasgosInvocacion: React.FC<BloqueRasgoInvProps> = ({ titulo, items, alAgregar, alEliminar }) => {
-  const [nombre, setNombre] = useState("");
-  const [subtipoRequerido, setSubtipoRequerido] = useState("");
-  const [uso, setUso] = useState("");
-  const [recarga, setRecarga] = useState("");
-  const [descripcion, setDescripcion] = useState("");
-
-  const manejarAgregar = () => {
-    if (!nombre.trim() || !descripcion.trim()) return;
-    alAgregar({
-      nombre: nombre.trim(),
-      subtipoRequerido: subtipoRequerido.trim() || undefined,
-      uso: uso.trim() || undefined,
-      recarga: recarga.trim() || undefined,
-      descripcion: descripcion.trim()
-    });
-    setNombre("");
-    setSubtipoRequerido("");
-    setUso("");
-    setRecarga("");
-    setDescripcion("");
-  };
-
-  return (
-    <div className={estilos.bloqueDinamicoForm}>
-      <div className={estilos.tituloBloqueDinamico}>{titulo} ({items.length})</div>
-      <div className={estilos.camposDinamicosGrupo}>
-        <div className={estilos.filaCamposAlineados}>
-          <input
-            type="text"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            placeholder="Nombre"
-            className={estilos.inputDinamicoMediano}
-          />
-          <input
-            type="text"
-            value={subtipoRequerido}
-            onChange={(e) => setSubtipoRequerido(e.target.value)}
-            placeholder="Subtipo req. (opc.)"
-            className={estilos.inputDinamicoMini}
-          />
-          <input
-            type="text"
-            value={uso}
-            onChange={(e) => setUso(e.target.value)}
-            placeholder="Uso (ej. 1/día)"
-            className={estilos.inputDinamicoMini}
-          />
-          <input
-            type="text"
-            value={recarga}
-            onChange={(e) => setRecarga(e.target.value)}
-            placeholder="Recarga (ej. 5-6)"
-            className={estilos.inputDinamicoMini}
-          />
-        </div>
-        <textarea
-          value={descripcion}
-          onChange={(e) => setDescripcion(e.target.value)}
-          placeholder="Descripción (puedes usar {CD} o {NIVEL} como marcadores)..."
-          rows={2}
-          className={estilos.textareaDinamico}
-          spellCheck={false}
-        />
-        <button
-          type="button"
-          onClick={manejarAgregar}
-          className={`${estilos.botonAgregarCompleto} ${estilos.botonAgregarCompletoNormal}`}
-        >
-          Agregar a {titulo}
-        </button>
-      </div>
-
-      {items.length > 0 && (
-        <div className={estilos.listaDinamicaVisual}>
-          {items.map((item, idx) => (
-            <div key={`${titulo}_${idx}`} className={estilos.itemDinamicoVisual}>
-              <div className={estilos.itemVisualCuerpo}>
-                <strong>
-                  {item.nombre}
-                  {item.subtipoRequerido ? ` [${item.subtipoRequerido}]` : ""}
-                  {item.uso || item.recarga ? ` (${[item.uso, item.recarga].filter(Boolean).join(" / ")})` : ""}
-                </strong>
-                <div className={estilos.itemVisualDescripcion}>{item.descripcion}</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => alEliminar(idx)}
-                className={estilos.botonEliminarDinamico}
-              >
-                <Trash2 size={12} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 /**
  * Pestaña de Ataques escalables, Rasgos, Acciones Adicionales y Reacciones de la invocación.
  */
 export const SeccionHabilidadesInvocacion: React.FC<SeccionHabilidadesInvocacionProps> = ({
   invocacionForm,
-  agregarAtaque,
-  eliminarAtaque,
-  agregarRasgoLista,
-  eliminarRasgoLista
+  listaAtaques,
+  listaRasgos,
+  listaAccionesAdicionales,
+  listaReacciones
 }) => {
-  const [atqNombre, setAtqNombre] = useState("");
-  const [atqTipo, setAtqTipo] = useState<AtaqueInvocacion["tipo"]>("cuerpo_a_cuerpo");
-  const [atqAlcance, setAtqAlcance] = useState("5 pies");
-  const [atqDados, setAtqDados] = useState("1d8");
-  const [atqModFijo, setAtqModFijo] = useState<number>(3);
-  const [atqTipoDano, setAtqTipoDano] = useState("fuerza");
-  const [atqSumaNivel, setAtqSumaNivel] = useState(true);
-  const [atqUsaConjuro, setAtqUsaConjuro] = useState(true);
-  const [atqNotas, setAtqNotas] = useState("");
-
-  const manejarAgregarAtaque = () => {
-    if (!atqNombre.trim() || !atqDados.trim()) return;
-    agregarAtaque({
-      nombre: atqNombre.trim(),
-      tipo: atqTipo,
-      usaModificadorAtaqueConjuros: atqUsaConjuro,
-      alcance: atqAlcance.trim() || "5 pies",
-      dadosDanoBase: atqDados.trim(),
-      modificadorDanoFijo: atqModFijo,
-      sumaNivelAlDano: atqSumaNivel,
-      tipoDano: atqTipoDano.trim() || "fuerza",
-      descripcionExtra: atqNotas.trim() || undefined
-    });
-    setAtqNombre("");
-    setAtqNotas("");
-  };
+  const idCampos = useId();
+  const {
+    itemForm: ataqueForm,
+    edicionIdx: ataqueEdicionIdx,
+    actualizarCampoItem: actualizarCampoAtaque,
+    agregarItem: confirmarAtaque,
+    iniciarEdicion: iniciarEdicionAtaque,
+    cancelarEdicion: cancelarEdicionAtaque,
+    eliminarItem: eliminarAtaque
+  } = listaAtaques;
 
   return (
     <div className={estilos.seccionContenido}>
-      <div className={estilos.bloqueDinamicoForm}>
+      <div className={estilos.bloqueDinamicoForm} data-editor-fila>
         <div className={estilos.tituloBloqueDinamico}>
-          ATAQUES ESCALABLES ({invocacionForm.ataques.length})
+          {ataqueEdicionIdx !== null
+            ? "EDITANDO ATAQUE ESCALABLE"
+            : `ATAQUES ESCALABLES (${invocacionForm.ataques.length})`}
         </div>
         <div className={estilos.camposDinamicosGrupo}>
           <div className={estilos.filaCamposAlineados}>
             <input
               type="text"
-              value={atqNombre}
-              onChange={(e) => setAtqNombre(e.target.value)}
+              data-campo-inicial
+              value={ataqueForm.nombre}
+              onChange={(e) => actualizarCampoAtaque("nombre", e.target.value)}
               placeholder="Nombre (ej. Hoja Feérica)"
+              aria-label="Nombre del ataque"
               className={estilos.inputDinamicoMediano}
             />
             <div className={estilos.selectorDanoCompacto}>
               <SelectorDesplegable
-                valor={atqTipo}
-                alCambiar={setAtqTipo}
+                valor={ataqueForm.tipo}
+                alCambiar={(v) => actualizarCampoAtaque("tipo", v)}
                 opciones={OPCIONES_TIPO_ATAQUE}
                 tamano="compacto"
                 enFlujo
@@ -192,64 +81,100 @@ export const SeccionHabilidadesInvocacion: React.FC<SeccionHabilidadesInvocacion
             </div>
             <input
               type="text"
-              value={atqAlcance}
-              onChange={(e) => setAtqAlcance(e.target.value)}
+              value={ataqueForm.alcance}
+              onChange={(e) => actualizarCampoAtaque("alcance", e.target.value)}
               placeholder="Alcance (5 pies)"
+              aria-label="Alcance del ataque"
               className={estilos.inputDinamicoMini}
             />
             <input
               type="text"
-              value={atqDados}
-              onChange={(e) => setAtqDados(e.target.value)}
+              value={ataqueForm.dadosDanoBase}
+              onChange={(e) => actualizarCampoAtaque("dadosDanoBase", e.target.value)}
               placeholder="Dados (1d8)"
+              aria-label="Dados de daño base"
               className={estilos.inputDinamicoMini}
             />
             <CampoNumerico
-              value={atqModFijo}
-              alConfirmar={setAtqModFijo}
+              identidad={`${ataqueEdicionIdx ?? "nuevo"}-${listaAtaques.hayBorrador}`}
+              value={ataqueForm.modificadorDanoFijo}
+              alConfirmar={(v) => actualizarCampoAtaque("modificadorDanoFijo", v)}
+              alVaciar={() => actualizarCampoAtaque("modificadorDanoFijo", 0)}
               placeholder="Mod (+3)"
+              aria-label="Modificador fijo de daño"
               tipo="entero"
               className={estilos.inputDinamicoMini}
             />
           </div>
           <div className={estilos.filaCamposAlineados}>
-            <input
-              type="text"
-              value={atqTipoDano}
-              onChange={(e) => setAtqTipoDano(e.target.value)}
+            <label htmlFor={`${idCampos}-tipo-dano`} className="u-sr-only">
+              Tipo de daño
+            </label>
+            <SelectorSugerencias
+              id={`${idCampos}-tipo-dano`}
+              valor={ataqueForm.tipoDano}
+              alCambiar={(v) => actualizarCampoAtaque("tipoDano", v)}
+              opciones={TIPOS_DAÑO_DND}
               placeholder="Tipo daño (ej. fuerza)"
-              className={estilos.inputDinamicoMediano}
+              className={estilos.selectorSugerenciasCompacto}
             />
             <label className={estilos.checkboxFila}>
               <input
                 type="checkbox"
-                checked={atqSumaNivel}
-                onChange={(e) => setAtqSumaNivel(e.target.checked)}
+                checked={ataqueForm.sumaNivelAlDano}
+                onChange={(e) => actualizarCampoAtaque("sumaNivelAlDano", e.target.checked)}
               />
               <span>+ Nivel conjuro al daño</span>
             </label>
             <label className={estilos.checkboxFila}>
               <input
                 type="checkbox"
-                checked={atqUsaConjuro}
-                onChange={(e) => setAtqUsaConjuro(e.target.checked)}
+                checked={ataqueForm.usaModificadorAtaqueConjuros}
+                onChange={(e) => actualizarCampoAtaque("usaModificadorAtaqueConjuros", e.target.checked)}
               />
               <span>Usa mod. ataque conjuros</span>
             </label>
             <BotonNumerico
-              ambito="form"
+              ambito="[data-editor-fila]"
               type="button"
-              onClick={manejarAgregarAtaque}
-              className={estilos.botonAgregarDinamico}
+              onClick={evento => {
+                if (confirmarAtaque() && ataqueEdicionIdx !== null) enfocarEditorFila(evento.currentTarget, ataqueEdicionIdx);
+              }}
+              disabled={!ataqueForm.nombre.trim() || !ataqueForm.dadosDanoBase.trim()}
+              className={`${estilos.botonAgregarDinamico} ${ataqueEdicionIdx !== null ? estilos.botonGuardarEdicion : ""}`}
+              title={ataqueEdicionIdx !== null ? "Guardar cambios del ataque" : "Agregar ataque"}
             >
-              <Plus size={14} /> Agregar
+              {ataqueEdicionIdx !== null ? (
+                <>
+                  <Check size={14} aria-hidden="true" /> Guardar
+                </>
+              ) : (
+                <>
+                  <Plus size={14} aria-hidden="true" /> Agregar
+                </>
+              )}
             </BotonNumerico>
+            {listaAtaques.hayBorrador && (
+              <button
+                type="button"
+                onClick={evento => {
+                  cancelarEdicionAtaque();
+                  enfocarEditorFila(evento.currentTarget, ataqueEdicionIdx);
+                }}
+                className={`${estilos.botonAgregarDinamico} ${estilos.botonCancelarEdicionMini}`}
+                title="Cancelar edición"
+                aria-label="Cancelar edición de ataque"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
           </div>
           <input
             type="text"
-            value={atqNotas}
-            onChange={(e) => setAtqNotas(e.target.value)}
+            value={ataqueForm.descripcionExtra ?? ""}
+            onChange={(e) => actualizarCampoAtaque("descripcionExtra", e.target.value)}
             placeholder="Descripción extra (ej. +1d6 de fuerza adicional)"
+            aria-label="Descripción extra del ataque"
             className={estilos.inputDinamicoLargo}
           />
         </div>
@@ -258,18 +183,39 @@ export const SeccionHabilidadesInvocacion: React.FC<SeccionHabilidadesInvocacion
           <div className={estilos.listaDinamicaVisual}>
             {invocacionForm.ataques.map((atq, idx) => (
               <div key={`atq_inv_${idx}`} className={estilos.itemDinamicoVisual}>
-                <span>
+                <div className={estilos.itemVisualCuerpo}>
                   <strong>{atq.nombre}</strong>: {atq.dadosDanoBase}
-                  {atq.modificadorDanoFijo ? `+${atq.modificadorDanoFijo}` : ""}
+                  {formatearModificadorFijo(atq.modificadorDanoFijo)}
                   {atq.sumaNivelAlDano ? "+Nv" : ""} ({atq.tipoDano}) | {atq.alcance}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => eliminarAtaque(idx)}
-                  className={estilos.botonEliminarDinamico}
-                >
-                  <Trash2 size={12} />
-                </button>
+                  {atq.descripcionExtra && (
+                    <div className={estilos.itemVisualDescripcion}>{atq.descripcionExtra}</div>
+                  )}
+                </div>
+                <div className="u-flex u-gap-xs">
+                  <button
+                    type="button"
+                    data-editar-fila={idx}
+                    disabled={listaAtaques.hayBorrador && ataqueEdicionIdx !== idx}
+                    onClick={evento => {
+                      if (ataqueEdicionIdx !== idx) iniciarEdicionAtaque(idx);
+                      enfocarEditorFila(evento.currentTarget);
+                    }}
+                    className={`${estilos.botonEliminarDinamico} ${estilos.botonEditarItemVisual}`}
+                    title={`Editar ${atq.nombre}`}
+                    aria-label={`Editar ${atq.nombre}`}
+                  >
+                    <Edit2 size={12} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => eliminarAtaque(idx)}
+                    className={estilos.botonEliminarDinamico}
+                    title={`Eliminar ${atq.nombre}`}
+                    aria-label={`Eliminar ${atq.nombre}`}
+                  >
+                    <Trash2 size={12} aria-hidden="true" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -278,23 +224,29 @@ export const SeccionHabilidadesInvocacion: React.FC<SeccionHabilidadesInvocacion
 
       <BloqueRasgosInvocacion
         titulo="RASGOS"
+        tituloEditando="EDITANDO RASGO"
         items={invocacionForm.rasgos}
-        alAgregar={(r) => agregarRasgoLista("rasgos", r)}
-        alEliminar={(idx) => eliminarRasgoLista("rasgos", idx)}
+        editor={listaRasgos}
+        textoBotonAgregar="Agregar a RASGOS"
+        textoBotonGuardar="Guardar cambios del rasgo"
       />
 
       <BloqueRasgosInvocacion
         titulo="ACCIONES ADICIONALES"
+        tituloEditando="EDITANDO ACCIÓN ADICIONAL"
         items={invocacionForm.accionesAdicionales}
-        alAgregar={(r) => agregarRasgoLista("accionesAdicionales", r)}
-        alEliminar={(idx) => eliminarRasgoLista("accionesAdicionales", idx)}
+        editor={listaAccionesAdicionales}
+        textoBotonAgregar="Agregar a ACCIONES ADICIONALES"
+        textoBotonGuardar="Guardar acción adicional"
       />
 
       <BloqueRasgosInvocacion
         titulo="REACCIONES"
+        tituloEditando="EDITANDO REACCIÓN"
         items={invocacionForm.reacciones}
-        alAgregar={(r) => agregarRasgoLista("reacciones", r)}
-        alEliminar={(idx) => eliminarRasgoLista("reacciones", idx)}
+        editor={listaReacciones}
+        textoBotonAgregar="Agregar a REACCIONES"
+        textoBotonGuardar="Guardar cambios de la reacción"
       />
     </div>
   );

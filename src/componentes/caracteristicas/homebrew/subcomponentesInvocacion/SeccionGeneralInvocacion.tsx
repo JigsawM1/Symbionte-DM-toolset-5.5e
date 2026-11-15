@@ -1,15 +1,15 @@
-import React, { useId, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import React, { useId } from "react";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import { SelectorSugerencias } from "@/componentes/comunes";
 import {
   SUGERENCIAS_TIPO_CRIATURA,
   TAMAÑOS_CRIATURA,
-  ALINEAMIENTOS_DND
+  ALINEAMIENTOS_DND,
+  CARACTERISTICAS_CLAVES
 } from "@/constantes/homebrewConstantes";
-import { parsearVelocidad } from "@/almacen/sanitizacion";
-import type { DatosFormularioInvocacion } from "@/hooks/usarFormularioInvocacion";
-import type { VelocidadEspecialInvocacion, VelocidadEstructurada } from "@/tipos";
+import type { DatosFormularioInvocacion, usarFormularioInvocacion } from "@/hooks/usarFormularioInvocacion";
+import { EditorVelocidadSentidos } from "../subcomponentes/EditorVelocidadSentidos";
+import { BloqueVelocidadesEspecialesInvocacion } from "./BloqueVelocidadesEspecialesInvocacion";
 import estilos from "../FormularioCriatura.module.css";
 
 interface SeccionGeneralInvocacionProps {
@@ -22,18 +22,8 @@ interface SeccionGeneralInvocacionProps {
     caract: keyof DatosFormularioInvocacion["caracteristicas"],
     valor: number
   ) => void;
-  agregarVelocidadEspecial: (vel: VelocidadEspecialInvocacion) => void;
-  eliminarVelocidadEspecial: (idx: number) => void;
+  listaVelocidades: ReturnType<typeof usarFormularioInvocacion>["listaVelocidades"];
 }
-
-const CARACTERISTICAS_LISTA: { clave: keyof DatosFormularioInvocacion["caracteristicas"]; etiqueta: string }[] = [
-  { clave: "fuerza", etiqueta: "FUE" },
-  { clave: "destreza", etiqueta: "DES" },
-  { clave: "constitucion", etiqueta: "CON" },
-  { clave: "inteligencia", etiqueta: "INT" },
-  { clave: "sabiduria", etiqueta: "SAB" },
-  { clave: "carisma", etiqueta: "CAR" }
-];
 
 /**
  * Pestaña General del formulario de invocaciones escalables para PJ.
@@ -42,26 +32,9 @@ export const SeccionGeneralInvocacion: React.FC<SeccionGeneralInvocacionProps> =
   invocacionForm,
   actualizarCampo,
   actualizarCaracteristica,
-  agregarVelocidadEspecial,
-  eliminarVelocidadEspecial
+  listaVelocidades
 }) => {
   const idCampos = useId();
-  const [velNivelMin, setVelNivelMin] = useState<number>(invocacionForm.nivelMinimo || 2);
-  const [velTexto, setVelTexto] = useState<string>("");
-
-  const velBaseObj: VelocidadEstructurada =
-    typeof invocacionForm.velocidadBase === "string"
-      ? parsearVelocidad(invocacionForm.velocidadBase)
-      : invocacionForm.velocidadBase;
-
-  const manejarAgregarVelEspecial = () => {
-    if (!velTexto.trim()) return;
-    agregarVelocidadEspecial({
-      nivelMinimo: Math.max(1, Math.min(9, velNivelMin)),
-      velocidadTexto: velTexto.trim()
-    });
-    setVelTexto("");
-  };
 
   return (
     <div className={estilos.seccionContenido}>
@@ -175,83 +148,17 @@ export const SeccionGeneralInvocacion: React.FC<SeccionGeneralInvocacionProps> =
         />
       </div>
 
-      <div className={estilos.filaDobleForm}>
-        <div className={estilos.campoForm}>
-          <label className={estilos.labelForm} htmlFor={`${idCampos}-caminar`}>Velocidad Base al Caminar (pies):</label>
-          <CampoNumerico
-            id={`${idCampos}-caminar`}
-            value={velBaseObj.caminar}
-            alConfirmar={(v) => actualizarCampo("velocidadBase", { ...velBaseObj, caminar: v })}
-            alVaciar={() => actualizarCampo("velocidadBase", { ...velBaseObj, caminar: 0 })}
-            min={0}
-            step={5}
-            tipo="entero"
-            className={estilos.inputForm}
-          />
-        </div>
-        <div className={estilos.campoForm}>
-          <label className={estilos.labelForm} htmlFor={`${idCampos}-sentidos`}>Sentidos:</label>
-          <input
-            id={`${idCampos}-sentidos`}
-            type="text"
-            value={invocacionForm.sentidos}
-            onChange={(e) => actualizarCampo("sentidos", e.target.value)}
-            placeholder="Ej. Visión en la oscuridad 60 pies, Percepción pasiva 10"
-            className={estilos.inputForm}
-          />
-        </div>
-      </div>
+      <EditorVelocidadSentidos
+        velocidad={invocacionForm.velocidadBase}
+        sentidos={invocacionForm.sentidos}
+        alCambiarVelocidad={(nueva) => actualizarCampo("velocidadBase", nueva)}
+        alCambiarSentidos={(nuevos) => actualizarCampo("sentidos", nuevos)}
+      />
 
-      <div className={estilos.bloqueDinamicoForm}>
-        <div className={estilos.tituloBloqueDinamico}>
-          VELOCIDADES ESPECIALES POR NIVEL ({invocacionForm.velocidadesEspeciales.length})
-        </div>
-        <div className={estilos.filaCamposAlineados}>
-          <CampoNumerico
-            value={velNivelMin}
-            alConfirmar={setVelNivelMin}
-            min={1}
-            max={9}
-            tipo="entero"
-            placeholder="Nv. mín."
-            className={estilos.inputDinamicoMini}
-          />
-          <input
-            type="text"
-            value={velTexto}
-            onChange={(e) => setVelTexto(e.target.value)}
-            placeholder="Ej. volar 40 pies (planea)"
-            className={estilos.inputDinamicoLargo}
-          />
-          <button
-            type="button"
-            onClick={manejarAgregarVelEspecial}
-            className={estilos.botonAgregarDinamico}
-            title="Agregar velocidad especial"
-          >
-            <Plus size={14} />
-          </button>
-        </div>
-
-        {invocacionForm.velocidadesEspeciales.length > 0 && (
-          <div className={estilos.listaDinamicaVisual}>
-            {invocacionForm.velocidadesEspeciales.map((v, idx) => (
-              <div key={`vel_esp_${idx}`} className={estilos.itemDinamicoVisual}>
-                <span>
-                  <strong>Nv. {v.nivelMinimo}+</strong>: {v.velocidadTexto}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => eliminarVelocidadEspecial(idx)}
-                  className={estilos.botonEliminarDinamico}
-                >
-                  <Trash2 size={12} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <BloqueVelocidadesEspecialesInvocacion
+        velocidadesEspeciales={invocacionForm.velocidadesEspeciales}
+        editor={listaVelocidades}
+      />
 
       <div className={estilos.campoForm}>
         <label className={estilos.labelForm} htmlFor={`${idCampos}-idiomas`}>Idiomas:</label>
@@ -265,24 +172,34 @@ export const SeccionGeneralInvocacion: React.FC<SeccionGeneralInvocacionProps> =
         />
       </div>
 
-      <div className={estilos.bloqueEstructurado}>
-        <label className={estilos.labelForm}>Características Base:</label>
-        <div className={estilos.gridCamposCompactos}>
-          {CARACTERISTICAS_LISTA.map((c) => (
-            <div key={c.clave} className={estilos.campoCompacto}>
-              <label className={estilos.labelCompacto} htmlFor={`${idCampos}-${c.clave}`}>{c.etiqueta}</label>
+      <div className={estilos.cabeceraMiniSeccion}>CARACTERÍSTICAS BASE</div>
+      <div className={estilos.filaSeisForm}>
+        {CARACTERISTICAS_CLAVES.map(({ clave, etiqueta }) => {
+          const claveCaract = clave as keyof DatosFormularioInvocacion["caracteristicas"];
+          const valorCaract = invocacionForm.caracteristicas[claveCaract] ?? 10;
+          const modificador = Math.floor((valorCaract - 10) / 2);
+
+          return (
+            <div key={clave} className={estilos.campoMiniForm}>
+              <label className={estilos.labelMiniForm} htmlFor={`${idCampos}-${clave}`}>
+                {etiqueta}
+              </label>
               <CampoNumerico
-                id={`${idCampos}-${c.clave}`}
-                value={invocacionForm.caracteristicas[c.clave]}
-                alConfirmar={(val) => actualizarCaracteristica(c.clave, val)}
+                id={`${idCampos}-${clave}`}
+                value={valorCaract}
+                alConfirmar={(val) => actualizarCaracteristica(claveCaract, val)}
                 min={1}
                 max={30}
                 tipo="entero"
-                className={estilos.inputForm}
+                className={estilos.inputMiniForm}
               />
+              <span className={estilos.modificadorPrevisualizado}>
+                {modificador >= 0 ? "+" : ""}
+                {modificador}
+              </span>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );

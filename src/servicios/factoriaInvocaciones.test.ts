@@ -211,5 +211,51 @@ describe("factoriaInvocaciones (DND 5.5e / PHB 2024)", () => {
       const encontrada = obtenerPlantillaInvocacionPorId("inv_homebrew_custom_1", [customInv]);
       expect(encontrada?.nombre).toBe("Gólem Arcano");
     });
+
+    it("formatea velocidadBase estructurada y conserva sentidos estructurados al proyectar", () => {
+      const customVel: PlantillaInvocacion = {
+        id: "inv_homebrew_vel_1",
+        nombre: "Halcón Etéreo",
+        conjuroAsociado: "Invocar Espíritu",
+        nivelMinimo: 2,
+        nivelMaximo: 9,
+        tipoCriatura: "Feérico",
+        tamano: "Pequeño",
+        alineacion: "Neutral",
+        subtiposDisponibles: [],
+        velocidadBase: { caminar: 20, volar: 50, planea: true },
+        velocidadesEspeciales: [{ nivelMinimo: 5, velocidadTexto: "20 pies, Volar 70 pies (suspenderse)" }],
+        sentidos: { visionOscuridad: 60, visionCiega: 10, percepcionPasiva: 13 },
+        idiomas: "Silvano",
+        caracteristicas: { fuerza: 10, destreza: 16, constitucion: 12, inteligencia: 10, sabiduria: 14, carisma: 10 },
+        formulaCA: { base: 11, sumaNivelConjuro: true, bonificadorAdicional: 0 },
+        formulaVida: { base: 20, porNivel: 10, porNivelPorEncimaDelMinimo: true },
+        formulaAtaquesPorAccion: "mitad_nivel_abajo",
+        ataques: [],
+        rasgos: [],
+        accionesAdicionales: [],
+        reacciones: [],
+        fuente: "Homebrew"
+      };
+
+      const nivelBajo = proyectarInvocacionAMonstruo(customVel, 3, contextoLanzadorPrueba);
+      expect(nivelBajo.velocidad).toBe("20 pies, Volar 50 pies (suspenderse)");
+      expect(nivelBajo.sentidos).toEqual({ visionOscuridad: 60, visionCiega: 10, percepcionPasiva: 13 });
+
+      const nivelAlto = proyectarInvocacionAMonstruo(customVel, 5, contextoLanzadorPrueba);
+      expect(nivelAlto.velocidad).toBe("20 pies, Volar 70 pies (suspenderse)");
+    });
+
+    it("usa el mayor umbral de velocidad elegible aunque se edite fuera de orden", () => {
+      const plantilla = {
+        ...CATALOGO_INVOCACIONES[0],
+        velocidadesEspeciales: [
+          { nivelMinimo: 7, velocidadTexto: "60 pies" },
+          { nivelMinimo: 5, velocidadTexto: "40 pies" }
+        ]
+      };
+      expect(proyectarInvocacionAMonstruo(plantilla, 6, contextoLanzadorPrueba).velocidad).toBe("40 pies");
+      expect(proyectarInvocacionAMonstruo(plantilla, 7, contextoLanzadorPrueba).velocidad).toBe("60 pies");
+    });
   });
 });

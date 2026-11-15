@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useId } from "react";
 import { Save } from "lucide-react";
 import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
+import { BotonNumerico } from "@/componentes/comunes/BotonNumerico";
 import { usarFormularioInvocacion } from "@/hooks/usarFormularioInvocacion";
 import estilos from "./FormularioCriatura.module.css";
 import { SeccionGeneralInvocacion } from "./subcomponentesInvocacion/SeccionGeneralInvocacion";
@@ -27,18 +28,19 @@ export const FormularioInvocacion: React.FC<FormularioInvocacionProps> = ({
   alGuardarExitoso,
   cancelarEdicion
 }) => {
+  const idAviso = useId();
   const {
     invocacionForm,
     subPestana,
     setSubPestana,
     actualizarCampo,
     actualizarCaracteristica,
-    agregarVelocidadEspecial,
-    eliminarVelocidadEspecial,
-    agregarAtaque,
-    eliminarAtaque,
-    agregarRasgoLista,
-    eliminarRasgoLista,
+    hayBorradores,
+    listaVelocidades,
+    listaAtaques,
+    listaRasgos,
+    listaAccionesAdicionales,
+    listaReacciones,
     manejarGuardarInvocacion
   } = usarFormularioInvocacion(idEnEdicion, alGuardarExitoso);
 
@@ -51,19 +53,28 @@ export const FormularioInvocacion: React.FC<FormularioInvocacionProps> = ({
       onSubmit={manejarGuardarInvocacion}
       onMouseDown={detenerPropagacion}
       onMouseUp={detenerPropagacion}
+      onKeyDown={evento => {
+        if (
+          evento.key === "Enter" &&
+          !evento.nativeEvent.isComposing &&
+          evento.target instanceof HTMLInputElement &&
+          evento.target.closest("[data-editor-fila]")
+        ) evento.preventDefault();
+      }}
       className={estilos.formularioBrutal}
     >
       <nav className={estilos.subPestanasCriatura} aria-label="Secciones de invocación">
         {PESTANAS_INVOCACION.map((p) => (
-          <button
+          <BotonNumerico
             key={p.id}
+            ambito="form"
             type="button"
             onClick={() => setSubPestana(p.id)}
             aria-pressed={subPestana === p.id}
             className={estilos.subPestanaCriaturaBoton}
           >
             {p.etiqueta}
-          </button>
+          </BotonNumerico>
         ))}
       </nav>
 
@@ -73,8 +84,7 @@ export const FormularioInvocacion: React.FC<FormularioInvocacionProps> = ({
             invocacionForm={invocacionForm}
             actualizarCampo={actualizarCampo}
             actualizarCaracteristica={actualizarCaracteristica}
-            agregarVelocidadEspecial={agregarVelocidadEspecial}
-            eliminarVelocidadEspecial={eliminarVelocidadEspecial}
+            listaVelocidades={listaVelocidades}
           />
         )}
 
@@ -88,16 +98,19 @@ export const FormularioInvocacion: React.FC<FormularioInvocacionProps> = ({
         {subPestana === "habilidades" && (
           <SeccionHabilidadesInvocacion
             invocacionForm={invocacionForm}
-            agregarAtaque={agregarAtaque}
-            eliminarAtaque={eliminarAtaque}
-            agregarRasgoLista={agregarRasgoLista}
-            eliminarRasgoLista={eliminarRasgoLista}
+            listaAtaques={listaAtaques}
+            listaRasgos={listaRasgos}
+            listaAccionesAdicionales={listaAccionesAdicionales}
+            listaReacciones={listaReacciones}
           />
         )}
 
       </div>
 
       <div className={estilos.pieFormulario}>
+        <div id={idAviso} role="status" className={hayBorradores ? estilos.avisoBorrador : "u-sr-only"}>
+          {hayBorradores && "Confirma o cancela las filas pendientes antes de guardar la invocación."}
+        </div>
         {idEnEdicion && (
           <button
             type="button"
@@ -110,7 +123,8 @@ export const FormularioInvocacion: React.FC<FormularioInvocacionProps> = ({
         <button
           type="submit"
           className={estilos.botonStickyGuardar}
-          disabled={!invocacionForm.nombre.trim() || !invocacionForm.conjuroAsociado.trim()}
+          disabled={hayBorradores || !invocacionForm.nombre.trim() || !invocacionForm.conjuroAsociado.trim()}
+          aria-describedby={hayBorradores ? idAviso : undefined}
         >
           <Save size={15} aria-hidden="true" />
           {idEnEdicion ? "Guardar cambios" : "Guardar en compendio"}

@@ -15,6 +15,7 @@ import type {
   RasgoInvocacion
 } from "@/tipos/invocaciones";
 import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
+import { formatearVelocidad } from "@/almacen/sanitizacion";
 import type { PersonajeJugador, Caracteristica } from "@/tipos";
 import { resolverAtributoConjuroClase } from "@/constantes";
 import catalogoInvocacionesJson from "@/datos/invocaciones/invocaciones.2024-es.json";
@@ -164,13 +165,15 @@ export function proyectarInvocacionAMonstruo(
   const numAtaques = calcularAtaquesPorAccionInvocacion(plantilla, nivelConjuro);
 
   // Resolver velocidad (incluyendo posibles velocidades especiales por nivel)
-  let velocidadFinal = typeof plantilla.velocidadBase === "string"
-    ? plantilla.velocidadBase
+  let velocidadFinal = plantilla.velocidadBase
+    ? formatearVelocidad(plantilla.velocidadBase)
     : "30 pies";
 
+  let nivelVelocidad = -Infinity;
   for (const esp of plantilla.velocidadesEspeciales) {
-    if (nivelConjuro >= esp.nivelMinimo) {
+    if (esp.nivelMinimo <= nivelConjuro && esp.nivelMinimo >= nivelVelocidad) {
       velocidadFinal = esp.velocidadTexto;
+      nivelVelocidad = esp.nivelMinimo;
     }
   }
 

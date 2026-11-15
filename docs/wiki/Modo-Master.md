@@ -49,11 +49,13 @@ La configuración del slice evita guardar un encuentro vacío o sin nombre.
 
 ## Compendio y homebrew
 
-`Compendio.tsx` combina listados de hechizos y homebrew. `CreadorHomebrew.tsx` ofrece formularios separados para criaturas, hechizos y objetos.
+`Compendio.tsx` combina listados de hechizos y homebrew. `CreadorHomebrew.tsx` ofrece formularios separados para criaturas, hechizos, objetos e invocaciones PJ.
 
-`sliceHomebrew.ts` mantiene las tres bases de datos y permite crear, editar, eliminar y usar objetos como plantilla. Los formularios pasan por las funciones de saneamiento antes de entrar en el estado.
+`sliceHomebrew.ts` mantiene los catálogos editables y permite usar objetos como plantilla. Los formularios pasan por las funciones de saneamiento antes de entrar en el estado.
 
 Los formularios de criatura y hechizo utilizan los tipos de `src/tipos`; los esquemas Zod validan la forma de los datos importados y editados.
+
+En **Homebrew → Invocaciones PJ**, confirma o cancela cada velocidad especial, ataque, rasgo, acción adicional o reacción que estés editando antes de guardar la ficha. Puedes cambiar entre General, Escalado y Ataques y rasgos mientras editas una fila. Si una plantilla antigua guarda la velocidad o los sentidos como texto, el formulario ofrece un campo de texto para conservar sus condiciones y notas. Durante el escalado se aplica la velocidad especial con el mayor nivel mínimo que alcance el conjuro.
 
 ## Tablas, pendientes y notas
 

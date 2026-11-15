@@ -1,5 +1,26 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-15] Correcciones de la auditoría de invocaciones Homebrew
+
+- Velocidad y sentidos mantienen su representación al abrir, editar y guardar una ficha. El editor compartido admite tanto texto heredado como valores estructurados y evita conversiones que borren notas o condiciones.
+- El editor de filas conserva el borrador al cambiar de sección y normaliza solo la fila confirmada. El guardado principal espera hasta que se resuelvan los borradores. La navegación confirma los números visibles y Enter en un campo de fila no envía la ficha completa. El foco va al primer campo al editar y vuelve al botón de la fila al confirmar o cancelar.
+- La proyección selecciona la velocidad especial con mayor umbral elegible y mantiene la última fila cuando hay empate. La guía de uso está en `docs/wiki/Modo-Master.md`.
+- `pnpm run ci` pasó TypeScript, ESLint, 2785 pruebas, cinco escenarios Sync, el control de líneas y la compilación. Chromium a 433 y 599 px en modo director y a 433 px en modo jugador verificó texto heredado tras recargar, borradores, Enter, foco y guardado. Graphify actualizó el índice y los informes mediante `uv tool run --offline`. Queda pendiente la comprobación en CEF/TaleSpire real.
+
+## [2026-11-15] Paridad UX/técnica en FormularioInvocacion y corrección de proyección de velocidad
+
+- **Contexto**:
+  - Se replicaron en `FormularioInvocacion` y su ecosistema las mejoras introducidas en `FormularioCriatura`: controles estructurados de velocidad y sentidos (`EditorVelocidadSentidos`), edición *in-place* en listas dinámicas (`usarListaDinamica` y cancelación explícita), selector de tipo de daño (`SelectorSugerencias` con `TIPOS_DAÑO_DND`), previsualización de modificadores en características base (`CARACTERISTICAS_CLAVES`) y autoajuste vertical de `textarea` (`calcularFilasTextarea` extraído a `src/utiles/formatoTextoDND.ts`).
+- **Decisiones Arquitectónicas y Correcciones**:
+  - **Sentidos estructurados en plantilla**: `EsquemaPlantillaInvocacion.sentidos` en `src/tipos/invocaciones.ts` acepta ahora `z.union([z.string(), EsquemaSentidos])` manteniendo compatibilidad retroactiva con cadenas previas y evitando pérdida de estructura al guardar/importar JSON.
+  - **Bug en proyección de combate**: `proyectarInvocacionAMonstruo` en `src/servicios/factoriaInvocaciones.ts` descartaba objetos `VelocidadEstructurada` devolviendo `"30 pies"`; se corrigió usando `formatearVelocidad(plantilla.velocidadBase)`.
+  - **Formato de modificadores negativos**: En `SeccionHabilidadesInvocacion.tsx`, los ataques escalables con `modificadorDanoFijo < 0` evitaban mostrar `+-1` formateando correctamente el signo (ej. `2d6-1+Nv`).
+  - **Modularización bajo límite CI (≤300 líneas recomendado / ≤500 límite)**: Al crecer `SeccionGeneralInvocacion.tsx` y `SeccionHabilidadesInvocacion.tsx`, se extrajeron los subcomponentes SRP `BloqueVelocidadesEspecialesInvocacion.tsx` y `BloqueRasgosInvocacion.tsx`, manteniendo todos los archivos nuevos y modificados de invocaciones por debajo de 300 líneas.
+  - **Lección operativa (Graphify y Chromium)**: En este entorno Windows, `graphify.exe` falló por trampoline de `uv` desincronizado y MSYS2 Python interceptando la detección automática; `uv tool run --offline --python "C:\Users\zamor\AppData\Local\Python\pythoncore-3.14-64\python.exe" --from graphifyy graphify update .` actualiza el grafo offline sin LLM (3981 nodos, 16244 aristas, 128 comunidades). En pruebas Puppeteer de formularios con `CampoNumerico` o cambios de rol en vista previa, usar `Control+KeyA` + `Backspace` en lugar de `clickCount: 3` y forzar remontaje con `key` al reiniciar el estado externo.
+- **Validación**:
+  - `pnpm run ci` (`tsc --noEmit`, `eslint src --max-warnings=0`, `vitest run`, `vitest --config scripts/vitest.simulacion.config.ts`, `verificar:lineas`, `vite build`) y pruebas de factoría/importación/SSR (`SeccionesInvocacion.test.tsx`).
+  - Verificación real en Chromium (433 px DM/Jugador y 599 px DM) comprobando flujo completo de guardado y cero desborde horizontal; queda pendiente validación nativa manual dentro de CEF/TaleSpire.
+
 ## [2026-11-15] Integración de la Rama no-se-que-era-esto en main: Invocaciones Homebrew y Refactorización
 
 - **Contexto**:

@@ -1,7 +1,7 @@
 import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
-import React, { useEffect } from "react";
+import React from "react";
+import { Save } from "lucide-react";
 import { usarFormularioCriatura } from "@/hooks/usarFormularioCriatura";
-import { usarEstadoHomebrew } from "@/almacen/selectores";
 import { SeccionGeneral } from "./subcomponentes/SeccionGeneral";
 import { SeccionAtributos } from "./subcomponentes/SeccionAtributos";
 import { SeccionHabilidades } from "./subcomponentes/SeccionHabilidades";
@@ -15,13 +15,19 @@ interface Props {
   cancelarEdicion: () => void;
 }
 
+const seccionesCriatura = [
+  { id: "general", etiqueta: "General" },
+  { id: "atributos", etiqueta: "Atributos" },
+  { id: "pericias", etiqueta: "Habilidades" },
+  { id: "defensas", etiqueta: "Defensas" },
+  { id: "listas", etiqueta: "Rasgos y ataques" }
+] as const;
+
 export const FormularioCriatura: React.FC<Props> = ({
   idEnEdicion,
   alGuardarExitoso,
   cancelarEdicion
 }) => {
-  const { baseDatosMonstruos } = usarEstadoHomebrew();
-
   const {
     monstruoForm,
     subPestanaCriatura,
@@ -29,98 +35,27 @@ export const FormularioCriatura: React.FC<Props> = ({
     subDefensas,
     setSubDefensas,
 
-    // Quick Actions
-    tQNombre, setTQNombre,
-    tQBono, setTQBono,
-    tQDados, setTQDados,
-    tQTipo, setTQTipo,
+    listaRasgos,
+    listaAcciones,
+    listaAccionesAdicionales,
+    listaReacciones,
+    listaLegendarias,
+    listaQuickActions,
     danyosExtraQA,
     agregarDanoExtraQA,
     actualizarDanoExtraQA,
     eliminarDanoExtraQA,
-    quickActionEdicionIdx,
     agregarQuickAction,
     iniciarEditarQuickAction,
     cancelarEditarQuickAction,
-    eliminarQuickActionIdx,
     preRellenarAtaqueRapido,
-
-    // Rasgos
-    tRasgoNombre, setTRasgoNombre,
-    tRasgoDesc, setTRasgoDesc,
-    tRasgoUso, setTRasgoUso,
-    rasgoEdicionIdx,
-    agregarRasgo,
-    iniciarEditarRasgo,
-    cancelarEditarRasgo,
-    eliminarRasgoIdx,
-
-    // Acciones
-    tAccionNombre, setTAccionNombre,
-    tAccionDesc, setTAccionDesc,
-    tAccionBono, setTAccionBono,
-    tAccionDaño, setTAccionDaño,
-    tAccionUso, setTAccionUso,
-    accionEdicionIdx,
-    agregarAccion,
-    iniciarEditarAccion,
-    cancelarEditarAccion,
-    eliminarAccionIdx,
-
-    // Acciones Adicionales
-    tAccionAdicionalNombre, setTAccionAdicionalNombre,
-    tAccionAdicionalDesc, setTAccionAdicionalDesc,
-    tAccionAdicionalBono, setTAccionAdicionalBono,
-    tAccionAdicionalDaño, setTAccionAdicionalDaño,
-    tAccionAdicionalUso, setTAccionAdicionalUso,
-    accionAdicionalEdicionIdx,
-    agregarAccionAdicional,
-    iniciarEditarAccionAdicional,
-    cancelarEditarAccionAdicional,
-    eliminarAccionAdicionalIdx,
-
-    // Reacciones
-    tReaccionNombre, setTReaccionNombre,
-    tReaccionDesc, setTReaccionDesc,
-    tReaccionUso, setTReaccionUso,
-    reaccionEdicionIdx,
-    agregarReaccion,
-    iniciarEditarReaccion,
-    cancelarEditarReaccion,
-    eliminarReaccionIdx,
-
-    // Legendarias
-    tLegendariaNombre, setTLegendariaNombre,
-    tLegendariaDesc, setTLegendariaDesc,
-    tLegendariaUso, setTLegendariaUso,
-    legendariaEdicionIdx,
-    agregarLegendaria,
-    iniciarEditarLegendaria,
-    cancelarEditarLegendaria,
-    eliminarLegendariaIdx,
-
     actualizarGeneral,
     actualizarCaracteristica,
     actualizarSalvacion,
     actualizarHabilidad,
     alternarCheckArray,
-    cargarCriatura,
-    limpiarFormulario,
     manejarGuardarCriatura
   } = usarFormularioCriatura(idEnEdicion, alGuardarExitoso);
-
-  // Sincronizar edición con la base de datos si cambia idEnEdicion
-  useEffect(() => {
-    if (idEnEdicion) {
-      const criatura = baseDatosMonstruos.find((c) => c.id === idEnEdicion);
-      if (criatura) {
-        cargarCriatura(criatura);
-      }
-    } else {
-      limpiarFormulario();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idEnEdicion]);
 
   // Detener clics accidentales al lienzo 3D de TaleSpire
   const detenerPropagacion = (e: React.MouseEvent) => {
@@ -128,160 +63,83 @@ export const FormularioCriatura: React.FC<Props> = ({
   };
 
   return (
-    <FormularioNumerico key={idEnEdicion ?? "nuevo"}
+    <FormularioNumerico
       onSubmit={manejarGuardarCriatura}
       className={estilos.formularioBrutal}
       onMouseDown={detenerPropagacion}
       onMouseUp={detenerPropagacion}
     >
-      {/* Pestañas internas del creador de Criaturas */}
-      <div className={estilos.subPestanasCriatura}>
-        <button
-          type="button"
-          onClick={() => setSubPestanaCriatura("general")}
-          className={`${estilos.subPestanaCriaturaBoton} ${subPestanaCriatura === "general" ? estilos.subPestanaCriaturaBotonActiva : ""}`}
-        >
-          General
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubPestanaCriatura("atributos")}
-          className={`${estilos.subPestanaCriaturaBoton} ${subPestanaCriatura === "atributos" ? estilos.subPestanaCriaturaBotonActiva : ""}`}
-        >
-          Atribs/Salv
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubPestanaCriatura("pericias")}
-          className={`${estilos.subPestanaCriaturaBoton} ${subPestanaCriatura === "pericias" ? estilos.subPestanaCriaturaBotonActiva : ""}`}
-        >
-          Habilidades
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubPestanaCriatura("defensas")}
-          className={`${estilos.subPestanaCriaturaBoton} ${subPestanaCriatura === "defensas" ? estilos.subPestanaCriaturaBotonActiva : ""}`}
-        >
-          Defensas
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubPestanaCriatura("listas")}
-          className={`${estilos.subPestanaCriaturaBoton} ${subPestanaCriatura === "listas" ? estilos.subPestanaCriaturaBotonActiva : ""}`}
-        >
-          Listas/Ataques
-        </button>
+      <nav className={estilos.subPestanasCriatura} aria-label="Secciones de criatura">
+        {seccionesCriatura.map(({ id, etiqueta }) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={subPestanaCriatura === id}
+            onClick={() => setSubPestanaCriatura(id)}
+            className={estilos.subPestanaCriaturaBoton}
+          >
+            {etiqueta}
+          </button>
+        ))}
+      </nav>
+
+      <div key={subPestanaCriatura} className={`${estilos.cuerpoFormulario} u-scroll-cef`}>
+        {subPestanaCriatura === "general" && (
+          <SeccionGeneral
+            monstruoForm={monstruoForm}
+            actualizarGeneral={actualizarGeneral}
+          />
+        )}
+
+        {subPestanaCriatura === "atributos" && (
+          <SeccionAtributos
+            monstruoForm={monstruoForm}
+            actualizarCaracteristica={actualizarCaracteristica}
+            actualizarSalvacion={actualizarSalvacion}
+          />
+        )}
+
+        {subPestanaCriatura === "pericias" && (
+          <SeccionHabilidades
+            monstruoForm={monstruoForm}
+            actualizarHabilidad={actualizarHabilidad}
+          />
+        )}
+
+        {subPestanaCriatura === "defensas" && (
+          <SeccionDefensas
+            monstruoForm={monstruoForm}
+            subDefensas={subDefensas}
+            setSubDefensas={setSubDefensas}
+            alternarCheckArray={alternarCheckArray}
+          />
+        )}
+
+        {subPestanaCriatura === "listas" && (
+          <SeccionListasAtaques
+            monstruoForm={monstruoForm}
+            actualizarGeneral={actualizarGeneral}
+
+            listaRasgos={listaRasgos}
+            listaAcciones={listaAcciones}
+            listaAccionesAdicionales={listaAccionesAdicionales}
+            listaReacciones={listaReacciones}
+            listaLegendarias={listaLegendarias}
+            listaQuickActions={listaQuickActions}
+            danyosExtraQA={danyosExtraQA}
+            agregarDanoExtraQA={agregarDanoExtraQA}
+            actualizarDanoExtraQA={actualizarDanoExtraQA}
+            eliminarDanoExtraQA={eliminarDanoExtraQA}
+            agregarQuickAction={agregarQuickAction}
+            iniciarEditarQuickAction={iniciarEditarQuickAction}
+            cancelarEditarQuickAction={cancelarEditarQuickAction}
+            preRellenarAtaqueRapido={preRellenarAtaqueRapido}
+          />
+        )}
+
       </div>
 
-      {/* Renderizado de Secciones Modulares Scoped */}
-      {subPestanaCriatura === "general" && (
-        <SeccionGeneral
-          monstruoForm={monstruoForm}
-          actualizarGeneral={actualizarGeneral}
-        />
-      )}
-
-      {subPestanaCriatura === "atributos" && (
-        <SeccionAtributos
-          monstruoForm={monstruoForm}
-          actualizarCaracteristica={actualizarCaracteristica}
-          actualizarSalvacion={actualizarSalvacion}
-        />
-      )}
-
-      {subPestanaCriatura === "pericias" && (
-        <SeccionHabilidades
-          monstruoForm={monstruoForm}
-          actualizarHabilidad={actualizarHabilidad}
-        />
-      )}
-
-      {subPestanaCriatura === "defensas" && (
-        <SeccionDefensas
-          monstruoForm={monstruoForm}
-          subDefensas={subDefensas}
-          setSubDefensas={setSubDefensas}
-          alternarCheckArray={alternarCheckArray}
-        />
-      )}
-
-      {subPestanaCriatura === "listas" && (
-        <SeccionListasAtaques
-          monstruoForm={monstruoForm}
-          actualizarGeneral={actualizarGeneral}
-
-          tQNombre={tQNombre} setTQNombre={setTQNombre}
-          tQBono={tQBono} setTQBono={setTQBono}
-          tQDados={tQDados} setTQDados={setTQDados}
-          tQTipo={tQTipo} setTQTipo={setTQTipo}
-          danyosExtraQA={danyosExtraQA}
-          agregarDanoExtraQA={agregarDanoExtraQA}
-          actualizarDanoExtraQA={actualizarDanoExtraQA}
-          eliminarDanoExtraQA={eliminarDanoExtraQA}
-          quickActionEdicionIdx={quickActionEdicionIdx}
-          agregarQuickAction={agregarQuickAction}
-          iniciarEditarQuickAction={iniciarEditarQuickAction}
-          cancelarEditarQuickAction={cancelarEditarQuickAction}
-          eliminarQuickActionIdx={eliminarQuickActionIdx}
-          preRellenarAtaqueRapido={preRellenarAtaqueRapido}
-
-          tRasgoNombre={tRasgoNombre} setTRasgoNombre={setTRasgoNombre}
-          tRasgoDesc={tRasgoDesc} setTRasgoDesc={setTRasgoDesc}
-          tRasgoUso={tRasgoUso} setTRasgoUso={setTRasgoUso}
-          rasgoEdicionIdx={rasgoEdicionIdx}
-          agregarRasgo={agregarRasgo}
-          iniciarEditarRasgo={iniciarEditarRasgo}
-          cancelarEditarRasgo={cancelarEditarRasgo}
-          eliminarRasgoIdx={eliminarRasgoIdx}
-
-          tAccionNombre={tAccionNombre} setTAccionNombre={setTAccionNombre}
-          tAccionDesc={tAccionDesc} setTAccionDesc={setTAccionDesc}
-          tAccionBono={tAccionBono} setTAccionBono={setTAccionBono}
-          tAccionDaño={tAccionDaño} setTAccionDaño={setTAccionDaño}
-          tAccionUso={tAccionUso} setTAccionUso={setTAccionUso}
-          accionEdicionIdx={accionEdicionIdx}
-          agregarAccion={agregarAccion}
-          iniciarEditarAccion={iniciarEditarAccion}
-          cancelarEditarAccion={cancelarEditarAccion}
-          eliminarAccionIdx={eliminarAccionIdx}
-
-          tAccionAdicionalNombre={tAccionAdicionalNombre} setTAccionAdicionalNombre={setTAccionAdicionalNombre}
-          tAccionAdicionalDesc={tAccionAdicionalDesc} setTAccionAdicionalDesc={setTAccionAdicionalDesc}
-          tAccionAdicionalBono={tAccionAdicionalBono} setTAccionAdicionalBono={setTAccionAdicionalBono}
-          tAccionAdicionalDaño={tAccionAdicionalDaño} setTAccionAdicionalDaño={setTAccionAdicionalDaño}
-          tAccionAdicionalUso={tAccionAdicionalUso} setTAccionAdicionalUso={setTAccionAdicionalUso}
-          accionAdicionalEdicionIdx={accionAdicionalEdicionIdx}
-          agregarAccionAdicional={agregarAccionAdicional}
-          iniciarEditarAccionAdicional={iniciarEditarAccionAdicional}
-          cancelarEditarAccionAdicional={cancelarEditarAccionAdicional}
-          eliminarAccionAdicionalIdx={eliminarAccionAdicionalIdx}
-
-          tReaccionNombre={tReaccionNombre} setTReaccionNombre={setTReaccionNombre}
-          tReaccionDesc={tReaccionDesc} setTReaccionDesc={setTReaccionDesc}
-          tReaccionUso={tReaccionUso} setTReaccionUso={setTReaccionUso}
-          reaccionEdicionIdx={reaccionEdicionIdx}
-          agregarReaccion={agregarReaccion}
-          iniciarEditarReaccion={iniciarEditarReaccion}
-          cancelarEditarReaccion={cancelarEditarReaccion}
-          eliminarReaccionIdx={eliminarReaccionIdx}
-
-          tLegendariaNombre={tLegendariaNombre} setTLegendariaNombre={setTLegendariaNombre}
-          tLegendariaDesc={tLegendariaDesc} setTLegendariaDesc={setTLegendariaDesc}
-          tLegendariaUso={tLegendariaUso} setTLegendariaUso={setTLegendariaUso}
-          legendariaEdicionIdx={legendariaEdicionIdx}
-          agregarLegendaria={agregarLegendaria}
-          iniciarEditarLegendaria={iniciarEditarLegendaria}
-          cancelarEditarLegendaria={cancelarEditarLegendaria}
-          eliminarLegendariaIdx={eliminarLegendariaIdx}
-        />
-      )}
-
-      {/* STICKY BOTTOM BAR (Barra de Acción Flotante Consistente) */}
-      <div
-        className={estilos.stickyBottomBar}
-        onMouseDown={detenerPropagacion}
-        onMouseUp={detenerPropagacion}
-      >
+      <div className={estilos.pieFormulario}>
         {idEnEdicion && (
           <button
             type="button"
@@ -296,7 +154,8 @@ export const FormularioCriatura: React.FC<Props> = ({
           className={estilos.botonStickyGuardar}
           disabled={!monstruoForm.nombre?.trim()}
         >
-          {idEnEdicion ? "Guardar Cambios" : "Guardar en Compendio"}
+          <Save size={15} aria-hidden="true" />
+          {idEnEdicion ? "Guardar cambios" : "Guardar en compendio"}
         </button>
       </div>
     </FormularioNumerico>

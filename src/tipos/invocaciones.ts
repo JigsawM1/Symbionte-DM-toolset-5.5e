@@ -94,7 +94,8 @@ export const EsquemaPlantillaInvocacion = z.object({
   rasgos: z.array(EsquemaRasgoInvocacion).default([]),
   accionesAdicionales: z.array(EsquemaRasgoInvocacion).default([]),
   reacciones: z.array(EsquemaRasgoInvocacion).default([]),
-  fuente: z.string().default("Player's Handbook 2024")
+  fuente: z.string().default("Player's Handbook 2024"),
+  nombreNormalizado: z.string().optional()
 });
 export type PlantillaInvocacion = z.infer<typeof EsquemaPlantillaInvocacion>;
 

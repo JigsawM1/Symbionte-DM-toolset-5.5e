@@ -1,0 +1,158 @@
+.panelLista {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 10px;
+  color: var(--homebrew-texto);
+}
+
+.buscador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--homebrew-panel);
+  border: 1px solid var(--homebrew-borde);
+  border-radius: var(--homebrew-radio);
+  color: var(--homebrew-acento);
+}
+
+.buscador:focus-within {
+  border-color: var(--homebrew-acento);
+}
+
+.buscador input {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  padding: 4px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--homebrew-texto);
+  font: inherit;
+}
+
+.lista {
+  --fondo-scroll-cef: var(--homebrew-fondo);
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 1px 2px 4px;
+  padding-bottom: var(--homebrew-espacio-dados, 4px);
+  list-style: none;
+}
+
+.tarjeta {
+  overflow-wrap: anywhere;
+  border: 1px solid var(--homebrew-borde);
+  border-left: 3px solid var(--homebrew-acento);
+  border-radius: 8px;
+  background: var(--homebrew-panel);
+}
+
+.cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.identidad h2,
+.identidad p {
+  margin: 0;
+}
+
+.identidad h2 {
+  font-family: var(--fuente-titulo);
+  font-size: 17px;
+}
+
+.identidad p {
+  margin-top: 3px;
+  color: var(--homebrew-secundario);
+  font-size: 12.5px;
+}
+
+.acciones {
+  display: flex;
+  gap: 5px;
+}
+
+.acciones button,
+.estadoVacio button {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 4px 7px;
+  border: 1px solid var(--homebrew-borde);
+  border-radius: var(--homebrew-radio);
+  background: var(--homebrew-tarjeta);
+  color: var(--homebrew-acento);
+  font: inherit;
+  cursor: pointer;
+}
+
+.acciones .eliminar {
+  color: var(--pj-texto-alerta, var(--dm-texto-peligro, var(--color-peligro)));
+}
+
+.acciones button:hover,
+.estadoVacio button:hover {
+  border-color: currentColor;
+}
+
+.metricas {
+  display: grid;
+  grid-template-columns: 1.45fr repeat(3, 1fr);
+  margin: 0;
+  border-top: 1px solid var(--homebrew-borde);
+  background: var(--homebrew-tarjeta);
+  border-radius: 0 0 7px 5px;
+}
+
+.metricas > div {
+  padding: 7px 9px;
+}
+
+.metricas > div + div {
+  border-left: 1px solid var(--homebrew-borde);
+}
+
+.metricas dt {
+  color: var(--homebrew-secundario);
+  font-size: 12.5px;
+}
+
+.metricas dd {
+  margin: 2px 0 0;
+  font-family: var(--fuente-codigo);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.estadoVacio {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 12px;
+  border: 1px dashed var(--homebrew-borde);
+  border-radius: 8px;
+  background: var(--homebrew-panel);
+  text-align: center;
+}
+
+.estadoVacio svg {
+  color: var(--homebrew-acento);
+}
+
+.estadoVacio span {
+  color: var(--homebrew-secundario);
+  font-size: 12.5px;
+}

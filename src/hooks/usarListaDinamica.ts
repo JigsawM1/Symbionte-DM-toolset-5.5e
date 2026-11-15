@@ -12,7 +12,7 @@ export function usarListaDinamica<T extends ItemConNombre>(
   const [itemForm, setItemForm] = useState<T>(valoresIniciales);
   const [edicionIdx, setEdicionIdx] = useState<number | null>(null);
 
-  const actualizarCampoItem = useCallback((campo: keyof T, valor: unknown) => {
+  const actualizarCampoItem = useCallback(<K extends keyof T>(campo: K, valor: T[K]) => {
     setItemForm((prev) => ({ ...prev, [campo]: valor }));
   }, []);
 

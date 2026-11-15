@@ -1,7 +1,16 @@
 import { StateCreator } from 'zustand';
-import { MonstruoBase, HechizoBase, ObjetoHomebrew } from '@/tipos';
-import { MONSTRUOS_INICIALES, HECHIZOS_INICIALES, OBJETOS_INICIALES } from '@/utiles/datosIniciales';
-import { sanearMonstruoSentidosYPasiva, sanearHechizoCD, sanearObjetoHomebrew } from '@/almacen/sanitizacion';
+import { MonstruoBase, HechizoBase, ObjetoHomebrew, PlantillaInvocacion } from '@/tipos';
+import {
+  MONSTRUOS_INICIALES,
+  HECHIZOS_INICIALES,
+  OBJETOS_INICIALES
+} from '@/utiles/datosIniciales';
+import {
+  sanearMonstruoSentidosYPasiva,
+  sanearHechizoCD,
+  sanearObjetoHomebrew,
+  sanearPlantillaInvocacion
+} from '@/almacen/sanitizacion';
 import { generarId } from '@/utiles/generarId';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
 
@@ -9,17 +18,21 @@ export interface SliceHomebrew {
   baseDatosMonstruos: MonstruoBase[];
   baseDatosHechizos: HechizoBase[];
   objetosHomebrew: ObjetoHomebrew[];
+  baseDatosInvocaciones: PlantillaInvocacion[];
   objetoPlantillaSeleccionado: ObjetoHomebrew | null;
 
   agregarMonstruoHomebrew: (monstruo: Omit<MonstruoBase, "id">) => void;
   agregarHechizoHomebrew: (hechizo: Omit<HechizoBase, "id">) => void;
   agregarObjetoHomebrew: (objeto: Omit<ObjetoHomebrew, "id">) => void;
+  agregarInvocacionHomebrew: (invocacion: Omit<PlantillaInvocacion, "id">) => void;
   actualizarMonstruoHomebrew: (id: string, monstruo: Omit<MonstruoBase, "id" | "vidaActual">) => void;
   actualizarHechizoHomebrew: (id: string, hechizo: Omit<HechizoBase, "id">) => void;
   actualizarObjetoHomebrew: (id: string, objeto: Omit<ObjetoHomebrew, "id">) => void;
+  actualizarInvocacionHomebrew: (id: string, invocacion: Omit<PlantillaInvocacion, "id">) => void;
   eliminarMonstruoHomebrew: (id: string) => void;
   eliminarHechizoHomebrew: (id: string) => void;
   eliminarObjetoHomebrew: (id: string) => void;
+  eliminarInvocacionHomebrew: (id: string) => void;
   usarObjetoComoPlantilla: (objeto: ObjetoHomebrew) => void;
   limpiarObjetoPlantilla: () => void;
 }
@@ -33,6 +46,7 @@ export const crearSliceHomebrew: StateCreator<
   baseDatosMonstruos: MONSTRUOS_INICIALES.map(sanearMonstruoSentidosYPasiva),
   baseDatosHechizos: HECHIZOS_INICIALES.map(sanearHechizoCD),
   objetosHomebrew: OBJETOS_INICIALES.map(sanearObjetoHomebrew),
+  baseDatosInvocaciones: [],
   objetoPlantillaSeleccionado: null,
 
   usarObjetoComoPlantilla: (objeto) => set({
@@ -107,6 +121,26 @@ export const crearSliceHomebrew: StateCreator<
   eliminarObjetoHomebrew: (id) => set((state) => {
     const nuevosObjetos = state.objetosHomebrew.filter((o) => o.id !== id);
     return { objetosHomebrew: nuevosObjetos };
+  }),
+
+  agregarInvocacionHomebrew: (invocacion) => set((state) => {
+    const nuevaInvocacion = sanearPlantillaInvocacion({
+      ...invocacion,
+      id: generarId('inv_homebrew')
+    });
+    return { baseDatosInvocaciones: [...state.baseDatosInvocaciones, nuevaInvocacion] };
+  }),
+
+  actualizarInvocacionHomebrew: (id, invocacion) => set((state) => {
+    const nuevasInvocaciones = state.baseDatosInvocaciones.map((inv) =>
+      inv.id === id ? sanearPlantillaInvocacion({ ...inv, ...invocacion, id }) : inv
+    );
+    return { baseDatosInvocaciones: nuevasInvocaciones };
+  }),
+
+  eliminarInvocacionHomebrew: (id) => set((state) => {
+    const nuevasInvocaciones = state.baseDatosInvocaciones.filter((inv) => inv.id !== id);
+    return { baseDatosInvocaciones: nuevasInvocaciones };
   })
 });
 

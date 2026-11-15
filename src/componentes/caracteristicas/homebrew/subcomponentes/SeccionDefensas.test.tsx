@@ -22,10 +22,10 @@ describe("SeccionDefensas", () => {
         />
       );
 
-      expect(html).toContain("Inm. Daño (1)");
-      expect(html).toContain("Res. Daño (1)");
-      expect(html).toContain("Vuln. Daño (2)");
-      expect(html).toContain("Inm. Condic (2)");
+      expect(html).toContain("Inmunidades (1)");
+      expect(html).toContain("Resistencias (1)");
+      expect(html).toContain("Vulnerabilidades (2)");
+      expect(html).toContain("Condiciones (2)");
     });
 
     it("maneja monstruoForm con arrays indefinidos mostrando contador 0", () => {
@@ -38,13 +38,13 @@ describe("SeccionDefensas", () => {
         />
       );
 
-      expect(html).toContain("Inm. Daño (0)");
-      expect(html).toContain("Res. Daño (0)");
-      expect(html).toContain("Vuln. Daño (0)");
-      expect(html).toContain("Inm. Condic (0)");
+      expect(html).toContain("Inmunidades (0)");
+      expect(html).toContain("Resistencias (0)");
+      expect(html).toContain("Vulnerabilidades (0)");
+      expect(html).toContain("Condiciones (0)");
     });
 
-    it("renderiza la pestaña activa con la clase CSS correspondiente", () => {
+    it("marca la pestaña activa para lectores de pantalla", () => {
       const htmlInmunidades = renderToStaticMarkup(
         <SeccionDefensas
           monstruoForm={monstruoFormMock}
@@ -53,7 +53,7 @@ describe("SeccionDefensas", () => {
           alternarCheckArray={vi.fn()}
         />
       );
-      expect(htmlInmunidades).toMatch(/subDefBotonActivo[^>]*>Inm. Daño/);
+      expect(htmlInmunidades).toMatch(/aria-pressed="true"[^>]*>Inmunidades/);
 
       const htmlResistencias = renderToStaticMarkup(
         <SeccionDefensas
@@ -63,7 +63,7 @@ describe("SeccionDefensas", () => {
           alternarCheckArray={vi.fn()}
         />
       );
-      expect(htmlResistencias).toMatch(/subDefBotonActivo[^>]*>Res. Daño/);
+      expect(htmlResistencias).toMatch(/aria-pressed="true"[^>]*>Resistencias/);
     });
 
     it("renderiza correctamente las opciones de inmunidades de daño cuando subDefensas es 'inmunidades'", () => {
@@ -165,11 +165,11 @@ describe("SeccionDefensas", () => {
 
   describe("Interacciones de Checkboxes (alternarCheckArray)", () => {
     it.each([
-      ["inmunidades", "inmunidadesDaño", 0, TIPOS_DAÑO_DND],
-      ["resistencias", "resistencias", 1, TIPOS_DAÑO_DND],
-      ["vulnerabilidades", "vulnerabilidades", 2, TIPOS_DAÑO_DND],
-      ["condiciones", "inmunidadesCondicion", 3, CONDICIONES_DND]
-    ] as const)("alterna %s en el campo %s", (pestana, campo, indice, opciones) => {
+      ["inmunidades", "inmunidadesDaño", TIPOS_DAÑO_DND],
+      ["resistencias", "resistencias", TIPOS_DAÑO_DND],
+      ["vulnerabilidades", "vulnerabilidades", TIPOS_DAÑO_DND],
+      ["condiciones", "inmunidadesCondicion", CONDICIONES_DND]
+    ] as const)("alterna %s en el campo %s", (pestana, campo, opciones) => {
       const alternarCheckArray = vi.fn();
       const tree = SeccionDefensas({
         monstruoForm: monstruoFormMock,
@@ -178,7 +178,7 @@ describe("SeccionDefensas", () => {
         alternarCheckArray
       }) as JSX.Element;
 
-      const gridChecks = tree.props.children[1].props.children[indice];
+      const gridChecks = tree.props.children[1].props.children;
       gridChecks.props.children[0].props.children[0].props.onChange();
 
       expect(alternarCheckArray).toHaveBeenCalledTimes(1);

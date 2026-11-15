@@ -8,7 +8,7 @@
 
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
-import type { PersonajeJugador, AcompanantePersonaje } from "@/tipos";
+import type { PersonajeJugador, AcompanantePersonaje, PlantillaInvocacion } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import {
@@ -16,12 +16,10 @@ import {
   calcularVidaInicial,
 } from "./resolutorCriaturas";
 import {
-  esIdInvocacionEscalable,
   obtenerPlantillaInvocacionPorId,
   proyectarInvocacionAMonstruo,
   extraerContextoLanzador
 } from "./factoriaInvocaciones";
-import type { MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { IndiceMonstruos } from "./indiceMonstruos";
 import { seguirIniciativaFisica, type ReferenciaIniciativaFisica } from './seguimientoIniciativaFisica';
 
@@ -42,6 +40,7 @@ export interface OpcionesSincronizacion {
   indiceTurnoActivo: number;
   rondaActual: number;
   personajes?: PersonajeJugador[];
+  baseDatosInvocaciones?: PlantillaInvocacion[];
   idsMiniaturasJugadores?: Set<string> | string[];
 }
 
@@ -79,6 +78,7 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     indiceTurnoActivo,
     rondaActual,
     personajes = [],
+    baseDatosInvocaciones,
     idsMiniaturasJugadores
   } = opciones;
 
@@ -190,22 +190,15 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
     }
 
     if (acompAsociado && pjDuenioAcomp) {
-      let plantillaProyectada: MonstruoBase | undefined = undefined;
-
-      if (acompAsociado.idPlantilla && esIdInvocacionEscalable(acompAsociado.idPlantilla)) {
-        const plantillaInvocacion = obtenerPlantillaInvocacionPorId(acompAsociado.idPlantilla);
-        if (plantillaInvocacion) {
-          const contextoLanzador = extraerContextoLanzador(pjDuenioAcomp);
-          plantillaProyectada = proyectarInvocacionAMonstruo(
+      const plantillaInvocacion = obtenerPlantillaInvocacionPorId(acompAsociado.idPlantilla, baseDatosInvocaciones);
+      const plantillaProyectada = plantillaInvocacion
+        ? proyectarInvocacionAMonstruo(
             plantillaInvocacion,
-            acompAsociado.nivelConjuroInvocacion || 2,
-            contextoLanzador,
+            acompAsociado.nivelConjuroInvocacion ?? plantillaInvocacion.nivelMinimo,
+            extraerContextoLanzador(pjDuenioAcomp),
             acompAsociado.subtipoInvocacion
-          );
-        }
-      } else if (acompAsociado.idPlantilla) {
-        plantillaProyectada = indiceMonstruos.porId.get(acompAsociado.idPlantilla);
-      }
+          )
+        : indiceMonstruos.porId.get(acompAsociado.idPlantilla);
 
       const bonificadorIniciativa = plantillaProyectada?.iniciativaBonificador ?? 0;
       const caFinal = acompAsociado.ca || plantillaProyectada?.ca || 10;

@@ -7,8 +7,6 @@ import type {
   PlantillaInvocacion
 } from "@/tipos";
 import {
-  CATALOGO_INVOCACIONES,
-  esIdInvocacionEscalable,
   obtenerPlantillaInvocacionPorId,
   proyectarInvocacionAMonstruo,
   extraerContextoLanzador
@@ -18,6 +16,7 @@ import {
   usarEstadoIniciativa,
   usarAccionesPersonajes
 } from "@/almacen/selectores";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ModalEstadisticasAcompanante } from "./ModalEstadisticasAcompanante";
 import { normalizarTexto } from "@/almacen/sanitizacion";
 import { coincideBusquedaTolerante } from "@/utiles/busquedaTolerante";
@@ -36,6 +35,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
   personaje
 }) => {
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
+  const baseDatosInvocaciones = usarAlmacenDM(s => s.baseDatosInvocaciones);
   const { criaturasSeleccionadas } = usarEstadoIniciativa();
   const {
     agregarAcompanantePersonaje,
@@ -60,12 +60,12 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
     [personaje]
   );
 
-  // Filtrado reactivo unificado del compendio: Invocaciones PHB 2024 + Monstruos
+  // Busca invocaciones homebrew y monstruos del compendio.
   const resultadosFiltrados = useMemo(() => {
     const qNorm = normalizarTexto(busqueda);
     if (!qNorm) return [];
 
-    const invocaciones = CATALOGO_INVOCACIONES.filter((inv) =>
+    const invocaciones = baseDatosInvocaciones.filter((inv) =>
       coincideBusquedaTolerante([inv.nombre, inv.tipoCriatura, inv.conjuroAsociado], qNorm)
     ).map((inv) => ({
       esInvocacion: true as const,
@@ -97,7 +97,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
     }
 
     return [...invocaciones, ...monstruos].slice(0, 10);
-  }, [baseDatosMonstruos, busqueda]);
+  }, [baseDatosMonstruos, baseDatosInvocaciones, busqueda]);
 
   // Manejar adición de un nuevo acompañante a partir de una plantilla tradicional
   const manejarAgregarAcompanante = useCallback(
@@ -363,21 +363,19 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
 
   const plantillaEnDetalle = useMemo(() => {
     if (!acompananteEnDetalle) return null;
-    if (esIdInvocacionEscalable(acompananteEnDetalle.idPlantilla)) {
-      const inv = obtenerPlantillaInvocacionPorId(acompananteEnDetalle.idPlantilla);
-      if (inv) {
-        return proyectarInvocacionAMonstruo(
-          inv,
-          acompananteEnDetalle.nivelConjuroInvocacion || inv.nivelMinimo,
-          contextoLanzador,
-          acompananteEnDetalle.subtipoInvocacion
-        );
-      }
+    const inv = obtenerPlantillaInvocacionPorId(acompananteEnDetalle.idPlantilla, baseDatosInvocaciones);
+    if (inv) {
+      return proyectarInvocacionAMonstruo(
+        inv,
+        acompananteEnDetalle.nivelConjuroInvocacion || inv.nivelMinimo,
+        contextoLanzador,
+        acompananteEnDetalle.subtipoInvocacion
+      );
     }
     return (
       baseDatosMonstruos.find((m) => m.id === acompananteEnDetalle.idPlantilla) || null
     );
-  }, [acompananteEnDetalle, baseDatosMonstruos, contextoLanzador]);
+  }, [acompananteEnDetalle, baseDatosMonstruos, baseDatosInvocaciones, contextoLanzador]);
 
   return (
     <div className={estilos.contenedorAcompanantes}>
@@ -406,9 +404,7 @@ export const SeccionAcompanantesPersonaje: React.FC<SeccionAcompanantesPersonaje
       ) : (
         <div className={estilos.listaAcompanantes}>
           {acompanantes.map((acomp) => {
-            const plantillaInvocacion = esIdInvocacionEscalable(acomp.idPlantilla)
-              ? obtenerPlantillaInvocacionPorId(acomp.idPlantilla) || null
-              : null;
+            const plantillaInvocacion = obtenerPlantillaInvocacionPorId(acomp.idPlantilla, baseDatosInvocaciones);
 
             const plantilla = plantillaInvocacion
               ? proyectarInvocacionAMonstruo(

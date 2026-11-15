@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { CriaturaIniciativa, HechizoBase } from "@/almacen/usarAlmacenDM";
+import { usarAlmacenDM, type CriaturaIniciativa, type HechizoBase } from "@/almacen/usarAlmacenDM";
 import {
   usarEstadoIniciativa,
   usarAccionesIniciativa,
@@ -10,7 +10,6 @@ import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura
 import { esCriaturaHorda, obtenerResumenHorda } from "@/servicios/combateHordas";
 import type { PasivasCombatePJ } from "@/tipos/sync";
 import {
-  esIdInvocacionEscalable,
   obtenerPlantillaInvocacionPorId,
   proyectarInvocacionAMonstruo,
   extraerContextoLanzador
@@ -140,6 +139,7 @@ export const GestorIniciativa: React.FC = () => {
     alternarRolCriatura,
   } = usarAccionesIniciativa();
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
+  const baseDatosInvocaciones = usarAlmacenDM(s => s.baseDatosInvocaciones);
   const { tipoTirada } = usarEstadoConfiguracion();
 
   const indiceMonstruos = usarIndiceMonstruos();
@@ -177,8 +177,8 @@ export const GestorIniciativa: React.FC = () => {
   // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas o la Factoría de Invocaciones
   const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
     // 1. Si está asociada a una invocación escalable
-    if (criatura.idPlantillaAsociada && esIdInvocacionEscalable(criatura.idPlantillaAsociada)) {
-      const plantillaInv = obtenerPlantillaInvocacionPorId(criatura.idPlantillaAsociada);
+    if (criatura.idPlantillaAsociada) {
+      const plantillaInv = obtenerPlantillaInvocacionPorId(criatura.idPlantillaAsociada, baseDatosInvocaciones);
       if (plantillaInv) {
         const pjDuenio = personajes.find(
           (p) =>

@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { importarDesdeJSON } from "./importadorJSON";
+import { construirBlobPersistencia } from "./persistencia";
+import { prepararCargaPersistida } from "./cargaPersistida";
+import { CATALOGO_INVOCACIONES } from "@/servicios/factoriaInvocaciones";
 import {
   IDS_INICIALES_MONSTRUOS,
   IDS_INICIALES_HECHIZOS,
@@ -145,5 +148,76 @@ describe("Filtrado y Exportación/Importación de Homebrew", () => {
     expect(resultado.baseDatosHechizos[0].nombre).toBe("Chispa Errática");
     expect(resultado.objetosHomebrew).toHaveLength(1);
     expect(resultado.objetosHomebrew[0].nombre).toBe("Báculo de Cenizas");
+  });
+
+  it("debe importar invocaciones PJ homebrew desde JSON", () => {
+    const jsonInvocacion = {
+      invocaciones: [
+        {
+          id: "inv_homebrew_espectro",
+          nombre: "Espectro del Crepúsculo",
+          conjuroAsociado: "Invocar Sombra",
+          nivelMinimo: 3,
+          nivelMaximo: 9,
+          tipoCriatura: "No Muerto",
+          tamano: "Mediano",
+          alineacion: "Neutral",
+          subtiposDisponibles: ["Furia"],
+          velocidadBase: "30 pies",
+          velocidadesEspeciales: [],
+          sentidos: "Visión en la oscuridad 120 pies, Percepción pasiva 11",
+          idiomas: "Entiende los idiomas que tú hablas",
+          caracteristicas: { fuerza: 13, destreza: 16, constitucion: 15, inteligencia: 6, sabiduria: 10, carisma: 16 },
+          formulaCA: { base: 11, sumaNivelConjuro: true, bonificadorAdicional: 0 },
+          formulaVida: { base: 35, porNivel: 15, porNivelPorEncimaDelMinimo: true },
+          formulaAtaquesPorAccion: "mitad_nivel_abajo",
+          ataques: [
+            {
+              nombre: "Toque Gélido",
+              tipo: "cuerpo_a_cuerpo",
+              usaModificadorAtaqueConjuros: true,
+              alcance: "5 pies",
+              dadosDanoBase: "1d12",
+              modificadorDanoFijo: 3,
+              sumaNivelAlDano: true,
+              tipoDano: "frío"
+            }
+          ],
+          rasgos: [],
+          accionesAdicionales: [],
+          reacciones: [],
+          fuente: "Homebrew"
+        }
+      ]
+    };
+
+    const resultado = importarDesdeJSON(jsonInvocacion, {
+      baseDatosMonstruos: [],
+      baseDatosHechizos: [],
+      objetosHomebrew: [],
+      baseDatosInvocaciones: []
+    });
+
+    expect(resultado.modificado).toBe(true);
+    expect(resultado.baseDatosInvocaciones).toHaveLength(1);
+    expect(resultado.baseDatosInvocaciones[0].nombre).toBe("Espectro del Crepúsculo");
+    expect(resultado.baseDatosInvocaciones[0].nombreNormalizado).toBe("espectro del crepusculo");
+  });
+
+  it("conserva invocaciones homónimas y reemplaza las versiones del mismo ID al importar y recargar", () => {
+    const primera = { ...CATALOGO_INVOCACIONES[0], id: "inv_homebrew_a", nombre: "Espíritu" };
+    const segunda = { ...primera, id: "inv_homebrew_b" };
+    const actualizada = { ...primera, formulaCA: { ...primera.formulaCA, base: 17 } };
+    const { baseDatosInvocaciones } = importarDesdeJSON(
+      { invocaciones: [segunda, primera, actualizada] },
+      { baseDatosMonstruos: [], baseDatosHechizos: [], objetosHomebrew: [], baseDatosInvocaciones: [primera] }
+    );
+
+    const blob = construirBlobPersistencia({ baseDatosInvocaciones });
+    const recargadas = prepararCargaPersistida(blob).baseDatosInvocaciones;
+    expect(baseDatosInvocaciones.map(inv => inv.id)).toEqual([primera.id, segunda.id]);
+    expect(recargadas).toEqual(baseDatosInvocaciones);
+    expect(recargadas?.[0].formulaCA.base).toBe(17);
+    expect(prepararCargaPersistida({ invocaciones_homebrew: [] }).baseDatosInvocaciones).toEqual([]);
   });
 });

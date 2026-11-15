@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { sanearObjetoHomebrew, formatearSubtituloCriatura, sanearMonstruoSentidosYPasiva, formatearRecargaTexto } from "./sanitizacion";
-import type { Arma, Armadura } from "@/tipos";
+import {
+  sanearObjetoHomebrew,
+  formatearSubtituloCriatura,
+  sanearMonstruoSentidosYPasiva,
+  formatearRecargaTexto,
+  parsearVelocidad,
+  parsearSentidos
+} from "./sanitizacion";
+import type { Arma, Armadura, MonstruoBase } from "@/tipos";
 
 describe("sanearObjetoHomebrew", () => {
   it("debe sanear un objeto básico con valores por defecto si recibe un input inválido", () => {
@@ -305,5 +312,44 @@ describe("formatearSubtituloCriatura y sanearMonstruoSentidosYPasiva", () => {
     expect(formatearRecargaTexto(undefined, "1/Día")).toBe("1/Día");
     expect(formatearRecargaTexto("", "3/día")).toBe("3/día");
     expect(formatearRecargaTexto("", "")).toBe("");
+  });
+
+  it("debe parsear velocidades y sentidos aunque omitan 'pies' o usen 'ft'", () => {
+    const vel = parsearVelocidad("40, volar 60 ft (planea), nadar 30 pies");
+    expect(vel.caminar).toBe(40);
+    expect(vel.volar).toBe(60);
+    expect(vel.planea).toBe(true);
+    expect(vel.nadar).toBe(30);
+
+    const sentidos = parsearSentidos("visión en la oscuridad 90 ft, visión ciega 10, Percepción pasiva 15");
+    expect(sentidos.visionOscuridad).toBe(90);
+    expect(sentidos.visionCiega).toBe(10);
+    expect(sentidos.percepcionPasiva).toBe(15);
+  });
+
+  it("debe preservar uso y recarga independientes sin mezclarlos", () => {
+    const entrada = {
+      id: "m_test_uso_recarga",
+      nombre: "Dragón de Prueba",
+      tipo: "Dragón",
+      ca: 18,
+      vidaMaxima: 100,
+      vidaActual: 100,
+      velocidad: { caminar: 40, planea: false },
+      caracteristicas: { fuerza: 20, destreza: 10, constitucion: 18, inteligencia: 14, sabiduria: 12, carisma: 16 },
+      rasgos: [{ nombre: "Resistencia Legendaria", descripcion: "Supera una salvación.", uso: "3/día" }],
+      acciones: [{ nombre: "Aliento", descripcion: "Cono de fuego.", recarga: "5-6" }],
+      accionesRapidas: [{ nombre: "Mordisco", bonificadorAtaque: "+7", dadosDaño: "2d10", tipoDaño: "perforante", uso: "1/turno" }],
+      accionesAdicionales: [],
+      reacciones: []
+    };
+    const monstruo = sanearMonstruoSentidosYPasiva(entrada as unknown as MonstruoBase);
+
+    expect(monstruo.rasgos?.[0].uso).toBe("3/día");
+    expect(monstruo.rasgos?.[0].recarga).toBe("");
+    expect(monstruo.acciones[0].recarga).toBe("5-6");
+    expect(monstruo.acciones[0].uso).toBe("");
+    expect(monstruo.accionesRapidas?.[0].uso).toBe("1/turno");
+    expect(monstruo.accionesRapidas?.[0].recarga).toBe("");
   });
 });

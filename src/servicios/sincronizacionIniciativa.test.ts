@@ -3,8 +3,10 @@ import { filtrarEfectosExpirados, sincronizarConEstadoLocal } from "./sincroniza
 import { crearIndiceMonstruos } from "./indiceMonstruos";
 import { usarAlmacenDM, type CriaturaIniciativa, type MonstruoBase } from "@/almacen/usarAlmacenDM";
 import type { ColaIniciativaTS, ItemIniciativaTS } from "@/tipos/talespire";
-import type { PersonajeJugador } from "@/tipos";
+import { EsquemaAcompanantePersonaje, type PersonajeJugador } from "@/tipos";
 import { aplicarResultadoIniciativaEnEstado } from "@/utiles/lanzadorDados";
+import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
+import { CATALOGO_INVOCACIONES } from "./factoriaInvocaciones";
 
 describe("sincronizacionIniciativa - filtrarEfectosExpirados", () => {
   it("debe retornar la criatura idéntica si no tiene efectos", () => {
@@ -326,6 +328,48 @@ describe("sincronizacionIniciativa - sincronizarConEstadoLocal", () => {
     expect(resultado.colaIniciativa[2].iniciativa).toBe(0);
     expect(resultado.indiceTurnoActivo).toBe(2);
   });
+});
+
+it("proyecta el bonificador de una invocación homebrew desde la cola física", () => {
+  const anterior = usarAlmacenDM.getState();
+  const plantillaBase = CATALOGO_INVOCACIONES[0];
+  const plantilla = {
+    ...plantillaBase,
+    id: "inv_homebrew_prueba_cola",
+    caracteristicas: { ...plantillaBase.caracteristicas, destreza: 18 }
+  };
+  const acompanante = EsquemaAcompanantePersonaje.parse({
+    id: "acomp-prueba",
+    nombre: "Invocación de prueba",
+    idMiniaturaTS: "mini-prueba",
+    idPlantilla: plantilla.id,
+    vidaActual: 10,
+    vidaMaxima: 10,
+    ca: 10
+  });
+  const personaje = {
+    ...PERSONAJE_POR_DEFECTO,
+    id: "pj-prueba",
+    acompanantes: [acompanante]
+  };
+
+  try {
+    usarAlmacenDM.setState({
+      esGM: true,
+      personajes: [personaje],
+      baseDatosInvocaciones: [plantilla],
+      colaIniciativa: [],
+      rondaActual: 1,
+      indiceTurnoActivo: 0
+    });
+    usarAlmacenDM.getState().actualizarColaIniciativaDesdeTaleSpire({
+      items: [{ id: "mini-prueba", name: acompanante.nombre, kind: "creature" }],
+      activeItemIndex: 0
+    });
+    expect(usarAlmacenDM.getState().colaIniciativa[0]?.bonificadorIniciativa).toBe(4);
+  } finally {
+    usarAlmacenDM.setState(anterior);
+  }
 });
 
 describe("Gestión de Iniciativa sin Auto-ordenación Numérica (Almacén y Tiradas)", () => {

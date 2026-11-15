@@ -1,11 +1,18 @@
+import { useId } from "react";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React from "react";
 import { Shield, Heart } from "lucide-react";
 import estilos from "../FormularioCriatura.module.css";
 import { VelocidadEstructurada, SentidosEstructurados } from "@/tipos";
-import { formatearVelocidad, formatearSentidos } from "@/almacen/sanitizacion";
-import { Criatura_Tipos, TAMAÑOS_CRIATURA, ALINEAMIENTOS_DND } from "@/constantes/homebrewConstantes";
-import { SelectorSugerencias, SelectorDesplegable } from "@/componentes/comunes";
+import { parsearVelocidad, parsearSentidos } from "@/almacen/sanitizacion";
+import {
+  SUGERENCIAS_TIPO_CRIATURA,
+  TAMAÑOS_CRIATURA,
+  ALINEAMIENTOS_DND,
+  SUGERENCIAS_CR_CRIATURA
+} from "@/constantes/homebrewConstantes";
+import { SelectorSugerencias } from "@/componentes/comunes";
+import { EditorVelocidadSentidos } from "./EditorVelocidadSentidos";
 
 interface SeccionGeneralProps {
   monstruoForm: {
@@ -33,12 +40,14 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
   monstruoForm,
   actualizarGeneral
 }) => {
+  const idCampos = useId();
   return (
     <div className={estilos.seccionContenido}>
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Nombre del Monstruo:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-nombre`}>Nombre del Monstruo:</label>
           <input
+            id={`${idCampos}-nombre`}
             type="text"
             value={monstruoForm.nombre}
             onChange={(e) => actualizarGeneral("nombre", e.target.value)}
@@ -48,20 +57,22 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Tipo de Criatura:</label>
-          <SelectorDesplegable
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-tipo`}>Tipo de Criatura:</label>
+          <SelectorSugerencias
+            id={`${idCampos}-tipo`}
             valor={monstruoForm.tipo}
             alCambiar={(val) => actualizarGeneral("tipo", val)}
-            opciones={Criatura_Tipos}
-            placeholder="Seleccionar tipo..."
+            opciones={SUGERENCIAS_TIPO_CRIATURA}
+            placeholder="Ej. Humanoide, Aberración..."
           />
         </div>
       </div>
 
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Tamaño:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-tamano`}>Tamaño:</label>
           <SelectorSugerencias
+            id={`${idCampos}-tamano`}
             valor={monstruoForm.tamaño || ""}
             alCambiar={(val) => actualizarGeneral("tamaño", val)}
             opciones={TAMAÑOS_CRIATURA}
@@ -69,25 +80,24 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Alineamiento / Alineación:</label>
-          <SelectorDesplegable
-            valor={monstruoForm.alineacion || "-"}
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-alineamiento`}>Alineamiento / Alineación:</label>
+          <SelectorSugerencias
+            id={`${idCampos}-alineamiento`}
+            valor={monstruoForm.alineacion || ""}
             alCambiar={(val) => actualizarGeneral("alineacion", val)}
-            opciones={ALINEAMIENTOS_DND.map((al) => ({
-              valor: al,
-              etiqueta: al === "-" ? "Sin alineamiento (-)" : al
-            }))}
-            placeholder="Seleccionar alineamiento..."
+            opciones={ALINEAMIENTOS_DND}
+            placeholder="Ej. Caótico Malvado, Sin alineamiento..."
           />
         </div>
       </div>
 
       <div className={estilos.filaTripleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>
-            <Shield size={12} /> CA:
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-ca`}>
+            <Shield size={12} aria-hidden="true" /> CA
           </label>
           <CampoNumerico
+            id={`${idCampos}-ca`}
             value={monstruoForm.ca}
             alConfirmar={(valor) => actualizarGeneral("ca", valor)}
             className={estilos.inputForm}
@@ -96,8 +106,9 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Notas CA:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-notas-ca`}>Notas CA:</label>
           <input
+            id={`${idCampos}-notas-ca`}
             type="text"
             value={monstruoForm.caNotas || ""}
             onChange={(e) => actualizarGeneral("caNotas", e.target.value)}
@@ -106,10 +117,11 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>
-            <Heart size={12} /> HP Máx:
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-pg`}>
+            <Heart size={12} aria-hidden="true" /> PG máximos
           </label>
           <CampoNumerico
+            id={`${idCampos}-pg`}
             value={monstruoForm.vidaMaxima}
             alConfirmar={(valor) => actualizarGeneral("vidaMaxima", valor)}
             className={estilos.inputForm}
@@ -121,8 +133,9 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
 
       <div className={estilos.filaTripleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Notas Vida:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-notas-vida`}>Notas Vida:</label>
           <input
+            id={`${idCampos}-notas-vida`}
             type="text"
             value={monstruoForm.vidaNotas || ""}
             onChange={(e) => actualizarGeneral("vidaNotas", e.target.value)}
@@ -131,37 +144,31 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Bonif. Inic:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-iniciativa`}>Bonif. Inic:</label>
           <CampoNumerico
+            id={`${idCampos}-iniciativa`}
             value={monstruoForm.iniciativaBonificador || 0}
             alConfirmar={(valor) => actualizarGeneral("iniciativaBonificador", valor)}
             className={estilos.inputForm}
 
           />
         </div>
-        <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Velocidad:</label>
-          <input
-            type="text"
-            value={formatearVelocidad(monstruoForm.velocidad)}
-            onChange={(e) => actualizarGeneral("velocidad", e.target.value)}
-            placeholder="ej. 30 pies, volar 60"
-            className={estilos.inputForm}
-          />
-        </div>
       </div>
-
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Desafío (CR):</label>
-          <CampoNumerico value={monstruoForm.desafio || ""}
-            alConfirmar={(valor) => actualizarGeneral("desafio", ({ 0.125: "1/8", 0.25: "1/4", 0.5: "1/2" } as Record<number, string>)[valor] ?? String(valor))}
-            placeholder="Ej. 5 o 1/2"
-            className={estilos.inputForm} min={0} tipo="decimal" alVaciar={() => actualizarGeneral("desafio", "")} />
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-desafio`}>Desafío (CR):</label>
+          <SelectorSugerencias
+            id={`${idCampos}-desafio`}
+            valor={monstruoForm.desafio || ""}
+            alCambiar={(val) => actualizarGeneral("desafio", val)}
+            opciones={SUGERENCIAS_CR_CRIATURA}
+            placeholder="Ej. 5, 1/2, —"
+          />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Fuente:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-fuente`}>Fuente:</label>
           <input
+            id={`${idCampos}-fuente`}
             type="text"
             value={monstruoForm.fuente || ""}
             onChange={(e) => actualizarGeneral("fuente", e.target.value)}
@@ -171,20 +178,25 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
         </div>
       </div>
 
-      <div className={estilos.campoForm}>
-        <label className={estilos.labelForm}>Sentidos:</label>
-        <input
-          type="text"
-          value={formatearSentidos(monstruoForm.sentidos)}
-          onChange={(e) => actualizarGeneral("sentidos", e.target.value)}
-          placeholder="Ej. visión en la oscuridad 60 pies, Percepción pasiva 12"
-          className={estilos.inputForm}
-        />
-      </div>
+      <EditorVelocidadSentidos
+        velocidad={
+          typeof monstruoForm.velocidad === "string"
+            ? parsearVelocidad(monstruoForm.velocidad)
+            : (monstruoForm.velocidad || { caminar: 30, planea: false })
+        }
+        sentidos={
+          typeof monstruoForm.sentidos === "string"
+            ? parsearSentidos(monstruoForm.sentidos)
+            : (monstruoForm.sentidos || { percepcionPasiva: 10 })
+        }
+        alCambiarVelocidad={(nueva) => actualizarGeneral("velocidad", nueva)}
+        alCambiarSentidos={(nuevos) => actualizarGeneral("sentidos", nuevos)}
+      />
 
       <div className={estilos.campoForm}>
-        <label className={estilos.labelForm}>Idiomas:</label>
+        <label className={estilos.labelForm} htmlFor={`${idCampos}-idiomas`}>Idiomas:</label>
         <input
+          id={`${idCampos}-idiomas`}
           type="text"
           value={monstruoForm.idiomas || ""}
           onChange={(e) => actualizarGeneral("idiomas", e.target.value)}
@@ -195,8 +207,9 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
 
       <div className={estilos.filaDobleForm}>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Equipo:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-equipo`}>Equipo:</label>
           <input
+            id={`${idCampos}-equipo`}
             type="text"
             value={monstruoForm.equipo || ""}
             onChange={(e) => actualizarGeneral("equipo", e.target.value)}
@@ -205,8 +218,9 @@ export const SeccionGeneral: React.FC<SeccionGeneralProps> = ({
           />
         </div>
         <div className={estilos.campoForm}>
-          <label className={estilos.labelForm}>Tesoros:</label>
+          <label className={estilos.labelForm} htmlFor={`${idCampos}-tesoros`}>Tesoros:</label>
           <input
+            id={`${idCampos}-tesoros`}
             type="text"
             value={monstruoForm.tesoros || ""}
             onChange={(e) => actualizarGeneral("tesoros", e.target.value)}

@@ -1,43 +1,55 @@
 .formularioBrutal {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-bottom: 90px; /* Espacio para que la Sticky Bottom Bar no tape el contenido al hacer scroll */
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
 }
 
 .subPestanasCriatura {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
-  gap: 5px;
-  border-bottom: 2px solid var(--color-borde-brutal);
-  padding-bottom: 8px;
-  margin-bottom: 8px;
+  gap: 4px;
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
 }
 
 .subPestanaCriaturaBoton {
-  background-color: var(--color-fondo-tarjeta);
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  font-size: var(--dm-fuente-minima, 11.5px);
-  font-weight: 600;
-  padding: 5px 11px;
+  min-height: 32px;
+  padding: 5px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--homebrew-radio, 4px);
+  background: transparent;
+  color: var(--homebrew-secundario, var(--color-texto-secundario));
+  font-size: 12.5px;
+  font-weight: 650;
   cursor: pointer;
-  text-transform: uppercase;
-  border-radius: var(--dm-radio-control, 4px);
-  letter-spacing: 0.04em;
 }
 
 .subPestanaCriaturaBoton:hover {
-  background-color: rgba(var(--dm-rgb-cian, 0, 245, 212), 0.08);
-  color: var(--color-borde-cian);
+  background: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
 }
 
-.subPestanaCriaturaBotonActiva {
-  background-color: var(--color-primario);
-  color: var(--dm-texto-principal, #ffffff);
-  border-color: var(--color-borde-cian);
-  box-shadow: 0 2px 6px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.2);
+.subPestanaCriaturaBoton[aria-pressed="true"] {
+  border-color: var(--homebrew-borde, var(--color-borde-brutal));
+  box-shadow: inset 0 -2px var(--homebrew-acento, var(--color-borde-cian));
+  background: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--homebrew-acento, var(--color-borde-cian));
+}
+
+.subPestanaCriaturaBoton:focus-visible {
+  outline: 2px solid var(--homebrew-acento, var(--color-borde-cian));
+  outline-offset: 1px;
+}
+
+.cuerpoFormulario {
+  --fondo-scroll-cef: var(--homebrew-panel, var(--color-fondo-panel));
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+  scroll-padding-block: 8px;
 }
 
 .seccionContenido {
@@ -49,16 +61,20 @@
 
 .filaDobleForm,
 .filaTripleForm {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 10px;
 }
 
+.filaTripleForm {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .filaSeisForm {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
   background-color: var(--color-fondo-tarjeta);
   padding: 10px 8px;
   border: 1px solid var(--color-borde-brutal);
@@ -66,6 +82,7 @@
 }
 
 .campoForm {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -75,7 +92,7 @@
 .campoMiniForm {
   display: flex;
   flex-direction: column;
-  width: 16%;
+  min-width: 0;
   align-items: center;
   gap: 4px;
 }
@@ -270,11 +287,13 @@
   border: 1px solid var(--color-borde-brutal);
   border-radius: var(--dm-radio-panel, 7px);
   padding: 12px;
-  margin-bottom: 30px;
   gap: 8px;
 }
 
 .tituloBloqueDinamico {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--dm-fuente-minima, 11px);
   font-weight: 700;
   color: var(--color-borde-cian);
@@ -287,7 +306,8 @@
 .inputDinamicoMini {
   font-size: 13px;
   padding: 6px 7px;
-  width: 78px;
+  width: 108px;
+  max-width: 100%;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
   border-radius: var(--dm-radio-control, 4px);
@@ -303,6 +323,7 @@
   font-size: 13px;
   padding: 6px 8px;
   width: 170px;
+  max-width: 100%;
   background-color: var(--color-fondo-profundo);
   border: 1.5px solid var(--color-borde-brutal);
   border-radius: var(--dm-radio-control, 4px);
@@ -389,9 +410,15 @@
 
 .filaCamposAlineados {
   display: flex;
-  flex-direction: row;
+  flex-wrap: wrap;
   gap: 7px;
   width: 100%;
+}
+
+.filaCamposAlineados > .inputDinamicoLargo,
+.filaAgregarDefensa > .inputDinamicoLargo {
+  flex: 1 1 145px;
+  min-width: 0;
 }
 
 .textareaDinamico {
@@ -436,80 +463,51 @@
   line-height: 1.4;
 }
 
-/* STICKY BOTTOM BAR PREMIUM (UNIFICADA) */
-.stickyBottomBar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--dm-fondo-modal, rgba(18, 24, 38, 0.72));
-  backdrop-filter: var(--dm-filtro-fondo, blur(10px));
-  -webkit-backdrop-filter: var(--dm-filtro-fondo, blur(10px));
-  border-top: 1px solid rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.08);
-  padding: 12px 90px 12px 20px; /* Añadido 90px de padding derecho de seguridad para no colisionar con el dado */
+.pieFormulario {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  flex-shrink: 0;
   align-items: center;
-  z-index: 1000;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 12px;
+  padding-inline-end: var(--homebrew-espacio-dados, 12px);
+  border-top: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
+  background: var(--homebrew-panel, var(--color-fondo-panel));
 }
 
-.botonStickyGuardar {
-  background: linear-gradient(135deg, var(--dm-primario-hover, var(--color-primario-brillante)) 0%, var(--color-primario) 100%);
-  border: 1px solid var(--color-borde-cian);
-  color: var(--dm-texto-principal, #ffffff);
-  padding: 8px 20px;
+.botonStickyGuardar,
+.botonStickyCancelar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
+  border-radius: var(--homebrew-radio, 5px);
+  background: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--homebrew-texto, var(--color-texto-principal));
   font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-radius: var(--dm-radio-control, 5px);
-  box-shadow: 0 2px 10px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.15);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  transition: none;
 }
 
-.botonStickyGuardar:hover:not(:disabled) {
-  filter: brightness(1.1);
-  box-shadow: 0 2px 12px rgba(var(--dm-rgb-cian, 0, 245, 212), 0.25);
-  transform: translateY(-1px);
+.botonStickyGuardar {
+  border-color: var(--homebrew-accion, var(--color-primario));
+  background: var(--homebrew-accion, var(--color-primario));
 }
 
 .botonStickyGuardar:disabled {
-  opacity: 0.4;
+  border-color: var(--homebrew-borde, var(--color-borde-brutal));
+  background: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
+  color: var(--homebrew-secundario, var(--color-texto-secundario));
   cursor: not-allowed;
-  box-shadow: none !important;
-  transform: none !important;
 }
 
-.botonStickyCancelar {
-  background-color: transparent;
-  border: 1px solid var(--color-borde-brutal);
-  color: var(--color-texto-secundario);
-  padding: 8px 16px;
-  font-size: var(--dm-fuente-minima, 11.5px);
-  font-weight: 600;
-  cursor: pointer;
-  text-transform: uppercase;
-  text-align: center;
-  border-radius: var(--dm-radio-control, 5px);
-  letter-spacing: 0.04em;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: none;
-}
-
+.botonStickyGuardar:hover:not(:disabled),
 .botonStickyCancelar:hover {
-  background-color: rgba(var(--dm-rgb-neutro, 255, 255, 255), 0.04);
-  color: var(--color-texto-principal);
-  border-color: var(--color-texto-secundario);
+  border-color: var(--homebrew-acento, var(--color-borde-cian));
 }
 
 .selectorDanoCompacto {
@@ -650,30 +648,6 @@
 }
 
 /* Variante de jugador: DESIGN.md. Composición compartida, identidad zafiro/índigo. */
-
-:global([data-tema="jugador"]) .subPestanasCriatura {
-  border-bottom: 2px solid var(--pj-borde-medio);
-}
-
-:global([data-tema="jugador"]) .subPestanaCriaturaBoton {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .subPestanaCriaturaBoton:hover {
-  background-color: rgba(var(--pj-rgb-cian), 0.08);
-  color: var(--pj-borde-cian-fuerte);
-}
-
-:global([data-tema="jugador"]) .subPestanaCriaturaBotonActiva {
-  background-color: var(--pj-acento-primario-solido);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-cian-fuerte);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
 
 :global([data-tema="jugador"]) .filaSeisForm {
   background-color: var(--pj-fondo-tarjeta);
@@ -890,40 +864,6 @@
   color: var(--pj-texto-terciario);
 }
 
-:global([data-tema="jugador"]) .stickyBottomBar {
-  background: var(--pj-fondo-modal-cuerpo);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-top: 1px solid rgba(var(--pj-rgb-neutro), 0.08);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .botonStickyGuardar {
-  background: linear-gradient(135deg, var(--pj-acento-primario-solido-hover) 0%, var(--pj-acento-primario-solido) 100%);
-  border: 1px solid var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .botonStickyGuardar:hover:not(:disabled) {
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-:global([data-tema="jugador"]) .botonStickyCancelar {
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-boton);
-  border-radius: var(--pj-radio-control);
-}
-
-:global([data-tema="jugador"]) .botonStickyCancelar:hover {
-  background-color: rgba(var(--pj-rgb-neutro), 0.04);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-texto-secundario);
-}
-
 :global([data-tema="jugador"]) .botonGuardarEdicion {
   background-color: var(--pj-acento-exito) !important;
 }
@@ -987,4 +927,136 @@
   background-color: rgba(var(--pj-rgb-oro), 0.22);
   border-color: var(--pj-texto-oro);
   color: var(--pj-texto-primario);
+}
+
+/* --- Editor estructurado de velocidad y sentidos --- */
+.bloqueEstructurado {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
+  border: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
+  border-radius: var(--dm-radio-control, 4px);
+}
+
+.gridCamposCompactos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.campoCompacto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.labelCompacto {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+}
+
+.checkboxFila {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+  cursor: pointer;
+  padding-top: 2px;
+}
+
+/* --- Defensas personalizadas --- */
+.filaAgregarDefensa {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.contenedorChipsDefensa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chipDefensaPersonalizada {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  background-color: var(--dm-fondo-superficie, var(--color-fondo-elevado));
+  border: 1px solid var(--dm-acento-cian, var(--color-borde-cian));
+  border-radius: var(--dm-radio-control, 4px);
+  color: var(--dm-texto-principal, var(--color-texto-principal));
+}
+
+.botonQuitarChip {
+  background: transparent;
+  border: none;
+  color: var(--dm-texto-secundario, var(--color-texto-secundario));
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.botonQuitarChip:hover {
+  color: var(--color-peligro, #ef4444);
+}
+
+.vistaEscalado {
+  border: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
+  border-radius: 6px;
+  background: var(--homebrew-tarjeta, var(--color-fondo-tarjeta));
+}
+
+.vistaEscalado table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.vistaEscalado caption {
+  padding: 9px 12px;
+  color: var(--homebrew-acento, var(--color-borde-cian));
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.vistaEscalado th,
+.vistaEscalado td {
+  padding: 6px 8px;
+  border-top: 1px solid var(--homebrew-borde, var(--color-borde-brutal));
+}
+
+.vistaEscalado thead {
+  color: var(--homebrew-secundario, var(--color-texto-secundario));
+  font-size: 12.5px;
+}
+
+.vistaEscalado tbody {
+  color: var(--homebrew-texto, var(--color-texto-principal));
+  font-family: var(--fuente-codigo);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .filaTripleForm {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filaSeisForm {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .selectorDefensasNavegacion {
+    flex-wrap: wrap;
+  }
 }

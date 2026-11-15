@@ -1,4 +1,8 @@
-import { IDS_INICIALES_MONSTRUOS, IDS_INICIALES_HECHIZOS, IDS_INICIALES_OBJETOS } from '@/utiles/datosIniciales';
+import {
+  IDS_INICIALES_MONSTRUOS,
+  IDS_INICIALES_HECHIZOS,
+  IDS_INICIALES_OBJETOS
+} from '@/utiles/datosIniciales';
 import { guardarBlobGlobal } from '@/utiles/almacenamientoTaleSpire';
 import { deshidratarPersonaje } from '@/servicios/serializadorPersonaje';
 import type { EstadoDM } from '@/almacen/usarAlmacenDM';
@@ -51,6 +55,7 @@ export function construirBlobPersistencia(estado: Partial<EstadoDM>): Record<str
     monstruos_homebrew:  cacheMonstruosHomebrew,
     hechizos_homebrew:   cacheHechizosHomebrew,
     objetos_homebrew:    cacheObjetosHomebrew,
+    invocaciones_homebrew: estado.baseDatosInvocaciones ?? [],
     pendientes:          estado.listaPendientes || [],
     notas:               estado.notasDM || "",
     encuentros:          estado.encuentrosGuardados || [],

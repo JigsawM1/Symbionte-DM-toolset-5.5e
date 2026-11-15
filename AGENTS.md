@@ -25,9 +25,10 @@
 - Al editar archivos existentes, no reescribir el documento completo salvo que sea estrictamente necesario.
 - Modificar, añadir o eliminar únicamente las líneas de código afectadas por la solicitud para evitar conflictos y mantener el historial de cambios limpio.
 
-## Memoria Técnica y Mejora Continua (agente.md)
+## Documentación y memoria técnica
 
-Eres responsable de tu propio aprendizaje iterativo. Crea, lee y actualiza constantemente un archivo llamado agente.md en el directorio principal. Registra en este documento los errores cometidos, las correcciones aplicadas y las decisiones arquitectónicas del proyecto para no repetir fallos en sesiones futuras.
+- Cuando un cambio modifique el uso, la configuración o un contrato del proyecto, actualiza la guía correspondiente en `docs/` y verifica sus pasos, enlaces y comandos contra el código vigente.
+- Registra en `agente.md` las decisiones y lecciones que sirvan para trabajos futuros, con una referencia a la guía o al cambio y la evidencia de validación. Consulta las entradas anteriores por tema y contrasta los hechos que puedan haber cambiado.
 
 ## Graphify
 

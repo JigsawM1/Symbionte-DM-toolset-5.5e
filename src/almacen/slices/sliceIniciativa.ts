@@ -12,29 +12,33 @@
  * - manejadorAccionesAreaIniciativa: mutaciones de área.
  */
 
-import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
-import type { PersonajeJugador } from "@/tipos";
+import type { EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { Caracteristica, PersonajeJugador } from "@/tipos";
 import type { ColaIniciativaTS } from "@/tipos/talespire";
 import { ts } from "@/utiles/TaleSpireAdapter";
-import { finalizarRasgosDelTurno, normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import {
-  normalizarNombreTaleSpire,
-  coincidenNombresTaleSpire,
-  esNombreVacioODot
-} from "@/servicios/resolutorCriaturas";
+  normalizarCondicionesRasgos,
+  finalizarRasgosDelTurno
+} from "@/servicios/rasgos/estadoCondicionesRasgos";
+import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import {
   sincronizarConEstadoLocal,
   filtrarEfectosExpirados
 } from "@/servicios/sincronizacionIniciativa";
-import { generarId } from "@/utiles/generarId";
 import { logger } from "@/utiles/logger";
 import { estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
 
-import { type CreadorSliceIniciativa } from "./iniciativa/tipos";
+import {
+  type CreadorSliceIniciativa,
+  type ParamsAgregarCriaturaIniciativa,
+  type ParamsSalvacionAreaIniciativa,
+  type ResultadoSalvacionArea
+} from "./iniciativa/tipos";
 import { restablecerMovimientoPersonajes } from "./iniciativa/sincronizadorPersonajesIniciativa";
 import { ejecutarCalculoSalvacionArea } from "./iniciativa/resolutorAreaIniciativa";
 import {
+  construirCriaturaManualParaIniciativa,
   construirEntradaJugador,
   alternarRolCriaturaHelper,
   autoLanzarIniciativaMonstruosHelper,
@@ -49,7 +53,6 @@ import {
   despacharSeleccionarBarraHorda,
   despacharAlternarModoDanoHorda
 } from "./iniciativa/manejadorVidaIniciativa";
-import { construirBarrasHorda, sincronizarAgregadosHorda } from "@/servicios/combateHordas";
 import {
   despacharAgregarCondicion,
   despacharQuitarCondicion,
@@ -189,6 +192,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
         get().actualizarColaIniciativaDesdeTaleSpire(queue, minisJugadores);
       } catch (error) {
         logger.error("[Combat Tracker] Error al importar iniciativa nativa:", error);
+        get().agregarNotificacion("No se pudo importar la cola de iniciativa desde TaleSpire.", "error");
       }
     } else {
       logger.warn("[Combat Tracker] API de iniciativa nativa de TaleSpire no disponible.");
@@ -231,44 +235,34 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     )
   })),
 
-  agregarCriaturaAIniciativa: (nombre, iniciativa, vidaMax, ca, esMonstruo, velocidad, bonifInic, idPlantillaAsociada, cantidadHorda) => set((state) => {
-    const idCriatura = generarId('c_local');
-    const numMiembros = cantidadHorda && cantidadHorda > 1 ? Math.min(50, Math.trunc(cantidadHorda)) : 1;
-    const baseCriatura: CriaturaIniciativa = {
-      id: idCriatura,
-      nombre,
-      iniciativa,
-      vidaMaxima: vidaMax,
-      vidaActual: vidaMax,
-      ca,
-      condiciones: [],
-      efectos: [],
-      bonificadorIniciativa: bonifInic,
-      esMonstruo,
-      velocidad,
-      vidaTemporal: 0,
-      idPlantillaAsociada
-    };
-    const nuevaCriatura: CriaturaIniciativa = numMiembros > 1
+  agregarCriaturaAIniciativa: (
+    nombreOParams: string | ParamsAgregarCriaturaIniciativa,
+    iniciativaArg?: number,
+    vidaMaxArg?: number,
+    caArg?: number,
+    esMonstruoArg?: boolean,
+    velocidadArg?: string,
+    bonifInicArg?: number,
+    idPlantillaAsociadaArg?: string,
+    cantidadHordaArg?: number
+  ) => set((state) => {
+    const params: ParamsAgregarCriaturaIniciativa = typeof nombreOParams === "string"
       ? {
-          ...baseCriatura,
-          modoDanoHorda: "individual",
-          ...sincronizarAgregadosHorda(construirBarrasHorda(numMiembros, vidaMax))
+          nombre: nombreOParams,
+          iniciativa: iniciativaArg ?? 0,
+          vidaMax: vidaMaxArg ?? 10,
+          ca: caArg ?? 10,
+          esMonstruo: esMonstruoArg ?? true,
+          velocidad: velocidadArg ?? "30 pies",
+          bonifInic: bonifInicArg ?? 0,
+          idPlantillaAsociada: idPlantillaAsociadaArg,
+          cantidadHorda: cantidadHordaArg
         }
-      : baseCriatura;
-
-    let nuevasAsociaciones = state.asociacionesFichas;
-    if (idPlantillaAsociada) {
-      nuevasAsociaciones = {
-        ...state.asociacionesFichas,
-        [idCriatura]: idPlantillaAsociada
-      };
-      if (!esNombreVacioODot(nombre)) {
-        const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(nombre);
-        nuevasAsociaciones[`nombre_base:${nombreRef}`] = idPlantillaAsociada;
-        nuevasAsociaciones[`nombre_base:${nombreRefBase}`] = idPlantillaAsociada;
-      }
-    }
+      : nombreOParams;
+    const { nuevaCriatura, nuevasAsociaciones } = construirCriaturaManualParaIniciativa(
+      params,
+      state.asociacionesFichas
+    );
 
     return {
       colaIniciativa: [...state.colaIniciativa, nuevaCriatura],
@@ -294,15 +288,15 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
   }),
 
   modificarVidaCriaturaIniciativa: (id, nuevaVida) => set((state) =>
-    despacharModificarVida(state, get, id, nuevaVida)
+    despacharModificarVida(state, id, nuevaVida)
   ),
 
   dañarCriaturaIniciativa: (id, cantidad) => set((state) =>
-    despacharDano(state, get, id, cantidad)
+    despacharDano(state, id, cantidad)
   ),
 
   modificarVidaMaximaCriaturaIniciativa: (id, nuevaVidaMax) => set((state) =>
-    despacharModificarVidaMaxima(state, get, id, nuevaVidaMax)
+    despacharModificarVidaMaxima(state, id, nuevaVidaMax)
   ),
 
   configurarBarrasHordaCriatura: (idCriatura, cantidadMiembros, vidaPorMiembro) => set((state) =>
@@ -342,7 +336,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
   ),
 
   actualizarVidaTemporal: (idCriatura, vidaTemp) => set((state) =>
-    despacharActualizarVidaTemporal(state, get, idCriatura, vidaTemp)
+    despacharActualizarVidaTemporal(state, idCriatura, vidaTemp)
   ),
 
   limpiarIniciativa: () => set((state) => {
@@ -410,7 +404,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
   }),
 
   aplicarDañoEnArea: (cantidad, idsObjetivo, limiteMiembrosHorda) => set((state) =>
-    despacharAplicarDanoEnArea(state, get, cantidad, idsObjetivo, limiteMiembrosHorda)
+    despacharAplicarDanoEnArea(state, cantidad, idsObjetivo, limiteMiembrosHorda)
   ),
 
   aplicarCondicionEnArea: (condicion, idsObjetivo) => set((state) =>
@@ -421,16 +415,35 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
     despacharAplicarEfectoEnArea(state, nombreEfecto, duracion, opciones, idsObjetivo)
   ),
 
-  ejecutarSalvacionEnArea: (caracteristica, cd, dañoBruto, condicionOEfecto, mitigacion = "mitad", idsObjetivo, limiteMiembrosHorda) => {
+  ejecutarSalvacionEnArea: (
+    caracOParams: Caracteristica | ParamsSalvacionAreaIniciativa,
+    cdArg?: number,
+    dañoBrutoArg?: number,
+    condicionOEfectoArg?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
+    mitigacionArg: "mitad" | "nada" = "mitad",
+    idsObjetivoArg?: string[],
+    limiteMiembrosHordaArg?: number
+  ): ResultadoSalvacionArea | null => {
+    const params: ParamsSalvacionAreaIniciativa = typeof caracOParams === "string"
+      ? {
+          caracteristica: caracOParams,
+          cd: cdArg ?? 10,
+          dañoBruto: dañoBrutoArg,
+          condicionOEfecto: condicionOEfectoArg,
+          mitigacion: mitigacionArg,
+          idsObjetivo: idsObjetivoArg,
+          limiteMiembrosHorda: limiteMiembrosHordaArg
+        }
+      : caracOParams;
     const state = get();
     const resultadoCalculo = ejecutarCalculoSalvacionArea({
-      caracteristica,
-      cd,
-      dañoBruto,
-      condicionOEfecto,
-      mitigacion,
-      idsObjetivo,
-      limiteMiembrosHorda,
+      caracteristica: params.caracteristica,
+      cd: params.cd,
+      dañoBruto: params.dañoBruto,
+      condicionOEfecto: params.condicionOEfecto,
+      mitigacion: params.mitigacion ?? "mitad",
+      idsObjetivo: params.idsObjetivo,
+      limiteMiembrosHorda: params.limiteMiembrosHorda,
       colaIniciativa: state.colaIniciativa,
       indiceTurnoActivo: state.indiceTurnoActivo,
       criaturasSeleccionadas: state.criaturasSeleccionadas,

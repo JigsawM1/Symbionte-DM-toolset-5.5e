@@ -40,6 +40,59 @@ export function esCondicionDerribado(texto: string): boolean {
   return tNorm.includes("derribad") || tNorm.includes("prone") || tNorm === "caido" || tNorm === "caído";
 }
 
+/**
+ * Determina si un personaje jugador coincide con una criatura afectada en operaciones de área.
+ */
+export function coincidePersonajeConCriaturaArea(
+  pj: PersonajeJugador,
+  criatura: CriaturaIniciativa
+): boolean {
+  if (coincidePersonajeEnIniciativa(pj, criatura, criatura.id, criatura.nombre)) {
+    return true;
+  }
+  if (criatura.esAcompanante || criatura.idAcompanante) {
+    return false;
+  }
+  const cNom = (criatura.nombre || "").trim().toLowerCase();
+  return Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom;
+}
+
+/**
+ * Helper de orden superior que proyecta una mutación pura desde la cola de iniciativa
+ * hacia el personaje jugador o acompañante coincidente sin duplicar iteraciones.
+ */
+export function proyectarCambioEnPersonajeOAcompanante(
+  personajes: PersonajeJugador[],
+  criaturaObjetivo: CriaturaIniciativa | undefined,
+  id: string,
+  nombre: string,
+  actualizarPj: (pj: PersonajeJugador) => PersonajeJugador,
+  actualizarAcomp?: (
+    acomp: PersonajeJugador["acompanantes"][number]
+  ) => PersonajeJugador["acompanantes"][number]
+): PersonajeJugador[] {
+  return personajes.map((pj) => {
+    if (coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, nombre)) {
+      return actualizarPj(pj);
+    }
+
+    if (!actualizarAcomp || (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante)) {
+      return pj;
+    }
+
+    let acompModificado = false;
+    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
+      if (coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, nombre)) {
+        acompModificado = true;
+        return actualizarAcomp(acomp);
+      }
+      return acomp;
+    });
+
+    return acompModificado ? { ...pj, acompanantes: nuevosAcomps } : pj;
+  });
+}
+
 export function restablecerMovimientoPersonajes(personajes: PersonajeJugador[], motivo: string): PersonajeJugador[] {
   let huboCambios = false;
   const nuevos = personajes.map((pj) => {

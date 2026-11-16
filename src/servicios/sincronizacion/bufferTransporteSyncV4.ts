@@ -1,5 +1,5 @@
 import { EsquemaMensajeSyncV4, type MensajeSyncV4 } from '@/tipos/protocoloSync';
-import { logger } from '@/utiles/logger';
+import { registrarErrorSyncV4 } from './erroresTransporteSyncV4';
 
 export const INACTIVIDAD_FRAGMENTOS_V4_MS = 10000;
 const MAX_SESIONES = 32;
@@ -89,8 +89,19 @@ export class BufferTransporteSyncV4 {
         && resultado.data.sesionEmisor === fragmento.sesionEmisor && JSON.stringify(resultado.data.contexto) === contexto) {
         return { estado: 'completo', mensaje: resultado.data };
       }
+      registrarErrorSyncV4({
+        codigo: 'REENSAMBLAJE_CORRUPTO',
+        remitente,
+        fragmentoId: fragmento.id,
+        causa: resultado.success ? 'Inconsistencia de sobre en mensaje reensamblado' : resultado.error,
+      });
     } catch (error) {
-      logger.warn('[Sync v4] Mensaje reensamblado no válido:', error);
+      registrarErrorSyncV4({
+        codigo: 'REENSAMBLAJE_CORRUPTO',
+        remitente,
+        fragmentoId: fragmento.id,
+        causa: error,
+      });
     }
     return { estado: 'rechazado' };
   }

@@ -14,8 +14,66 @@ import {
 } from "@/almacen/slices/personajes/condicionesRasgosHelpers";
 import {
   coincidePersonajeEnIniciativa,
-  coincideAcompananteEnIniciativa
+  coincideAcompananteEnIniciativa,
+  proyectarCambioEnPersonajeOAcompanante
 } from "./sincronizadorMovimientoIniciativa";
+
+interface EstadoTerrenoEntidad {
+  tipoTerreno?: PersonajeJugador["tipoTerreno"];
+  multiplicadorTerreno?: number;
+  movimientoGastado?: number;
+  historialMovimiento?: RegistroMovimiento[];
+}
+
+function calcularCambioTerrenoPorDerribado(
+  entidad: EstadoTerrenoEntidad,
+  esDerribado: boolean,
+  activar: boolean,
+  registrarHistorial: boolean
+): {
+  tipoTerreno: PersonajeJugador["tipoTerreno"];
+  multiplicadorTerreno: number;
+  historialMovimiento?: RegistroMovimiento[];
+} {
+  let tipoTerreno = entidad.tipoTerreno || "normal";
+  let multiplicadorTerreno = entidad.multiplicadorTerreno || 1;
+  let historialMovimiento = registrarHistorial
+    ? (Array.isArray(entidad.historialMovimiento) ? entidad.historialMovimiento : [])
+    : undefined;
+
+  const debeActivarDificil =
+    activar &&
+    esDerribado &&
+    (entidad.tipoTerreno === "normal" || !entidad.tipoTerreno || entidad.multiplicadorTerreno === 1);
+
+  const debeRestaurarNormal =
+    !activar &&
+    esDerribado &&
+    entidad.tipoTerreno === "dificil" &&
+    entidad.multiplicadorTerreno === 2;
+
+  if (debeActivarDificil || debeRestaurarNormal) {
+    tipoTerreno = debeActivarDificil ? "dificil" : "normal";
+    multiplicadorTerreno = debeActivarDificil ? 2 : 1;
+    if (registrarHistorial && historialMovimiento) {
+      const gastoActual = entidad.movimientoGastado || 0;
+      const entradaHist: RegistroMovimiento = {
+        id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        timestamp: Date.now(),
+        tipo: "terreno",
+        delta: 0,
+        anteriorGastado: gastoActual,
+        nuevoGastado: gastoActual,
+        descripcion: debeActivarDificil
+          ? "Terreno cambiado a: Terreno Difícil (2x) por condición Derribado"
+          : "Terreno restaurado a: Terreno Normal (1x) al remover condición Derribado"
+      };
+      historialMovimiento = [...historialMovimiento.slice(-49), entradaHist];
+    }
+  }
+
+  return { tipoTerreno, multiplicadorTerreno, historialMovimiento };
+}
 
 /** Proyecta los estados recibidos del DM a las fichas locales vinculadas. */
 export function sincronizarEstadosPersonajesDesdeCola(
@@ -74,8 +132,6 @@ export function aplicarEfectoAPersonaje(
     conds = aplicarCondicion(conds, nombreEfecto);
   }
 
-  const rasgosActualizados = activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || []);
-
   return {
     ...pj,
     condicionesActivas: conds,
@@ -83,7 +139,7 @@ export function aplicarEfectoAPersonaje(
     concentracionActiva: esConcentracion
       ? { hechizoId: nuevoEfecto.id, nombreHechizo: spellName || nombreEfecto }
       : pj.concentracionActiva,
-    rasgos: rasgosActualizados
+    rasgos: activarRasgosPorCondicionOEfecto(nombreEfecto, pj.rasgos || [])
   };
 }
 
@@ -95,68 +151,31 @@ export function sincronizarCondicionAgregadaPersonajes(
   condicion: string,
   esDerribado: boolean
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincide) {
-      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
-      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
-      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-
-      if (esDerribado && (pj.tipoTerreno === "normal" || !pj.tipoTerreno || pj.multiplicadorTerreno === 1)) {
-        nuevoTipoTerreno = "dificil";
-        nuevoMultTerreno = 2;
-        const entradaHist: RegistroMovimiento = {
-          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          timestamp: Date.now(),
-          tipo: "terreno",
-          delta: 0,
-          anteriorGastado: pj.movimientoGastado || 0,
-          nuevoGastado: pj.movimientoGastado || 0,
-          descripcion: "Terreno cambiado a: Terreno Difícil (2x) por condición Derribado"
-        };
-        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
-      }
-
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => {
+      const terreno = calcularCambioTerrenoPorDerribado(pj, esDerribado, true, true);
       return {
         ...pj,
-        tipoTerreno: nuevoTipoTerreno,
-        multiplicadorTerreno: nuevoMultTerreno,
-        historialMovimiento: nuevoHistorial,
+        tipoTerreno: terreno.tipoTerreno,
+        multiplicadorTerreno: terreno.multiplicadorTerreno,
+        historialMovimiento: terreno.historialMovimiento || [],
         condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condicion)
       };
+    },
+    (acomp) => {
+      const terreno = calcularCambioTerrenoPorDerribado(acomp, esDerribado, true, false);
+      return {
+        ...acomp,
+        tipoTerreno: terreno.tipoTerreno,
+        multiplicadorTerreno: terreno.multiplicadorTerreno,
+        condiciones: aplicarCondicion(acomp.condiciones || [], condicion)
+      };
     }
-
-    if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
-        let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
-        if (esDerribado && (acomp.tipoTerreno === "normal" || !acomp.tipoTerreno || acomp.multiplicadorTerreno === 1)) {
-          nuevoTipoTerreno = "dificil";
-          nuevoMultTerreno = 2;
-        }
-        return {
-          ...acomp,
-          tipoTerreno: nuevoTipoTerreno,
-          multiplicadorTerreno: nuevoMultTerreno,
-          condiciones: aplicarCondicion(acomp.condiciones || [], condicion)
-        };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  );
 }
 
 export function sincronizarCondicionQuitadaPersonajes(
@@ -168,84 +187,41 @@ export function sincronizarCondicionQuitadaPersonajes(
   esConcentracion: boolean,
   esDerribado: boolean
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincide) {
-      let condsPj = pj.condicionesActivas || [];
-      if (esConcentracion) {
-        condsPj = condsPj.filter((c) => !c.toLowerCase().includes("concentra"));
-      } else {
-        condsPj = quitarCondicion(condsPj, condicion);
-      }
-
-      const rasgosActualizados = desactivarRasgosPorCondicionOEfecto(condicion, pj.rasgos || []);
-      let nuevoTipoTerreno = pj.tipoTerreno || "normal";
-      let nuevoMultTerreno = pj.multiplicadorTerreno || 1;
-      let nuevoHistorial = Array.isArray(pj.historialMovimiento) ? pj.historialMovimiento : [];
-
-      if (esDerribado && pj.tipoTerreno === "dificil" && pj.multiplicadorTerreno === 2) {
-        nuevoTipoTerreno = "normal";
-        nuevoMultTerreno = 1;
-        const entradaHist: RegistroMovimiento = {
-          id: `mov-terr-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          timestamp: Date.now(),
-          tipo: "terreno",
-          delta: 0,
-          anteriorGastado: pj.movimientoGastado || 0,
-          nuevoGastado: pj.movimientoGastado || 0,
-          descripcion: "Terreno restaurado a: Terreno Normal (1x) al remover condición Derribado"
-        };
-        nuevoHistorial = [...nuevoHistorial.slice(-49), entradaHist];
-      }
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => {
+      const condsPj = esConcentracion
+        ? (pj.condicionesActivas || []).filter((c) => !c.toLowerCase().includes("concentra"))
+        : quitarCondicion(pj.condicionesActivas || [], condicion);
+      const terreno = calcularCambioTerrenoPorDerribado(pj, esDerribado, false, true);
 
       return {
         ...pj,
         condicionesActivas: condsPj,
         concentracionActiva: esConcentracion ? null : pj.concentracionActiva,
-        rasgos: rasgosActualizados,
-        tipoTerreno: nuevoTipoTerreno,
-        multiplicadorTerreno: nuevoMultTerreno,
-        historialMovimiento: nuevoHistorial
+        rasgos: desactivarRasgosPorCondicionOEfecto(condicion, pj.rasgos || []),
+        tipoTerreno: terreno.tipoTerreno,
+        multiplicadorTerreno: terreno.multiplicadorTerreno,
+        historialMovimiento: terreno.historialMovimiento || []
+      };
+    },
+    (acomp) => {
+      const condsAcomp = esConcentracion
+        ? (acomp.condiciones || []).filter((c) => !c.toLowerCase().includes("concentra"))
+        : quitarCondicion(acomp.condiciones || [], condicion);
+      const terreno = calcularCambioTerrenoPorDerribado(acomp, esDerribado, false, false);
+
+      return {
+        ...acomp,
+        condiciones: condsAcomp,
+        tipoTerreno: terreno.tipoTerreno,
+        multiplicadorTerreno: terreno.multiplicadorTerreno
       };
     }
-
-    if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        let condsAcomp = acomp.condiciones || [];
-        if (esConcentracion) {
-          condsAcomp = condsAcomp.filter((c) => !c.toLowerCase().includes("concentra"));
-        } else {
-          condsAcomp = quitarCondicion(condsAcomp, condicion);
-        }
-        let nuevoTipoTerreno = acomp.tipoTerreno || "normal";
-        let nuevoMultTerreno = acomp.multiplicadorTerreno || 1;
-        if (esDerribado && acomp.tipoTerreno === "dificil" && acomp.multiplicadorTerreno === 2) {
-          nuevoTipoTerreno = "normal";
-          nuevoMultTerreno = 1;
-        }
-        return {
-          ...acomp,
-          condiciones: condsAcomp,
-          tipoTerreno: nuevoTipoTerreno,
-          multiplicadorTerreno: nuevoMultTerreno
-        };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  );
 }
 
 export function sincronizarEfectoAgregadoPersonajes(
@@ -257,13 +233,13 @@ export function sincronizarEfectoAgregadoPersonajes(
   nuevoEfecto: EfectoActivo,
   esConcentracion: boolean
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincide) {
-      return aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion);
-    }
-    return pj;
-  });
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion)
+  );
 }
 
 export function sincronizarEfectoQuitadoPersonajes(
@@ -273,16 +249,17 @@ export function sincronizarEfectoQuitadoPersonajes(
   criaturaAfectadaNombre: string,
   idEfecto: string
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincide = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincide) {
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => {
       const efectoAEliminar = (pj.efectosActivos || []).find((e) => e.id === idEfecto);
       const efectosActualizados = (pj.efectosActivos || []).filter((e) => e.id !== idEfecto);
-
-      let rasgosActualizados = pj.rasgos || [];
-      if (efectoAEliminar) {
-        rasgosActualizados = desactivarRasgosPorCondicionOEfecto(efectoAEliminar.nombre, rasgosActualizados);
-      }
+      const rasgosActualizados = efectoAEliminar
+        ? desactivarRasgosPorCondicionOEfecto(efectoAEliminar.nombre, pj.rasgos || [])
+        : (pj.rasgos || []);
 
       const eraConcentracion = efectoAEliminar?.concentracion || pj.concentracionActiva?.hechizoId === idEfecto;
       let condsPj = pj.condicionesActivas || [];
@@ -300,6 +277,5 @@ export function sincronizarEfectoQuitadoPersonajes(
         rasgos: rasgosActualizados
       };
     }
-    return pj;
-  });
+  );
 }

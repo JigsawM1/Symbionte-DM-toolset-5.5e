@@ -1,5 +1,47 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-16] Auditoría y Refactorización Modular (SRP / Clean Code) de `MotorSyncV4`
+
+- **Contexto**:
+  - `src/servicios/sincronizacion/motorSyncV4.ts` acumulaba 498 líneas (a 2 líneas del límite bloqueante de CI de 500 líneas) mezclando gobernanza de dirección, transporte fragmentado, arbitraje autoritativo del DM, cola optimista del jugador, búfer de confirmados fuera de orden y temporizadores dispersos.
+- **Decisiones Arquitectónicas**:
+  - **Descomposición SRP (< 300 líneas en todos los módulos)**:
+    - [erroresTransporteSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/erroresTransporteSyncV4.ts) (128 líneas): Unión discriminada `ErrorSyncV4` (`TRANSPORTE_SDK`, `LIMITE_PAYLOAD`, `ESQUEMA_INVALIDO`, `VERSION_INCOMPATIBLE`, `REENSAMBLAJE_CORRUPTO`, `PROCESAMIENTO_INTERNO`), clasificadores puros (`clasificarErrorSyncV4`, `registrarErrorParseoSyncV4`), despachador tipado `despacharMensajeSyncV4` con `MapaManejadoresSyncV4` y envío fragmentado abortable ante cambio de sesión o destrucción (`enviarMensajeFragmentadoSyncV4`).
+    - [eleccionDirectorSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/eleccionDirectorSyncV4.ts) (205 líneas): Máquina de estados de elección, quórum multi-GM, relevo seguro (`requiere-voto`), control de aperturas retiradas y temporizador de latido (5000 ms).
+    - [arbitroPropuestasSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/arbitroPropuestasSyncV4.ts) (220 líneas): Funciones puras de verificación (`verificarAutorizacionPropuestaSyncV4`, `tieneBajaObsoletaAcompanantesSyncV4`), caché idempotente de `PROPUESTA`, confirmación en cascada, baja de hijos y emisión paginada de `LOTE`.
+    - [colaOptimistaSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/colaOptimistaSyncV4.ts) (224 líneas): Cola optimista (`emisiones`, `resultados`, `bloqueadas`), búfer `diferidos` (≤ 256) y encapsulación de timers `debounce` (120 ms) y `esperaOrden` (3000 ms).
+    - [bufferTransporteSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/bufferTransporteSyncV4.ts) (120 líneas): Registro estructurado `REENSAMBLAJE_CORRUPTO` en fallos de ensamblaje/validación.
+    - [motorSyncV4.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/motorSyncV4.ts) (291 líneas): Fachada pública invariante (`DependenciasMotorSyncV4`, `DatosLocalesSyncV4`, `MotorSyncV4`), guardia de validación de entrada, mapa declarativo `MapaManejadoresSyncV4` y observación de cambios locales.
+  - **Cobertura de Pruebas Ampliada**:
+    - [submodulosMotorSyncV4.test.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/submodulosMotorSyncV4.test.ts) (201 líneas) y [casosBordeSyncV4.test.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacion/casosBordeSyncV4.test.ts) (205 líneas): categorización de errores, abortos a mitad de ráfaga/snapshot, reordenación de confirmados, expiración `esperaOrden` (3000 ms), desbordamiento de 256 diferidos, idempotencia de propuestas, conflictos simultáneos multigrupo y resiliencia ante fallos de red SDK.
+- **Validación**:
+  - `pnpm tsc --noEmit`: 0 errores (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `pnpm exec vitest run src/servicios/sincronizacion src/servicios/sincronizacionSimbiote.test.ts src/servicios/sincronizacionIniciativa.test.ts src/utiles/TaleSpireAdapter.sync.test.ts`: 17/17 archivos y 144/144 pruebas aprobadas.
+  - Refinamiento `/ponytail` y `/vercel-react-best-practices` tras auditoría: `pnpm run ci` completo en verde (`tsc --noEmit` 0 errores, `eslint src --max-warnings=0` 0 avisos, `vitest run` 198 archivos / 2815 pruebas, simulación 1 archivo / 5 pruebas, `verificar-limite-lineas.js` 553 archivos con 467 `< 300` líneas y 0 errores críticos, `vite build` en 10.73s).
+  - `pnpm run test:sync-simulacion`: 5/5 escenarios multicliente aprobados (6 PJ, 20 monstruos, 1 acompañante, 260 turnos, rateLimited y reconexión).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos; todos los módulos de `src/servicios/sincronizacion/` en categoría `[CORRECTO]` (< 300 líneas). Queda pendiente únicamente la aceptación manual nativa en CEF/TaleSpire real.
+
+## [2026-11-15] Refactorización Clean Code / SOLID / DRY del subsistema de Iniciativa (DM y Jugador)
+
+- **Contexto**:
+  - Auditoría técnica completa de los módulos de iniciativa (vistas DM y Jugador, `sliceIniciativa` y servicios de sincronización) aplicando SRP, DRY, KISS y tipado estricto (`strict: true`).
+- **Decisiones Arquitectónicas**:
+  - **Utilidades puras centralizadas ([utilidadesCombateIniciativa.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/iniciativa/utilidadesCombateIniciativa.ts))**: Se consolidaron `aplicarDanoACriaturaIndividual`, `obtenerCondicionesVisibles`, `construirEfectoCombate` / `filtrarCondicionesSolapadasPorEfecto`, y `resolverPlantillaCombateCriatura` / `obtenerPercepcionPasivaPlantilla`.
+  - **Proyección unificada hacia Personajes y Acompañantes ([sincronizadorMovimientoIniciativa.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/iniciativa/sincronizadorMovimientoIniciativa.ts))**: `proyectarCambioEnPersonajeOAcompanante` y `coincidePersonajeConCriaturaArea` eliminan 6 bucles duplicados en `sincronizadorVidaIniciativa.ts` y `sincronizadorEfectosIniciativa.ts`, junto al helper `calcularCambioTerrenoPorDerribado`.
+  - **Retorno temprano en sincronización ([sincronizacionIniciativa.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/servicios/sincronizacionIniciativa.ts))**: Reemplazado el `.map(c => mapaLocal.get(c.id) ?? c)` final por retorno temprano `if (existente) return existente;` y extracción de `construirCriaturaDesdePJ`, `construirCriaturaDesdeAcompanante` y `buscarAcompananteParaMiniatura`.
+  - **Contratos nombrados retrocompatibles y errores visibles ([tipos.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/iniciativa/tipos.ts), [sliceIniciativa.ts](file:///c:/Users/zamor/OneDrive/Documentos/Programas/ToolSet%20Es%205.5/src/almacen/slices/sliceIniciativa.ts))**: `agregarCriaturaAIniciativa` y `ejecutarSalvacionEnArea` admiten objetos de parámetros (`ParamsAgregarCriaturaIniciativa`, `ParamsSalvacionAreaIniciativa`) con sobrecarga posicional retrocompatible; `importarIniciativaTaleSpire` notifica al usuario ante fallos y delega en `construirCriaturaManualParaIniciativa` (`fabricaCriaturasIniciativa.ts`).
+  - **Descomposición modular UI (< 300 líneas en todos los archivos intervenidos)**:
+    - `GestorIniciativa.tsx` (494 → 298 líneas): extrajo `ItemCriaturaIniciativa.tsx` y `PanelDetalleCriaturaIniciativa.tsx`, eliminando el doble auto-scroll.
+    - `TarjetaCriaturaIniciativa.tsx` (483 → 275 líneas): agrupó callbacks en `AccionesTarjetaCriaturaIniciativa` manteniendo compatibilidad plana, y extrajo `CabeceraNombreTarjeta.tsx`, `SelectoresEstadoTarjeta.tsx` (con cierre por `Escape` y clic externo) y `ControlesSaludTarjeta.tsx`.
+    - `SelectorCondiciones.tsx` (466 → 297 líneas): extrajo `SeccionSalvacionArea.tsx` y limpia el temporizador `blur` al desmontar.
+    - `IniciativaJugador.tsx` (206 → 186 líneas): reutiliza `obtenerCondicionesVisibles` y `resolverPersonajePorCriatura`.
+- **Validación**:
+  - `pnpm tsc --noEmit`: 0 errores (`strict: true`).
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `pnpm vitest run` (9 suites de iniciativa, hordas, seguimiento físico y sanitización, incluyendo 17 pruebas nuevas unitarias y de integración en `utilidadesCombateIniciativa.test.ts`, `integracionIniciativaStore.test.ts` e `IntegracionIniciativaUI.test.tsx`): 75/75 tests aprobados tras la edición final.
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos; todos los componentes, utilidades y suites nuevas quedaron bajo 300 líneas.
+
 ## [2026-11-15] Correcciones de la auditoría de invocaciones Homebrew
 
 - Velocidad y sentidos mantienen su representación al abrir, editar y guardar una ficha. El editor compartido admite tanto texto heredado como valores estructurados y evita conversiones que borren notas o condiciones.

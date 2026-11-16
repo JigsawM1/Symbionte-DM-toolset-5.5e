@@ -8,10 +8,7 @@
 import type { CriaturaIniciativa, EstadoDM } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador } from "@/tipos";
 import { verificarReversionHpTemporal } from "@/servicios/reglasFormaSalvaje";
-import {
-  coincidePersonajeEnIniciativa,
-  coincideAcompananteEnIniciativa
-} from "./sincronizadorMovimientoIniciativa";
+import { proyectarCambioEnPersonajeOAcompanante } from "./sincronizadorMovimientoIniciativa";
 
 export function sincronizarModificacionVidaPersonajes(
   personajes: PersonajeJugador[],
@@ -20,38 +17,20 @@ export function sincronizarModificacionVidaPersonajes(
   criaturaAfectadaNombre: string,
   nuevaVida: number
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincidePj) {
-      return {
-        ...pj,
-        hpActual: Math.max(0, Math.min(pj.hpMaximo, nuevaVida))
-      };
-    }
-
-    if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        return {
-          ...acomp,
-          vidaActual: Math.max(0, Math.min(acomp.vidaMaxima, nuevaVida))
-        };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => ({
+      ...pj,
+      hpActual: Math.max(0, Math.min(pj.hpMaximo, nuevaVida))
+    }),
+    (acomp) => ({
+      ...acomp,
+      vidaActual: Math.max(0, Math.min(acomp.vidaMaxima, nuevaVida))
+    })
+  );
 }
 
 export function sincronizarDanoPersonajes(
@@ -62,41 +41,26 @@ export function sincronizarDanoPersonajes(
   vidaAct: number,
   vidaTemp: number
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaPrevia, id, criaturaAfectadaNombre);
-    if (coincidePj) {
-      const modificado: PersonajeJugador = {
-        ...pj,
-        hpActual: vidaAct,
-        hpTemporal: vidaTemp
-      };
-      return verificarReversionHpTemporal(modificado, vidaTemp);
-    }
-
-    if (!criaturaPrevia?.esAcompanante && !criaturaPrevia?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaPrevia, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        return {
-          ...acomp,
-          vidaActual: vidaAct,
-          vidaTemporal: vidaTemp
-        };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaPrevia,
+    id,
+    criaturaAfectadaNombre,
+    (pj) =>
+      verificarReversionHpTemporal(
+        {
+          ...pj,
+          hpActual: vidaAct,
+          hpTemporal: vidaTemp
+        },
+        vidaTemp
+      ),
+    (acomp) => ({
+      ...acomp,
+      vidaActual: vidaAct,
+      vidaTemporal: vidaTemp
+    })
+  );
 }
 
 export function sincronizarVidaMaximaPersonajes(
@@ -106,40 +70,22 @@ export function sincronizarVidaMaximaPersonajes(
   criaturaAfectadaNombre: string,
   vidaMaxSegura: number
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincidePj) {
-      return {
-        ...pj,
-        hpMaximo: vidaMaxSegura,
-        hpActual: Math.min(pj.hpActual, vidaMaxSegura)
-      };
-    }
-
-    if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        return {
-          ...acomp,
-          vidaMaxima: vidaMaxSegura,
-          vidaActual: Math.min(acomp.vidaActual, vidaMaxSegura)
-        };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => ({
+      ...pj,
+      hpMaximo: vidaMaxSegura,
+      hpActual: Math.min(pj.hpActual, vidaMaxSegura)
+    }),
+    (acomp) => ({
+      ...acomp,
+      vidaMaxima: vidaMaxSegura,
+      vidaActual: Math.min(acomp.vidaActual, vidaMaxSegura)
+    })
+  );
 }
 
 export function sincronizarVidaTemporalPersonajes(
@@ -149,33 +95,14 @@ export function sincronizarVidaTemporalPersonajes(
   criaturaAfectadaNombre: string,
   vidaTempSegura: number
 ): PersonajeJugador[] {
-  return personajes.map((pj) => {
-    const coincidePj = coincidePersonajeEnIniciativa(pj, criaturaObjetivo, id, criaturaAfectadaNombre);
-    if (coincidePj) {
-      const modificado: PersonajeJugador = { ...pj, hpTemporal: vidaTempSegura };
-      return verificarReversionHpTemporal(modificado, vidaTempSegura);
-    }
-
-    if (!criaturaObjetivo?.esAcompanante && !criaturaObjetivo?.idAcompanante) {
-      return pj;
-    }
-
-    let acompModificado = false;
-    const nuevosAcomps = (pj.acompanantes || []).map((acomp) => {
-      const coincideAcomp = coincideAcompananteEnIniciativa(acomp, criaturaObjetivo, id, criaturaAfectadaNombre);
-      if (coincideAcomp) {
-        acompModificado = true;
-        return { ...acomp, vidaTemporal: vidaTempSegura };
-      }
-      return acomp;
-    });
-
-    if (acompModificado) {
-      return { ...pj, acompanantes: nuevosAcomps };
-    }
-
-    return pj;
-  });
+  return proyectarCambioEnPersonajeOAcompanante(
+    personajes,
+    criaturaObjetivo,
+    id,
+    criaturaAfectadaNombre,
+    (pj) => verificarReversionHpTemporal({ ...pj, hpTemporal: vidaTempSegura }, vidaTempSegura),
+    (acomp) => ({ ...acomp, vidaTemporal: vidaTempSegura })
+  );
 }
 
 /**

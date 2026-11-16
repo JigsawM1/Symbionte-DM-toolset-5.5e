@@ -37,12 +37,27 @@ export interface CriaturaSeleccionadaTS {
   esDeJugador?: boolean;
 }
 
-export interface CriaturaNativaTS {
-  id: string;
-  name: string;
-  initiative?: number;
-  maxHp?: number;
-  hp?: number;
+
+export interface ParamsAgregarCriaturaIniciativa {
+  nombre: string;
+  iniciativa: number;
+  vidaMax: number;
+  ca: number;
+  esMonstruo: boolean;
+  velocidad: string;
+  bonifInic: number;
+  idPlantillaAsociada?: string;
+  cantidadHorda?: number;
+}
+
+export interface ParamsSalvacionAreaIniciativa {
+  caracteristica: Caracteristica;
+  cd: number;
+  dañoBruto?: number;
+  condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean };
+  mitigacion?: "mitad" | "nada";
+  idsObjetivo?: string[];
+  limiteMiembrosHorda?: number;
 }
 
 export interface SliceIniciativa {
@@ -64,17 +79,20 @@ export interface SliceIniciativa {
   importarIniciativaTaleSpire: () => Promise<void>;
   agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => void;
   alternarRolCriatura: (idCriatura: string) => void;
-  agregarCriaturaAIniciativa: (
-    nombre: string,
-    iniciativa: number,
-    vidaMax: number,
-    ca: number,
-    esMonstruo: boolean,
-    velocidad: string,
-    bonifInic: number,
-    idPlantillaAsociada?: string,
-    cantidadHorda?: number
-  ) => void;
+  agregarCriaturaAIniciativa: {
+    (params: ParamsAgregarCriaturaIniciativa): void;
+    (
+      nombre: string,
+      iniciativa: number,
+      vidaMax: number,
+      ca: number,
+      esMonstruo: boolean,
+      velocidad: string,
+      bonifInic: number,
+      idPlantillaAsociada?: string,
+      cantidadHorda?: number
+    ): void;
+  };
   quitarCriaturaDeIniciativa: (id: string) => void;
   modificarVidaCriaturaIniciativa: (id: string, nuevaVida: number) => void;
   dañarCriaturaIniciativa: (id: string, cantidad: number) => void;
@@ -99,15 +117,18 @@ export interface SliceIniciativa {
   aplicarDañoEnArea: (cantidad: number, idsObjetivo?: string[], limiteMiembrosHorda?: number) => void;
   aplicarCondicionEnArea: (condicion: string, idsObjetivo?: string[]) => void;
   aplicarEfectoEnArea: (nombreEfecto: string, duracion: number, opciones?: { concentracion?: boolean }, idsObjetivo?: string[]) => void;
-  ejecutarSalvacionEnArea: (
-    caracteristica: Caracteristica,
-    cd: number,
-    dañoBruto?: number,
-    condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
-    mitigacion?: "mitad" | "nada",
-    idsObjetivo?: string[],
-    limiteMiembrosHorda?: number
-  ) => ResultadoSalvacionArea | null;
+  ejecutarSalvacionEnArea: {
+    (params: ParamsSalvacionAreaIniciativa): ResultadoSalvacionArea | null;
+    (
+      caracteristica: Caracteristica,
+      cd: number,
+      dañoBruto?: number,
+      condicionOEfecto?: { nombre: string; tipo: "condicion" | "efecto"; duracion?: number; esConcentracion?: boolean },
+      mitigacion?: "mitad" | "nada",
+      idsObjetivo?: string[],
+      limiteMiembrosHorda?: number
+    ): ResultadoSalvacionArea | null;
+  };
 }
 
 export type CreadorSliceIniciativa = StateCreator<

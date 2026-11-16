@@ -4,10 +4,9 @@
  * Despachadores de mutación para condiciones, efectos y asociaciones de plantillas.
  */
 
-import type { EfectoActivo, EstadoDM } from "@/almacen/usarAlmacenDM";
+import type { EstadoDM } from "@/almacen/usarAlmacenDM";
 import { normalizarCondicionesRasgos } from "@/servicios/rasgos/estadoCondicionesRasgos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
-import { generarId } from "@/utiles/generarId";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import {
   normalizarNombreTaleSpire,
@@ -22,6 +21,10 @@ import {
   sincronizarEfectoAgregadoPersonajes,
   sincronizarEfectoQuitadoPersonajes
 } from "./sincronizadorEfectosIniciativa";
+import {
+  construirEfectoCombate,
+  filtrarCondicionesSolapadasPorEfecto
+} from "./utilidadesCombateIniciativa";
 
 export function despacharAgregarCondicion(
   state: EstadoDM,
@@ -54,7 +57,9 @@ export function despacharAgregarCondicion(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
+    personajes: nuevosPjs.map((p) =>
+      normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM })
+    )
   };
 }
 
@@ -98,7 +103,9 @@ export function despacharQuitarCondicion(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
+    personajes: nuevosPjs.map((p) =>
+      normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM })
+    )
   };
 }
 
@@ -111,42 +118,32 @@ export function despacharAgregarEfecto(
 ): Partial<EstadoDM> {
   let criaturaAfectadaNombre = "";
   const criaturaObjetivo = state.colaIniciativa.find((c) => c.id === idCriatura);
-  const esConcentracion =
-    opciones?.concentracion ||
-    nombreEfecto.toLowerCase().trim() === "concentración" ||
-    nombreEfecto.toLowerCase().trim() === "concentracion";
-
-  const nuevoEfectoId = generarId(nombreEfecto.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20));
-  const nuevoEfecto: EfectoActivo = {
-    id: nuevoEfectoId,
-    nombre: nombreEfecto,
-    expiraRonda: esConcentracion ? undefined : state.rondaActual + duracion,
-    concentracion: esConcentracion || undefined
-  };
+  const { efecto: nuevoEfecto, esConcentracion } = construirEfectoCombate(
+    nombreEfecto,
+    duracion,
+    state.rondaActual,
+    opciones
+  );
 
   const nuevaCola = state.colaIniciativa.map((c) => {
-    if (c.id === idCriatura) {
-      criaturaAfectadaNombre = c.nombre;
-      const nombreLimpio = nombreEfecto.split(" (")[0].toLowerCase().trim();
-      const condicionesActualizadas = (c.condiciones || []).filter((cond) => {
-        if (esConcentracion && cond.toLowerCase().includes("concentra")) return false;
-        const condLimpia = cond.split(" (")[0].toLowerCase().trim();
-        if (condLimpia === nombreLimpio || cond.toLowerCase().trim() === nombreEfecto.toLowerCase().trim()) return false;
-        return true;
-      });
-      const efectosActualizados = (c.efectos || []).filter((e) => {
-        if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || /^concentra/i.test(e.nombre || ""))) {
-          return false;
-        }
-        return e.id !== nuevoEfectoId;
-      });
-      return {
-        ...c,
-        condiciones: condicionesActualizadas,
-        efectos: [...efectosActualizados, nuevoEfecto]
-      };
-    }
-    return c;
+    if (c.id !== idCriatura) return c;
+    criaturaAfectadaNombre = c.nombre;
+    const condicionesActualizadas = filtrarCondicionesSolapadasPorEfecto(
+      c.condiciones,
+      nombreEfecto,
+      esConcentracion
+    );
+    const efectosActualizados = (c.efectos || []).filter((e) => {
+      if (esConcentracion && (e.concentracion || e.id === "ef_concentracion" || /^concentra/i.test(e.nombre || ""))) {
+        return false;
+      }
+      return e.id !== nuevoEfecto.id;
+    });
+    return {
+      ...c,
+      condiciones: condicionesActualizadas,
+      efectos: [...efectosActualizados, nuevoEfecto]
+    };
   });
 
   if (criaturaObjetivo?.esMonstruo) {
@@ -165,7 +162,9 @@ export function despacharAgregarEfecto(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
+    personajes: nuevosPjs.map((p) =>
+      normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM })
+    )
   };
 }
 
@@ -202,7 +201,9 @@ export function despacharQuitarEfecto(
 
   return {
     colaIniciativa: nuevaCola,
-    personajes: nuevosPjs.map((p) => normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM }))
+    personajes: nuevosPjs.map((p) =>
+      normalizarCondicionesRasgos(p, state.rondaActual, { conservarConcentracionDesconocida: state.esGM })
+    )
   };
 }
 
@@ -220,33 +221,20 @@ export function despacharAsociarPlantilla(
   const plantillaMonstruo = indiceMonstruos.porId.get(idPlantilla);
 
   const nuevaCola = state.colaIniciativa.map((c) => {
-    if (c.id === idCriatura) {
-      let vidaMaxCalculada = c.vidaMaxima;
-      let vidaActCalculada = c.vidaActual;
-      let caCalculada = c.ca;
-      let velocidadCalculada = c.velocidad;
-      let bonificadorIniciativaCalculado = c.bonificadorIniciativa;
-
-      if (plantillaMonstruo) {
-        caCalculada = plantillaMonstruo.ca;
-        velocidadCalculada = formatearVelocidad(plantillaMonstruo.velocidad);
-        bonificadorIniciativaCalculado = plantillaMonstruo.iniciativaBonificador;
-        const vida = calcularVidaInicial(plantillaMonstruo, state.metodoVidaMonstruo);
-        vidaMaxCalculada = vida.vidaMaxima;
-        vidaActCalculada = vida.vidaActual;
-      }
-
-      return {
-        ...c,
-        idPlantillaAsociada: idPlantilla,
-        vidaMaxima: vidaMaxCalculada,
-        vidaActual: vidaActCalculada,
-        ca: caCalculada,
-        velocidad: velocidadCalculada,
-        bonificadorIniciativa: bonificadorIniciativaCalculado
-      };
+    if (c.id !== idCriatura) return c;
+    if (!plantillaMonstruo) {
+      return { ...c, idPlantillaAsociada: idPlantilla };
     }
-    return c;
+    const vida = calcularVidaInicial(plantillaMonstruo, state.metodoVidaMonstruo);
+    return {
+      ...c,
+      idPlantillaAsociada: idPlantilla,
+      vidaMaxima: vida.vidaMaxima,
+      vidaActual: vida.vidaActual,
+      ca: plantillaMonstruo.ca,
+      velocidad: formatearVelocidad(plantillaMonstruo.velocidad),
+      bonificadorIniciativa: plantillaMonstruo.iniciativaBonificador
+    };
   });
 
   const nuevasAsociaciones = {
@@ -281,18 +269,11 @@ export function despacharDesvincularPlantilla(
     delete nuevasAsociaciones[`nombre_base:${nombreRefBase}`];
   }
 
-  const nuevaCola = state.colaIniciativa.map((c) => {
-    if (c.id === idCriatura) {
-      return {
-        ...c,
-        idPlantillaAsociada: undefined,
-        ca: 10,
-        velocidad: "30 pies",
-        bonificadorIniciativa: 0
-      };
-    }
-    return c;
-  });
+  const nuevaCola = state.colaIniciativa.map((c) =>
+    c.id === idCriatura
+      ? { ...c, idPlantillaAsociada: undefined, ca: 10, velocidad: "30 pies", bonificadorIniciativa: 0 }
+      : c
+  );
 
   return {
     colaIniciativa: nuevaCola,

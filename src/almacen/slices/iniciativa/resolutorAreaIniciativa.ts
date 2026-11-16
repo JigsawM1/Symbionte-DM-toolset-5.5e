@@ -4,13 +4,17 @@
  * Lógica pura para resolver tiradas de salvación y aplicaciones masivas de efectos en área.
  */
 
-import type { CriaturaIniciativa, EfectoActivo } from "@/almacen/usarAlmacenDM";
+import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { Caracteristica, MonstruoBase, PersonajeJugador } from "@/tipos";
 import { aplicarCondicion } from "@/servicios/procesadorCondiciones";
 import { esCriaturaHorda, resolverSalvacionHordaEnArea } from "@/servicios/combateHordas";
 import { resolverPlantillaPorCriatura } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
-import { generarId } from "@/utiles/generarId";
+import { coincidePersonajeConCriaturaArea } from "./sincronizadorMovimientoIniciativa";
+import {
+  aplicarDanoACriaturaIndividual,
+  construirEfectoCombate
+} from "./utilidadesCombateIniciativa";
 import type {
   CriaturaSeleccionadaTS,
   ResultadoSalvacionArea,
@@ -30,9 +34,10 @@ export function obtenerIdsObjetivoMasivo(
   if (idsManuales && idsManuales.length > 0) {
     return new Set(idsManuales);
   }
+  const idsEnCola = new Set(colaIniciativa.map((c) => c.id));
   const idsSeleccionadosEnCola = (criaturasSeleccionadas || [])
     .map((s) => s.id)
-    .filter((id) => colaIniciativa.some((c) => c.id === id));
+    .filter((id) => idsEnCola.has(id));
 
   if (idsSeleccionadosEnCola.length > 0) {
     return new Set(idsSeleccionadosEnCola);
@@ -81,6 +86,41 @@ export interface ParamsEjecutarSalvacionArea {
   personajes: PersonajeJugador[];
 }
 
+function obtenerBonoSalvacion(plantilla: MonstruoBase | undefined, caracteristica: Caracteristica): number {
+  if (!plantilla) return 0;
+  const salvacionEspecifica = plantilla.salvaciones?.[caracteristica];
+  if (salvacionEspecifica !== undefined && !isNaN(salvacionEspecifica)) {
+    return salvacionEspecifica;
+  }
+  if (plantilla.caracteristicas?.[caracteristica] !== undefined) {
+    return Math.floor((plantilla.caracteristicas[caracteristica] - 10) / 2);
+  }
+  return 0;
+}
+
+function aplicarCondicionOEfectoSalvacion(
+  criatura: CriaturaIniciativa,
+  condicionOEfecto: NonNullable<ParamsEjecutarSalvacionArea["condicionOEfecto"]>,
+  rondaActual: number
+): CriaturaIniciativa {
+  if (condicionOEfecto.tipo === "condicion") {
+    return {
+      ...criatura,
+      condiciones: aplicarCondicion(criatura.condiciones, condicionOEfecto.nombre)
+    };
+  }
+  const { efecto } = construirEfectoCombate(
+    condicionOEfecto.nombre,
+    condicionOEfecto.duracion || 10,
+    rondaActual,
+    { concentracion: condicionOEfecto.esConcentracion }
+  );
+  return {
+    ...criatura,
+    efectos: [...(criatura.efectos || []), efecto]
+  };
+}
+
 export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea): {
   resultado: ResultadoSalvacionArea;
   nuevaCola: CriaturaIniciativa[];
@@ -120,15 +160,7 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
     if (!targets.has(c.id)) return c;
 
     const plantilla = resolverPlantillaPorCriatura(c.id, c.nombre, asociacionesFichas, indiceMonstruos);
-    let bonoSalvacion = 0;
-    if (plantilla) {
-      const salvacionEspecifica = plantilla.salvaciones?.[caracteristica];
-      if (salvacionEspecifica !== undefined && !isNaN(salvacionEspecifica)) {
-        bonoSalvacion = salvacionEspecifica;
-      } else if (plantilla.caracteristicas?.[caracteristica] !== undefined) {
-        bonoSalvacion = Math.floor((plantilla.caracteristicas[caracteristica] - 10) / 2);
-      }
-    }
+    const bonoSalvacion = obtenerBonoSalvacion(plantilla, caracteristica);
 
     if (esCriaturaHorda(c) && c.barrasVida && c.barrasVida.length > 1) {
       const { criaturaActualizada: criHorda, detalle } = resolverSalvacionHordaEnArea(c, {
@@ -138,21 +170,11 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
         mitigacion,
         limiteMiembros: limiteMiembrosHorda
       });
-      const criFinal = { ...criHorda };
       const huboFallo = detalle.fallos > 0;
-      if (condicionOEfecto && huboFallo) {
-        if (condicionOEfecto.tipo === "condicion") {
-          criFinal.condiciones = aplicarCondicion(criFinal.condiciones, condicionOEfecto.nombre);
-        } else {
-          const esConc = Boolean(condicionOEfecto.esConcentracion || /^concentraci[oó]n$/i.test(condicionOEfecto.nombre.trim()));
-          criFinal.efectos = [...(criFinal.efectos || []), {
-            id: generarId(condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20)),
-            nombre: condicionOEfecto.nombre,
-            expiraRonda: esConc ? undefined : rondaActual + (condicionOEfecto.duracion || 10),
-            concentracion: esConc || undefined
-          }];
-        }
-      }
+      const criFinal = condicionOEfecto && huboFallo
+        ? aplicarCondicionOEfectoSalvacion(criHorda, condicionOEfecto, rondaActual)
+        : criHorda;
+
       resultadosLog.push({
         id: c.id,
         nombre: c.nombre,
@@ -177,48 +199,15 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
 
     if (dañoBruto !== undefined && dañoBruto > 0) {
       dañoAplicado = exito ? (mitigacion === "nada" ? 0 : Math.floor(dañoBruto / 2)) : dañoBruto;
-      let dañoRestante = dañoAplicado;
-      let vidaTemp = criaturaActualizada.vidaTemporal || 0;
-      let vidaAct = criaturaActualizada.vidaActual;
-
-      if (vidaTemp > 0) {
-        if (vidaTemp >= dañoRestante) {
-          vidaTemp -= dañoRestante;
-          dañoRestante = 0;
-        } else {
-          dañoRestante -= vidaTemp;
-          vidaTemp = 0;
-        }
-      }
-
-      if (dañoRestante > 0) {
-        vidaAct = Math.max(0, vidaAct - dañoRestante);
-      }
-
-      criaturaActualizada = { ...criaturaActualizada, vidaTemporal: vidaTemp, vidaActual: vidaAct };
+      criaturaActualizada = {
+        ...criaturaActualizada,
+        ...aplicarDanoACriaturaIndividual(criaturaActualizada, dañoAplicado)
+      };
     }
 
     if (condicionOEfecto && !exito) {
       condicionAplicada = true;
-      if (condicionOEfecto.tipo === "condicion") {
-        criaturaActualizada.condiciones = aplicarCondicion(
-          criaturaActualizada.condiciones,
-          condicionOEfecto.nombre
-        );
-      } else {
-        const nuevosEfectos = criaturaActualizada.efectos ? [...criaturaActualizada.efectos] : [];
-        const esConcentracion =
-          condicionOEfecto.esConcentracion ||
-          condicionOEfecto.nombre.toLowerCase().trim() === "concentración" ||
-          condicionOEfecto.nombre.toLowerCase().trim() === "concentracion";
-        const nuevoEfecto: EfectoActivo = {
-          id: generarId(condicionOEfecto.nombre.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 20)),
-          nombre: condicionOEfecto.nombre,
-          expiraRonda: esConcentracion ? undefined : rondaActual + (condicionOEfecto.duracion || 10),
-          concentracion: esConcentracion || undefined
-        };
-        criaturaActualizada.efectos = [...nuevosEfectos, nuevoEfecto];
-      }
+      criaturaActualizada = aplicarCondicionOEfectoSalvacion(criaturaActualizada, condicionOEfecto, rondaActual);
     }
 
     resultadosLog.push({
@@ -236,14 +225,7 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
   });
 
   const nuevosPersonajesSalvacion = personajes.map((pj) => {
-    const c = colaModificada.find((item) => {
-      const cNom = (item.nombre || "").trim().toLowerCase();
-      return (
-        pj.id === item.id ||
-        (Boolean(pj.idMiniaturaTS) && pj.idMiniaturaTS === item.id) ||
-        (Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom)
-      );
-    });
+    const c = colaModificada.find((item) => coincidePersonajeConCriaturaArea(pj, item));
     if (c && condicionOEfecto) {
       const logItem = resultadosLog.find((r) => r.id === c.id);
       if (logItem?.condicionAplicada) {

@@ -19,10 +19,10 @@ import {
   sincronizarVidaMaximaPersonajes,
   sincronizarVidaTemporalPersonajes
 } from "./sincronizadorVidaIniciativa";
+import { aplicarDanoACriaturaIndividual } from "./utilidadesCombateIniciativa";
 
 export function despacharModificarVida(
   state: EstadoDM,
-  _get: () => EstadoDM,
   id: string,
   nuevaVida: number
 ): Partial<EstadoDM> {
@@ -63,15 +63,13 @@ export function despacharModificarVida(
 
 export function despacharDano(
   state: EstadoDM,
-  get: () => EstadoDM,
   id: string,
   cantidad: number
 ): Partial<EstadoDM> {
   const daño = Math.max(0, Math.trunc(cantidad));
   if (daño === 0) return {};
 
-  const estadoPrevio = get();
-  const criaturaPrevia = estadoPrevio.colaIniciativa.find((c) => c.id === id);
+  const criaturaPrevia = state.colaIniciativa.find((c) => c.id === id);
   if (!criaturaPrevia) return {};
 
   if (esCriaturaHorda(criaturaPrevia) && criaturaPrevia.barrasVida && criaturaPrevia.barrasVida.length > 1) {
@@ -81,22 +79,7 @@ export function despacharDano(
     return { colaIniciativa: nuevaColaHorda };
   }
 
-  let dañoRestante = daño;
-  let vidaTemp = criaturaPrevia.vidaTemporal || 0;
-  let vidaAct = criaturaPrevia.vidaActual;
-
-  if (vidaTemp > 0) {
-    if (vidaTemp >= dañoRestante) {
-      vidaTemp -= dañoRestante;
-      dañoRestante = 0;
-    } else {
-      dañoRestante -= vidaTemp;
-      vidaTemp = 0;
-    }
-  }
-  if (dañoRestante > 0) {
-    vidaAct = Math.max(0, vidaAct - dañoRestante);
-  }
+  const { vidaActual: vidaAct, vidaTemporal: vidaTemp } = aplicarDanoACriaturaIndividual(criaturaPrevia, daño);
 
   let criaturaAfectadaNombre = "";
   const nuevaCola = state.colaIniciativa.map((c) => {
@@ -128,7 +111,6 @@ export function despacharDano(
 
 export function despacharModificarVidaMaxima(
   state: EstadoDM,
-  _get: () => EstadoDM,
   id: string,
   nuevaVidaMax: number
 ): Partial<EstadoDM> {
@@ -175,7 +157,6 @@ export function despacharModificarVidaMaxima(
 
 export function despacharActualizarVidaTemporal(
   state: EstadoDM,
-  _get: () => EstadoDM,
   idCriatura: string,
   vidaTemp: number
 ): Partial<EstadoDM> {

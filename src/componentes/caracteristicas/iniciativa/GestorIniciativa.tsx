@@ -1,121 +1,21 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { usarAlmacenDM, type CriaturaIniciativa, type HechizoBase } from "@/almacen/usarAlmacenDM";
-import {
-  usarEstadoIniciativa,
-  usarAccionesIniciativa,
-  usarEstadoHomebrew,
-  usarEstadoConfiguracion,
-} from "@/almacen/selectores";
-import { resolverPlantillaPorCriatura, esNombreVacioODot, obtenerPasivasCriatura, resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
+import { usarEstadoIniciativa, usarAccionesIniciativa, usarEstadoHomebrew, usarEstadoConfiguracion } from "@/almacen/selectores";
+import { obtenerPasivasCriatura, resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
+import { resolverPlantillaCombateCriatura, obtenerPercepcionPasivaPlantilla } from "@/almacen/slices/iniciativa/utilidadesCombateIniciativa";
 import { esCriaturaHorda, obtenerResumenHorda } from "@/servicios/combateHordas";
-import type { PasivasCombatePJ } from "@/tipos/sync";
-import {
-  obtenerPlantillaInvocacionPorId,
-  proyectarInvocacionAMonstruo,
-  extraerContextoLanzador
-} from "@/servicios/factoriaInvocaciones";
 import { usarIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import { MonstruoBase } from "@/utiles/datosIniciales";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import { construirFormulaAtaqueRapido } from "@/utiles/procesadorAtaques";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio";
-import { TarjetaCriaturaIniciativa } from "./TarjetaCriaturaIniciativa";
-import { PanelFichaDnD } from "./PanelFichaDnD";
-import { VinculadorPlantilla } from "./VinculadorPlantilla";
 import { ModalAtaqueHorda, type DatosAtaqueHordaModal } from "./horda/ModalAtaqueHorda";
-import { Activity, FileText, X } from "lucide-react";
+import { ItemCriaturaIniciativa, type DespachadoresItemIniciativa } from "./subcomponentes/ItemCriaturaIniciativa";
+import { PanelDetalleCriaturaIniciativa } from "./subcomponentes/PanelDetalleCriaturaIniciativa";
+import { Activity } from "lucide-react";
 import estilosClases from "./GestorIniciativa.module.css";
 import { ConfirmDialog } from "@/componentes/comunes";
 import { logger } from "@/utiles/logger";
-
-interface ItemCriaturaIniciativaProps {
-  criatura: CriaturaIniciativa;
-  esTurnoActivo: boolean;
-  estaSeleccionadaEnTS: boolean;
-  plantilla: MonstruoBase | null;
-  pasivasJugador?: PasivasCombatePJ | null;
-  avatarUrlPJ?: string | null;
-  rondaActual: number;
-  onEliminar: (id: string) => void;
-  onSeleccionar: (id: string) => void;
-  onCurar: (id: string, vidaActual: number, vidaMaxima: number, cant: number) => void;
-  onDañar: (id: string, vidaActual: number, vidaTemporal: number, cant: number) => void;
-  onCambiarTempHP: (id: string, cant: number) => void;
-  onAñadirCondicion: (id: string, cond: string) => void;
-  onQuitarCondicion: (id: string, cond: string) => void;
-  onAñadirEfecto: (id: string, nom: string, dur: number, opciones?: { concentracion?: boolean }) => void;
-  onQuitarEfecto: (id: string, efId: string) => void;
-  onLanzarIniciativa: (criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => void;
-  onLanzarAtaqueRapido: (nombre: string, accNom: string, accBono: string, accDados: string, accTipo: string) => void;
-  obtenerPercepcionPasiva: (plantilla: MonstruoBase | null) => number;
-  onEstablecerIniciativa: (id: string, nuevaInic: number) => void;
-  onEstablecerVidaMaxima?: (id: string, nuevaMax: number) => void;
-  onAlternarRol: (id: string) => void;
-  onConfigurarBarrasHorda: (id: string, cantidad: number) => void;
-  onSeleccionarBarraHorda: (id: string, indice: number) => void;
-  onAlternarModoDanoHorda: (id: string) => void;
-  refTarjetaActiva: (nodo: HTMLDivElement | null) => void;
-}
-
-const ItemCriaturaIniciativa: React.FC<ItemCriaturaIniciativaProps> = React.memo(({
-  criatura, esTurnoActivo, estaSeleccionadaEnTS, plantilla, pasivasJugador, avatarUrlPJ, rondaActual,
-  onEliminar, onSeleccionar, onCurar, onDañar, onCambiarTempHP, onAñadirCondicion, onQuitarCondicion,
-  onAñadirEfecto, onQuitarEfecto, onLanzarIniciativa, onLanzarAtaqueRapido, obtenerPercepcionPasiva,
-  onEstablecerIniciativa, onEstablecerVidaMaxima, onAlternarRol,
-  onConfigurarBarrasHorda, onSeleccionarBarraHorda, onAlternarModoDanoHorda, refTarjetaActiva
-}) => {
-  const manejarEliminar = useCallback(() => onEliminar(criatura.id), [onEliminar, criatura.id]);
-  const manejarSeleccionar = useCallback(() => onSeleccionar(criatura.id), [onSeleccionar, criatura.id]);
-  const manejarCurar = useCallback((cant: number) => onCurar(criatura.id, criatura.vidaActual, criatura.vidaMaxima, cant), [onCurar, criatura.id, criatura.vidaActual, criatura.vidaMaxima]);
-  const manejarDañar = useCallback((cant: number) => onDañar(criatura.id, criatura.vidaActual, criatura.vidaTemporal || 0, cant), [onDañar, criatura.id, criatura.vidaActual, criatura.vidaTemporal]);
-  const manejarCambiarTempHP = useCallback((cant: number) => onCambiarTempHP(criatura.id, cant), [onCambiarTempHP, criatura.id]);
-  const manejarAñadirCondicion = useCallback((cond: string) => onAñadirCondicion(criatura.id, cond), [onAñadirCondicion, criatura.id]);
-  const manejarQuitarCondicion = useCallback((cond: string) => onQuitarCondicion(criatura.id, cond), [onQuitarCondicion, criatura.id]);
-  const manejarAñadirEfecto = useCallback((nom: string, dur: number, opciones?: { concentracion?: boolean }) => onAñadirEfecto(criatura.id, nom, dur, opciones), [onAñadirEfecto, criatura.id]);
-  const manejarQuitarEfecto = useCallback((efId: string) => onQuitarEfecto(criatura.id, efId), [onQuitarEfecto, criatura.id]);
-  const manejarLanzarIniciativa = useCallback(() => onLanzarIniciativa(criatura, plantilla), [onLanzarIniciativa, criatura, plantilla]);
-  const manejarEstablecerIniciativa = useCallback((nuevaInic: number) => onEstablecerIniciativa(criatura.id, nuevaInic), [onEstablecerIniciativa, criatura.id]);
-  const manejarEstablecerVidaMaxima = useCallback((nuevaMax: number) => onEstablecerVidaMaxima?.(criatura.id, nuevaMax), [onEstablecerVidaMaxima, criatura.id]);
-  const manejarLanzarAtaqueRapido = useCallback((accNom: string, accBono: string, accDados: string, accTipo: string) => onLanzarAtaqueRapido(criatura.nombre, accNom, accBono, accDados, accTipo), [onLanzarAtaqueRapido, criatura.nombre]);
-  const manejarAlternarRol = useCallback(() => onAlternarRol(criatura.id), [onAlternarRol, criatura.id]);
-  const manejarConfigurarHorda = useCallback((cant: number) => onConfigurarBarrasHorda(criatura.id, cant), [onConfigurarBarrasHorda, criatura.id]);
-  const manejarSeleccionarBarra = useCallback((idx: number) => onSeleccionarBarraHorda(criatura.id, idx), [onSeleccionarBarraHorda, criatura.id]);
-  const manejarAlternarModoHorda = useCallback(() => onAlternarModoDanoHorda(criatura.id), [onAlternarModoDanoHorda, criatura.id]);
-
-  return (
-    <div ref={esTurnoActivo ? refTarjetaActiva : undefined} data-turno-activo={esTurnoActivo ? "true" : undefined}>
-      <TarjetaCriaturaIniciativa
-        criatura={criatura}
-        esTurnoActivo={esTurnoActivo}
-        estaSeleccionadaEnTS={estaSeleccionadaEnTS}
-        plantilla={plantilla}
-        pasivasJugador={pasivasJugador}
-        avatarUrlPJ={avatarUrlPJ}
-        rondaActual={rondaActual}
-        onEliminar={manejarEliminar}
-        onSeleccionar={manejarSeleccionar}
-        onCurar={manejarCurar}
-        onDañar={manejarDañar}
-        onCambiarTempHP={manejarCambiarTempHP}
-        onAñadirCondicion={manejarAñadirCondicion}
-        onQuitarCondicion={manejarQuitarCondicion}
-        onAñadirEfecto={manejarAñadirEfecto}
-        onQuitarEfecto={manejarQuitarEfecto}
-        onLanzarIniciativa={manejarLanzarIniciativa}
-        onLanzarAtaqueRapido={manejarLanzarAtaqueRapido}
-        obtenerPercepcionPasiva={obtenerPercepcionPasiva}
-        onEstablecerIniciativa={manejarEstablecerIniciativa}
-        onEstablecerVidaMaxima={onEstablecerVidaMaxima ? manejarEstablecerVidaMaxima : undefined}
-        onAlternarRol={manejarAlternarRol}
-        onConfigurarBarrasHorda={manejarConfigurarHorda}
-        onSeleccionarBarraHorda={manejarSeleccionarBarra}
-        onAlternarModoDanoHorda={manejarAlternarModoHorda}
-      />
-    </div>
-  );
-});
-
-ItemCriaturaIniciativa.displayName = "ItemCriaturaIniciativa";
 
 export const GestorIniciativa: React.FC = () => {
   const { colaIniciativa, indiceTurnoActivo, rondaActual, criaturasSeleccionadas, asociacionesFichas, personajes } = usarEstadoIniciativa();
@@ -139,12 +39,10 @@ export const GestorIniciativa: React.FC = () => {
     alternarRolCriatura,
   } = usarAccionesIniciativa();
   const { baseDatosMonstruos, baseDatosHechizos } = usarEstadoHomebrew();
-  const baseDatosInvocaciones = usarAlmacenDM(s => s.baseDatosInvocaciones);
+  const baseDatosInvocaciones = usarAlmacenDM((s) => s.baseDatosInvocaciones);
   const { tipoTirada } = usarEstadoConfiguracion();
-
   const indiceMonstruos = usarIndiceMonstruos();
 
-  // Estados locales
   const [idCriaturaDetalle, setIdCriaturaDetalle] = useState<string | null>(null);
   const [hechizoFlotanteDetalle, setHechizoFlotanteDetalle] = useState<HechizoBase | null>(null);
   const [ataqueHordaModal, setAtaqueHordaModal] = useState<DatosAtaqueHordaModal | null>(null);
@@ -154,17 +52,8 @@ export const GestorIniciativa: React.FC = () => {
     onConfirmar: () => void;
   } | null>(null);
 
-  // Ref para auto-scroll al turno activo
   const refContenedorScroll = useRef<HTMLDivElement>(null);
 
-  // Callback ref para la tarjeta activa — hace scrollIntoView al montarse/cambiar
-  const refTarjetaActiva = useCallback((nodo: HTMLDivElement | null) => {
-    if (nodo) {
-      nodo.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
-  }, []);
-
-  // Auto-scroll cada vez que cambia el turno activo
   useEffect(() => {
     if (refContenedorScroll.current) {
       const elementoActivo = refContenedorScroll.current.querySelector('[data-turno-activo="true"]');
@@ -174,63 +63,20 @@ export const GestorIniciativa: React.FC = () => {
     }
   }, [indiceTurnoActivo]);
 
-  // Buscar plantilla de estadísticas para una criatura mediante el ResolutorCriaturas o la Factoría de Invocaciones
-  const obtenerPlantillaAsociada = (criatura: CriaturaIniciativa): MonstruoBase | null => {
-    // 1. Si está asociada a una invocación escalable
-    if (criatura.idPlantillaAsociada) {
-      const plantillaInv = obtenerPlantillaInvocacionPorId(criatura.idPlantillaAsociada, baseDatosInvocaciones);
-      if (plantillaInv) {
-        const pjDuenio = personajes.find(
-          (p) =>
-            p.id === criatura.idPersonajeDuenio ||
-            (p.acompanantes || []).some(
-              (a) => a.id === criatura.idAcompanante || (a.idMiniaturaTS && a.idMiniaturaTS === criatura.id)
-            )
-        ) || personajes[0];
+  const obtenerPlantillaAsociada = useCallback(
+    (criatura: CriaturaIniciativa): MonstruoBase | null =>
+      resolverPlantillaCombateCriatura(criatura, {
+        asociacionesFichas,
+        indiceMonstruos,
+        personajes,
+        baseDatosInvocaciones
+      }),
+    [asociacionesFichas, indiceMonstruos, personajes, baseDatosInvocaciones]
+  );
 
-        const acomp = pjDuenio?.acompanantes?.find(
-          (a) =>
-            a.id === criatura.idAcompanante ||
-            (a.idMiniaturaTS && a.idMiniaturaTS === criatura.id) ||
-            a.idPlantilla === criatura.idPlantillaAsociada
-        );
-
-        if (pjDuenio) {
-          const contexto = extraerContextoLanzador(pjDuenio);
-          return proyectarInvocacionAMonstruo(
-            plantillaInv,
-            acomp?.nivelConjuroInvocacion || 2,
-            contexto,
-            acomp?.subtipoInvocacion
-          );
-        }
-      }
-    }
-
-    if (!criatura.esMonstruo && !criatura.idPlantillaAsociada) {
-      return null;
-    }
-
-    return resolverPlantillaPorCriatura(
-      criatura.id,
-      criatura.nombre,
-      asociacionesFichas,
-      indiceMonstruos
-    ) || null;
-  };
-
-  // Cómputo de Percepción Pasiva (Lectura directa O(1) con referencia estable para React.memo)
-  const obtenerPercepcionPasiva = useCallback((plantilla: MonstruoBase | null): number => {
-    if (!plantilla) return 10;
-    if (plantilla.sentidos && typeof plantilla.sentidos === "object" && "percepcionPasiva" in plantilla.sentidos) {
-      return (plantilla.sentidos as { percepcionPasiva?: number }).percepcionPasiva ?? 10;
-    }
-    return 10;
-  }, []);
-
-  // Lanzar Ataques y Habilidades en TaleSpire 3D (o abrir Calculadora de Hordas si es una Horda)
   const lanzarAtaqueRapido = useCallback((criaturaNombre: string, ataqueNombre: string, bonoAtaqueStr: string, dadosDaño: string, tipoDaño: string) => {
-    const criaturaHorda = colaIniciativa.find((c) => c.nombre === criaturaNombre && esCriaturaHorda(c));
+    const { colaIniciativa: colaActual } = usarAlmacenDM.getState();
+    const criaturaHorda = colaActual.find((c) => c.nombre === criaturaNombre && esCriaturaHorda(c));
     if (criaturaHorda) {
       const resumen = obtenerResumenHorda(criaturaHorda);
       setAtaqueHordaModal({
@@ -246,7 +92,7 @@ export const GestorIniciativa: React.FC = () => {
     }
     const formulaDados = construirFormulaAtaqueRapido(ataqueNombre, bonoAtaqueStr, dadosDaño, tipoDaño, criaturaNombre);
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${ataqueNombre}`);
-  }, [colaIniciativa]);
+  }, []);
 
   const lanzarTiradaD20Interactiva = useCallback((criaturaNombre: string, etiqueta: string, bonificador: number) => {
     const etiquetaCompleta = `${sanitizarEtiqueta(criaturaNombre)} - ${sanitizarEtiqueta(etiqueta)}`;
@@ -254,25 +100,32 @@ export const GestorIniciativa: React.FC = () => {
     lanzarDadosTaleSpire(formulaDados, `${criaturaNombre} - ${etiqueta}`);
   }, []);
 
-  // Callbacks estables para manipulación de criaturas (PERF-01)
   const alEliminarCriatura = useCallback((id: string) => {
     setIdCriaturaDetalle((prev) => (prev === id ? null : prev));
     quitarCriaturaDeIniciativa(id);
   }, [quitarCriaturaDeIniciativa]);
 
-  const alSeleccionarCriatura = useCallback((id: string) => {
-    setIdCriaturaDetalle(id);
-  }, []);
-
-  const alCurarCriatura = useCallback((id: string, actual: number, maximo: number, valor: number) => {
-    const nuevaVida = Math.min(maximo, actual + valor);
+  const alCurarCriatura = useCallback((id: string, valor: number) => {
+    const criatura = usarAlmacenDM.getState().colaIniciativa.find((c) => c.id === id);
+    if (!criatura) return;
+    const nuevaVida = Math.min(criatura.vidaMaxima, criatura.vidaActual + valor);
     modificarVidaCriaturaIniciativa(id, nuevaVida);
-    logger.debug(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${actual} -> ${nuevaVida}`);
+    logger.debug(`[Combat Tracker] Curación aplicada a la criatura ${id}: ${criatura.vidaActual} -> ${nuevaVida}`);
   }, [modificarVidaCriaturaIniciativa]);
 
-  const alDañarCriatura = useCallback((id: string, _actual: number, _temporal: number, valor: number) => {
+  const alDañarCriatura = useCallback((id: string, valor: number) => {
     dañarCriaturaIniciativa(id, valor);
   }, [dañarCriaturaIniciativa]);
+
+  const alSolicitarDesvincular = useCallback((criatura: { id: string; nombre: string }, plantilla: { nombre: string }) => {
+    setConfirmarAccion({
+      titulo: "Desvincular Plantilla",
+      mensaje: `¿Estás seguro de que deseas desvincular la plantilla "${plantilla.nombre}" de la criatura "${criatura.nombre}"?`,
+      onConfirmar: () => desvincularPlantillaDeCriatura(criatura.id)
+    });
+  }, [desvincularPlantillaDeCriatura]);
+
+  const alCerrarDetalle = useCallback(() => setIdCriaturaDetalle(null), []);
 
   const alLanzarIniciativaCriatura = useCallback((criatura: CriaturaIniciativa, plantilla: MonstruoBase | null) => {
     let bonoInic = criatura.bonificadorIniciativa || 0;
@@ -284,11 +137,39 @@ export const GestorIniciativa: React.FC = () => {
       }
     }
     lanzarDadosTaleSpire(
-      `!Iniciativa:1d20${bonoInic >= 0 ? "+" : ""}${bonoInic}`, 
+      `!Iniciativa:1d20${bonoInic >= 0 ? "+" : ""}${bonoInic}`,
       `Iniciativa (${criatura.nombre})`,
       { tipo: "iniciativa", criaturaId: criatura.id }
     );
   }, []);
+
+  const despachadores = useMemo<DespachadoresItemIniciativa>(() => ({
+    onEliminar: alEliminarCriatura,
+    onSeleccionar: setIdCriaturaDetalle,
+    onCurar: alCurarCriatura,
+    onDañar: alDañarCriatura,
+    onCambiarTempHP: actualizarVidaTemporal,
+    onAñadirCondicion: agregarCondicionACriatura,
+    onQuitarCondicion: quitarCondicionDeCriatura,
+    onAñadirEfecto: agregarEfectoACriatura,
+    onQuitarEfecto: quitarEfectoDeCriatura,
+    onLanzarIniciativa: alLanzarIniciativaCriatura,
+    onLanzarAtaqueRapido: lanzarAtaqueRapido,
+    obtenerPercepcionPasiva: obtenerPercepcionPasivaPlantilla,
+    onEstablecerIniciativa: establecerIniciativaCriatura,
+    onEstablecerVidaMaxima: modificarVidaMaximaCriaturaIniciativa,
+    onAlternarRol: alternarRolCriatura,
+    onConfigurarBarrasHorda: configurarBarrasHordaCriatura,
+    onSeleccionarBarraHorda: seleccionarBarraActivaHorda,
+    onAlternarModoDanoHorda: alternarModoDanoHorda
+  }), [
+    alEliminarCriatura, alCurarCriatura, alDañarCriatura, actualizarVidaTemporal,
+    agregarCondicionACriatura, quitarCondicionDeCriatura, agregarEfectoACriatura,
+    quitarEfectoDeCriatura, alLanzarIniciativaCriatura, lanzarAtaqueRapido,
+    establecerIniciativaCriatura, modificarVidaMaximaCriaturaIniciativa,
+    alternarRolCriatura, configurarBarrasHordaCriatura, seleccionarBarraActivaHorda,
+    alternarModoDanoHorda
+  ]);
 
   const idsSeleccionadosTS = useMemo(
     () => new Set((criaturasSeleccionadas || []).map((s) => s.id)),
@@ -296,7 +177,6 @@ export const GestorIniciativa: React.FC = () => {
   );
 
   const criaturaSeleccionadaDetalle = colaIniciativa.find((c) => c.id === idCriaturaDetalle);
-  
   const plantillaDeDetalle = criaturaSeleccionadaDetalle ? obtenerPlantillaAsociada(criaturaSeleccionadaDetalle) : null;
 
   return (
@@ -324,7 +204,6 @@ export const GestorIniciativa: React.FC = () => {
         </div>
       ) : (
         <div className={estilosClases.panelIniciativaDividido}>
-          {/* SECCIÓN SUPERIOR: COMBAT TRACKER */}
           <div className={estilosClases.seccionTrackerScroll}>
             <div className={estilosClases.barraHerramientasTracker}>
               <span className={estilosClases.contadorCombatientes}>
@@ -345,114 +224,40 @@ export const GestorIniciativa: React.FC = () => {
             </div>
 
             <div className={estilosClases.listaTarjetasIniciativa} ref={refContenedorScroll}>
-              {colaIniciativa.map((criatura, indice) => {
-                const esTurnoActivo = indice === indiceTurnoActivo;
-                const estaSeleccionadaEnTS = idsSeleccionadosTS.has(criatura.id);
-                const plantilla = obtenerPlantillaAsociada(criatura);
-                return (
-                  <ItemCriaturaIniciativa
-                    key={criatura.id}
-                    criatura={criatura}
-                    esTurnoActivo={esTurnoActivo}
-                    estaSeleccionadaEnTS={estaSeleccionadaEnTS}
-                    plantilla={plantilla}
-                    pasivasJugador={obtenerPasivasCriatura(criatura, personajes)}
-                    avatarUrlPJ={criatura.avatarUrl || (!criatura.esMonstruo ? resolverPersonajePorCriatura(criatura, personajes)?.avatarUrl : undefined)}
-                    rondaActual={rondaActual}
-                    onEliminar={alEliminarCriatura}
-                    onSeleccionar={alSeleccionarCriatura}
-                    onCurar={alCurarCriatura}
-                    onDañar={alDañarCriatura}
-                    onCambiarTempHP={actualizarVidaTemporal}
-                    onAñadirCondicion={agregarCondicionACriatura}
-                    onQuitarCondicion={quitarCondicionDeCriatura}
-                    onAñadirEfecto={agregarEfectoACriatura}
-                    onQuitarEfecto={quitarEfectoDeCriatura}
-                    onLanzarIniciativa={alLanzarIniciativaCriatura}
-                    onLanzarAtaqueRapido={lanzarAtaqueRapido}
-                    obtenerPercepcionPasiva={obtenerPercepcionPasiva}
-                    onEstablecerIniciativa={establecerIniciativaCriatura}
-                    onEstablecerVidaMaxima={modificarVidaMaximaCriaturaIniciativa}
-                    onAlternarRol={alternarRolCriatura}
-                    onConfigurarBarrasHorda={configurarBarrasHordaCriatura}
-                    onSeleccionarBarraHorda={seleccionarBarraActivaHorda}
-                    onAlternarModoDanoHorda={alternarModoDanoHorda}
-                    refTarjetaActiva={refTarjetaActiva}
-                  />
-                );
-              })}
+              {colaIniciativa.map((criatura, indice) => (
+                <ItemCriaturaIniciativa
+                  key={criatura.id}
+                  criatura={criatura}
+                  esTurnoActivo={indice === indiceTurnoActivo}
+                  estaSeleccionadaEnTS={idsSeleccionadosTS.has(criatura.id)}
+                  plantilla={obtenerPlantillaAsociada(criatura)}
+                  pasivasJugador={obtenerPasivasCriatura(criatura, personajes)}
+                  avatarUrlPJ={criatura.avatarUrl || (!criatura.esMonstruo ? resolverPersonajePorCriatura(criatura, personajes)?.avatarUrl : undefined)}
+                  rondaActual={rondaActual}
+                  despachadores={despachadores}
+                />
+              ))}
             </div>
           </div>
 
-          {/* SECCIÓN INFERIOR: BLOQUE DE ESTADÍSTICAS */}
           {criaturaSeleccionadaDetalle && (
-            <div className={estilosClases.panelDetalleInferior}>
-              <div className={estilosClases.cabeceraDetalleFicha}>
-                <div className={estilosClases.tituloFichaIzquierda}>
-                  <FileText size={13} className={estilosClases.iconoFicha} />
-                  <span className={estilosClases.nombreFichaCabecera}>
-                    {esNombreVacioODot(criaturaSeleccionadaDetalle.nombre) 
-                      ? `[MINI SIN NOMBRE: ${criaturaSeleccionadaDetalle.id.slice(-4).toUpperCase()}]`
-                      : criaturaSeleccionadaDetalle.nombre.toUpperCase()}
-                  </span>
-                  {plantillaDeDetalle && (
-                    <div className={estilosClases.contenedorDesvincular}>
-                      <span className={estilosClases.subFichaAsociada}>
-                        [ {plantillaDeDetalle.nombre.toUpperCase()} ]
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setConfirmarAccion({
-                            titulo: "Desvincular Plantilla",
-                            mensaje: `¿Estás seguro de que deseas desvincular la plantilla "${plantillaDeDetalle.nombre}" de la criatura "${criaturaSeleccionadaDetalle.nombre}"?`,
-                            onConfirmar: () => desvincularPlantillaDeCriatura(criaturaSeleccionadaDetalle.id)
-                          });
-                        }}
-                        className={estilosClases.botonDesvincularMini}
-                        title="Desvincular plantilla"
-                      >
-                        <X size={10} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => setIdCriaturaDetalle(null)}
-                  className={estilosClases.botonCerrarDetalle}
-                  aria-label="Cerrar ficha de criatura"
-                  title="Cerrar ficha de criatura"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-
-              <div className={estilosClases.cuerpoDetalleScroll}>
-                {!plantillaDeDetalle ? (
-                  <VinculadorPlantilla
-                    criaturaId={criaturaSeleccionadaDetalle.id}
-                    baseDatosMonstruos={baseDatosMonstruos}
-                    onAsociar={asociarPlantillaACriatura}
-                  />
-                ) : (
-                  <PanelFichaDnD
-                    criaturaNombre={criaturaSeleccionadaDetalle.nombre}
-                    plantilla={plantillaDeDetalle}
-                    baseDatosHechizos={baseDatosHechizos}
-                    alHacerClicHechizo={setHechizoFlotanteDetalle}
-                    lanzarAtaqueRapido={lanzarAtaqueRapido}
-                    lanzarTiradaD20Interactiva={lanzarTiradaD20Interactiva}
-                    obtenerPercepcionPasiva={obtenerPercepcionPasiva}
-                  />
-                )}
-              </div>
-            </div>
+            <PanelDetalleCriaturaIniciativa
+              criatura={criaturaSeleccionadaDetalle}
+              plantilla={plantillaDeDetalle}
+              baseDatosMonstruos={baseDatosMonstruos}
+              baseDatosHechizos={baseDatosHechizos}
+              onAsociarPlantilla={asociarPlantillaACriatura}
+              onSolicitarDesvincular={alSolicitarDesvincular}
+              onCerrar={alCerrarDetalle}
+              onHacerClicHechizo={setHechizoFlotanteDetalle}
+              lanzarAtaqueRapido={lanzarAtaqueRapido}
+              lanzarTiradaD20Interactiva={lanzarTiradaD20Interactiva}
+              obtenerPercepcionPasiva={obtenerPercepcionPasivaPlantilla}
+            />
           )}
         </div>
       )}
 
-      {/* Modal flotante e independiente con el detalle del hechizo seleccionado */}
       {hechizoFlotanteDetalle && (
         <div className={estilosClases.overlayFlotante} onClick={() => setHechizoFlotanteDetalle(null)}>
           <div className={estilosClases.modalContenedor} onClick={(e) => e.stopPropagation()}>
@@ -465,7 +270,6 @@ export const GestorIniciativa: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Ataque de Horda (Tabla de Hordas D&D 5.5e) */}
       {ataqueHordaModal && (
         <ModalAtaqueHorda
           datos={ataqueHordaModal}
@@ -476,7 +280,6 @@ export const GestorIniciativa: React.FC = () => {
         />
       )}
 
-      {/* Modal de confirmación personalizado de alta calidad */}
       <ConfirmDialog
         abierto={confirmarAccion !== null}
         titulo={confirmarAccion?.titulo || ""}

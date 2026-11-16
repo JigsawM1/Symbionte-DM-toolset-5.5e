@@ -19,7 +19,67 @@ import {
 } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
-import type { CriaturaSeleccionadaTS } from "./tipos";
+import type { CriaturaSeleccionadaTS, ParamsAgregarCriaturaIniciativa } from "./tipos";
+import { normalizarNombreTaleSpire, esNombreVacioODot } from "@/servicios/resolutorCriaturas";
+import { construirBarrasHorda, sincronizarAgregadosHorda } from "@/servicios/combateHordas";
+import { generarId } from "@/utiles/generarId";
+
+export function construirCriaturaManualParaIniciativa(
+  params: ParamsAgregarCriaturaIniciativa,
+  asociacionesFichas: Record<string, string>
+): { nuevaCriatura: CriaturaIniciativa; nuevasAsociaciones: Record<string, string> } {
+  const {
+    nombre,
+    iniciativa,
+    vidaMax,
+    ca,
+    esMonstruo,
+    velocidad,
+    bonifInic,
+    idPlantillaAsociada,
+    cantidadHorda
+  } = params;
+  const idCriatura = generarId("c_local");
+  const numMiembros = cantidadHorda && cantidadHorda > 1 ? Math.min(50, Math.trunc(cantidadHorda)) : 1;
+  const baseCriatura: CriaturaIniciativa = {
+    id: idCriatura,
+    nombre,
+    iniciativa,
+    vidaMaxima: vidaMax,
+    vidaActual: vidaMax,
+    ca,
+    condiciones: [],
+    efectos: [],
+    bonificadorIniciativa: bonifInic,
+    esMonstruo,
+    velocidad,
+    vidaTemporal: 0,
+    idPlantillaAsociada
+  };
+
+  const nuevaCriatura: CriaturaIniciativa = numMiembros > 1
+    ? {
+        ...baseCriatura,
+        modoDanoHorda: "individual",
+        ...sincronizarAgregadosHorda(construirBarrasHorda(numMiembros, vidaMax))
+      }
+    : baseCriatura;
+
+  let nuevasAsociaciones = asociacionesFichas;
+  if (idPlantillaAsociada) {
+    nuevasAsociaciones = {
+      ...asociacionesFichas,
+      [idCriatura]: idPlantillaAsociada
+    };
+    if (!esNombreVacioODot(nombre)) {
+      const { completo: nombreRef, base: nombreRefBase } = normalizarNombreTaleSpire(nombre);
+      nuevasAsociaciones[`nombre_base:${nombreRef}`] = idPlantillaAsociada;
+      nuevasAsociaciones[`nombre_base:${nombreRefBase}`] = idPlantillaAsociada;
+    }
+  }
+
+  return { nuevaCriatura, nuevasAsociaciones };
+}
 
 export function construirEntradaJugador(
   personaje: PersonajeJugador,
@@ -171,30 +231,8 @@ export function construirCriaturasDesdeSeleccionTS(
     const pjAsociado = resolverPersonajeAsociado(cTS.id, cTS.name, personajes);
 
     if (pjAsociado) {
-      const statsPj = calcularEstadisticasPersonaje(pjAsociado);
-      // Para jugadores: NUNCA se aplica auto-roll de iniciativa
-      nuevasCriaturas.push({
-        id: cTS.id,
-        nombre: pjAsociado.nombre,
-        avatarUrl: pjAsociado.avatarUrl,
-        iniciativa: 0,
-        vidaMaxima: pjAsociado.hpMaximo || 10,
-        vidaActual: pjAsociado.hpActual !== undefined ? pjAsociado.hpActual : (pjAsociado.hpMaximo || 10),
-        ca: statsPj.claseArmadura.total,
-        condiciones: pjAsociado.condicionesActivas ? [...pjAsociado.condicionesActivas] : [],
-        efectos: pjAsociado.efectosActivos ? [...pjAsociado.efectosActivos] : [],
-        bonificadorIniciativa: statsPj.modificadores.destreza,
-        esMonstruo: false,
-        velocidad: `${pjAsociado.velocidad || "30 pies"}`,
-        vidaTemporal: pjAsociado.hpTemporal || 0,
-        idPersonajeDuenio: pjAsociado.id,
-        idPlantillaAsociada: undefined,
-        pasivas: {
-          percepcion: statsPj.pasivas?.percepcion ?? 10,
-          investigacion: statsPj.pasivas?.investigacion ?? 10,
-          perspicacia: statsPj.pasivas?.perspicacia ?? 10,
-        }
-      });
+      const entradaPj = construirEntradaJugador(pjAsociado, -1, []);
+      nuevasCriaturas.push({ ...entradaPj, id: cTS.id });
       return;
     }
 

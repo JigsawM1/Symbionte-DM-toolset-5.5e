@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { usarEstadoIniciativa, usarEstadoConfiguracion } from "@/almacen/selectores";
 import { ChipCondicion } from "@/componentes/comunes";
-import { esCondicionConcentracion } from "@/servicios/procesadorCondiciones";
-import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { obtenerCondicionesVisibles } from "@/almacen/slices/iniciativa/utilidadesCombateIniciativa";
+import { resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
 import { obtenerResumenHorda } from "@/servicios/combateHordas";
 import { Users, Swords, Heart } from "lucide-react";
 import { ModalRetratoPersonaje } from "@/componentes/caracteristicas/personajes/ModalRetratoPersonaje";
@@ -53,32 +53,12 @@ export const IniciativaJugador: React.FC = () => {
               const estadoTexto = porcentaje > 50 ? "Saludable" : porcentaje > 0 ? "Herido" : "Inconsciente";
               const resumenHorda = obtenerResumenHorda(item);
 
-              const tieneEfectoConcentracion = (item.efectos || []).some(
-                (ef) => esCondicionConcentracion(ef.nombre, ef.id, ef.concentracion)
-              );
-              const nombresEfectosSet = new Set<string>();
-              (item.efectos || []).forEach((ef) => {
-                nombresEfectosSet.add(ef.nombre.toLowerCase().trim());
-                nombresEfectosSet.add(ef.nombre.split(" (")[0].toLowerCase().trim());
-              });
-              const condicionesVisibles = (item.condiciones || []).filter((c) => {
-                const cMin = c.toLowerCase().trim();
-                const cBase = c.split(" (")[0].toLowerCase().trim();
-                if (tieneEfectoConcentracion && esCondicionConcentracion(cMin)) return false;
-                if (nombresEfectosSet.has(cMin) || nombresEfectosSet.has(cBase)) return false;
-                return true;
-              });
+              const condicionesVisibles = obtenerCondicionesVisibles(item.condiciones, item.efectos);
               const efectosVisibles = item.efectos || [];
               const tieneEstados = condicionesVisibles.length > 0 || efectosVisibles.length > 0;
 
               const pjAsociado = !item.esMonstruo
-                ? (personajes || []).find(
-                    (p) =>
-                      p.id === item.id ||
-                      p.id === item.idPersonajeDuenio ||
-                      (p.idMiniaturaTS && p.idMiniaturaTS === item.id) ||
-                      coincidenNombresTaleSpire(p.nombre, item.nombre)
-                  )
+                ? resolverPersonajePorCriatura(item, personajes || [])
                 : undefined;
               const avatarFinal = !item.esMonstruo ? (item.avatarUrl || pjAsociado?.avatarUrl) : undefined;
 

@@ -16,7 +16,6 @@ const DIRECTORIO_SRC = path.join(raizProyecto, "src");
 // ponytail: lista explícita y decreciente hacia cero tolerancia.
 const ARCHIVOS_EXCEPCION_HEREDADOS = new Set([
   "src/utiles/lanzadorDados.ts",
-  "src/servicios/calculadorMagia.ts",
   "src/componentes/caracteristicas/homebrew/subcomponentes/SeccionListasAtaques.tsx",
   "src/servicios/personajes/calculadorEstadisticasPersonaje.ts",
   "src/hooks/usarFormularioObjeto.ts",

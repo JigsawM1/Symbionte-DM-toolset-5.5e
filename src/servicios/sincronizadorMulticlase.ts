@@ -5,11 +5,9 @@ import {
   resolverGruposYSustitutosCompetencias
 } from "@/constantes";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
-import {
-  detectarTipoLanzador,
-  calcularTodosRecursosMagicos,
-  obtenerConjurosSubclasePersonaje
-} from "@/servicios/calculadorMagia";
+import { detectarTipoLanzador } from "@/servicios/magia/catalogoProgresionMagica";
+import { calcularTodosRecursosMagicos } from "@/servicios/magia/magiaPactoBrujo";
+import { obtenerConjurosSubclasePersonaje } from "@/servicios/magia/conjurosSubclase";
 import { construirBuildClase } from "@/servicios/gestorClases";
 import { crearMatcherHechizos } from "@/servicios/comparadorHechizos";
 import { obtenerConjurosOtorgadosPorRasgos } from "@/servicios/rasgos/evaluadorConjurosRasgos";

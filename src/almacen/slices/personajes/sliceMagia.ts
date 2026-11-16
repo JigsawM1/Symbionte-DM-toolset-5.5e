@@ -4,10 +4,8 @@ import { reconciliarConjurosRasgos } from "@/servicios/rasgos/reconciliarConjuro
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { StateCreator } from "zustand";
 import type { EstadoDM, EfectoActivo } from "@/almacen/usarAlmacenDM";
-import {
-  calcularTodosRecursosMagicos,
-  obtenerConjurosSubclasePersonaje
-} from "@/servicios/calculadorMagia";
+import { calcularTodosRecursosMagicos } from "@/servicios/magia/magiaPactoBrujo";
+import { obtenerConjurosSubclasePersonaje } from "@/servicios/magia/conjurosSubclase";
 import { coincideHechizoId } from "@/servicios/comparadorHechizos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { mutarPersonaje } from "../helpers/mutarPersonaje";

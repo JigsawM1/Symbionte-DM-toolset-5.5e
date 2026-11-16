@@ -1,5 +1,5 @@
 import type { PersonajeJugador, ClasePersonaje } from "@/tipos";
-import { obtenerConjurosSubclasePersonaje } from "@/servicios/calculadorMagia";
+import { obtenerConjurosSubclasePersonaje } from "@/servicios/magia/conjurosSubclase";
 import { deduplicarListaIds, crearMatcherHechizos } from "@/servicios/comparadorHechizos";
 import { obtenerConjurosOtorgadosPorRasgos } from "@/servicios/evaluadorEfectosRasgos";
 

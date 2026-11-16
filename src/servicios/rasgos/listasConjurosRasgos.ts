@@ -3,7 +3,8 @@ import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import HECHIZOS from "@/utiles/compendios/all.json";
 import { coincideHechizoId } from "../comparadorHechizos";
 
-import { calcularMaximosConjurosYTrucos, obtenerNivelMaximoConjuroPorTipoClase } from "../calculadorMagia";
+import { calcularMaximosConjurosYTrucos } from "../magia/catalogoProgresionMagica";
+import { obtenerNivelMaximoConjuroPorTipoClase } from "../clases/nivelConjuros";
 import { normalizar } from "./utilidadesRasgos";
 import { obtenerConcesionRasgo } from "./concesionesRasgos";
 import { seleccionesValidas } from "./seleccionesRasgos";

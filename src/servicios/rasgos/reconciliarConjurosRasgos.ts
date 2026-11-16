@@ -1,7 +1,7 @@
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { agregarValoresSelectorAListas, esSelectorDeConjuros, type ListasConjurosSelector } from "@/utiles/selectoresConjuros";
 import { coincideHechizoId } from "../comparadorHechizos";
-import { obtenerConjurosSubclasePersonaje } from "../calculadorMagia";
+import { obtenerConjurosSubclasePersonaje } from "../magia/conjurosSubclase";
 import { obtenerConjurosOtorgadosPorRasgos } from "./evaluadorConjurosRasgos";
 import { obtenerConcesionRasgo } from "./concesionesRasgos";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";

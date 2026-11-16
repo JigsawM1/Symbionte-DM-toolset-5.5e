@@ -3,7 +3,7 @@ import { coincideHechizoId } from "../comparadorHechizos";
 import { obtenerNivelEfectivoParaRasgo, obtenerClasePorNombre } from "../clases/catalogoClases";
 import { esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 import type { SolicitudLanzamiento } from "../servicioLanzamientoConjuros";
-import { obtenerModificadorAptitudMagica } from "../calculadorMagia";
+import { obtenerModificadorAptitudMagica } from "../magia/estadisticasCombateMagico";
 import { resolverIdRasgoObjetivoGasto } from "./evaluadorConjurosRasgos";
 import { calcularUsosMaximosRasgo, cumpleCondicionEfecto } from "./evaluadorExpresionesRasgos";
 import { obtenerConcesionRitual } from "./conjurosRitualesRasgos";

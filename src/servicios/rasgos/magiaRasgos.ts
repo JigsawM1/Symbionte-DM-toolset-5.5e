@@ -1,5 +1,5 @@
 import type { PersonajeJugador, ClaseLanzadora, RasgoPersonaje } from "@/tipos";
-import { calcularTodosRecursosMagicos } from "../calculadorMagia";
+import { calcularTodosRecursosMagicos } from "../magia/magiaPactoBrujo";
 import { obtenerSubclasePorNombre, obtenerNivelEfectivoParaRasgo } from "../clases/catalogoClases";
 import { normalizar, esRasgoHabilitadoPorOpcion } from "./utilidadesRasgos";
 

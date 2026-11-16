@@ -2,16 +2,21 @@ import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificado
 import { useMemo } from "react";
 import { obtenerSelectoresArcanos } from "@/servicios/rasgos/arcanosMisticosRasgos";
 import type { PersonajeJugador, HechizoBase, Caracteristica, ModeloConjuros } from "@/tipos";
-import {
-  calcularCDConjuros,
-  calcularBonoAtaqueConjuro,
-  calcularMaximosConjurosYTrucos,
-  obtenerNivelesArcanoMisticoDisponibles
-} from "@/servicios/calculadorMagia";
+import { calcularCDConjuros, calcularBonoAtaqueConjuro } from "@/servicios/magia/estadisticasCombateMagico";
+import { calcularMaximosConjurosYTrucos } from "@/servicios/magia/catalogoProgresionMagica";
+import { obtenerNivelesArcanoMisticoDisponibles } from "@/servicios/magia/magiaPactoBrujo";
 import { esClasePacto } from "@/constantes";
 import { crearResolutorOrigenConjuros, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 import { esConjuroIndependiente, clasesPropietariasConjuro } from "@/servicios/rasgos/listasConjurosRasgos";
+
+const ETIQUETAS_HABILIDAD: Partial<Record<Caracteristica, string>> = {
+  inteligencia: "INT",
+  sabiduria: "SAB",
+  carisma: "CAR"
+};
+
+const compararEspanol = new Intl.Collator("es", { sensitivity: "base" }).compare;
 
 export interface EstadoMagiaPersonaje {
   habilidadMagica: Caracteristica;
@@ -50,7 +55,8 @@ export interface EstadoMagiaPersonaje {
 import {
   crearClavesLookupHechizos,
   crearSetsPertenencia,
-  crearPredicadosPertenencia
+  crearPredicadosPertenencia,
+  verificarEnSet
 } from "@/servicios/logicaPertenenciaConjuros";
 
 /**
@@ -66,55 +72,36 @@ export function usarMagiaPersonaje(
   claseLanzamiento?: string
 ): EstadoMagiaPersonaje {
   // 1. Habilidad mágica principal
-  const habilidadMagica: Caracteristica = useMemo(() => {
-    if (personaje?.clasesLanzadoras && personaje.clasesLanzadoras.length > 0) {
-      return (personaje.clasesLanzadoras.find(c => c.clase === claseLanzamiento) ?? personaje.clasesLanzadoras[0]).habilidadConjuro as Caracteristica;
-    }
-    return "inteligencia";
-  }, [personaje?.clasesLanzadoras, claseLanzamiento]);
+  const clasesLanzadoras = personaje?.clasesLanzadoras;
+  const habilidadMagica: Caracteristica = clasesLanzadoras?.length
+    ? ((clasesLanzadoras.find((c) => c.clase === claseLanzamiento) ?? clasesLanzadoras[0]).habilidadConjuro as Caracteristica)
+    : "inteligencia";
 
   const modHabilidad = modificadores ? (modificadores[habilidadMagica] ?? 0) : 0;
-  const cdConjuros = calcularCDConjuros(bonoCompetencia, modHabilidad) + (personaje ? obtenerModificadoresConjuroRasgos(personaje, claseLanzamiento || personaje.clasesLanzadoras[0]?.clase).bonoCD : 0);
+  const cdConjuros =
+    calcularCDConjuros(bonoCompetencia, modHabilidad) +
+    (personaje ? obtenerModificadoresConjuroRasgos(personaje, claseLanzamiento || clasesLanzadoras?.[0]?.clase).bonoCD : 0);
   const bonoAtaqueMagico = calcularBonoAtaqueConjuro(bonoCompetencia, modHabilidad);
-
-  const etiquetaHabilidad = useMemo(() => {
-    switch (habilidadMagica) {
-      case "inteligencia": return "INT";
-      case "sabiduria": return "SAB";
-      case "carisma": return "CAR";
-      default: return "INT";
-    }
-  }, [habilidadMagica]);
+  const etiquetaHabilidad = ETIQUETAS_HABILIDAD[habilidadMagica] ?? "INT";
 
   // 2. Modelo de lanzamiento
-  const requierePreparacion = useMemo(() => {
-    if (!personaje?.clasesLanzadoras || personaje.clasesLanzadoras.length === 0) return true;
-    return personaje.clasesLanzadoras.some(
-      (c) => c.modeloConjuros === "preparados" || c.modeloConjuros === "grimorio"
-    );
-  }, [personaje?.clasesLanzadoras]);
+  const requierePreparacion =
+    !clasesLanzadoras?.length ||
+    clasesLanzadoras.some((c) => c.modeloConjuros === "preparados" || c.modeloConjuros === "grimorio");
 
-  const esLanzadorPacto = useMemo(() => {
-    if ((personaje?.espaciosPactoMaximos || 0) > 0) return true;
-    return (personaje?.clasesLanzadoras || []).some(
-      (c) => c.tipoLanzador === "pacto" || esClasePacto(c.clase)
-    );
-  }, [personaje?.espaciosPactoMaximos, personaje?.clasesLanzadoras]);
+  const esLanzadorPacto =
+    (personaje?.espaciosPactoMaximos || 0) > 0 ||
+    (clasesLanzadoras || []).some((c) => c.tipoLanzador === "pacto" || esClasePacto(c.clase));
 
   const nivelEspacioPacto = personaje?.nivelEspacioPacto || 1;
 
   // 3. Nivel de Brujo y Arcanos Místicos
-  const nivelBrujo = useMemo(() => {
-    if (!personaje) return 0;
-    const claseBrujo = (personaje.clases || []).find(
-      (c) => esClasePacto(c.nombre)
-    );
-    if (claseBrujo) return claseBrujo.nivel;
-    if (esClasePacto(personaje.clase)) {
-      return personaje.nivel || 1;
-    }
-    return 0;
-  }, [personaje?.clases, personaje?.clase, personaje?.nivel]);
+  const claseBrujo = (personaje?.clases || []).find((c) => esClasePacto(c.nombre));
+  const nivelBrujo = claseBrujo
+    ? claseBrujo.nivel
+    : personaje && esClasePacto(personaje.clase)
+      ? personaje.nivel || 1
+      : 0;
 
   const nivelesArcanoDisponibles = useMemo(() => {
     if (personaje && obtenerSelectoresArcanos(personaje).length) return obtenerSelectoresArcanos(personaje,true)
@@ -129,25 +116,18 @@ export function usarMagiaPersonaje(
     return disponibles.sort((a, b) => a - b);
   }, [nivelBrujo, personaje]);
 
-  // Pre-computar variantes normalizadas de cada hechizo una sola vez para O(1) permanente
-  const clavesLookupPorHechizo = useMemo(() => {
-    return crearClavesLookupHechizos(baseDatosHechizos);
-  }, [baseDatosHechizos]);
-
-  // 4. Mapa de hechizos por ID, slug, nombres normalizados y sinónimos de traducción
-  const mapaHechizos = useMemo(() => {
+  // 4. Pre-computar variantes normalizadas y mapa de hechizos para consultas O(1)
+  const { clavesLookupPorHechizo, mapaHechizos } = useMemo(() => {
+    const lookup = crearClavesLookupHechizos(baseDatosHechizos);
     const m = new Map<string, HechizoBase>();
     for (const h of baseDatosHechizos) {
       m.set(h.id, h);
-      const claves = clavesLookupPorHechizo.get(h.id);
-      if (claves) {
-        for (const clave of claves) {
-          m.set(clave, h);
-        }
+      for (const clave of lookup.get(h.id) ?? []) {
+        m.set(clave, h);
       }
     }
-    return m;
-  }, [baseDatosHechizos, clavesLookupPorHechizo]);
+    return { clavesLookupPorHechizo: lookup, mapaHechizos: m };
+  }, [baseDatosHechizos]);
 
   // 5. Conjuntos de pertenencia pre-expandidos para O(1)
   const setsPertenencia = useMemo(() => {
@@ -221,24 +201,14 @@ export function usarMagiaPersonaje(
 
     for (const h of baseDatosHechizos) {
       const hId = h.id;
-      const claves = clavesLookupPorHechizo.get(hId);
-
-      const chequeoEnSet = (setIds: Set<string>): boolean => {
-        if (!claves) return setIds.has(hId);
-        for (let i = 0; i < claves.length; i++) {
-          if (setIds.has(claves[i])) return true;
-        }
-        return false;
-      };
-
-      const esSubclase = chequeoEnSet(setSiemprePreparados);
+      const esSubclase = verificarEnSet(setSiemprePreparados, hId, clavesLookupPorHechizo);
       const origen = resolutorOrigen(h);
       const otorgado = origen !== null || esSubclase;
       const independiente = personaje && esConjuroIndependiente(personaje, h)
         && !clasesPropietariasConjuro(personaje, h.id).length;
 
       if (h.nivel === 0) {
-        const enLista = chequeoEnSet(setTrucosIds) || otorgado;
+        const enLista = verificarEnSet(setTrucosIds, hId, clavesLookupPorHechizo) || otorgado;
         if (otorgado) {
           tSubclase++;
         } else if (enLista && !independiente) {
@@ -250,8 +220,10 @@ export function usarMagiaPersonaje(
           trucos.push(aplicarModificadoresInvocacionesAHechizo(h, personaje, claseLanzamiento));
         }
       } else if (h.nivel >= 1 && h.nivel <= 9) {
-        const preparado = otorgado || chequeoEnSet(setPreparadosIds);
-        const enLista = esModeloPreparacion ? preparado : (chequeoEnSet(setConocidosIds) || preparado);
+        const preparado = otorgado || verificarEnSet(setPreparadosIds, hId, clavesLookupPorHechizo);
+        const enLista = esModeloPreparacion
+          ? preparado
+          : (verificarEnSet(setConocidosIds, hId, clavesLookupPorHechizo) || preparado);
 
         if (otorgado) {
           cSubclase++;
@@ -266,10 +238,10 @@ export function usarMagiaPersonaje(
       }
     }
 
-    trucos.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    trucos.sort((a, b) => compararEspanol(a.nombre, b.nombre));
     for (let niv = 1; niv <= 9; niv++) {
       if (grupos[niv].length > 1) {
-        grupos[niv].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+        grupos[niv].sort((a, b) => compararEspanol(a.nombre, b.nombre));
       }
     }
 

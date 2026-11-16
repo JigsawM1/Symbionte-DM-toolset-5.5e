@@ -1,5 +1,5 @@
 import type { BuildClaseCalculada, OpcionesAplicarBuild, PersonajeJugador, ClasePersonaje, ClaseLanzadora, CompetenciasSalvacion } from "@/tipos";
-import { calcularTodosRecursosMagicos } from "@/servicios/calculadorMagia";
+import { calcularTodosRecursosMagicos } from "@/servicios/magia/magiaPactoBrujo";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
 import { sincronizarConjurosSubclaseHelper } from "@/servicios/sincronizadorConjurosSubclase";
 import { resolverGruposYSustitutosCompetencias } from "@/constantes/competenciasConstantes";

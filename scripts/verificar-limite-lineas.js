@@ -15,7 +15,6 @@ const DIRECTORIO_SRC = path.join(raizProyecto, "src");
 // Baseline controlado de deuda técnica heredada (en proceso de refactorización modular)
 // ponytail: lista explícita y decreciente hacia cero tolerancia.
 const ARCHIVOS_EXCEPCION_HEREDADOS = new Set([
-  "src/utiles/lanzadorDados.ts",
   "src/componentes/caracteristicas/homebrew/subcomponentes/SeccionListasAtaques.tsx",
   "src/servicios/personajes/calculadorEstadisticasPersonaje.ts",
   "src/hooks/usarFormularioObjeto.ts",

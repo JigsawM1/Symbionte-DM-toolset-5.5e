@@ -5,7 +5,7 @@
 
 import type { ComponentesSeleccionados, HechizoBase } from "@/tipos";
 import { formulaCuracionConjuro } from "@/servicios/rasgos/curacionDeclarativa";
-import { sanitizarEtiqueta } from "./lanzadorDados";
+import { sanitizarEtiqueta } from "./dados/normalizadorFormulasDados";
 
 interface ResultadoEscalado {
   formula: string;

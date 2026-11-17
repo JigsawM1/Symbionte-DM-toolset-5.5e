@@ -25,9 +25,7 @@ import { tieneRestriccionRasgos } from "./rasgos/restriccionesRasgos";
 import { evaluarConjuroEnFormaBestia } from "./reglasFormaSalvaje";
 import { obtenerConcesionRitual } from "./rasgos/conjurosRitualesRasgos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
-import {
-  sanitizarEtiqueta
-} from "@/utiles/lanzadorDados";
+import { sanitizarEtiqueta } from "@/utiles/dados/normalizadorFormulasDados";
 import {
   construirFormulaTaleSpireTruco,
   construirFormulaTaleSpireEspacio

@@ -1,4 +1,4 @@
-import { sanitizarEtiqueta } from "./lanzadorDados";
+import { sanitizarEtiqueta } from "./dados/normalizadorFormulasDados";
 import { logger } from "./logger";
 
 /**

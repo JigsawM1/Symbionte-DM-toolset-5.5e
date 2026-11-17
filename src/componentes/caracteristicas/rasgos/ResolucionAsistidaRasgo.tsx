@@ -30,6 +30,7 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
   const [ocupado, ocupar] = useState(false);
   const [mensaje, informar] = useState("");
   const dialogo = useRef<HTMLDialogElement>(null);
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
 
   useEffect(() => {
     if (mostrar) dialogo.current?.showModal();
@@ -51,9 +52,9 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
   };
 
   const preparada = prepararResolucionAsistida(personaje, solicitud);
-  const stats = calcularEstadisticasPersonaje(personaje);
   const aptitudSalvacion = rasgo.salvacionObjetivo?.aptitud;
-  const cd = aptitudSalvacion
+  const stats = aptitudSalvacion ? calcularEstadisticasPersonaje(personaje, objetosHomebrew) : undefined;
+  const cd = aptitudSalvacion && stats
     ? 8 + stats.bonoCompetencia + stats.modificadores[aptitudSalvacion]
       + obtenerModificadoresConjuroRasgos(personaje, rasgo.claseConjurosOtorgados).bonoCD
     : undefined;
@@ -80,7 +81,7 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
     enCurso.add(personaje.id);
     ocupar(true);
     try {
-      const stats = calcularEstadisticasPersonaje(vigente);
+      const stats = calcularEstadisticasPersonaje(vigente, estado.objetosHomebrew);
       const bono = stats.bonoCompetencia + stats.modificadores[cfg.ataqueConjuro];
       if (await lanzarDadosTaleSpire(`1d20${bono >= 0 ? "+" : ""}${bono}`, rasgo.nombre)) {
         usarAlmacenDM.getState().operarRecursoRasgoPersonaje(personaje.id, {

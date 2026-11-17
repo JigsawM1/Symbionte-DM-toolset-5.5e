@@ -3,10 +3,15 @@ import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import { obtenerRasgosRituales } from "@/servicios/rasgos/conjurosRitualesRasgos";
 import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import estilos from "./ControlesRecursosDeclarativos.module.css";
 
 export function ConjurosRitualesRasgo({ personaje, idRasgo }: { personaje: PersonajeJugador; idRasgo?: string }) {
-  const { lanzar, puedeLanzar, motivoBloqueo } = usarLanzadorConjuros({ personaje, penalizacionArmadura: calcularEstadisticasPersonaje(personaje).penalizacionArmadura });
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
+  const { lanzar, puedeLanzar, motivoBloqueo } = usarLanzadorConjuros({
+    personaje,
+    penalizacionArmadura: calcularEstadisticasPersonaje(personaje, objetosHomebrew).penalizacionArmadura
+  });
   const rasgos = obtenerRasgosRituales(personaje).filter(r => !idRasgo || r.id === idRasgo);
   if (!rasgos.length) return null;
   return <section className={estilos.rituales} aria-label="Rituales concedidos por rasgos">{rasgos.map(r => <div key={r.id}>

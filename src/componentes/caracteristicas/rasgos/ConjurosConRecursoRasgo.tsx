@@ -13,9 +13,10 @@ import estilos from "./ConjurosConRecursoRasgo.module.css";
 export function ConjurosConRecursoRasgo({ personaje, rasgo }: { personaje: PersonajeJugador; rasgo: RasgoPersonaje }) {
   const [id, elegir] = useState("");
   const [sinConcentracion, cambiar] = useState(false);
+  const objetosHomebrew = usarAlmacenDM((s) => s.objetosHomebrew);
   const { lanzar, validar } = usarLanzadorConjuros({
     personaje,
-    penalizacionArmadura: calcularEstadisticasPersonaje(personaje).penalizacionArmadura
+    penalizacionArmadura: calcularEstadisticasPersonaje(personaje, objetosHomebrew).penalizacionArmadura
   });
 
   const concesion = personaje.rasgos.find(r => r.id === rasgo.lanzamientoConRecurso?.idRasgoConcesion);

@@ -90,6 +90,7 @@ export interface NotificacionUI {
 }
 
 import { persistirEstadoCompleto } from "./persistencia";
+import { registrarProveedorObjetosHomebrew } from "@/servicios/personajes/resolutorInventarioPasivos";
 
 // Interfaz del Estado combinando todos los Slices para TypeScript estricto
 export interface EstadoDM extends SliceIniciativa, SliceHomebrew, SliceConfiguracion, SlicePersonajes, SliceSync {}
@@ -158,4 +159,6 @@ export const usarAlmacenDM = create<EstadoDM>()(
     ...crearSliceSync(set, get, api)
   }))
 );
+
+registrarProveedorObjetosHomebrew(() => usarAlmacenDM.getState().objetosHomebrew);
 

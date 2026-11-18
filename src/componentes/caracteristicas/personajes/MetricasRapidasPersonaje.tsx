@@ -6,8 +6,9 @@ import {
   Shield, Zap, Footprints, Award, Sparkles, Star, AlertTriangle
 } from "lucide-react";
 import { TooltipUniversal } from "@/componentes/comunes";
-import { obtenerVelocidadesEfectivas, calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
+import { obtenerVelocidadesEfectivas } from "@/servicios/evaluadorEfectosRasgos";
 import { calcularEstadoVelocidadDinamica } from "@/servicios/calculadorDistanciaTS";
+import { calcularBonificadorIniciativa } from "@/servicios/personajes/bonificadorIniciativa";
 import { usarAccionesPersonajes } from "@/almacen/selectores/usarEstadoPersonajes";
 import { PopoverMovimientoVelocidad } from "./subcomponentes/PopoverMovimientoVelocidad";
 import estilos from "./HojaPersonaje.module.css";
@@ -49,8 +50,8 @@ const MetricasRapidasPersonajeComponent: React.FC<MetricasRapidasPersonajeProps>
     accionesPersonajes.establecerTipoTerrenoPersonaje(personaje.id, tipo);
 
   // 1. Iniciativa
-  const bonoIniciativaRasgos = calcularBonoIniciativaRasgos(personaje);
-  const iniciativaTotal = modDestreza + (personaje.iniciativaBono || 0) + bonoIniciativaRasgos;
+  const iniciativaTotal = calcularBonificadorIniciativa(personaje, modDestreza);
+  const bonoIniciativaRasgos = iniciativaTotal - modDestreza - (personaje.iniciativaBono || 0);
   const textoIniciativa = iniciativaTotal >= 0 ? `+${iniciativaTotal}` : `${iniciativaTotal}`;
 
   const desglosesIniciativa: string[] = [`Destreza (${modDestreza >= 0 ? `+${modDestreza}` : modDestreza})`];

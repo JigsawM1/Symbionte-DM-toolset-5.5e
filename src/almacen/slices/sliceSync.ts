@@ -3,7 +3,7 @@
 import type { StateCreator } from "zustand";
 import type { EstadoDM, CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { BorradorCombatePJ } from "@/tipos/borradoresSync";
-import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { coincideIdentidadPersonaje, indiceEntradaPersonaje } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 import { CONEXION_SYNC_V4_INICIAL, type EstadoConexionSyncV4, type MemoriaSyncV4, type RecuperacionContextosSync } from "@/tipos/estadoSyncV4";
 import { personajesDelContexto, estadoDelContexto, conservarFichasAjenas } from '@/almacen/campaniasPersonajes';
@@ -214,20 +214,18 @@ export const crearSliceSync: StateCreator<
     }
 
     // 2. Reflejar también en la cola de iniciativa tanto para el PJ como para sus acompañantes
-    const colaActualizada = colaIniciativa.map((criatura): CriaturaIniciativa => {
+    const destino = indexPj >= 0 ? personajesActualizados[indexPj] : undefined;
+    const indiceDestino = destino ? indiceEntradaPersonaje(colaIniciativa, destino, personajesActualizados) : -1;
+    const colaActualizada = colaIniciativa.map((criatura, indice): CriaturaIniciativa => {
       // Caso A: La criatura en cola es el personaje principal
-      const coincidePorIdPJ =
-        !criatura.esAcompanante &&
-        (criatura.id === dto.id ||
-          criatura.idPersonajeDuenio === dto.id ||
-          (dto.idMiniaturaTS && criatura.id === dto.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, dto.nombre));
+      const coincidePorIdPJ = coincideIdentidadPersonaje(criatura, dto) || indice === indiceDestino;
       if (coincidePorIdPJ) {
 
         return {
           ...criatura,
           esMonstruo: false,
           idPlantillaAsociada: undefined,
-          idPersonajeDuenio: dto.id,
+          idPersonajeDuenio: destino?.id ?? dto.id,
           avatarUrl: dto.avatarUrl ?? criatura.avatarUrl,
           iniciativa: dto.iniciativa !== undefined ? dto.iniciativa : criatura.iniciativa,
           vidaActual: dto.hpActual,
@@ -247,12 +245,11 @@ export const crearSliceSync: StateCreator<
 
       // Caso B: La criatura en cola es un acompañante de este personaje
       if (dto.acompanantes && dto.acompanantes.length > 0) {
-        const acompCoincidente = dto.acompanantes.find(
-          (a) =>
-            criatura.id === a.id ||
-            criatura.idAcompanante === a.id ||
-            (a.idMiniaturaTS && criatura.id === a.idMiniaturaTS) || coincidenNombresTaleSpire(criatura.nombre, a.nombre)
-        );
+        const acompCoincidente = (!criatura.idPersonajeDuenio || criatura.idPersonajeDuenio === dto.id)
+          ? dto.acompanantes.find(a => criatura.idAcompanante
+            ? criatura.idAcompanante === a.id
+            : criatura.id === a.id || Boolean(a.idMiniaturaTS && criatura.id === a.idMiniaturaTS))
+          : undefined;
 
         if (acompCoincidente) {
           const local = locales?.acompanantes?.find(a => a.id === acompCoincidente.id);

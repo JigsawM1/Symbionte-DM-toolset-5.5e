@@ -14,7 +14,6 @@ import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculador
 import {
   calcularVidaInicial,
   resolverPersonajeAsociado,
-  resolverPersonajePorCriatura,
   resolverPlantillaPorCriatura
 } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
@@ -23,6 +22,7 @@ import type { CriaturaSeleccionadaTS, ParamsAgregarCriaturaIniciativa } from "./
 import { normalizarNombreTaleSpire, esNombreVacioODot } from "@/servicios/resolutorCriaturas";
 import { construirBarrasHorda, sincronizarAgregadosHorda } from "@/servicios/combateHordas";
 import { generarId } from "@/utiles/generarId";
+import { calcularBonificadorIniciativa } from "@/servicios/personajes/bonificadorIniciativa";
 
 export function construirCriaturaManualParaIniciativa(
   params: ParamsAgregarCriaturaIniciativa,
@@ -100,7 +100,7 @@ export function construirEntradaJugador(
     ca: statsPj.claseArmadura.total,
     condiciones: personaje.condicionesActivas ? [...personaje.condicionesActivas] : [],
     efectos: personaje.efectosActivos ? [...personaje.efectosActivos] : [],
-    bonificadorIniciativa: statsPj.modificadores.destreza,
+    bonificadorIniciativa: calcularBonificadorIniciativa(personaje, statsPj.modificadores.destreza),
     esMonstruo: false,
     velocidad: `${personaje.velocidad || "30 pies"}`,
     movimientoGastado: personaje.movimientoGastado || 0,
@@ -127,7 +127,7 @@ export function alternarRolCriaturaHelper(
     const nuevoEsMonstruo = !c.esMonstruo;
 
     if (!nuevoEsMonstruo) {
-      const pj = resolverPersonajePorCriatura(c, personajes);
+      const pj = resolverPersonajeAsociado(c.id, c.nombre, personajes, c.idPersonajeDuenio);
       if (pj) {
         const stats = calcularEstadisticasPersonaje(pj);
         return {
@@ -137,7 +137,7 @@ export function alternarRolCriaturaHelper(
           idPersonajeDuenio: pj.id,
           avatarUrl: pj.avatarUrl,
           ca: stats.claseArmadura.total,
-          bonificadorIniciativa: stats.modificadores.destreza,
+          bonificadorIniciativa: calcularBonificadorIniciativa(pj, stats.modificadores.destreza),
           pasivas: {
             percepcion: stats.pasivas?.percepcion ?? 10,
             investigacion: stats.pasivas?.investigacion ?? 10,

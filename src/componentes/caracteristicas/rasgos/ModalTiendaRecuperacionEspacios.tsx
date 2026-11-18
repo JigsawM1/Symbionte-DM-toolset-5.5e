@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { DialogoConversionEspacios } from "./DialogoConversionEspacios";
 import React, { useState, useMemo } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
@@ -140,7 +141,8 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
   const puedeConfirmar = modo === "puntos" ? totalPuntosARecuperar > 0 : totalEspaciosARecuperar > 0;
 
   return (
-    <div className={estilos.overlay} role="dialog" aria-modal="true" aria-labelledby="titulo-tienda-recuperacion"
+    <DialogoModal etiqueta={"Recuperar espacios"} alCerrar={alCerrar}>
+<div className={estilos.overlay} aria-labelledby="titulo-tienda-recuperacion"
       onClick={e => e.stopPropagation()}>
       <div className={estilos.modal}>
         {/* Cabecera */}
@@ -384,6 +386,7 @@ const TiendaRecuperacionEspacios: React.FC<ModalTiendaRecuperacionEspaciosProps>
         </div>
       </div>
     </div>
+</DialogoModal>
   );
 };
 

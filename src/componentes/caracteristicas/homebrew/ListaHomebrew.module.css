@@ -102,10 +102,17 @@
 }
 
 .itemInfoListaClickable {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
   cursor: pointer;
+  align-items: flex-start;
 }
 
 .itemNombre {
@@ -1229,3 +1236,5 @@
 }
 
 
+
+.itemInfoListaClickable:focus-visible { outline: 2px solid var(--color-primario-brillante, #00f5d4); outline-offset: 2px; }

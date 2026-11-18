@@ -164,7 +164,7 @@ export const ListaMonstruosHomebrew: React.FC<ListaMonstruosHomebrewProps> = ({
           <>
             {monstruosVisibles.map((m) => (
               <div key={m.id} className={estilos.itemListaBrutal}>
-                <div
+                <button type="button" aria-label={`Ver detalles de ${m.nombre}`}
                   className={estilos.itemInfoListaClickable}
                   onClick={() => setIdCriaturaDetalle(m.id)}
                   title="Ver ficha completa de la criatura"
@@ -175,7 +175,7 @@ export const ListaMonstruosHomebrew: React.FC<ListaMonstruosHomebrewProps> = ({
                     <span className="dato-numerico">{m.ca}</span> | HP:{" "}
                     <span className="dato-numerico">{m.vidaMaxima}</span> | CR: {m.desafio || "—"}
                   </span>
-                </div>
+                </button>
                 {!soloLectura && (
                   <div className={estilos.grupoBotonesItem}>
                     {iniciarEdicionCriatura && (

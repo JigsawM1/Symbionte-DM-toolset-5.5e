@@ -1,5 +1,6 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { obtenerPagoActivacionAlternativa } from "@/servicios/rasgos/conversionRecursosRasgos";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import type { RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import type { EleccionesActivacionRasgo } from "@/servicios/rasgos/activacionDeclarativa";
@@ -13,11 +14,9 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
   const [abierto, setAbierto] = useState(false);
   const [decisiones, setDecisiones] = useState<EleccionesActivacionRasgo>({ selectores: {}, opcionales: [] });
   const [error, setError] = useState("");
-  const dialogo = useRef<HTMLDialogElement>(null);
   const confirmando = useRef(false);
   const selectores = (rasgo.selectores ?? []).filter(s => s.momentoEleccion === "activacion");
   const opcionales = pj?.rasgos.filter(r => r.activarConRasgo === rasgo.id) ?? [];
-  useEffect(() => { if (abierto) dialogo.current?.showModal(); }, [abierto]);
   const pagoAlternativo = pj ? obtenerPagoActivacionAlternativa(pj, rasgo) : undefined;
   const alternar = () => {
     if ((rasgo.activo && !rasgo.renovarActivacion) || (!selectores.length && !opcionales.length && !pagoAlternativo && !rasgo.renovarActivacion) || !pj) { alternarOriginal?.(); return; }
@@ -32,8 +31,7 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
     const actualizado = usarAlmacenDM.getState().personajes.find(p => p.id === pj.id)?.rasgos.find(r => r.id === rasgo.id);
     if (actualizado?.activo && actualizado !== previo) setAbierto(false); else { confirmando.current = false; setError("No se pudo activar. Revisa las elecciones, requisitos y usos disponibles."); }
   };
-  const modal = abierto && <dialog ref={dialogo} className={modalEstilos.dialogo} aria-label={`Activar ${rasgo.nombre}`}
-    onCancel={() => setAbierto(false)} onClick={e => e.stopPropagation()}>
+  const modal = abierto && <DialogoModal className={modalEstilos.dialogo} etiqueta={`Activar ${rasgo.nombre}`} alCerrar={() => setAbierto(false)}>
     <header className={modalEstilos.cabecera}><Zap size={18} aria-hidden="true" /><h3>Activar {rasgo.nombre}</h3>
       <button type="button" className={modalEstilos.cerrar} aria-label="Cerrar activación" onClick={() => setAbierto(false)}><X size={18} /></button></header>
     <div className={`u-scroll-cef ${modalEstilos.cuerpo}`}>
@@ -75,6 +73,6 @@ export function useActivacionDeclarativa(rasgo: RasgoPersonaje, idPersonaje?: st
         setAbierto(false);
       }}>Disipar</button>}
       <button type="button" className={modalEstilos.principal} aria-label="Confirmar activación" disabled={selectores.some(s => !decisiones.selectores[s.id]?.length)} onClick={confirmar}>Activar {rasgo.nombre}</button></footer>
-  </dialog>;
+  </DialogoModal>;
   return { alternar, modal };
 }

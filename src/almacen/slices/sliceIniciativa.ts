@@ -20,7 +20,7 @@ import {
   normalizarCondicionesRasgos,
   finalizarRasgosDelTurno
 } from "@/servicios/rasgos/estadoCondicionesRasgos";
-import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { indiceEntradaPersonaje } from "@/servicios/resolutorCriaturas";
 import { crearIndiceMonstruos } from "@/servicios/indiceMonstruos";
 import {
   sincronizarConEstadoLocal,
@@ -200,15 +200,7 @@ export const crearSliceIniciativa: CreadorSliceIniciativa = (setOriginal, getOri
   },
 
   agregarPersonajeAIniciativa: (personaje: PersonajeJugador) => set((state) => {
-    const idObjetivo = personaje.idMiniaturaTS || personaje.id;
-    const indiceExistente = state.colaIniciativa.findIndex(
-      (c) =>
-        c.id === idObjetivo ||
-        c.id === personaje.id ||
-        (personaje.idMiniaturaTS && c.id === personaje.idMiniaturaTS) ||
-        (c.idPersonajeDuenio && c.idPersonajeDuenio === personaje.id) ||
-        coincidenNombresTaleSpire(c.nombre, personaje.nombre)
-    );
+    const indiceExistente = indiceEntradaPersonaje(state.colaIniciativa, personaje, state.personajes);
 
     const entradaJugador = construirEntradaJugador(personaje, indiceExistente, state.colaIniciativa);
 

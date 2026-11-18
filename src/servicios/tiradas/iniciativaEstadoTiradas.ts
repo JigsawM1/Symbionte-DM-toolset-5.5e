@@ -1,20 +1,19 @@
 import { usarAlmacenDM, type CriaturaIniciativa, type EstadoDM } from "@/almacen/usarAlmacenDM";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
-import { calcularBonoIniciativaRasgos } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularBonificadorIniciativa } from "@/servicios/personajes/bonificadorIniciativa";
+import { coincideIdentidadPersonaje, indiceEntradaPersonaje, resolverPersonajeAsociado } from "@/servicios/resolutorCriaturas";
 import { logger } from "@/utiles/logger";
 import type { AcompanantePersonaje, PersonajeJugador } from "@/tipos";
 import type { MetadataIniciativa } from "@/utiles/dados/tiposDados";
 
 function coincideAcompananteEnTirada(
   acompanante: AcompanantePersonaje,
-  info: MetadataIniciativa,
-  nombreNorm: string
+  info: MetadataIniciativa
 ): boolean {
   return Boolean(
     acompanante.id === info.criaturaId ||
       acompanante.id === info.idAcompanante ||
-      (info.idMiniaturaTS && acompanante.idMiniaturaTS === info.idMiniaturaTS) ||
-      (nombreNorm && acompanante.nombre.trim().toLowerCase() === nombreNorm)
+      (info.idMiniaturaTS && acompanante.idMiniaturaTS === info.idMiniaturaTS)
   );
 }
 
@@ -54,6 +53,7 @@ function construirCriaturaHeroeIniciativa(
   return {
     id: pj.idMiniaturaTS || pj.id,
     nombre: pj.nombre,
+    idPersonajeDuenio: pj.id,
     iniciativa: totalIniciativa,
     vidaMaxima: pj.hpMaximo || 10,
     vidaActual: pj.hpActual !== undefined ? pj.hpActual : pj.hpMaximo || 10,
@@ -61,10 +61,7 @@ function construirCriaturaHeroeIniciativa(
     ca: caCalculada,
     condiciones: pj.condicionesActivas || [],
     efectos: [],
-    bonificadorIniciativa:
-      statsPj.modificadores.destreza +
-      (pj.iniciativaBono || 0) +
-      calcularBonoIniciativaRasgos(pj),
+    bonificadorIniciativa: calcularBonificadorIniciativa(pj, statsPj.modificadores.destreza),
     esMonstruo: false,
     velocidad: `${pj.velocidad || "30 pies"}`
   };
@@ -73,7 +70,6 @@ function construirCriaturaHeroeIniciativa(
 function actualizarAcompanantesEnPersonajes(
   personajes: PersonajeJugador[],
   info: MetadataIniciativa,
-  nombreNorm: string,
   totalIniciativa: number
 ): {
   personajesModificados: boolean;
@@ -89,7 +85,7 @@ function actualizarAcompanantesEnPersonajes(
     const listaAcomp = p.acompanantes || [];
     let modificadoEnPj = false;
     const acompanantesActualizados = listaAcomp.map((a) => {
-      if (!coincideAcompananteEnTirada(a, info, nombreNorm)) return a;
+      if ((info.idPersonaje && p.id !== info.idPersonaje) || !coincideAcompananteEnTirada(a, info)) return a;
       modificadoEnPj = true;
       personajesModificados = true;
       if (!acompananteEncontrado) {
@@ -110,37 +106,32 @@ function actualizarColaExistente(
   nombreNorm: string,
   totalIniciativa: number
 ): { encontrada: boolean; colaActualizada: CriaturaIniciativa[] } {
-  let encontrada = false;
-  const colaActualizada = state.colaIniciativa.map((c) => {
-    const coincideAcomp =
-      Boolean(info.idAcompanante) &&
-      (c.id === info.idAcompanante ||
-        c.idAcompanante === info.idAcompanante ||
-        (info.idMiniaturaTS && c.id === info.idMiniaturaTS));
-
-    const coincideId =
-      c.id === info.criaturaId ||
-      (info.idMiniaturaTS && c.id === info.idMiniaturaTS) ||
-      (!info.idAcompanante && info.idPersonaje && c.id === info.idPersonaje);
-
-    const coincideNombre =
-      Boolean(nombreNorm) &&
-      c.nombre.trim().toLowerCase() === nombreNorm &&
-      (!info.idAcompanante || Boolean(c.esAcompanante) || Boolean(c.idAcompanante));
-
-    if (coincideAcomp || coincideId || coincideNombre) {
-      encontrada = true;
-      const esDeJugador = Boolean(info.idPersonaje || coincideAcomp || !c.esMonstruo);
-      return {
-        ...c,
-        iniciativa: totalIniciativa,
-        ...(esDeJugador ? { esMonstruo: false, idPlantillaAsociada: undefined } : {})
-      };
-    }
-    return c;
+  const indicesPorId = state.colaIniciativa.flatMap((c, i) => {
+      if (info.idPersonaje && c.idPersonajeDuenio && c.idPersonajeDuenio !== info.idPersonaje) return [];
+      const coincide = info.idAcompanante
+        ? c.idAcompanante === info.idAcompanante || c.id === info.idAcompanante || Boolean(info.idMiniaturaTS && c.id === info.idMiniaturaTS)
+        : c.id === info.criaturaId || Boolean(info.idMiniaturaTS && c.id === info.idMiniaturaTS);
+      return coincide ? [i] : [];
+    });
+  // Una fila identificada no se reclasifica por el nombre de otra ficha.
+  const pj = !info.idAcompanante ? resolverPersonajeAsociado(
+    info.idMiniaturaTS || info.criaturaId, indicesPorId.length ? "" : info.nombrePersonaje || "", state.personajes, info.idPersonaje
+  ) : undefined;
+  const indices = indicesPorId.length ? indicesPorId
+    : pj ? [indiceEntradaPersonaje(state.colaIniciativa, pj, state.personajes)].filter(i => i >= 0) : [];
+  if (!indices.length && !info.idAcompanante) {
+    const genericas = state.colaIniciativa.flatMap((c, i) => !c.idPersonajeDuenio && !c.idAcompanante && !c.esAcompanante
+      && !c.idPlantillaAsociada && !state.personajes.some(p => coincideIdentidadPersonaje(c, p))
+      && Boolean(nombreNorm) && c.nombre.trim().toLowerCase() === nombreNorm ? [i] : []);
+    if (genericas.length === 1) indices.push(genericas[0]);
+  }
+  const colaActualizada = state.colaIniciativa.map((c, indice) => {
+    if (!indices.includes(indice)) return c;
+    const esDeJugador = Boolean(pj || info.idPersonaje || info.idAcompanante || !c.esMonstruo);
+    return { ...c, iniciativa: totalIniciativa,
+      ...(esDeJugador ? { esMonstruo: false, idPlantillaAsociada: undefined } : {}) };
   });
-
-  return { encontrada, colaActualizada };
+  return { encontrada: indices.length > 0, colaActualizada };
 }
 
 /**
@@ -164,7 +155,6 @@ export function aplicarResultadoIniciativaEnEstado(
     actualizarAcompanantesEnPersonajes(
       state.personajes,
       infoIniciativa,
-      nombreNorm,
       totalIniciativa
     );
 
@@ -195,12 +185,10 @@ export function aplicarResultadoIniciativaEnEstado(
     return;
   }
 
-  const pj = state.personajes.find(
-    (p) =>
-      (!infoIniciativa.idAcompanante && p.id === infoIniciativa.idPersonaje) ||
-      (infoIniciativa.idMiniaturaTS && p.idMiniaturaTS === infoIniciativa.idMiniaturaTS) ||
-      (nombreNorm && p.nombre.trim().toLowerCase() === nombreNorm)
-  );
+  const pj = !infoIniciativa.idAcompanante ? resolverPersonajeAsociado(
+    infoIniciativa.idMiniaturaTS || infoIniciativa.criaturaId,
+    infoIniciativa.nombrePersonaje || "", state.personajes, infoIniciativa.idPersonaje
+  ) : undefined;
 
   const nuevaCriatura: CriaturaIniciativa = pj
     ? construirCriaturaHeroeIniciativa(pj, totalIniciativa)

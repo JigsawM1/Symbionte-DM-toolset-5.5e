@@ -82,7 +82,7 @@ Las tiradas de salvación contra la muerte se envían a TaleSpire y `lanzadorDad
 
 ## Iniciativa y miniatura
 
-`IniciativaJugador.tsx` muestra la cola sincronizada y el turno del personaje. El jugador puede lanzar iniciativa desde `MetricasRapidasPersonaje.tsx`.
+`IniciativaJugador.tsx` muestra la cola sincronizada y el turno del personaje. El jugador puede lanzar iniciativa desde `MetricasRapidasPersonaje.tsx`. La ficha, la tarjeta y la tirada usan Destreza + ajuste manual + los bonos declarados de los rasgos, como Alerta. El bono y el resultado tirado son valores separados.
 
 `vincularMiniaturaTSPersonaje` guarda el identificador de la miniatura en el personaje. `resolutorMiniaturasJugador.ts` puede emparejar personajes con criaturas que pertenecen al jugador y resolver la miniatura activa.
 
@@ -111,3 +111,10 @@ El procesador de descansos devuelve un resultado estructurado para que la hoja p
 Las condiciones no son solo etiquetas visuales. `procesadorCondiciones.ts` evalúa sus modificadores en ataques, habilidades, salvaciones e iniciativa, y los rasgos pueden añadir reglas adicionales.
 
 La concentración se guarda en el personaje y se puede perder al aplicar el cambio que corresponda. Las salvaciones contra la muerte usan la misma infraestructura de dados, pero aplican sus resultados a contadores de éxitos y fallos.
+
+## Teclado y ventanas de detalle
+
+Los detalles de conjuros, rasgos e inventario y el alta de objetos se abren como diálogos modales. Tab y Mayús+Tab recorren sus controles; Escape cierra la ventana superior y devuelve el foco al origen. Un selector abierto consume primero Escape, también al abrirlo desde su flecha, y conserva la edición del formulario. Cancelar una recuperación, conversión o activación deja los recursos intactos.
+
+Los compendios incluyen botones «Ver detalles de…», separados de aprender y preparar. Los selectores admiten flechas, Inicio/Fin y Enter/Espacio; Tab continúa al siguiente control. La posición de teclado se conserva al renderizarse de nuevo la vista; las sugerencias recorren el orden visual de los grupos y ajustan su opción activa al filtrarse. En los campos de sugerencias se puede seguir escribiendo espacios. El menú Homebrew comunica su expansión y permite el mismo recorrido por teclado.
+

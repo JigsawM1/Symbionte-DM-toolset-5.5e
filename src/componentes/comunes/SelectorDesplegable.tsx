@@ -40,6 +40,9 @@ export function SelectorDesplegable<T extends string = string>({
 }: SelectorDesplegableProps<T>) {
   const [abierto, setAbierto] = useState(false);
   const contenedorRef = useRef<HTMLDivElement>(null);
+  const gatilloRef = useRef<HTMLButtonElement>(null);
+  const idLista = React.useId();
+  const indiceInicial = useRef<number | null>(null);
 
   // Normalizar opciones a formato estándar { valor, etiqueta, color, icono }
   const opcionesNormalizadas = React.useMemo(() => {
@@ -62,6 +65,37 @@ export function SelectorDesplegable<T extends string = string>({
   const opcionActual = React.useMemo(() => {
     return opcionesNormalizadas.find((op) => op.valor === valor);
   }, [opcionesNormalizadas, valor]);
+
+  useEffect(() => {
+    if (!abierto) return;
+    // Un render del padre no debe reiniciar la navegación que ya está dentro de la lista.
+    if (contenedorRef.current?.contains(document.activeElement) && document.activeElement?.getAttribute("role") === "option") return;
+    const botones = contenedorRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+    const elegido = opcionesNormalizadas.findIndex(op => op.valor === valor);
+    botones?.[indiceInicial.current ?? Math.max(0, elegido)]?.focus();
+    indiceInicial.current = null;
+  }, [abierto, opcionesNormalizadas, valor]);
+
+  const manejarTeclado = (evento: React.KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    if (evento.key === "Escape" && abierto) {
+      evento.preventDefault(); evento.stopPropagation();
+      setAbierto(false); gatilloRef.current?.focus();
+    } else if (evento.key === "Tab" && abierto) {
+      // Continuar desde el gatillo conserva el siguiente control en el orden de tabulación.
+      gatilloRef.current?.focus(); setAbierto(false);
+    } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(evento.key)) {
+      evento.preventDefault(); evento.stopPropagation();
+      const botones = Array.from(contenedorRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') || []);
+      const actual = botones.indexOf(document.activeElement as HTMLButtonElement);
+      const total = opcionesNormalizadas.length;
+      const indice = evento.key === "Home" ? 0 : evento.key === "End" ? total - 1
+        : abierto ? (actual + (evento.key === "ArrowDown" ? 1 : -1) + total) % total
+        : evento.key === "ArrowUp" ? total - 1 : Math.max(0, opcionesNormalizadas.findIndex(op => op.valor === valor));
+      if (abierto) botones[indice]?.focus();
+      else { indiceInicial.current = indice; setAbierto(true); }
+    }
+  };
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -93,6 +127,7 @@ export function SelectorDesplegable<T extends string = string>({
     e.preventDefault();
     alCambiar(nuevoValor);
     setAbierto(false);
+    gatilloRef.current?.focus();
   };
 
   const claseTamano = tamano === "compacto" 
@@ -104,10 +139,16 @@ export function SelectorDesplegable<T extends string = string>({
   return (
     <div
       ref={contenedorRef}
+      onKeyDown={manejarTeclado}
+      onBlur={evento => { if (!evento.currentTarget.contains(evento.relatedTarget as Node | null)) setAbierto(false); }}
       className={`${estilos.contenedor} ${enFlujo ? estilos.contenedorEnFlujo : ""} ${className || ""}`}
     >
       <button
         id={id}
+        ref={gatilloRef}
+        aria-haspopup="listbox"
+        aria-expanded={abierto}
+        aria-controls={idLista}
         type="button"
         onClick={alternar}
         disabled={disabled}
@@ -134,7 +175,7 @@ export function SelectorDesplegable<T extends string = string>({
       </button>
 
       {abierto && !disabled && (
-        <div className={`${estilos.dropdown} ${enFlujo ? estilos.dropdownEnFlujo : ""}`}>
+        <div id={idLista} role="listbox" aria-label={titulo || placeholder} className={`${estilos.dropdown} ${enFlujo ? estilos.dropdownEnFlujo : ""}`}>
           {opcionesNormalizadas.length > 0 ? (
             opcionesNormalizadas.map((op) => {
               const estaSeleccionada = op.valor === valor;
@@ -142,6 +183,9 @@ export function SelectorDesplegable<T extends string = string>({
                 <button
                   key={String(op.valor)}
                   type="button"
+                  role="option"
+                  aria-selected={estaSeleccionada}
+                  tabIndex={-1}
                   onClick={(e) => seleccionar(op.valor, e)}
                   className={`${estilos.opcion} ${estaSeleccionada ? estilos.opcionSeleccionada : ""}`}
                 >

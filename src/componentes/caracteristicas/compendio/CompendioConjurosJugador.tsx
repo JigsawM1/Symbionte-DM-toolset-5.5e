@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import React, { useState, useMemo, useDeferredValue, useCallback } from "react";
 import { conjuroElegidoPorClase, conjuroFueraDeListas, esConjuroIndependiente } from "@/servicios/rasgos/listasConjurosRasgos";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/rasgos/evaluadorCombateRasgos";
@@ -468,10 +469,8 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
 
       {/* Modal de FichaHechizo Completa */}
       {hechizoModal && (
-        <div
-          className={estilos.modalOverlay}
-          onClick={() => setHechizoModal(null)}
-        >
+        <DialogoModal etiqueta={`Conjuro: ${hechizoModal.nombre}`} alCerrar={() => setHechizoModal(null)}>
+          <div className={estilos.modalOverlay} onClick={() => setHechizoModal(null)}>
           <div
             className={estilos.modalContenido}
             onClick={(e) => e.stopPropagation()}
@@ -492,6 +491,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
             />
           </div>
         </div>
+        </DialogoModal>
       )}
     </div>
   );

@@ -102,6 +102,7 @@ export const PanelDetalleObjetoHomebrew: React.FC<PanelDetalleObjetoHomebrewProp
           <button
             onClick={alCerrar}
             className={estilos.botonCerrarDetalle}
+            aria-label="Cerrar detalles del equipo"
             type="button"
           >
             <X size={15} />

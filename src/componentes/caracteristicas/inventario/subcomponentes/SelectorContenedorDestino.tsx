@@ -45,8 +45,8 @@ export const SelectorContenedorDestino: React.FC<SelectorContenedorDestinoProps>
   alSeleccionarContenedor
 }) => {
   return (
-    <div className={estilos.campoFormulario}>
-      <label className={estilos.labelFormulario}>Guardar en:</label>
+    <div className={estilos.campoFormulario} role="group" aria-label="Guardar en">
+      <span className={estilos.labelFormulario}>Guardar en:</span>
       <div className={estilos.cuadriculaSelectoresDestino}>
         {OPCIONES_CONTENEDOR_DESTINO.map((opc) => {
           const activo = contenedorSeleccionado === opc.clave;
@@ -54,6 +54,7 @@ export const SelectorContenedorDestino: React.FC<SelectorContenedorDestinoProps>
             <button
               key={opc.clave}
               type="button"
+              aria-pressed={activo}
               className={`${estilos.botonSelectorDestino} ${activo ? estilos.botonSelectorDestinoActivo : ""}`}
               data-caja={opc.clave}
               onClick={() => alSeleccionarContenedor(opc.clave)}

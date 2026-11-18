@@ -123,12 +123,12 @@ export const ListaObjetosHomebrew: React.FC<ListaObjetosHomebrewProps> = ({
           <>
             {objetosVisibles.map((o) => (
               <div key={o.id} className={estilos.itemListaBrutal}>
-                <div
+                <button type="button" aria-label={`Ver detalles de ${o.nombre}`}
                   className={estilos.itemInfoListaClickable}
                   onClick={() => setIdObjetoDetalle(o.id)}
                   title="Ver detalles del objeto mágico"
                 >
-                  <div className="u-flex u-items-center u-gap-sm u-flex-wrap">
+                  <span className="u-flex u-items-center u-gap-sm u-flex-wrap">
                     <span className={estilos.itemNombre}>{o.nombre}</span>
                     {(o.esVeneno || o.tipoVeneno) && (
                       <span className={estilos.badgeVenenoObjeto}>
@@ -136,11 +136,11 @@ export const ListaObjetosHomebrew: React.FC<ListaObjetosHomebrewProps> = ({
                         <span>VENENO {o.tipoVeneno ? `(${o.tipoVeneno})` : ""}</span>
                       </span>
                     )}
-                  </div>
+                  </span>
                   <span className={estilos.itemSub}>
                     Rareza: {o.rareza} {o.propiedades ? `| Prop.: ${o.propiedades}` : ""}
                   </span>
-                </div>
+                </button>
                 <div className={estilos.grupoBotonesItem}>
                   <button
                     onClick={(e) => {

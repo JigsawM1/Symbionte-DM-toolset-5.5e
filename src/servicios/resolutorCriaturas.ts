@@ -1,4 +1,4 @@
-﻿/**
+/**
  * resolutorCriaturas.ts
  * ---------------------
  * Servicio centralizado para la normalización de nombres de miniaturas y la
@@ -182,10 +182,34 @@ export function calcularVidaInicial(
   return { vidaMaxima: vidaMax, vidaActual: vidaAct };
 }
 
-/**
- * Busca de forma tolerante el PersonajeJugador asociado a una miniatura o criatura,
- * comparando por ID directo, ID de miniatura en TaleSpire, ID de dueño o coincidencia de nombres normalizados.
- */
+function idsIguales(a?: string | null, b?: string | null): boolean {
+  return Boolean(a && b && a.toLowerCase() === b.toLowerCase());
+}
+
+/** La identidad explícita de una fila nunca se sustituye por una coincidencia de nombre. */
+export function coincideIdentidadPersonaje(
+  criatura: CriaturaIniciativa,
+  personaje: { id: string; idMiniaturaTS?: string | null }
+): boolean {
+  if (criatura.esAcompanante || criatura.idAcompanante) return false;
+  if (criatura.idPersonajeDuenio) return idsIguales(criatura.idPersonajeDuenio, personaje.id);
+  return idsIguales(criatura.id, personaje.id) || idsIguales(criatura.id, personaje.idMiniaturaTS);
+}
+
+/** Conserva la tolerancia heredada solo cuando hay un único candidato, priorizando el nombre completo. */
+export function resolverPersonajePorNombre(
+  nombre: string,
+  personajes: readonly PersonajeJugador[]
+): PersonajeJugador | undefined {
+  if (esNombreVacioODot(nombre)) return undefined;
+  const completo = normalizarNombreTaleSpire(nombre).completoSinTildes;
+  const exactos = personajes.filter(p => normalizarNombreTaleSpire(p.nombre).completoSinTildes === completo);
+  if (exactos.length) return exactos.length === 1 ? exactos[0] : undefined;
+  const candidatos = personajes.filter(p => coincidenNombresTaleSpire(p.nombre, nombre));
+  return candidatos.length === 1 ? candidatos[0] : undefined;
+}
+
+/** Busca primero en toda la biblioteca por identidad; solo después admite un nombre no ambiguo. */
 export function resolverPersonajeAsociado(
   idCriatura: string,
   nombreCriatura: string,
@@ -194,27 +218,10 @@ export function resolverPersonajeAsociado(
 ): PersonajeJugador | undefined {
   if (!personajes || personajes.length === 0) return undefined;
 
-  const idLimpio = idCriatura ? idCriatura.toLowerCase() : "";
-
-  return personajes.find((pj) => {
-    // 1. Coincidencia por ID de personaje
-    if (pj.id === idCriatura || (pj.id && idLimpio && pj.id.toLowerCase() === idLimpio)) {
-      return true;
-    }
-
-    // 2. Coincidencia por ID de miniatura TaleSpire asignada en la ficha
-    if (pj.idMiniaturaTS && (pj.idMiniaturaTS === idCriatura || pj.idMiniaturaTS.toLowerCase() === idLimpio)) {
-      return true;
-    }
-
-    // 3. Coincidencia por dueño explícito
-    if (idPersonajeDuenio && pj.id === idPersonajeDuenio) {
-      return true;
-    }
-
-    // 4. Coincidencia por nombre normalizado tolerante (sin diacríticos ni sufijos de instancia/rol)
-    return coincidenNombresTaleSpire(pj.nombre, nombreCriatura);
-  });
+  if (idPersonajeDuenio) return personajes.find(p => idsIguales(p.id, idPersonajeDuenio));
+  const identidades = personajes.filter(p => idsIguales(p.id, idCriatura) || idsIguales(p.idMiniaturaTS, idCriatura));
+  if (identidades.length) return identidades.length === 1 ? identidades[0] : undefined;
+  return resolverPersonajePorNombre(nombreCriatura, personajes);
 }
 
 /**
@@ -226,12 +233,34 @@ export function resolverPersonajePorCriatura(
   criatura: CriaturaIniciativa,
   personajes: PersonajeJugador[]
 ): PersonajeJugador | undefined {
+  if (criatura.esAcompanante || criatura.idAcompanante) {
+    return criatura.idPersonajeDuenio ? personajes.find(p => idsIguales(p.id, criatura.idPersonajeDuenio)) : undefined;
+  }
+  const vinculadas = personajes.filter(p => coincideIdentidadPersonaje(criatura, p));
+  if (vinculadas.length) return vinculadas.length === 1 ? vinculadas[0] : undefined;
+  if (criatura.idPersonajeDuenio || criatura.esMonstruo) return undefined;
   return resolverPersonajeAsociado(
     criatura.id,
     criatura.nombre,
     personajes,
     criatura.idPersonajeDuenio
   );
+}
+
+/** Adopta una fila genérica solo si no está vinculada y su nombre identifica inequívocamente la ficha. */
+export function indiceEntradaPersonaje(
+  cola: readonly CriaturaIniciativa[],
+  personaje: PersonajeJugador,
+  personajes: readonly PersonajeJugador[]
+): number {
+  const porIdentidad = cola.findIndex(c => coincideIdentidadPersonaje(c, personaje));
+  if (porIdentidad >= 0) return porIdentidad;
+  const candidatos = cola.flatMap((c, indice) => {
+    if (c.esMonstruo || c.esAcompanante || c.idAcompanante || c.idPersonajeDuenio) return [];
+    if (personajes.some(p => coincideIdentidadPersonaje(c, p))) return [];
+    return resolverPersonajePorNombre(c.nombre, personajes)?.id === personaje.id ? [indice] : [];
+  });
+  return candidatos.length === 1 ? candidatos[0] : -1;
 }
 
 const PASIVAS_NEUTRAS_PJ: PasivasCombatePJ = Object.freeze({

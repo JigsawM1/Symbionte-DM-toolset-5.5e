@@ -6,6 +6,7 @@
 
 import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, RegistroMovimiento } from "@/tipos";
+import { coincideIdentidadPersonaje, resolverPersonajePorCriatura } from "@/servicios/resolutorCriaturas";
 
 export function coincidePersonajeEnIniciativa(
   pj: PersonajeJugador,
@@ -13,12 +14,9 @@ export function coincidePersonajeEnIniciativa(
   id: string,
   _nombre: string
 ): boolean {
+  if (criatura) return coincideIdentidadPersonaje(criatura, pj);
   return Boolean(
-    !criatura?.esAcompanante &&
-    !criatura?.idAcompanante &&
-    (pj.id.toLowerCase() === id.toLowerCase() ||
-      pj.idMiniaturaTS?.toLowerCase() === id.toLowerCase() ||
-      (criatura?.idPersonajeDuenio && pj.id === criatura.idPersonajeDuenio))
+    pj.id.toLowerCase() === id.toLowerCase() || pj.idMiniaturaTS?.toLowerCase() === id.toLowerCase()
   );
 }
 
@@ -45,16 +43,11 @@ export function esCondicionDerribado(texto: string): boolean {
  */
 export function coincidePersonajeConCriaturaArea(
   pj: PersonajeJugador,
-  criatura: CriaturaIniciativa
+  criatura: CriaturaIniciativa,
+  personajes: PersonajeJugador[]
 ): boolean {
-  if (coincidePersonajeEnIniciativa(pj, criatura, criatura.id, criatura.nombre)) {
-    return true;
-  }
-  if (criatura.esAcompanante || criatura.idAcompanante) {
-    return false;
-  }
-  const cNom = (criatura.nombre || "").trim().toLowerCase();
-  return Boolean(cNom) && (pj.nombre || "").trim().toLowerCase() === cNom;
+  if (criatura.esAcompanante || criatura.idAcompanante) return false;
+  return resolverPersonajePorCriatura(criatura, personajes)?.id === pj.id;
 }
 
 /**

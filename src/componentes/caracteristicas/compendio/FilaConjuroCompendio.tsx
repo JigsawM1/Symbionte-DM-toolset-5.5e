@@ -164,9 +164,9 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
           {/* Nombre del Conjuro + Badge Origen */}
           <div className={estilos.contenedorNombre}>
-            <span className={estilos.textoNombre}>
+            <button type="button" className={estilos.textoNombre} aria-label={`Ver detalles de ${hechizo.nombre}`} onClick={evento => { evento.stopPropagation(); alAbrirDetalle(hechizo); }}>
               {hechizo.nombre}
-            </span>
+            </button>
 
             {esOtorgado && configBadge && (
               <span

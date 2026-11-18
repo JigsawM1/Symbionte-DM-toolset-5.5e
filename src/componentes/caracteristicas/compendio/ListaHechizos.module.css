@@ -103,6 +103,12 @@
 }
 
 .cabeceraConjuro {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
   display: flex;
   align-items: center;
   padding: 7px 10px;
@@ -277,3 +283,5 @@
   background-color: var(--pj-fondo-base);
   box-shadow: var(--pj-sombra-tarjeta);
 }
+
+.cabeceraConjuro:focus-visible { outline: 2px solid var(--color-primario-brillante, #00f5d4); outline-offset: 2px; }

@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { Sparkles, X } from "lucide-react";
-import { logger } from "@/utiles/logger";
 import estilos from "./DialogoRasgo.module.css";
 
 export interface OpcionesDialogoLanzamiento {
@@ -11,27 +10,7 @@ export interface OpcionesDialogoLanzamiento {
 }
 
 export function DialogoVariante({ nombre, etiqueta, descripcion, opciones, resolver }: OpcionesDialogoLanzamiento & { resolver: (valor?: string) => void }) {
-  const dialogo = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const el = dialogo.current;
-    if (el && !el.open) {
-      try {
-        el.showModal();
-      } catch (err) {
-        logger.error("[DialogoVariante] Error al abrir diálogo modal:", err);
-      }
-    }
-    return () => {
-      if (el?.open) {
-        try {
-          el.close();
-        } catch (err) {
-          logger.debug("[DialogoVariante] Error al cerrar diálogo en desmontaje:", err);
-        }
-      }
-    };
-  }, []);
-  return <dialog ref={dialogo} className={estilos.dialogo} aria-label={etiqueta} onCancel={() => resolver()} onClose={() => resolver()}>
+  return <DialogoModal className={estilos.dialogo} etiqueta={etiqueta} alCerrar={() => resolver()}>
     <header className={estilos.cabecera}><Sparkles size={18} aria-hidden="true" /><h3>{nombre}</h3>
       <button type="button" className={estilos.cerrar} aria-label="Cerrar opciones de lanzamiento" onClick={() => resolver()}><X size={18} /></button></header>
     <div className={`u-scroll-cef ${estilos.cuerpo}`}><p className={estilos.introduccion}>{descripcion}</p>
@@ -41,6 +20,6 @@ export function DialogoVariante({ nombre, etiqueta, descripcion, opciones, resol
     <footer className={estilos.acciones}>
       <button type="button" onClick={() => resolver()}>Cancelar</button>
     </footer>
-  </dialog>;
+  </DialogoModal>;
 }
 

@@ -78,7 +78,7 @@ export function despacharAplicarCondicionEnArea(
 
   const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
   const nuevosPersonajes = state.personajes.map((pj) => {
-    const coincide = criaturasAfectadas.some((c) => coincidePersonajeConCriaturaArea(pj, c));
+    const coincide = criaturasAfectadas.some((c) => coincidePersonajeConCriaturaArea(pj, c, state.personajes));
     return coincide
       ? { ...pj, condicionesActivas: aplicarCondicion(pj.condicionesActivas || [], condTrimmed) }
       : pj;
@@ -122,7 +122,7 @@ export function despacharAplicarEfectoEnArea(
 
   const criaturasAfectadas = state.colaIniciativa.filter((c) => targets.has(c.id));
   const nuevosPersonajes = state.personajes.map((pj) => {
-    const coincide = criaturasAfectadas.some((c) => coincidePersonajeConCriaturaArea(pj, c));
+    const coincide = criaturasAfectadas.some((c) => coincidePersonajeConCriaturaArea(pj, c, state.personajes));
     return coincide ? aplicarEfectoAPersonaje(pj, nombreEfecto, nuevoEfecto, esConcentracion) : pj;
   });
 

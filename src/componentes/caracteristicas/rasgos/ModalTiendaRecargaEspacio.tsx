@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import React, { useState, useMemo } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { Shield, RotateCcw, X, AlertCircle, Sparkles } from "lucide-react";
@@ -53,7 +54,8 @@ export const ModalTiendaRecargaEspacio: React.FC<ModalTiendaRecargaEspacioProps>
   };
 
   return (
-    <div className={estilos.overlay} role="dialog" aria-modal="true" aria-labelledby="titulo-tienda-recarga">
+    <DialogoModal etiqueta={"Recargar espacio"} alCerrar={alCerrar}>
+<div className={estilos.overlay} aria-labelledby="titulo-tienda-recarga">
       <div className={estilos.modal}>
         <div className={estilos.cabecera}>
           <h2 id="titulo-tienda-recarga" className={estilos.titulo}>
@@ -168,5 +170,6 @@ export const ModalTiendaRecargaEspacio: React.FC<ModalTiendaRecargaEspacioProps>
         </div>
       </div>
     </div>
+</DialogoModal>
   );
 };

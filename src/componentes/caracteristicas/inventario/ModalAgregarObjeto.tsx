@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { FormularioNumerico } from "@/componentes/comunes/FormularioNumerico";
 import { CampoNumerico } from "@/componentes/comunes/CampoNumerico";
 import React, { useState, useMemo, useEffect } from "react";
@@ -46,6 +47,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   alAgregarObjeto,
   alCerrar
 }) => {
+  const idCampos = React.useId();
   const [tabActiva, setTabActiva] = useState<TabModalAgregar>(tabInicial);
   const [contenedorDestino, setContenedorDestino] = useState<TipoContenedor>("mochila");
 
@@ -246,7 +248,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
   };
 
   return (
-    <div className={`${estilos.overlayModal} ${estilos.overlayAgregarObjeto}`} onClick={alCerrar}>
+    <DialogoModal etiqueta={"Añadir objeto"} alCerrar={alCerrar} focoInicial="campo">
+<div className={`${estilos.overlayModal} ${estilos.overlayAgregarObjeto}`} onClick={alCerrar}>
       <div
         className={`${estilos.cuerpoModal} ${estilos.modalAgregarObjeto}`}
         onClick={(e) => e.stopPropagation()}
@@ -309,8 +312,9 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
               {/* Buscador de Sugerencias */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Buscar Objeto:</label>
-                <SelectorSugerencias
+                <label className={estilos.labelFormulario} htmlFor={`${idCampos}-buscar`}>Buscar Objeto:</label>
+                <SelectorSugerencias id={`${idCampos}-buscar`}
+                  abrirAlEnfocar={false}
                   valor={textoBusqueda}
                   alCambiar={manejarCambioTextoBusqueda}
                   opciones={opcionesSugerencias}
@@ -320,8 +324,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
               {/* Selector de Cantidad */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Cantidad a Añadir:</label>
-                <CampoNumerico
+                <label className={estilos.labelFormulario} htmlFor={`${idCampos}-cantidad-compendio`}>Cantidad a Añadir:</label>
+                <CampoNumerico id={`${idCampos}-cantidad-compendio`}
                   min="1"
                   className={estilos.inputFormulario}
                   value={cantidadCompendio}
@@ -368,8 +372,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
               {/* Nombre de la Posesión */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Nombre de la Posesión / Objeto *</label>
-                <input
+                <label className={estilos.labelFormulario} htmlFor={`${idCampos}-nombre`}>Nombre de la Posesión / Objeto *</label>
+                <input id={`${idCampos}-nombre`}
                   type="text"
                   required
                   className={estilos.inputFormulario}
@@ -383,8 +387,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
               {/* Cantidad y Peso */}
               <div className={estilos.gridDosColumnasPosesion}>
                 <div className={estilos.campoFormulario}>
-                  <label className={estilos.labelFormulario}>Cantidad</label>
-                  <CampoNumerico
+                  <label className={estilos.labelFormulario} htmlFor={`${idCampos}-cantidad`}>Cantidad</label>
+                  <CampoNumerico id={`${idCampos}-cantidad`}
                     min="1"
                     className={estilos.inputFormulario}
                     value={cantidadPosesion}
@@ -394,8 +398,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                 </div>
 
                 <div className={estilos.campoFormulario}>
-                  <label className={estilos.labelFormulario}>Peso Total (lb)</label>
-                  <CampoNumerico
+                  <label className={estilos.labelFormulario} htmlFor={`${idCampos}-peso`}>Peso por unidad (lb)</label>
+                  <CampoNumerico id={`${idCampos}-peso`}
                     step="0.1"
                     min="0"
                     className={estilos.inputFormulario}
@@ -404,6 +408,7 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
                     placeholder="0 (ligero / insignificante)"
                     tipo="decimal"
                   />
+                  <output htmlFor={`${idCampos}-peso ${idCampos}-cantidad`}>Peso total: {(Number(pesoPosesion) || 0) * cantidadPosesion} lb</output>
                 </div>
               </div>
 
@@ -415,8 +420,8 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
 
               {/* Notas / Descripción Rápida */}
               <div className={estilos.campoFormulario}>
-                <label className={estilos.labelFormulario}>Notas o Descripción (Opcional)</label>
-                <textarea
+                <label className={estilos.labelFormulario} htmlFor={`${idCampos}-notas`}>Notas o Descripción (Opcional)</label>
+                <textarea id={`${idCampos}-notas`}
                   className={`${estilos.inputFormulario} ${estilos.textareaNotasPosesion}`}
                   value={notasPosesion}
                   onChange={(e) => setNotasPosesion(e.target.value)}
@@ -444,5 +449,6 @@ export const ModalAgregarObjeto: React.FC<ModalAgregarObjetoProps> = ({
         )}
       </div>
     </div>
+</DialogoModal>
   );
 };

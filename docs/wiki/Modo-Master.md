@@ -16,14 +16,14 @@ El modo Master se selecciona cuando `esGM` es verdadero. `src/App.tsx` muestra `
 - Ejecutar salvaciones en área con CD y mitigación.
 - Consultar de forma inmediata las métricas pasivas de los jugadores (Percepción Pasiva, Investigación Pasiva y Perspicacia Pasiva) mediante insignias tácticas en las tarjetas de la cola.
 
+Al añadir o refrescar una ficha, su identidad procede de los IDs de ficha, miniatura y dueño. Los nombres A/B, sufijos numéricos y fichas homónimas se mantienen separados. Escribir el nombre completo prioriza su coincidencia exacta; si varias fichas comparten nombre, selecciona una sugerencia explícita. «EN COMBATE» corresponde a esa identidad. Una fila genérica sin vínculo sólo se adopta si identifica inequívocamente una ficha.
+
+La ficha y la tarjeta comparten el bono completo de iniciativa (Destreza, ajuste manual y rasgos). Refrescar estadísticas mantiene el resultado tirado, el orden y el turno. Al recibir una tirada se busca primero el ID de la cola: un monstruo identificado conserva su naturaleza y plantilla aunque exista un PJ homónimo. Las colas fusionadas por versiones anteriores requieren revisión y añadir de nuevo los participantes: no se reconstruyen automáticamente. La normalización de instancias A/B y numéricas continúa disponible para plantillas de monstruos.
+
 ## Sincronización en Tiempo Real (`TS.sync`)
 
-`sincronizacionSimbiote.ts` y `TaleSpireAdapter.ts` gestionan la sincronización bidireccional en tiempo real entre el Master y los Jugadores a través del canal de red nativo `TS.sync`:
+La ruta de red activa es Sync v4. Consulta [Sincronización del combate v4](../sincronizacion-v4.md) para la autoridad del director, campaña, tablero, propuestas, confirmaciones y recuperación de cambios pendientes. Los adaptadores históricos se conservan para leer fichas y borradores anteriores; no seleccionan destinos remotos por nombre.
 
-- Protocolo compacto Wire v2 con fragmentación automática de paquetes (`DM_CHUNK` / `< 380 bytes`) para cumplir con el límite estricto de la API de TaleSpire (< 500 caracteres).
-- Cola FIFO con throttling e intervalos seguros (180 ms) y retroceso exponencial ante errores `rateLimited` de TaleSpire.
-- El Master ejerce la autoridad del estado de combate, mientras los Jugadores transmiten la salud, condiciones, efectos y acompañantes de su héroe activo.
-- Mecanismo de confirmación de entrega (ACK) y reintentos para asegurar que no se pierdan actualizaciones en partidas con latencia.
 
 ## Tarjetas de criatura
 
@@ -103,3 +103,8 @@ Antes de aplicar una salvación en área, el Master puede indicar la caracterís
 La configuración permite restablecer datos de fábrica. Esta acción debe usarse con atención porque reemplaza personajes, bases de datos y preferencias persistidas según las opciones elegidas.
 
 Para una limpieza selectiva, es preferible borrar el encuentro, pendiente, nota o entidad Homebrew desde su propia vista.
+
+## Compendios y teclado
+
+Los botones «Ver detalles de…» abren las fichas de compendio con Enter o Espacio y tienen foco visible. Los detalles de conjuros usan un diálogo nativo: Escape cierra la ventana superior y devuelve el foco. Flechas e Inicio/Fin recorren las opciones de los selectores y el menú Homebrew; Escape cierra primero el desplegable.
+

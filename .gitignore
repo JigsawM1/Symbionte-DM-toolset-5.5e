@@ -76,3 +76,5 @@ respaldo.yaml
 !/scripts/fixture-clerigo.mjs
 !/scripts/probar-clerigo-subclases.mjs
 !/scripts/probar-druida.mjs
+!/scripts/probar-auditoria-ui.mjs
+!/scripts/fixture-auditoria-ui.mjs

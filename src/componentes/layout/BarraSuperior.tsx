@@ -36,6 +36,36 @@ export const BarraSuperior: React.FC = () => {
   const { modoHomebrew } = usarEstadoHomebrew();
   const { establecerModoHomebrew } = usarAccionesHomebrew();
   const [mostrarMenuHomebrew, setMostrarMenuHomebrew] = useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const gatilloMenuRef = React.useRef<HTMLButtonElement>(null);
+  const idMenu = React.useId();
+  const abrirUltimo = React.useRef(false);
+  React.useEffect(() => {
+    if (!mostrarMenuHomebrew) return;
+    const items = menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]');
+    items?.[abrirUltimo.current ? items.length - 1 : 0]?.focus();
+    abrirUltimo.current = false;
+    const cerrarFuera = (evento: MouseEvent) => {
+      if (!menuRef.current?.contains(evento.target as Node)) setMostrarMenuHomebrew(false);
+    };
+    document.addEventListener("mousedown", cerrarFuera);
+    return () => document.removeEventListener("mousedown", cerrarFuera);
+  }, [mostrarMenuHomebrew]);
+  const tecladoMenu = (evento: React.KeyboardEvent<HTMLDivElement>) => {
+    if (evento.key === "Escape" && mostrarMenuHomebrew) {
+      evento.preventDefault(); evento.stopPropagation(); setMostrarMenuHomebrew(false); gatilloMenuRef.current?.focus();
+    } else if (evento.key === "Tab" && mostrarMenuHomebrew) {
+      gatilloMenuRef.current?.focus(); setMostrarMenuHomebrew(false);
+    } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(evento.key)) {
+      evento.preventDefault();
+      if (!mostrarMenuHomebrew) { abrirUltimo.current = evento.key === "ArrowUp" || evento.key === "End"; setMostrarMenuHomebrew(true); return; }
+      const items = Array.from(menuRef.current?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]') || []);
+      const actual = items.indexOf(document.activeElement as HTMLButtonElement);
+      const indice = evento.key === "Home" ? 0 : evento.key === "End" ? items.length - 1
+        : (actual + (evento.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      items[indice]?.focus();
+    }
+  };
   const esPestanaAdicional = pestanasAdicionalesJugador.some(({ valor }) => valor === pestañaActiva);
 
   return (
@@ -43,9 +73,14 @@ export const BarraSuperior: React.FC = () => {
       {/* Fila Superior: Título y Configuración / Campaña */}
       <div className={estilosClases.filaSuperior}>
         <div className={estilosClases.tituloSeccion}>
-          <div className="u-pos-relativo">
+          <div className="u-pos-relativo" ref={menuRef} onKeyDown={tecladoMenu}
+            onBlur={evento => { if (!evento.currentTarget.contains(evento.relatedTarget as Node | null)) setMostrarMenuHomebrew(false); }}>
             <button
               onClick={() => setMostrarMenuHomebrew(!mostrarMenuHomebrew)}
+              ref={gatilloMenuRef}
+              aria-haspopup="menu"
+              aria-expanded={mostrarMenuHomebrew}
+              aria-controls={idMenu}
               className={`${estilosClases.botonHamburguesa} ${
                 pestañaActiva === "homebrew" ? estilosClases.botonActivo : ""
               }`}
@@ -56,13 +91,16 @@ export const BarraSuperior: React.FC = () => {
             </button>
 
             {mostrarMenuHomebrew && (
-              <div className={estilosClases.menuHomebrewDesplegable}>
+              <div id={idMenu} role="menu" aria-label="Homebrew" className={estilosClases.menuHomebrewDesplegable}>
                 <div className={estilosClases.cabeceraDesplegable}>Homebrew</div>
                 <button
+                  role="menuitem" tabIndex={-1}
+                  aria-current={pestañaActiva === "homebrew" && modoHomebrew === "crear" ? "page" : undefined}
                   onClick={() => {
                     establecerPestaña("homebrew");
                     establecerModoHomebrew("crear");
                     setMostrarMenuHomebrew(false);
+                    gatilloMenuRef.current?.focus();
                   }}
                   className={`${estilosClases.itemMenuDesplegable} ${
                     pestañaActiva === "homebrew" && modoHomebrew === "crear" ? estilosClases.itemMenuActivo : ""
@@ -73,10 +111,13 @@ export const BarraSuperior: React.FC = () => {
                   <span>Crear Nuevo</span>
                 </button>
                 <button
+                  role="menuitem" tabIndex={-1}
+                  aria-current={pestañaActiva === "homebrew" && modoHomebrew === "lista" ? "page" : undefined}
                   onClick={() => {
                     establecerPestaña("homebrew");
                     establecerModoHomebrew("lista");
                     setMostrarMenuHomebrew(false);
+                    gatilloMenuRef.current?.focus();
                   }}
                   className={`${estilosClases.itemMenuDesplegable} ${
                     pestañaActiva === "homebrew" && modoHomebrew === "lista" ? estilosClases.itemMenuActivo : ""

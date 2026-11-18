@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { usarAccionesTarjetaRasgo } from "./usarAccionesTarjetaRasgo";
 import React from "react";
 import { ControlesRecursosDeclarativos } from "./ControlesRecursosDeclarativos";
@@ -112,7 +113,8 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
       : "default";
 
   return (
-    <div className={estilos.overlayModalDetalle} onClick={alCerrar}>
+    <DialogoModal etiqueta={`Rasgo: ${rasgo.nombre}`} alCerrar={alCerrar}>
+<div className={estilos.overlayModalDetalle} onClick={alCerrar}>
       <div
         className={estilos.contenedorModalDetalle}
         data-tipo-origen={tipoOrigen}
@@ -390,5 +392,6 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
         />
       )}
     </div>
+</DialogoModal>
   );
 };

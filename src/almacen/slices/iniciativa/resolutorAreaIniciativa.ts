@@ -225,7 +225,7 @@ export function ejecutarCalculoSalvacionArea(params: ParamsEjecutarSalvacionArea
   });
 
   const nuevosPersonajesSalvacion = personajes.map((pj) => {
-    const c = colaModificada.find((item) => coincidePersonajeConCriaturaArea(pj, item));
+    const c = colaModificada.find((item) => coincidePersonajeConCriaturaArea(pj, item, personajes));
     if (c && condicionOEfecto) {
       const logItem = resultadosLog.find((r) => r.id === c.id);
       if (logItem?.condicionAplicada) {

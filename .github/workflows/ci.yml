@@ -43,3 +43,8 @@ jobs:
 
       - name: Verificaciones de CI y compilación
         run: pnpm run ci
+
+      - name: Regresiones de UI de la auditoría
+        run: pnpm run test:auditoria-ui
+        env:
+          CHROME_PATH: /usr/bin/google-chrome

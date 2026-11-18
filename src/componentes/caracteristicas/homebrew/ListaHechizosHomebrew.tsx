@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import React, { useState, useEffect, useMemo } from "react";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
 import {
@@ -116,7 +117,7 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
           <>
             {hechizosVisibles.map((h) => (
               <div key={h.id} className={estilos.itemListaBrutal}>
-                <div
+                <button type="button" aria-label={`Ver detalles de ${h.nombre}`}
                   className={estilos.itemInfoListaClickable}
                   onClick={() => setIdHechizoDetalle(h.id)}
                   title="Ver detalles del hechizo"
@@ -126,7 +127,7 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
                     Nivel: <span className="dato-numerico">{h.nivel}</span> | {h.escuela} |{" "}
                     {h.alcance}
                   </span>
-                </div>
+                </button>
                 {!soloLectura && (
                   <div className={estilos.grupoBotonesItem}>
                     {iniciarEdicionHechizo && (
@@ -180,6 +181,7 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
         const hechizo = baseDatosHechizos.find((h) => h.id === idHechizoDetalle);
         if (!hechizo) return null;
         return (
+          <DialogoModal etiqueta={`Conjuro: ${hechizo.nombre}`} alCerrar={() => setIdHechizoDetalle(null)}>
           <div className={estilos.panelDetalleOverlay}>
             <FichaHechizo
               hechizo={hechizo}
@@ -197,6 +199,7 @@ export const ListaHechizosHomebrew: React.FC<ListaHechizosHomebrewProps> = ({
               }
             />
           </div>
+          </DialogoModal>
         );
       })()}
 

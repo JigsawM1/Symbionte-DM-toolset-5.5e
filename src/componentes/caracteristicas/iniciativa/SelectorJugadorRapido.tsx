@@ -5,7 +5,7 @@ import {
   usarAccionesIniciativa
 } from "@/almacen/selectores";
 import type { PersonajeJugador } from "@/tipos/personaje";
-import { coincidenNombresTaleSpire } from "@/servicios/resolutorCriaturas";
+import { coincideIdentidadPersonaje, resolverPersonajePorNombre } from "@/servicios/resolutorCriaturas";
 import { normalizarTexto } from "@/almacen/usarAlmacenDM";
 import estilosClases from "./SelectorJugadorRapido.module.css";
 import { logger } from "@/utiles/logger";
@@ -17,6 +17,8 @@ export const SelectorJugadorRapido: React.FC = () => {
   const [busqueda, setBusqueda] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
   const [indiceActivo, setIndiceActivo] = useState<number>(-1);
+  const [errorSeleccion, setErrorSeleccion] = useState<string | null>(null);
+  const idError = React.useId();
   const refTemporizadorBlur = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Normalizar consulta de búsqueda para filtrado tolerante
@@ -45,13 +47,7 @@ export const SelectorJugadorRapido: React.FC = () => {
     if (!personajes?.length || !colaIniciativa?.length) return enCombate;
 
     for (const pj of personajes) {
-      const encontrado = colaIniciativa.some(
-        (c) =>
-          c.id === pj.id ||
-          (pj.idMiniaturaTS && c.id === pj.idMiniaturaTS) ||
-          (c.idPersonajeDuenio && c.idPersonajeDuenio === pj.id) ||
-          coincidenNombresTaleSpire(c.nombre, pj.nombre)
-      );
+      const encontrado = colaIniciativa.some(c => coincideIdentidadPersonaje(c, pj));
       if (encontrado) {
         enCombate.add(pj.id);
       }
@@ -61,6 +57,7 @@ export const SelectorJugadorRapido: React.FC = () => {
 
   // Manejar adición de ficha real de jugador
   const manejarSeleccionarPersonaje = (pj: PersonajeJugador) => {
+    setErrorSeleccion(null);
     agregarPersonajeAIniciativa(pj);
     logger.debug(`[SelectorJugadorRapido] Ficha real de ${pj.nombre} agregada o actualizada en la iniciativa.`);
     setBusqueda("");
@@ -79,16 +76,18 @@ export const SelectorJugadorRapido: React.FC = () => {
     if (!textoLimpio) return;
 
     // Si hay una coincidencia exacta o primer resultado en la lista filtrada, preferir la ficha real
-    const coincidenciaExacta = personajes.find(
-      (p) => coincidenNombresTaleSpire(p.nombre, textoLimpio)
-    );
+    const coincidenciaExacta = resolverPersonajePorNombre(textoLimpio, personajes);
 
     if (coincidenciaExacta) {
       manejarSeleccionarPersonaje(coincidenciaExacta);
       return;
     }
 
-    if (personajesFiltrados.length > 0 && queryNorm.length >= 2) {
+    if (personajesFiltrados.length > 1) {
+      setErrorSeleccion("Hay varios personajes con ese nombre. Selecciona una sugerencia para añadir la ficha correcta.");
+      return;
+    }
+    if (personajesFiltrados.length === 1 && queryNorm.length >= 2) {
       manejarSeleccionarPersonaje(personajesFiltrados[0]);
       return;
     }
@@ -165,9 +164,12 @@ export const SelectorJugadorRapido: React.FC = () => {
         role="combobox"
         aria-expanded={mostrarSugerencias}
         aria-autocomplete="list"
+        aria-invalid={Boolean(errorSeleccion)}
+        aria-describedby={errorSeleccion ? idError : undefined}
         aria-label="Añadir jugador o invocar ficha de personaje a la iniciativa"
         value={busqueda}
         onChange={(e) => {
+          setErrorSeleccion(null);
           setBusqueda(e.target.value);
           setIndiceActivo(-1);
           setMostrarSugerencias(true);
@@ -178,6 +180,7 @@ export const SelectorJugadorRapido: React.FC = () => {
         className={estilosClases.inputBrutal}
         onKeyDown={manejarTeclado}
       />
+      {errorSeleccion && <span id={idError} role="alert">{errorSeleccion}</span>}
       {busqueda && (
         <button
           type="button"

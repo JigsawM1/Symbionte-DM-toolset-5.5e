@@ -239,3 +239,5 @@
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-secundario);
 }
+
+.opcion[data-activa="true"], .opcion:focus-visible { outline: 2px solid var(--color-primario-brillante, #00f5d4); outline-offset: -2px; }

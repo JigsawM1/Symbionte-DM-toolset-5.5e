@@ -1,6 +1,7 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { X, Sparkles, RefreshCw, AlertCircle, Clock, Check, Info } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
@@ -44,12 +45,8 @@ export function DialogoConversionEspacios({
   const [turnoConfirmado, confirmarTurno] = useState(false);
   const turno = usarAlmacenDM(s => identificarTurnoPropio(pj, s));
   const [error, cambiarError] = useState("");
-  const dialogo = useRef<HTMLDialogElement>(null);
   const confirmado = useRef(false);
 
-  useEffect(() => {
-    dialogo.current?.showModal();
-  }, []);
 
   const disponibles = recurso?.usosRestantes ?? recurso?.usosMaximos ?? 0;
   const coste = (filas.find(f => f.nivelEspacio === nivel)?.coste ?? 0) * cantidad;
@@ -94,12 +91,11 @@ export function DialogoConversionEspacios({
   };
 
   return (
-    <dialog
-      ref={dialogo}
+    <DialogoModal
       className={`${estilos.dialogo} ${conversion.dialogoAncho}`}
-      aria-label="Crear o convertir espacios de conjuro"
-      onCancel={alCerrar}
-      onClick={e => e.stopPropagation()}
+      etiqueta="Crear o convertir espacios de conjuro"
+      alCerrar={alCerrar}
+      focoInicial="campo"
     >
       <header className={estilos.cabecera}>
         <Sparkles size={18} className={conversion.iconoCabecera} />
@@ -321,6 +317,6 @@ export function DialogoConversionEspacios({
           </button>
         </footer>
       </FormularioNumerico>
-    </dialog>
+    </DialogoModal>
   );
 }

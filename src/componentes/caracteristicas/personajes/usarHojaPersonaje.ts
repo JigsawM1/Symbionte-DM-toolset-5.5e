@@ -14,7 +14,8 @@ import { elegirOpcionLanzamiento } from "../rasgos/elegirVarianteConjuro";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
-import { calcularBonoIniciativaRasgos, evaluarVentajasDeRasgosEnTirada } from "@/servicios/evaluadorEfectosRasgos";
+import { evaluarVentajasDeRasgosEnTirada } from "@/servicios/evaluadorEfectosRasgos";
+import { calcularBonificadorIniciativa } from "@/servicios/personajes/bonificadorIniciativa";
 import type { Caracteristica, Habilidad } from "@/tipos";
 import type { ModoTirada } from "./BarraTacticaPersonaje";
 import type { CategoriaCompetencia } from "./ModalSelectorCompetencias";
@@ -215,7 +216,7 @@ export function usarHojaPersonaje() {
       tipo: "iniciativa", caracteristica: "destreza", penalizacionArmadura: penalizacionSinComp,
       desventajaSigiloArmadura, condicionesActivas: personajeActivo.condicionesActivas, personaje: personajeActivo
     });
-    const bonoFinal = statsCalculadas.modificadores.destreza + (personajeActivo.iniciativaBono || 0) + calcularBonoIniciativaRasgos(personajeActivo) + ev.penalizadorD20;
+    const bonoFinal = calcularBonificadorIniciativa(personajeActivo, statsCalculadas.modificadores.destreza) + ev.penalizadorD20;
     const metaInic: MetadataIniciativa = {
       tipo: "iniciativa", criaturaId: personajeActivo.idMiniaturaTS || personajeActivo.id,
       nombrePersonaje: personajeActivo.nombre, idMiniaturaTS: personajeActivo.idMiniaturaTS, idPersonaje: personajeActivo.id

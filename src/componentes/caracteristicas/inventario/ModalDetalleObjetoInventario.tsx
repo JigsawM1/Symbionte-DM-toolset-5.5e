@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import React from "react";
 import type {
   ObjetoInventario,
@@ -76,6 +77,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
   });
 
   return (
+    <DialogoModal etiqueta={`Objeto: ${objeto.nombre}`} alCerrar={alCerrar}>
     <div className={estilos.backdropModal} onClick={alCerrar}>
       <div className={estilos.ventanaModal} onClick={(e) => e.stopPropagation()}>
         {/* Cabecera del Visor */}
@@ -163,6 +165,7 @@ export const ModalDetalleObjetoInventario: React.FC<ModalDetalleObjetoInventario
         </div>
       </div>
     </div>
+    </DialogoModal>
   );
 };
 

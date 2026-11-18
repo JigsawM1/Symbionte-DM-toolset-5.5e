@@ -10,6 +10,7 @@ import type { CriaturaIniciativa } from "@/almacen/usarAlmacenDM";
 import type { PersonajeJugador, AcompanantePersonaje, PlantillaInvocacion } from "@/tipos";
 import { formatearVelocidad } from "@/almacen/sanitizacion";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
+import { calcularBonificadorIniciativa } from "@/servicios/personajes/bonificadorIniciativa";
 import {
   resolverPlantillaPorCriatura,
   calcularVidaInicial,
@@ -83,7 +84,7 @@ function construirCriaturaDesdePJ(idMini: string, pjAsociado: PersonajeJugador):
     ca: statsPj.claseArmadura.total,
     condiciones: condicionesPj,
     efectos: efectosPj,
-    bonificadorIniciativa: statsPj.modificadores.destreza,
+    bonificadorIniciativa: calcularBonificadorIniciativa(pjAsociado, statsPj.modificadores.destreza),
     esMonstruo: false,
     velocidad: `${pjAsociado.velocidad || "30 pies"}`,
     movimientoGastado: pjAsociado.movimientoGastado || 0,
@@ -205,6 +206,12 @@ export function sincronizarConEstadoLocal(opciones: OpcionesSincronizacion): Res
   const nuevasCriaturasNativas = colaTSItems.map((cTS): CriaturaIniciativa => {
     const existente = mapaLocal.get(cTS.id);
     if (existente) {
+      const pj = personajes.find(p => !existente.esAcompanante && !existente.idAcompanante &&
+        (existente.idPersonajeDuenio ? p.id === existente.idPersonajeDuenio : p.id === cTS.id || p.idMiniaturaTS === cTS.id));
+      if (pj) {
+        const stats = calcularEstadisticasPersonaje(pj);
+        return { ...existente, bonificadorIniciativa: calcularBonificadorIniciativa(pj, stats.modificadores.destreza) };
+      }
       return existente;
     }
 

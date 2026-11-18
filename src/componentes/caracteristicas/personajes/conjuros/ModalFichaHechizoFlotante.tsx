@@ -1,3 +1,4 @@
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
@@ -46,7 +47,8 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
   });
 
   return (
-    <div className={estilos.overlayModal} onClick={alCerrar}>
+    <DialogoModal etiqueta={`Conjuro: ${hechizoModal.nombre}`} alCerrar={alCerrar}>
+<div className={estilos.overlayModal} onClick={alCerrar}>
       <div className={estilos.contenedorModal} onClick={(e) => e.stopPropagation()}>
         <FichaHechizo
           hechizo={hechizoModal}
@@ -77,5 +79,6 @@ export const ModalFichaHechizoFlotante: React.FC<ModalFichaHechizoFlotanteProps>
         />
       </div>
     </div>
+</DialogoModal>
   );
 };

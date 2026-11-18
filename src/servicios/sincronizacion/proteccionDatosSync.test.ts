@@ -75,7 +75,7 @@ describe("Protección de Datos en Sincronización (Blindaje Anti-Degradación)",
   });
 
   describe("2. Corrección de Asimetría en el DM (aplicarBorradorCombatePJ)", () => {
-    it("empareja criatura en la cola del DM por nombre tolerante y actualiza sus valores reales", () => {
+    it("adopta una fila genérica sin vínculo cuando el nombre identifica una única ficha", () => {
       usarAlmacenDM.setState({
         esGM: true,
         colaIniciativa: [
@@ -85,7 +85,7 @@ describe("Protección de Datos en Sincronización (Blindaje Anti-Degradación)",
             iniciativa: 12,
             vidaActual: 10,
             vidaMaxima: 10,
-            esMonstruo: true,
+            esMonstruo: false,
           }),
         ],
       });

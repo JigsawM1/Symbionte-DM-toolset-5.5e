@@ -61,6 +61,7 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
   manejarGuardarNotas,
   alActualizarNotas
 }) => {
+  const idNotas = React.useId();
   return (
     <>
       {/* Recarga de Cargas */}
@@ -239,12 +240,12 @@ export const SeccionMagiaYEfectosObjeto: React.FC<SeccionMagiaYEfectosObjetoProp
       {/* Notas Personales */}
       <div className={estilos.seccionBloque}>
         <div className={estilos.cabeceraNotas}>
-          <span className={estilos.tituloSeccion}>Notas Personales</span>
+          <label htmlFor={idNotas} className={estilos.tituloSeccion}>Notas Personales</label>
           {notasGuardadas && (
             <span className={estilos.textoGuardado}><Check size={12} /> Guardado</span>
           )}
         </div>
-        <textarea
+        <textarea id={idNotas}
           className={estilos.textareaNotasModal}
           value={notasTemp}
           onChange={(e) => setNotasTemp(e.target.value)}

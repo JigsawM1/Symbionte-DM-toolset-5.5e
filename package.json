@@ -24,7 +24,8 @@
     "test:druida-ui": "node scripts/probar-druida.mjs",
     "test:clerigo-subclases-ui": "node scripts/probar-clerigo-subclases.mjs",
     "test:bardo-subclases-ui": "node scripts/probar-bardo-subclases.mjs",
-    "test:hechicero-ui": "node scripts/probar-hechicero.mjs"
+    "test:hechicero-ui": "node scripts/probar-hechicero.mjs",
+    "test:auditoria-ui": "node scripts/probar-auditoria-ui.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.395.0",

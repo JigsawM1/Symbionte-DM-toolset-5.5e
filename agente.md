@@ -1,5 +1,11 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-17] Reparación del lanzador de Graphify
+
+- `graphify.exe --help` reproducía `uv trampoline failed to canonicalize script path` incluso fuera del aislamiento; `uv tool list` allí devolvía `No tools installed`. No atribuir este fallo únicamente a permisos del sandbox.
+- Se reparó la instalación con `uv tool install --offline --force --python` seleccionando Python 3.14 local y el paquete `graphifyy`; quedó instalada la versión 0.9.102. Comando y limitaciones en [docs/graphify.md](docs/graphify.md).
+- Validación: ayuda y consulta de `constructorRasgosClase` con presupuesto de 400 tokens terminaron con salida 0 dentro del aislamiento, sobre el índice existente de 4258 nodos. No se regeneró el grafo como parte de esta reparación.
+
 ## [2026-11-16] Auditoría y Refactorización Modular (SRP / DIP / D&D 5.5e) de `calculadorEstadisticasPersonaje.ts`
 
 - **Contexto**:
@@ -15988,3 +15994,36 @@ Optimizar la complejidad temporal (Big O) en las operaciones de búsqueda, orden
   - Vitest: 190 suites y 2765 pruebas aprobadas (100%).
   - Límite de líneas: `scripts/verificar-limite-lineas.js` [ÉXITO CI]. `busquedaTolerante.ts` reducida a 315 líneas.
   - Compilación de producción: Vite completó la generación de bundles en 10.17s reduciendo el tamaño final de los chunks.
+
+## [2026-11-17] Auditoría de UI y rendimiento en TaleSpire real, sin correcciones
+
+- Informe y evidencias: `informes/debug-talespire-2026-11-17.md`. CEF 137.0.7151.104, área nativa de 599 × 952 CSS px; 433 px se emularon dentro del mismo CEF. JavaScript principal `index-DldI1v3T.js`; los recursos comparados coinciden con `dist`, y las fuentes incluidas coinciden normalizando BOM/CRLF.
+- Ocho fallos reproducidos. Prioridad: el selector y el alta en iniciativa equiparan nombres con sufijos A/B y sustituyen fichas de IDs distintos; la fábrica de entrada de PJ también omite bonos de iniciativa declarados. Otros hallazgos: etiqueta de peso total interpretada por unidad, foco/teclado, etiquetas y botón de dados sobre el visor de inventario. No se modificó código ni se aplicaron propuestas.
+- Medición real: 17 recorridos, primera muestra observada más cinco calientes por recorrido (102 muestras), trazas separadas y 50 ciclos de detalle para memoria. La latencia a segundo rAF es una aproximación visual, no INP ni tiempo de pintura de Unity. No se demostró fuga ni cuello de botella en esta carga.
+- Persistencia de PV/notas/inventario comprobada tras recarga; fichas de auditoría conservadas también tras renovar el destino. Cola restaurada vacía en ronda 1 y pendientes de auditoría descartados con autorización específica. El d6 fue enviado y lanzado manualmente por el usuario; valor y callback no capturados de forma independiente. Multicliente, cola física con participantes y reinicio completo del proceso permanecen sin verificar.
+- Cinco excepciones `com is not defined` apuntan a llamadas nativas `vuplex://IWebView.ExecuteJavaScript`; se guardaron pilas y scripts, sin atribuir su causa a ToolSet. Graphify se consultó mediante el JSON existente por fallo del ejecutable uv, confirmando los diagnósticos en fuente. No se ejecutaron CI, build ni despliegue como parte de esta auditoría.
+
+## [2026-11-17] Corrección H01–H08 y aceptación CEF
+
+- Guías actualizadas: `docs/wiki/Modo-Jugador.md` y `docs/wiki/Modo-Master.md`; evidencias y límites: `informes/correccion-talespire-2026-11-17/CIERRE.md`. Se conserva la entrada anterior de auditoría.
+- Identidad: resolver IDs de ficha/miniatura/dueño antes de nombres; exigir sugerencia explícita para homónimos. El nombre sólo adopta una fila genérica sin vínculo cuando es inequívoco. Condiciones, borradores y resultados tardíos respetan esa identidad. La normalización de plantillas de monstruos conserva sufijos A/B y numéricos. No reconstruir automáticamente colas fusionadas antiguas.
+- Iniciativa: `calcularBonificadorIniciativa` centraliza Destreza + ajuste manual + rasgos. Refrescar no altera resultado, orden ni turno. `pesoLb` sigue siendo unitario: se aclara la etiqueta y se muestra el total, sin migraciones ni cambios de protocolo/esquemas.
+- UI: `DialogoModal` usa showModal, cierre controlado, foco inicial/retorno y ciclo de Tab; la capa nativa sitúa los dados por debajo. Se reutiliza también en ventanas hijas. Botones nativos de detalle y etiquetas asociadas; selectores y Homebrew comunican expansión/selección y admiten teclado.
+- Rendimiento: enfocar el buscador de inventario abría 207 sugerencias y elevó una versión intermedia a 57,2 ms. `abrirAlEnfocar=false` sólo en ese campo mantiene el foco sin abrir la lista; las muestras finales vuelven a unos 28 ms. No extender optimizaciones sin medición. No equiparar latencia a segundo rAF con INP ni con presentación de Unity.
+- Verificación: `pnpm run ci` completo (208 suites/2873 pruebas + 5 escenarios Sync); `pnpm run test:auditoria-ui` (20 recorridos a 599/433); `pnpm run test:bardo-ui` aprobado. Fixtures y nuevo comando versionados, CI de UI configurado con CHROME_PATH. El recorrido extendido de Hechicero tiene expectativas antiguas y no se certifica completo; no se cambiaron sus reglas ni se relajaron aserciones para ocultarlo.
+- CEF real 137: build final `index-BQLJiAzY.js`, SHA-256 `d551061154640957f4df9cc0cbd685b1c45ec533e37eed4931d1a14f387c19cd`; 599×952 nativo, 433 emulado. Se verificaron A/B separadas, +2 por Alerta, refresco conserva 13/9 y turno, condición sólo en B, diálogos anidados, validación, teclado y Guardar notas con pendiente Sync real. PV de B restaurados a 7; condiciones/resultados de control y cola restaurados; propuesta sintética B descartada, fichas conservadas.
+- Se repitieron 17 recorridos (5 calientes por ruta), 50 ciclos de modal y scroll de 532 criaturas. Comparación inmediata anterior/final de ficha y turno sin regresión reproducible; heap usado estable en esos ciclos. La traza de iniciativa sin RunTask no demuestra ausencia de tareas largas.
+- Incidencia abierta de host: recargas CDP producen referencias nativas a `com` durante la renovación y se observó «Failed parsing of manifest JSON» con manifiesto válido e idéntico a dist. El panel volvió a cargar sin cambiar archivos; no atribuir causa ni parchear namespaces sin prueba. Estado final GM, sin cola ni pendientes; no se certifican multicliente, relevo ni vueltas físicas.
+- Graphify update y cluster-only siguen fallando por uv trampoline; el índice no quedó actualizado. Relaciones y consumidores confirmados en fuente. No hubo publicación remota ni dependencias nuevas.
+- Aclaración del usuario sobre «Failed parsing of manifest JSON»: aparece tras muchas recargas y vuelve a funcionar al hacer deploy. Registrar ese workaround como reportado; no equivale a una causa de caché/inicialización demostrada.
+
+## [2026-11-17] Corrección de la revisión R01–R04 y S01–S02
+
+- Informe: `informes/solucion-revision-cef-2026-11-17/CIERRE.md`; guías vigentes: `docs/wiki/Modo-Jugador.md` y `docs/wiki/Modo-Master.md`. Se conservan los cambios preparados anteriores y la reparación independiente de Graphify.
+- Resolver primero el ID de la cola al recibir iniciativa; una coincidencia de nombre en la biblioteca no reclasifica un monstruo identificado. Regresiones con/sin plantilla y PJ homónimo dentro/fuera de la cola; IDs, resultados y plantillas preservados.
+- Escape debe resolverse en el contenedor de sugerencias, porque la flecha recibe foco al pulsarla aunque tenga tabIndex=-1. Conservar el foco de una opción existente tras un render; ajustar el índice visible al filtro y compartirlo entre ARIA, resaltado, scroll y Enter. Recorrer el mismo orden visual de los grupos evita búsquedas indexOf por fila. La métrica de iniciativa reutiliza el total para su desglose, sin evaluar dos veces los rasgos.
+- Verificación: 43 pruebas focales; `pnpm run ci` aprobado (208 suites/2875 pruebas, 5 escenarios Sync y build); `pnpm run test:auditoria-ui` aprobado (28 recorridos a 599/433). Archivar diagnósticos que afirman defectos históricos como `.test.ts.txt`: Vitest descubre también `.test.ts` dentro de scratch e informes, aunque Git los ignore. No relajar la configuración de CI para ocultarlos.
+- CEF real: R02/R04 antes y después a 599 nativos y 433 emulados; R03 con evento input programático en el borrador local de configuración mágica, manteniendo el foco de Medio tras el render. Se canceló y reabrió para comprobar clase Mago intacta. Sin tiradas ni acciones de combate; R01 validado en el servicio, no mediante una nueva tirada física.
+- Build `index-DHpqhQL8.js`, SHA-256 `249ff2d4f5d69eefa1918b3dd7b10936b10543610cb94ffd9a7e5111f6500c72`, verificado en el recurso CEF; 96 archivos coincidentes en dist/instalación/ZIP. Despliegue local, sin publicación remota. Tras retirarse el destino por una recarga CDP, repetir deploy recuperó el panel; no afirmar una causa del host sin evidencia.
+- Apertura de inventario: cinco calientes por serie, medianas anterior 28,4 ms y corregidas 29,9/27,2 ms. Picos corregidos 44,0/39,6 ms documentados; causa no demostrada. Traza separada de seis ciclos: RunTask máximo 32,869 ms, ninguno superior a 50 ms; no equiparar esta traza con las muestras normales ni con INP/presentación de Unity.
+- Tras la reparación del lanzador registrada al inicio de este documento, Graphify update y cluster-only --no-label terminaron con salida 0: 4323 nodos/17337 relaciones/151 comunidades. El índice local no certifica ejecución CEF o Sync multicliente.

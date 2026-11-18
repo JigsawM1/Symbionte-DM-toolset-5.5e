@@ -45,6 +45,7 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
   alCambiarEspecie,
   alCambiarSubespecie
 }) => {
+  const idCampos = React.useId();
   const rangoXP = obtenerRangoExperienciaPorNivel(form.nivel || 1);
   const clasesActuales = form.clases && form.clases.length > 0
     ? form.clases
@@ -91,8 +92,8 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
     <>
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Nombre del Personaje</label>
-          <input
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-nombre`}>Nombre del Personaje</label>
+          <input id={`${idCampos}-nombre`}
             type="text"
             className={estilos.inputFormulario}
             value={form.nombre}
@@ -102,9 +103,9 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
         </div>
 
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Nombre del Jugador</label>
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-jugador`}>Nombre del Jugador</label>
           <div className={estilos.cajaDetectarJugador}>
-            <input
+            <input id={`${idCampos}-jugador`}
               type="text"
               className={`${estilos.inputFormulario} ${estilos.inputDetectarJugador}`}
               value={form.jugador}
@@ -139,8 +140,8 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       {/* FILA DE NIVEL GLOBAL Y EXPERIENCIA BIDIRECCIONAL */}
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Nivel Global Total (1 - 20)</label>
-          <CampoNumerico
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-nivel`}>Nivel Global Total (1 - 20)</label>
+          <CampoNumerico id={`${idCampos}-nivel`}
             className={`${estilos.inputFormulario} ${estilos.inputNivelGlobal}`}
             value={form.nivel}
             alConfirmar={(valor) => alCambiarNivelTotal(String(valor))}
@@ -153,14 +154,14 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
 
         <div className={estilos.campoFormulario}>
           <div className={estilos.cabeceraCampoConBadge}>
-            <label className={`${estilos.labelFormulario} ${estilos.labelFormularioSinMargen}`}>
+            <label className={`${estilos.labelFormulario} ${estilos.labelFormularioSinMargen}`} htmlFor={`${idCampos}-xp`}>
               Puntos de Experiencia (PX)
             </label>
             <span className={estilos.badgeRangoXP}>
               Rango Nv. {form.nivel}: {rangoXP.texto}
             </span>
           </div>
-          <CampoNumerico
+          <CampoNumerico id={`${idCampos}-xp`}
             className={`${estilos.inputFormulario} ${estilos.inputExperiencia}`}
             value={form.experiencia}
             alConfirmar={(valor) => alCambiarExperiencia(String(valor))}
@@ -173,8 +174,8 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
       {/* ESPECIE, SUBESPECIE, TRASFONDO Y ALINEACIÓN */}
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Especie / Raza</label>
-          <SelectorSugerencias
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-especie`}>Especie / Raza</label>
+          <SelectorSugerencias id={`${idCampos}-especie`}
             valor={form.especie}
             alCambiar={manejarEspecieChange}
             opciones={opcionesEspecies}
@@ -183,10 +184,10 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
         </div>
 
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-subespecie`}>
             {obtenerEtiquetaSubespecie(form.especie)}
           </label>
-          <SelectorSugerencias
+          <SelectorSugerencias id={`${idCampos}-subespecie`}
             valor={form.subespecie || ""}
             alCambiar={manejarSubespecieChange}
             opciones={opcionesSubespecies}
@@ -201,8 +202,8 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
 
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Trasfondo</label>
-          <input
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-trasfondo`}>Trasfondo</label>
+          <input id={`${idCampos}-trasfondo`}
             type="text"
             className={estilos.inputFormulario}
             value={form.trasfondo}
@@ -212,8 +213,8 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
         </div>
 
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>Alineamiento</label>
-          <SelectorDesplegable
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-alineacion`}>Alineamiento</label>
+          <SelectorDesplegable id={`${idCampos}-alineacion`}
             valor={form.alineacion}
             alCambiar={(val) => alActualizarCampo("alineacion", val)}
             opciones={ALINEAMIENTOS_DND}
@@ -223,7 +224,7 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
 
       <div className={estilos.filaFormulario}>
         <div className={estilos.campoFormulario}>
-          <label className={estilos.labelFormulario}>URL de Imagen de Avatar (Token)</label>
+          <label className={estilos.labelFormulario} htmlFor={`${idCampos}-avatar`}>URL de Imagen de Avatar (Token)</label>
           <div className={estilos.avatarPreviewContenedor}>
             {form.avatarUrl ? (
               <img
@@ -235,7 +236,7 @@ export const PestanaIdentidad: React.FC<PestanaIdentidadProps> = ({
                 }}
               />
             ) : null}
-            <input
+            <input id={`${idCampos}-avatar`}
               type="url"
               className={`${estilos.inputFormulario} ${estilos.inputAvatarUrl}`}
               value={form.avatarUrl || ""}

@@ -23,6 +23,7 @@ export interface SelectorSugerenciasProps {
   id?: string;
   disabled?: boolean;
   tiempoEsperaDebounce?: number;
+  abrirAlEnfocar?: boolean;
 }
 
 export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
@@ -34,12 +35,17 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   className,
   id,
   disabled = false,
-  tiempoEsperaDebounce = 500
+  tiempoEsperaDebounce = 500,
+  abrirAlEnfocar = true
 }) => {
   const [abierto, setAbierto] = useState(false);
   const [estaEscribiendo, setEstaEscribiendo] = useState(false);
   const [terminoDebounced, setTerminoDebounced] = useState("");
   const contenedorRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const ignorarFoco = useRef(false);
+  const idLista = React.useId();
+  const [indiceActivo, setIndiceActivo] = useState(-1);
 
   // Debounce para retrasar la búsqueda/filtrado 500ms tras el último carácter escrito por el usuario
   useEffect(() => {
@@ -129,8 +135,15 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
       }
     });
 
-    return { gruposMap, sinGrupo, tieneGrupos: gruposMap.size > 0 };
+    return { gruposMap, sinGrupo, tieneGrupos: gruposMap.size > 0,
+      ordenadas: gruposMap.size ? [...gruposMap.values()].flat().concat(sinGrupo) : sinGrupo };
   }, [opcionesFiltradas]);
+  const opcionesVisibles = gruposOpciones.ordenadas;
+  const indiceActivoVisible = Math.min(indiceActivo, opcionesVisibles.length - 1);
+
+  useEffect(() => {
+    if (abierto && indiceActivoVisible >= 0) document.getElementById(`${idLista}-${indiceActivoVisible}`)?.scrollIntoView({ block: "nearest" });
+  }, [abierto, indiceActivoVisible, idLista, opcionesVisibles]);
 
   const seleccionarOpcion = (opcion: OpcionSugerencia, e?: React.SyntheticEvent) => {
     if (e) {
@@ -142,6 +155,9 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     alCambiar(opcion.valor);
     alSeleccionar?.(opcion);
     setAbierto(false);
+    setIndiceActivo(-1);
+    ignorarFoco.current = document.activeElement !== inputRef.current;
+    inputRef.current?.focus();
   };
 
   const alternarDesplegable = (e: React.MouseEvent) => {
@@ -154,7 +170,7 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     }
   };
 
-  const renderFilaOpcion = (opcion: OpcionSugerencia) => {
+  const renderFilaOpcion = (opcion: OpcionSugerencia, indice: number) => {
     const valorLimpio = valor.trim().toLowerCase();
     const estaSeleccionada =
       opcion.valor.toLowerCase() === valorLimpio ||
@@ -164,6 +180,11 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
     return (
       <button
         key={opcion.clave || opcion.valor}
+        id={`${idLista}-${indice}`}
+        role="option"
+        aria-selected={estaSeleccionada}
+        data-activa={indice === indiceActivoVisible}
+        tabIndex={-1}
         type="button"
         onClick={(e) => seleccionarOpcion(opcion, e)}
         className={`${estilos.opcion} ${estaSeleccionada ? estilos.opcionSeleccionada : ""}`}
@@ -180,10 +201,19 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
   };
 
   const manejarKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
+    if (["ArrowDown", "ArrowUp"].includes(e.key) || (abierto && ["Home", "End"].includes(e.key))) {
+      e.preventDefault(); e.stopPropagation(); setAbierto(true);
+      const total = opcionesVisibles.length;
+      setIndiceActivo(actual => {
+        const visible = Math.min(actual, total - 1);
+        return !total ? -1 : e.key === "Home" ? 0 : e.key === "End" ? total - 1
+          : visible < 0 ? e.key === "ArrowUp" ? total - 1 : 0
+          : (visible + (e.key === "ArrowDown" ? 1 : -1) + total) % total;
+      });
+    } else if (e.key === "Enter") {
       e.preventDefault();
-      if (abierto && opcionesFiltradas.length > 0) {
-        seleccionarOpcion(opcionesFiltradas[0], e);
+      if (abierto && opcionesVisibles.length > 0) {
+        seleccionarOpcion(opcionesVisibles[Math.max(0, indiceActivoVisible)], e);
       } else if (valor.trim()) {
         const coincidencia = opcionesNormalizadas.find(
           (opt) =>
@@ -194,27 +224,43 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
           seleccionarOpcion(coincidencia, e);
         }
       }
-    } else if (e.key === "Escape") {
-      setAbierto(false);
-      setEstaEscribiendo(false);
+    } else if (e.key === "Tab") {
+      setAbierto(false); setIndiceActivo(-1);
     }
   };
 
+  let indiceVisual = 0;
   return (
-    <div ref={contenedorRef} className={`${estilos.contenedor} ${className || ""}`}>
+    <div ref={contenedorRef} className={`${estilos.contenedor} ${className || ""}`}
+      onKeyDown={evento => {
+        if (evento.key !== "Escape" || !abierto) return;
+        evento.preventDefault(); evento.stopPropagation();
+        setAbierto(false); setEstaEscribiendo(false); setIndiceActivo(-1);
+        ignorarFoco.current = document.activeElement !== inputRef.current;
+        inputRef.current?.focus();
+      }}
+      onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setAbierto(false); }}>
       <input
         id={id}
+        ref={inputRef}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={abierto}
+        aria-controls={idLista}
+        aria-activedescendant={abierto && indiceActivoVisible >= 0 ? `${idLista}-${indiceActivoVisible}` : undefined}
         type="text"
         value={valor}
         onChange={(e) => {
           setEstaEscribiendo(true);
+          setIndiceActivo(-1);
           alCambiar(e.target.value);
           if (!abierto) setAbierto(true);
         }}
         onKeyDown={manejarKeyDown}
         onFocus={() => {
+          if (ignorarFoco.current) { ignorarFoco.current = false; return; }
           setEstaEscribiendo(false);
-          setAbierto(true);
+          setAbierto(abrirAlEnfocar);
         }}
         placeholder={placeholder}
         disabled={disabled}
@@ -230,12 +276,15 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
         tabIndex={-1}
         className={`${estilos.botonDesplegable} ${abierto ? estilos.botonDesplegableAbierto : ""}`}
         title="Mostrar sugerencias"
+        aria-expanded={abierto}
+        aria-controls={idLista}
+        aria-haspopup="listbox"
       >
         <ChevronDown size={14} />
       </button>
 
       {abierto && !disabled && (
-        <div className={estilos.dropdown}>
+        <div id={idLista} role="listbox" aria-label={placeholder || "Sugerencias"} className={estilos.dropdown}>
           {opcionesFiltradas.length > 0 ? (
             gruposOpciones.tieneGrupos ? (
               <>
@@ -245,14 +294,14 @@ export const SelectorSugerencias: React.FC<SelectorSugerenciasProps> = ({
                       <span>{nombreGrupo}</span>
                       <span className={estilos.badgeConteoGrupo}>{items.length}</span>
                     </div>
-                    {items.map((opcion) => renderFilaOpcion(opcion))}
+                    {items.map((opcion) => renderFilaOpcion(opcion, indiceVisual++))}
                   </div>
                 ))}
                 {gruposOpciones.sinGrupo.length > 0 &&
-                  gruposOpciones.sinGrupo.map((opcion) => renderFilaOpcion(opcion))}
+                  gruposOpciones.sinGrupo.map((opcion) => renderFilaOpcion(opcion, indiceVisual++))}
               </>
             ) : (
-              opcionesFiltradas.map((opcion) => renderFilaOpcion(opcion))
+              opcionesFiltradas.map(renderFilaOpcion)
             )
           ) : (
             <div className={estilos.sinResultados}>No hay sugerencias</div>

@@ -1,5 +1,21 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-18] Integración de la Rama codex/corregir-auditoria-cef en main
+
+- **Contexto**:
+  - Tras verificar la suite completa de calidad (`tsc --noEmit`, ESLint, control de líneas, Vitest y compilación de producción con Vite), se ejecutó la fusión (*merge*) de `codex/corregir-auditoria-cef` en `main`.
+- **Detalles de la Fusión**:
+  - Tipo: Avance rápido (*Fast-forward* `ad94ce4..2c6872d`).
+  - Total consolidado: 52 archivos modificados (+953 / -268 líneas).
+  - Incluye resolución de identidad en iniciativa/combate (sufijos A/B y homónimos sin colisiones), accesibilidad en `DialogoModal`, `SelectorDesplegable` y `SelectorSugerencias`, optimizaciones de apertura en inventario para TaleSpire CEF, y scripts de auditoría UI.
+- **Validación**:
+  - `pnpm tsc --noEmit`: 0 errores bajo `strict: true`.
+  - `pnpm run lint`: 0 errores y 0 advertencias (`--max-warnings=0`).
+  - `node scripts/verificar-limite-lineas.js`: 0 errores críticos.
+  - `vitest run`: 100% de suites y pruebas aprobadas.
+  - `vite build`: completado con éxito en 10.51s.
+  - Estado del árbol de trabajo en `main`: limpio.
+
 ## [2026-11-17] Reparación del lanzador de Graphify
 
 - `graphify.exe --help` reproducía `uv trampoline failed to canonicalize script path` incluso fuera del aislamiento; `uv tool list` allí devolvía `No tools installed`. No atribuir este fallo únicamente a permisos del sandbox.

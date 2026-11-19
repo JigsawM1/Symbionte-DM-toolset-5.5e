@@ -30,7 +30,6 @@ export interface CabeceraYRecursosMagicosProps {
   alRecuperarEspaciosPacto?: () => void;
   asignarArcanoMistico: (personajeId: string, nivel: number, hechizoId: string) => void;
   quitarArcanoMistico: (personajeId: string, nivel: number) => void;
-  gastarArcanoMistico: (personajeId: string, nivel: number) => void;
   recuperarArcanoMistico: (personajeId: string, nivel: number) => void;
   alAbrirFichaHechizo: (hechizo: HechizoBase) => void;
   alLanzarArcano: (solicitud: SolicitudLanzamiento) => Promise<boolean | void>;

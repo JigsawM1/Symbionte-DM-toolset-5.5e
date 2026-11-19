@@ -1,31 +1,17 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { HechizoBase } from "@/tipos";
 import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
-import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
-import {
-  construirFormulaTaleSpireTruco,
-  construirFormulaTaleSpireEspacio
-} from "@/utiles/utilesConjuros";
 import {
   obtenerOpcionesLanzamientoConjuro,
-  gastarRecursoLanzamientoConjuro,
   resolverGastoLanzamientoConjuro
-} from "@/servicios/calculadorMagia";
+} from "@/servicios/magia/lanzamientoYUpcasting";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { logger } from "@/utiles/logger";
 
 interface ParametrosLanzamientoTarjeta {
   hechizo: HechizoBase;
-  nombrePersonaje: string;
-  nivelPersonaje: number;
-  bonoAtaqueMagico: number;
-  bonoDanoMagico?: number;
-  modificadorHabilidad?: number;
   bloqueadoPorArmadura: boolean;
-  alLanzar?: (modo: ModoLanzamiento, nivelLanzamiento?: number) => Promise<boolean | void>;
-  alGastarEspacio?: (nivel: number) => void;
-  alGastarPuntos?: (cantidad: number) => void;
-  alGastarEspacioPacto?: () => void;
+  alLanzar: (modo: ModoLanzamiento, nivelLanzamiento?: number) => Promise<boolean | void>;
   esLanzadorPacto?: boolean;
   nivelEspacioPacto?: number;
   espaciosPactoMaximos?: number;
@@ -33,26 +19,15 @@ interface ParametrosLanzamientoTarjeta {
   espaciosConjuroMaximos?: Record<string, number>;
   espaciosConjuroGastados?: Record<string, number>;
   nivelConjuroMaximo?: number;
-  alEstablecerConcentracion?: (id: string, nombre: string) => void;
   costePuntosPorNivel?: Record<number, number>;
   puntosConjuroDisponibles?: number;
   sistemaMagia?: "espacios" | "puntos";
-  permitirUpcastLibre?: boolean;
-  alLanzarGratis?: () => Promise<void>;
 }
 
 export function usarLanzamientoTarjetaConjuro({
   hechizo,
-  nombrePersonaje,
-  nivelPersonaje,
-  bonoAtaqueMagico,
-  bonoDanoMagico = 0,
-  modificadorHabilidad = 0,
   bloqueadoPorArmadura,
   alLanzar,
-  alGastarEspacio,
-  alGastarPuntos,
-  alGastarEspacioPacto,
   esLanzadorPacto = false,
   nivelEspacioPacto = 0,
   espaciosPactoMaximos = 0,
@@ -60,36 +35,29 @@ export function usarLanzamientoTarjetaConjuro({
   espaciosConjuroMaximos = {},
   espaciosConjuroGastados,
   nivelConjuroMaximo = 0,
-  alEstablecerConcentracion,
   costePuntosPorNivel = COSTE_PUNTOS_POR_NIVEL,
   puntosConjuroDisponibles,
-  sistemaMagia = "espacios",
-  permitirUpcastLibre,
-  alLanzarGratis
+  sistemaMagia = "espacios"
 }: ParametrosLanzamientoTarjeta) {
   const esTruco = hechizo.nivel === 0;
   const enCursoRef = useRef(false);
 
-  const opcionesBase = useMemo(() => {
-    return obtenerOpcionesLanzamientoConjuro({
-      nivelHechizo: hechizo.nivel,
-      espaciosConjuroMaximos,
-      nivelConjuroMaximo,
-      sistemaMagia,
-      esLanzadorPacto,
-      nivelEspacioPacto,
-      espaciosPactoMaximos,
-      permitirUpcastLibre
-    });
-  }, [
+  const opcionesBase = useMemo(() => obtenerOpcionesLanzamientoConjuro({
+    nivelHechizo: hechizo.nivel,
+    espaciosConjuroMaximos,
+    nivelConjuroMaximo,
+    sistemaMagia,
+    esLanzadorPacto,
+    nivelEspacioPacto,
+    espaciosPactoMaximos
+  }), [
     hechizo.nivel,
     espaciosConjuroMaximos,
     nivelConjuroMaximo,
     sistemaMagia,
     esLanzadorPacto,
     nivelEspacioPacto,
-    espaciosPactoMaximos,
-    permitirUpcastLibre
+    espaciosPactoMaximos
   ]);
 
   const opcionesLanzamiento = useMemo(() => opcionesBase.map((opcion) => {
@@ -101,7 +69,7 @@ export function usarLanzamientoTarjetaConjuro({
     const recurso = gasto.recursoGastado;
     const coste = gasto.puntos ?? 0;
     const opcionConGasto = { ...opcion, recurso, coste };
-    if (esTruco || permitirUpcastLibre) return { ...opcionConGasto, agotado: false };
+    if (esTruco) return { ...opcionConGasto, agotado: false };
 
     const escalado = nivel > hechizo.nivel && opcion.etiqueta.includes("↑") ? " ↑" : "";
     const etiquetaNivel = `Nv. ${nivel}${escalado}`;
@@ -129,7 +97,7 @@ export function usarLanzamientoTarjetaConjuro({
       agotado: espaciosConjuroGastados !== undefined && disponibles === 0
     };
   }), [
-    opcionesBase, esTruco, permitirUpcastLibre, hechizo.nivel, esLanzadorPacto, nivelEspacioPacto,
+    opcionesBase, esTruco, hechizo.nivel, esLanzadorPacto, nivelEspacioPacto,
     espaciosPactoMaximos, espaciosPactoGastados, espaciosConjuroMaximos, espaciosConjuroGastados,
     sistemaMagia, costePuntosPorNivel, puntosConjuroDisponibles
   ]);
@@ -144,114 +112,14 @@ export function usarLanzamientoTarjetaConjuro({
     if (nivelElegido !== nivelUpcast) setNivelUpcast(nivelUpcast);
   }, [nivelElegido, nivelUpcast]);
 
-  const manejarLanzamientoRapido = async () => {
+  // ponytail: delega siempre en alLanzar; restaurar fallback local solo si aparece un consumidor autónomo.
+  const ejecutarLanzamiento = async (modo: ModoLanzamiento, nivel: number, contexto: string) => {
     if (bloqueadoPorArmadura || enCursoRef.current) return;
     enCursoRef.current = true;
     try {
-      if (alLanzar) {
-        await alLanzar(esTruco ? "truco" : "espacio", nivelUpcast);
-        return;
-      }
-
-      const nombrePj = nombrePersonaje.trim() || "Personaje";
-      const construirFormula = esTruco
-        ? construirFormulaTaleSpireTruco
-        : construirFormulaTaleSpireEspacio;
-      const { formulaTaleSpire, etiquetaLog } = construirFormula(
-        hechizo,
-        esTruco ? nivelPersonaje : nivelUpcast,
-        bonoAtaqueMagico,
-        nombrePj,
-        bonoDanoMagico,
-        modificadorHabilidad
-      );
-
-      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
-      if (emitida === false) return;
-
-      if (!esTruco) {
-        gastarRecursoLanzamientoConjuro({
-          nivelLanzamiento: nivelUpcast,
-          esLanzadorPacto,
-          nivelEspacioPacto,
-          espaciosPactoMaximos,
-          espaciosPactoGastados,
-          espaciosConjuroMaximos,
-          sistemaMagia,
-          costePuntosPorNivel,
-          alGastarEspacio,
-          alGastarPuntos,
-          alGastarEspacioPacto
-        });
-      }
-
-      if (hechizo.concentracion && alEstablecerConcentracion) {
-        alEstablecerConcentracion(hechizo.id, hechizo.nombre);
-      }
+      await alLanzar(modo, nivel);
     } catch (err) {
-      logger.error("[TarjetaConjuroCompacta] Error al lanzar conjuro:", err);
-    } finally {
-      enCursoRef.current = false;
-    }
-  };
-
-  const manejarLanzamientoRitual = async () => {
-    if (bloqueadoPorArmadura || enCursoRef.current) return;
-    enCursoRef.current = true;
-    try {
-      if (alLanzar) {
-        await alLanzar("ritual", nivelUpcast);
-        return;
-      }
-
-      const nombrePj = nombrePersonaje.trim() || "Personaje";
-      const formulaBase = hechizo.dadosDaño?.trim() || "";
-      const formulaTaleSpire = formulaBase
-        ? `!Daño Ritual ${sanitizarEtiqueta(hechizo.nombre)}:${formulaBase}`
-        : `!Lanzar Ritual:${sanitizarEtiqueta(hechizo.nombre)} (+10 min)`;
-      const etiquetaLog = `${nombrePj} - ${hechizo.nombre} (RITUAL - 10 min)`;
-
-      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
-      if (emitida === false) return;
-
-      if (hechizo.concentracion && alEstablecerConcentracion) {
-        alEstablecerConcentracion(hechizo.id, hechizo.nombre);
-      }
-    } catch (err) {
-      logger.error("[TarjetaConjuroCompacta] Error al lanzar ritual:", err);
-    } finally {
-      enCursoRef.current = false;
-    }
-  };
-
-  const manejarLanzamientoGratis = async () => {
-    if (bloqueadoPorArmadura || enCursoRef.current) return;
-    enCursoRef.current = true;
-    try {
-      if (alLanzarGratis) {
-        await alLanzarGratis();
-        return;
-      }
-      if (alLanzar) {
-        await alLanzar("gratuitoInnato", hechizo.nivel);
-        return;
-      }
-
-      const nombrePj = nombrePersonaje.trim() || "Personaje";
-      const formulaBase = hechizo.dadosDaño?.trim() || "";
-      const formulaTaleSpire = formulaBase
-        ? `!Daño Gratis ${sanitizarEtiqueta(hechizo.nombre)}:${formulaBase}`
-        : `!Lanzar Gratis:${sanitizarEtiqueta(hechizo.nombre)} (1/DL)`;
-      const etiquetaLog = `${nombrePj} - ${hechizo.nombre} (GRATUITO INNATO 1/DL)`;
-
-      const emitida = await lanzarDadosTaleSpire(formulaTaleSpire, etiquetaLog);
-      if (emitida === false) return;
-
-      if (hechizo.concentracion && alEstablecerConcentracion) {
-        alEstablecerConcentracion(hechizo.id, hechizo.nombre);
-      }
-    } catch (err) {
-      logger.error("[TarjetaConjuroCompacta] Error al lanzar conjuro gratuito:", err);
+      logger.error(`[TarjetaConjuroCompacta] Error al lanzar ${contexto}:`, err);
     } finally {
       enCursoRef.current = false;
     }
@@ -264,8 +132,8 @@ export function usarLanzamientoTarjetaConjuro({
     setNivelUpcast,
     costeNivelActual,
     sinRecursosParaNivelActual,
-    manejarLanzamientoRapido,
-    manejarLanzamientoRitual,
-    manejarLanzamientoGratis
+    manejarLanzamientoRapido: () => ejecutarLanzamiento(esTruco ? "truco" : "espacio", nivelUpcast, "conjuro"),
+    manejarLanzamientoRitual: () => ejecutarLanzamiento("ritual", nivelUpcast, "ritual"),
+    manejarLanzamientoGratis: () => ejecutarLanzamiento("gratuitoInnato", hechizo.nivel, "conjuro gratuito")
   };
 }

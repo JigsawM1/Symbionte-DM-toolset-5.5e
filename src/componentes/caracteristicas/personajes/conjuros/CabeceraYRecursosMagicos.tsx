@@ -39,7 +39,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   alRecuperarEspaciosPacto,
   asignarArcanoMistico,
   quitarArcanoMistico,
-  gastarArcanoMistico,
   recuperarArcanoMistico,
   alAbrirFichaHechizo,
   alLanzarArcano,
@@ -175,14 +174,10 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
             baseDatosHechizos={baseDatosHechizos}
             opcionesPorNivel={obtenerSelectoresArcanos(personaje).length ? Object.fromEntries(
               obtenerSelectoresArcanos(personaje,true).map(s => [s.nivelConjuro!,s.opciones.map(o => o.id)])) : undefined}
-            nombrePersonaje={personaje.nombre}
-            bonoAtaqueMagico={bonoAtaqueMagico}
-            cdConjuros={cdConjuros}
             bloqueadoPorArmadura={estaBloqueadoPorArmadura}
             motivoBloqueoArmadura={motivoBloqueoArmadura}
             alAsignarArcano={(nivel, hechizoId) => asignarArcanoMistico(personaje.id, nivel, hechizoId)}
             alQuitarArcano={(nivel) => quitarArcanoMistico(personaje.id, nivel)}
-            alGastarArcano={(nivel) => gastarArcanoMistico(personaje.id, nivel)}
             alRecuperarArcano={(nivel) => recuperarArcanoMistico(personaje.id, nivel)}
             alAbrirFichaHechizo={alAbrirFichaHechizo}
             alLanzar={alLanzarArcano}

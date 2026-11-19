@@ -671,6 +671,7 @@
   border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
   box-shadow: var(--pj-sombra-tarjeta);
+  min-width: 0;
 }
 
 .cabeceraArcanoMistico {
@@ -678,13 +679,11 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px 8px;
-  border-bottom: 1px solid var(--pj-borde-magia);
+  gap: 6px 10px;
+  border-bottom: 1px solid var(--pj-borde-sutil);
   padding-bottom: 8px;
 }
 
-
-.tituloArcanoTexto,
 .tituloPuntosTexto {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
@@ -693,10 +692,92 @@
   color: var(--pj-texto-primario);
 }
 
-.subtextoReglaArcano {
-  font-size: var(--pj-fuente-label);
+.tituloArcanoTexto {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pj-texto-primario-suave);
+}
+
+.badgeBrujoArcano {
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
   color: var(--pj-texto-magia);
-  font-style: italic;
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  border-radius: 4px;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.resumenArcanoDerecha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filaChipsNivelArcano {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chipResumenNivelArcano {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
+}
+
+.chipResumenNivelArcano[data-estado="gastado"] {
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-medio);
+  color: var(--pj-texto-apagado);
+}
+
+.chipResumenNivelArcano[data-estado="vacio"] {
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
+}
+
+.puntoResumenArcano {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--pj-texto-magia);
+  flex-shrink: 0;
+}
+
+.chipResumenNivelArcano[data-estado="gastado"] .puntoResumenArcano {
+  background-color: transparent;
+  border: 1.5px solid var(--pj-texto-terciario);
+}
+
+.chipResumenNivelArcano[data-estado="vacio"] .puntoResumenArcano {
+  background-color: var(--pj-borde-acento);
+}
+
+.contadorListosArcano {
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--pj-texto-magia);
+  white-space: nowrap;
 }
 
 .listaArcanosNivel {
@@ -709,139 +790,345 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
+  gap: 10px;
   background-color: var(--pj-fondo-tarjeta-elevada);
   border: 1px solid var(--pj-borde-magia);
+  border-left: 3px solid var(--pj-acento-magia);
   border-radius: var(--pj-radio-control);
-  padding: 8px 10px;
-  gap: 8px;
+  padding: 9px 10px 9px 12px;
+  min-width: 0;
 }
 
-.tarjetaFilaArcano[data-gastado="true"] {
-  border: 1px dashed var(--pj-borde-acento);
+.tarjetaFilaArcano:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
 }
 
-.contenedorBadgeNivelArcano {
+.tarjetaFilaArcano[data-estado="gastado"] {
+  background-color: var(--pj-fondo-panel);
+  border-color: var(--pj-borde-medio);
+  border-left-color: var(--pj-texto-terciario);
+}
+
+.tarjetaFilaArcano[data-estado="vacio"] {
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-acento);
+  border-left-color: var(--pj-borde-acento-fuerte);
+}
+
+.tarjetaFilaArcano[data-estado="bloqueado"] {
+  background-color: var(--pj-fondo-panel);
+  border-color: var(--pj-borde-peligro);
+  border-left-color: var(--pj-acento-peligro);
+}
+
+.infoConjuroArcano {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.filaTituloArcano,
+.filaMetaArcano {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 90px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
 }
 
 .badgeNivelArcano {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
-  font-size: var(--pj-fuente-badge);
-  font-weight: 800;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
   color: var(--pj-texto-magia);
   background-color: var(--pj-acento-magia-fondo);
   border: 1px solid var(--pj-borde-magia);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 3px 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .badgeNivelArcano[data-gastado="true"] {
-  color: var(--pj-texto-acento);
-  background-color: var(--pj-fondo-tarjeta-elevada);
+  color: var(--pj-texto-terciario);
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-medio);
 }
 
-.cajaContenidoArcanoAsignado,
-.cajaArcanoSinAsignar {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.triggerFichaArcano {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  flex-wrap: wrap;
-  cursor: pointer;
-}
-
-
-.nombreConjuroArcano[data-gastado="true"] {
-  color: var(--pj-texto-acento);
-  text-decoration: line-through;
-}
-
-
-
-.grupoEstadoGastadoArcano {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.badgeGastadoHoy {
-  font-size: var(--pj-fuente-badge);
+/* Supera [data-tema="jugador"] :is(button, [role="button"]) (0,2,1) sin !important. */
+.contenedorArcanoMistico .filaTituloArcano .nombreConjuroArcano {
+  font-size: 13.5px;
   font-weight: 700;
-  color: var(--pj-texto-alerta);
-  background-color: var(--pj-acento-peligro-fondo);
-  border-radius: 4px;
-  padding: 2px 6px;
-}
-
-.botonRestaurarArcano,
-.botonQuitarArcano {
-  background: transparent;
+  line-height: 1.3;
+  min-width: 0;
+  min-height: 24px;
+  color: var(--pj-texto-primario-suave);
+  text-transform: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  background: none;
   border: none;
-  color: var(--pj-texto-acento);
+  padding: 1px 0;
   cursor: pointer;
-  padding: 2px;
+  text-align: left;
 }
 
-.botonLanzarArcano {
+.contenedorArcanoMistico .filaTituloArcano .nombreConjuroArcano:hover {
+  background: none;
+  border: none;
+  text-decoration: underline;
+  color: var(--pj-texto-acento-brillante);
+}
+
+.contenedorArcanoMistico .filaTituloArcano .nombreConjuroArcano[data-gastado="true"] {
+  color: var(--pj-texto-secundario);
+}
+
+.tagConcentracionArcano {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  line-height: 1;
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
+  border: 1px solid var(--pj-borde-oro);
+  padding: 3px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tagArmaduraArcano {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: var(--pj-acento-magia-solido);
-  border: 1px solid var(--pj-borde-magia);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  padding: 4px 8px;
-  cursor: pointer;
+  line-height: 1;
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
+  padding: 3px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
-.botonLanzarArcano:hover:not(:disabled) {
+.metaEscuelaArcano {
+  font-size: var(--pj-fuente-badge);
+  line-height: 1.35;
+  color: var(--pj-texto-terciario);
+}
+
+.tarjetaFilaArcano[data-estado="gastado"] .metaEscuelaArcano {
+  color: var(--pj-texto-apagado);
+}
+
+.pildoraDanoArcano {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario-claro);
+  white-space: nowrap;
+}
+
+.splitControlArcano {
+  display: inline-flex;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.segmentoEstadoArcano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 9px;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--pj-fondo-hundido);
+  color: var(--pj-texto-magia);
+  border: 1px solid var(--pj-borde-magia);
+  border-right: none;
+  border-radius: var(--pj-radio-control) 0 0 var(--pj-radio-control);
+  white-space: nowrap;
+}
+
+.segmentoEstadoArcano[data-gastado="true"] {
+  color: var(--pj-texto-terciario);
+  border-color: var(--pj-borde-medio);
+}
+
+.segmentoEstadoArcano[data-bloqueado="true"] {
+  color: var(--pj-texto-apagado);
+  border-color: var(--pj-borde-sutil);
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano,
+.contenedorArcanoMistico .accionesArcanoFila .botonRestaurarArcano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 94px;
+  min-width: 94px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 0 var(--pj-radio-control) var(--pj-radio-control) 0;
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano {
+  background-color: var(--pj-acento-magia-solido);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-primario);
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano:hover:not(:disabled) {
   background-color: var(--pj-acento-magia);
   border-color: var(--pj-texto-magia);
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonRestaurarArcano {
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonRestaurarArcano:hover {
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento-fuerte);
+  color: var(--pj-texto-acento-brillante);
 }
 
 /* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
 .contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano:disabled,
 .contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano:disabled:hover {
-  background: var(--pj-acento-peligro-fondo);
+  background-color: var(--pj-fondo-hundido);
   border-color: var(--pj-borde-peligro);
   color: var(--pj-texto-alerta);
   cursor: not-allowed;
-  opacity: 0.7;
+  opacity: 0.78;
 }
 
+.separadorArcano {
+  width: 1px;
+  height: 18px;
+  background-color: var(--pj-borde-medio);
+  margin: 0 1px;
+  flex-shrink: 0;
+}
 
-.botonQuitarArcano:hover {
+.contenedorArcanoMistico .accionesArcanoFila .botonQuitarArcano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: 5px;
+  color: var(--pj-texto-terciario);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.contenedorArcanoMistico .accionesArcanoFila .botonQuitarArcano:hover {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
   color: var(--pj-texto-alerta);
 }
 
-
-.contenedorSelectorArcano {
-  flex: 1 1 150px;
+.cajaArcanoSinAsignar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
   min-width: 0;
-  max-width: 280px;
 }
 
-.textoSinConjuroAsignado {
+.contenedorSelectorArcano {
+  flex: 1;
+  min-width: 0;
+}
+
+.pieReglaArcano {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-acento);
   font-style: italic;
+}
+
+@media (max-width: 520px) {
+  .filaChipsNivelArcano {
+    display: none;
+  }
+
+  .tarjetaFilaArcano {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .accionesArcanoFila {
+    width: 100%;
+  }
+
+  .splitControlArcano {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .segmentoEstadoArcano {
+    height: 32px;
+  }
+
+  .contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano,
+  .contenedorArcanoMistico .accionesArcanoFila .botonRestaurarArcano {
+    flex: 1;
+    width: auto;
+    height: 32px;
+    min-height: 32px;
+  }
+
+  .contenedorArcanoMistico .accionesArcanoFila .botonQuitarArcano {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+  }
+
+  .cajaArcanoSinAsignar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .contenedorSelectorArcano {
+    width: 100%;
+  }
 }
 
 /* TrackerPuntosConjuro */

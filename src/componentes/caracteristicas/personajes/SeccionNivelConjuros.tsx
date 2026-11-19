@@ -150,7 +150,6 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                   <TarjetaConjuroCompacta
                     key={`${esTruco ? "truco" : "conjuro"}-${hechizo.id}`}
                     hechizo={hechizo}
-                    nombrePersonaje={personaje.nombre}
                     nivelPersonaje={personaje.nivel || 1}
                     bonoAtaqueMagico={bonoAtaqueMagico}
                     bonoDanoMagico={bonoDanoMagico}
@@ -165,12 +164,6 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                     bloqueadoPorArmadura={estaBloqueadoPorArmadura}
                     motivoBloqueoArmadura={motivoBloqueoArmadura}
                     tieneLanzamientoGratisDisponible={tieneLanzamientoGratisDisponible}
-                    alLanzarGratis={tieneLanzamientoGratisDisponible ? async () => { await alLanzar("gratuitoInnato", hechizo.nivel, hechizo); } : undefined}
-                    alAlternarPreparado={
-                      !esTruco && alAlternarPreparado
-                        ? () => alAlternarPreparado(hechizo.id)
-                        : undefined
-                    }
                     alQuitarDeLista={esOtorgado ? undefined : () => alQuitarDeLista(hechizo.id)}
                     alAbrirDetalleCompleto={alAbrirDetalleCompleto}
                     alLanzar={(modo, niv) => alLanzar(modo, niv, hechizo)}

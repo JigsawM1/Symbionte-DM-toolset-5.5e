@@ -45,9 +45,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
 
   const {
     asignarArcanoMistico, quitarArcanoMistico,
-    gastarArcanoMistico, recuperarArcanoMistico,
-    sincronizarConjurosSubclase
-  } = usarAlmacenDM(useShallow(s => ({ asignarArcanoMistico: s.asignarArcanoMistico, quitarArcanoMistico: s.quitarArcanoMistico, gastarArcanoMistico: s.gastarArcanoMistico, recuperarArcanoMistico: s.recuperarArcanoMistico, sincronizarConjurosSubclase: s.sincronizarConjurosSubclase })));
+    recuperarArcanoMistico, sincronizarConjurosSubclase
+  } = usarAlmacenDM(useShallow(s => ({ asignarArcanoMistico: s.asignarArcanoMistico, quitarArcanoMistico: s.quitarArcanoMistico, recuperarArcanoMistico: s.recuperarArcanoMistico, sincronizarConjurosSubclase: s.sincronizarConjurosSubclase })));
 
   const { establecerPestaña } = usarAccionesConfiguracion();
 
@@ -163,7 +162,6 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         alRecuperarEspaciosPacto={alRecuperarEspaciosPacto}
         asignarArcanoMistico={asignarArcanoMistico}
         quitarArcanoMistico={quitarArcanoMistico}
-        gastarArcanoMistico={gastarArcanoMistico}
         recuperarArcanoMistico={recuperarArcanoMistico}
         alAbrirFichaHechizo={(h) => setHechizoModal(h)}
         alLanzarArcano={(sol) => lanzar(sol)}

@@ -1,159 +1,192 @@
 .tarjeta {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "titulo lanzar"
+    "meta acciones";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  padding: 9px 11px 9px 13px;
   min-width: 0;
-  background-image: none;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
+  border-left: 3px solid var(--pj-borde-acento);
   border-radius: var(--pj-radio-control);
+}
+
+.tarjeta:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+  border-left-color: var(--pj-borde-acento-fuerte);
+}
+
+.tarjetaTruco {
+  border-left-color: var(--pj-borde-cian);
+}
+
+.tarjetaTruco:hover {
+  border-color: var(--pj-borde-cian);
+  border-left-color: var(--pj-borde-cian-fuerte);
+}
+
+.tarjetaPacto {
+  border-color: var(--pj-borde-magia);
+  border-left-color: var(--pj-acento-magia);
+}
+
+.tarjetaPacto:hover {
+  border-color: var(--pj-borde-magia);
+  border-left-color: var(--pj-texto-magia);
+}
+
+.tarjetaSinRecursos {
+  border-color: var(--pj-borde-peligro);
+  border-left-color: var(--pj-acento-peligro);
+}
+
+.tarjetaSinRecursos:hover {
+  border-color: var(--pj-borde-peligro);
+  border-left-color: var(--pj-texto-alerta);
+}
+
+.tarjetaBloqueada,
+.tarjetaBloqueada:hover {
+  background-color: var(--pj-fondo-panel);
+  border-color: var(--pj-borde-peligro);
+  border-left-color: var(--pj-acento-peligro);
 }
 
 .tarjetaConcentracion {
   background-color: var(--pj-acento-oro-fondo);
-  border: 1px solid var(--pj-borde-oro);
+  border-color: var(--pj-borde-oro);
+  border-left-color: var(--pj-acento-oro);
 }
 
-.tarjetaPreparada {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-medio);
+.tarjetaConcentracion:hover {
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-acento-oro);
+  border-left-color: var(--pj-texto-oro);
 }
 
-.tarjetaPreparada:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-acento);
-}
-
-.ladoIzquierdo {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.bloqueNombre {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.filaTitulo {
+/* ==========================================
+   ÁREA 1: TÍTULO Y SEÑALES DE ESTADO
+   ========================================== */
+.bloqueTitulo {
+  grid-area: titulo;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
 }
 
-.nombreConjuro {
-  font-size: var(--pj-fuente-subtitulo);
+/* Supera [data-tema="jugador"] :is(button, [role="button"]) (0,2,1) sin !important. */
+.tarjeta .bloqueTitulo .nombreConjuro {
+  font-size: 13.5px;
   font-weight: 700;
-  line-height: 1.4;
-  min-height: 32px;
+  line-height: 1.3;
+  min-width: 0;
+  min-height: 26px;
   color: var(--pj-texto-primario-suave);
+  text-transform: none;
   white-space: normal;
   overflow-wrap: anywhere;
-  overflow: hidden;
-  text-overflow: ellipsis;
   background: none;
   border: none;
-  padding: 0;
+  padding: 2px 0;
   cursor: pointer;
   text-align: left;
+  justify-content: flex-start;
 }
 
-.nombreConjuro:hover {
+.tarjeta .bloqueTitulo .nombreConjuro:hover {
+  background: none;
+  border: none;
   text-decoration: underline;
   color: var(--pj-texto-acento-brillante);
 }
 
-.filaSubclaseInferior {
-  display: flex;
-  align-items: center;
-  margin-top: 3px;
+.tarjetaConcentracion .bloqueTitulo .nombreConjuro {
+  color: var(--pj-texto-oro-brillante);
 }
 
-.badgeSubclaseTexto {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  background-color: var(--pj-acento-oro-fondo);
-  color: var(--pj-texto-oro);
-  border: 1px solid var(--pj-borde-oro);
-  padding: 0 5px;
-  border-radius: 3px;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.filaMetadatos {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: var(--pj-fuente-micro);
-  line-height: 1.5;
-  color: var(--pj-texto-terciario);
-}
-
-.tagRitual {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  background-color: var(--pj-acento-cian-fondo);
-  color: var(--pj-texto-cian);
-  border: 1px solid var(--pj-borde-cian);
-  padding: 0 5px;
-  border-radius: 3px;
+.tarjetaBloqueada .bloqueTitulo .nombreConjuro {
+  color: var(--pj-texto-secundario);
 }
 
 .tagConcentracion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
+  line-height: 1;
   background-color: var(--pj-acento-oro-fondo);
   color: var(--pj-texto-oro);
   border: 1px solid var(--pj-borde-oro);
-  padding: 0 5px;
-  border-radius: 3px;
-}
-
-.ladoDerecho {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
   flex-shrink: 0;
 }
 
-.columnaAcciones {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: stretch;
-  min-width: 72px;
+.tagConcentracionActiva {
+  background-color: var(--pj-acento-oro-oscuro);
+  border-color: var(--pj-acento-oro);
+  color: var(--pj-texto-oro-brillante);
 }
 
-.filaAccionesSecundarias {
-  display: flex;
+.puntoConcentracion {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--pj-texto-oro);
+  flex-shrink: 0;
+}
+
+.tagArmadura {
+  display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
   gap: 4px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  line-height: 1;
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border: 1px solid var(--pj-borde-peligro);
+  padding: 3px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+/* ==========================================
+   ÁREA 2: SPLIT CONTROL DE LANZAMIENTO
+   ========================================== */
+.grupoLanzamiento {
+  grid-area: lanzar;
+  justify-self: end;
+  display: inline-flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .badgeNivelFijo {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  background-color: var(--pj-acento-primario-fondo);
-  color: var(--pj-texto-secundario-claro);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: 4px;
-  padding: 3px 6px;
-  white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 9px;
+  font-family: var(--fuente-codigo);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--pj-fondo-hundido);
+  color: var(--pj-texto-secundario-claro);
+  border: 1px solid var(--pj-borde-acento);
+  border-right: none;
+  border-radius: var(--pj-radio-control) 0 0 var(--pj-radio-control);
+  white-space: nowrap;
 }
 
 .badgeNivelFijoPacto {
@@ -162,191 +195,378 @@
   border-color: var(--pj-borde-magia);
 }
 
+.badgeNivelFijoAgotado {
+  background-color: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+  border-color: var(--pj-borde-peligro);
+}
+
+.tarjetaConcentracion .badgeNivelFijo {
+  border-color: var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
+}
+
+.tarjetaBloqueada .badgeNivelFijo {
+  border-color: var(--pj-borde-sutil);
+  color: var(--pj-texto-apagado);
+}
+
 .selectUpcastContenedor {
-  min-width: 105px;
+  min-width: 108px;
 }
 
-.botonLanzar {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: var(--pj-acento-primario-solido);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
+/* Acopla el gatillo del SelectorDesplegable al Split Control (32 px) sin !important. */
+.tarjeta .grupoLanzamiento .selectUpcastContenedor button[aria-haspopup="listbox"] {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 8px;
+  font-family: var(--fuente-codigo);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  padding: 4px 10px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+  background-color: var(--pj-fondo-hundido);
+  color: var(--pj-texto-primario-suave);
+  border: 1px solid var(--pj-borde-acento);
+  border-right: none;
+  border-radius: var(--pj-radio-control) 0 0 var(--pj-radio-control);
 }
 
-.botonLanzar:hover:not(:disabled) {
-  background-color: var(--pj-acento-primario-solido-hover);
-  border-color: var(--pj-borde-acento-luminoso);
+.tarjeta .grupoLanzamiento .selectUpcastContenedor button[aria-haspopup="listbox"]:hover:not(:disabled) {
+  background-color: var(--pj-fondo-panel);
+  border-color: var(--pj-borde-cian);
 }
 
-.botonLanzar.botonLanzarSinRecursos {
+.tarjeta .grupoLanzamiento .selectUpcastContenedor[data-pacto="true"] button[aria-haspopup="listbox"] {
+  background-color: var(--pj-acento-magia-fondo);
+  border-color: var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
+}
+
+.tarjeta .grupoLanzamiento .selectUpcastContenedor[data-pacto="true"] button[aria-haspopup="listbox"] span {
+  color: var(--pj-texto-magia);
+}
+
+.tarjeta .grupoLanzamiento .selectUpcastContenedor[data-sin-recursos="true"] button[aria-haspopup="listbox"] {
   background-color: var(--pj-acento-peligro-fondo);
   border-color: var(--pj-borde-peligro);
   color: var(--pj-texto-alerta);
-  opacity: 0.85;
 }
 
-.botonLanzar.botonLanzarSinRecursos:hover:not(:disabled) {
+.tarjeta .grupoLanzamiento .selectUpcastContenedor[data-sin-recursos="true"] button[aria-haspopup="listbox"] span {
+  color: var(--pj-texto-alerta);
+}
+
+.tarjeta .grupoLanzamiento .botonLanzar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 88px;
+  min-width: 88px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-sobre-acento);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.tarjeta .grupoLanzamiento .botonLanzarAcoplado {
+  border-radius: 0 var(--pj-radio-control) var(--pj-radio-control) 0;
+}
+
+.tarjeta .grupoLanzamiento .botonLanzar:hover:not(:disabled) {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
+  color: var(--pj-texto-sobre-acento);
+}
+
+.tarjeta .grupoLanzamiento .botonLanzar.botonLanzarSinRecursos {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+}
+
+.tarjeta .grupoLanzamiento .botonLanzar.botonLanzarSinRecursos:hover:not(:disabled) {
   background-color: var(--pj-acento-peligro-oscuro);
   border-color: var(--pj-acento-peligro);
   color: var(--pj-texto-alerta-brillante);
-  opacity: 1;
 }
 
-.botonRitual {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-cian);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-.botonRitual:hover:not(:disabled) {
-  background-color: var(--pj-acento-primario-fondo);
-  border-color: var(--pj-borde-cian-fuerte);
-  color: var(--pj-texto-cian-claro);
-}
-
-.botonLanzarGratis {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: var(--pj-acento-exito-fondo);
-  border: 1px solid var(--pj-borde-exito);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-exito);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  padding: 4px 8px;
-  cursor: pointer;
-}
-
-.botonLanzarGratis:hover {
-  background-color: var(--pj-acento-exito-fondo);
-  color: var(--pj-texto-primario);
-}
-
-.botonIcono {
-  background: none;
-  border: none;
-  color: var(--pj-texto-terciario);
-  cursor: pointer;
-  padding: 3px;
+/* ==========================================
+   ÁREA 3: METADATOS, ORIGEN Y FÓRMULA
+   ========================================== */
+.filaMetadatos {
+  grid-area: meta;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: var(--pj-radio-control);
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
 }
 
-.botonIcono:hover {
-  color: var(--pj-texto-primario);
-}
-
-.botonIconoEliminar:hover {
-  color: var(--pj-texto-alerta);
-}
-
-.botonToggleAcciones {
-  border: 1px solid transparent;
-}
-
-.botonToggleAccionesActivo,
-.botonToggleAccionesActivo:hover {
-  background-color: var(--pj-acento-cian-fondo);
-  border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-cian-claro);
-}
-
-
-/* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
-.tarjeta .columnaAcciones .botonBloqueado:disabled,
-.tarjeta .columnaAcciones .botonBloqueado:disabled:hover,
-.tarjeta .columnaAcciones .botonBloqueado[data-bloqueado="true"],
-.tarjeta .columnaAcciones .botonBloqueado[data-bloqueado="true"]:hover {
-  background: var(--pj-acento-peligro-fondo);
-  border-color: var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta);
-  cursor: not-allowed;
-  opacity: 0.7;
-}
-
-.iconoAlertaArmadura {
+.badgeOrigen {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  line-height: 1;
+  background-color: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
+  border: 1px solid var(--pj-borde-oro);
+  padding: 3px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
 }
 
-.trucoEscalado {
-  margin-left: 4px;
-  color: var(--pj-texto-secundario-claro);
+.puntoOrigen {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
 }
 
-.trucoEscalado[data-potenciado="true"] {
-  color: var(--pj-texto-acento);
-}
-
-.badgeSubclaseTexto[data-origen="clase"] {
+.badgeOrigen[data-origen="clase"] {
   color: var(--pj-texto-acento);
   background-color: var(--pj-acento-primario-fondo);
   border-color: var(--pj-borde-acento);
 }
 
-.badgeSubclaseTexto[data-origen="subclase"] {
+.badgeOrigen[data-origen="subclase"] {
   color: var(--pj-texto-magia);
   background-color: var(--pj-acento-magia-fondo);
   border-color: var(--pj-borde-magia);
 }
 
-.badgeSubclaseTexto[data-origen="especie"],
-.badgeSubclaseTexto[data-origen="rasgos"] {
-  color: var(--pj-texto-oro);
-  background-color: var(--pj-acento-oro-fondo);
-  border-color: var(--pj-borde-oro);
-}
-
-.badgeSubclaseTexto[data-origen="legado"] {
+.badgeOrigen[data-origen="legado"] {
   color: var(--pj-texto-cian);
   background-color: var(--pj-acento-cian-fondo);
   border-color: var(--pj-borde-cian);
 }
 
-
-
-.tarjeta button {
-  min-width: 32px;
-  min-height: 32px;
+.textoMetadato {
+  font-size: var(--pj-fuente-badge);
+  line-height: 1.35;
+  color: var(--pj-texto-terciario);
 }
+
+.tarjetaConcentracion .textoMetadato {
+  color: var(--pj-texto-secundario);
+}
+
+.tarjetaBloqueada .textoMetadato {
+  color: var(--pj-texto-apagado);
+}
+
+.pildoraFormula {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--fuente-codigo);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario-claro);
+  white-space: nowrap;
+}
+
+.pildoraFormula[data-potenciado="true"] {
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-acento);
+}
+
+/* ==========================================
+   ÁREA 4: ALTERNATIVOS Y UTILIDADES
+   ========================================== */
+.filaAccionesSecundarias {
+  grid-area: acciones;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* Supera [data-tema="jugador"] :is(button, [role="button"]) (0,2,1) en escritorio manteniendo ergonomía compacta. */
+.tarjeta .filaAccionesSecundarias .botonSecundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 5px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.tarjeta .filaAccionesSecundarias .botonLanzarGratis {
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
+}
+
+.tarjeta .filaAccionesSecundarias .botonLanzarGratis:hover:not(:disabled) {
+  background-color: var(--pj-acento-exito-oscuro);
+  border-color: var(--pj-acento-exito);
+  color: var(--pj-texto-exito-brillante);
+}
+
+.tarjeta .filaAccionesSecundarias .botonRitual {
+  background-color: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian);
+  color: var(--pj-texto-cian);
+}
+
+.tarjeta .filaAccionesSecundarias .botonRitual:hover:not(:disabled) {
+  background-color: var(--pj-acento-cian-solido);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-sobre-acento);
+}
+
+.tarjeta .filaAccionesSecundarias .botonLanzarGratis.botonAlternativoDestacado {
+  border-color: var(--pj-acento-exito);
+  color: var(--pj-texto-exito-brillante);
+}
+
+.tarjeta .filaAccionesSecundarias .botonRitual.botonAlternativoDestacado {
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-cian-claro);
+}
+
+.separadorAcciones {
+  width: 1px;
+  height: 16px;
+  background-color: var(--pj-borde-medio);
+  margin: 0 1px;
+  flex-shrink: 0;
+}
+
+.tarjeta .filaAccionesSecundarias .botonIcono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  width: 28px;
+  min-height: 26px;
+  height: 26px;
+  padding: 0;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: 5px;
+  color: var(--pj-texto-terciario);
+  cursor: pointer;
+}
+
+.tarjeta .filaAccionesSecundarias .botonIcono:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
+}
+
+.tarjeta .filaAccionesSecundarias .botonIconoEliminar:hover {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+}
+
+.tarjeta .filaAccionesSecundarias .botonToggleAccionesActivo,
+.tarjeta .filaAccionesSecundarias .botonToggleAccionesActivo:hover {
+  background-color: var(--pj-acento-cian-fondo);
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-cian-claro);
+}
+
+/* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
+.tarjeta :is(.grupoLanzamiento, .filaAccionesSecundarias) .botonBloqueado:is(:disabled, [data-bloqueado="true"]),
+.tarjeta :is(.grupoLanzamiento, .filaAccionesSecundarias) .botonBloqueado:is(:disabled, [data-bloqueado="true"]):hover {
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
 .tarjeta button:focus-visible {
   outline: 2px solid var(--pj-borde-acento-fuerte);
   outline-offset: 2px;
 }
-@media (max-width: 540px) {
+
+/* ==========================================
+   RESPONSIVO PANEL ESTRECHO CEF (<= 520 PX)
+   ========================================== */
+@media (max-width: 520px) {
   .tarjeta {
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "titulo titulo"
+      "meta meta"
+      "lanzar acciones";
+    column-gap: 8px;
+    row-gap: 7px;
+    padding: 9px 10px 9px 12px;
   }
-  .ladoIzquierdo {
-    flex-basis: 100%;
+
+  .tarjeta[data-tiene-alternativos="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "titulo"
+      "meta"
+      "lanzar"
+      "acciones";
   }
-  .ladoDerecho {
-    max-width: 100%;
+
+  .grupoLanzamiento {
+    justify-self: stretch;
     width: 100%;
   }
-  .columnaAcciones {
-    flex: 1;
+
+  .selectUpcastContenedor {
+    flex: 1 1 auto;
     min-width: 0;
+  }
+
+  .tarjeta .grupoLanzamiento .botonLanzar {
+    flex: 1 0 88px;
+    width: auto;
+  }
+
+  .tarjeta[data-tiene-alternativos="true"] .filaAccionesSecundarias {
+    justify-self: stretch;
+    width: 100%;
+    padding-top: 6px;
+    border-top: 1px solid var(--pj-borde-sutil);
+  }
+
+  .tarjeta .filaAccionesSecundarias .botonSecundario {
+    min-height: 32px;
+    height: 32px;
+    padding: 0 10px;
+  }
+
+  .tarjeta .filaAccionesSecundarias .botonIcono {
+    min-width: 32px;
+    width: 32px;
+    min-height: 32px;
+    height: 32px;
   }
 }

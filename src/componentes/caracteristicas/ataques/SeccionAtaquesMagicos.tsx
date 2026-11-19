@@ -70,7 +70,6 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
       <TarjetaConjuroCompacta
         key={hechizo.id}
         hechizo={hechizo}
-        nombrePersonaje={personajeActivo.nombre}
         nivelPersonaje={personajeActivo.nivel || 1}
         bonoAtaqueMagico={bonoAtaqueMagico}
         bonoDanoMagico={bonoDanoMagico}
@@ -86,13 +85,6 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
         alAbrirDetalleCompleto={(h) => alAbrirDetalle(h)}
         alLanzar={(modo, niv) => alLanzar({ modo, hechizo, nivelLanzamiento: niv })}
         tieneLanzamientoGratisDisponible={tieneLanzamientoGratisDisponible}
-        alLanzarGratis={
-          tieneLanzamientoGratisDisponible
-            ? async () => {
-                await alLanzar({ modo: "gratuitoInnato", hechizo, nivelLanzamiento: hechizo.nivel });
-              }
-            : undefined
-        }
         esLanzadorPacto={tienePacto}
         nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
         espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}

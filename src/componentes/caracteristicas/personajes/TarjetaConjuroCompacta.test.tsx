@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import { SeccionNivelConjuros } from "./SeccionNivelConjuros";
+import { SeccionArcanoMistico } from "./SeccionArcanoMistico";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
@@ -24,12 +25,9 @@ describe("TarjetaConjuroCompacta - Renderizado y Optimización", () => {
 
   const propsBase = {
     hechizo: hechizoEjemplo,
-    nombrePersonaje: "Garrick",
     nivelPersonaje: 3,
-    bonoAtaqueMagico: 5,
     bonoDanoMagico: 0,
     modificadorHabilidad: 3,
-    estaPreparado: true,
     alAbrirDetalleCompleto: vi.fn(),
     alLanzar: vi.fn()
   };
@@ -55,7 +53,7 @@ describe("TarjetaConjuroCompacta - Renderizado y Optimización", () => {
     expect(html).toContain("Lanzar");
   });
 
-  it("muestra badge de ritual si el hechizo es ritual", () => {
+  it("muestra el botón de lanzamiento como ritual sin renderizar el badge redundante (R)", () => {
     const hechizoRitual: HechizoBase = {
       ...hechizoEjemplo,
       ritual: true
@@ -68,11 +66,12 @@ describe("TarjetaConjuroCompacta - Renderizado y Optimización", () => {
       />
     );
 
-    expect(html).toContain("tagRitual");
-    expect(html).toContain("Ritual");
+    expect(html).not.toContain("tagRitual");
+    expect(html).not.toContain('aria-label="Puede lanzarse como ritual"');
+    expect(html).toContain("<span>Ritual</span>");
   });
 
-  it("muestra badge de concentración si el hechizo requiere concentración", () => {
+  it("muestra badge de concentración si el hechizo requiere concentración y etiqueta textual al estar activa", () => {
     const hechizoConcentracion: HechizoBase = {
       ...hechizoEjemplo,
       concentracion: true
@@ -86,6 +85,16 @@ describe("TarjetaConjuroCompacta - Renderizado y Optimización", () => {
     );
 
     expect(html).toContain("tagConcentracion");
+
+    const htmlActiva = renderToStaticMarkup(
+      <TarjetaConjuroCompacta
+        {...propsBase}
+        hechizo={hechizoConcentracion}
+        esConcentracionActual={true}
+      />
+    );
+    expect(htmlActiva).toContain("Concentrando");
+    expect(htmlActiva).toContain("tarjetaConcentracion");
   });
 
   it("aplica clase de concentración cuando es la concentración actual del personaje", () => {
@@ -342,5 +351,33 @@ describe("TarjetaConjuroCompacta - Renderizado y Optimización", () => {
     expect(html).toContain("Nv. 1 (2/3)");
     expect(html).toContain('aria-label="Despreparar Escudo"');
     expect(html).not.toContain('aria-label="Despreparar Orden imperiosa"');
+  });
+
+  it("SeccionArcanoMistico renderiza resumen 1/2 listos, Split Control disponible/gastado y selector sin asignar", () => {
+    const h6: HechizoBase = { ...hechizoEjemplo, id: "h_arc_6", nombre: "Conjuro de muerte", nivel: 6, concentracion: true, dadosDaño: "7d8+30" };
+    const h7: HechizoBase = { ...hechizoEjemplo, id: "h_arc_7", nombre: "Dedo de la muerte", nivel: 7, dadosDaño: "7d8+30" };
+    const h8: HechizoBase = { ...hechizoEjemplo, id: "h_arc_8", nombre: "Dominar monstruo", nivel: 8 };
+
+    const html = renderToStaticMarkup(
+      <SeccionArcanoMistico
+        arcanoMisticoIds={["6:h_arc_6", "7:h_arc_7"]}
+        arcanoMisticoGastados={["7"]}
+        nivelesDisponibles={[6, 7, 8]}
+        baseDatosHechizos={[h6, h7, h8]}
+        alAsignarArcano={vi.fn()}
+        alQuitarArcano={vi.fn()}
+        alRecuperarArcano={vi.fn()}
+        alLanzar={vi.fn()}
+      />
+    );
+
+    expect(html).toContain("1 / 2 listos");
+    expect(html).toContain("NV. 6");
+    expect(html).toContain("1/1 día");
+    expect(html).toContain("0/1 · Hoy");
+    expect(html).toContain("<span>Restaurar</span>");
+    expect(html).toContain("7d8+30");
+    expect(html).toContain("Elegir conjuro de Nivel 8... (1 opciones)");
+    expect(html).not.toContain("Sin conjuro asignado");
   });
 });

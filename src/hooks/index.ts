@@ -6,7 +6,7 @@ export { usarFormularioHechizo } from "./usarFormularioHechizo";
 export { usarFormularioObjeto } from "./usarFormularioObjeto";
 export { usarListaDinamica } from "./usarListaDinamica";
 export type { ItemConNombre } from "./usarListaDinamica";
-export { usarEstadoPersistido } from "./usarEstadoPersistido";
+export { usarEstadoPersistido, escribirEstadoPersistido } from "./usarEstadoPersistido";
 export { usarMagiaPersonaje } from "./usarMagiaPersonaje";
 export type { EstadoMagiaPersonaje } from "./usarMagiaPersonaje";
 export { usarLanzadorConjuros } from "./usarLanzadorConjuros";

@@ -7,7 +7,6 @@ import { calcularMaximosConjurosYTrucos } from "@/servicios/magia/catalogoProgre
 import { obtenerNivelesArcanoMisticoDisponibles } from "@/servicios/magia/magiaPactoBrujo";
 import { esClasePacto } from "@/constantes";
 import { crearResolutorOrigenConjuros, OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
-import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 import { esConjuroIndependiente, clasesPropietariasConjuro } from "@/servicios/rasgos/listasConjurosRasgos";
 
 const ETIQUETAS_HABILIDAD: Partial<Record<Caracteristica, string>> = {
@@ -19,11 +18,6 @@ const ETIQUETAS_HABILIDAD: Partial<Record<Caracteristica, string>> = {
 const compararEspanol = new Intl.Collator("es", { sensitivity: "base" }).compare;
 
 export interface EstadoMagiaPersonaje {
-  habilidadMagica: Caracteristica;
-  etiquetaHabilidad: string;
-  modHabilidad: number;
-  cdConjuros: number;
-  bonoAtaqueMagico: number;
   requierePreparacion: boolean;
   esLanzadorPacto: boolean;
   nivelEspacioPacto: number;
@@ -59,31 +53,33 @@ import {
   verificarEnSet
 } from "@/servicios/logicaPertenenciaConjuros";
 
-/**
- * Hook universal y reutilizable (DRY) que unifica el cálculo de recursos mágicos,
- * indexación de catálogo, detección de subclase y métricas tanto para la Hoja de Personaje
- * como para el Compendio de Conjuros.
- */
-export function usarMagiaPersonaje(
-  personaje: PersonajeJugador | null | undefined,
-  baseDatosHechizos: HechizoBase[],
-  modificadores?: Record<Caracteristica, number>,
-  bonoCompetencia: number = 2,
+export function calcularEstadisticasMagicas(
+  personaje: PersonajeJugador,
+  modificadores: Record<Caracteristica, number>,
+  bonoCompetencia: number,
   claseLanzamiento?: string
-): EstadoMagiaPersonaje {
-  // 1. Habilidad mágica principal
-  const clasesLanzadoras = personaje?.clasesLanzadoras;
+) {
+  const clasesLanzadoras = personaje.clasesLanzadoras;
   const habilidadMagica: Caracteristica = clasesLanzadoras?.length
     ? ((clasesLanzadoras.find((c) => c.clase === claseLanzamiento) ?? clasesLanzadoras[0]).habilidadConjuro as Caracteristica)
     : "inteligencia";
 
-  const modHabilidad = modificadores ? (modificadores[habilidadMagica] ?? 0) : 0;
+  const modHabilidad = modificadores[habilidadMagica] ?? 0;
   const cdConjuros =
     calcularCDConjuros(bonoCompetencia, modHabilidad) +
-    (personaje ? obtenerModificadoresConjuroRasgos(personaje, claseLanzamiento || clasesLanzadoras?.[0]?.clase).bonoCD : 0);
+    obtenerModificadoresConjuroRasgos(personaje, claseLanzamiento || clasesLanzadoras?.[0]?.clase).bonoCD;
   const bonoAtaqueMagico = calcularBonoAtaqueConjuro(bonoCompetencia, modHabilidad);
   const etiquetaHabilidad = ETIQUETAS_HABILIDAD[habilidadMagica] ?? "INT";
 
+  return { etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico };
+}
+
+/** Resuelve el catálogo y los datos de la ficha compartidos por las vistas de Magia. */
+export function usarMagiaPersonaje(
+  personaje: PersonajeJugador | null | undefined,
+  baseDatosHechizos: HechizoBase[]
+): EstadoMagiaPersonaje {
+  const clasesLanzadoras = personaje?.clasesLanzadoras;
   // 2. Modelo de lanzamiento
   const requierePreparacion =
     !clasesLanzadoras?.length ||
@@ -166,10 +162,9 @@ export function usarMagiaPersonaje(
   const maximos = useMemo(() => {
     return calcularMaximosConjurosYTrucos(
       personaje?.clasesLanzadoras || [],
-      personaje?.nivel || 1,
-      modHabilidad
+      personaje?.nivel || 1
     );
-  }, [personaje?.clasesLanzadoras, personaje?.nivel, modHabilidad]);
+  }, [personaje?.clasesLanzadoras, personaje?.nivel]);
 
   // Predicados puros unificados de pertenencia y preparación
   const predicados = useMemo(() => {
@@ -217,7 +212,7 @@ export function usarMagiaPersonaje(
 
         if (enLista && !idsTrucosVistos.has(hId)) {
           idsTrucosVistos.add(hId);
-          trucos.push(aplicarModificadoresInvocacionesAHechizo(h, personaje, claseLanzamiento));
+          trucos.push(h);
         }
       } else if (h.nivel >= 1 && h.nivel <= 9) {
         const preparado = otorgado || verificarEnSet(setPreparadosIds, hId, clavesLookupPorHechizo);
@@ -265,16 +260,10 @@ export function usarMagiaPersonaje(
     setPreparadosIds,
     setConocidosIds,
     maximos.modelo,
-    claseLanzamiento,
     personaje
   ]);
 
   return {
-    habilidadMagica,
-    etiquetaHabilidad,
-    modHabilidad,
-    cdConjuros,
-    bonoAtaqueMagico,
     requierePreparacion,
     esLanzadorPacto,
     nivelEspacioPacto,

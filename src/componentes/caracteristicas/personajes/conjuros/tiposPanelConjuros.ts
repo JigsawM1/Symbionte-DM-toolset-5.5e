@@ -1,6 +1,8 @@
+import type { EstadoMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import type { PersonajeJugador, Caracteristica, HechizoBase } from "@/tipos";
 import type { PenalizacionArmadura } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
+import type { ModoTirada } from "../BarraTacticaPersonaje";
 
 export interface CabeceraYRecursosMagicosProps {
   personaje: PersonajeJugador;
@@ -17,8 +19,6 @@ export interface CabeceraYRecursosMagicosProps {
   manejarTiradaAtaqueMagico: () => void;
   conteoEfectivo: { libres: number; subclase: number; trucosLibres: number; trucosSubclase: number };
   maximos: { maxConjuros: number; maxTrucos: number; modelo?: "ninguno" | "conocidos" | "preparados" | "grimorio" };
-  alAbrirConfiguracion?: () => void;
-  alAbrirCompendio: () => void;
   esLanzadorPacto: boolean;
   nivelEspacioPacto: number;
   nivelesArcanoDisponibles: number[];
@@ -34,16 +34,21 @@ export interface CabeceraYRecursosMagicosProps {
   recuperarArcanoMistico: (personajeId: string, nivel: number) => void;
   alAbrirFichaHechizo: (hechizo: HechizoBase) => void;
   alLanzarArcano: (solicitud: SolicitudLanzamiento) => Promise<boolean | void>;
+  modoTirada?: ModoTirada;
+  alCambiarModoTirada: (modo: ModoTirada) => void;
 }
 
 export interface PanelConjurosPersonajeProps {
+  magia: EstadoMagiaPersonaje;
   personaje: PersonajeJugador;
   bonoCompetencia: number;
   modificadores: Record<Caracteristica, number>;
   baseDatosHechizos: HechizoBase[];
   sistemaMagia: "espacios" | "puntos";
   penalizacionArmadura?: PenalizacionArmadura;
-  alAbrirConfiguracion?: () => void;
+  modoTirada?: ModoTirada;
+  alCambiarModoTirada: (modo: ModoTirada) => void;
+  alAbrirCompendio?: () => void;
   alGastarEspacio: (nivel: number) => void;
   alRecuperarEspacio: (nivel: number) => void;
   alGastarPuntos: (cantidad: number) => void;

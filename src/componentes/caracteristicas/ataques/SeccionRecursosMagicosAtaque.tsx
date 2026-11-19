@@ -1,109 +1,148 @@
 import React from "react";
-import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
-import { TrackerEspaciosConjuro } from "@/componentes/caracteristicas/personajes/TrackerEspaciosConjuro";
-import { TrackerEspaciosPacto } from "@/componentes/caracteristicas/personajes/TrackerEspaciosPacto";
-import { TrackerPuntosConjuro } from "@/componentes/caracteristicas/personajes/TrackerPuntosConjuro";
-import { BannerConcentracionActiva } from "@/componentes/caracteristicas/personajes/BannerConcentracionActiva";
+import { Sparkles, Flame, ArrowRight } from "lucide-react";
+import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { escribirEstadoPersistido } from "@/hooks";
 import type { PersonajeJugador } from "@/tipos";
 import estilos from "./VistaAtaquesJugador.module.css";
 
+const CLAVE_SUBPESTANA_MAGIA = "ts_magia_subpestana";
+
+interface PillRecursoMagico {
+  texto: string;
+  agotado: boolean;
+}
+
 interface SeccionRecursosMagicosAtaqueProps {
   personajeActivo: PersonajeJugador;
-  tieneMagiaEstandar: boolean;
+  espaciosConjuroMaximos: Record<string, number>;
   tienePacto: boolean;
   sistemaMagia: "espacios" | "puntos";
-  estaAbierta: boolean;
-  alAlternar: () => void;
-  alGastarEspacioConjuro: (pjId: string, nivel: number) => void;
-  alRecuperarEspacioConjuro: (pjId: string, nivel: number) => void;
-  alGastarPuntosConjuro: (pjId: string, cantidad: number) => void;
-  alRecuperarPuntosConjuro: (pjId: string, cantidad: number) => void;
-  alGastarEspacioPacto: (pjId: string) => void;
-  alRecuperarEspaciosPacto: (pjId: string) => void;
   alRomperConcentracion?: (pjId: string) => void;
+  alIrAMagia?: () => void;
+}
+
+function construirPillsRecursosMagicos(
+  personaje: PersonajeJugador,
+  espaciosConjuroMaximos: Record<string, number>,
+  tienePacto: boolean,
+  sistemaMagia: "espacios" | "puntos"
+): PillRecursoMagico[] {
+  const pills: PillRecursoMagico[] = [];
+
+  if (sistemaMagia === "puntos") {
+    const max = personaje.puntosConjuroMaximos || 0;
+    if (max > 0) {
+      const disp = Math.max(0, max - (personaje.puntosConjuroGastados || 0));
+      pills.push({ texto: `Puntos (${disp}/${max})`, agotado: disp === 0 });
+    }
+  } else {
+    for (let nivel = 1; nivel <= 9; nivel++) {
+      const max = espaciosConjuroMaximos[nivel] ?? 0;
+      if (max > 0) {
+        const disp = Math.max(0, max - (personaje.espaciosConjuroGastados?.[nivel] ?? 0));
+        pills.push({ texto: `Nv.${nivel} (${disp}/${max})`, agotado: disp === 0 });
+      }
+    }
+  }
+
+  if (tienePacto) {
+    const maxP = personaje.espaciosPactoMaximos || 0;
+    if (maxP > 0) {
+      const dispP = Math.max(0, maxP - (personaje.espaciosPactoGastados || 0));
+      pills.push({
+        texto: `Pacto Nv.${personaje.nivelEspacioPacto || 1} (${dispP}/${maxP})`,
+        agotado: dispP === 0
+      });
+    }
+  }
+
+  return pills;
 }
 
 export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaqueProps> = ({
   personajeActivo,
-  tieneMagiaEstandar,
+  espaciosConjuroMaximos,
   tienePacto,
   sistemaMagia,
-  estaAbierta,
-  alAlternar,
-  alGastarEspacioConjuro,
-  alRecuperarEspacioConjuro,
-  alGastarPuntosConjuro,
-  alRecuperarPuntosConjuro,
-  alGastarEspacioPacto,
-  alRecuperarEspaciosPacto,
-  alRomperConcentracion
+  alRomperConcentracion,
+  alIrAMagia
 }) => {
   const tieneConcentracion = Boolean(personajeActivo.concentracionActiva);
+  const pillsRecursos = construirPillsRecursosMagicos(
+    personajeActivo,
+    espaciosConjuroMaximos,
+    tienePacto,
+    sistemaMagia
+  );
 
-  if (!tieneMagiaEstandar && !tienePacto && !tieneConcentracion) {
+  if (pillsRecursos.length === 0 && !tienePacto && !tieneConcentracion) {
     return null;
   }
 
+  const irAMagia = () => {
+    // Al navegar desde Acciones, forzamos aterrizar en la subpestaña de lanzamiento y recursos.
+    escribirEstadoPersistido(CLAVE_SUBPESTANA_MAGIA, "lanzamiento");
+    if (alIrAMagia) {
+      alIrAMagia();
+      return;
+    }
+    usarAlmacenDM.getState().establecerPestaña("magia");
+  };
+
   return (
-    <div className={estilos.seccionGrupoAtaques}>
-      <div
-        className={estilos.cabeceraGrupoAtaques}
-        onClick={alAlternar}
-        role="button"
-        tabIndex={0}
-        title="Clic para mostrar u ocultar espacios y recursos mágicos"
-      >
-        <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="var(--pj-texto-magia)" />
-          <span>Espacios y Recursos de Conjuro</span>
+    <section
+      className={estilos.puenteEstadoMagia}
+      data-concentracion={tieneConcentracion ? "true" : "false"}
+      aria-label="Resumen de recursos mágicos"
+    >
+      <div className={estilos.filaSuperiorPuenteMagia}>
+        <div className={estilos.estadoConcentracionPuente}>
+          {personajeActivo.concentracionActiva ? (
+            <>
+              <Flame size={14} color="var(--pj-texto-oro)" />
+              <span className={estilos.etiquetaConcentracionPuente}>
+                Conc.: <strong>{personajeActivo.concentracionActiva.nombreHechizo}</strong>
+              </span>
+              <button
+                type="button"
+                className={estilos.botonRomperPuente}
+                onClick={() => alRomperConcentracion?.(personajeActivo.id)}
+              >
+                Romper
+              </button>
+            </>
+          ) : (
+            <>
+              <Sparkles size={14} color="var(--pj-texto-magia)" />
+              <span className={estilos.tituloPuenteMagia}>Estado Mágico</span>
+            </>
+          )}
         </div>
-        <div className={estilos.ladoDerechoCabecera}>
-          {estaAbierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </div>
+
+        <button
+          type="button"
+          className={estilos.botonIrAMagia}
+          onClick={irAMagia}
+          title="Abrir la pestaña Magia para gestionar ranuras y conjuros"
+        >
+          <span>Ir a Magia</span>
+          <ArrowRight size={12} />
+        </button>
       </div>
 
-      {estaAbierta && (
-        <div className={estilos.listaAtaques}>
-          {personajeActivo.concentracionActiva && (
-            <BannerConcentracionActiva
-              nombreHechizo={personajeActivo.concentracionActiva.nombreHechizo}
-              alRomperConcentracion={() => alRomperConcentracion?.(personajeActivo.id)}
-            />
-          )}
-
-          {tieneMagiaEstandar &&
-            (sistemaMagia === "puntos" ? (
-              <TrackerPuntosConjuro
-                key={personajeActivo.id}
-                puntosMaximos={personajeActivo.puntosConjuroMaximos || 0}
-                puntosGastados={personajeActivo.puntosConjuroGastados || 0}
-                nivelMaximo={personajeActivo.nivelConjuroMaximo || 0}
-                alGastarPuntos={(cant) => alGastarPuntosConjuro(personajeActivo.id, cant)}
-                alRecuperarPuntos={(cant) => alRecuperarPuntosConjuro(personajeActivo.id, cant)}
-                mostrarGastoManual={false}
-              />
-            ) : (
-              <TrackerEspaciosConjuro
-                espaciosMaximos={personajeActivo.espaciosConjuroMaximos || {}}
-                espaciosGastados={personajeActivo.espaciosConjuroGastados || {}}
-                alGastarEspacio={(niv) => alGastarEspacioConjuro(personajeActivo.id, niv)}
-                alRecuperarEspacio={(niv) => alRecuperarEspacioConjuro(personajeActivo.id, niv)}
-                soloLectura={true}
-              />
-            ))}
-
-          {tienePacto && (
-            <TrackerEspaciosPacto
-              espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
-              espaciosPactoGastados={personajeActivo.espaciosPactoGastados || 0}
-              nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 1}
-              alGastarEspacioPacto={() => alGastarEspacioPacto(personajeActivo.id)}
-              alRecuperarEspaciosPacto={() => alRecuperarEspaciosPacto(personajeActivo.id)}
-              soloLectura={true}
-            />
-          )}
+      {pillsRecursos.length > 0 && (
+        <div className={estilos.resumenRecursosPuente}>
+          {pillsRecursos.map((pill) => (
+            <span
+              key={pill.texto}
+              className={estilos.pillRecursoPuente}
+              data-agotado={pill.agotado ? "true" : "false"}
+            >
+              {pill.texto}
+            </span>
+          ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };

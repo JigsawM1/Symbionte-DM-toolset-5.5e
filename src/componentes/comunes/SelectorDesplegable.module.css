@@ -218,11 +218,17 @@
   background-color: var(--pj-fondo-tarjeta-hover);
 }
 
-:global([data-tema="jugador"]) .tamanoCompacto {
+:global([data-tema="jugador"]) .gatillo.tamanoCompacto {
+  min-height: 28px;
+  height: 28px !important;
+  line-height: 1.2;
   font-size: var(--pj-fuente-cuerpo) !important;
 }
 
-:global([data-tema="jugador"]) .tamanoMini {
+:global([data-tema="jugador"]) .gatillo.tamanoMini {
+  min-height: 26px;
+  height: 26px !important;
+  line-height: 1.2;
   font-size: var(--pj-fuente-label) !important;
 }
 

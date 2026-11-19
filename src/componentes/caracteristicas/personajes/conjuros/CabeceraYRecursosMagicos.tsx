@@ -1,7 +1,8 @@
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
 import React from "react";
-import { BookOpen, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Dices } from "lucide-react";
 import { TarjetasMetricasMagia } from "../TarjetasMetricasMagia";
+import { BannerConcentracionActiva } from "../BannerConcentracionActiva";
 import { TrackerEspaciosConjuro } from "../TrackerEspaciosConjuro";
 import { TrackerEspaciosPacto } from "../TrackerEspaciosPacto";
 import { TrackerPuntosConjuro } from "../TrackerPuntosConjuro";
@@ -27,7 +28,6 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   manejarTiradaAtaqueMagico,
   conteoEfectivo,
   maximos,
-  alAbrirCompendio,
   esLanzadorPacto,
   nivelEspacioPacto,
   nivelesArcanoDisponibles,
@@ -42,7 +42,9 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
   gastarArcanoMistico,
   recuperarArcanoMistico,
   alAbrirFichaHechizo,
-  alLanzarArcano
+  alLanzarArcano,
+  modoTirada = "plano",
+  alCambiarModoTirada
 }) => {
   const tieneEspaciosEstandar = Object.values(obtenerMaximosEspaciosEfectivos(personaje)).some(
     (v) => (v || 0) > 0
@@ -56,8 +58,8 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
     <>
       {/* Banner de Bloqueo por Armadura sin Competencia */}
       {estaBloqueadoPorArmadura && (
-        <div className={estilos.bannerBloqueoMagia}>
-          <AlertTriangle size={18} color="var(--pj-texto-alerta)" className={estilos.iconoAlertaArmaduraShrink} />
+        <div className={estilos.bannerBloqueoMagia} role="alert">
+          <AlertTriangle size={18} color="var(--pj-texto-alerta)" className={estilos.iconoAlertaArmaduraShrink} aria-hidden="true" />
           <div>
             <strong>Lanzamiento de Conjuros Bloqueado:</strong>
             {" "}{motivoBloqueoArmadura || `Vistes ${penalizacionArmadura?.armaduraNoCompetente || penalizacionArmadura?.escudoNoCompetente} sin competencia.`}
@@ -70,48 +72,69 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
           <span className={estilos.estadisticaEtiqueta}>CD salvación</span>
           <strong className={estilos.estadisticaNumeroMono}>{cdConjuros}</strong>
         </div>
-        <button type="button" onClick={manejarTiradaAtaqueMagico} disabled={estaBloqueadoPorArmadura}
+        <button
+          type="button"
+          onClick={manejarTiradaAtaqueMagico}
+          disabled={estaBloqueadoPorArmadura}
           title={estaBloqueadoPorArmadura ? motivoBloqueoArmadura : "Tirar ataque mágico en TaleSpire"}
-          className={`${estilos.tarjetaAtaqueMagico} ${estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""}`}>
+          className={`${estilos.tarjetaAtaqueMagico} ${estaBloqueadoPorArmadura ? estilos.tarjetaAtaqueMagicoBloqueada : ""}`}
+        >
           <span className={estilos.estadisticaEtiqueta}>Ataque conjuro</span>
           <strong className={estilos.estadisticaNumeroMorado}>{bonoAtaqueMagico >= 0 ? "+" : ""}{bonoAtaqueMagico}</strong>
+          {!estaBloqueadoPorArmadura && (
+            <span className={estilos.subtituloTiradaAtaque}>
+              <Dices size={11} aria-hidden="true" />
+              <span>Tirar 1d20</span>
+            </span>
+          )}
         </button>
         <div className={estilos.tarjetaEstadistica}>
           <span className={estilos.estadisticaEtiqueta}>{etiquetaHabilidad}</span>
           <strong className={estilos.estadisticaNumeroMono}>{modHabilidad >= 0 ? "+" : ""}{modHabilidad}</strong>
         </div>
-        <div className={estilos.tarjetaConcentracion}>
-          <span className={estilos.estadisticaEtiqueta}>Concentración</span>
-          <strong className={estilos.estadoConcentracion}>{personaje.concentracionActiva ? "Activa" : "Inactiva"}</strong>
-          {personaje.concentracionActiva && <>
-            <span className={estilos.nombreConcentracion}>{personaje.concentracionActiva.nombreHechizo}</span>
-            <button type="button" className={estilos.botonRomperConcentracion} onClick={alRomperConcentracion}>Romper</button>
-          </>}
+        <div className={estilos.tarjetaModoTirada} role="group" aria-label="Modo de tirada">
+          <span className={estilos.estadisticaEtiqueta}>Modo tirada</span>
+          <div className={estilos.grupoModoTirada}>
+            <button
+              type="button"
+              aria-pressed={modoTirada === "disv"}
+              data-modo="disv"
+              className={estilos.botonModoTirada}
+              onClick={() => alCambiarModoTirada("disv")}
+              title="Tirar con Desventaja (2d20 menor)"
+            >
+              Disv
+            </button>
+            <button
+              type="button"
+              aria-pressed={modoTirada === "plano"}
+              data-modo="plano"
+              className={estilos.botonModoTirada}
+              onClick={() => alCambiarModoTirada("plano")}
+              title="Tirada normal plana (1d20)"
+            >
+              Plano
+            </button>
+            <button
+              type="button"
+              aria-pressed={modoTirada === "vent"}
+              data-modo="vent"
+              className={estilos.botonModoTirada}
+              onClick={() => alCambiarModoTirada("vent")}
+              title="Tirar con Ventaja (2d20 mayor)"
+            >
+              Vent
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tarjetas de Conjuros y Trucos Máximos */}
-      <TarjetasMetricasMagia
-        conteoConjurosLibres={conteoEfectivo.libres}
-        conteoConjurosSubclase={conteoEfectivo.subclase}
-        maxConjuros={maximos.maxConjuros}
-        conteoTrucosLibres={conteoEfectivo.trucosLibres}
-        conteoTrucosSubclase={conteoEfectivo.trucosSubclase}
-        maxTrucos={maximos.maxTrucos}
-        modelo={maximos.modelo || "ninguno"}
-      />
-
-      {/* Barra de Acciones Rápidas */}
-      <div className={estilos.barraAccionesRapidas}>
-        <button
-          type="button"
-          onClick={alAbrirCompendio}
-          className={estilos.botonCompendio}
-        >
-          <BookOpen size={13} />
-          <span>Compendio de Conjuros</span>
-        </button>
-      </div>
+      {personaje.concentracionActiva && (
+        <BannerConcentracionActiva
+          nombreHechizo={personaje.concentracionActiva.nombreHechizo}
+          alRomperConcentracion={alRomperConcentracion}
+        />
+      )}
 
       {/* Trackers de Recursos Mágicos */}
       <div className={estilos.contenedorTrackers}>
@@ -172,6 +195,17 @@ export const CabeceraYRecursosMagicos: React.FC<CabeceraYRecursosMagicosProps> =
           </div>
         )}
       </div>
+
+      {/* Tarjetas de Conjuros y Trucos Máximos */}
+      <TarjetasMetricasMagia
+        conteoConjurosLibres={conteoEfectivo.libres}
+        conteoConjurosSubclase={conteoEfectivo.subclase}
+        maxConjuros={maximos.maxConjuros}
+        conteoTrucosLibres={conteoEfectivo.trucosLibres}
+        conteoTrucosSubclase={conteoEfectivo.trucosSubclase}
+        maxTrucos={maximos.maxTrucos}
+        modelo={maximos.modelo || "ninguno"}
+      />
     </>
   );
 };

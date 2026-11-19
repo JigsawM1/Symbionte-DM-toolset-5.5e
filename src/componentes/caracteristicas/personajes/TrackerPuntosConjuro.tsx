@@ -76,7 +76,14 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
         </div>
 
         {/* Barra visual */}
-        <div className={styles.pistaBarraPuntos}>
+        <div
+          className={styles.pistaBarraPuntos}
+          role="progressbar"
+          aria-valuenow={puntosDisponibles}
+          aria-valuemin={0}
+          aria-valuemax={puntosMaximos}
+          aria-label="Puntos de conjuro disponibles"
+        >
           <div
             // eslint-disable-next-line react/forbid-dom-props -- Ancho porcentual dinámico continuo en tiempo de ejecución (0-100%)
             style={{
@@ -96,6 +103,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
               min={0}
               max={puntosMaximos}
               placeholder="Cant."
+              aria-label="Cantidad de puntos de conjuro a gastar o recuperar"
               value={puntosPersonalizados}
               alConfirmar={(valor) => setPuntosPersonalizados(String(valor))}
               onKeyDown={(e) => {
@@ -123,6 +131,7 @@ export const TrackerPuntosConjuro: React.FC<TrackerPuntosConjuroProps> = ({
 
         <button
           type="button"
+          aria-expanded={mostrarTablaCostes}
           onClick={() => setMostrarTablaCostes(!mostrarTablaCostes)}
           className={styles.botonAlternarTablaCostes}
         >

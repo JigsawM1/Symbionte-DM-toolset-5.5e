@@ -17,7 +17,6 @@ export interface TrackerRecursoMagicoProps {
   titulo: string;
   iconoColor?: string;
   grupos: GrupoRanurasMagicas[];
-  soloLectura?: boolean;
   pieDePagina?: string;
   modoGrid?: boolean;
 }
@@ -26,7 +25,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
   titulo,
   iconoColor = "var(--pj-texto-acento)",
   grupos,
-  soloLectura = false,
   pieDePagina,
   modoGrid = true
 }) => {
@@ -63,6 +61,9 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
         </div>
 
         <div className={styles.ladoDerechoCabecera}>
+          {!grupoUnico && (
+            <span className={styles.subtituloInteractivo}>Clic para gastar/recuperar</span>
+          )}
           {grupoUnico && (
             <div className={styles.marcadorRanurasUnico}>
               <span
@@ -79,7 +80,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
               <span className={styles.ranurasMaxTexto}> / {grupoUnico.max} ranuras</span>
             </div>
           )}
-
         </div>
       </div>
 
@@ -89,7 +89,11 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
           const disponibles = Math.max(0, grupo.max - grupo.gastados);
 
           return (
-            <div key={grupo.id} className={styles.tarjetaGrupoRanura}>
+            <div
+              key={grupo.id}
+              className={styles.tarjetaGrupoRanura}
+              data-grid={modoGrid ? "true" : "false"}
+            >
               {modoGrid && (
                 <div className={styles.cabeceraGrupoRanura}>
                   <span className={styles.etiquetaGrupoRanura}>{grupo.etiqueta}</span>
@@ -98,30 +102,28 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
                     data-disponible={disponibles > 0 ? "true" : "false"}
                     data-pacto={esPacto ? "true" : "false"}
                   >
-                    {disponibles}/{grupo.max}
+                    ({disponibles}/{grupo.max})
                   </span>
                 </div>
               )}
 
-              {/* Círculos interactivos de ranura */}
+              {/* Botones de ranura */}
               <div className={styles.filaRanurasCirculares}>
                 {Array.from({ length: grupo.max }).map((_, idx) => {
                   const estaDisponible = idx < disponibles;
+                  const etiquetaAria = `${grupo.etiqueta}, ranura ${idx + 1} de ${grupo.max}: ${estaDisponible ? "disponible" : "gastada"}`;
+                  const tituloRanura = estaDisponible
+                    ? `${grupo.etiqueta}: clic para gastar`
+                    : `${grupo.etiqueta}: clic para recuperar`;
+
                   return (
                     <button
                       key={`${grupo.id}-slot-${idx}`}
                       type="button"
-                      title={
-                        soloLectura
-                          ? estaDisponible
-                            ? `${grupo.etiqueta}: disponible`
-                            : `${grupo.etiqueta}: gastado`
-                          : estaDisponible
-                            ? `${grupo.etiqueta}: clic para gastar`
-                            : `${grupo.etiqueta}: clic para recuperar`
-                      }
+                      title={tituloRanura}
+                      aria-label={etiquetaAria}
+                      aria-pressed={estaDisponible}
                       onClick={() => {
-                        if (soloLectura) return;
                         if (estaDisponible) {
                           grupo.alGastar?.();
                         } else {
@@ -131,7 +133,6 @@ export const TrackerRecursoMagico: React.FC<TrackerRecursoMagicoProps> = ({
                       className={styles.botonRanuraCircular}
                       data-disponible={estaDisponible ? "true" : "false"}
                       data-pacto={esPacto ? "true" : "false"}
-                      data-readonly={soloLectura ? "true" : "false"}
                     />
                   );
                 })}

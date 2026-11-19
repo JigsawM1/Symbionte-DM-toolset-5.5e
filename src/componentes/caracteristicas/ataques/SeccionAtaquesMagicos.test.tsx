@@ -2,17 +2,19 @@ import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionAtaquesMagicos } from "./SeccionAtaquesMagicos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
+import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 
-describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros (Fuente única personaje.conjurosOcultos)", () => {
+describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
   const personajeBase: PersonajeJugador = {
     ...PERSONAJE_POR_DEFECTO,
     id: "pj-mago-test",
     nombre: "Elminster",
     espaciosConjuroMaximos: { 1: 4, 2: 3 },
     espaciosConjuroGastados: { 1: 0, 2: 0 },
-    conjurosOcultos: []
+    conjurosOcultos: [],
+    conjurosEnAcciones: ["hechizo-descarga-fuego", "hechizo-proyectil-magico", "hechizo-escudo"]
   };
 
   const trucoDescarga: HechizoBase = {
@@ -85,61 +87,36 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros (Fuente única pe
     seccionesAbiertas: {
       magicos: true,
       magicos_nv_0: true,
-      magicos_nv_1: true,
-      magicos_ocultos: true
+      magicos_nv_1: true
     },
     alAlternarSeccion: vi.fn(),
     personajeActivo: personajeBase,
+    espaciosConjuroMaximos: personajeBase.espaciosConjuroMaximos,
     bonoAtaqueMagico: 5,
     tienePacto: false,
     sistemaMagia: "espacios" as const,
     estaBloqueadoPorArmadura: false,
     esHechizoDeSubclase: vi.fn().mockReturnValue(false),
     alAbrirDetalle: vi.fn(),
-    alLanzar: vi.fn().mockResolvedValue(true)
+    alLanzar: vi.fn().mockResolvedValue(true),
+    alAlternarAcciones: vi.fn()
   };
 
-  it("renderiza conjuros visibles y el botón para ocultar cuando no hay conjuros ocultos", () => {
+  it("renderiza conjuros visibles con su toggle activo en Acciones y sin sección Conjuros Ocultos", () => {
     const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
 
-    // Título y badge general con los 3 conjuros visibles
     expect(html).toContain("Conjuros y Acciones Mágicas");
+    expect(html).toContain("Trucos Listos");
+    expect(html).toContain("Nivel 1");
     expect(html).toContain("Descarga de Fuego");
     expect(html).toContain("Proyectil Mágico");
     expect(html).toContain("Escudo");
-
-    // Botón para ocultar conjuro
-    expect(html).toContain('title="Ocultar conjuro"');
-
-    // No debe renderizar la subsección de ocultos
+    expect(html).toContain('title="Quitar de la pestaña Acciones"');
+    expect(html).toContain('aria-pressed="true"');
     expect(html).not.toContain("Conjuros Ocultos");
-    expect(html).not.toContain("Mostrar todos");
   });
 
-  it("oculta un conjuro de su nivel y lo coloca en la subsección Conjuros Ocultos cuando su ID está en personaje.conjurosOcultos", () => {
-    const props = {
-      ...propsBase,
-      personajeActivo: {
-        ...personajeBase,
-        conjurosOcultos: ["hechizo-proyectil-magico"]
-      }
-    };
-
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
-
-    // La subsección de ocultos debe aparecer
-    expect(html).toContain("Conjuros Ocultos");
-    expect(html).toContain("Mostrar todos");
-
-    // "Descarga de Fuego" y "Escudo" siguen en sus niveles visibles
-    expect(html).toContain("Trucos Listos");
-    expect(html).toContain("Nivel 1");
-
-    // En la tarjeta de Proyectil Mágico debe tener el botón para restaurar
-    expect(html).toContain('title="Mostrar conjuro (restaurar a su nivel)"');
-  });
-
-  it("omite la cabecera de nivel si todos los conjuros de dicho nivel están ocultos en la ficha", () => {
+  it("ignora conjurosOcultos heredados y mantiene visibles los conjuros fijados en Acciones", () => {
     const props = {
       ...propsBase,
       personajeActivo: {
@@ -150,42 +127,10 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros (Fuente única pe
 
     const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
 
-    // El truco de nivel 0 sigue visible
-    expect(html).toContain("Trucos Listos");
     expect(html).toContain("Descarga de Fuego");
-
-    // La cabecera "Nivel 1" no debe renderizarse porque itemsVisibles es 0
-    expect(html).not.toContain("Nivel 1</span>");
-
-    // Ambos conjuros de nivel 1 deben estar en la subsección de ocultos
-    expect(html).toContain("Conjuros Ocultos");
     expect(html).toContain("Proyectil Mágico");
     expect(html).toContain("Escudo");
-  });
-
-  it("mantiene visible la sección principal si todos los conjuros están ocultos para permitir desocultarlos", () => {
-    const props = {
-      ...propsBase,
-      personajeActivo: {
-        ...personajeBase,
-        conjurosOcultos: [
-          "hechizo-descarga-fuego",
-          "hechizo-proyectil-magico",
-          "hechizo-escudo"
-        ]
-      }
-    };
-
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
-
-    // La cabecera general sigue presente con conteo visible 0
-    expect(html).toContain("Conjuros y Acciones Mágicas");
-    expect(html).toContain("Conjuros Ocultos");
-    expect(html).toContain("Mostrar todos");
-
-    // Ningún nivel regular se muestra
-    expect(html).not.toContain("Trucos Listos");
-    expect(html).not.toContain("Nivel 1</span>");
+    expect(html).not.toContain("Conjuros Ocultos");
   });
 
   it("no renderiza nada cuando conjurosFiltrados está completamente vacío", () => {
@@ -209,25 +154,116 @@ describe("SeccionAtaquesMagicos - Función de Ocultar Conjuros (Fuente única pe
     );
 
     expect(html).toContain("Conjuros y Acciones Mágicas");
-    // Al estar cerrada la sección principal, no se renderizan ni trucos ni conjuros
     expect(html).not.toContain("Trucos Listos");
     expect(html).not.toContain("Descarga de Fuego");
   });
 
-  it("respeta el estado de colapso de la subsección de ocultos (seccionesAbiertas.magicos_ocultos = false)", () => {
-    const props = {
-      ...propsBase,
-      personajeActivo: {
-        ...personajeBase,
-        conjurosOcultos: ["hechizo-escudo"]
-      },
-      seccionesAbiertas: { ...propsBase.seccionesAbiertas, magicos_ocultos: false }
+  it("respeta el colapso individual por nivel (seccionesAbiertas.magicos_nv_1 = false)", () => {
+    const html = renderToStaticMarkup(
+      <SeccionAtaquesMagicos
+        {...propsBase}
+        seccionesAbiertas={{ ...propsBase.seccionesAbiertas, magicos_nv_1: false }}
+      />
+    );
+
+    expect(html).toContain("Descarga de Fuego");
+    expect(html).toContain("Nivel 1");
+    expect(html).not.toContain("Proyectil Mágico");
+  });
+
+  it("no muestra el botón 'Gratis' para conjuros solo otorgados como preparados (efecto conjuro_otorgado)", () => {
+    const personajeConPreparado: PersonajeJugador = {
+      ...personajeBase,
+      rasgos: [
+        EsquemaRasgoPersonaje.parse({
+          id: "rasgo_sub_magia_cautivadora",
+          nombre: "Magia cautivadora",
+          origen: "subclase",
+          fuente: "Colegio del Glamour",
+          descripcion: "Siempre tienes preparado Proyectil Mágico.",
+          tieneUsosLimitados: true,
+          usosMaximos: 1,
+          usosRestantes: 1,
+          conjurosOtorgados: ["Proyectil Mágico"],
+          efectos: [
+            {
+              tipo: "conjuro_otorgado",
+              objetivo: "Proyectil Mágico",
+              valor: "Proyectil Mágico"
+            }
+          ]
+        })
+      ]
     };
 
-    const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...props} />);
+    const html = renderToStaticMarkup(
+      <SeccionAtaquesMagicos
+        {...propsBase}
+        personajeActivo={personajeConPreparado}
+      />
+    );
 
-    // Muestra la cabecera de ocultos pero no la tarjeta interna de Escudo
-    expect(html).toContain("Conjuros Ocultos");
-    expect(html).not.toContain("Una barrera invisible de fuerza mágica te protege.");
+    expect(html).toContain("Proyectil Mágico");
+    expect(html).not.toContain("<span>Gratis</span>");
+  });
+
+  it("ofrece el nivel habilitado por un espacio adicional y descuenta el gasto del máximo efectivo", () => {
+    const conjuro = { ...conjuroMisil, nivel: 3 };
+    const item: ConjuroAccionElemento = { hechizo: conjuro, tipoAccion: "accion" };
+    const html = renderToStaticMarkup(
+      <SeccionAtaquesMagicos
+        {...propsBase}
+        personajeActivo={{ ...personajeBase, espaciosConjuroGastados: { 1: 4, 2: 3 } }}
+        espaciosConjuroMaximos={{ 1: 4, 2: 3, 3: 1 }}
+        conjurosFiltrados={[item]}
+        conjurosPorNivel={{ 3: [item] }}
+      />
+    );
+    expect(html).toContain("Nv. 3 (1/1)");
+    expect(html).not.toContain('data-sin-recursos="true"');
+  });
+
+  it("propaga disponibilidad de espacios, marca sin recursos cuando están agotados y usa coste real en modo puntos", () => {
+    const htmlDisponibles = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
+    expect(htmlDisponibles).toContain("Nv. 1 (4/4)");
+    expect(htmlDisponibles).not.toContain('data-sin-recursos="true"');
+
+    const htmlSinEspacios = renderToStaticMarkup(
+      <SeccionAtaquesMagicos
+        {...propsBase}
+        personajeActivo={{
+          ...personajeBase,
+          espaciosConjuroMaximos: { "1": 4 },
+          espaciosConjuroGastados: { "1": 4 }
+        }}
+      />
+    );
+    expect(htmlSinEspacios).toContain("Nv. 1 (0/4)");
+    expect(htmlSinEspacios).toContain('data-sin-recursos="true"');
+
+    const conjuroNv3: HechizoBase = {
+      ...conjuroMisil,
+      id: "hechizo-bola-fuego",
+      nombre: "Bola de Fuego",
+      nivel: 3
+    };
+    const htmlPuntos = renderToStaticMarkup(
+      <SeccionAtaquesMagicos
+        {...propsBase}
+        sistemaMagia="puntos"
+        conjurosFiltrados={[{ hechizo: conjuroNv3, tipoAccion: "accion" }]}
+        conjurosPorNivel={{ 3: [{ hechizo: conjuroNv3, tipoAccion: "accion" }] }}
+        seccionesAbiertas={{ magicos: true, magicos_nv_3: true }}
+        personajeActivo={{
+          ...personajeBase,
+          nivelConjuroMaximo: 3,
+          puntosConjuroMaximos: 10,
+          puntosConjuroGastados: 6
+        }}
+      />
+    );
+    expect(htmlPuntos).toContain("Nv. 3 (5 pts)");
+    expect(htmlPuntos).toContain("requiere 5 puntos, tienes 4");
+    expect(htmlPuntos).toContain('data-sin-recursos="true"');
   });
 });

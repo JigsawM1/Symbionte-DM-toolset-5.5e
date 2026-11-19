@@ -353,6 +353,7 @@ export const PERSONAJE_POR_DEFECTO: PersonajeJugador = {
   rasgos: [],
   dotes: [],
   conjurosOcultos: [],
+  conjurosEnAcciones: [],
 
   // Acompañantes y Sidekicks
   acompanantes: []

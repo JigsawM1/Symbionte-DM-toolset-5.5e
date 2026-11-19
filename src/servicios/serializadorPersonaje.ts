@@ -104,6 +104,7 @@ export function deshidratarPersonaje(personaje: PersonajeJugador): PersonajeJuga
   return {
     ...personaje,
     conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
+    conjurosEnAcciones: Array.isArray(personaje.conjurosEnAcciones) ? personaje.conjurosEnAcciones : [],
     rasgos: Array.isArray(personaje.rasgos)
       ? personaje.rasgos.map(deshidratarRasgo)
       : []
@@ -120,6 +121,7 @@ export function hidratarPersonaje(personaje: PersonajeJugador, catalogo?: Catalo
   const hidratado = {
     ...personaje,
     conjurosOcultos: Array.isArray(personaje.conjurosOcultos) ? personaje.conjurosOcultos : [],
+    conjurosEnAcciones: Array.isArray(personaje.conjurosEnAcciones) ? personaje.conjurosEnAcciones : [],
     rasgos: catalogo ? hidratarSelectoresConjuros(sincronizarRasgosAutomaticos(personaje), catalogo) : sincronizarRasgosAutomaticos(personaje)
   };
   if (hidratado.rasgos.some(r => r.progresionConcesion))

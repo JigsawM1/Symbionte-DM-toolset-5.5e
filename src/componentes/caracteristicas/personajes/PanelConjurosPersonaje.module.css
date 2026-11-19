@@ -6,8 +6,8 @@
 }
 
 .alertaConcentracion {
-  background-color: var(--pj-acento-peligro-fondo);
-  border: 1px solid var(--pj-borde-peligro);
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
   border-radius: var(--pj-radio-panel);
   padding: 10px 14px;
   display: flex;
@@ -37,13 +37,13 @@
   font-size: var(--pj-fuente-label);
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--pj-texto-alerta);
+  color: var(--pj-texto-oro);
 }
 
 .concentracionNombre {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
-  color: var(--pj-texto-alerta);
+  color: var(--pj-texto-oro-brillante);
 }
 
 .botonRomperConcentracion {
@@ -59,46 +59,66 @@
 }
 
 .botonRomperConcentracion:hover {
-  background-color: var(--pj-acento-peligro-fondo);
+  background-color: var(--pj-acento-peligro-oscuro);
+  color: var(--pj-texto-primario);
 }
 
 .gridEstadisticas {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(144px, 1.45fr);
+  gap: 8px;
 }
 
 .tarjetaEstadistica {
   background-color: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-panel);
+  border-radius: var(--pj-radio-control);
   padding: 10px 6px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .tarjetaAtaqueMagico {
-  background-color: var(--pj-fondo-tarjeta);
+  background-color: var(--pj-fondo-tarjeta-elevada);
   border: 1px solid var(--pj-borde-acento);
-  border-radius: var(--pj-radio-panel);
-  padding: 10px 6px;
+  border-radius: var(--pj-radio-control);
+  padding: 8px 6px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 3px;
   cursor: pointer;
 }
 
-.tarjetaAtaqueMagico:hover {
+.tarjetaAtaqueMagico:hover:not(:disabled) {
   border-color: var(--pj-borde-acento-fuerte);
   background-color: var(--pj-acento-primario-fondo);
 }
 
-.tarjetaAtaqueMagicoBloqueada,
-.tarjetaAtaqueMagicoBloqueada:hover {
-  border-color: var(--pj-borde-peligro) !important;
-  background-color: var(--pj-acento-peligro-fondo) !important;
-  cursor: not-allowed !important;
+.subtituloTiradaAtaque {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  color: var(--pj-texto-acento);
+  line-height: 1.1;
+}
+
+/* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
+.contenedor .gridEstadisticas .tarjetaAtaqueMagicoBloqueada:disabled,
+.contenedor .gridEstadisticas .tarjetaAtaqueMagicoBloqueada:disabled:hover,
+.tarjetaAtaqueMagicoBloqueada {
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  cursor: not-allowed;
   opacity: 0.7;
 }
 
@@ -124,13 +144,15 @@
   font-weight: 700;
   color: var(--pj-texto-label);
   text-transform: uppercase;
+  text-align: center;
 }
 
 .estadisticaNumeroMono {
   font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
   color: var(--pj-texto-cian);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
   margin-top: 2px;
 }
 
@@ -138,42 +160,16 @@
   font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
   color: var(--pj-texto-magia);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
   margin-top: 2px;
-}
-
-.barraAccionesRapidas {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.botonCompendio {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-cian-claro);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.botonCompendio:hover {
-  background-color: var(--pj-acento-primario-activo);
-  color: var(--pj-texto-primario);
 }
 
 
 .contenedorTrackers {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .alertaSinRecursos {
@@ -190,7 +186,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background-color: var(--pj-fondo-tarjeta);
+  background-color: var(--pj-fondo-panel);
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
   padding: 12px 14px;
@@ -245,7 +241,7 @@
   background-color: var(--pj-fondo-hundido);
   border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
-  padding: 4px 10px;
+  padding: 0 8px;
   color: var(--pj-texto-secundario);
 }
 
@@ -253,18 +249,35 @@
   border-color: var(--pj-borde-acento-fuerte);
 }
 
-.inputBuscador {
+.cajaBuscador:has(.inputBuscador:focus-visible) {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 2px;
+}
+
+.cajaBuscador .inputBuscador {
   background: transparent;
   border: none;
+  border-radius: 0;
   outline: none;
+  box-shadow: none;
   color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-micro);
+  font-size: var(--pj-fuente-cuerpo);
+  padding: 0;
   width: 100%;
+  min-width: 0;
+}
+
+/* Anula el !important de :focus-visible en temaJugador.css porque .cajaBuscador dibuja el foco exterior. */
+.cajaBuscador .inputBuscador:focus-visible {
+  outline: none !important;
+  outline-offset: 0;
 }
 
 .botonLimpiarBusqueda {
   display: flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   background: none;
   border: none;
   color: var(--pj-texto-acento);
@@ -305,9 +318,11 @@
 
 .badgeFiltrosActivos {
   background-color: var(--pj-acento-primario-solido);
-  color: var(--pj-texto-terciario);
+  color: var(--pj-texto-sobre-acento);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
   font-size: var(--pj-fuente-badge);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   border-radius: var(--pj-radio-panel);
   padding: 0 5px;
   min-width: 16px;
@@ -381,17 +396,18 @@
   font-weight: 700;
 }
 
-.chipFiltroPeligroActivo {
-  background-color: var(--pj-acento-peligro-fondo);
-  border-color: var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta);
+.chipFiltroOroActivo {
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
   font-weight: 700;
 }
 
 .botonResetFiltros {
   align-self: flex-start;
   background: none;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: var(--pj-radio-control);
   color: var(--pj-texto-alerta);
   font-size: var(--pj-fuente-boton);
   font-weight: 600;
@@ -402,7 +418,8 @@
 }
 
 .botonResetFiltros:hover {
-  color: var(--pj-texto-alerta);
+  color: var(--pj-texto-alerta-brillante);
+  border-color: var(--pj-borde-peligro);
 }
 
 .alertaFiltroVacioNivel {
@@ -423,13 +440,6 @@
   gap: 6px;
 }
 
-.tituloNivelTexto {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--pj-texto-secundario-claro);
-}
-
 .tituloNivelPrincipal {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
@@ -437,7 +447,9 @@
 }
 
 .badgeConteoNivel {
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
   font-size: var(--pj-fuente-micro);
+  font-variant-numeric: tabular-nums;
   background-color: var(--pj-acento-magia-fondo);
   color: var(--pj-texto-magia);
   padding: 1px 7px;
@@ -518,7 +530,7 @@
   gap: 6px;
   margin-top: 4px;
   background-color: var(--pj-acento-primario-solido);
-  border: none;
+  border: 1px solid transparent;
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-primario);
   font-size: var(--pj-fuente-boton);
@@ -529,52 +541,8 @@
 }
 
 .botonIrCompendio:hover {
-  background-color: var(--pj-acento-primario-solido);
-}
-
-.seccionOcultos {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px dashed var(--pj-borde-medio);
-  border-radius: var(--pj-radio-panel);
-  padding: 12px 14px;
-  margin-top: 4px;
-}
-
-.tituloOcultosTexto {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--pj-texto-terciario);
-}
-
-.badgeConteoOcultos {
-  font-size: var(--pj-fuente-micro);
-  background-color: var(--pj-acento-primario-fondo);
-  color: var(--pj-texto-terciario);
-  padding: 1px 7px;
-  border-radius: var(--pj-radio-panel);
-  font-weight: 700;
-}
-
-.botonDesocultarTodos {
-  background: none;
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-cian);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 600;
-  padding: 2px 7px;
-  cursor: pointer;
-  transition: none;
-}
-
-.botonDesocultarTodos:hover {
-  background-color: var(--pj-acento-cian-fondo);
-  border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-primario);
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
 }
 
 /* CabeceraYRecursosMagicos */
@@ -618,17 +586,68 @@
   font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
   color: var(--pj-texto-primario);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 .badgeSubclaseMetrica {
   font-size: var(--pj-fuente-badge);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-oro);
   background-color: var(--pj-acento-oro-fondo);
   border: 1px solid var(--pj-borde-oro);
   border-radius: 4px;
   padding: 1px 5px;
+}
+
+/* Variante compacta de 1 línea en PanelConjurosPersonaje; CompendioConjurosJugador usa las tarjetas base. */
+.contenedor .gridMetricasMagiaLibres {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 10px;
+  margin: 0;
+  padding: 5px 10px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+}
+
+.contenedor .tarjetaMetricaMagiaItem {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 5px;
+  justify-content: flex-start;
+  text-align: left;
+  padding: 1px 0;
+  min-width: 0;
+}
+
+.contenedor .etiquetaMetricaMagia {
+  letter-spacing: 0.03em;
+}
+
+.contenedor .filaValorMetricaMagia {
+  margin: 0;
+  align-items: baseline;
+}
+
+.contenedor .numeroMetricaMagia {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.contenedor .subtextoMetricaMagia {
+  flex-basis: auto;
+  letter-spacing: 0.02em;
+  font-weight: 400;
+  color: var(--pj-texto-terciario);
 }
 
 .nombreConjuroArcano {
@@ -658,6 +677,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   border-bottom: 1px solid var(--pj-borde-magia);
   padding-bottom: 8px;
 }
@@ -688,6 +709,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   background-color: var(--pj-fondo-tarjeta-elevada);
   border: 1px solid var(--pj-borde-magia);
   border-radius: var(--pj-radio-control);
@@ -707,8 +729,10 @@
 }
 
 .badgeNivelArcano {
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
   font-size: var(--pj-fuente-badge);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-magia);
   background-color: var(--pj-acento-magia-fondo);
   border: 1px solid var(--pj-borde-magia);
@@ -726,6 +750,8 @@
   display: flex;
   align-items: center;
   flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px;
 }
@@ -734,6 +760,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  flex-wrap: wrap;
   cursor: pointer;
 }
 
@@ -784,15 +812,18 @@
 }
 
 .botonLanzarArcano:hover:not(:disabled) {
-  background-color: var(--pj-acento-magia-solido);
+  background-color: var(--pj-acento-magia);
+  border-color: var(--pj-texto-magia);
 }
 
-.botonLanzarArcano:disabled {
-  background-color: var(--pj-acento-peligro-fondo);
-  border: 1px solid var(--pj-borde-peligro);
+/* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
+.contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano:disabled,
+.contenedorArcanoMistico .accionesArcanoFila .botonLanzarArcano:disabled:hover {
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
   color: var(--pj-texto-alerta);
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 
@@ -802,7 +833,8 @@
 
 
 .contenedorSelectorArcano {
-  flex: 1;
+  flex: 1 1 150px;
+  min-width: 0;
   max-width: 280px;
 }
 
@@ -844,6 +876,8 @@
 .puntosDisponiblesPositivos,
 .valorCosteResaltado {
   color: var(--pj-texto-cian);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
 }
 
 .cabeceraBarraPuntos {
@@ -855,9 +889,10 @@
 
 
 .marcadorNumericoPuntos {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
   font-size: var(--pj-fuente-titulo);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 
@@ -891,6 +926,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 8px;
   padding-top: 8px;
   border-top: 1px solid var(--pj-borde-acento);
 }
@@ -903,7 +940,9 @@
   border: 1px solid var(--pj-borde-acento);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-primario);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
   font-size: var(--pj-fuente-label);
+  font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
@@ -959,76 +998,108 @@
 }
 
 
-.tarjetaConcentracion {
+.tarjetaModoTirada {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 6px;
-  min-width: 0;
-  text-align: center;
-  background: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-oro);
-  border-radius: var(--pj-radio-control);
-}
-.estadoConcentracion {
-  color: var(--pj-texto-oro);
-  font-size: 12px;
-}
-.nombreConcentracion {
-  color: var(--pj-texto-secundario);
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-.contenedor .gridEstadisticas > * {
-  min-width: 0;
   gap: 6px;
-  justify-content: center;
+  padding: 8px 6px;
+  min-width: 0;
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-control);
 }
-.contenedor .estadisticaEtiqueta {
-  font-size: 11px;
-  text-align: center;
+
+.grupoModoTirada {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
 }
-.contenedor .gridMetricasMagiaLibres,
-.contenedor .contenedorTrackers {
+
+.botonModoTirada {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.botonModoTirada:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+}
+
+.botonModoTirada[data-modo="disv"][aria-pressed="true"] {
+  background-color: var(--pj-acento-peligro-oscuro);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-primario);
+}
+
+.botonModoTirada[data-modo="plano"][aria-pressed="true"] {
+  background-color: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
+}
+
+.botonModoTirada[data-modo="vent"][aria-pressed="true"] {
+  background-color: var(--pj-acento-exito-oscuro);
+  border-color: var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
+}
+
+.barraClaseLanzamiento {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
+  padding: 6px 10px;
+  background: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
 }
-.contenedor .numeroMetricaMagia {
-  font-size: 14px;
+
+.etiquetaClaseLanzamiento {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--pj-texto-label);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
+
+.barraClaseLanzamiento .selectorClaseLanzamiento {
+  width: auto;
+  flex: 0 1 210px;
+  min-width: 130px;
+}
+
 .contenedor :is(button, input) {
   min-height: 32px;
 }
+
 .contenedor button {
   min-width: 32px;
 }
-.contenedor :is(button, input):focus-visible {
+
+.contenedor :is(button, input:not(.inputBuscador)):focus-visible {
   outline: 2px solid var(--pj-borde-acento-fuerte);
   outline-offset: 2px;
 }
-@media (max-width: 480px) {
-  .contenedor .gridEstadisticas {
+
+@media (max-width: 540px) {
+  .gridEstadisticas {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
-
-.contenedor .tarjetaMetricaMagiaItem {
-  background: transparent;
-  border: 0;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  justify-content: center;
-  text-align: center;
-  padding: 2px 0;
-}
-.contenedor .filaValorMetricaMagia {
-  margin: 0;
-}
-.contenedor .subtextoMetricaMagia {
-  flex-basis: 100%;
-  font-weight: 400;
-  color: var(--pj-texto-terciario);
 }

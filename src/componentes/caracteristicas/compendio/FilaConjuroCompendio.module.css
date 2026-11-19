@@ -4,7 +4,7 @@
   gap: 5px;
   padding: 8px 12px;
   background-color: var(--pj-fondo-tarjeta);
-  border-bottom: 1px solid var(--pj-borde-acento);
+  border-bottom: 1px solid var(--pj-borde-sutil);
   cursor: pointer;
   user-select: none;
 }
@@ -29,8 +29,10 @@
 }
 
 .botonControl {
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
   padding: 0;
   margin: 0;
   background: transparent;
@@ -43,8 +45,11 @@
   cursor: pointer;
 }
 
-.botonControlDeshabilitado {
+.botonControlDeshabilitado,
+:global([data-tema="jugador"]) .botonControl:disabled {
   cursor: default;
+  background: transparent;
+  border-color: transparent;
 }
 
 .botonEstrella:not(.botonControlDeshabilitado):hover {
@@ -202,7 +207,7 @@
 
 .textoEscuela {
   font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-terciario);
   text-transform: capitalize;
   white-space: nowrap;
 }
@@ -214,11 +219,11 @@
   font-size: var(--pj-fuente-badge);
   color: var(--pj-texto-secundario-claro);
   flex-wrap: wrap;
-  padding-left: 56px;
+  padding-left: 76px;
 }
 
 .lineaMetadatosSinEstrella {
-  padding-left: 28px;
+  padding-left: 38px;
 }
 
 .itemMetadato {
@@ -250,22 +255,24 @@
 }
 
 .separadorPunto {
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-terciario);
 }
 
 .textoComponentes {
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-terciario);
 }
 
 .textoDano {
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-cian);
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
 .resumenDescripcion {
-  padding-left: 56px;
+  padding-left: 76px;
   font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-secundario);
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -274,7 +281,16 @@
 }
 
 .resumenDescripcionSinEstrella {
-  padding-left: 28px;
+  padding-left: 38px;
 }
 
-.textoNombre:focus-visible { outline: 2px solid var(--color-primario-brillante, #00f5d4); outline-offset: 2px; }
+.textoNombre:focus-visible { outline: 2px solid var(--pj-borde-acento-fuerte); outline-offset: 2px; }
+
+@media (max-width: 540px) {
+  .lineaMetadatos,
+  .lineaMetadatosSinEstrella,
+  .resumenDescripcion,
+  .resumenDescripcionSinEstrella {
+    padding-left: 0;
+  }
+}

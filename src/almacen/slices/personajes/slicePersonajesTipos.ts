@@ -193,8 +193,7 @@ export interface SubSliceRasgos {
   alternarActivoRasgo: (idPj: string, idRasgo: string, decisiones?: import("@/servicios/rasgos/activacionDeclarativa").EleccionesActivacionRasgo) => void;
   alternarOcultarRasgo: (idPj: string, idRasgo: string) => void;
   desocultarTodosLosRasgos: (idPj: string) => void;
-  alternarOcultarConjuro: (idPj: string, idConjuro: string) => void;
-  desocultarTodosLosConjuros: (idPj: string) => void;
+  alternarConjuroEnAcciones: (idPj: string, idConjuro: string) => void;
   actualizarSeleccionRasgo: (idPj: string, idRasgo: string, idSelector: string, valorActual: string[]) => void;
   dispararRasgosIniciativaPersonaje: (idPj: string, omitirRestauraciones?: boolean) => void;
   guardarDadosRasgo: (idPj: string, idRasgo: string, dados: number[]) => void;

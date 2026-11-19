@@ -1,20 +1,21 @@
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
 import { useShallow } from "zustand/react/shallow";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useId, useMemo } from "react";
 import type { HechizoBase } from "@/tipos";
 import {
   calcularCDConjuros,
+  calcularMaximosConjurosYTrucos,
   obtenerConjurosSubclasePersonaje,
   requiereSincronizacionSubclase
 } from "@/servicios/calculadorMagia";
 import { usarAccionesConfiguracion } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
+import { calcularEstadisticasMagicas } from "@/hooks/usarMagiaPersonaje";
+import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/evaluadorEfectosRasgos";
 import { usarLanzadorConjuros } from "@/hooks/usarLanzadorConjuros";
 import { BarraFiltrosConjuros } from "./BarraFiltrosConjuros";
 import { usarFiltrosYSeccionesConjuros } from "./conjuros/usarFiltrosYSeccionesConjuros";
 import { CabeceraYRecursosMagicos } from "./conjuros/CabeceraYRecursosMagicos";
-import { SeccionConjurosOcultos } from "./conjuros/SeccionConjurosOcultos";
 import { ModalFichaHechizoFlotante } from "./conjuros/ModalFichaHechizoFlotante";
 import { ListaNivelesConjuros } from "./conjuros/ListaNivelesConjuros";
 import type { PanelConjurosPersonajeProps } from "./conjuros/tiposPanelConjuros";
@@ -27,9 +28,12 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   bonoCompetencia,
   modificadores,
   baseDatosHechizos,
+  magia,
   sistemaMagia,
   penalizacionArmadura,
-  alAbrirConfiguracion,
+  modoTirada,
+  alCambiarModoTirada,
+  alAbrirCompendio,
   alGastarEspacio, alRecuperarEspacio,
   alGastarPuntos, alRecuperarPuntos,
   alGastarEspacioPacto, alRecuperarEspaciosPacto,
@@ -37,6 +41,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   alQuitarTruco, alQuitarConjuro, alAlternarPreparado
 }) => {
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
+  const idClaseLanzamiento = useId();
 
   const {
     asignarArcanoMistico, quitarArcanoMistico,
@@ -63,12 +68,17 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
   const [claseElegida, cambiarClaseLanzamiento] = useState("");
   const claseLanzamiento = personaje.clasesLanzadoras.some(c => c.clase === claseElegida)
     ? claseElegida : personaje.clasesLanzadoras[0]?.clase;
+  const { etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico } =
+    calcularEstadisticasMagicas(personaje, modificadores, bonoCompetencia, claseLanzamiento);
   const {
-    etiquetaHabilidad, modHabilidad, cdConjuros, bonoAtaqueMagico,
-    requierePreparacion, esLanzadorPacto, nivelEspacioPacto,
-    nivelesArcanoDisponibles, esHechizoDeSubclase, obtenerOrigenConjuro, estaPreparado,
-    maximos, conteoEfectivo, conjurosPorNivel, trucosConocidos
-  } = usarMagiaPersonaje(personaje, baseDatosHechizos, modificadores, bonoCompetencia, claseLanzamiento);
+    requierePreparacion, esLanzadorPacto, nivelEspacioPacto, nivelesArcanoDisponibles,
+    esHechizoDeSubclase, obtenerOrigenConjuro, estaPreparado, conteoEfectivo, conjurosPorNivel
+  } = magia;
+  const maximos = calcularMaximosConjurosYTrucos(personaje.clasesLanzadoras, personaje.nivel || 1, modHabilidad);
+  const trucosConocidos = useMemo(
+    () => magia.trucosConocidos.map((truco) => aplicarModificadoresInvocacionesAHechizo(truco, personaje, claseLanzamiento)),
+    [magia.trucosConocidos, personaje, claseLanzamiento]
+  );
 
   const { puedeLanzar, motivoBloqueo, lanzar } = usarLanzadorConjuros({
     personaje, penalizacionArmadura, bonoAtaqueMagico, sistemaMagia, claseLanzamiento, cdSalvacionPersonaje: calcularCDConjuros(bonoCompetencia, modHabilidad)
@@ -96,16 +106,34 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
     filtroConcentracion, setFiltroConcentracion, filtroResolucion, setFiltroResolucion,
     filtroComponentes, setFiltroComponentes, seccionesAbiertas, alternarSeccion,
     alternarTodasLasSecciones, conteoFiltrosActivos, hayFiltrosActivos,
-    limpiarTodosLosFiltros, alternarOculto, desocultarTodos,
+    limpiarTodosLosFiltros, conjurosEnAccionesSet, alternarEnAcciones,
     trucosVisibles, trucosFiltrados, conjurosVisiblesPorNivel,
-    conjurosFiltradosPorNivel, todosConjurosOcultos, conjurosOcultosFiltrados
+    conjurosFiltradosPorNivel
   } = usarFiltrosYSeccionesConjuros({ personaje, conjurosPorNivel, trucosConocidos });
+
+  const algunaSeccionAbierta =
+    seccionesAbiertas.trucos !== false ||
+    Array.from({ length: 9 }, (_, idx) => idx + 1).some(
+      (nivel) => (conjurosPorNivel[nivel]?.length ?? 0) > 0 && seccionesAbiertas[`nv_${nivel}`] !== false
+    );
 
   return (
     <div className={estilos.contenedor}>
-      {personaje.clasesLanzadoras.length > 1 && <label>Lanzar como
-        <SelectorDesplegable titulo="Clase de lanzamiento" valor={claseLanzamiento ?? ""} opciones={personaje.clasesLanzadoras.map(c => ({ valor: c.clase, etiqueta: c.clase }))} alCambiar={cambiarClaseLanzamiento} />
-      </label>}
+      {personaje.clasesLanzadoras.length > 1 && (
+        <div className={estilos.barraClaseLanzamiento}>
+          <label htmlFor={idClaseLanzamiento} className={estilos.etiquetaClaseLanzamiento}>
+            Lanzar como
+          </label>
+          <SelectorDesplegable
+            id={idClaseLanzamiento}
+            className={estilos.selectorClaseLanzamiento}
+            titulo="Clase de lanzamiento"
+            valor={claseLanzamiento ?? ""}
+            opciones={personaje.clasesLanzadoras.map((c) => ({ valor: c.clase, etiqueta: c.clase }))}
+            alCambiar={cambiarClaseLanzamiento}
+          />
+        </div>
+      )}
       {/* Cabecera y Recursos Mágicos */}
       <CabeceraYRecursosMagicos
         personaje={personaje}
@@ -122,8 +150,8 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         manejarTiradaAtaqueMagico={manejarTiradaAtaqueMagico}
         conteoEfectivo={conteoEfectivo}
         maximos={maximos}
-        alAbrirConfiguracion={alAbrirConfiguracion}
-        alAbrirCompendio={() => establecerPestaña("compendio")}
+        modoTirada={modoTirada}
+        alCambiarModoTirada={alCambiarModoTirada}
         esLanzadorPacto={esLanzadorPacto}
         nivelEspacioPacto={nivelEspacioPacto}
         nivelesArcanoDisponibles={nivelesArcanoDisponibles}
@@ -149,6 +177,7 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         alAlternarMostrarFiltros={() => setMostrarFiltros(!mostrarFiltros)}
         conteoFiltrosActivos={conteoFiltrosActivos}
         hayFiltrosActivos={hayFiltrosActivos}
+        algunaSeccionAbierta={algunaSeccionAbierta}
         alAlternarTodasLasSecciones={alternarTodasLasSecciones}
         filtroConcentracion={filtroConcentracion}
         alCambiarFiltroConcentracion={setFiltroConcentracion}
@@ -175,8 +204,10 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         alAlternarPreparado={alAlternarPreparado}
         alQuitarTruco={alQuitarTruco}
         alQuitarConjuro={alQuitarConjuro}
-        alternarOculto={alternarOculto}
+        conjurosEnAccionesSet={conjurosEnAccionesSet}
+        alAlternarAcciones={alternarEnAcciones}
         establecerPestaña={establecerPestaña}
+        alAbrirCompendio={alAbrirCompendio}
         setHechizoModal={setHechizoModal}
         lanzar={lanzar}
         conteoEfectivo={conteoEfectivo}
@@ -189,36 +220,6 @@ export const PanelConjurosPersonaje: React.FC<PanelConjurosPersonajeProps> = ({
         seccionesAbiertas={seccionesAbiertas}
         alternarSeccion={alternarSeccion}
         hayFiltrosActivos={hayFiltrosActivos}
-      />
-
-      {/* Sección: Conjuros Ocultos */}
-      <SeccionConjurosOcultos
-        personaje={personaje}
-        todosConjurosOcultos={todosConjurosOcultos}
-        conjurosOcultosFiltrados={conjurosOcultosFiltrados}
-        estaAbierta={seccionesAbiertas.ocultos !== false}
-        alAlternar={() => alternarSeccion("ocultos")}
-        hayFiltrosActivos={hayFiltrosActivos}
-        desocultarTodos={desocultarTodos}
-        alternarOculto={alternarOculto}
-        bonoAtaqueMagico={bonoAtaqueMagico}
-        estaPreparado={estaPreparado}
-        esHechizoDeSubclase={esHechizoDeSubclase}
-        obtenerOrigenConjuro={obtenerOrigenConjuro}
-        requierePreparacion={requierePreparacion}
-        estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
-        motivoBloqueoArmadura={motivoBloqueoArmadura}
-        alAlternarPreparado={alAlternarPreparado}
-        alQuitarTruco={alQuitarTruco}
-        alQuitarConjuro={alQuitarConjuro}
-        alAbrirDetalleCompleto={(h) => setHechizoModal(h)}
-        alLanzar={(modo, niv, hechizo) => {
-          if (hechizo) return lanzar({ modo, hechizo, nivelLanzamiento: niv });
-          return Promise.resolve(false);
-        }}
-        esLanzadorPacto={esLanzadorPacto}
-        nivelEspacioPacto={nivelEspacioPacto}
-        sistemaMagia={sistemaMagia}
       />
 
       {/* Modal Ficha Completa */}

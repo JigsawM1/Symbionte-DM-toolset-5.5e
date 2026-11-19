@@ -21,8 +21,10 @@ interface ListaNivelesConjurosProps {
   alAlternarPreparado: (idHechizo: string) => void;
   alQuitarTruco: (idHechizo: string) => void;
   alQuitarConjuro: (idHechizo: string) => void;
-  alternarOculto: (idHechizo: string) => void;
+  conjurosEnAccionesSet?: Set<string>;
+  alAlternarAcciones?: (idHechizo: string) => void;
   establecerPestaña: (p: string) => void;
+  alAbrirCompendio?: () => void;
   setHechizoModal: (h: HechizoBase) => void;
   lanzar: (sol: SolicitudLanzamiento) => Promise<boolean>;
   conteoEfectivo: { total: number };
@@ -52,8 +54,10 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
   alAlternarPreparado,
   alQuitarTruco,
   alQuitarConjuro,
-  alternarOculto,
+  conjurosEnAccionesSet,
+  alAlternarAcciones,
   establecerPestaña,
+  alAbrirCompendio,
   setHechizoModal,
   lanzar,
   conteoEfectivo,
@@ -96,11 +100,12 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
         sistemaMagia={sistemaMagia}
         estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
         motivoBloqueoArmadura={motivoBloqueoArmadura}
-        alAlternarOcultar={alternarOculto}
+        conjurosEnAccionesSet={conjurosEnAccionesSet}
+        alAlternarAcciones={alAlternarAcciones}
         alQuitarDeLista={alQuitarTruco}
         alAbrirDetalleCompleto={(h: HechizoBase) => setHechizoModal(h)}
         alLanzar={ejecutarLanzamiento}
-        alAnadirTrucos={() => establecerPestaña("compendio")}
+        alAnadirTrucos={alAbrirCompendio ?? (() => establecerPestaña("compendio"))}
         totalTrucosConocidos={trucosConocidos.length}
       />
 
@@ -120,7 +125,7 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
           </p>
           <button
             type="button"
-            onClick={() => establecerPestaña("compendio")}
+            onClick={alAbrirCompendio ?? (() => establecerPestaña("compendio"))}
             className={estilos.botonIrCompendio}
           >
             <BookOpen size={14} />
@@ -162,7 +167,8 @@ export const ListaNivelesConjuros: React.FC<ListaNivelesConjurosProps> = ({
             sistemaMagia={sistemaMagia}
             estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
             motivoBloqueoArmadura={motivoBloqueoArmadura}
-            alAlternarOcultar={alternarOculto}
+            conjurosEnAccionesSet={conjurosEnAccionesSet}
+            alAlternarAcciones={alAlternarAcciones}
             alAlternarPreparado={alAlternarPreparado}
             alQuitarDeLista={alQuitarConjuro}
             alAbrirDetalleCompleto={(h: HechizoBase) => setHechizoModal(h)}

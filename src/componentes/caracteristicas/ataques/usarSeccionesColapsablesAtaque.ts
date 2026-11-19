@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { usarEstadoPersistido } from "@/hooks";
 
 export const SECCIONES_COMBATE_POR_DEFECTO: Readonly<Record<string, boolean>> = {
-  recursos: true,
   fisicos: true,
   magicos: true,
   magicos_nv_0: true,
@@ -15,7 +14,6 @@ export const SECCIONES_COMBATE_POR_DEFECTO: Readonly<Record<string, boolean>> = 
   magicos_nv_7: true,
   magicos_nv_8: true,
   magicos_nv_9: true,
-  magicos_ocultos: true,
   rasgos: true,
   consumibles: true,
   hechizosObjetos: true

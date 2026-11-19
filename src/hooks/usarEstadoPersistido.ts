@@ -2,6 +2,19 @@ import { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
 import { logger } from "@/utiles/logger";
 
 /**
+ * Persiste explícitamente un valor serializable bajo una clave de localStorage
+ * compatible con usarEstadoPersistido, con manejo seguro de errores.
+ */
+export function escribirEstadoPersistido<T>(clave: string, valor: T): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(clave, JSON.stringify(valor));
+  } catch (err) {
+    logger.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
+  }
+}
+
+/**
  * Hook para sincronizar estado de componentes con localStorage.
  * Garantiza que cuando el usuario cambia de pestaña, desmonta vistas
  * o reinicia la sesión, sus selecciones y filtros se conserven exactamente.
@@ -51,11 +64,7 @@ export function usarEstadoPersistido<T>(
       return;
     }
 
-    try {
-      localStorage.setItem(clave, JSON.stringify(estado));
-    } catch (err) {
-      logger.warn(`[usarEstadoPersistido] Error al guardar la clave "${clave}":`, err);
-    }
+    escribirEstadoPersistido(clave, estado);
   }, [clave, estado]);
 
   return [estado, setEstado];

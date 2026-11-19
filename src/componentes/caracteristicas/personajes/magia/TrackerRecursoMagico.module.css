@@ -6,11 +6,13 @@
 .contenedorTracker {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-acento);
+  border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-panel);
-  padding: 14px 16px;
+  padding: 10px 12px;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .contenedorTracker[data-pacto="true"] {
@@ -21,8 +23,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--pj-borde-acento);
-  padding-bottom: 8px;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--pj-borde-sutil);
+  padding-bottom: 6px;
 }
 
 .tituloFilaTracker {
@@ -32,11 +36,17 @@
 }
 
 .tituloTextoTracker {
-  font-size: var(--pj-fuente-subtitulo);
+  font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--pj-texto-primario);
+  color: var(--pj-texto-terciario);
+}
+
+.subtituloInteractivo {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 600;
+  color: var(--pj-texto-terciario);
 }
 
 .badgeGrupoUnico {
@@ -56,7 +66,8 @@
 }
 
 .marcadorRanurasUnico {
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
   font-size: var(--pj-fuente-cuerpo);
   font-weight: 700;
 }
@@ -74,41 +85,53 @@
 
 .contenedorGruposGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .contenedorGruposFlex {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tarjetaGrupoRanura {
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
-  padding: 8px 10px;
+  padding: 5px 8px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: 6px;
+  min-width: 0;
+}
+
+.tarjetaGrupoRanura[data-grid="false"] {
+  justify-content: flex-start;
 }
 
 .cabeceraGrupoRanura {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
-  font-size: var(--pj-fuente-label);
+  gap: 5px;
+  font-size: var(--pj-fuente-micro);
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .etiquetaGrupoRanura {
   font-weight: 700;
-  color: var(--pj-texto-acento);
+  text-transform: uppercase;
+  color: var(--pj-texto-secundario);
 }
 
 .conteoGrupoRanura {
   font-weight: 700;
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-cian);
 }
 
@@ -126,46 +149,82 @@
 
 .filaRanurasCirculares {
   display: flex;
-  gap: 6px;
+  gap: 1px;
   flex-wrap: wrap;
   align-items: center;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.botonRanuraCircular {
-  width: 22px;
-  height: 22px;
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 50%;
-  border: 1px dashed var(--pj-borde-acento);
+  border: none;
   background-color: transparent;
-  cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.botonRanuraCircular:hover {
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular {
+  cursor: pointer;
+}
+
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-hundido);
+  box-sizing: border-box;
+}
+
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular:hover {
   background-color: transparent;
-  border-color: var(--pj-borde-acento-fuerte);
 }
 
-.botonRanuraCircular[data-disponible="true"] {
-  border: 2px solid var(--pj-borde-acento);
-  background-color: var(--pj-acento-primario-solido);
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular:hover::after {
+  border-color: var(--pj-texto-magia);
 }
 
-.botonRanuraCircular[data-disponible="true"][data-pacto="true"] {
-  border: 2px solid var(--pj-borde-magia);
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular:focus-visible {
+  outline: 2px solid var(--pj-borde-acento-fuerte);
+  outline-offset: 1px;
+}
+
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular[data-disponible="true"]::after {
+  border-color: var(--pj-borde-magia);
+  background-color: var(--pj-acento-magia);
+}
+
+.contenedorTracker .filaRanurasCirculares .botonRanuraCircular[data-disponible="true"][data-pacto="true"]::after {
+  border-color: var(--pj-texto-magia);
   background-color: var(--pj-acento-magia-solido);
-}
-
-.botonRanuraCircular[data-readonly="true"] {
-  cursor: default;
 }
 
 .pieDePaginaTexto {
   font-size: var(--pj-fuente-label);
   color: var(--pj-texto-acento);
   font-style: italic;
+}
+
+/* En viewports <= 500px pasa a 1 columna y amplía el objetivo táctil sin desbordar */
+@media (max-width: 500px) {
+  .contenedorGruposGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contenedorTracker .filaRanurasCirculares .botonRanuraCircular {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+  }
 }

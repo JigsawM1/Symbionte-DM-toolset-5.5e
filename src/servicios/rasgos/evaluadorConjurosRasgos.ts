@@ -1,8 +1,10 @@
 import { obtenerConjuroDeEfecto } from "./conjuroDeEfecto";
 import {
+  type HechizoBase,
   type PersonajeJugador,
   type RasgoPersonaje
 } from "@/tipos";
+import { coincideHechizoId } from "../comparadorHechizos";
 import { CATALOGO_CLASES_DND55 } from "@/constantes/clasesDND55";
 import { normalizar, resolverRasgoRecurso } from "./utilidadesRasgos";
 import { esSelectorDeConjuros } from "@/utiles/selectoresConjuros";
@@ -263,4 +265,37 @@ export function resolverIdRasgoObjetivoGasto(
   if (!targetTrait.gastarDePadre) return targetTrait.id;
 
   return resolverRasgoRecurso(targetTrait, rasgos)?.id ?? targetTrait.id;
+}
+
+/**
+ * Determina si un conjuro puede mostrarse con lanzamiento gratuito disponible en tarjeta,
+ * combinando rasgos innatos con usos limitados (excluyendo conjuros solo otorgados como preparados)
+ * y efectos activos de conjuro gratuito.
+ */
+export function tieneLanzamientoGratuitoDisponible(
+  personaje: PersonajeJugador,
+  hechizo: Pick<HechizoBase, "id" | "nombre">
+): boolean {
+  const nomHechizoNorm = hechizo.nombre.toLowerCase().trim();
+  const rasgoInnatoGratuito = (personaje.rasgos || []).find((r) => {
+    if (!r.tieneUsosLimitados) return false;
+    const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
+    if (restantes <= 0) return false;
+    if (r.nivelRequerido && (personaje.nivel || 1) < r.nivelRequerido) return false;
+    const tieneEfectoPreparado = Array.isArray(r.efectos) && r.efectos.some(
+      (ef) => ef.tipo === "conjuro_otorgado" &&
+      (coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.id) ||
+       coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.nombre))
+    );
+    if (tieneEfectoPreparado) return false;
+    const cOtorgados = r.conjurosOtorgados || [];
+    return (
+      (r.conjuroGratuito && (coincideHechizoId(r.conjuroGratuito, hechizo.id) || coincideHechizoId(r.conjuroGratuito, hechizo.nombre))) ||
+      cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
+      r.nombre.toLowerCase().includes(nomHechizoNorm) ||
+      nomHechizoNorm.includes(r.nombre.toLowerCase())
+    );
+  });
+
+  return Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personaje, hechizo.nombre);
 }

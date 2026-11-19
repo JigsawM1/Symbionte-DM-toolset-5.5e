@@ -41,7 +41,8 @@ export {
 } from "./magia/conjurosSubclase";
 export {
   obtenerOpcionesLanzamientoConjuro,
-  gastarRecursoLanzamientoConjuro
+  gastarRecursoLanzamientoConjuro,
+  resolverGastoLanzamientoConjuro
 } from "./magia/lanzamientoYUpcasting";
 export {
   obtenerNivelMaximoConjuroPorTipoClase,

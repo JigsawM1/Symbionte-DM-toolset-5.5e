@@ -96,6 +96,20 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
   const estaMarcadoPreparado = hechizo.nivel === 0 || esOtorgado ? true : estaPreparado;
   const estaMarcadoEnLista = esOtorgado ? true : estaEnLista;
   const estrellaVisible = mostrarEstrella && !esModeloConocidos;
+  const estrellaDeshabilitada = hechizo.nivel === 0 || esOtorgado;
+  const checkboxDeshabilitado = esOtorgado && !tituloEdicionIndependiente;
+
+  const tituloEstrella = esOtorgado
+    ? esDeSubclase
+      ? "Siempre preparado por tu subclase (no cuenta para el límite)"
+      : configBadge
+      ? `${configBadge.tooltip} (no consume preparación)`
+      : "Conjuro otorgado permanentemente (no consume preparación)"
+    : hechizo.nivel === 0
+    ? "Los trucos siempre están preparados"
+    : estaMarcadoPreparado
+    ? "Conjuro preparado (clic para desmarcar)"
+    : "Conjuro no preparado (clic para preparar)";
 
   const tituloCheckbox = tituloEdicionIndependiente ?? (esOtorgado && configBadge
     ? `${configBadge.tooltip} (permanente)`
@@ -121,21 +135,20 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
             <button
               type="button"
               onClick={manejarClickEstrella}
-              title={
-                esDeSubclase
-                  ? "Siempre preparado por tu subclase (no cuenta para el límite)"
-                  : hechizo.nivel === 0
-                  ? "Los trucos siempre están preparados"
-                  : estaMarcadoPreparado
-                  ? "Conjuro preparado (clic para desmarcar)"
-                  : "Conjuro no preparado (clic para preparar)"
+              disabled={estrellaDeshabilitada}
+              aria-pressed={estaMarcadoPreparado}
+              aria-label={
+                estrellaDeshabilitada
+                  ? `Preparación fija de ${hechizo.nombre}: ${tituloEstrella}`
+                  : `Preparar ${hechizo.nombre}`
               }
-              className={`${estilos.botonControl} ${estilos.botonEstrella} ${hechizo.nivel === 0 || esDeSubclase ? estilos.botonControlDeshabilitado : ""}`}
+              title={tituloEstrella}
+              className={`${estilos.botonControl} ${estilos.botonEstrella} ${estrellaDeshabilitada ? estilos.botonControlDeshabilitado : ""}`}
             >
               <Star
                 size={16}
-                fill={estaMarcadoPreparado ? "#f59e0b" : "transparent"}
-                color={estaMarcadoPreparado ? "#f59e0b" : "#64748b"}
+                fill={estaMarcadoPreparado ? "var(--pj-acento-oro)" : "transparent"}
+                color={estaMarcadoPreparado ? "var(--pj-acento-oro)" : "var(--pj-texto-terciario)"}
                 strokeWidth={estaMarcadoPreparado ? 1 : 1.75}
                 className={estilos.iconoSinEventos}
               />
@@ -146,14 +159,25 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
           <button
             type="button"
             onClick={manejarClickCheckbox}
+            disabled={checkboxDeshabilitado}
+            aria-pressed={estaMarcadoEnLista}
+            aria-label={
+              tituloEdicionIndependiente
+                ? `${tituloEdicionIndependiente}: ${hechizo.nombre}`
+                : checkboxDeshabilitado
+                ? `Conjuro otorgado ${hechizo.nombre}: ${tituloCheckbox}`
+                : esModeloConocidos
+                ? `Conjuro conocido: ${hechizo.nombre}`
+                : `Añadir ${hechizo.nombre} a mi lista`
+            }
             title={tituloCheckbox}
-            className={`${estilos.botonControl} ${estilos.botonCheckbox} ${esOtorgado && !tituloEdicionIndependiente ? estilos.botonControlDeshabilitado : ""}`}
+            className={`${estilos.botonControl} ${estilos.botonCheckbox} ${checkboxDeshabilitado ? estilos.botonControlDeshabilitado : ""}`}
           >
             <div
               className={`${estilos.cajaCheckbox} ${estaMarcadoEnLista && !esOtorgado ? estilos.cajaCheckboxMarcado : ""}`}
               data-origen={esOtorgado && origenEfectivo ? origenEfectivo : undefined}
             >
-              {estaMarcadoEnLista && <Check size={10} color={esOtorgado && configBadge ? configBadge.colorTexto : "#ffffff"} strokeWidth={3} />}
+              {estaMarcadoEnLista && <Check size={10} color={esOtorgado && configBadge ? configBadge.colorTexto : "var(--pj-texto-sobre-acento)"} strokeWidth={3} />}
             </div>
           </button>
 
@@ -195,7 +219,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
       {/* Línea 2: Metadatos compactos con separadores circulares */}
       <div
-        className={`${estilos.lineaMetadatos} ${!mostrarEstrella ? estilos.lineaMetadatosSinEstrella : ""}`}
+        className={`${estilos.lineaMetadatos} ${!estrellaVisible ? estilos.lineaMetadatosSinEstrella : ""}`}
       >
         {/* Tiempo + Ritual */}
         <div className={estilos.itemMetadato}>
@@ -253,7 +277,7 @@ export const FilaConjuroCompendio: React.FC<FilaConjuroCompendioProps> = React.m
 
       {/* Línea 3: Resumen de la Descripción */}
       <div
-        className={`${estilos.resumenDescripcion} ${!mostrarEstrella ? estilos.resumenDescripcionSinEstrella : ""}`}
+        className={`${estilos.resumenDescripcion} ${!estrellaVisible ? estilos.resumenDescripcionSinEstrella : ""}`}
       >
         {descripcionLimpia}
       </div>

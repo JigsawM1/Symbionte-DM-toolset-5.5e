@@ -19,6 +19,7 @@ interface BarraFiltrosConjurosProps {
   alAlternarMostrarFiltros: () => void;
   conteoFiltrosActivos: number;
   hayFiltrosActivos: boolean;
+  algunaSeccionAbierta?: boolean;
   alAlternarTodasLasSecciones: (abrir: boolean) => void;
   filtroConcentracion: "todos" | "sin" | "con";
   alCambiarFiltroConcentracion: (valor: "todos" | "sin" | "con") => void;
@@ -36,6 +37,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
   alAlternarMostrarFiltros,
   conteoFiltrosActivos,
   hayFiltrosActivos,
+  algunaSeccionAbierta = true,
   alAlternarTodasLasSecciones,
   filtroConcentracion,
   alCambiarFiltroConcentracion,
@@ -53,6 +55,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
           <input
             type="text"
             placeholder="Buscar por nombre, escuela o descripción..."
+            aria-label="Buscar conjuros por nombre, escuela o descripción"
             value={busqueda}
             onChange={(e) => alCambiarBusqueda(e.target.value)}
             className={estilos.inputBuscador}
@@ -63,6 +66,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               onClick={() => alCambiarBusqueda("")}
               className={estilos.botonLimpiarBusqueda}
               title="Borrar búsqueda"
+              aria-label="Borrar búsqueda"
             >
               <X size={12} />
             </button>
@@ -72,6 +76,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
         <button
           type="button"
           onClick={alAlternarMostrarFiltros}
+          aria-expanded={mostrarFiltros}
           className={`${estilos.botonToggleFiltros} ${
             mostrarFiltros || hayFiltrosActivos ? estilos.botonToggleFiltrosActivo : ""
           }`}
@@ -85,21 +90,13 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
 
         <button
           type="button"
-          onClick={() => alAlternarTodasLasSecciones(true)}
+          onClick={() => alAlternarTodasLasSecciones(!algunaSeccionAbierta)}
           className={estilos.botonAccionRapidaSecciones}
-          title="Expandir todos los niveles"
+          title={algunaSeccionAbierta ? "Colapsar todos los niveles" : "Expandir todos los niveles"}
+          aria-label={algunaSeccionAbierta ? "Colapsar todos los niveles" : "Expandir todos los niveles"}
         >
-          <ChevronsUpDown size={12} />
-          <span>Expandir</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => alAlternarTodasLasSecciones(false)}
-          className={estilos.botonAccionRapidaSecciones}
-          title="Colapsar todos los niveles"
-        >
-          <span>Colapsar</span>
+          <ChevronsUpDown size={12} aria-hidden="true" />
+          <span>{algunaSeccionAbierta ? "Colapsar" : "Expandir"}</span>
         </button>
       </div>
 
@@ -108,9 +105,10 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
           {/* Filtro 1: Concentración */}
           <div className={estilos.filaGrupoFiltro}>
             <span className={estilos.etiquetaGrupoFiltro}>Concentración:</span>
-            <div className={estilos.grupoChipsFiltro}>
+            <div className={estilos.grupoChipsFiltro} role="group" aria-label="Filtrar por concentración">
               <button
                 type="button"
+                aria-pressed={filtroConcentracion === "todos"}
                 onClick={() => alCambiarFiltroConcentracion("todos")}
                 className={`${estilos.chipFiltro} ${
                   filtroConcentracion === "todos" ? estilos.chipFiltroActivo : ""
@@ -120,6 +118,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroConcentracion === "sin"}
                 onClick={() => alCambiarFiltroConcentracion("sin")}
                 className={`${estilos.chipFiltro} ${
                   filtroConcentracion === "sin" ? estilos.chipFiltroActivo : ""
@@ -129,12 +128,13 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroConcentracion === "con"}
                 onClick={() => alCambiarFiltroConcentracion("con")}
                 className={`${estilos.chipFiltro} ${
-                  filtroConcentracion === "con" ? estilos.chipFiltroPeligroActivo : ""
+                  filtroConcentracion === "con" ? estilos.chipFiltroOroActivo : ""
                 }`}
               >
-                <Flame size={11} color="var(--pj-texto-alerta)" />
+                <Flame size={11} color="var(--pj-texto-oro)" aria-hidden="true" />
                 Con Concentración
               </button>
             </div>
@@ -143,9 +143,10 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
           {/* Filtro 2: Tipo de Resolución */}
           <div className={estilos.filaGrupoFiltro}>
             <span className={estilos.etiquetaGrupoFiltro}>Resolución:</span>
-            <div className={estilos.grupoChipsFiltro}>
+            <div className={estilos.grupoChipsFiltro} role="group" aria-label="Filtrar por tipo de resolución">
               <button
                 type="button"
+                aria-pressed={filtroResolucion === "todos"}
                 onClick={() => alCambiarFiltroResolucion("todos")}
                 className={`${estilos.chipFiltro} ${
                   filtroResolucion === "todos" ? estilos.chipFiltroActivo : ""
@@ -155,6 +156,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroResolucion === "ataque"}
                 onClick={() => alCambiarFiltroResolucion("ataque")}
                 className={`${estilos.chipFiltro} ${
                   filtroResolucion === "ataque" ? estilos.chipFiltroActivo : ""
@@ -165,6 +167,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroResolucion === "salvacion"}
                 onClick={() => alCambiarFiltroResolucion("salvacion")}
                 className={`${estilos.chipFiltro} ${
                   filtroResolucion === "salvacion" ? estilos.chipFiltroActivo : ""
@@ -175,6 +178,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroResolucion === "utilidad"}
                 onClick={() => alCambiarFiltroResolucion("utilidad")}
                 className={`${estilos.chipFiltro} ${
                   filtroResolucion === "utilidad" ? estilos.chipFiltroActivo : ""
@@ -189,9 +193,10 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
           {/* Filtro 3: Componentes */}
           <div className={estilos.filaGrupoFiltro}>
             <span className={estilos.etiquetaGrupoFiltro}>Componentes:</span>
-            <div className={estilos.grupoChipsFiltro}>
+            <div className={estilos.grupoChipsFiltro} role="group" aria-label="Filtrar por componentes">
               <button
                 type="button"
+                aria-pressed={filtroComponentes.sinV}
                 onClick={() =>
                   alCambiarFiltroComponentes((prev) => ({ ...prev, sinV: !prev.sinV }))
                 }
@@ -204,6 +209,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroComponentes.sinS}
                 onClick={() =>
                   alCambiarFiltroComponentes((prev) => ({ ...prev, sinS: !prev.sinS }))
                 }
@@ -216,6 +222,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroComponentes.sinM}
                 onClick={() =>
                   alCambiarFiltroComponentes((prev) => ({ ...prev, sinM: !prev.sinM, soloM: false }))
                 }
@@ -228,6 +235,7 @@ export const BarraFiltrosConjuros: React.FC<BarraFiltrosConjurosProps> = ({
               </button>
               <button
                 type="button"
+                aria-pressed={filtroComponentes.soloM}
                 onClick={() =>
                   alCambiarFiltroComponentes((prev) => ({ ...prev, soloM: !prev.soloM, sinM: false }))
                 }

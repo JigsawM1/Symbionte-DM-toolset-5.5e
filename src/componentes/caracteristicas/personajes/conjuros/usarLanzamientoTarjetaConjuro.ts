@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { HechizoBase } from "@/tipos";
+import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta } from "@/utiles/lanzadorDados";
 import {
   construirFormulaTaleSpireTruco,
@@ -7,7 +8,8 @@ import {
 } from "@/utiles/utilesConjuros";
 import {
   obtenerOpcionesLanzamientoConjuro,
-  gastarRecursoLanzamientoConjuro
+  gastarRecursoLanzamientoConjuro,
+  resolverGastoLanzamientoConjuro
 } from "@/servicios/calculadorMagia";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { logger } from "@/utiles/logger";
@@ -29,9 +31,11 @@ interface ParametrosLanzamientoTarjeta {
   espaciosPactoMaximos?: number;
   espaciosPactoGastados?: number;
   espaciosConjuroMaximos?: Record<string, number>;
+  espaciosConjuroGastados?: Record<string, number>;
   nivelConjuroMaximo?: number;
   alEstablecerConcentracion?: (id: string, nombre: string) => void;
   costePuntosPorNivel?: Record<number, number>;
+  puntosConjuroDisponibles?: number;
   sistemaMagia?: "espacios" | "puntos";
   permitirUpcastLibre?: boolean;
   alLanzarGratis?: () => Promise<void>;
@@ -54,9 +58,11 @@ export function usarLanzamientoTarjetaConjuro({
   espaciosPactoMaximos = 0,
   espaciosPactoGastados = 0,
   espaciosConjuroMaximos = {},
+  espaciosConjuroGastados,
   nivelConjuroMaximo = 0,
   alEstablecerConcentracion,
-  costePuntosPorNivel,
+  costePuntosPorNivel = COSTE_PUNTOS_POR_NIVEL,
+  puntosConjuroDisponibles,
   sistemaMagia = "espacios",
   permitirUpcastLibre,
   alLanzarGratis
@@ -64,7 +70,7 @@ export function usarLanzamientoTarjetaConjuro({
   const esTruco = hechizo.nivel === 0;
   const enCursoRef = useRef(false);
 
-  const opcionesLanzamiento = useMemo(() => {
+  const opcionesBase = useMemo(() => {
     return obtenerOpcionesLanzamientoConjuro({
       nivelHechizo: hechizo.nivel,
       espaciosConjuroMaximos,
@@ -86,18 +92,57 @@ export function usarLanzamientoTarjetaConjuro({
     permitirUpcastLibre
   ]);
 
-  const [nivelUpcast, setNivelUpcast] = useState<number>(() => {
-    return opcionesLanzamiento[0]?.nivel ?? hechizo.nivel;
-  });
+  const opcionesLanzamiento = useMemo(() => opcionesBase.map((opcion) => {
+    const { nivel } = opcion;
+    const gasto = resolverGastoLanzamientoConjuro({
+      nivelLanzamiento: nivel, esLanzadorPacto, nivelEspacioPacto, espaciosPactoMaximos,
+      espaciosPactoGastados, espaciosConjuroMaximos, sistemaMagia, costePuntosPorNivel
+    });
+    const recurso = gasto.recursoGastado;
+    const coste = gasto.puntos ?? 0;
+    const opcionConGasto = { ...opcion, recurso, coste };
+    if (esTruco || permitirUpcastLibre) return { ...opcionConGasto, agotado: false };
+
+    const escalado = nivel > hechizo.nivel && opcion.etiqueta.includes("↑") ? " ↑" : "";
+    const etiquetaNivel = `Nv. ${nivel}${escalado}`;
+    if (recurso === "pacto") {
+      const disponibles = Math.max(0, espaciosPactoMaximos - espaciosPactoGastados);
+      return {
+        ...opcionConGasto, agotado: disponibles === 0,
+        etiqueta: `Pacto Nv. ${nivel} (${disponibles}/${espaciosPactoMaximos})${escalado}`
+      };
+    }
+
+    if (recurso === "puntos") {
+      return {
+        ...opcionConGasto, etiqueta: `${etiquetaNivel} (${coste} pts)`,
+        agotado: puntosConjuroDisponibles !== undefined && puntosConjuroDisponibles < coste
+      };
+    }
+
+    const maximo = espaciosConjuroMaximos[nivel] ?? 0;
+    const disponibles = Math.max(0, maximo - (espaciosConjuroGastados?.[nivel] ?? 0));
+    return {
+      ...opcionConGasto,
+      etiqueta: maximo > 0 && espaciosConjuroGastados !== undefined
+        ? `${etiquetaNivel} (${disponibles}/${maximo})` : etiquetaNivel,
+      agotado: espaciosConjuroGastados !== undefined && disponibles === 0
+    };
+  }), [
+    opcionesBase, esTruco, permitirUpcastLibre, hechizo.nivel, esLanzadorPacto, nivelEspacioPacto,
+    espaciosPactoMaximos, espaciosPactoGastados, espaciosConjuroMaximos, espaciosConjuroGastados,
+    sistemaMagia, costePuntosPorNivel, puntosConjuroDisponibles
+  ]);
+
+  const [nivelElegido, setNivelUpcast] = useState(opcionesLanzamiento[0]?.nivel ?? hechizo.nivel);
+  const opcionActual = opcionesLanzamiento.find((opcion) => opcion.nivel === nivelElegido) ?? opcionesLanzamiento[0];
+  const nivelUpcast = opcionActual?.nivel ?? hechizo.nivel;
+  const costeNivelActual = opcionActual?.coste ?? 0;
+  const sinRecursosParaNivelActual = opcionActual?.agotado ?? false;
 
   useEffect(() => {
-    if (opcionesLanzamiento.length > 0) {
-      const existe = opcionesLanzamiento.some((opt) => opt.nivel === nivelUpcast);
-      if (!existe) {
-        setNivelUpcast(opcionesLanzamiento[0].nivel);
-      }
-    }
-  }, [opcionesLanzamiento, nivelUpcast]);
+    if (nivelElegido !== nivelUpcast) setNivelUpcast(nivelUpcast);
+  }, [nivelElegido, nivelUpcast]);
 
   const manejarLanzamientoRapido = async () => {
     if (bloqueadoPorArmadura || enCursoRef.current) return;
@@ -214,8 +259,11 @@ export function usarLanzamientoTarjetaConjuro({
 
   return {
     opcionesLanzamiento,
+    opcionActual,
     nivelUpcast,
     setNivelUpcast,
+    costeNivelActual,
+    sinRecursosParaNivelActual,
     manejarLanzamientoRapido,
     manejarLanzamientoRitual,
     manejarLanzamientoGratis

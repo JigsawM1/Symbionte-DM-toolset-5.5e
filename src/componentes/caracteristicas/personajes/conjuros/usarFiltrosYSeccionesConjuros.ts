@@ -44,28 +44,20 @@ export const usarFiltrosYSeccionesConjuros = ({
       nv_6: true,
       nv_7: true,
       nv_8: true,
-      nv_9: true,
-      ocultos: true
+      nv_9: true
     }
   );
 
-  const conjurosOcultosIds = personaje.conjurosOcultos || [];
+  const conjurosEnAccionesIds = personaje.conjurosEnAcciones || [];
 
-  const alternarOculto = (hechizoId: string) => {
-    const alternarAccion = usarAlmacenDM.getState().alternarOcultarConjuro;
+  const alternarEnAcciones = (hechizoId: string) => {
+    const alternarAccion = usarAlmacenDM.getState().alternarConjuroEnAcciones;
     if (alternarAccion && personaje.id) {
       alternarAccion(personaje.id, hechizoId);
     }
   };
 
-  const desocultarTodos = () => {
-    const desocultarAccion = usarAlmacenDM.getState().desocultarTodosLosConjuros;
-    if (desocultarAccion && personaje.id) {
-      desocultarAccion(personaje.id);
-    }
-  };
-
-  const conjurosOcultosSet = useMemo(() => new Set(conjurosOcultosIds), [conjurosOcultosIds]);
+  const conjurosEnAccionesSet = useMemo(() => new Set(conjurosEnAccionesIds), [conjurosEnAccionesIds]);
 
   const alternarSeccion = (clave: string) => {
     setSeccionesAbiertas((prev) => ({
@@ -85,8 +77,7 @@ export const usarFiltrosYSeccionesConjuros = ({
       nv_6: abrir,
       nv_7: abrir,
       nv_8: abrir,
-      nv_9: abrir,
-      ocultos: abrir
+      nv_9: abrir
     });
   };
 
@@ -111,65 +102,23 @@ export const usarFiltrosYSeccionesConjuros = ({
     setFiltroComponentes({ sinV: false, sinS: false, sinM: false, soloM: false });
   };
 
-  // Trucos visibles y ocultos
-  const trucosVisibles = useMemo(() => {
-    return trucosConocidos.filter((t) => !conjurosOcultosSet.has(t.id));
-  }, [trucosConocidos, conjurosOcultosSet]);
-
-  const trucosOcultos = useMemo(() => {
-    return trucosConocidos.filter((t) => conjurosOcultosSet.has(t.id));
-  }, [trucosConocidos, conjurosOcultosSet]);
-
+  // Trucos y conjuros de nivel 1 a 9 siempre visibles en su nivel
   const trucosFiltrados = useMemo(() => {
-    return trucosVisibles.filter((truco) =>
+    return trucosConocidos.filter((truco) =>
       evaluarFiltrosHechizo(truco, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
     );
-  }, [trucosVisibles, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [trucosConocidos, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
-  // Conjuros de nivel 1 a 9 visibles vs ocultos
-  const { conjurosVisiblesPorNivel, todosConjurosOcultos } = useMemo(() => {
-    const visibles: Record<number, HechizoBase[]> = {};
-    const ocultos: HechizoBase[] = [...trucosOcultos];
-
-    for (let nivel = 1; nivel <= 9; nivel++) {
-      const lista = conjurosPorNivel[nivel] || [];
-      const vis: HechizoBase[] = [];
-      for (const h of lista) {
-        if (conjurosOcultosSet.has(h.id)) {
-          ocultos.push(h);
-        } else {
-          vis.push(h);
-        }
-      }
-      visibles[nivel] = vis;
-    }
-
-    ocultos.sort((a, b) => {
-      if (a.nivel !== b.nivel) return a.nivel - b.nivel;
-      return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
-    });
-
-    return { conjurosVisiblesPorNivel: visibles, todosConjurosOcultos: ocultos };
-  }, [conjurosPorNivel, trucosOcultos, conjurosOcultosSet]);
-
-  // Filtrar conjuros visibles por nivel
   const conjurosFiltradosPorNivel = useMemo(() => {
     const res: Record<number, HechizoBase[]> = {};
     for (let nivel = 1; nivel <= 9; nivel++) {
-      const lista = conjurosVisiblesPorNivel[nivel] || [];
+      const lista = conjurosPorNivel[nivel] || [];
       res[nivel] = lista.filter((h) =>
         evaluarFiltrosHechizo(h, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
       );
     }
     return res;
-  }, [conjurosVisiblesPorNivel, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
-
-  // Filtrar conjuros ocultos
-  const conjurosOcultosFiltrados = useMemo(() => {
-    return todosConjurosOcultos.filter((h) =>
-      evaluarFiltrosHechizo(h, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes)
-    );
-  }, [todosConjurosOcultos, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
+  }, [conjurosPorNivel, busquedaDiferida, filtroConcentracion, filtroResolucion, filtroComponentes]);
 
   return {
     busqueda,
@@ -188,13 +137,11 @@ export const usarFiltrosYSeccionesConjuros = ({
     conteoFiltrosActivos,
     hayFiltrosActivos,
     limpiarTodosLosFiltros,
-    alternarOculto,
-    desocultarTodos,
-    trucosVisibles,
+    conjurosEnAccionesSet,
+    alternarEnAcciones,
+    trucosVisibles: trucosConocidos,
     trucosFiltrados,
-    conjurosVisiblesPorNivel,
-    conjurosFiltradosPorNivel,
-    todosConjurosOcultos,
-    conjurosOcultosFiltrados
+    conjurosVisiblesPorNivel: conjurosPorNivel,
+    conjurosFiltradosPorNivel
   };
 };

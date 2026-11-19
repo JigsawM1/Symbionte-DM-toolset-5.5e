@@ -6,7 +6,7 @@ import { resolverTiradaHabilidadRasgos } from "@/servicios/rasgos/tiradaHabilida
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { usarPersonajeActivo, usarAccionesPersonajes } from '@/almacen/selectores/usarEstadoPersonajes';
 import { calcularEstadisticasPersonaje } from '@/servicios/personajes/calculadorEstadisticasPersonaje';
-import { usarTipoTirada, usarSistemaMagia, usarPestanaActiva } from "@/almacen/selectores/usarEstadoConfiguracion";
+import { usarTipoTirada, usarSistemaMagia } from "@/almacen/selectores/usarEstadoConfiguracion";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, solicitarResultadoTirada, type MetadataIniciativa } from "@/utiles/lanzadorDados";
@@ -22,13 +22,12 @@ import type { CategoriaCompetencia } from "./ModalSelectorCompetencias";
 import type { AccionDescanso } from "@/servicios/procesadorDescansos";
 import { usarEstadoPersistido } from "@/hooks";
 
-export type SubPestanaHoja = "general" | "conjuros" | "formaSalvaje";
+export type SubPestanaHoja = "general" | "formaSalvaje";
 
 export function usarHojaPersonaje() {
   const personajeActivo = usarPersonajeActivo();
   const tipoTirada = usarTipoTirada();
   const sistemaMagia = usarSistemaMagia();
-  const pestañaActiva = usarPestanaActiva();
   const { baseDatosHechizos, objetosHomebrew } = usarEstadoHomebrew();
   const {
     actualizarPersonaje, modificarHPPersonaje, establecerHPActualPersonaje,
@@ -60,10 +59,11 @@ export function usarHojaPersonaje() {
     tipo: "corto" | "largo";
     acciones: AccionDescanso[];
   }>({ abierto: false, tipo: "corto", acciones: [] });
-  const [subPestanaActiva, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
+  const [subPestanaGuardada, setSubPestanaActiva] = usarEstadoPersistido<SubPestanaHoja>(
     "ts_hoja_subpestana",
     "general"
   );
+  const subPestanaActiva: SubPestanaHoja = subPestanaGuardada === "formaSalvaje" ? "formaSalvaje" : "general";
 
   // Precargar posición inicial de TaleSpire si el personaje tiene miniatura vinculada pero no posición base
   useEffect(() => {
@@ -80,10 +80,6 @@ export function usarHojaPersonaje() {
         logger.debug("[HojaPersonaje] Error al precargar posición de miniatura:", err);
       });
   }, [personajeActivo?.id, personajeActivo?.idMiniaturaTS, personajeActivo?.ultimaPosicionTS, personajeActivo?.nombre, establecerPosicionInicialTSPersonaje]);
-
-  useEffect(() => {
-    if (pestañaActiva === "conjuros") setSubPestanaActiva("conjuros");
-  }, [pestañaActiva, setSubPestanaActiva]);
 
   const statsCalculadas = useMemo(
     () => (personajeActivo ? calcularEstadisticasPersonaje(personajeActivo, objetosHomebrew) : null),
@@ -276,15 +272,11 @@ export function usarHojaPersonaje() {
   const alQuitarConjuro = useCallback((hId: string) => { if (pjId) desprepararConjuroPersonaje(pjId, hId); }, [pjId, desprepararConjuroPersonaje]);
   const alAlternarPreparado = useCallback((hId: string) => { if (pjId) alternarConjuroPreparado(pjId, hId); }, [pjId, alternarConjuroPreparado]);
 
-  const totalConjurosYTrucos =
-    (personajeActivo?.trucosConocidosIds?.length || 0) +
-    (personajeActivo?.conjurosConocidosIds?.length || 0);
-
   return {
     personajeActivo, statsCalculadas, sistemaMagia, baseDatosHechizos, rondaActual,
     modoTirada, modalCompetencias,
     setModalCompetencias, modalDescanso, setModalDescanso, subPestanaActiva,
-    setSubPestanaActiva, totalConjurosYTrucos, actualizarPersonaje,
+    setSubPestanaActiva, actualizarPersonaje,
     alternarInspiracionPersonaje, aplicarCondicionPersonaje, quitarCondicionPersonaje,
     quitarEfectoPersonaje, romperConcentracion,
     establecerFormasConocidasDruida, transformarEnFormaSalvaje, revertirFormaSalvaje,

@@ -2,6 +2,7 @@ import React from "react";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
 import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
+import { usarAccionesConfiguracion } from "@/almacen/selectores";
 import { usarCalculoAtaquesJugador } from "./usarCalculoAtaquesJugador";
 import { CabeceraAtaquesJugador } from "./CabeceraAtaquesJugador";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
@@ -15,6 +16,7 @@ import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos"
 import estilos from "./VistaAtaquesJugador.module.css";
 
 export const VistaAtaquesJugador: React.FC = () => {
+  const { establecerPestaña, agregarNotificacion } = usarAccionesConfiguracion();
   const {
     personajeActivo,
     statsCalculadas,
@@ -50,24 +52,17 @@ export const VistaAtaquesJugador: React.FC = () => {
     conteoReaccion,
     conteoConsumibles,
     conteoActivables,
-    tieneMagiaEstandar,
+    espaciosConjuroMaximos,
     tienePacto,
     esHechizoDeSubclase,
     lanzar,
-    gastarEspacioConjuro,
-    recuperarEspacioConjuro,
-    gastarPuntosConjuro,
-    recuperarPuntosConjuro,
-    gastarEspacioPacto,
-    recuperarEspaciosPacto,
     romperConcentracion,
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
     alternarOcultarRasgo,
     desocultarTodosLosRasgos,
-    alternarOcultarConjuro,
-    desocultarTodosLosConjuros,
+    alternarConjuroEnAcciones,
     obtenerBloqueoToggleRasgo,
     resolverRecursosPadre,
     obtenerNivelEfectivoParaRasgo,
@@ -86,6 +81,22 @@ export const VistaAtaquesJugador: React.FC = () => {
       rasgoDetalle
     );
   }, [rasgoDetalle, personajeActivo]);
+
+  const manejarAlternarConjuroEnAcciones = React.useCallback(
+    (idPj: string, idHechizo: string) => {
+      const estabaEnAcciones = Boolean(
+        personajeActivo?.conjurosEnAcciones?.includes(idHechizo)
+      );
+      alternarConjuroEnAcciones(idPj, idHechizo);
+      if (estabaEnAcciones) {
+        agregarNotificacion(
+          "Conjuro quitado de Acciones (sigue disponible en la pestaña Magia).",
+          "info"
+        );
+      }
+    },
+    [personajeActivo?.conjurosEnAcciones, alternarConjuroEnAcciones, agregarNotificacion]
+  );
 
   if (!personajeActivo) {
     return (
@@ -119,21 +130,14 @@ export const VistaAtaquesJugador: React.FC = () => {
         alExpandirTodas={expandirTodasSecciones}
       />
 
-      {/* Trackers de Recursos Mágicos */}
+      {/* Puente Compacto de Recursos Mágicos */}
       <SeccionRecursosMagicosAtaque
         personajeActivo={personajeActivo}
-        tieneMagiaEstandar={tieneMagiaEstandar}
+        espaciosConjuroMaximos={espaciosConjuroMaximos}
         tienePacto={tienePacto}
         sistemaMagia={sistemaMagia}
-        estaAbierta={seccionesAbiertas.recursos !== false}
-        alAlternar={() => alternarSeccion("recursos")}
-        alGastarEspacioConjuro={gastarEspacioConjuro}
-        alRecuperarEspacioConjuro={recuperarEspacioConjuro}
-        alGastarPuntosConjuro={gastarPuntosConjuro}
-        alRecuperarPuntosConjuro={recuperarPuntosConjuro}
-        alGastarEspacioPacto={gastarEspacioPacto}
-        alRecuperarEspaciosPacto={recuperarEspaciosPacto}
         alRomperConcentracion={romperConcentracion}
+        alIrAMagia={() => establecerPestaña("magia")}
       />
 
       {/* Sección 1: Ataques con Armas y Desarmado */}
@@ -153,6 +157,7 @@ export const VistaAtaquesJugador: React.FC = () => {
       <SeccionAtaquesMagicos
         conjurosFiltrados={conjurosFiltrados}
         conjurosPorNivel={conjurosPorNivel}
+        espaciosConjuroMaximos={espaciosConjuroMaximos}
         seccionesAbiertas={seccionesAbiertas}
         alAlternarSeccion={alternarSeccion}
         personajeActivo={personajeActivo}
@@ -164,8 +169,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         esHechizoDeSubclase={esHechizoDeSubclase}
         alAbrirDetalle={setHechizoDetalle}
         alLanzar={lanzar}
-        alAlternarOcultar={alternarOcultarConjuro}
-        alDesocultarTodos={desocultarTodosLosConjuros}
+        alAlternarAcciones={manejarAlternarConjuroEnAcciones}
       />
 
       {/* Sección 3: Rasgos y Habilidades Tácticas */}
@@ -224,6 +228,9 @@ export const VistaAtaquesJugador: React.FC = () => {
         >
           <div
             className={estilos.contenedorModalHechizo}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Ficha de ${hechizoDetalle.nombre}`}
             onClick={(e) => e.stopPropagation()}
           >
             <FichaHechizo
@@ -242,7 +249,7 @@ export const VistaAtaquesJugador: React.FC = () => {
               esLanzadorPacto={tienePacto}
               nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
               espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
-              espaciosConjuroMaximos={personajeActivo.espaciosConjuroMaximos || {}}
+              espaciosConjuroMaximos={espaciosConjuroMaximos}
               nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
               sistemaMagia={sistemaMagia}
               bloqueadoPorArmadura={estaBloqueadoPorArmadura}

@@ -1,33 +1,16 @@
 import { DialogoModal } from "@/componentes/comunes/DialogoModal";
-import React, { useState, useMemo, useDeferredValue, useCallback } from "react";
-import { conjuroElegidoPorClase, conjuroFueraDeListas, esConjuroIndependiente } from "@/servicios/rasgos/listasConjurosRasgos";
+import React, { useState, useMemo, useDeferredValue, useCallback, useId } from "react";
+import { clasesGestionadasConjuros, conjuroElegidoPorClase, conjuroFueraDeListas, esConjuroIndependiente } from "@/servicios/rasgos/listasConjurosRasgos";
 import { aplicarModificadoresInvocacionesAHechizo } from "@/servicios/rasgos/evaluadorCombateRasgos";
-import {
-  Star,
-  CheckSquare,
-  BookOpen,
-  Globe,
-  Filter,
-  Search,
-  BookMarked,
-  Sparkles
-} from "lucide-react";
+import { Star, CheckSquare, BookOpen, Globe, Filter, Search, BookMarked, Sparkles } from "lucide-react";
 import type { HechizoBase, ClaseLanzadora, PersonajeJugador } from "@/tipos";
 import { coincideBusquedaTolerante, compararPorRelevanciaTitulo } from "@/utiles/busquedaTolerante";
+import { usarAccionesPersonajes, usarEstadoConfiguracion } from "@/almacen/selectores";
 import {
-  usarEstadoHomebrew,
-  usarEstadoPersonajes,
-  usarAccionesPersonajes,
-  usarEstadoConfiguracion
-} from "@/almacen/selectores";
-import {
-  obtenerConjurosSubclasePersonaje,
-  requiereSincronizacionSubclase,
-  obtenerNivelesConjuroDisponiblesPersonaje,
-  puedePersonajeLanzarHechizo,
-  construirPerfilLanzadorPersonaje
+  obtenerConjurosSubclasePersonaje, requiereSincronizacionSubclase,
+  obtenerNivelesConjuroDisponiblesPersonaje, puedePersonajeLanzarHechizo, construirPerfilLanzadorPersonaje
 } from "@/servicios/calculadorMagia";
-import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
+import type { EstadoMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import { TarjetasMetricasMagia } from "@/componentes/caracteristicas/personajes/TarjetasMetricasMagia";
 import { SelectorDesplegable, ControlPaginacion } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
@@ -47,10 +30,12 @@ const OPCIONES_NIVEL_FILTRO = [
 const CONJUROS_POR_PAGINA = 50;
 
 export interface CompendioConjurosJugadorProps {
-  personajeProp?: PersonajeJugador | null;
+  personajeActivo: PersonajeJugador | null;
+  baseDatosHechizos: HechizoBase[];
+  magia: EstadoMagiaPersonaje;
 }
 
-export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> = ({ personajeProp }) => {
+export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> = ({ personajeActivo, baseDatosHechizos, magia }) => {
   const [pestañaActiva, setPestañaActiva] = useState<TipoPestañaConjuros>("miLista");
   const [mostrarFiltros, setMostrarFiltros] = useState<boolean>(false);
   const [busqueda, setBusqueda] = useState<string>("");
@@ -60,23 +45,12 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   const [hechizoModal, setHechizoModal] = useState<HechizoBase | null>(null);
   const [paginaActual, setPaginaActual] = useState<number>(1);
   const [claseEleccion, setClaseEleccion] = useState("");
+  const idSelectorClase = useId();
   const { esGM } = usarEstadoConfiguracion();
-  const { baseDatosHechizos } = usarEstadoHomebrew();
-  const { personajes, idPersonajeActivo } = usarEstadoPersonajes();
-  const {
-    agregarTrucoConocido, quitarTrucoConocido,
-    agregarConjuroConocido, quitarConjuroConocido,
-    alternarConjuroPreparado
-  } = usarAccionesPersonajes();
+  const idPersonajeActivo = personajeActivo?.id;
+  const { agregarTrucoConocido, quitarTrucoConocido, agregarConjuroConocido, quitarConjuroConocido, alternarConjuroPreparado } = usarAccionesPersonajes();
   const sincronizarConjurosSubclase = usarAlmacenDM((state) => state.sincronizarConjurosSubclase);
   const alternarConjuroIndependiente = usarAlmacenDM(state => state.alternarConjuroIndependiente);
-
-  const personajeActivo = useMemo(() => {
-    if (personajeProp !== undefined) return personajeProp;
-    if (!personajes || personajes.length === 0) return null;
-    if (!idPersonajeActivo) return personajes[0];
-    return personajes.find((p) => p.id === idPersonajeActivo) || personajes[0];
-  }, [personajeProp, personajes, idPersonajeActivo]);
 
   React.useEffect(() => {
     if (
@@ -84,10 +58,7 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
       (personajeActivo.clase || (personajeActivo.clases && personajeActivo.clases.length > 0))
     ) {
       const res = obtenerConjurosSubclasePersonaje(
-        personajeActivo.clases,
-        personajeActivo.clase,
-        personajeActivo.subclase,
-        personajeActivo.nivel
+        personajeActivo.clases, personajeActivo.clase, personajeActivo.subclase, personajeActivo.nivel
       );
       if (requiereSincronizacionSubclase(personajeActivo, res)) {
         sincronizarConjurosSubclase(personajeActivo.id);
@@ -96,13 +67,9 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
   }, [personajeActivo, sincronizarConjurosSubclase]);
 
   const {
-    esHechizoDeSubclase,
-    obtenerOrigenConjuro,
-    estaPreparado: preparadoGlobal,
-    estaEnLista: enListaGlobal,
-    maximos,
-    conteoEfectivo
-  } = usarMagiaPersonaje(personajeActivo, baseDatosHechizos);
+    esHechizoDeSubclase, obtenerOrigenConjuro, estaPreparado: preparadoGlobal,
+    estaEnLista: enListaGlobal, maximos, conteoEfectivo
+  } = magia;
   const perfilEleccion = personajeActivo?.clasesLanzadoras.find(c => c.clase === claseEleccion);
   const estaPreparado = useCallback((h: HechizoBase) => !perfilEleccion || !personajeActivo || esConjuroIndependiente(personajeActivo, h) ? preparadoGlobal(h)
     : !!obtenerOrigenConjuro(h) || conjuroElegidoPorClase(personajeActivo, h.id, perfilEleccion.clase, h.nivel === 0 ? "trucos" : "preparados"), [perfilEleccion, personajeActivo, preparadoGlobal, obtenerOrigenConjuro]);
@@ -231,6 +198,11 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     return conjurosFiltrados.slice(inicio, inicio + CONJUROS_POR_PAGINA);
   }, [conjurosFiltrados, paginaActual]);
 
+  const mostrarSelectorClase = Boolean(
+    personajeActivo && personajeActivo.clasesLanzadoras.length >= 2 && clasesGestionadasConjuros(personajeActivo).length > 0
+  );
+  const textoConteoConjuros = `${conjurosFiltrados.length} ${conjurosFiltrados.length === 1 ? "conjuro" : "conjuros"}`;
+
   const manejarAlternarEnLista = (hechizo: HechizoBase) => {
     if (!personajeActivo) return;
     if (hechizo.nivel === 0) {
@@ -268,18 +240,35 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
     alternarConjuroPreparado(personajeActivo.id, hechizo.id, claseEleccion || undefined);
   };
 
+  const hayFiltrosActivos = Boolean(busqueda.trim() || nivelFiltro !== "todos" || escuelaFiltro !== "todas");
+  const sinCapacidadMagica = Boolean(
+    personajeActivo && !personajeActivo.esLanzador && (personajeActivo.clasesLanzadoras?.length ?? 0) === 0
+  );
+  const mensajeVacioPorPestaña: Record<TipoPestañaConjuros, string> = {
+    preparados: esGrimorio
+      ? "No tienes conjuros preparados para el día. Marca la estrella en tu «Libro de conjuros» para prepararlos."
+      : "No tienes conjuros preparados actualmente.",
+    miLista: esGrimorio
+      ? "El grimorio está vacío. Busca conjuros en Disponibles u Otros."
+      : "La lista está vacía. Busca conjuros en Disponibles o Todos.",
+    disponibles: sinCapacidadMagica
+      ? "Este personaje no posee clases ni rasgos lanzadores de conjuros."
+      : "No se encontraron conjuros disponibles para tu clase y nivel con los filtros seleccionados.",
+    todos: "No se encontraron conjuros en el compendio con los filtros seleccionados."
+  };
+
   return (
     <div className={estilos.contenedorGeneral}>
-      <SelectorClaseConjuros personaje={personajeActivo} valor={claseEleccion} alCambiar={setClaseEleccion} />
       <div className={estilos.cabeceraPrincipal}>
-        <div className={estilos.filaTitulo}>
-          <div className="u-flex u-alinear-centro u-gap-lg">
-            <h2 className={estilos.tituloTexto}>Listado de conjuros</h2>
-            <span className={estilos.contadorConjurosTexto}>
-              ({conjurosFiltrados.length} {conjurosFiltrados.length === 1 ? "conjuro" : "conjuros"})
-            </span>
+        {mostrarSelectorClase && (
+          <div className={estilos.filaSuperiorCabecera}>
+            <span className={estilos.contadorConjurosTexto}>{textoConteoConjuros}</span>
+            <div className={estilos.grupoSelectorClase}>
+              <label htmlFor={idSelectorClase} className={estilos.etiquetaSelectorClase}>Aprender en</label>
+              <SelectorClaseConjuros id={idSelectorClase} className={estilos.selectorClaseWrapper} personaje={personajeActivo} valor={claseEleccion} alCambiar={setClaseEleccion} />
+            </div>
           </div>
-        </div>
+        )}
 
         {personajeActivo && (
           <TarjetasMetricasMagia
@@ -293,188 +282,182 @@ export const CompendioConjurosJugador: React.FC<CompendioConjurosJugadorProps> =
           />
         )}
 
-        <div className={estilos.filaPestañasYFiltro}>
-          <div className={estilos.grupoPestañas}>
-            {/* 1. Preparados / Conocido */}
-            {!esModeloConocidos && (
-              <button
-                type="button"
-                onClick={() => setPestañaActiva("preparados")}
-                className={`${estilos.botonPestaña} ${
-                  pestañaActiva === "preparados" ? estilos.botonPestañaActiva : ""
-                }`}
-              >
-                <Star size={13} fill={pestañaActiva === "preparados" ? "#fb923c" : "none"} />
-                <span>{esGrimorio ? "Conocido" : "Preparados"}</span>
-              </button>
-            )}
-
-            {/* 2. Mi lista / Libro de conjuros / Conocidos: oculto para preparadores divinos puros */}
-            {(!esPreparadorSinGrimorio || esGrimorio) && (
-              <button
-                type="button"
-                onClick={() => setPestañaActiva("miLista")}
-                className={`${estilos.botonPestaña} ${
-                  pestañaActiva === "miLista" ? estilos.botonPestañaActiva : ""
-                }`}
-              >
-                {esGrimorio ? (
-                  <BookMarked size={13} />
-                ) : esModeloConocidos ? (
-                  <Sparkles size={13} />
-                ) : (
-                  <CheckSquare size={13} />
-                )}
-                <span>
-                  {esGrimorio ? "Libro de conjuros" : esModeloConocidos ? "Conocidos" : "Mi lista"}
-                </span>
-              </button>
-            )}
-
-            {/* 3. Disponibles */}
+        <div className={estilos.grupoPestañas}>
+          {/* 1. Preparados */}
+          {!esModeloConocidos && (
             <button
               type="button"
-              onClick={() => setPestañaActiva("disponibles")}
-              className={`${estilos.botonPestaña} ${
-                pestañaActiva === "disponibles" ? estilos.botonPestañaActiva : ""
-              }`}
+              aria-pressed={pestañaActiva === "preparados"}
+              onClick={() => setPestañaActiva("preparados")}
+              className={`${estilos.botonPestaña} ${pestañaActiva === "preparados" ? estilos.botonPestañaActiva : ""}`}
             >
-              <BookOpen size={13} />
-              <span>Disponibles</span>
+              <Star size={13} fill={pestañaActiva === "preparados" ? "var(--pj-acento-oro)" : "none"} />
+              <span>Preparados</span>
             </button>
+          )}
 
-            {/* 4. Todos / Otros */}
+          {/* 2. Mi lista / Libro de conjuros / Conocidos: oculto para preparadores divinos puros */}
+          {(!esPreparadorSinGrimorio || esGrimorio) && (
             <button
               type="button"
-              onClick={() => setPestañaActiva("todos")}
-              className={`${estilos.botonPestaña} ${
-                pestañaActiva === "todos" ? estilos.botonPestañaActiva : ""
-              }`}
+              aria-pressed={pestañaActiva === "miLista"}
+              onClick={() => setPestañaActiva("miLista")}
+              className={`${estilos.botonPestaña} ${pestañaActiva === "miLista" ? estilos.botonPestañaActiva : ""}`}
             >
-              <Globe size={13} />
-              <span>{esGrimorio ? "Otros" : "Todos"}</span>
+              {esGrimorio ? <BookMarked size={13} /> : esModeloConocidos ? <Sparkles size={13} /> : <CheckSquare size={13} />}
+              <span>{esGrimorio ? "Libro de conjuros" : esModeloConocidos ? "Conocidos" : "Mi lista"}</span>
             </button>
-          </div>
+          )}
 
-          {/* Botón de Filtros */}
+          {/* 3. Disponibles */}
           <button
             type="button"
-            onClick={() => setMostrarFiltros(!mostrarFiltros)}
-            className={`${estilos.botonFiltrar} ${
-              mostrarFiltros ? estilos.botonFiltrarActivo : ""
-            }`}
+            aria-pressed={pestañaActiva === "disponibles"}
+            onClick={() => setPestañaActiva("disponibles")}
+            className={`${estilos.botonPestaña} ${pestañaActiva === "disponibles" ? estilos.botonPestañaActiva : ""}`}
           >
-            <Filter size={12} />
-            <span>Filtrar</span>
+            <BookOpen size={13} />
+            <span>Disponibles</span>
+          </button>
+
+          {/* 4. Todos / Otros */}
+          <button
+            type="button"
+            aria-pressed={pestañaActiva === "todos"}
+            onClick={() => setPestañaActiva("todos")}
+            className={`${estilos.botonPestaña} ${pestañaActiva === "todos" ? estilos.botonPestañaActiva : ""}`}
+          >
+            <Globe size={13} />
+            <span>{esGrimorio ? "Otros" : "Todos"}</span>
           </button>
         </div>
       </div>
 
-      {/* Panel Desplegable de Filtros */}
-      {mostrarFiltros && (
-        <div className={estilos.panelFiltros}>
+      {/* Buscador siempre visible y panel desplegable de filtros */}
+      <div className={estilos.barraBusquedaYFiltros}>
+        <div className={estilos.filaBusquedaCompacta}>
           <div className={estilos.contenedorBuscadorFiltro}>
-            <Search size={13} color="#94a3b8" />
+            <Search size={13} color="var(--pj-texto-terciario)" aria-hidden="true" />
             <input
               type="text"
               value={busqueda}
               onChange={(e) => setBusqueda(e.target.value)}
               placeholder="Buscar por nombre, efecto, escuela..."
+              aria-label="Buscar conjuros por nombre, efecto o escuela"
               className={estilos.buscadorInput}
             />
           </div>
-
-          <div className={estilos.selectorNivelWrapper}>
-            <SelectorDesplegable<string>
-              valor={String(nivelFiltro)}
-              alCambiar={(v) => setNivelFiltro(v === "todos" ? "todos" : Number(v))}
-              tamano="compacto"
-              opciones={opcionesNivelFiltro}
-            />
-          </div>
-
-          <div className={estilos.selectorEscuelaWrapper}>
-            <SelectorDesplegable<string>
-              valor={escuelaFiltro}
-              alCambiar={(v) => setEscuelaFiltro(v)}
-              tamano="compacto"
-              opciones={opcionesEscuelaFiltro}
-            />
-          </div>
+          {!mostrarSelectorClase && <span className={estilos.contadorConjurosTexto}>{textoConteoConjuros}</span>}
+          <button
+            type="button"
+            aria-expanded={mostrarFiltros}
+            onClick={() => setMostrarFiltros(!mostrarFiltros)}
+            className={`${estilos.botonFiltrar} ${mostrarFiltros ? estilos.botonFiltrarActivo : ""}`}
+          >
+            <Filter size={12} aria-hidden="true" />
+            <span>Filtrar</span>
+          </button>
         </div>
-      )}
 
-      {/* Lista de Filas de Conjuro */}
-      <div className={estilos.areaLista}>
-        {conjurosFiltrados.length === 0 ? (
-          <div className={estilos.mensajeVacio}>
-            {pestañaActiva === "preparados" && (
-              esGrimorio
-                ? "No tienes conjuros conocidos actualmente. Marca la estrella en tu 'Libro de conjuros' para seleccionarlos."
-                : "No tienes conjuros preparados actualmente."
-            )}
-            {pestañaActiva === "miLista" && (esGrimorio
-              ? "El grimorio está vacío. Busca conjuros en Disponibles u Otros."
-              : "La lista está vacía. Busca conjuros en Disponibles o Todos.")}
-            {pestañaActiva === "disponibles" &&
-              (personajeActivo && !personajeActivo.esLanzador && (personajeActivo.clasesLanzadoras?.length ?? 0) === 0
-                ? "Este personaje no posee clases ni rasgos lanzadores de conjuros."
-                : "No se encontraron conjuros disponibles para tu clase y nivel con los filtros seleccionados.")}
-            {pestañaActiva === "todos" && "No se encontraron conjuros en el compendio con los filtros seleccionados."}
-          </div>
-        ) : (
-          conjurosPaginados.map((hechizo) => {
-            const esSubclase = esHechizoDeSubclase(hechizo);
-            const origenBadge = obtenerOrigenConjuro(hechizo);
-            const enLista = estaEnLista(hechizo);
-            const preparado = estaPreparado(hechizo);
-            const independiente = !!personajeActivo && esConjuroIndependiente(personajeActivo, hechizo);
-            const edicionIndependiente = !!personajeActivo && (independiente
-              || (pestañaActiva === "todos" && !enLista && conjuroFueraDeListas(personajeActivo, hechizo)));
-            const mostrarEstrella =
-              !esModeloConocidos &&
-              (esPreparadorSinGrimorio || pestañaActiva === "miLista" || pestañaActiva === "preparados");
-
-            return (
-              <FilaConjuroCompendio
-                key={hechizo.id}
-                hechizo={aplicarModificadoresInvocacionesAHechizo(hechizo, personajeActivo)}
-                estaEnLista={enLista}
-                estaPreparado={preparado}
-                esDeSubclase={esSubclase}
-                origenBadge={origenBadge}
-                esModeloConocidos={esModeloConocidos}
-                mostrarEstrella={mostrarEstrella && (!edicionIndependiente || independiente)}
-                tituloEdicionIndependiente={edicionIndependiente ? independiente ? "Quitar concesión independiente" : "Añadir como concesión independiente" : undefined}
-                alAlternarEnLista={() => edicionIndependiente && personajeActivo
-                  ? alternarConjuroIndependiente(personajeActivo.id, hechizo.id) : manejarAlternarEnLista(hechizo)}
-                alAlternarPreparado={() => independiente && personajeActivo
-                  ? alternarConjuroPreparado(personajeActivo.id, hechizo.id) : manejarAlternarPreparado(hechizo)}
-                alAbrirDetalle={(h) => setHechizoModal(h)}
+        {mostrarFiltros && (
+          <div className={estilos.panelFiltros}>
+            <div className={estilos.selectorNivelWrapper}>
+              <SelectorDesplegable<string>
+                valor={String(nivelFiltro)}
+                alCambiar={(v) => setNivelFiltro(v === "todos" ? "todos" : Number(v))}
+                tamano="compacto"
+                opciones={opcionesNivelFiltro}
               />
-            );
-          })
+            </div>
+            <div className={estilos.selectorEscuelaWrapper}>
+              <SelectorDesplegable<string>
+                valor={escuelaFiltro}
+                alCambiar={(v) => setEscuelaFiltro(v)}
+                tamano="compacto"
+                opciones={opcionesEscuelaFiltro}
+              />
+            </div>
+          </div>
         )}
       </div>
 
+      {/* Lista de Filas de Conjuro */}
+      <div className={`${estilos.areaLista} u-scroll-cef`}>
+        <div className={estilos.listaInterior}>
+          {conjurosFiltrados.length === 0 ? (
+            <div className={estilos.mensajeVacio}>
+              <span>{mensajeVacioPorPestaña[pestañaActiva]}</span>
+              {hayFiltrosActivos ? (
+                <button
+                  type="button"
+                  className={estilos.botonCtaVacio}
+                  onClick={() => { setBusqueda(""); setNivelFiltro("todos"); setEscuelaFiltro("todas"); }}
+                >
+                  Limpiar filtros
+                </button>
+              ) : (pestañaActiva === "preparados" || pestañaActiva === "miLista") ? (
+                <button
+                  type="button"
+                  className={estilos.botonCtaVacio}
+                  onClick={() => setPestañaActiva("disponibles")}
+                >
+                  Ver Disponibles
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            conjurosPaginados.map((hechizo) => {
+              const esSubclase = esHechizoDeSubclase(hechizo);
+              const origenBadge = obtenerOrigenConjuro(hechizo);
+              const enLista = estaEnLista(hechizo);
+              const preparado = estaPreparado(hechizo);
+              const independiente = !!personajeActivo && esConjuroIndependiente(personajeActivo, hechizo);
+              const edicionIndependiente = !!personajeActivo && (independiente
+                || (pestañaActiva === "todos" && !enLista && conjuroFueraDeListas(personajeActivo, hechizo)));
+              const mostrarEstrella =
+                !esModeloConocidos &&
+                (esPreparadorSinGrimorio || pestañaActiva === "miLista" || pestañaActiva === "preparados");
+
+              return (
+                <FilaConjuroCompendio
+                  key={hechizo.id}
+                  hechizo={aplicarModificadoresInvocacionesAHechizo(hechizo, personajeActivo)}
+                  estaEnLista={enLista}
+                  estaPreparado={preparado}
+                  esDeSubclase={esSubclase}
+                  origenBadge={origenBadge}
+                  esModeloConocidos={esModeloConocidos}
+                  mostrarEstrella={mostrarEstrella && (!edicionIndependiente || independiente)}
+                  tituloEdicionIndependiente={edicionIndependiente ? independiente ? "Quitar concesión independiente" : "Añadir como concesión independiente" : undefined}
+                  alAlternarEnLista={() => edicionIndependiente && personajeActivo
+                    ? alternarConjuroIndependiente(personajeActivo.id, hechizo.id) : manejarAlternarEnLista(hechizo)}
+                  alAlternarPreparado={() => independiente && personajeActivo
+                    ? alternarConjuroPreparado(personajeActivo.id, hechizo.id) : manejarAlternarPreparado(hechizo)}
+                  alAbrirDetalle={(h) => setHechizoModal(h)}
+                />
+              );
+            })
+          )}
+        </div>
+      </div>
+
       {conjurosFiltrados.length > CONJUROS_POR_PAGINA && (
-        <ControlPaginacion
-          paginaActual={paginaActual}
-          totalElementos={conjurosFiltrados.length}
-          elementosPorPagina={CONJUROS_POR_PAGINA}
-          alCambiarPagina={(nueva) => setPaginaActual(nueva)}
-          etiquetaElementos="conjuros"
-        />
+        <div className={estilos.paginacionContenedor}>
+          <ControlPaginacion
+            paginaActual={paginaActual}
+            totalElementos={conjurosFiltrados.length}
+            elementosPorPagina={CONJUROS_POR_PAGINA}
+            alCambiarPagina={(nueva) => setPaginaActual(nueva)}
+            etiquetaElementos="conjuros"
+          />
+        </div>
       )}
 
       {/* Modal de FichaHechizo Completa */}
       {hechizoModal && (
         <DialogoModal etiqueta={`Conjuro: ${hechizoModal.nombre}`} alCerrar={() => setHechizoModal(null)}>
           <div className={estilos.modalOverlay} onClick={() => setHechizoModal(null)}>
-          <div
-            className={estilos.modalContenido}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={estilos.modalContenido} onClick={(e) => e.stopPropagation()}>
             <FichaHechizo
               hechizo={hechizoModal}
               nombrePersonaje={personajeActivo?.nombre || (esGM ? "DM" : "Personaje")}

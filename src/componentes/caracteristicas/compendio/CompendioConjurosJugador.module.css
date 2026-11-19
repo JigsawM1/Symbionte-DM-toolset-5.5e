@@ -2,40 +2,55 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background-color: var(--pj-fondo-panel);
+  padding-top: 6px;
+  box-sizing: border-box;
+  background-color: var(--pj-fondo-base);
   color: var(--pj-texto-primario);
   overflow: hidden;
 }
 
 .cabeceraPrincipal {
-  padding: 12px 16px 0 16px;
+  width: calc(100% - 16px);
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 10px 12px 0 12px;
+  box-sizing: border-box;
   background-color: var(--pj-fondo-tarjeta-elevada);
-  border-bottom: 1px solid var(--pj-borde-acento);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel) var(--pj-radio-panel) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-.filaTitulo {
+.filaSuperiorCabecera {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.tituloTexto {
-  font-size: var(--pj-fuente-titulo);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  margin: 0;
-  letter-spacing: 0.02em;
-}
-
-.filaPestañasYFiltro {
+.grupoSelectorClase {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
+  margin-left: auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.etiquetaSelectorClase {
+  font-size: var(--pj-fuente-label);
+  font-weight: 700;
+  color: var(--pj-texto-terciario);
+  white-space: nowrap;
+}
+
+.selectorClaseWrapper {
+  min-width: 155px;
+  max-width: 220px;
+  flex: 1 1 auto;
 }
 
 .grupoPestañas {
@@ -53,7 +68,8 @@
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: var(--pj-texto-acento);
+  border-radius: var(--pj-radio-control) var(--pj-radio-control) 0 0;
+  color: var(--pj-texto-terciario);
   font-size: var(--pj-fuente-boton);
   font-weight: 700;
   cursor: pointer;
@@ -68,7 +84,7 @@
 }
 
 .botonPestañaActiva {
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-primario);
   border-bottom-color: var(--pj-borde-acento-fuerte);
   background-color: var(--pj-acento-primario-fondo);
 }
@@ -78,7 +94,7 @@
   align-items: center;
   gap: 5px;
   background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
+  border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-secundario-claro);
   font-size: var(--pj-fuente-boton);
@@ -89,7 +105,7 @@
   white-space: nowrap;
 }
 
-.botonFiltrar:hover {
+.botonFiltrar:not(.botonFiltrarActivo):hover {
   background-color: var(--pj-fondo-tarjeta-hover);
   border-color: var(--pj-borde-acento);
   color: var(--pj-texto-primario);
@@ -101,69 +117,147 @@
   color: var(--pj-texto-primario);
 }
 
+.botonFiltrarActivo:hover {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
+}
+
+.barraBusquedaYFiltros {
+  width: calc(100% - 16px);
+  max-width: 640px;
+  margin: 0 auto 6px auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
+  border-top: none;
+  border-radius: 0 0 var(--pj-radio-panel) var(--pj-radio-panel);
+  flex-shrink: 0;
+}
+
+.filaBusquedaCompacta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .panelFiltros {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border-bottom: 1px solid var(--pj-borde-acento);
+  gap: 8px;
   flex-wrap: wrap;
+  padding-top: 8px;
+  border-top: 1px solid var(--pj-borde-sutil);
 }
 
 .buscadorInput {
   flex: 1;
-  min-width: 160px;
+  min-width: 0;
   background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-acento);
+  border: 1px solid var(--pj-borde-medio);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-label);
+  font-size: var(--pj-fuente-cuerpo);
   padding: 6px 10px;
   outline: none;
 }
 
 .buscadorInput:focus {
-  border-color: var(--pj-borde-acento);
+  border-color: var(--pj-borde-acento-fuerte);
 }
 
 .areaLista {
+  --fondo-scroll-cef: var(--pj-fondo-base);
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 0 8px 84px 8px;
+  scroll-padding-bottom: 84px;
+  box-sizing: border-box;
+}
+
+.listaInterior {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding-bottom: 84px;
-  scroll-padding-bottom: 84px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
+  overflow: hidden;
+}
+
+.listaInterior > :last-child {
+  border-bottom: none;
+}
+
+.paginacionContenedor {
+  width: calc(100% - 16px);
+  max-width: 640px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .mensajeVacio {
-  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 20px;
   text-align: center;
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-terciario);
   font-size: var(--pj-fuente-cuerpo);
   font-style: italic;
 }
 
+.botonCtaVacio {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-sobre-acento);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  font-style: normal;
+  cursor: pointer;
+}
+
+.botonCtaVacio:hover {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
+}
+
 .contadorConjurosTexto {
   font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-terciario);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .contenedorBuscadorFiltro {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex: 1;
-  min-width: 200px;
+  flex: 1 1 180px;
+  min-width: 0;
 }
 
-.selectorNivelWrapper {
-  min-width: 150px;
-}
-
+.selectorNivelWrapper,
 .selectorEscuelaWrapper {
-  min-width: 160px;
+  flex: 1 1 140px;
+  min-width: 0;
 }
 
 .modalOverlay {

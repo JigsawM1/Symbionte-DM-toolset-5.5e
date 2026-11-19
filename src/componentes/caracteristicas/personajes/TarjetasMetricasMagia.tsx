@@ -42,7 +42,7 @@ export const TarjetasMetricasMagia: React.FC<TarjetasMetricasMagiaProps> = ({
           )}
         </div>
         <span className={estilos.subtextoMetricaMagia}>
-          {modelo === "preparados" ? "PREPARADOS (LIBRES)" : "CONOCIDOS (LIBRES)"}
+          {(modelo === "preparados" || modelo === "grimorio") ? "PREPARADOS (LIBRES)" : "CONOCIDOS (LIBRES)"}
         </span>
       </div>
 

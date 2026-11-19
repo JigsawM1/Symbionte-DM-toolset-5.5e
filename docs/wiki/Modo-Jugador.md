@@ -1,19 +1,19 @@
 # Modo Jugador
 
-El modo Jugador se muestra cuando `esGM` es falso. `src/App.tsx` cambia las pestañas a `IniciativaJugador`, `VistaAtaquesJugador`, `Compendio`, `VistaRasgosJugador`, `VistaInventarioJugador` y la hoja de personaje.
+El modo Jugador se muestra cuando `esGM` es falso. `src/App.tsx` cambia las pestañas a `IniciativaJugador`, `VistaAtaquesJugador` (`Acciones`), `Compendio` (`Magia`), `VistaRasgosJugador`, `VistaInventarioJugador` y la hoja de personaje (`Características`).
 
 ## Hoja de personaje
 
 `src/componentes/caracteristicas/personajes/HojaPersonaje.tsx` combina:
 
 - `CabeceraPersonaje`.
+- `BarraTacticaPersonaje`.
 - `MetricasRapidasPersonaje`.
+- `SentidosPasivosPersonaje`.
 - `PanelVitalidadPersonaje`.
 - `PanelAtributosPersonaje`.
-- `PanelHabilidadesPersonaje`.
-- `PanelConjurosPersonaje`.
-- `PanelInventarioPersonaje`.
-- `BarraTacticaPersonaje`.
+- `PanelCompetenciasPersonaje`.
+- `PanelFormaSalvaje` (subpestaña condicional cuando el personaje dispone de Forma Salvaje).
 
 Los selectores derivados calculan bono de competencia, puntuaciones efectivas, modificadores, salvaciones, habilidades, pasivas, clase de armadura, velocidad y bono de daño de Furia.
 
@@ -27,7 +27,7 @@ Los rasgos pueden tener usos, recuperación, activación, selectores y efectos m
 
 ## Ataques y acciones
 
-`VistaAtaquesJugador.tsx` presenta ataques de armas, ataques desarmados, conjuros y consumibles. `TarjetaAtaquePersonaje.tsx` construye fórmulas de ataque y daño, respeta propiedades del arma y consulta condiciones y competencia.
+`VistaAtaquesJugador.tsx` presenta ataques de armas, ataques desarmados, rasgos tácticos, consumibles, hechizos de objetos mágicos y únicamente los conjuros fijados mediante el toggle «Mostrar en Acciones» (`conjurosEnAcciones`). `SeccionRecursosMagicosAtaque.tsx` muestra una barra-puente compacta con la concentración activa, el resumen en una línea de ranuras/puntos disponibles y un acceso directo a la pestaña `Magia`. `TarjetaAtaquePersonaje.tsx` construye fórmulas de ataque y daño, respeta propiedades del arma y consulta condiciones y competencia.
 
 La acción puede consumir acción, acción adicional, reacción o una categoría especial. Las tiradas se envían a TaleSpire mediante `lanzarDadosTaleSpire`.
 
@@ -35,7 +35,10 @@ La ventaja y la desventaja pueden proceder de la barra táctica, de condiciones 
 
 ## Magia y conjuros
 
-`PanelConjurosPersonaje.tsx` y `CompendioConjurosJugador.tsx` gestionan conjuros conocidos, preparados, disponibles y todos los conjuros del compendio.
+La pestaña superior `Magia` (`Compendio.tsx` en modo jugador) unifica mediante dos subpestañas (`ts_magia_subpestana`) el lanzamiento y la preparación:
+
+- **Lanzamiento y Recursos (`PanelConjurosPersonaje.tsx`)**: estadísticas mágicas (CD, ataque de conjuro, aptitud y selector rápido `Modo Tirada`), banner de concentración activa, trackers interactivos de espacios/puntos/pacto/Arcano Místico, filtros mágicos y lista completa de trucos y conjuros preparados/conocidos por nivel, cada uno con su toggle para mostrarse o quitarse de `Acciones`.
+- **Compendio y Preparar (`CompendioConjurosJugador.tsx`)**: gestión de conjuros conocidos, grimorio, preparados, disponibles y catálogo completo del compendio.
 
 El sistema calcula:
 
@@ -48,9 +51,11 @@ El sistema calcula:
 - Conjuros de subclase siempre preparados.
 - Arcanos Místicos de brujo y Libro de conjuros para Mago.
 
-En el caso del Mago (`modeloConjuros === "grimorio"`), el compendio adapta sus subpestañas a **"Conocido"**, **"Libro de conjuros"**, **"Disponibles"** y **"Otros"**, permitiendo preparar conjuros desde el libro mediante el icono de estrella. En las acciones de combate y paneles de rasgos únicamente se muestran los conjuros activamente preparados o de subclase.
+En el caso del Mago (`modeloConjuros === "grimorio"`), el compendio adapta sus subpestañas a **"Preparados"**, **"Libro de conjuros"**, **"Disponibles"** y **"Otros"**, permitiendo preparar conjuros desde el libro mediante el icono de estrella. En las acciones de combate únicamente se listan los conjuros preparados/disponibles que el jugador haya activado explícitamente en `conjurosEnAcciones`, además de los hechizos vinculados a objetos mágicos equipados/sintonizados.
 
-Un conjuro puede ocultarse de la lista visible, prepararse, desprepararse y lanzarse con el recurso correspondiente. `servicioLanzamientoConjuros.ts` valida la solicitud y prepara la fórmula antes de enviarla a la API de dados.
+En las tarjetas de Magia y Acciones, el selector muestra el saldo de la ranura o el coste en puntos del lanzamiento normal. Si se agota Pacto y el lanzador puede usar un recurso estándar en ese nivel, la tarjeta muestra el recurso alternativo. Los espacios adicionales creados por rasgos figuran en el resumen y en los niveles disponibles de Acciones.
+
+Un conjuro puede activarse o quitarse de `Acciones`, prepararse, desprepararse y lanzarse con el recurso correspondiente. `servicioLanzamientoConjuros.ts` valida la solicitud y prepara la fórmula antes de enviarla a la API de dados.
 
 ## Acompañantes y Sidekicks
 

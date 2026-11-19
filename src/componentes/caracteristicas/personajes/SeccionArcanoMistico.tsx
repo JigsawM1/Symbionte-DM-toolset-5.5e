@@ -190,6 +190,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                           type="button"
                           onClick={() => alRecuperarArcano(nivel)}
                           title="Restaurar uso manualmente"
+                          aria-label={`Restaurar uso de Arcano Nv.${nivel}: ${hechizo.nombre}`}
                           className={styles.botonRestaurarArcano}
                         >
                           <RotateCcw size={12} />
@@ -212,6 +213,7 @@ export const SeccionArcanoMistico: React.FC<SeccionArcanoMisticoProps> = ({
                       type="button"
                       onClick={() => alQuitarArcano(nivel)}
                       title="Cambiar o desasignar conjuro de arcano"
+                      aria-label={`Cambiar o desasignar Arcano Nv.${nivel}: ${hechizo.nombre}`}
                       className={styles.botonQuitarArcano}
                     >
                       <X size={13} />

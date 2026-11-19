@@ -4,9 +4,9 @@ import { ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import type { PersonajeJugador, HechizoBase } from "@/tipos";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import type { OrigenConjuroBadge } from "@/servicios/resolutorOrigenConjuros";
-import { obtenerBonoDanoConjuroExtra, tieneConjuroGratuitoActivo } from "@/servicios/evaluadorEfectosRasgos";
-import { coincideHechizoId } from "@/servicios/comparadorHechizos";
+import { obtenerBonoDanoConjuroExtra, tieneLanzamientoGratuitoDisponible } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
+import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import { TarjetaConjuroCompacta } from "./TarjetaConjuroCompacta";
 import estilos from "./PanelConjurosPersonaje.module.css";
 
@@ -31,7 +31,8 @@ interface SeccionNivelConjurosProps {
   sistemaMagia: "espacios" | "puntos";
   estaBloqueadoPorArmadura: boolean;
   motivoBloqueoArmadura?: string;
-  alAlternarOcultar: (hechizoId: string) => void;
+  conjurosEnAccionesSet?: Set<string>;
+  alAlternarAcciones?: (hechizoId: string) => void;
   alAlternarPreparado?: (hechizoId: string) => void;
   alQuitarDeLista: (hechizoId: string) => void;
   alAbrirDetalleCompleto: (hechizo: HechizoBase) => void;
@@ -65,7 +66,8 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
   sistemaMagia,
   estaBloqueadoPorArmadura,
   motivoBloqueoArmadura,
-  alAlternarOcultar,
+  conjurosEnAccionesSet,
+  alAlternarAcciones,
   alAlternarPreparado,
   alQuitarDeLista,
   alAbrirDetalleCompleto,
@@ -84,7 +86,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
       >
         <div className={estilos.tituloNivelFila}>
           {icono}
-          <span className={esTruco ? estilos.tituloNivelTexto : estilos.tituloNivelPrincipal}>
+          <span className={estilos.tituloNivelPrincipal}>
             {titulo}
           </span>
           <span className={estilos.badgeConteoNivel}>
@@ -119,14 +121,6 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                 </button>
               )}
             </div>
-          ) : conjurosVisibles.length === 0 ? (
-            <div className={estilos.filaVacioTrucos}>
-              <p className={estilos.textoVacio}>
-                {esTruco
-                  ? `Todos tus trucos (${totalTrucosConocidos}) están en la sección de Conjuros Ocultos.`
-                  : "Todos los conjuros de este nivel están en la sección de Conjuros Ocultos."}
-              </p>
-            </div>
           ) : conjurosFiltrados.length === 0 ? (
             <p className={estilos.alertaFiltroVacioNivel}>
               Ningún {esTruco ? "truco" : `conjuro de nivel ${nivel}`} coincide con los filtros aplicados.
@@ -134,28 +128,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
           ) : (
             <div className={estilos.listaTarjetas}>
               {conjurosFiltrados.map((hechizo) => {
-                const nomHechizoNorm = hechizo.nombre.toLowerCase().trim();
-                const rasgoInnatoGratuito = (personaje.rasgos || []).find((r) => {
-                  if (!r.tieneUsosLimitados) return false;
-                  const restantes = r.usosRestantes !== undefined ? r.usosRestantes : (r.usosMaximos ?? 1);
-                  if (restantes <= 0) return false;
-                  if (r.nivelRequerido && (personaje.nivel || 1) < r.nivelRequerido) return false;
-                  const tieneEfectoPreparado = Array.isArray(r.efectos) && r.efectos.some(
-                    (ef) => ef.tipo === "conjuro_otorgado" &&
-                    (coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.id) ||
-                     coincideHechizoId(String(ef.objetivo || ef.valor), hechizo.nombre))
-                  );
-                  if (tieneEfectoPreparado) return false;
-                  const cOtorgados = r.conjurosOtorgados || [];
-                  return (
-                    (r.conjuroGratuito && (coincideHechizoId(r.conjuroGratuito, hechizo.id) || coincideHechizoId(r.conjuroGratuito, hechizo.nombre))) ||
-                    cOtorgados.some((c) => coincideHechizoId(c, hechizo.id) || coincideHechizoId(c, hechizo.nombre)) ||
-                    r.nombre.toLowerCase().includes(nomHechizoNorm) ||
-                    nomHechizoNorm.includes(r.nombre.toLowerCase())
-                  );
-                });
-                const tieneLanzamientoGratisDisponible =
-                  Boolean(rasgoInnatoGratuito) || tieneConjuroGratuitoActivo(personaje, hechizo.nombre);
+                const tieneLanzamientoGratisDisponible = tieneLanzamientoGratuitoDisponible(personaje, hechizo);
                 const modificadorHabilidad = obtenerModificadorAptitudMagica(personaje);
                 const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personaje, {
                   esTruco,
@@ -164,6 +137,14 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                   escuela: hechizo.escuela,
                   nombreConjuro: hechizo.nombre
                 });
+                const origenBadge = obtenerOrigenConjuro
+                  ? obtenerOrigenConjuro(hechizo)
+                  : (esHechizoDeSubclase(hechizo) ? "subclase" : null);
+                const esOtorgado = Boolean(origenBadge) || esHechizoDeSubclase(hechizo);
+                const puntosConjuroDisponibles = Math.max(
+                  0,
+                  (personaje.puntosConjuroMaximos || 0) - (personaje.puntosConjuroGastados || 0)
+                );
 
                 return (
                   <TarjetaConjuroCompacta
@@ -175,11 +156,12 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                     bonoDanoMagico={bonoDanoMagico}
                     modificadorHabilidad={modificadorHabilidad}
                     estaPreparado={esTruco ? true : estaPreparado(hechizo)}
+                    esPreparador={!esTruco && Boolean(alAlternarPreparado)}
                     esDeSubclase={esHechizoDeSubclase(hechizo)}
-                    origenBadge={obtenerOrigenConjuro ? obtenerOrigenConjuro(hechizo) : (esHechizoDeSubclase(hechizo) ? "subclase" : null)}
+                    origenBadge={origenBadge}
                     esConcentracionActual={personaje.concentracionActiva?.hechizoId === hechizo.id}
-                    esOculto={false}
-                    alAlternarOcultar={() => alAlternarOcultar(hechizo.id)}
+                    enAcciones={conjurosEnAccionesSet?.has(hechizo.id) ?? false}
+                    alAlternarAcciones={alAlternarAcciones ? () => alAlternarAcciones(hechizo.id) : undefined}
                     bloqueadoPorArmadura={estaBloqueadoPorArmadura}
                     motivoBloqueoArmadura={motivoBloqueoArmadura}
                     tieneLanzamientoGratisDisponible={tieneLanzamientoGratisDisponible}
@@ -189,7 +171,7 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                         ? () => alAlternarPreparado(hechizo.id)
                         : undefined
                     }
-                    alQuitarDeLista={() => alQuitarDeLista(hechizo.id)}
+                    alQuitarDeLista={esOtorgado ? undefined : () => alQuitarDeLista(hechizo.id)}
                     alAbrirDetalleCompleto={alAbrirDetalleCompleto}
                     alLanzar={(modo, niv) => alLanzar(modo, niv, hechizo)}
                     esLanzadorPacto={esLanzadorPacto}
@@ -197,7 +179,10 @@ export const SeccionNivelConjuros: React.FC<SeccionNivelConjurosProps> = ({
                     espaciosPactoMaximos={personaje.espaciosPactoMaximos || 0}
                     espaciosPactoGastados={personaje.espaciosPactoGastados || 0}
                     espaciosConjuroMaximos={obtenerMaximosEspaciosEfectivos(personaje)}
+                    espaciosConjuroGastados={personaje.espaciosConjuroGastados}
                     nivelConjuroMaximo={personaje.nivelConjuroMaximo || 0}
+                    puntosConjuroDisponibles={puntosConjuroDisponibles}
+                    costePuntosPorNivel={COSTE_PUNTOS_POR_NIVEL}
                     sistemaMagia={sistemaMagia}
                   />
                 );

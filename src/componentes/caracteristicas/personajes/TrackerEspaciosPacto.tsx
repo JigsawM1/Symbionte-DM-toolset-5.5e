@@ -10,7 +10,6 @@ interface TrackerEspaciosPactoProps {
   nivelEspacioPacto: number;
   alGastarEspacioPacto?: () => void;
   alRecuperarEspaciosPacto?: () => void;
-  soloLectura?: boolean;
 }
 
 export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
@@ -18,8 +17,7 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
   espaciosPactoGastados,
   nivelEspacioPacto,
   alGastarEspacioPacto,
-  alRecuperarEspaciosPacto,
-  soloLectura = false
+  alRecuperarEspaciosPacto
 }) => {
   if (espaciosPactoMaximos <= 0) {
     return null;
@@ -43,7 +41,6 @@ export const TrackerEspaciosPacto: React.FC<TrackerEspaciosPactoProps> = ({
       titulo="Magia de Pacto"
       iconoColor="var(--pj-texto-magia)"
       grupos={grupos}
-      soloLectura={soloLectura}
       modoGrid={false}
       pieDePagina={`Ranuras fijas de nivel ${nivelEspacioPacto} • Recuperación en descanso corto`}
     />

@@ -114,54 +114,48 @@ export function obtenerOpcionesLanzamientoConjuro(
   });
 }
 
-/**
- * Ejecuta el gasto del recurso mágico apropiado delegando entre Magia de Pacto
- * y Magia Estándar según las reglas de multiclase de D&D 5.5e.
- */
-export function gastarRecursoLanzamientoConjuro(
-  params: ParametrosGastoConjuro
+/** Elige el recurso y su coste con la prioridad de lanzamiento de la ficha. */
+export function resolverGastoLanzamientoConjuro(
+  params: Omit<ParametrosGastoConjuro, "alGastarEspacio" | "alGastarPuntos" | "alGastarEspacioPacto">,
+  recursos = { pacto: true, espacio: true, puntos: true }
 ): ResultadoGastoConjuro {
   const {
-    nivelLanzamiento,
-    esLanzadorPacto = false,
-    nivelEspacioPacto = 0,
-    espaciosPactoMaximos = 0,
-    espaciosPactoGastados = 0,
-    espaciosConjuroMaximos = {},
-    sistemaMagia = "espacios",
-    costePuntosPorNivel,
-    alGastarEspacio,
-    alGastarPuntos,
-    alGastarEspacioPacto
+    nivelLanzamiento, esLanzadorPacto = false, nivelEspacioPacto = 0,
+    espaciosPactoMaximos = 0, espaciosPactoGastados = 0,
+    espaciosConjuroMaximos = {}, sistemaMagia = "espacios", costePuntosPorNivel
   } = params;
 
-  if (nivelLanzamiento === 0) {
-    return { recursoGastado: "ninguno" };
+  if (nivelLanzamiento === 0) return { recursoGastado: "ninguno" };
+
+  const correspondePacto = esLanzadorPacto && nivelEspacioPacto > 0
+    && nivelLanzamiento === nivelEspacioPacto && espaciosPactoMaximos > 0;
+  if (recursos.pacto && correspondePacto &&
+      (espaciosPactoGastados < espaciosPactoMaximos || !tieneRanurasEstandarPositivas(espaciosConjuroMaximos))) {
+    return { recursoGastado: "pacto", nivel: nivelEspacioPacto };
   }
 
-  const pactoDisponible = espaciosPactoMaximos - espaciosPactoGastados > 0;
-  const tienePacto =
-    esLanzadorPacto && nivelEspacioPacto > 0 && espaciosPactoMaximos > 0;
-  const tieneEspaciosEstandar = tieneRanurasEstandarPositivas(espaciosConjuroMaximos);
-
-  if (tienePacto && nivelLanzamiento === nivelEspacioPacto) {
-    if ((pactoDisponible || !tieneEspaciosEstandar) && alGastarEspacioPacto) {
-      alGastarEspacioPacto();
-      return { recursoGastado: "pacto", nivel: nivelEspacioPacto };
-    }
+  if (sistemaMagia === "puntos" && recursos.puntos) {
+    const puntos = costePuntosPorNivel?.[nivelLanzamiento] ?? (costePuntosPorNivel?.[1] || 2);
+    return { recursoGastado: "puntos", puntos, nivel: nivelLanzamiento };
   }
 
-  if (sistemaMagia === "puntos" && alGastarPuntos) {
-    const coste =
-      costePuntosPorNivel?.[nivelLanzamiento] ?? (costePuntosPorNivel?.[1] || 2);
-    alGastarPuntos(coste);
-    return { recursoGastado: "puntos", puntos: coste, nivel: nivelLanzamiento };
-  }
+  return recursos.espacio
+    ? { recursoGastado: "espacio", nivel: nivelLanzamiento }
+    : { recursoGastado: "ninguno" };
+}
 
-  if (alGastarEspacio) {
-    alGastarEspacio(nivelLanzamiento);
-    return { recursoGastado: "espacio", nivel: nivelLanzamiento };
-  }
+export function gastarRecursoLanzamientoConjuro(params: ParametrosGastoConjuro): ResultadoGastoConjuro {
+  const { alGastarEspacio, alGastarPuntos, alGastarEspacioPacto } = params;
+  const resultado = resolverGastoLanzamientoConjuro(params, {
+    pacto: Boolean(alGastarEspacioPacto),
+    espacio: Boolean(alGastarEspacio),
+    puntos: Boolean(alGastarPuntos)
+  });
 
-  return { recursoGastado: "ninguno" };
+  switch (resultado.recursoGastado) {
+    case "pacto": alGastarEspacioPacto?.(); break;
+    case "espacio": alGastarEspacio?.(params.nivelLanzamiento); break;
+    case "puntos": alGastarPuntos?.(resultado.puntos!); break;
+  }
+  return resultado;
 }

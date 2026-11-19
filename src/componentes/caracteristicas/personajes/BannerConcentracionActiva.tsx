@@ -12,9 +12,9 @@ export const BannerConcentracionActiva: React.FC<BannerConcentracionActivaProps>
   alRomperConcentracion
 }) => {
   return (
-    <div className={estilos.alertaConcentracion}>
+    <div className={estilos.alertaConcentracion} role="status">
       <div className={estilos.concentracionIzquierda}>
-        <Flame size={18} color="var(--pj-texto-alerta)" className={estilos.concentracionIcono} />
+        <Flame size={16} color="var(--pj-texto-oro)" className={estilos.concentracionIcono} aria-hidden="true" />
         <div className={estilos.concentracionTextos}>
           <span className={estilos.concentracionEtiqueta}>Concentración Activa</span>
           <span className={estilos.concentracionNombre}>{nombreHechizo}</span>
@@ -24,6 +24,7 @@ export const BannerConcentracionActiva: React.FC<BannerConcentracionActivaProps>
         type="button"
         onClick={alRomperConcentracion}
         className={estilos.botonRomperConcentracion}
+        aria-label={`Romper concentración en ${nombreHechizo}`}
       >
         Romper
       </button>

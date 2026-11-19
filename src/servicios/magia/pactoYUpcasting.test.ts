@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
+import { COSTE_PUNTOS_POR_NIVEL, PERSONAJE_POR_DEFECTO } from "@/constantes";
+import { consumirRecursoConjuro } from "../consumidorRecursosConjuros";
+import { prepararLanzamiento, validarLanzamiento } from "../servicioLanzamientoConjuros";
+import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
 import {
   calcularEspaciosPacto,
   esLanzadorDePacto,
@@ -102,6 +105,41 @@ describe("Magia de Pacto (Brujo), Upcasting y Delegación de Gasto", () => {
     expect(obtenerOpcionesLanzamientoConjuro({ nivelHechizo: 2 })).toEqual([
       { nivel: 2, etiqueta: "Nv. 2", tipo: "estandar" }
     ]);
+  });
+
+  it.each([
+    { gastadosPacto: 0, sistemaMagia: "espacios", gasto: "pacto", saldos: [1, 0, 0] },
+    { gastadosPacto: 1, sistemaMagia: "espacios", gasto: "espacio", saldos: [1, 1, 0] },
+    { gastadosPacto: 1, sistemaMagia: "puntos", gasto: "puntos", saldos: [1, 0, 2] }
+  ] as const)("gasta solo $gasto al lanzar con $gastadosPacto ranuras de Pacto usadas", ({
+    gastadosPacto, sistemaMagia, gasto, saldos
+  }) => {
+    const hechizo = HECHIZOS_INICIALES.find((h) => h.nivel === 1)!;
+    const personaje = {
+      ...PERSONAJE_POR_DEFECTO,
+      espaciosConjuroMaximos: { 1: 2 },
+      espaciosPactoMaximos: 1,
+      espaciosPactoGastados: gastadosPacto,
+      nivelEspacioPacto: 1,
+      puntosConjuroMaximos: 3
+    };
+    const contexto = {
+      personajeActual: personaje, sistemaMagia, costePuntosPorNivel: COSTE_PUNTOS_POR_NIVEL,
+      esLanzadorPacto: true, nivelEspacioPacto: 1, espaciosPactoMaximos: 1,
+      espaciosPactoGastados: gastadosPacto
+    };
+    const solicitud = { modo: "espacio", hechizo, nivelLanzamiento: 1 } as const;
+    const preparado = prepararLanzamiento(solicitud, contexto);
+    expect(preparado.gasto.tipo).toBe(gasto);
+    expect(validarLanzamiento(solicitud, contexto, preparado).permitido).toBe(true);
+    const resultado = consumirRecursoConjuro(personaje, preparado.gasto);
+    expect(resultado.permitido).toBe(true);
+    if (!resultado.permitido) throw new Error(resultado.motivo);
+    expect([
+      resultado.personaje.espaciosPactoGastados,
+      resultado.personaje.espaciosConjuroGastados[1] ?? 0,
+      resultado.personaje.puntosConjuroGastados
+    ]).toEqual(saldos);
   });
 
   it("prioriza gasto de Pacto cuando coincide el nivel y delega a estándar o puntos DMG si el pacto está agotado", () => {

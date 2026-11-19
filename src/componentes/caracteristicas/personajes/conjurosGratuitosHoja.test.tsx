@@ -2,7 +2,6 @@ import type { ComponentProps } from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { SeccionNivelConjuros } from "./SeccionNivelConjuros";
-import { SeccionConjurosOcultos } from "./conjuros/SeccionConjurosOcultos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
 import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
@@ -164,7 +163,6 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
       nivelEspacioPacto: 1,
       sistemaMagia: "espacios",
       estaBloqueadoPorArmadura: false,
-      alAlternarOcultar: vi.fn(),
       alQuitarDeLista: vi.fn(),
       alAbrirDetalleCompleto: vi.fn(),
       alLanzar: vi.fn()
@@ -290,82 +288,6 @@ describe("Visualización de Botón 'Gratis' en Panel de Conjuros de la Hoja de P
       );
 
       expect(htmlNivel2).not.toContain("<span>Gratis</span>");
-    });
-  });
-
-  describe("SeccionConjurosOcultos", () => {
-    const crearPropsOcultos = (): Omit<ComponentProps<typeof SeccionConjurosOcultos>, "personaje" | "todosConjurosOcultos" | "conjurosOcultosFiltrados"> => ({
-      estaAbierta: true,
-      alAlternar: vi.fn(),
-      hayFiltrosActivos: false,
-      desocultarTodos: vi.fn(),
-      alternarOculto: vi.fn(),
-      bonoAtaqueMagico: 6,
-      estaPreparado: () => true,
-      esHechizoDeSubclase: () => false,
-      requierePreparacion: false,
-      estaBloqueadoPorArmadura: false,
-      alAlternarPreparado: vi.fn(),
-      alQuitarTruco: vi.fn(),
-      alQuitarConjuro: vi.fn(),
-      alAbrirDetalleCompleto: vi.fn(),
-      alLanzar: vi.fn(),
-      esLanzadorPacto: false,
-      nivelEspacioPacto: 1,
-      sistemaMagia: "espacios"
-    });
-
-    it("conserva Lanzar para un conjuro oculto de Manto: su alternativa se elige al lanzar", () => {
-      const html = renderToStaticMarkup(
-        <SeccionConjurosOcultos
-          {...crearPropsOcultos()}
-          personaje={personajeConMantoMajestad}
-          todosConjurosOcultos={[hechizoOrdenImperiosa]}
-          conjurosOcultosFiltrados={[hechizoOrdenImperiosa]}
-        />
-      );
-
-      expect(html).not.toContain("<span>Gratis</span>");
-      expect(html).toContain("<span>Lanzar</span>");
-    });
-
-    it("muestra el botón 'Gratis' para un conjuro oculto si proviene de un rasgo innato con usos disponibles", () => {
-      const html = renderToStaticMarkup(
-        <SeccionConjurosOcultos
-          {...crearPropsOcultos()}
-          personaje={personajeConRasgoInnato}
-          todosConjurosOcultos={[hechizoCurarHeridas]}
-          conjurosOcultosFiltrados={[hechizoCurarHeridas]}
-        />
-      );
-
-      expect(html).toContain("<span>Gratis</span>");
-    });
-
-    it("NO muestra el botón 'Gratis' para conjuros ocultos sin beneficio gratuito", () => {
-      const html = renderToStaticMarkup(
-        <SeccionConjurosOcultos
-          {...crearPropsOcultos()}
-          personaje={personajeSinGratuito}
-          todosConjurosOcultos={[hechizoCurarHeridas]}
-          conjurosOcultosFiltrados={[hechizoCurarHeridas]}
-        />
-      );
-
-      expect(html).not.toContain("<span>Gratis</span>");
-    });
-
-    it("NO muestra el botón 'Gratis' para conjuros otorgados como preparados en Magia cautivadora", () => {
-      const html = renderToStaticMarkup(
-        <SeccionConjurosOcultos
-          {...crearPropsOcultos()}
-          personaje={personajeConMagiaCautivadora}
-          todosConjurosOcultos={[hechizoHechizarPersona, hechizoImagenMultiple]}
-          conjurosOcultosFiltrados={[hechizoHechizarPersona, hechizoImagenMultiple]}
-        />
-      );
-
-      expect(html).not.toContain("<span>Gratis</span>");
     });
   });
 });

@@ -460,6 +460,7 @@ export const EsquemaPersonajeJugador = z.object({
   rasgos: z.array(EsquemaRasgoPersonaje).default([]),
   dotes: z.array(z.string()).default([]),
   conjurosOcultos: z.array(z.string()).default([]),
+  conjurosEnAcciones: z.array(z.string()).default([]),
 
   // Acompañantes y Sidekicks
   acompanantes: z.array(EsquemaAcompanantePersonaje).default([])

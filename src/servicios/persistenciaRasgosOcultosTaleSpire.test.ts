@@ -152,24 +152,22 @@ describe("Persistencia de Rasgos Ocultos en TaleSpire (Fuente Única de Verdad e
     expect(rasgoRestaurado?.oculto).toBe(true);
   });
 
-  it("persiste conjuros ocultos a través del ciclo de deshidratación e hidratación de TaleSpire", () => {
+  it("persiste conjurosEnAcciones a través del ciclo de deshidratación e hidratación de TaleSpire", () => {
     const store = usarAlmacenDM.getState();
-    const hechizoId = "proyectil-magico";
+    const hechizoId = "escudo";
 
-    store.alternarOcultarConjuro(idPjTest, hechizoId);
+    store.alternarConjuroEnAcciones(idPjTest, hechizoId);
     let pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPjTest);
-    expect(pj?.conjurosOcultos).toContain(hechizoId);
+    expect(pj?.conjurosEnAcciones).toContain(hechizoId);
 
-    // Deshidratar y rehidratar
     const deshidratado = deshidratarPersonaje(pj!);
-    expect(deshidratado.conjurosOcultos).toContain(hechizoId);
+    expect(deshidratado.conjurosEnAcciones).toContain(hechizoId);
 
     const rehidratado = hidratarPersonaje(deshidratado);
-    expect(rehidratado.conjurosOcultos).toContain(hechizoId);
+    expect(rehidratado.conjurosEnAcciones).toContain(hechizoId);
 
-    // Desocultar todos los conjuros
-    store.desocultarTodosLosConjuros(idPjTest);
+    store.alternarConjuroEnAcciones(idPjTest, hechizoId);
     pj = usarAlmacenDM.getState().personajes.find((p) => p.id === idPjTest);
-    expect(pj?.conjurosOcultos).toEqual([]);
+    expect(pj?.conjurosEnAcciones).not.toContain(hechizoId);
   });
 });

@@ -172,7 +172,10 @@ export function sanearPersonaje(p: unknown): PersonajeJugador {
         }
       }
       return [];
-    })()
+    })(),
+    conjurosEnAcciones: Array.isArray(raw.conjurosEnAcciones)
+      ? Array.from(new Set(raw.conjurosEnAcciones.filter((id): id is string => typeof id === "string" && id.trim().length > 0)))
+      : []
   };
 
   // Normalizar y enriquecer competencias de equipo si vienen crudas o vacías

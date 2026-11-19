@@ -167,7 +167,7 @@ export const BarraSuperior: React.FC = () => {
             <button
               onClick={() => establecerPestaña("jugadores")}
               className={`${estilosClases.pestanaBoton} ${
-                !["acciones", "ataques", "conjuros", "compendio", "hechizos", "rasgos", "inventario", "tablas", "notas", "iniciativa", "configuracion", "homebrew"].includes(pestañaActiva) ? estilosClases.pestanaActiva : ""
+                !["acciones", "ataques", "magia", "conjuros", "compendio", "hechizos", "rasgos", "inventario", "tablas", "notas", "iniciativa", "configuracion", "homebrew"].includes(pestañaActiva) ? estilosClases.pestanaActiva : ""
               }`}
               title="Ficha y Características del Personaje"
               type="button"
@@ -189,15 +189,15 @@ export const BarraSuperior: React.FC = () => {
             </button>
 
             <button
-              onClick={() => establecerPestaña("conjuros")}
+              onClick={() => establecerPestaña("magia")}
               className={`${estilosClases.pestanaBoton} ${
-                pestañaActiva === "conjuros" || pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
+                pestañaActiva === "magia" || pestañaActiva === "conjuros" || pestañaActiva === "compendio" || pestañaActiva === "hechizos" ? estilosClases.pestanaActiva : ""
               }`}
-              title="Gestor y Compendio de Conjuros"
+              title="Magia: Lanzamiento, Recursos y Compendio de Conjuros"
               type="button"
             >
               <Sparkles size={13} />
-              <span className={estilosClases.pestanaTexto}>Conjuros</span>
+              <span className={estilosClases.pestanaTexto}>Magia</span>
             </button>
 
             <button

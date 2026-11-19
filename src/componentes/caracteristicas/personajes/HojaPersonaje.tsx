@@ -6,12 +6,11 @@ import { PanelVitalidadPersonaje } from "./PanelVitalidadPersonaje";
 import { PanelAtributosPersonaje } from "./PanelAtributosPersonaje";
 import { PanelCompetenciasPersonaje } from "./PanelCompetenciasPersonaje";
 import { SentidosPasivosPersonaje } from "./SentidosPasivosPersonaje";
-import { PanelConjurosPersonaje } from "./PanelConjurosPersonaje";
 import { ModalSelectorCompetencias } from "./ModalSelectorCompetencias";
 import { ModalResumenDescanso } from "./ModalResumenDescanso";
 import { BotonSubPestana } from "./BotonSubPestana";
 import { usarHojaPersonaje } from "./usarHojaPersonaje";
-import { Swords, Sparkles, PawPrint } from "lucide-react";
+import { Swords, PawPrint } from "lucide-react";
 import { obtenerNivelDruida, obtenerRasgoFormaBestia } from "@/servicios/reglasFormaSalvaje";
 import { PanelFormaSalvaje } from "./PanelFormaSalvaje";
 import estilos from "./HojaPersonaje.module.css";
@@ -24,8 +23,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
   const {
     personajeActivo,
     statsCalculadas,
-    sistemaMagia,
-    baseDatosHechizos,
     rondaActual,
     modoTirada,
     modalCompetencias,
@@ -34,7 +31,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     setModalDescanso,
     subPestanaActiva,
     setSubPestanaActiva,
-    totalConjurosYTrucos,
     actualizarPersonaje,
     alternarInspiracionPersonaje,
     aplicarCondicionPersonaje,
@@ -61,16 +57,6 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
     alAlternarSalvacion,
     alModificarCaracteristicaBase,
     alCiclarGradoHabilidad,
-    alGastarEspacio,
-    alRecuperarEspacio,
-    alGastarPuntos,
-    alRecuperarPuntos,
-    alGastarEspacioPacto,
-    alRecuperarEspaciosPacto,
-    alRomperConcentracion,
-    alQuitarTruco,
-    alQuitarConjuro,
-    alAlternarPreparado,
     establecerFormasConocidasDruida,
     transformarEnFormaSalvaje,
     revertirFormaSalvaje
@@ -90,6 +76,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
   const formaBestia = obtenerRasgoFormaBestia(personajeActivo);
   const tieneFormaBestia = !!formaBestia && obtenerNivelDruida(personajeActivo) >= (formaBestia.nivelRequerido ?? 2);
+  const subPestanaEfectiva = tieneFormaBestia && subPestanaActiva === "formaSalvaje" ? "formaSalvaje" : "general";
 
   return (
     <main className={estilos.contenedorPrincipal}>
@@ -133,36 +120,28 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
 
         <SentidosPasivosPersonaje pasivas={statsCalculadas.pasivas} />
 
-      {/* 4. Barra de Sub-Pestañas Internas (General vs Conjuros) */}
-      <div className={estilos.barraSubPestanas}>
-        <BotonSubPestana
-          activa={subPestanaActiva === "general"}
-          etiqueta="COMBATE Y ATRIBUTOS"
-          icono={<Swords size={14} color={subPestanaActiva === "general" ? "var(--pj-texto-cian)" : "var(--pj-texto-terciario)"} />}
-          alClick={() => setSubPestanaActiva("general")}
-        />
-
-        <BotonSubPestana
-          activa={subPestanaActiva === "conjuros"}
-          etiqueta="CONJUROS Y MAGIA"
-          icono={<Sparkles size={14} color={subPestanaActiva === "conjuros" ? "var(--pj-texto-acento)" : "var(--pj-texto-terciario)"} />}
-          badge={totalConjurosYTrucos}
-          alClick={() => setSubPestanaActiva("conjuros")}
-        />
-
-        {tieneFormaBestia && (
+      {/* 4. Barra de Sub-Pestañas Internas (solo visible cuando existe Forma Salvaje) */}
+      {tieneFormaBestia && (
+        <div className={estilos.barraSubPestanas}>
           <BotonSubPestana
-            activa={subPestanaActiva === "formaSalvaje"}
+            activa={subPestanaEfectiva === "general"}
+            etiqueta="COMBATE Y ATRIBUTOS"
+            icono={<Swords size={14} color={subPestanaEfectiva === "general" ? "var(--pj-texto-cian)" : "var(--pj-texto-terciario)"} />}
+            alClick={() => setSubPestanaActiva("general")}
+          />
+
+          <BotonSubPestana
+            activa={subPestanaEfectiva === "formaSalvaje"}
             etiqueta="FORMA SALVAJE"
-            icono={<PawPrint size={14} color={subPestanaActiva === "formaSalvaje" ? "#22c55e" : "var(--pj-texto-terciario)"} />}
+            icono={<PawPrint size={14} color={subPestanaEfectiva === "formaSalvaje" ? "#22c55e" : "var(--pj-texto-terciario)"} />}
             badge={personajeActivo.formaSalvaje?.formaActivaId ? "Activa" : undefined}
             alClick={() => setSubPestanaActiva("formaSalvaje")}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 5. Contenido según Sub-pestaña Activa */}
-      {subPestanaActiva === "general" && (
+      {subPestanaEfectiva === "general" && (
         <>
           {/* Vitalidad y Supervivencia (Apartado C) */}
           <PanelVitalidadPersonaje
@@ -202,34 +181,12 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
         </>
       )}
 
-      {subPestanaActiva === "formaSalvaje" && tieneFormaBestia && (
+      {subPestanaEfectiva === "formaSalvaje" && tieneFormaBestia && (
         <PanelFormaSalvaje
           personaje={personajeActivo}
           alTransformar={(idBestia, equipo, conservarPg) => transformarEnFormaSalvaje(personajeActivo.id, idBestia, equipo, conservarPg)}
           alRevertir={() => revertirFormaSalvaje(personajeActivo.id)}
           alGuardarFormasConocidas={(formas) => establecerFormasConocidasDruida(personajeActivo.id, formas)}
-        />
-      )}
-
-      {subPestanaActiva === "conjuros" && (
-        <PanelConjurosPersonaje
-          personaje={personajeActivo}
-          bonoCompetencia={statsCalculadas.bonoCompetencia}
-          modificadores={statsCalculadas.modificadores}
-          baseDatosHechizos={baseDatosHechizos}
-          sistemaMagia={sistemaMagia}
-          penalizacionArmadura={statsCalculadas.penalizacionArmadura}
-          alAbrirConfiguracion={alAbrirConfiguracion}
-          alGastarEspacio={alGastarEspacio}
-          alRecuperarEspacio={alRecuperarEspacio}
-          alGastarPuntos={alGastarPuntos}
-          alRecuperarPuntos={alRecuperarPuntos}
-          alGastarEspacioPacto={alGastarEspacioPacto}
-          alRecuperarEspaciosPacto={alRecuperarEspaciosPacto}
-          alRomperConcentracion={alRomperConcentracion}
-          alQuitarTruco={alQuitarTruco}
-          alQuitarConjuro={alQuitarConjuro}
-          alAlternarPreparado={alAlternarPreparado}
         />
       )}
 

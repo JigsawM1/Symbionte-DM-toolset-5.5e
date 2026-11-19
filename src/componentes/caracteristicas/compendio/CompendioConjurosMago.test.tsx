@@ -3,7 +3,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { CompendioConjurosJugador } from "./CompendioConjurosJugador";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes/personajeConstantes";
+import { usarMagiaPersonaje } from "@/hooks/usarMagiaPersonaje";
 import type { PersonajeJugador, ClaseLanzadora } from "@/tipos";
+
+function CompendioPrueba({ personaje }: { personaje: PersonajeJugador }) {
+  const { baseDatosHechizos } = usarAlmacenDM.getState();
+  const magia = usarMagiaPersonaje(personaje, baseDatosHechizos);
+  return <CompendioConjurosJugador personajeActivo={personaje} baseDatosHechizos={baseDatosHechizos} magia={magia} />;
+}
 
 describe("CompendioConjurosJugador - Subpestañas del Mago (modeloConjuros: grimorio)", () => {
   beforeEach(() => {
@@ -14,7 +21,7 @@ describe("CompendioConjurosJugador - Subpestañas del Mago (modeloConjuros: grim
     });
   });
 
-  it("renderiza las subpestañas 'Conocido', 'Libro de conjuros', 'Disponibles' y 'Otros' para el Mago", () => {
+  it("renderiza las subpestañas 'Preparados', 'Libro de conjuros', 'Disponibles' y 'Otros' para el Mago", () => {
     const clasesMago: ClaseLanzadora[] = [
       {
         clase: "Mago",
@@ -43,15 +50,15 @@ describe("CompendioConjurosJugador - Subpestañas del Mago (modeloConjuros: grim
       idPersonajeActivo: pjMago.id
     });
 
-    const html = renderToStaticMarkup(<CompendioConjurosJugador personajeProp={pjMago} />);
+    const html = renderToStaticMarkup(<CompendioPrueba personaje={pjMago} />);
 
     // Comprobamos la presencia de las 4 subpestañas exactas solicitadas
-    expect(html).toContain("Conocido");
+    expect(html).toContain("Preparados");
     expect(html).toContain("Libro de conjuros");
     expect(html).toContain("Disponibles");
     expect(html).toContain("Otros");
-    // NO debe decir "Preparados" ni "Todos" para el Mago
-    expect(html).not.toContain(">Preparados<");
+    // NO debe decir "Conocido" ni "Todos" para el Mago
+    expect(html).not.toContain(">Conocido<");
     expect(html).not.toContain(">Todos<");
   });
 
@@ -84,7 +91,7 @@ describe("CompendioConjurosJugador - Subpestañas del Mago (modeloConjuros: grim
       idPersonajeActivo: pjClerigo.id
     });
 
-    const html = renderToStaticMarkup(<CompendioConjurosJugador personajeProp={pjClerigo} />);
+    const html = renderToStaticMarkup(<CompendioPrueba personaje={pjClerigo} />);
 
     expect(html).toContain("Preparados");
     expect(html).toContain("Disponibles");
@@ -122,7 +129,7 @@ describe("CompendioConjurosJugador - Subpestañas del Mago (modeloConjuros: grim
       idPersonajeActivo: pjBardo.id
     });
 
-    const html = renderToStaticMarkup(<CompendioConjurosJugador personajeProp={pjBardo} />);
+    const html = renderToStaticMarkup(<CompendioPrueba personaje={pjBardo} />);
 
     expect(html).toContain("Conocidos");
     expect(html).toContain("Disponibles");

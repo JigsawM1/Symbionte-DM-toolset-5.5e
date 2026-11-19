@@ -1,6 +1,7 @@
 import React from "react";
-import { Zap, Eye, EyeOff, Trash2, Sparkles, AlertTriangle } from "lucide-react";
+import { Zap, Trash2, StarOff, Sparkles, AlertTriangle, Swords } from "lucide-react";
 import type { HechizoBase } from "@/tipos";
+import { COSTE_PUNTOS_POR_NIVEL } from "@/constantes";
 import { calcularInfoTruco, aplicarBonoNumericoAFormulaDados } from "@/utiles/utilesConjuros";
 import type { ModoLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { SelectorDesplegable } from "@/componentes/comunes";
@@ -19,12 +20,13 @@ interface TarjetaConjuroCompactaProps {
   bonoDanoMagico?: number;
   modificadorHabilidad?: number;
   estaPreparado: boolean;
+  esPreparador?: boolean;
   esDeSubclase?: boolean;
   origenBadge?: OrigenConjuroBadge | null;
   mostrarTogglePreparado?: boolean;
   esConcentracionActual?: boolean;
-  esOculto?: boolean;
-  alAlternarOcultar?: () => void;
+  enAcciones?: boolean;
+  alAlternarAcciones?: () => void;
   alAlternarPreparado?: () => void;
   alQuitarDeLista?: () => void;
   alAbrirDetalleCompleto: (hechizo: HechizoBase) => void;
@@ -37,9 +39,11 @@ interface TarjetaConjuroCompactaProps {
   espaciosPactoMaximos?: number;
   espaciosPactoGastados?: number;
   espaciosConjuroMaximos?: Record<string, number>;
+  espaciosConjuroGastados?: Record<string, number>;
   nivelConjuroMaximo?: number;
   alEstablecerConcentracion?: (id: string, nombre: string) => void;
   costePuntosPorNivel?: Record<number, number>;
+  puntosConjuroDisponibles?: number;
   sistemaMagia?: "espacios" | "puntos";
   bloqueadoPorArmadura?: boolean;
   motivoBloqueoArmadura?: string;
@@ -61,12 +65,13 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
   bonoDanoMagico = 0,
   modificadorHabilidad = 0,
   estaPreparado: _estaPreparado,
+  esPreparador = false,
   esDeSubclase = false,
   origenBadge,
   mostrarTogglePreparado: _mostrarTogglePreparado = false,
   esConcentracionActual = false,
-  esOculto = false,
-  alAlternarOcultar,
+  enAcciones = false,
+  alAlternarAcciones,
   alAlternarPreparado: _alAlternarPreparado,
   alQuitarDeLista,
   alAbrirDetalleCompleto,
@@ -79,9 +84,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
   espaciosPactoMaximos = 0,
   espaciosPactoGastados = 0,
   espaciosConjuroMaximos = {},
+  espaciosConjuroGastados,
   nivelConjuroMaximo = 0,
   alEstablecerConcentracion,
-  costePuntosPorNivel,
+  costePuntosPorNivel = COSTE_PUNTOS_POR_NIVEL,
+  puntosConjuroDisponibles,
   sistemaMagia = "espacios",
   bloqueadoPorArmadura = false,
   motivoBloqueoArmadura,
@@ -96,8 +103,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
 
   const {
     opcionesLanzamiento,
+    opcionActual,
     nivelUpcast,
     setNivelUpcast,
+    costeNivelActual,
+    sinRecursosParaNivelActual,
     manejarLanzamientoRapido,
     manejarLanzamientoRitual,
     manejarLanzamientoGratis
@@ -118,9 +128,11 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
     espaciosPactoMaximos,
     espaciosPactoGastados,
     espaciosConjuroMaximos,
+    espaciosConjuroGastados,
     nivelConjuroMaximo,
     alEstablecerConcentracion,
     costePuntosPorNivel,
+    puntosConjuroDisponibles,
     sistemaMagia,
     permitirUpcastLibre,
     alLanzarGratis
@@ -131,6 +143,34 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
   const claseEstadoTarjeta = esConcentracionActual
     ? estilos.tarjetaConcentracion
     : estilos.tarjetaPreparada;
+
+  const usaPactoActual = opcionActual?.recurso === "pacto";
+  const textoSinRecursos = usaPactoActual
+    ? `Sin ranuras de Pacto de Nivel ${nivelEspacioPacto || nivelUpcast} disponibles — recupera espacios con un descanso`
+    : opcionActual?.recurso === "puntos"
+    ? `Sin puntos suficientes para Nivel ${nivelUpcast} (requiere ${costeNivelActual} puntos, tienes ${puntosConjuroDisponibles ?? 0})`
+    : `Sin ranuras de Nivel ${nivelUpcast} disponibles — sube el nivel de lanzamiento o recupera espacios`;
+
+  const tituloBotonLanzar = bloqueadoPorArmadura
+    ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
+    : esTruco
+    ? "Lanzar truco a TaleSpire"
+    : sinRecursosParaNivelActual
+    ? textoSinRecursos
+    : usaPactoActual
+    ? `Lanzar con ranura de Pacto Nivel ${nivelEspacioPacto || nivelUpcast} (descuenta 1 espacio de pacto)`
+    : `Lanzar con ranura de Nivel ${nivelUpcast} (descuenta ${
+        opcionActual?.recurso === "puntos"
+          ? `${costeNivelActual} puntos`
+          : "1 espacio"
+      })`;
+
+  const tituloBadgeFijo =
+    opcionesLanzamiento[0]?.recurso === "pacto"
+      ? "Lanzamiento automático con ranura de Pacto de nivel fijo (Brujo)"
+      : opcionActual?.recurso === "puntos"
+      ? `Lanzamiento de Nivel ${opcionesLanzamiento[0]?.nivel || hechizo.nivel} (${costeNivelActual} pts)`
+      : `Lanzamiento con ranura de Nivel ${opcionesLanzamiento[0]?.nivel || hechizo.nivel}`;
 
   return (
     <div className={`${estilos.tarjeta} ${claseEstadoTarjeta}`}>
@@ -151,6 +191,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
             {hechizo.concentracion && (
               <span
                 title="Requiere Concentración"
+                aria-label="Requiere concentración"
                 className={estilos.tagConcentracion}
               >
                 C
@@ -160,6 +201,7 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
             {hechizo.ritual && (
               <span
                 title="Puede lanzarse como Ritual"
+                aria-label="Puede lanzarse como ritual"
                 className={estilos.tagRitual}
               >
                 R
@@ -229,12 +271,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
             </div>
           ) : (
             <div
-              className={`${estilos.badgeNivelFijo} ${opcionesLanzamiento[0]?.tipo === "pacto" ? estilos.badgeNivelFijoPacto : ""}`}
-              title={
-                opcionesLanzamiento[0]?.tipo === "pacto"
-                  ? "Lanzamiento automático con ranura de Pacto de nivel fijo (Brujo)"
-                  : `Lanzamiento con ranura de Nivel ${opcionesLanzamiento[0]?.nivel || hechizo.nivel}`
-              }
+              className={`${estilos.badgeNivelFijo} ${opcionesLanzamiento[0]?.recurso === "pacto" ? estilos.badgeNivelFijoPacto : ""}`}
+              title={tituloBadgeFijo}
             >
               {opcionesLanzamiento[0]?.etiqueta || `Nv. ${hechizo.nivel}`}
             </div>
@@ -248,26 +286,23 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
             type="button"
             onClick={manejarLanzamientoRapido}
             disabled={bloqueadoPorArmadura}
-            title={
+            aria-label={`Lanzar ${hechizo.nombre}`}
+            data-bloqueado={bloqueadoPorArmadura ? "true" : undefined}
+            data-sin-recursos={sinRecursosParaNivelActual ? "true" : undefined}
+            title={tituloBotonLanzar}
+            className={`${estilos.botonLanzar} ${
               bloqueadoPorArmadura
-                ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
-                : esTruco
-                ? "Lanzar truco a TaleSpire"
-                : esLanzadorPacto
-                ? `Lanzar con ranura de Pacto Nivel ${nivelEspacioPacto || nivelUpcast} (descuenta 1 espacio de pacto)`
-                : `Lanzar con ranura de Nivel ${nivelUpcast} (descuenta ${
-                    sistemaMagia === "puntos"
-                      ? `${costePuntosPorNivel?.[nivelUpcast] ?? 2} puntos`
-                      : "1 espacio"
-                  })`
-            }
-            className={`${estilos.botonLanzar} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
+                ? estilos.botonBloqueado
+                : sinRecursosParaNivelActual
+                ? estilos.botonLanzarSinRecursos
+                : ""
+            }`}
           >
             <Zap size={11} />
             <span>Lanzar</span>
           </button>
 
-          {/* Fila de Acciones Secundarias (Gratis, Ritual, Ver/Ocultar, Quitar) */}
+          {/* Fila de Acciones Secundarias (Gratis, Ritual, Acciones, Quitar) */}
           <div className={estilos.filaAccionesSecundarias}>
             {/* Botón Lanzamiento Gratuito Diario (1/Descanso Largo) */}
             {tieneLanzamientoGratisDisponible && !esTruco && (
@@ -275,6 +310,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
                 type="button"
                 onClick={manejarLanzamientoGratis}
                 disabled={bloqueadoPorArmadura}
+                aria-label={`Lanzar ${hechizo.nombre} gratis`}
+                data-bloqueado={bloqueadoPorArmadura ? "true" : undefined}
                 title={
                   bloqueadoPorArmadura
                     ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
@@ -282,7 +319,10 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
                 }
                 className={`${estilos.botonLanzarGratis} ${bloqueadoPorArmadura ? estilos.botonBloqueado : ""}`}
               >
-                <Sparkles size={11} color="var(--pj-texto-exito)" />
+                <Sparkles
+                  size={11}
+                  color={bloqueadoPorArmadura ? "currentColor" : "var(--pj-texto-exito)"}
+                />
                 <span>Gratis</span>
               </button>
             )}
@@ -293,6 +333,8 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
                 type="button"
                 onClick={manejarLanzamientoRitual}
                 disabled={bloqueadoPorArmadura}
+                aria-label={`Lanzar ${hechizo.nombre} como ritual`}
+                data-bloqueado={bloqueadoPorArmadura ? "true" : undefined}
                 title={
                   bloqueadoPorArmadura
                     ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
@@ -305,36 +347,30 @@ export const TarjetaConjuroCompacta: React.FC<TarjetaConjuroCompactaProps> = Rea
               </button>
             )}
 
-            {/* Botón Ocultar/Mostrar o Ver Ficha Completa */}
-            {alAlternarOcultar ? (
+            {/* Botón Toggle Mostrar/Quitar en Acciones */}
+            {alAlternarAcciones && (
               <button
                 type="button"
-                onClick={alAlternarOcultar}
-                title={esOculto ? "Mostrar conjuro (restaurar a su nivel)" : "Ocultar conjuro"}
-                className={`${estilos.botonIcono} ${esOculto ? estilos.botonOcultoActivo : ""}`}
+                onClick={alAlternarAcciones}
+                aria-pressed={enAcciones}
+                aria-label={enAcciones ? `Quitar ${hechizo.nombre} de Acciones` : `Mostrar ${hechizo.nombre} en Acciones`}
+                title={enAcciones ? "Quitar de la pestaña Acciones" : "Mostrar en la pestaña Acciones"}
+                className={`${estilos.botonIcono} ${estilos.botonToggleAcciones} ${enAcciones ? estilos.botonToggleAccionesActivo : ""}`}
               >
-                {esOculto ? <EyeOff size={13} /> : <Eye size={13} />}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => alAbrirDetalleCompleto(hechizo)}
-                title="Ver ficha completa y opciones de lanzamiento"
-                className={estilos.botonIcono}
-              >
-                <Eye size={13} />
+                <Swords size={13} />
               </button>
             )}
 
-            {/* Botón Quitar de Lista */}
-            {alQuitarDeLista && (
+            {/* Botón Despreparar o Quitar de Lista */}
+            {alQuitarDeLista && !esOtorgado && (
               <button
                 type="button"
                 onClick={alQuitarDeLista}
-                title="Quitar conjuro de la lista del personaje"
+                title={esPreparador ? "Despreparar conjuro" : "Quitar conjuro de la lista del personaje"}
+                aria-label={esPreparador ? `Despreparar ${hechizo.nombre}` : `Quitar ${hechizo.nombre} de la lista`}
                 className={`${estilos.botonIcono} ${estilos.botonIconoEliminar}`}
               >
-                <Trash2 size={13} />
+                {esPreparador ? <StarOff size={13} /> : <Trash2 size={13} />}
               </button>
             )}
           </div>

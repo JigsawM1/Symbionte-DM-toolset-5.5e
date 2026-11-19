@@ -19,8 +19,7 @@ export const crearSliceEdicionRasgos: StateCreator<
     | "sincronizarRasgosPersonaje"
     | "alternarOcultarRasgo"
     | "desocultarTodosLosRasgos"
-    | "alternarOcultarConjuro"
-    | "desocultarTodosLosConjuros"
+    | "alternarConjuroEnAcciones"
   >
 > = (set) => ({
 agregarRasgoPersonaje: (idPj, rasgo) => {
@@ -155,9 +154,9 @@ sincronizarRasgosPersonaje: (idPj) => {
     }));
   },
 
-  alternarOcultarConjuro: (idPj, idConjuro) => {
+  alternarConjuroEnAcciones: (idPj, idConjuro) => {
     mutarPersonaje(set, idPj, (pj) => {
-      const prev = new Set(pj.conjurosOcultos || []);
+      const prev = new Set(pj.conjurosEnAcciones || []);
       if (prev.has(idConjuro)) {
         prev.delete(idConjuro);
       } else {
@@ -165,15 +164,8 @@ sincronizarRasgosPersonaje: (idPj) => {
       }
       return {
         ...pj,
-        conjurosOcultos: Array.from(prev)
+        conjurosEnAcciones: Array.from(prev)
       };
     });
-  },
-
-  desocultarTodosLosConjuros: (idPj) => {
-    mutarPersonaje(set, idPj, (pj) => ({
-      ...pj,
-      conjurosOcultos: []
-    }));
   }
 });

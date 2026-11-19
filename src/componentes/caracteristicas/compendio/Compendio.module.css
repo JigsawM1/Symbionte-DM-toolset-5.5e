@@ -56,3 +56,70 @@
   display: flex;
   flex-direction: column;
 }
+
+.contenedorMagiaJugador {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: var(--pj-fondo-base);
+  overflow: hidden;
+}
+
+.barraSubPestanasMagia {
+  width: calc(100% - 16px);
+  max-width: 640px;
+  margin: 6px auto 0 auto;
+  padding: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.barraSubPestanasMagia > button {
+  flex: 1;
+  min-width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+  padding: 6px 10px;
+}
+
+@media (max-width: 540px) {
+  .barraSubPestanasMagia > button {
+    flex: 1 1 auto;
+    padding: 6px 7px;
+    gap: 5px;
+    letter-spacing: 0.02em;
+  }
+}
+
+.areaLanzamientoMagia {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 8px 84px 8px;
+}
+
+.limiteAnchoMagia {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.vacioMagiaJugador {
+  max-width: 640px;
+  margin: 16px auto;
+  padding: 20px;
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
+  color: var(--pj-texto-terciario);
+  text-align: center;
+  font-size: var(--pj-fuente-cuerpo);
+}

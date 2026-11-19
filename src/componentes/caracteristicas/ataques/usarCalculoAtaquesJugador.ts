@@ -1,4 +1,5 @@
-﻿import { emitirTiradaDanoConRasgos, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
+﻿import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
+import { emitirTiradaDanoConRasgos, emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { elegirOpcionLanzamiento } from "@/componentes/caracteristicas/rasgos/elegirVarianteConjuro";
 import { disponibleEnTurnoPropio, identificarTurnoRasgo } from "@/servicios/rasgos/limitesTurnoRasgos";
@@ -67,12 +68,6 @@ export function usarCalculoAtaquesJugador() {
   const { personajeActivo } = usarEstadoPersonajes();
   const { agregarNotificacion } = usarAccionesConfiguracion();
   const {
-    gastarEspacioConjuro,
-    recuperarEspacioConjuro,
-    gastarPuntosConjuro,
-    recuperarPuntosConjuro,
-    gastarEspacioPacto,
-    recuperarEspaciosPacto,
     modificarCantidadObjeto,
     aplicarCuracionPersonaje,
     gastarUsoRasgoPersonaje,
@@ -80,8 +75,7 @@ export function usarCalculoAtaquesJugador() {
     alternarActivoRasgo,
     alternarOcultarRasgo,
     desocultarTodosLosRasgos,
-    alternarOcultarConjuro,
-    desocultarTodosLosConjuros,
+    alternarConjuroEnAcciones,
     sincronizarRasgosPersonaje,
     romperConcentracion
   } = usarAccionesPersonajes();
@@ -175,10 +169,18 @@ export function usarCalculoAtaquesJugador() {
     });
   }, [personajeActivo, statsCalculadas, baseDatosObjetos, caracteristicasArmas]);
 
-  // 2. Conjuros por acción
+  // 2. Conjuros por acción (solo los activados explícitamente hacia Acciones)
+  const conjurosEnAccionesSet = useMemo(
+    () => new Set(personajeActivo?.conjurosEnAcciones || []),
+    [personajeActivo?.conjurosEnAcciones]
+  );
+
   const conjurosAcciones = useMemo(() => {
-    return resolverConjurosAcciones(personajeActivo, baseDatosConjuros);
-  }, [personajeActivo, baseDatosConjuros]);
+    if (conjurosEnAccionesSet.size === 0) return [];
+    return resolverConjurosAcciones(personajeActivo, baseDatosConjuros).filter(({ hechizo }) =>
+      conjurosEnAccionesSet.has(hechizo.id)
+    );
+  }, [personajeActivo, baseDatosConjuros, conjurosEnAccionesSet]);
 
   // 3. Consumibles de combate
   const listaConsumibles = useMemo<ConsumibleAccionCalculado[]>(() => {
@@ -398,9 +400,10 @@ export function usarCalculoAtaquesJugador() {
     hechizosObjetosMagicos.length +
     listaRasgosCombate.length;
 
-  const tieneEspaciosEstandar = Object.values(personajeActivo?.espaciosConjuroMaximos || {}).some((v) => (v || 0) > 0);
-  const tienePuntosEstandar = (personajeActivo?.puntosConjuroMaximos || 0) > 0;
-  const tieneMagiaEstandar = sistemaMagia === "puntos" ? tienePuntosEstandar : tieneEspaciosEstandar;
+  const espaciosConjuroMaximos = useMemo(
+    () => personajeActivo ? obtenerMaximosEspaciosEfectivos(personajeActivo) : {},
+    [personajeActivo]
+  );
   const tienePacto = (personajeActivo?.espaciosPactoMaximos || 0) > 0 || esClasePacto(personajeActivo?.clase);
 
   return {
@@ -438,24 +441,17 @@ export function usarCalculoAtaquesJugador() {
     conteoReaccion,
     conteoConsumibles,
     conteoActivables,
-    tieneMagiaEstandar,
+    espaciosConjuroMaximos,
     tienePacto,
     esHechizoDeSubclase,
     lanzar,
-    gastarEspacioConjuro,
-    recuperarEspacioConjuro,
-    gastarPuntosConjuro,
-    recuperarPuntosConjuro,
-    gastarEspacioPacto,
-    recuperarEspaciosPacto,
     romperConcentracion,
     gastarUsoRasgoPersonaje,
     recuperarUsoRasgoPersonaje,
     alternarActivoRasgo,
     alternarOcultarRasgo,
     desocultarTodosLosRasgos,
-    alternarOcultarConjuro,
-    desocultarTodosLosConjuros,
+    alternarConjuroEnAcciones,
     obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => {
       const bloqueoFuria = obtenerBloqueoToggleRasgo(r, furiaEstaActiva);
       return bloqueoFuria.bloqueado ? bloqueoFuria : obtenerBloqueoActivacionRasgo(personajeActivo, r);

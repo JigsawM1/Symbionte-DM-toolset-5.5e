@@ -38,6 +38,7 @@ const AppContenido: React.FC = () => {
         case "acciones":
         case "ataques":
           return <VistaAtaquesJugador />;
+        case "magia":
         case "compendio":
         case "hechizos":
         case "conjuros":

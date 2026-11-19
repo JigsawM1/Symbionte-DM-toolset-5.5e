@@ -712,7 +712,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--pj-fondo-modal-cuerpo);
+  background-color: var(--pj-fondo-modal-overlay);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -855,10 +855,9 @@
 }
 
 /* =========================================================================
-   SUBSECCIÓN: CONJUROS OCULTOS EN ACCIONES MÁGICAS
+   SUBSECCIÓN: RASGOS OCULTOS EN ACCIONES DE COMBATE
    ========================================================================= */
 
-.seccionOcultosMagicos,
 .seccionOcultosRasgos {
   display: flex;
   flex-direction: column;
@@ -870,7 +869,6 @@
   margin-top: 6px;
 }
 
-.cabeceraOcultosMagicos,
 .cabeceraOcultosRasgos {
   display: flex;
   justify-content: space-between;
@@ -879,12 +877,10 @@
   user-select: none;
 }
 
-.cabeceraOcultosMagicos:hover .tituloOcultosMagicos,
 .cabeceraOcultosRasgos:hover .tituloOcultosRasgos {
   color: var(--pj-texto-secundario-claro);
 }
 
-.tituloOcultosMagicos,
 .tituloOcultosRasgos {
   display: flex;
   align-items: center;
@@ -895,7 +891,6 @@
   color: var(--pj-texto-terciario);
 }
 
-.badgeConteoOcultosMagicos,
 .badgeConteoOcultosRasgos {
   font-size: var(--pj-fuente-micro);
   background-color: var(--pj-acento-primario-fondo);
@@ -906,7 +901,6 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
 }
 
-.botonDesocultarTodosMagicos,
 .botonDesocultarTodosRasgos {
   background: none;
   border: 1px solid var(--pj-borde-sutil);
@@ -919,7 +913,6 @@
   transition: none;
 }
 
-.botonDesocultarTodosMagicos:hover,
 .botonDesocultarTodosRasgos:hover {
   background-color: var(--pj-acento-cian-fondo);
   border-color: var(--pj-borde-cian);
@@ -1082,5 +1075,114 @@
   background-color: var(--pj-fondo-tarjeta-hover);
   border-color: var(--pj-borde-oro);
   color: var(--pj-texto-primario);
+}
+
+.puenteEstadoMagia {
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  border-radius: var(--pj-radio-panel);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.puenteEstadoMagia[data-concentracion="true"] {
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
+}
+
+.filaSuperiorPuenteMagia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.estadoConcentracionPuente {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.tituloPuenteMagia {
+  font-size: var(--pj-fuente-subtitulo);
+  font-weight: 700;
+  color: var(--pj-texto-magia);
+}
+
+.etiquetaConcentracionPuente {
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-oro-brillante);
+}
+
+.etiquetaConcentracionPuente strong {
+  color: var(--pj-texto-oro);
+}
+
+.botonRomperPuente {
+  background-color: var(--pj-acento-peligro-fondo);
+  border: 1px solid var(--pj-borde-peligro);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-alerta);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.botonRomperPuente:hover {
+  background-color: var(--pj-acento-peligro-oscuro);
+  color: var(--pj-texto-primario);
+}
+
+.botonIrAMagia {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: var(--pj-acento-magia-solido);
+  border: 1px solid var(--pj-borde-magia);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-sobre-acento);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.botonIrAMagia:hover {
+  border-color: var(--pj-texto-magia);
+}
+
+.resumenRecursosPuente {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.pillRecursoPuente {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--pj-fuente-micro);
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-weight: 700;
+  line-height: 1.3;
+  padding: 2px 7px;
+  border-radius: var(--pj-radio-control);
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario-claro);
+  white-space: nowrap;
+}
+
+.pillRecursoPuente[data-agotado="true"] {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
 }
 

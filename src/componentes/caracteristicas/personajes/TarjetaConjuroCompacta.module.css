@@ -1,8 +1,12 @@
 .tarjeta {
   display: flex;
   justify-content: space-between;
-  border-radius: var(--pj-radio-control);
+  align-items: flex-start;
   gap: 8px;
+  padding: 10px;
+  min-width: 0;
+  background-image: none;
+  border-radius: var(--pj-radio-control);
 }
 
 .tarjetaConcentracion {
@@ -11,13 +15,18 @@
 }
 
 .tarjetaPreparada {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-cian);
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-medio);
 }
 
+.tarjetaPreparada:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento);
+}
 
 .ladoIzquierdo {
   display: flex;
+  align-items: flex-start;
   gap: 8px;
   flex: 1;
   min-width: 0;
@@ -32,13 +41,18 @@
 .filaTitulo {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
 .nombreConjuro {
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 700;
+  line-height: 1.4;
+  min-height: 32px;
   color: var(--pj-texto-primario-suave);
+  white-space: normal;
+  overflow-wrap: anywhere;
   overflow: hidden;
   text-overflow: ellipsis;
   background: none;
@@ -46,6 +60,11 @@
   padding: 0;
   cursor: pointer;
   text-align: left;
+}
+
+.nombreConjuro:hover {
+  text-decoration: underline;
+  color: var(--pj-texto-acento-brillante);
 }
 
 .filaSubclaseInferior {
@@ -71,8 +90,10 @@
 .filaMetadatos {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   font-size: var(--pj-fuente-micro);
+  line-height: 1.5;
   color: var(--pj-texto-terciario);
 }
 
@@ -99,6 +120,8 @@
 .ladoDerecho {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
   flex-shrink: 0;
 }
@@ -115,12 +138,14 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
 .badgeNivelFijo {
   font-size: var(--pj-fuente-badge);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   background-color: var(--pj-acento-primario-fondo);
   color: var(--pj-texto-secundario-claro);
   border: 1px solid var(--pj-borde-acento);
@@ -158,8 +183,23 @@
   box-sizing: border-box;
 }
 
-.botonLanzar:hover {
-  background-color: var(--pj-acento-primario-solido);
+.botonLanzar:hover:not(:disabled) {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
+}
+
+.botonLanzar.botonLanzarSinRecursos {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  opacity: 0.85;
+}
+
+.botonLanzar.botonLanzarSinRecursos:hover:not(:disabled) {
+  background-color: var(--pj-acento-peligro-oscuro);
+  border-color: var(--pj-acento-peligro);
+  color: var(--pj-texto-alerta-brillante);
+  opacity: 1;
 }
 
 .botonRitual {
@@ -176,9 +216,10 @@
   cursor: pointer;
 }
 
-.botonRitual:hover {
-  background-color: var(--pj-acento-cian-fondo);
-  color: var(--pj-texto-primario);
+.botonRitual:hover:not(:disabled) {
+  background-color: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-cian-claro);
 }
 
 .botonLanzarGratis {
@@ -220,19 +261,28 @@
   color: var(--pj-texto-alerta);
 }
 
-.botonOcultoActivo,
-.botonOcultoActivo:hover {
-  color: var(--pj-texto-cian) !important;
+.botonToggleAcciones {
+  border: 1px solid transparent;
+}
+
+.botonToggleAccionesActivo,
+.botonToggleAccionesActivo:hover {
+  background-color: var(--pj-acento-cian-fondo);
+  border-color: var(--pj-borde-cian);
+  color: var(--pj-texto-cian-claro);
 }
 
 
-.botonBloqueado,
-.botonBloqueado:hover {
-  background-color: var(--pj-acento-peligro-fondo) !important;
-  border-color: var(--pj-borde-peligro) !important;
-  color: var(--pj-texto-alerta) !important;
-  cursor: not-allowed !important;
-  opacity: 0.5;
+/* Supera [data-tema="jugador"] :is(button:disabled, ...) (0,3,0) sin !important. */
+.tarjeta .columnaAcciones .botonBloqueado:disabled,
+.tarjeta .columnaAcciones .botonBloqueado:disabled:hover,
+.tarjeta .columnaAcciones .botonBloqueado[data-bloqueado="true"],
+.tarjeta .columnaAcciones .botonBloqueado[data-bloqueado="true"]:hover {
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .iconoAlertaArmadura {
@@ -276,37 +326,6 @@
 
 
 
-/* La carta conserva las alternativas de lanzamiento y deja espacio al nombre. */
-.tarjeta {
-  align-items: flex-start;
-  padding: 10px;
-  background-image: none;
-  min-width: 0;
-}
-.tarjetaPreparada {
-  background: var(--pj-fondo-tarjeta);
-  border-color: var(--pj-borde-medio);
-}
-.ladoIzquierdo {
-  align-items: flex-start;
-}
-.nombreConjuro {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.4;
-  min-height: 32px;
-}
-.filaTitulo, .filaMetadatos {
-  flex-wrap: wrap;
-}
-.filaMetadatos {
-  line-height: 1.5;
-}
-.ladoDerecho {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  max-width: 48%;
-}
 .tarjeta button {
   min-width: 32px;
   min-height: 32px;
@@ -315,7 +334,7 @@
   outline: 2px solid var(--pj-borde-acento-fuerte);
   outline-offset: 2px;
 }
-@media (max-width: 480px) {
+@media (max-width: 540px) {
   .tarjeta {
     flex-wrap: wrap;
   }
@@ -328,5 +347,6 @@
   }
   .columnaAcciones {
     flex: 1;
+    min-width: 0;
   }
 }

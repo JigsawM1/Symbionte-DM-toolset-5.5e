@@ -9,15 +9,13 @@ interface TrackerEspaciosConjuroProps {
   espaciosGastados: Record<string, number>;
   alGastarEspacio?: (nivel: number) => void;
   alRecuperarEspacio?: (nivel: number) => void;
-  soloLectura?: boolean;
 }
 
 export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
   espaciosMaximos,
   espaciosGastados,
   alGastarEspacio,
-  alRecuperarEspacio,
-  soloLectura = false
+  alRecuperarEspacio
 }) => {
   const nivelesDisponibles = Object.keys(espaciosMaximos)
     .map(Number)
@@ -43,7 +41,6 @@ export const TrackerEspaciosConjuro: React.FC<TrackerEspaciosConjuroProps> = ({
       titulo="Espacios de Conjuro"
       iconoColor="var(--pj-texto-acento)"
       grupos={grupos}
-      soloLectura={soloLectura}
       modoGrid={true}
     />
   );

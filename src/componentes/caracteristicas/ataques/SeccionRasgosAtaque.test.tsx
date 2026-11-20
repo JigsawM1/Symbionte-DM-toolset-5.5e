@@ -6,7 +6,6 @@ import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import type { RasgoAccionCombate } from "./usarCalculoAtaquesJugador";
 
-// Mock de localStorage para entorno Node de Vitest
 const crearMockLocalStorage = () => {
   let store: Record<string, string> = {};
   return {
@@ -23,7 +22,7 @@ const crearMockLocalStorage = () => {
   };
 };
 
-describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
+describe("SeccionRasgosAtaque — Flujo Plano A + C y Cajón de Ocultos", () => {
   let mockStorage: ReturnType<typeof crearMockLocalStorage>;
 
   const personajeBase: PersonajeJugador = {
@@ -34,7 +33,9 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     nivel: 3
   };
 
-  const crearRasgoPrueba = (parcial: { id: string; nombre: string } & Partial<RasgoPersonaje>): RasgoPersonaje => {
+  const crearRasgoPrueba = (
+    parcial: { id: string; nombre: string } & Partial<RasgoPersonaje>
+  ): RasgoPersonaje => {
     return EsquemaRasgoPersonaje.parse(parcial);
   };
 
@@ -94,15 +95,7 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
 
   const propsBase = {
     personajeActivo: personajeBase,
-    filtro: "todas" as const,
     rasgosFiltrados: rasgosFiltradosBase,
-    rasgosAcciones: [itemOleadaAccion],
-    rasgosAccionesAdicionales: [itemSegundoAliento],
-    rasgosReacciones: [itemDesviarProyectiles],
-    rasgosConsumibles: [],
-    rasgosActivables: [],
-    estaAbierta: true,
-    alAlternar: vi.fn(),
     alAbrirDetalle: vi.fn(),
     alGastarUso: vi.fn(),
     alRecuperarUso: vi.fn(),
@@ -120,202 +113,108 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     });
   });
 
-  it("renderiza los rasgos visibles y el botón para ocultar cuando no hay ninguno oculto", () => {
+  it("renderiza los rasgos directamente bajo el divisor ligero Rasgos de Acción sin sub-acordeones", () => {
     const html = renderToStaticMarkup(<SeccionRasgosAtaque {...propsBase} />);
 
-    expect(html).toContain("Rasgos y Habilidades Tácticas");
+    expect(html).toContain("<section");
+    expect(html).toContain('aria-label="Rasgos y habilidades tácticas"');
+    expect(html).toContain("Rasgos de Acción");
     expect(html).toContain("Oleada de Acción");
     expect(html).toContain("Segundo Aliento");
     expect(html).toContain("Desviar Proyectiles");
-
-    // Botón para ocultar rasgo
     expect(html).toContain('title="Ocultar rasgo"');
 
-    // No debe mostrar la subsección de ocultos
+    // Sin sub-acordeones heredados ni cajón de ocultos cuando no hay ocultos
+    expect(html).not.toContain("Activables y Modos de Combate");
     expect(html).not.toContain("Rasgos Ocultos");
     expect(html).not.toContain("Mostrar todos");
   });
 
-  it("oculta un rasgo de su categoría y lo traslada a la subsección Rasgos Ocultos cuando rasgo.oculto es true", () => {
-    const itemOleadaOculto = {
-      ...itemOleadaAccion,
-      rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
-    };
-
+  it("omite el divisor Rasgos de Acción en vista filtrada cuando mostrarDivisor es false", () => {
     const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento, itemDesviarProyectiles]}
-        rasgosAcciones={[itemOleadaOculto]}
-      />
+      <SeccionRasgosAtaque {...propsBase} mostrarDivisor={false} />
     );
 
-    // La subsección de ocultos debe aparecer
-    expect(html).toContain("Rasgos Ocultos");
-    expect(html).toContain("Mostrar todos");
-
-    // La tarjeta de Oleada de Acción tiene el botón para restaurar
-    expect(html).toContain('title="Mostrar rasgo (restaurar a su categoría)"');
-
-    // Las otras subcategorías con rasgos visibles siguen presentes
-    expect(html).toContain("Acciones Adicionales");
+    expect(html).not.toContain("Rasgos de Acción");
+    expect(html).toContain("Oleada de Acción");
     expect(html).toContain("Segundo Aliento");
-    expect(html).toContain("Reacciones");
-    expect(html).toContain("Desviar Proyectiles");
   });
 
-  it("omite una subcategoría si todos sus rasgos están ocultos", () => {
-    // Ocultamos el único rasgo de la categoría "Acciones" (Oleada de Acción)
+  it("inicia el cajón de Rasgos Ocultos cerrado por defecto (aria-expanded='false') y muestra botón hermano 'Mostrar todos'", () => {
+    const itemOleadaOculto = {
+      ...itemOleadaAccion,
+      rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
+    };
+
+    const htmlCerrado = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento]}
+      />
+    );
+
+    expect(htmlCerrado).toContain("Rasgos Ocultos");
+    expect(htmlCerrado).toContain('aria-expanded="false"');
+    expect(htmlCerrado).toContain("Mostrar todos");
+    // Cerrado por defecto: no renderiza la tarjeta oculta hasta expandir
+    expect(htmlCerrado).not.toContain("Oleada de Acción");
+    expect(htmlCerrado).toContain("Segundo Aliento");
+
+    // El botón de colapsar Rasgos Ocultos se cierra antes de abrir el botón hermano "Mostrar todos"
+    const idxColapsoOcultos = htmlCerrado.indexOf("Rasgos Ocultos");
+    const idxCierreBotonOcultos = htmlCerrado.indexOf("</button>", idxColapsoOcultos);
+    const idxMostrarTodos = htmlCerrado.indexOf("Mostrar todos");
+    expect(idxColapsoOcultos).toBeGreaterThan(-1);
+    expect(idxCierreBotonOcultos).toBeGreaterThan(idxColapsoOcultos);
+    expect(idxMostrarTodos).toBeGreaterThan(idxCierreBotonOcultos);
+    expect(htmlCerrado).not.toContain('role="button"');
+    expect(htmlCerrado).not.toContain("#22c55e");
+  });
+
+  it("despliega las tarjetas ocultas con botón para restaurar cuando ocultosAbiertos es true", () => {
+    const itemOleadaOculto = {
+      ...itemOleadaAccion,
+      rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
+    };
+
+    const htmlAbierto = renderToStaticMarkup(
+      <SeccionRasgosAtaque
+        {...propsBase}
+        ocultosAbiertos={true}
+        alAlternarOcultos={vi.fn()}
+        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento]}
+      />
+    );
+
+    expect(htmlAbierto).toContain('aria-expanded="true"');
+    expect(htmlAbierto).toContain("Oleada de Acción");
+    expect(htmlAbierto).toContain('title="Mostrar rasgo (restaurar a su categoría)"');
+  });
+
+  it("mantiene visible el cajón Rasgos Ocultos si todos los rasgos están ocultos para permitir desocultarlos", () => {
     const itemOleadaOculto = {
       ...itemOleadaAccion,
       rasgo: { ...itemOleadaAccion.rasgo, oculto: true }
     };
 
     const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        rasgosFiltrados={[itemOleadaOculto, itemSegundoAliento, itemDesviarProyectiles]}
-        rasgosAcciones={[itemOleadaOculto]}
-      />
+      <SeccionRasgosAtaque {...propsBase} rasgosFiltrados={[itemOleadaOculto]} />
     );
 
-    // La subcategoría "Acciones" debe omitirse porque no tiene ningún rasgo visible
-    expect(html).not.toContain("<span>Acciones</span>");
-
-    // En cambio, Acciones Adicionales y Reacciones siguen visibles
-    expect(html).toContain("Acciones Adicionales");
-    expect(html).toContain("Reacciones");
-
-    // Y Oleada de Acción está en Rasgos Ocultos
-    expect(html).toContain("Rasgos Ocultos");
-    expect(html).toContain("Oleada de Acción");
-  });
-
-  it("mantiene visible la sección principal si todos los rasgos están ocultos para permitir desocultarlos", () => {
-    const itemOleadaOculto = { ...itemOleadaAccion, rasgo: { ...itemOleadaAccion.rasgo, oculto: true } };
-    const itemSegundoOculto = { ...itemSegundoAliento, rasgo: { ...itemSegundoAliento.rasgo, oculto: true } };
-    const itemDesviarOculto = { ...itemDesviarProyectiles, rasgo: { ...itemDesviarProyectiles.rasgo, oculto: true } };
-
-    const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        rasgosFiltrados={[itemOleadaOculto, itemSegundoOculto, itemDesviarOculto]}
-        rasgosAcciones={[itemOleadaOculto]}
-        rasgosAccionesAdicionales={[itemSegundoOculto]}
-        rasgosReacciones={[itemDesviarOculto]}
-      />
-    );
-
-    // La cabecera general sigue presente con conteo visible 0
-    expect(html).toContain("Rasgos y Habilidades Tácticas");
+    expect(html).not.toContain("Rasgos de Acción");
     expect(html).toContain("Rasgos Ocultos");
     expect(html).toContain("Mostrar todos");
-
-    // Ninguna subsección regular se muestra
-    expect(html).not.toContain("<span>Acciones</span>");
-    expect(html).not.toContain("Acciones Adicionales");
-    expect(html).not.toContain("<span>Reacciones</span>");
-  });
-
-  it("funciona correctamente en modo filtrado directo (filtro !== 'todas')", () => {
-    const itemOleadaOculto = { ...itemOleadaAccion, rasgo: { ...itemOleadaAccion.rasgo, oculto: true } };
-
-    const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        filtro="accion"
-        rasgosFiltrados={[itemOleadaOculto]}
-      />
-    );
-
-    // Muestra la sección principal y la subsección de ocultos
-    expect(html).toContain("Rasgos y Habilidades Tácticas");
-    expect(html).toContain("Rasgos Ocultos");
-    expect(html).toContain("Oleada de Acción");
-    expect(html).toContain('title="Mostrar rasgo (restaurar a su categoría)"');
   });
 
   it("no renderiza nada cuando rasgosFiltrados está completamente vacío", () => {
     const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        rasgosFiltrados={[]}
-        rasgosAcciones={[]}
-        rasgosAccionesAdicionales={[]}
-        rasgosReacciones={[]}
-      />
+      <SeccionRasgosAtaque {...propsBase} rasgosFiltrados={[]} />
     );
 
     expect(html).toBe("");
   });
 
-  it("respeta el estado de colapso de la sección principal (estaAbierta = false)", () => {
-    const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque {...propsBase} estaAbierta={false} />
-    );
-
-    expect(html).toContain("Rasgos y Habilidades Tácticas");
-    // Al estar colapsada, no renderiza las subsecciones internas ni tarjetas
-    expect(html).not.toContain("Oleada de Acción");
-    expect(html).not.toContain("Segundo Aliento");
-  });
-
-  it("renderiza las subsecciones en el orden solicitado: Activables de primero, luego Recursos y después el resto", () => {
-    const rasgoActivable = crearRasgoPrueba({
-      id: "rasgo-activable-test",
-      nombre: "Defensa Adaptativa",
-      esActivable: true,
-      tipoAccion: "especial"
-    });
-    const rasgoConsumible = crearRasgoPrueba({
-      id: "rasgo-consumible-test",
-      nombre: "Imposición de Manos",
-      tieneUsosLimitados: true,
-      usosMaximos: 15,
-      usosRestantes: 15,
-      tipoAccion: "accion"
-    });
-
-    const itemActivable = crearRasgoAccionPrueba(rasgoActivable, ["activable"]);
-    const itemConsumible = crearRasgoAccionPrueba(rasgoConsumible, ["consumible"]);
-
-    const html = renderToStaticMarkup(
-      <SeccionRasgosAtaque
-        {...propsBase}
-        rasgosFiltrados={[
-          itemOleadaAccion,
-          itemSegundoAliento,
-          itemDesviarProyectiles,
-          itemConsumible,
-          itemActivable
-        ]}
-        rasgosActivables={[itemActivable]}
-        rasgosConsumibles={[itemConsumible]}
-        rasgosAcciones={[itemOleadaAccion]}
-        rasgosAccionesAdicionales={[itemSegundoAliento]}
-        rasgosReacciones={[itemDesviarProyectiles]}
-      />
-    );
-
-    const posActivables = html.indexOf("Activables y Modos de Combate");
-    const posConsumibles = html.indexOf("Recursos Tácticos y Consumibles");
-    const posAcciones = html.indexOf("<span>Acciones</span>");
-    const posAdicionales = html.indexOf("<span>Acciones Adicionales</span>");
-    const posReacciones = html.indexOf("<span>Reacciones</span>");
-
-    expect(posActivables).toBeGreaterThan(-1);
-    expect(posConsumibles).toBeGreaterThan(-1);
-    expect(posAcciones).toBeGreaterThan(-1);
-    expect(posAdicionales).toBeGreaterThan(-1);
-    expect(posReacciones).toBeGreaterThan(-1);
-
-    expect(posActivables).toBeLessThan(posConsumibles);
-    expect(posConsumibles).toBeLessThan(posAcciones);
-    expect(posAcciones).toBeLessThan(posAdicionales);
-    expect(posAdicionales).toBeLessThan(posReacciones);
-  });
-
-  it("renderiza la subsección dedicada de Forma Salvaje separada de la clase cuando hay una bestia activa", () => {
+  it("renderiza el divisor dedicado de Forma Salvaje separado de los rasgos de clase cuando hay una bestia activa", () => {
     const pjDruidaLobo: PersonajeJugador = {
       ...personajeBase,
       clase: "Druida",
@@ -331,7 +230,7 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
     const rasgoLobo = crearRasgoPrueba({
       id: "rasgo_bestia_m_lobo_0_tacticas_manada",
       nombre: "Tácticas de manada",
-      descripcion: "El lobo tiene ventaja en tiradas de ataque contra una criatura si al menos uno de sus aliados está a 5 pies.",
+      descripcion: "El lobo tiene ventaja en ataques con aliado cercano.",
       tipoAccion: "pasivo",
       origen: "personalizado",
       fuente: "Forma salvaje: Lobo",
@@ -353,12 +252,11 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
       activo: true
     });
 
-    const itemBestia = {
-      ...crearRasgoAccionPrueba(rasgoLobo, ["activable"]),
+    const itemBestia: RasgoAccionCombate = {
+      ...crearRasgoAccionPrueba(rasgoLobo, ["especial"]),
       esDeFormaSalvaje: true
     };
-
-    const itemClase = {
+    const itemClase: RasgoAccionCombate = {
       ...crearRasgoAccionPrueba(rasgoFormaSalvajeClase, ["accionAdicional", "consumible"]),
       esDeFormaSalvaje: false
     };
@@ -368,16 +266,12 @@ describe("SeccionRasgosAtaque - Función de Ocultar Rasgos Tácticos", () => {
         {...propsBase}
         personajeActivo={pjDruidaLobo}
         rasgosFiltrados={[itemBestia, itemClase]}
-        rasgosAccionesAdicionales={[itemClase]}
-        rasgosConsumibles={[itemClase]}
-        rasgosActivables={[itemBestia]}
       />
     );
 
-    // Debe contener el bloque dedicado de Forma salvaje con el nombre de la criatura
     expect(html).toContain("Forma salvaje: Lobo");
-    // Y el rasgo de clase debe estar en su respectiva subsección
+    expect(html).toContain("Tácticas de manada");
+    expect(html).toContain("Rasgos de Acción");
     expect(html).toContain("Forma salvaje");
-    expect(html).toContain("Acciones Adicionales");
   });
 });

@@ -3,84 +3,23 @@
    ToolSet D&D 5.5e (TaleSpire CEF: 0ms sin transiciones, 100% tokens --pj-*)
    ========================================================================== */
 
-/* Cabecera de Sección con Toggle Global de Crítico (×2 Dados) */
-.cabeceraSeccionFisicos {
+/* Controles de Toggle Global de Crítico (×2 Dados) en Divisor o Vista Filtrada */
+.barraCriticoFiltrado {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 4px 6px 4px 8px;
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-control);
-}
-
-.cabeceraSeccionFisicos[data-critico="true"] {
-  border-color: var(--pj-borde-oro);
-}
-
-.cabeceraSeccionFisicos .botonColapsarSeccion {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 28px;
-  height: 28px;
-  padding: 2px 4px;
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  color: var(--pj-texto-primario-suave);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  cursor: pointer;
-  text-align: left;
-  transition: none;
-}
-
-.cabeceraSeccionFisicos .botonColapsarSeccion:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
-}
-
-.tituloSeccionTexto {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.badgeConteoFisicos {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario-claro);
-  padding: 1px 6px;
-  border-radius: var(--pj-radio-panel);
-  font-family: var(--fuente-codigo, "JetBrains Mono", monospace);
-  flex-shrink: 0;
-}
-
-.iconoChevron {
-  color: var(--pj-texto-terciario);
-  flex-shrink: 0;
+  justify-content: flex-end;
+  padding: 0 2px;
 }
 
 /* Supera [data-tema="jugador"] :is(button, [role="button"]) (0,2,1) sin !important */
-.cabeceraSeccionFisicos .grupoToggleCritico .botonToggleCritico {
+.bloqueCriticoArmas .grupoToggleCritico .botonToggleCritico {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
   min-width: 0;
-  min-height: 28px;
-  height: 28px;
+  min-height: 26px;
+  height: 26px;
   padding: 0 9px;
   border-radius: 5px;
   background-color: var(--pj-fondo-hundido);
@@ -96,14 +35,14 @@
   transition: none;
 }
 
-.cabeceraSeccionFisicos .grupoToggleCritico .botonToggleCritico:hover {
+.bloqueCriticoArmas .grupoToggleCritico .botonToggleCritico:hover {
   background-color: var(--pj-acento-peligro-fondo);
   border-color: var(--pj-acento-peligro);
   color: var(--pj-texto-primario);
 }
 
-.cabeceraSeccionFisicos .grupoToggleCritico .botonToggleCritico[data-activo="true"],
-.cabeceraSeccionFisicos .grupoToggleCritico .botonToggleCritico[data-activo="true"]:hover {
+.bloqueCriticoArmas .grupoToggleCritico .botonToggleCritico[data-activo="true"],
+.bloqueCriticoArmas .grupoToggleCritico .botonToggleCritico[data-activo="true"]:hover {
   background-color: var(--pj-acento-oro-fondo);
   border-color: var(--pj-acento-oro);
   color: var(--pj-texto-oro);
@@ -723,7 +662,7 @@
 }
 
 .tarjeta button:focus-visible,
-.cabeceraSeccionFisicos button:focus-visible {
+.bloqueCriticoArmas button:focus-visible {
   outline: 2px solid var(--pj-borde-acento-fuerte);
   outline-offset: 2px;
 }
@@ -769,13 +708,7 @@
     padding: 5px 6px;
   }
 
-  .cabeceraSeccionFisicos .botonColapsarSeccion {
-    font-size: 11px;
-    letter-spacing: 0.15px;
-    gap: 4px;
-  }
-
-  .cabeceraSeccionFisicos .grupoToggleCritico .botonToggleCritico {
+  .bloqueCriticoArmas .grupoToggleCritico .botonToggleCritico {
     padding: 0 7px;
     font-size: 10.5px;
   }

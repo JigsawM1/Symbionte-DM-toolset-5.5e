@@ -17,7 +17,7 @@
 
 /* ==========================================
    CABECERA PRINCIPAL Y FILTROS
-   ========================================= */
+   ========================================== */
 
 .cabeceraPrincipal {
   background: var(--pj-fondo-cabecera-gradiente);
@@ -65,44 +65,7 @@
   padding: 1px 7px;
   border-radius: var(--pj-radio-panel);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.accionesCabeceraDerecha,
-.grupoPestanasPrincipales {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.grupoControlesColapso {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.botonControlColapso {
-  background: transparent;
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-terciario);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  padding: 3px 6px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: none;
-  white-space: nowrap;
-}
-
-.botonControlColapso:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-primario);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Barra de Filtros Tácticos de Acción */
@@ -110,40 +73,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
   background-color: var(--pj-fondo-hundido);
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
   padding: 4px;
   flex-wrap: wrap;
+  flex-wrap: balance;
 }
 
-.botonFiltro {
-  flex: 0 0 auto;
+.cabeceraPrincipal .barraFiltros .botonFiltro {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 8px;
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-secundario);
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
-  padding: 5px 10px;
+  text-transform: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   white-space: nowrap;
   user-select: none;
   transition: none;
 }
 
-.botonFiltro:hover,
-.selectorFiltroWrapper button:hover {
+.cabeceraPrincipal .barraFiltros .botonFiltro:hover {
   background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-acento-tenue);
   color: var(--pj-texto-primario);
 }
 
-.botonFiltroActivo {
+.cabeceraPrincipal .barraFiltros .botonFiltroActivo {
   background-color: var(--pj-fondo-tarjeta-hover);
   border: 1px solid var(--pj-borde-acento-fuerte);
   color: var(--pj-texto-primario);
@@ -153,8 +121,9 @@
 .badgeConteoFiltro {
   font-size: var(--pj-fuente-micro);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: var(--pj-radio-panel);
   background-color: var(--pj-fondo-tarjeta-elevada);
   color: var(--pj-texto-terciario);
@@ -163,402 +132,6 @@
 .botonFiltroActivo .badgeConteoFiltro {
   background-color: var(--pj-acento-primario-activo);
   color: var(--pj-texto-acento);
-}
-
-.selectorFiltroWrapper {
-  flex: 0 0 auto;
-  min-width: 130px;
-}
-
-.selectorFiltroWrapper button {
-  height: 28px !important;
-  font-size: var(--pj-fuente-micro) !important;
-  font-weight: 700;
-  border-radius: var(--pj-radio-control);
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-secundario);
-  padding: 4px 10px;
-}
-
-.selectorFiltroActivo button {
-  background-color: var(--pj-fondo-tarjeta-hover) !important;
-  border: 1px solid var(--pj-borde-acento-fuerte) !important;
-  color: var(--pj-texto-primario) !important;
-  box-shadow: var(--pj-sombra-brillo-acento);
-}
-
-.tarjetaVacia {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-panel);
-  padding: 20px;
-  text-align: center;
-  color: var(--pj-texto-secundario);
-  font-size: var(--pj-fuente-cuerpo);
-}
-
-/* ==========================================
-   SECCIONES Y GRUPOS COLAPSABLES
-   ========================================= */
-
-.seccionGrupoAtaques {
-  background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: var(--pj-radio-panel);
-  padding: 6px 8px;
-  box-shadow: var(--pj-sombra-panel);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.cabeceraGrupoAtaques {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: 5px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.cabeceraGrupoAtaques:hover {
-  background: linear-gradient(180deg, var(--pj-fondo-tarjeta-elevada) 0%, var(--pj-fondo-tarjeta-elevada) 100%);
-  border-color: var(--pj-borde-acento-tenue);
-}
-
-.tituloGrupoAtaques {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-secundario-claro);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.ladoDerechoCabecera {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--pj-texto-terciario);
-}
-
-.badgeConteoSeccion {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-medio);
-  color: var(--pj-texto-secundario-claro);
-  padding: 1px 6px;
-  border-radius: var(--pj-radio-panel);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.listaAtaques {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* ==========================================
-   TARJETAS DE ATAQUE / ACCIÓN
-   ========================================= */
-
-.tarjetaAtaque {
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
-  border-left: 3px solid var(--pj-texto-cian);
-  border-radius: var(--pj-radio-control);
-  padding: 6px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.tarjetaAtaque:hover {
-  border-color: var(--pj-borde-acento);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-.tarjetaHechizoObjeto {
-  border-left-color: var(--pj-borde-magia);
-}
-
-.filaSuperiorAtaque {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-}
-
-.nombreAtaque {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 700;
-  color: var(--pj-texto-primario-suave);
-  letter-spacing: 0.1px;
-}
-
-.badgeAtaqueTipo {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background-color: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  color: var(--pj-texto-cian-claro);
-}
-
-.badgeAccionTipo {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  padding: 1px 6px;
-  border-radius: 3px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-sutil);
-  color: var(--pj-texto-secundario);
-}
-
-.badgeAccionAdicional {
-  background-color: var(--pj-acento-oro-fondo);
-  border-color: var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-}
-
-.badgeReaccion {
-  background-color: var(--pj-acento-magia-fondo);
-  border-color: var(--pj-borde-magia);
-  color: var(--pj-texto-magia);
-}
-
-.filaMetricasAtaque {
-  display: grid;
-  grid-template-columns: auto auto 1fr auto;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-sutil);
-  border-radius: 4px;
-  padding: 4px 6px;
-}
-
-.bloqueBonoImpacto {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 38px;
-}
-
-.etiquetaMicro {
-  font-size: var(--pj-fuente-micro);
-  font-weight: 800;
-  color: var(--pj-texto-label);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.valorBonoImpacto {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-cian);
-}
-
-.bloqueDano {
-  display: flex;
-  flex-direction: column;
-  padding-left: 2px;
-  align-items: center;
-}
-
-.valorDano {
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-}
-
-.filaAccionesTirada {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 4px;
-  justify-content: end;
-  align-items: center;
-}
-
-.filaAccionesTirada button {
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.botonTirarAtaque {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-cian);
-  color: var(--pj-texto-primario);
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  white-space: nowrap;
-  user-select: none;
-}
-
-.botonTirarAtaque:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-texto-cian);
-  box-shadow: var(--pj-sombra-tarjeta);
-  color: var(--pj-texto-primario);
-}
-
-/* ==========================================
-   CONSUMIBLES Y POCIONES (D&D 5.5e)
-   ========================================= */
-
-.tarjetaConsumible {
-  border-left-color: var(--pj-borde-exito);
-}
-
-.badgeCantidadConsumible {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 800;
-  color: var(--pj-texto-exito);
-  background-color: var(--pj-acento-exito-fondo);
-  border: 1px solid var(--pj-borde-exito);
-  border-radius: 3px;
-  padding: 0.5px 4px;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.bloqueIzquierdoConsumible,
-.bloqueDerechoConsumible,
-.bloqueCuracionConsumible {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.contenedorEfectoConsumible {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1 1 0%;
-  min-width: 0;
-}
-
-.filaMetricasConsumible {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 6px;
-  background-color: var(--pj-fondo-panel);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: 4px;
-  padding: 4px 6px;
-}
-
-.textoEfectoCuracion {
-  font-size: var(--pj-fuente-label);
-  font-weight: 700;
-  color: var(--pj-texto-exito);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.textoEfectoGenerico {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.botonUsarConsumible {
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-exito);
-  color: var(--pj-texto-exito);
-  cursor: pointer;
-  padding: 3px 8px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  transition: none;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.botonUsarConsumible:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-exito);
-  color: var(--pj-texto-primario);
-  box-shadow: var(--pj-sombra-tarjeta);
-}
-
-/* ==========================================
-   HECHIZOS DE OBJETOS MÁGICOS Y MUNICIÓN
-   ========================================= */
-
-.nombreFuenteObjeto {
-  font-size: var(--pj-fuente-subtitulo);
-  color: var(--pj-texto-acento);
-}
-
-.badgeCargasObjeto {
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-oro);
-  font-weight: 700;
-}
-
-.badgeCargasVacias {
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-alerta);
-  font-weight: 700;
-}
-
-.costeCargasTexto {
-  color: var(--pj-texto-oro);
-}
-
-.botonLanzarObjeto {
-  background: linear-gradient(180deg, var(--pj-acento-magia-solido) 0%, var(--pj-fondo-tarjeta) 100%);
-  border: 1px solid var(--pj-borde-magia);
-  color: var(--pj-texto-magia);
-  cursor: pointer;
-}
-
-.botonLanzarObjeto:hover:not(:disabled) {
-  background: linear-gradient(180deg, var(--pj-acento-magia-solido) 0%, var(--pj-acento-magia-solido) 100%);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-magia);
-}
-
-.botonLanzarObjeto:disabled {
-  background: var(--pj-fondo-tarjeta-elevada);
-  border-color: var(--pj-borde-medio);
-  color: var(--pj-texto-terciario);
-  cursor: not-allowed;
 }
 
 .bannerPenalizacionArmadura {
@@ -585,20 +158,59 @@
   margin-top: 1px;
 }
 
-/* Modal de Hechizo */
-.backdropModalHechizo {
+.tarjetaVacia {
+  background-color: var(--pj-fondo-tarjeta);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-panel);
+  padding: 20px;
+  text-align: center;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.textoTarjetaVacia {
+  margin: 0;
+  color: var(--pj-texto-secundario);
+  font-size: var(--pj-fuente-cuerpo);
+}
+
+.tarjetaVacia .botonRestablecerFiltro {
+  background-color: var(--pj-acento-primario-solido);
+  border: 1px solid var(--pj-borde-acento-fuerte);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-primario);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  padding: 6px 12px;
+  min-width: 0;
+  min-height: 30px;
+  cursor: pointer;
+  transition: none;
+}
+
+.tarjetaVacia .botonRestablecerFiltro:hover {
+  background-color: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-borde-acento-luminoso);
+}
+
+/* ==========================================
+   MODAL DE HECHIZO EN DIALOGOMODAL
+   ========================================== */
+
+.overlayModalHechizo {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--pj-fondo-modal-overlay);
-  z-index: 1000;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
   box-sizing: border-box;
+  background-color: var(--pj-fondo-modal-overlay);
 }
 
 .contenedorModalHechizo {
@@ -609,129 +221,309 @@
   background-color: var(--pj-fondo-modal-cuerpo);
   border-radius: var(--pj-radio-panel);
   border: 1px solid var(--pj-borde-acento);
+  box-shadow: var(--pj-sombra-modal);
   box-sizing: border-box;
 }
 
 /* ==========================================
-   SUBSECCIONES DE CONJUROS POR NIVEL EN ACCIONES
-   ========================================= */
+   MODOS ACTIVOS · SWITCHES DE COMBATE (OPCIÓN C)
+   ========================================== */
 
-.listaSeccionesNivelMagico {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.seccionNivelMagico {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.barraSwitchesCombate {
   background-color: var(--pj-fondo-tarjeta);
-  border: 1px solid var(--pj-borde-acento);
+  border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-panel);
-  padding: 8px 10px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  transition: none;
-}
-
-.seccionNivelMagico:hover {
-  border-color: var(--pj-borde-acento);
-}
-
-.seccionFormaSalvajeAtaques {
+  padding: 6px 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background-color: rgba(34, 197, 94, 0.04);
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  border-radius: var(--pj-radio-panel);
-  padding: 8px 10px;
-  box-shadow: var(--pj-sombra-tarjeta);
 }
 
-.cabeceraFormaSalvajeAtaques {
+.cabeceraSwitchesCombate {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 4px 6px;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  border-radius: 5px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.cabeceraFormaSalvajeAtaques:hover {
-  background: rgba(34, 197, 94, 0.18);
-  border-color: rgba(34, 197, 94, 0.5);
-}
-
-.badgeFormaSalvajeAtaques {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  background-color: rgba(34, 197, 94, 0.2);
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  color: #22c55e;
-  padding: 0.5px 6px;
-  border-radius: var(--pj-radio-panel);
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.tituloFormaSalvajeAtaques {
-  color: #22c55e;
-  font-weight: 700;
-}
-
-.cabeceraNivelMagico {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 6px;
-  background: var(--pj-acento-primario-fondo);
-  border: 1px solid var(--pj-borde-acento);
-  border-radius: 5px;
-  cursor: pointer;
-  user-select: none;
-  transition: none;
-}
-
-.cabeceraNivelMagico:hover {
-  background: var(--pj-acento-primario-fondo);
-  border-color: var(--pj-borde-acento);
-}
-
-.tituloNivelMagico {
-  font-size: var(--pj-fuente-subtitulo);
-  font-weight: 800;
-  color: var(--pj-texto-primario);
-  letter-spacing: 0.3px;
-  display: flex;
-  align-items: center;
   gap: 6px;
 }
 
-.badgeConteoNivelMagico {
+.tituloSwitchesCombate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--pj-texto-secundario);
+}
+
+.badgeActivosSwitches {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  padding: 0 6px;
+  border-radius: 999px;
+  background-color: var(--pj-acento-oro-fondo);
+  border: 1px solid var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
+}
+
+.listaChipsSwitches {
+  display: flex;
+  flex-wrap: wrap;
+  flex-wrap: balance;
+  gap: 6px;
+}
+
+.envolturaChipSwitch {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: 999px;
+  border: 1px solid var(--pj-borde-medio);
+  background-color: var(--pj-fondo-hundido);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.envolturaChipSwitch[data-activo="true"] {
+  border-color: var(--pj-borde-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  box-shadow: var(--pj-sombra-brillo-oro);
+}
+
+.envolturaChipSwitch[data-deshabilitado="true"] {
+  opacity: 0.65;
+  border-color: var(--pj-borde-sutil);
+}
+
+.barraSwitchesCombate .envolturaChipSwitch .botonChipSwitch {
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 8px 0 9px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  color: var(--pj-texto-secundario-claro);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: none;
+}
+
+.barraSwitchesCombate .envolturaChipSwitch .botonChipSwitch:hover:not(:disabled) {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+}
+
+.barraSwitchesCombate .envolturaChipSwitch[data-activo="true"] .botonChipSwitch {
+  color: var(--pj-texto-oro-brillante);
+}
+
+.barraSwitchesCombate .envolturaChipSwitch .botonChipSwitch:disabled {
+  cursor: not-allowed;
+  color: var(--pj-texto-terciario);
+}
+
+.indicadorPuntoSwitch {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background-color: var(--pj-borde-medio);
+  flex-shrink: 0;
+}
+
+.envolturaChipSwitch[data-activo="true"] .indicadorPuntoSwitch {
+  background-color: var(--pj-texto-oro);
+}
+
+.nombreChipSwitch {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.estadoOnSwitch {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  color: var(--pj-texto-oro);
+}
+
+.contadorChipSwitch {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--pj-fuente-badge);
+  color: var(--pj-texto-terciario);
+}
+
+.envolturaChipSwitch[data-activo="true"] .contadorChipSwitch {
+  color: var(--pj-texto-oro-brillante);
+}
+
+.barraSwitchesCombate .envolturaChipSwitch .botonDetalleChipSwitch {
+  min-width: 24px;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 6px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--pj-borde-sutil);
+  border-radius: 0;
+  color: var(--pj-texto-terciario);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: none;
+}
+
+.barraSwitchesCombate .envolturaChipSwitch .botonDetalleChipSwitch:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+}
+
+.barraSwitchesCombate .listaChipsSwitches .chipFormaSalvajeSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 28px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: none;
+}
+
+.barraSwitchesCombate .listaChipsSwitches .chipFormaSalvajeSwitch:hover {
+  border-color: var(--pj-texto-exito);
+  color: var(--pj-texto-primario);
+}
+
+.chipFormaSalvajeSwitch .estadoOnSwitch {
+  color: var(--pj-texto-exito-brillante);
+}
+
+/* ==========================================
+   FLUJO TÁCTICO PLANO Y DIVISORES (OPCIÓN A)
+   ========================================== */
+
+.bloqueSeccionPlana {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.divisorSeccionPlano {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 2px 2px;
+  min-height: 24px;
+}
+
+.etiquetaDivisorPlano {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.tituloDivisorPlano {
+  margin: 0;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--pj-texto-secundario);
+}
+
+.divisorSeccionPlano[data-tono="cian"] .tituloDivisorPlano {
+  color: var(--pj-texto-cian);
+}
+
+.divisorSeccionPlano[data-tono="magia"] .tituloDivisorPlano {
+  color: var(--pj-texto-magia);
+}
+
+.divisorSeccionPlano[data-tono="oro"] .tituloDivisorPlano {
+  color: var(--pj-texto-oro);
+}
+
+.divisorSeccionPlano[data-tono="exito"] .tituloDivisorPlano {
+  color: var(--pj-texto-exito);
+}
+
+.badgeDivisorPlano {
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
   font-size: var(--pj-fuente-badge);
   font-weight: 700;
-  background-color: var(--pj-acento-primario-fondo);
-  border: 1px solid var(--pj-borde-acento);
-  color: var(--pj-texto-acento);
-  padding: 0.5px 6px;
-  border-radius: var(--pj-radio-panel);
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  color: var(--pj-texto-terciario);
+}
+
+.lineaDivisorPlano {
+  flex: 1 1 auto;
+  height: 1px;
+  background-color: var(--pj-borde-sutil);
+  min-width: 12px;
+}
+
+.accionDivisorPlano {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.barraContextoFiltro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+.barraContextoFiltro strong {
+  color: var(--pj-texto-primario-suave);
+}
+
+.contadorContextoFiltro {
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--pj-texto-secundario);
+}
+
+.listaAtaques {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .ladoDerechoCabeceraNivel {
   display: flex;
   align-items: center;
   color: var(--pj-texto-acento);
-}
-
-.listaTarjetasNivelMagico {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 2px;
 }
 
 /* =========================================================================
@@ -749,15 +541,38 @@
   margin-top: 6px;
 }
 
-.cabeceraOcultosRasgos {
+.barraCabeceraOcultosRasgos {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  cursor: pointer;
-  user-select: none;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.cabeceraOcultosRasgos:hover .tituloOcultosRasgos {
+.barraCabeceraOcultosRasgos .botonColapsarOcultosRasgos {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 3px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--pj-radio-control);
+  text-align: left;
+  text-transform: none;
+  cursor: pointer;
+  user-select: none;
+  transition: none;
+}
+
+.barraCabeceraOcultosRasgos .botonColapsarOcultosRasgos:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-sutil);
+}
+
+.barraCabeceraOcultosRasgos .botonColapsarOcultosRasgos:hover .tituloOcultosRasgos {
   color: var(--pj-texto-secundario-claro);
 }
 
@@ -779,25 +594,463 @@
   border-radius: var(--pj-radio-panel);
   font-weight: 700;
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
 }
 
-.botonDesocultarTodosRasgos {
+.barraCabeceraOcultosRasgos .botonDesocultarTodosRasgos {
   background: none;
   border: 1px solid var(--pj-borde-sutil);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-cian);
   font-size: var(--pj-fuente-boton);
   font-weight: 600;
-  padding: 2px 7px;
+  text-transform: none;
+  padding: 2px 8px;
+  min-width: 0;
+  min-height: 28px;
   cursor: pointer;
+  white-space: nowrap;
   transition: none;
 }
 
-.botonDesocultarTodosRasgos:hover {
+.barraCabeceraOcultosRasgos .botonDesocultarTodosRasgos:hover {
   background-color: var(--pj-acento-cian-fondo);
   border-color: var(--pj-borde-cian);
   color: var(--pj-texto-primario);
 }
+
+/* ==========================================
+   HECHIZOS DE OBJETOS MÁGICOS V2
+   ========================================== */
+
+.tarjetaHechizoObjetoV2 {
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-sutil);
+  border-left: 3px solid var(--pj-borde-magia);
+  border-radius: var(--pj-radio-control);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+.tarjetaHechizoObjetoV2[data-accion="accionAdicional"] {
+  border-left-color: var(--pj-borde-oro);
+}
+
+.tarjetaHechizoObjetoV2[data-bloqueado="true"] {
+  border-left-color: var(--pj-borde-peligro);
+}
+
+.filaSuperiorTarjetaV2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.grupoTituloIzquierdaV2 {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bloqueTituloObjetoV2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tarjetaHechizoObjetoV2 .botonTituloHechizoObjeto {
+  background: transparent;
+  border: none;
+  padding: 0;
+  min-width: 0;
+  min-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  text-align: left;
+  text-transform: none;
+  color: var(--pj-texto-primario-suave);
+  font-size: var(--pj-fuente-subtitulo);
+  font-weight: 700;
+  cursor: pointer;
+  transition: none;
+}
+
+.tarjetaHechizoObjetoV2 .botonTituloHechizoObjeto:hover {
+  color: var(--pj-texto-magia);
+}
+
+.chipFichaObjeto {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: var(--pj-acento-magia-fondo);
+  border: 1px solid var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
+}
+
+.subtituloOrigenObjeto {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-terciario);
+}
+
+.badgesDerechaTarjetaV2 {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.pillCargasObjeto {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+}
+
+.pillCargasObjeto[data-estado="disponible"] {
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
+}
+
+.pillCargasObjeto[data-estado="agotado"] {
+  background-color: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+}
+
+.pillCargasObjeto[data-estado="voluntad"] {
+  background-color: var(--pj-acento-magia-fondo);
+  border-color: var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
+}
+
+.badgeAccionTipo {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
+  color: var(--pj-texto-secundario);
+}
+
+.badgeAccionAdicional {
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
+  color: var(--pj-texto-oro);
+}
+
+.badgeReaccion {
+  background-color: var(--pj-acento-magia-fondo);
+  border-color: var(--pj-borde-magia);
+  color: var(--pj-texto-magia);
+}
+
+.bandaMetricasObjetoV2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  padding: 6px 8px;
+}
+
+.grupoMetricasObjetoV2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.itemMetricaObjetoV2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.etiquetaMetricaObjeto {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--pj-texto-label);
+}
+
+.valorMetricaObjeto {
+  font-size: var(--pj-fuente-cuerpo);
+  font-weight: 700;
+  color: var(--pj-texto-primario);
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+}
+
+.valorMetricaSecundaria {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-secundario);
+}
+
+.separadorMetricaObjeto {
+  width: 1px;
+  height: 22px;
+  background-color: var(--pj-borde-sutil);
+}
+
+.splitLanzarObjeto {
+  display: inline-flex;
+  align-items: stretch;
+  height: 32px;
+  border-radius: var(--pj-radio-control);
+  overflow: hidden;
+  border: 1px solid var(--pj-borde-magia);
+  flex-shrink: 0;
+}
+
+.celdaCosteObjeto {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  color: var(--pj-texto-oro);
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.celdaCosteObjeto[data-voluntad="true"] {
+  color: var(--pj-texto-cian-claro);
+}
+
+.tarjetaHechizoObjetoV2 .splitLanzarObjeto .botonLanzarSplitObjeto {
+  min-width: 88px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 10px;
+  background: var(--pj-acento-magia-solido);
+  border: none;
+  border-left: 1px solid var(--pj-borde-magia);
+  border-radius: 0;
+  color: var(--pj-texto-sobre-acento);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  white-space: nowrap;
+  transition: none;
+}
+
+.tarjetaHechizoObjetoV2 .splitLanzarObjeto .botonLanzarSplitObjeto:hover {
+  background: var(--pj-acento-magia);
+  color: var(--pj-texto-primario);
+}
+
+.tarjetaHechizoObjetoV2 .botonBloqueadoObjeto {
+  height: 32px;
+  min-height: 32px;
+  min-width: 88px;
+  padding: 0 10px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-medio);
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-terciario);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  cursor: not-allowed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+/* ==========================================
+   CONSUMIBLES Y POCIONES V2 (D&D 5.5e)
+   ========================================== */
+
+.tarjetaAtaque {
+  background: var(--pj-fondo-cabecera-gradiente);
+  border: 1px solid var(--pj-borde-sutil);
+  border-left: 3px solid var(--pj-texto-cian);
+  border-radius: var(--pj-radio-control);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+.tarjetaAtaque:hover {
+  border-color: var(--pj-borde-acento);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+.tarjetaConsumible {
+  border-left-color: var(--pj-borde-exito);
+}
+
+.tarjetaConsumible[data-ultima="true"] {
+  border-color: var(--pj-borde-oro);
+  border-left-color: var(--pj-borde-oro);
+}
+
+.filaSuperiorAtaque {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.bloqueIzquierdoConsumible,
+.bloqueDerechoConsumible,
+.bloqueCuracionConsumible {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nombreAtaque {
+  font-size: var(--pj-fuente-subtitulo);
+  font-weight: 700;
+  color: var(--pj-texto-primario-suave);
+  letter-spacing: 0.1px;
+}
+
+.badgeCantidadConsumible {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 800;
+  color: var(--pj-texto-exito);
+  background-color: var(--pj-acento-exito-fondo);
+  border: 1px solid var(--pj-borde-exito);
+  border-radius: 3px;
+  padding: 0.5px 4px;
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.badgeCantidadConsumible[data-ultima="true"] {
+  color: var(--pj-texto-oro);
+  background-color: var(--pj-acento-oro-fondo);
+  border-color: var(--pj-borde-oro);
+}
+
+.badgeAtaqueTipo {
+  font-size: var(--pj-fuente-micro);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: var(--pj-acento-cian-fondo);
+  border: 1px solid var(--pj-borde-cian);
+  color: var(--pj-texto-cian-claro);
+}
+
+.filaMetricasConsumible {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento);
+  border-radius: 4px;
+  padding: 5px 8px;
+}
+
+.bloqueEfectoConsumibleV2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.textoEfectoCuracion {
+  font-size: var(--pj-fuente-label);
+  font-weight: 700;
+  color: var(--pj-texto-exito);
+  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.textoEfectoGenerico {
+  font-size: var(--pj-fuente-label);
+  color: var(--pj-texto-acento);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
+}
+
+.tarjetaConsumible .filaMetricasConsumible .botonUsarConsumible {
+  min-width: 88px;
+  height: 32px;
+  min-height: 32px;
+  background-color: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-exito);
+  color: var(--pj-texto-exito);
+  cursor: pointer;
+  padding: 0 10px;
+  border-radius: var(--pj-radio-control);
+  font-size: var(--pj-fuente-boton);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: var(--pj-sombra-tarjeta);
+  transition: none;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.tarjetaConsumible .filaMetricasConsumible .botonUsarConsumible:hover {
+  background-color: var(--pj-acento-exito-fondo);
+  border-color: var(--pj-texto-exito);
+  color: var(--pj-texto-primario);
+  box-shadow: var(--pj-sombra-tarjeta);
+}
+
+/* ==========================================
+   PUENTE MÁGICO
+   ========================================== */
 
 .puenteEstadoMagia {
   background-color: var(--pj-acento-magia-fondo);
@@ -809,9 +1062,30 @@
   gap: 6px;
 }
 
+.puenteEstadoMagia[data-concentracion="false"] {
+  padding: 6px 8px;
+}
+
 .puenteEstadoMagia[data-concentracion="true"] {
   background-color: var(--pj-acento-oro-fondo);
   border-color: var(--pj-borde-oro);
+}
+
+.filaCompactaPuenteMagia {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grupoIzquierdoPuenteCompacto {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .filaSuperiorPuenteMagia {
@@ -845,23 +1119,27 @@
   color: var(--pj-texto-oro);
 }
 
-.botonRomperPuente {
+.puenteEstadoMagia .botonRomperPuente {
   background-color: var(--pj-acento-peligro-fondo);
   border: 1px solid var(--pj-borde-peligro);
   border-radius: var(--pj-radio-control);
   color: var(--pj-texto-alerta);
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
+  text-transform: none;
   padding: 2px 8px;
+  min-width: 0;
+  min-height: 26px;
   cursor: pointer;
+  transition: none;
 }
 
-.botonRomperPuente:hover {
+.puenteEstadoMagia .botonRomperPuente:hover {
   background-color: var(--pj-acento-peligro-oscuro);
   color: var(--pj-texto-primario);
 }
 
-.botonIrAMagia {
+.puenteEstadoMagia .botonIrAMagia {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -871,12 +1149,16 @@
   color: var(--pj-texto-sobre-acento);
   font-size: var(--pj-fuente-micro);
   font-weight: 700;
+  text-transform: none;
   padding: 4px 10px;
+  min-width: 0;
+  min-height: 28px;
   cursor: pointer;
   white-space: nowrap;
+  transition: none;
 }
 
-.botonIrAMagia:hover {
+.puenteEstadoMagia .botonIrAMagia:hover {
   border-color: var(--pj-texto-magia);
 }
 
@@ -892,6 +1174,7 @@
   align-items: center;
   font-size: var(--pj-fuente-micro);
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
+  font-variant-numeric: tabular-nums;
   font-weight: 700;
   line-height: 1.3;
   padding: 2px 7px;
@@ -908,3 +1191,49 @@
   color: var(--pj-texto-alerta);
 }
 
+/* ==========================================
+   RESPONSIVE (<= 520px)
+   ========================================== */
+
+@media (max-width: 520px) {
+  .cabeceraPrincipal .barraFiltros {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .cabeceraPrincipal .barraFiltros .botonFiltro:nth-child(-n + 3) {
+    grid-column: span 2;
+  }
+
+  .cabeceraPrincipal .barraFiltros .botonFiltro:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+
+  .filaSuperiorTarjetaV2,
+  .filaSuperiorAtaque {
+    flex-wrap: wrap;
+  }
+
+  .bandaMetricasObjetoV2 {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .splitLanzarObjeto {
+    width: 100%;
+  }
+
+  .tarjetaHechizoObjetoV2 .splitLanzarObjeto .botonLanzarSplitObjeto {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .tarjetaHechizoObjetoV2 .botonBloqueadoObjeto {
+    width: 100%;
+  }
+
+  .barraCabeceraOcultosRasgos {
+    flex-wrap: wrap;
+  }
+}

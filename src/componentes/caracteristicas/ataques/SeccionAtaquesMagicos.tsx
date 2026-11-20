@@ -1,6 +1,7 @@
-import React, { useCallback } from "react";
-import { Sparkles, ChevronDown, ChevronRight } from "lucide-react";
+import React, { useMemo } from "react";
+import { Sparkles } from "lucide-react";
 import { TarjetaConjuroCompacta } from "@/componentes/caracteristicas/personajes/TarjetaConjuroCompacta";
+import { DivisorSeccionAccion } from "./DivisorSeccionAccion";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { SolicitudLanzamiento } from "@/servicios/servicioLanzamientoConjuros";
 import { resolverOrigenConjuro } from "@/servicios/resolutorOrigenConjuros";
@@ -12,9 +13,7 @@ import estilos from "./VistaAtaquesJugador.module.css";
 
 interface SeccionAtaquesMagicosProps {
   conjurosFiltrados: ConjuroAccionElemento[];
-  conjurosPorNivel: Record<number, ConjuroAccionElemento[]>;
-  seccionesAbiertas: Record<string, boolean>;
-  alAlternarSeccion: (seccion: string) => void;
+  mostrarDivisor?: boolean;
   personajeActivo: PersonajeJugador;
   espaciosConjuroMaximos: Record<string, number>;
   bonoAtaqueMagico: number;
@@ -28,11 +27,9 @@ interface SeccionAtaquesMagicosProps {
   alAlternarAcciones?: (idPj: string, idHechizo: string) => void;
 }
 
-export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
+export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = React.memo(({
   conjurosFiltrados,
-  conjurosPorNivel,
-  seccionesAbiertas,
-  alAlternarSeccion,
+  mostrarDivisor = true,
   personajeActivo,
   espaciosConjuroMaximos,
   bonoAtaqueMagico,
@@ -45,19 +42,24 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
   alLanzar,
   alAlternarAcciones
 }) => {
-  const alternarEnAcciones = useCallback((hechizoId: string) => {
-    alAlternarAcciones?.(personajeActivo.id, hechizoId);
-  }, [alAlternarAcciones, personajeActivo.id]);
+  const conjurosOrdenados = useMemo(
+    () =>
+      [...conjurosFiltrados].sort((a, b) => {
+        const diffNivel = (a.hechizo.nivel || 0) - (b.hechizo.nivel || 0);
+        if (diffNivel !== 0) return diffNivel;
+        return a.hechizo.nombre.localeCompare(b.hechizo.nombre, "es", { sensitivity: "base" });
+      }),
+    [conjurosFiltrados]
+  );
 
-  if (conjurosFiltrados.length === 0) {
+  if (conjurosOrdenados.length === 0) {
     return null;
   }
 
-  const estaAbiertaGeneral = seccionesAbiertas.magicos !== false;
+  const modificadorHabilidad = obtenerModificadorAptitudMagica(personajeActivo);
 
   const renderizarTarjetaConjuro = (hechizo: HechizoBase) => {
     const tieneLanzamientoGratisDisponible = tieneLanzamientoGratuitoDisponible(personajeActivo, hechizo);
-    const modificadorHabilidad = obtenerModificadorAptitudMagica(personajeActivo);
     const bonoDanoMagico = obtenerBonoDanoConjuroExtra(personajeActivo, {
       esTruco: hechizo.nivel === 0,
       nivelLanzamiento: hechizo.nivel,
@@ -79,7 +81,7 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
         origenBadge={resolverOrigenConjuro(personajeActivo, hechizo)}
         esConcentracionActual={personajeActivo.concentracionActiva?.hechizoId === hechizo.id}
         enAcciones={true}
-        alAlternarAcciones={alAlternarAcciones ? () => alternarEnAcciones(hechizo.id) : undefined}
+        alAlternarAcciones={alAlternarAcciones ? () => alAlternarAcciones(personajeActivo.id, hechizo.id) : undefined}
         bloqueadoPorArmadura={estaBloqueadoPorArmadura}
         motivoBloqueoArmadura={motivoBloqueoArmadura}
         alAbrirDetalleCompleto={(h) => alAbrirDetalle(h)}
@@ -102,68 +104,29 @@ export const SeccionAtaquesMagicos: React.FC<SeccionAtaquesMagicosProps> = ({
     );
   };
 
-  return (
-    <div className={estilos.seccionGrupoAtaques}>
-      <div
-        className={estilos.cabeceraGrupoAtaques}
-        onClick={() => alAlternarSeccion("magicos")}
-        role="button"
-        tabIndex={0}
-        title="Clic para mostrar u ocultar conjuros fijados en Acciones"
-      >
-        <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="var(--pj-texto-magia)" />
-          <span>Conjuros y Acciones Mágicas</span>
-          <span className={estilos.badgeConteoSeccion}>{conjurosFiltrados.length}</span>
-        </div>
-        <div className={estilos.ladoDerechoCabecera}>
-          {estaAbiertaGeneral ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </div>
-      </div>
-
-      {estaAbiertaGeneral && (
-        <div className={estilos.listaSeccionesNivelMagico}>
-          {Array.from({ length: 10 }).map((_, nivel) => {
-            const itemsNivel = conjurosPorNivel[nivel] || [];
-            if (itemsNivel.length === 0) return null;
-            const abierta = seccionesAbiertas[`magicos_nv_${nivel}`] !== false;
-
-            return (
-              <div key={`magicos-nv-${nivel}`} className={estilos.seccionNivelMagico}>
-                <div
-                  className={estilos.cabeceraNivelMagico}
-                  onClick={() => alAlternarSeccion(`magicos_nv_${nivel}`)}
-                  role="button"
-                  tabIndex={0}
-                  title={`Clic para ${abierta ? "colapsar" : "expandir"} ${nivel === 0 ? "trucos" : `conjuros de nivel ${nivel}`}`}
-                >
-                  <div className={estilos.tituloNivelMagico}>
-                    {nivel === 0 ? (
-                      <>
-                        <Sparkles size={13} color="var(--pj-texto-magia)" />
-                        <span>Trucos Listos</span>
-                      </>
-                    ) : (
-                      <span>Nivel {nivel}</span>
-                    )}
-                    <span className={estilos.badgeConteoNivelMagico}>{itemsNivel.length}</span>
-                  </div>
-                  <div className={estilos.ladoDerechoCabeceraNivel}>
-                    {abierta ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-                  </div>
-                </div>
-
-                {abierta && (
-                  <div className={estilos.listaTarjetasNivelMagico}>
-                    {itemsNivel.map(({ hechizo }) => renderizarTarjetaConjuro(hechizo))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+  const listaTarjetas = (
+    <div className={estilos.listaAtaques}>
+      {conjurosOrdenados.map(({ hechizo }) => renderizarTarjetaConjuro(hechizo))}
     </div>
   );
-};
+
+  if (!mostrarDivisor) {
+    return listaTarjetas;
+  }
+
+  return (
+    <section className={estilos.bloqueSeccionPlana} aria-label="Conjuros y acciones mágicas">
+      <DivisorSeccionAccion
+        icono={<Sparkles size={13} color="var(--pj-texto-magia)" aria-hidden="true" />}
+        titulo="Magia de Combate"
+        conteo={conjurosOrdenados.length}
+        tono="magia"
+      />
+      {listaTarjetas}
+    </section>
+  );
+});
+
+SeccionAtaquesMagicos.displayName = "SeccionAtaquesMagicos";
+
 

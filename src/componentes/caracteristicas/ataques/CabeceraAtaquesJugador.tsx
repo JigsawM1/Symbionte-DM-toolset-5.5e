@@ -1,6 +1,5 @@
 import React from "react";
-import { Swords, AlertTriangle, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
-import { SelectorDesplegable } from "@/componentes/comunes";
+import { Swords, AlertTriangle } from "lucide-react";
 import type { EstadisticasCalculadasPersonaje } from "@/almacen/selectores/usarEstadoPersonajes";
 import type { FiltroAccion } from "./usarCalculoAtaquesJugador";
 import estilos from "./VistaAtaquesJugador.module.css";
@@ -11,12 +10,9 @@ interface CabeceraAtaquesJugadorProps {
   conteoAccionAdicional: number;
   conteoReaccion: number;
   conteoConsumibles: number;
-  conteoActivables: number;
   filtro: FiltroAccion;
   alCambiarFiltro: (nuevoFiltro: FiltroAccion) => void;
   statsCalculadas: EstadisticasCalculadasPersonaje | null;
-  alColapsarTodas?: () => void;
-  alExpandirTodas?: () => void;
 }
 
 export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
@@ -25,100 +21,48 @@ export const CabeceraAtaquesJugador: React.FC<CabeceraAtaquesJugadorProps> = ({
   conteoAccionAdicional,
   conteoReaccion,
   conteoConsumibles,
-  conteoActivables,
   filtro,
   alCambiarFiltro,
-  statsCalculadas,
-  alColapsarTodas,
-  alExpandirTodas
+  statsCalculadas
 }) => {
-  const pestanasPrincipales: Array<{ id: FiltroAccion; etiqueta: string; conteo: number }> = [
-    { id: "accion", etiqueta: "Acciones", conteo: conteoAccion },
-    { id: "accionAdicional", etiqueta: "Adicionales", conteo: conteoAccionAdicional },
-    { id: "reaccion", etiqueta: "Reacciones", conteo: conteoReaccion }
+  const filtrosVisibles: Array<{ id: FiltroAccion; etiqueta: string; conteo: number }> = [
+    { id: "todas", etiqueta: "Todas", conteo: conteoTotal },
+    { id: "accion", etiqueta: "Acción", conteo: conteoAccion },
+    { id: "accionAdicional", etiqueta: "Adicional", conteo: conteoAccionAdicional },
+    { id: "reaccion", etiqueta: "Reacción", conteo: conteoReaccion },
+    { id: "consumibles", etiqueta: "Consumibles", conteo: conteoConsumibles }
   ];
-
-  const opcionesSelector: Array<{ valor: FiltroAccion; etiqueta: string }> = [
-    { valor: "todas", etiqueta: `Todas (${conteoTotal})` },
-    { valor: "consumibles", etiqueta: `Consumibles (${conteoConsumibles})` },
-    { valor: "activables", etiqueta: `Activables (${conteoActivables})` }
-  ];
-
-  const esFiltroEnSelector =
-    filtro === "todas" || filtro === "consumibles" || filtro === "activables";
 
   return (
     <div className={estilos.cabeceraPrincipal}>
       <div className={estilos.filaTitulo}>
         <div className={estilos.grupoTitulo}>
-          <Swords size={18} color="var(--pj-texto-cian)" />
+          <Swords size={18} color="var(--pj-texto-cian)" aria-hidden="true" />
           <h2 className={estilos.tituloTexto}>Acciones de Combate</h2>
           <span className={estilos.contadorBadge}>{conteoTotal}</span>
-        </div>
-
-        <div className={estilos.accionesCabeceraDerecha}>
-          {(alColapsarTodas || alExpandirTodas) && (
-            <div className={estilos.grupoControlesColapso}>
-              {alExpandirTodas && (
-                <button
-                  type="button"
-                  className={estilos.botonControlColapso}
-                  onClick={alExpandirTodas}
-                  title="Expandir todas las secciones de combate"
-                >
-                  <ChevronsUpDown size={12} />
-                  <span>Expandir</span>
-                </button>
-              )}
-              {alColapsarTodas && (
-                <button
-                  type="button"
-                  className={estilos.botonControlColapso}
-                  onClick={alColapsarTodas}
-                  title="Contraer todas las secciones de combate"
-                >
-                  <ChevronsDownUp size={12} />
-                  <span>Contraer</span>
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
       {/* Barra de Filtros Tácticos de Acción */}
       <div className={estilos.barraFiltros}>
-        <div className={estilos.grupoPestanasPrincipales}>
-          {pestanasPrincipales.map((op) => (
-            <button
-              key={op.id}
-              type="button"
-              className={`${estilos.botonFiltro} ${filtro === op.id ? estilos.botonFiltroActivo : ""}`}
-              onClick={() => alCambiarFiltro(op.id)}
-            >
-              <span>{op.etiqueta}</span>
-              <span className={estilos.badgeConteoFiltro}>({op.conteo})</span>
-            </button>
-          ))}
-        </div>
-
-        <div
-          className={`${estilos.selectorFiltroWrapper} ${esFiltroEnSelector ? estilos.selectorFiltroActivo : ""}`}
-        >
-          <SelectorDesplegable<FiltroAccion>
-            valor={esFiltroEnSelector ? filtro : ("" as FiltroAccion)}
-            alCambiar={alCambiarFiltro}
-            placeholder="Otros..."
-            tamano="compacto"
-            opciones={opcionesSelector}
-          />
-        </div>
+        {filtrosVisibles.map((op) => (
+          <button
+            key={op.id}
+            type="button"
+            aria-pressed={filtro === op.id}
+            className={`${estilos.botonFiltro} ${filtro === op.id ? estilos.botonFiltroActivo : ""}`}
+            onClick={() => alCambiarFiltro(op.id)}
+          >
+            <span>{op.etiqueta}</span>
+            <span className={estilos.badgeConteoFiltro}>{op.conteo}</span>
+          </button>
+        ))}
       </div>
 
       {/* Banner de Advertencia: Penalización por Armadura sin Competencia (D&D 5.5e) */}
       {statsCalculadas?.penalizacionArmadura?.sinCompetencia && (
-        <div className={estilos.bannerPenalizacionArmadura}>
-          <AlertTriangle size={16} color="var(--pj-texto-alerta)" className={estilos.bannerPenalizacionIcono} />
+        <div className={estilos.bannerPenalizacionArmadura} role="status">
+          <AlertTriangle size={16} color="var(--pj-texto-alerta)" className={estilos.bannerPenalizacionIcono} aria-hidden="true" />
           <div>
             <strong>Penalización por Armadura sin Competencia:</strong>
             {statsCalculadas.penalizacionArmadura.armaduraNoCompetente && (

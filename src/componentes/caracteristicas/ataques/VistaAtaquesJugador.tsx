@@ -1,11 +1,15 @@
 import React from "react";
+import { Sparkles } from "lucide-react";
 import { FichaHechizo } from "@/componentes/caracteristicas/compendio/FichaHechizo";
 import { obtenerBonoDanoConjuroExtra } from "@/servicios/evaluadorEfectosRasgos";
 import { obtenerModificadorAptitudMagica } from "@/servicios/calculadorMagia";
 import { usarAccionesConfiguracion } from "@/almacen/selectores";
-import { usarCalculoAtaquesJugador } from "./usarCalculoAtaquesJugador";
+import { DialogoModal } from "@/componentes/comunes/DialogoModal";
+import { usarCalculoAtaquesJugador, type FiltroAccion } from "./usarCalculoAtaquesJugador";
 import { CabeceraAtaquesJugador } from "./CabeceraAtaquesJugador";
 import { SeccionRecursosMagicosAtaque } from "./SeccionRecursosMagicosAtaque";
+import { BarraSwitchesCombate } from "./BarraSwitchesCombate";
+import { DivisorSeccionAccion } from "./DivisorSeccionAccion";
 import { SeccionAtaquesFisicos } from "./SeccionAtaquesFisicos";
 import { SeccionAtaquesMagicos } from "./SeccionAtaquesMagicos";
 import { SeccionRasgosAtaque } from "./SeccionRasgosAtaque";
@@ -15,6 +19,14 @@ import { ModalDetalleRasgo } from "@/componentes/caracteristicas/rasgos/ModalDet
 import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
 import estilos from "./VistaAtaquesJugador.module.css";
 
+const ETIQUETA_FILTRO_ACCION: Record<FiltroAccion, string> = {
+  todas: "Todas",
+  accion: "Acción",
+  accionAdicional: "Adicional",
+  reaccion: "Reacción",
+  consumibles: "Consumibles"
+};
+
 export const VistaAtaquesJugador: React.FC = () => {
   const { establecerPestaña, agregarNotificacion } = usarAccionesConfiguracion();
   const {
@@ -23,10 +35,8 @@ export const VistaAtaquesJugador: React.FC = () => {
     sistemaMagia,
     filtro,
     setFiltro,
-    seccionesAbiertas,
-    alternarSeccion,
-    colapsarTodasSecciones,
-    expandirTodasSecciones,
+    ocultosAbiertos,
+    alternarOcultos,
     hechizoDetalle,
     setHechizoDetalle,
     rasgoDetalle,
@@ -37,21 +47,15 @@ export const VistaAtaquesJugador: React.FC = () => {
     motivoBloqueoArmadura,
     ataquesFisicosFiltrados,
     conjurosFiltrados,
-    conjurosPorNivel,
     consumiblesFiltrados,
     hechizosObjetosFiltrados,
+    rasgosSwitches,
     rasgosFiltrados,
-    rasgosAcciones,
-    rasgosAccionesAdicionales,
-    rasgosReacciones,
-    rasgosConsumibles,
-    rasgosActivables,
     conteoTotal,
     conteoAccion,
     conteoAccionAdicional,
     conteoReaccion,
     conteoConsumibles,
-    conteoActivables,
     espaciosConjuroMaximos,
     tienePacto,
     esHechizoDeSubclase,
@@ -77,10 +81,7 @@ export const VistaAtaquesJugador: React.FC = () => {
   const rasgoDetalleEfectivo = React.useMemo(() => {
     if (!rasgoDetalle || !personajeActivo) return null;
     const rasgosEfectivos = resolverExtensionesRasgos(personajeActivo.rasgos || [], personajeActivo.nivel);
-    return (
-      rasgosEfectivos.find((r) => r.id === rasgoDetalle.id) ||
-      rasgoDetalle
-    );
+    return rasgosEfectivos.find((r) => r.id === rasgoDetalle.id) || rasgoDetalle;
   }, [rasgoDetalle, personajeActivo]);
 
   const manejarAlternarConjuroEnAcciones = React.useCallback(
@@ -99,11 +100,6 @@ export const VistaAtaquesJugador: React.FC = () => {
     [personajeActivo?.conjurosEnAcciones, alternarConjuroEnAcciones, agregarNotificacion]
   );
 
-  const alternarSeccionFisicos = React.useCallback(
-    () => alternarSeccion("fisicos"),
-    [alternarSeccion]
-  );
-
   const irAMagia = React.useCallback(
     () => establecerPestaña("magia"),
     [establecerPestaña]
@@ -117,28 +113,92 @@ export const VistaAtaquesJugador: React.FC = () => {
     );
   }
 
-  const hayAcciones =
+  const hayAccionesFeed =
     ataquesFisicosFiltrados.length > 0 ||
     conjurosFiltrados.length > 0 ||
     rasgosFiltrados.length > 0 ||
     consumiblesFiltrados.length > 0 ||
     hechizosObjetosFiltrados.length > 0;
 
+  const esVistaTodas = filtro === "todas";
+  const totalMagia = conjurosFiltrados.length + hechizosObjetosFiltrados.length;
+  const mostrarEstadoVacio = esVistaTodas
+    ? !hayAccionesFeed && rasgosSwitches.length === 0
+    : !hayAccionesFeed;
+
+  const conteoFiltroActivo =
+    esVistaTodas || !hayAccionesFeed
+      ? 0
+      : filtro === "accion"
+      ? conteoAccion
+      : filtro === "accionAdicional"
+      ? conteoAccionAdicional
+      : filtro === "reaccion"
+      ? conteoReaccion
+      : conteoConsumibles;
+
+  const renderBloqueMagia = () => {
+    if (totalMagia === 0) return null;
+
+    const contenidoMagia = (
+      <>
+        <SeccionAtaquesMagicos
+          conjurosFiltrados={conjurosFiltrados}
+          mostrarDivisor={false}
+          personajeActivo={personajeActivo}
+          bonoAtaqueMagico={bonoAtaqueMagico}
+          espaciosConjuroMaximos={espaciosConjuroMaximos}
+          tienePacto={tienePacto}
+          sistemaMagia={sistemaMagia}
+          estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
+          motivoBloqueoArmadura={motivoBloqueoArmadura}
+          esHechizoDeSubclase={esHechizoDeSubclase}
+          alAbrirDetalle={setHechizoDetalle}
+          alLanzar={lanzar}
+          alAlternarAcciones={manejarAlternarConjuroEnAcciones}
+        />
+
+        <SeccionHechizosObjetosMagicos
+          hechizosObjetosFiltrados={hechizosObjetosFiltrados}
+          mostrarDivisor={false}
+          estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
+          motivoBloqueoArmadura={motivoBloqueoArmadura}
+          cdSalvacionPersonaje={cdSalvacionConjuros}
+          alAbrirDetalle={setHechizoDetalle}
+          alLanzar={lanzar}
+        />
+      </>
+    );
+
+    if (!esVistaTodas) {
+      return contenidoMagia;
+    }
+
+    return (
+      <section className={estilos.bloqueSeccionPlana} aria-label="Magia de combate">
+        <DivisorSeccionAccion
+          icono={<Sparkles size={13} color="var(--pj-texto-magia)" aria-hidden="true" />}
+          titulo="Magia de Combate"
+          conteo={totalMagia}
+          tono="magia"
+        />
+        {contenidoMagia}
+      </section>
+    );
+  };
+
   return (
     <div className={`${estilos.contenedorGeneral} u-scroll-cef`}>
-      {/* Cabecera Principal con Selector y Filtros */}
+      {/* Cabecera Principal con Filtros Tácticos */}
       <CabeceraAtaquesJugador
         conteoTotal={conteoTotal}
         conteoAccion={conteoAccion}
         conteoAccionAdicional={conteoAccionAdicional}
         conteoReaccion={conteoReaccion}
         conteoConsumibles={conteoConsumibles}
-        conteoActivables={conteoActivables}
         filtro={filtro}
         alCambiarFiltro={setFiltro}
         statsCalculadas={statsCalculadas}
-        alColapsarTodas={colapsarTodasSecciones}
-        alExpandirTodas={expandirTodasSecciones}
       />
 
       {/* Puente Compacto de Recursos Mágicos */}
@@ -151,13 +211,34 @@ export const VistaAtaquesJugador: React.FC = () => {
         alIrAMagia={irAMagia}
       />
 
-      {/* Sección 1: Ataques con Armas y Desarmado */}
+      {/* Propuesta C: Barra Superior de Modos Activos / Switches de Combate */}
+      <BarraSwitchesCombate
+        personajeActivo={personajeActivo}
+        rasgosSwitches={rasgosSwitches}
+        alAlternarActivo={alternarActivoRasgo}
+        alAbrirDetalle={setRasgoDetalle}
+        obtenerBloqueoToggleRasgo={obtenerBloqueoToggleRasgo}
+        resolverRecursosPadre={resolverRecursosPadre}
+      />
+
+      {/* Indicador sutil en vista filtrada */}
+      {!esVistaTodas && hayAccionesFeed && (
+        <div className={estilos.barraContextoFiltro}>
+          <span>
+            Mostrando: <strong>{ETIQUETA_FILTRO_ACCION[filtro]}</strong>
+          </span>
+          <span className={estilos.contadorContextoFiltro}>
+            {conteoFiltroActivo}
+          </span>
+        </div>
+      )}
+
+      {/* Feed Táctico Plano (Propuesta A) */}
       <SeccionAtaquesFisicos
         ataquesFisicos={ataquesFisicosFiltrados}
         personajeActivo={personajeActivo}
         statsCalculadas={statsCalculadas}
-        estaAbierta={seccionesAbiertas.fisicos !== false}
-        alAlternar={alternarSeccionFisicos}
+        mostrarDivisor={esVistaTodas}
         alTirarAtaque={manejarTirarAtaque}
         alTirarDano={manejarTirarDano}
         alTirarCritico={manejarTirarCritico}
@@ -165,37 +246,14 @@ export const VistaAtaquesJugador: React.FC = () => {
         alAjustarMunicion={manejarAjustarMunicionArma}
       />
 
-      {/* Sección 2: Conjuros y Trucos de Combate */}
-      <SeccionAtaquesMagicos
-        conjurosFiltrados={conjurosFiltrados}
-        conjurosPorNivel={conjurosPorNivel}
-        espaciosConjuroMaximos={espaciosConjuroMaximos}
-        seccionesAbiertas={seccionesAbiertas}
-        alAlternarSeccion={alternarSeccion}
-        personajeActivo={personajeActivo}
-        bonoAtaqueMagico={bonoAtaqueMagico}
-        tienePacto={tienePacto}
-        sistemaMagia={sistemaMagia}
-        estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
-        motivoBloqueoArmadura={motivoBloqueoArmadura}
-        esHechizoDeSubclase={esHechizoDeSubclase}
-        alAbrirDetalle={setHechizoDetalle}
-        alLanzar={lanzar}
-        alAlternarAcciones={manejarAlternarConjuroEnAcciones}
-      />
+      {renderBloqueMagia()}
 
-      {/* Sección 3: Rasgos y Habilidades Tácticas */}
       <SeccionRasgosAtaque
         personajeActivo={personajeActivo}
-        filtro={filtro}
         rasgosFiltrados={rasgosFiltrados}
-        rasgosAcciones={rasgosAcciones}
-        rasgosAccionesAdicionales={rasgosAccionesAdicionales}
-        rasgosReacciones={rasgosReacciones}
-        rasgosConsumibles={rasgosConsumibles}
-        rasgosActivables={rasgosActivables}
-        estaAbierta={seccionesAbiertas.rasgos !== false}
-        alAlternar={() => alternarSeccion("rasgos")}
+        mostrarDivisor={esVistaTodas}
+        ocultosAbiertos={ocultosAbiertos}
+        alAlternarOcultos={alternarOcultos}
         alAbrirDetalle={setRasgoDetalle}
         alGastarUso={gastarUsoRasgoPersonaje}
         alRecuperarUso={recuperarUsoRasgoPersonaje}
@@ -206,80 +264,80 @@ export const VistaAtaquesJugador: React.FC = () => {
         alDesocultarTodos={desocultarTodosLosRasgos}
       />
 
-      {/* Sección 4: Consumibles y Pociones */}
       <SeccionConsumiblesAtaque
         consumiblesFiltrados={consumiblesFiltrados}
-        estaAbierta={seccionesAbiertas.consumibles !== false}
-        alAlternar={() => alternarSeccion("consumibles")}
+        mostrarDivisor={esVistaTodas}
         alUsarConsumible={manejarUsarConsumible}
       />
 
-      {/* Sección 5: Hechizos de Objetos Mágicos */}
-      <SeccionHechizosObjetosMagicos
-        hechizosObjetosFiltrados={hechizosObjetosFiltrados}
-        estaAbierta={seccionesAbiertas.hechizosObjetos !== false}
-        alAlternar={() => alternarSeccion("hechizosObjetos")}
-        estaBloqueadoPorArmadura={estaBloqueadoPorArmadura}
-        motivoBloqueoArmadura={motivoBloqueoArmadura}
-        cdSalvacionPersonaje={cdSalvacionConjuros}
-        alLanzar={lanzar}
-      />
-
       {/* Estado vacío cuando no hay acciones con el filtro seleccionado */}
-      {!hayAcciones && (
+      {mostrarEstadoVacio && (
         <div className={estilos.tarjetaVacia}>
-          No se encontraron acciones de tipo <strong>"{filtro.toUpperCase()}"</strong> para este personaje.
+          <p className={estilos.textoTarjetaVacia}>
+            No se encontraron acciones de tipo <strong>«{ETIQUETA_FILTRO_ACCION[filtro]}»</strong> para este personaje.
+          </p>
+          {!esVistaTodas && conteoTotal > 0 && (
+            <button
+              type="button"
+              className={estilos.botonRestablecerFiltro}
+              onClick={() => setFiltro("todas")}
+            >
+              Ver todas las acciones ({conteoTotal})
+            </button>
+          )}
         </div>
       )}
 
       {/* Modal de Detalle Completo de Hechizo */}
       {hechizoDetalle && (
-        <div
-          className={estilos.backdropModalHechizo}
-          onClick={() => setHechizoDetalle(null)}
+        <DialogoModal
+          etiqueta={`Ficha de ${hechizoDetalle.nombre}`}
+          alCerrar={() => setHechizoDetalle(null)}
         >
           <div
-            className={estilos.contenedorModalHechizo}
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Ficha de ${hechizoDetalle.nombre}`}
-            onClick={(e) => e.stopPropagation()}
+            className={estilos.overlayModalHechizo}
+            onClick={() => setHechizoDetalle(null)}
           >
-            <FichaHechizo
-              hechizo={hechizoDetalle}
-              nombrePersonaje={personajeActivo.nombre}
-              nivelPersonaje={personajeActivo.nivel || 1}
-              bonoAtaqueMagico={bonoAtaqueMagico}
-              bonoDanoMagico={obtenerBonoDanoConjuroExtra(personajeActivo, {
-                esTruco: hechizoDetalle.nivel === 0,
-                nivelLanzamiento: hechizoDetalle.nivel,
-                tipoDano: hechizoDetalle.tipoDaño,
-                escuela: hechizoDetalle.escuela,
-                nombreConjuro: hechizoDetalle.nombre
-              })}
-              modificadorHabilidad={obtenerModificadorAptitudMagica(personajeActivo)}
-              esLanzadorPacto={tienePacto}
-              nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
-              espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
-              espaciosConjuroMaximos={espaciosConjuroMaximos}
-              nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
-              sistemaMagia={sistemaMagia}
-              bloqueadoPorArmadura={estaBloqueadoPorArmadura}
-              motivoBloqueoArmadura={motivoBloqueoArmadura}
-              onClose={() => setHechizoDetalle(null)}
-              alLanzar={async (modo, nivelLanzamiento) => {
-                const exito = await lanzar({
-                  modo,
-                  hechizo: hechizoDetalle,
-                  nivelLanzamiento
-                });
-                if (exito) {
-                  setHechizoDetalle(null);
-                }
-              }}
-            />
+            <div
+              className={`${estilos.contenedorModalHechizo} u-scroll-cef`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FichaHechizo
+                hechizo={hechizoDetalle}
+                nombrePersonaje={personajeActivo.nombre}
+                nivelPersonaje={personajeActivo.nivel || 1}
+                bonoAtaqueMagico={bonoAtaqueMagico}
+                bonoDanoMagico={obtenerBonoDanoConjuroExtra(personajeActivo, {
+                  esTruco: hechizoDetalle.nivel === 0,
+                  nivelLanzamiento: hechizoDetalle.nivel,
+                  tipoDano: hechizoDetalle.tipoDaño,
+                  escuela: hechizoDetalle.escuela,
+                  nombreConjuro: hechizoDetalle.nombre
+                })}
+                modificadorHabilidad={obtenerModificadorAptitudMagica(personajeActivo)}
+                esLanzadorPacto={tienePacto}
+                nivelEspacioPacto={personajeActivo.nivelEspacioPacto || 0}
+                espaciosPactoMaximos={personajeActivo.espaciosPactoMaximos || 0}
+                espaciosConjuroMaximos={espaciosConjuroMaximos}
+                nivelConjuroMaximo={personajeActivo.nivelConjuroMaximo || 0}
+                sistemaMagia={sistemaMagia}
+                bloqueadoPorArmadura={estaBloqueadoPorArmadura}
+                motivoBloqueoArmadura={motivoBloqueoArmadura}
+                onClose={() => setHechizoDetalle(null)}
+                alLanzar={async (modo, nivelLanzamiento) => {
+                  const exito = await lanzar({
+                    modo,
+                    hechizo: hechizoDetalle,
+                    nivelLanzamiento
+                  });
+                  if (exito) {
+                    setHechizoDetalle(null);
+                  }
+                }}
+              />
+            </div>
           </div>
-        </div>
+        </DialogoModal>
       )}
 
       {/* Modal de Detalle Completo de Rasgo */}
@@ -290,8 +348,12 @@ export const VistaAtaquesJugador: React.FC = () => {
           idPersonaje={personajeActivo.id}
           nivelPersonaje={obtenerNivelEfectivoParaRasgo(rasgoDetalleEfectivo)}
           alCerrar={() => setRasgoDetalle(null)}
-          alGastarUso={(cant?: number) => gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)}
-          alRecuperarUso={(cant?: number) => recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)}
+          alGastarUso={(cant?: number) =>
+            gastarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)
+          }
+          alRecuperarUso={(cant?: number) =>
+            recuperarUsoRasgoPersonaje(personajeActivo.id, rasgoDetalleEfectivo.id, cant)
+          }
           alAlternarActivo={() => alternarActivoRasgo(personajeActivo.id, rasgoDetalleEfectivo.id)}
           deshabilitadoToggle={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).bloqueado}
           motivoDeshabilitado={obtenerBloqueoToggleRasgo(rasgoDetalleEfectivo).motivo}
@@ -301,5 +363,3 @@ export const VistaAtaquesJugador: React.FC = () => {
     </div>
   );
 };
-
-export default VistaAtaquesJugador;

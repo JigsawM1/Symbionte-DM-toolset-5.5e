@@ -1,33 +1,18 @@
-import React, { useMemo, useCallback } from "react";
-import {
-  Sparkles,
-  Zap,
-  Clock,
-  FlaskConical,
-  Sliders,
-  ChevronDown,
-  ChevronRight,
-  EyeOff,
-  PawPrint
-} from "lucide-react";
+import React, { useMemo, useCallback, useState } from "react";
+import { Zap, ChevronDown, ChevronRight, EyeOff, PawPrint } from "lucide-react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
-import type { RasgoAccionCombate, FiltroAccion } from "./usarCalculoAtaquesJugador";
+import type { RasgoAccionCombate } from "./usarCalculoAtaquesJugador";
 import { TarjetaRasgo } from "@/componentes/caracteristicas/rasgos/TarjetaRasgo";
-import { usarEstadoPersistido } from "@/hooks";
+import { DivisorSeccionAccion } from "./DivisorSeccionAccion";
 import { obtenerBestiaFormaActiva } from "@/servicios/reglasFormaSalvaje";
 import estilos from "./VistaAtaquesJugador.module.css";
 
 interface SeccionRasgosAtaqueProps {
   personajeActivo: PersonajeJugador;
-  filtro: FiltroAccion;
   rasgosFiltrados: RasgoAccionCombate[];
-  rasgosAcciones: RasgoAccionCombate[];
-  rasgosAccionesAdicionales: RasgoAccionCombate[];
-  rasgosReacciones: RasgoAccionCombate[];
-  rasgosConsumibles: RasgoAccionCombate[];
-  rasgosActivables: RasgoAccionCombate[];
-  estaAbierta: boolean;
-  alAlternar: () => void;
+  mostrarDivisor?: boolean;
+  ocultosAbiertos?: boolean;
+  alAlternarOcultos?: () => void;
   alAbrirDetalle: (rasgo: RasgoPersonaje) => void;
   alGastarUso: (idPj: string, idRasgo: string, cantidad?: number) => void;
   alRecuperarUso: (idPj: string, idRasgo: string, cantidad?: number) => void;
@@ -41,17 +26,17 @@ interface SeccionRasgosAtaqueProps {
   alDesocultarTodos?: (idPj: string) => void;
 }
 
+/**
+ * Renderiza el bloque plano de rasgos tácticos de combate (Propuesta A),
+ * separando Forma Salvaje cuando está activa y manteniendo el cajón de Rasgos Ocultos
+ * como único colapsable al pie (cerrado por defecto).
+ */
 export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
   personajeActivo,
-  filtro,
   rasgosFiltrados,
-  rasgosAcciones,
-  rasgosAccionesAdicionales,
-  rasgosReacciones,
-  rasgosConsumibles,
-  rasgosActivables,
-  estaAbierta,
-  alAlternar,
+  mostrarDivisor = true,
+  ocultosAbiertos,
+  alAlternarOcultos,
   alAbrirDetalle,
   alGastarUso,
   alRecuperarUso,
@@ -61,88 +46,62 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
   alAlternarOcultar,
   alDesocultarTodos
 }) => {
-  const alternarOculto = useCallback((rasgoId: string) => {
-    alAlternarOcultar?.(personajeActivo.id, rasgoId);
-  }, [alAlternarOcultar, personajeActivo.id]);
+  const [ocultosAbiertosLocal, setOcultosAbiertosLocal] = useState(false);
+  const estaAbiertoOcultos = ocultosAbiertos ?? ocultosAbiertosLocal;
 
-  const desocultarTodos = useCallback(() => {
-    alDesocultarTodos?.(personajeActivo.id);
-  }, [alDesocultarTodos, personajeActivo.id]);
+  const alternarCajonOcultos = useCallback(() => {
+    if (alAlternarOcultos) {
+      alAlternarOcultos();
+      return;
+    }
+    setOcultosAbiertosLocal((prev) => !prev);
+  }, [alAlternarOcultos]);
 
-  const esRasgoOculto = useCallback(
-    (item: RasgoAccionCombate) => Boolean(item.rasgo.oculto),
-    []
-  );
-
-  // Clasificación de rasgos filtrados entre visibles y ocultos
   const { rasgosVisibles, rasgosOcultos } = useMemo(() => {
     const visibles: RasgoAccionCombate[] = [];
     const ocultos: RasgoAccionCombate[] = [];
 
     for (const item of rasgosFiltrados) {
-      if (esRasgoOculto(item)) {
+      if (item.rasgo.oculto) {
         ocultos.push(item);
       } else {
         visibles.push(item);
       }
     }
 
-    ocultos.sort((a, b) => a.rasgo.nombre.localeCompare(b.rasgo.nombre, "es", { sensitivity: "base" }));
+    ocultos.sort((a, b) =>
+      a.rasgo.nombre.localeCompare(b.rasgo.nombre, "es", { sensitivity: "base" })
+    );
 
     return { rasgosVisibles: visibles, rasgosOcultos: ocultos };
-  }, [rasgosFiltrados, esRasgoOculto]);
+  }, [rasgosFiltrados]);
 
   const bestiaActiva = useMemo(
     () => (personajeActivo ? obtenerBestiaFormaActiva(personajeActivo) : null),
     [personajeActivo]
   );
 
-  const [subseccionesAbiertas, setSubseccionesAbiertas] = usarEstadoPersistido<Record<string, boolean>>(
-    "ts_acciones_subsecciones_rasgos",
-    {
-      formaSalvaje: true,
-      activables: true,
-      consumibles: true,
-      acciones: true,
-      adicionales: true,
-      reacciones: true,
-      ocultos: true
+  const { rasgosFormaSalvaje, rasgosClaseVisibles } = useMemo(() => {
+    if (!bestiaActiva) {
+      return { rasgosFormaSalvaje: [] as RasgoAccionCombate[], rasgosClaseVisibles: rasgosVisibles };
     }
-  );
-
-  const alternarSubseccion = (clave: string) => {
-    setSubseccionesAbiertas((prev) => {
-      const estaAbiertaSub = prev[clave] !== false;
-      return {
-        ...prev,
-        [clave]: !estaAbiertaSub
-      };
-    });
-  };
-
-  // Rasgos de Forma salvaje (bestia activa) vs rasgos de clase/personaje
-  const rasgosFormaSalvaje = useMemo(
-    () => (bestiaActiva ? rasgosVisibles.filter((item) => Boolean(item.esDeFormaSalvaje)) : []),
-    [bestiaActiva, rasgosVisibles]
-  );
-
-  const esVisibleDeClase = useCallback(
-    (item: RasgoAccionCombate) => !esRasgoOculto(item) && (!bestiaActiva || !item.esDeFormaSalvaje),
-    [esRasgoOculto, bestiaActiva]
-  );
-
-  // Subcategorías visibles de clase/personaje excluyendo rasgos ocultos y rasgos de forma salvaje
-  const accionesVisibles = useMemo(() => rasgosAcciones.filter(esVisibleDeClase), [rasgosAcciones, esVisibleDeClase]);
-  const adicionalesVisibles = useMemo(() => rasgosAccionesAdicionales.filter(esVisibleDeClase), [rasgosAccionesAdicionales, esVisibleDeClase]);
-  const reaccionesVisibles = useMemo(() => rasgosReacciones.filter(esVisibleDeClase), [rasgosReacciones, esVisibleDeClase]);
-  const consumiblesVisibles = useMemo(() => rasgosConsumibles.filter(esVisibleDeClase), [rasgosConsumibles, esVisibleDeClase]);
-  const activablesVisibles = useMemo(() => rasgosActivables.filter(esVisibleDeClase), [rasgosActivables, esVisibleDeClase]);
+    const forma: RasgoAccionCombate[] = [];
+    const clase: RasgoAccionCombate[] = [];
+    for (const item of rasgosVisibles) {
+      if (item.esDeFormaSalvaje) {
+        forma.push(item);
+      } else {
+        clase.push(item);
+      }
+    }
+    return { rasgosFormaSalvaje: forma, rasgosClaseVisibles: clase };
+  }, [bestiaActiva, rasgosVisibles]);
 
   if (rasgosFiltrados.length === 0) {
     return null;
   }
 
-  const renderTarjeta = (item: RasgoAccionCombate, index: number, esOculto: boolean = false) => {
+  const renderTarjeta = (item: RasgoAccionCombate, index: number, esOculto = false) => {
     const bloqueo = obtenerBloqueoToggleRasgo(item.rasgo);
     const recursosPadre = resolverRecursosPadre(item.rasgo);
 
@@ -161,206 +120,83 @@ export const SeccionRasgosAtaque: React.FC<SeccionRasgosAtaqueProps> = ({
         usosPadre={recursosPadre.usosPadre}
         formulaDadosEfectiva={recursosPadre.formulaDadosEfectiva}
         esOculto={esOculto}
-        alAlternarOcultar={() => alternarOculto(item.rasgo.id)}
+        alAlternarOcultar={() => alAlternarOcultar?.(personajeActivo.id, item.rasgo.id)}
       />
     );
   };
 
-  const subseccionOcultos = rasgosOcultos.length > 0 && (
-    <div className={estilos.seccionOcultosRasgos}>
-      <div
-        className={estilos.cabeceraOcultosRasgos}
-        onClick={() => alternarSubseccion("ocultos")}
-        role="button"
-        tabIndex={0}
-        title={`Clic para ${subseccionesAbiertas.ocultos !== false ? "colapsar" : "expandir"} rasgos ocultos`}
-      >
-        <div className={estilos.tituloOcultosRasgos}>
-          <EyeOff size={14} color="var(--pj-texto-terciario)" />
-          <span>Rasgos Ocultos</span>
-          <span className={estilos.badgeConteoOcultosRasgos}>{rasgosOcultos.length}</span>
-        </div>
-        <div className={estilos.ladoDerechoCabeceraNivel}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              desocultarTodos();
-            }}
-            className={estilos.botonDesocultarTodosRasgos}
-            title="Mostrar y devolver todos los rasgos a sus categorías correspondientes"
-          >
-            Mostrar todos
-          </button>
-          {subseccionesAbiertas.ocultos !== false ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
-        </div>
-      </div>
-
-      {subseccionesAbiertas.ocultos !== false && (
-        <div className={estilos.listaAtaques}>
-          {rasgosOcultos.map((item, idx) => renderTarjeta(item, idx, true))}
+  return (
+    <section className={estilos.bloqueSeccionPlana} aria-label="Rasgos y habilidades tácticas">
+      {bestiaActiva && rasgosFormaSalvaje.length > 0 && (
+        <div className={estilos.bloqueSeccionPlana}>
+          <DivisorSeccionAccion
+            icono={<PawPrint size={13} color="var(--pj-texto-exito)" aria-hidden="true" />}
+            titulo={`Forma salvaje: ${bestiaActiva.nombre}`}
+            conteo={rasgosFormaSalvaje.length}
+            tono="exito"
+          />
+          <div className={estilos.listaAtaques}>
+            {rasgosFormaSalvaje.map((item, idx) => renderTarjeta(item, idx, false))}
+          </div>
         </div>
       )}
-    </div>
-  );
 
-  const subsecciones: { clave: string; lista: RasgoAccionCombate[]; titulo: string; ayuda: string; icono: React.ReactNode }[] = [
-    { clave: "activables", lista: activablesVisibles, titulo: "Activables y Modos de Combate", ayuda: "Clic para alternar subsección de activables y modos tácticos", icono: <Sliders size={13} color="var(--pj-texto-magia)" /> },
-    { clave: "consumibles", lista: consumiblesVisibles, titulo: "Recursos Tácticos y Consumibles", ayuda: "Clic para alternar subsección de recursos tácticos y consumibles", icono: <FlaskConical size={13} color="var(--pj-texto-exito)" /> },
-    { clave: "acciones", lista: accionesVisibles, titulo: "Acciones", ayuda: "Clic para alternar subsección de acciones", icono: <Zap size={13} color="var(--pj-texto-oro)" /> },
-    { clave: "adicionales", lista: adicionalesVisibles, titulo: "Acciones Adicionales", ayuda: "Clic para alternar subsección de acciones adicionales", icono: <Clock size={13} color="var(--pj-texto-cian)" /> },
-    { clave: "reacciones", lista: reaccionesVisibles, titulo: "Reacciones", ayuda: "Clic para alternar subsección de reacciones", icono: <Sparkles size={13} color="var(--pj-texto-magia)" /> }
-  ];
-
-  return (
-    <div className={estilos.seccionGrupoAtaques}>
-      {/* Cabecera Principal de la Sección de Rasgos */}
-      <div
-        className={estilos.cabeceraGrupoAtaques}
-        onClick={alAlternar}
-        role="button"
-        tabIndex={0}
-        title="Clic para mostrar u ocultar rasgos y habilidades tácticas"
-      >
-        <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="var(--pj-texto-cian)" />
-          <span>Rasgos y Habilidades Tácticas</span>
-          <span className={estilos.badgeConteoSeccion}>{rasgosVisibles.length}</span>
+      {rasgosClaseVisibles.length > 0 && (
+        <div className={estilos.bloqueSeccionPlana}>
+          {mostrarDivisor && (
+            <DivisorSeccionAccion
+              icono={<Zap size={13} color="var(--pj-texto-oro)" aria-hidden="true" />}
+              titulo="Rasgos de Acción"
+              conteo={rasgosClaseVisibles.length}
+              tono="oro"
+            />
+          )}
+          <div className={estilos.listaAtaques}>
+            {rasgosClaseVisibles.map((item, idx) => renderTarjeta(item, idx, false))}
+          </div>
         </div>
-        <div className={estilos.ladoDerechoCabecera}>
-          {estaAbierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </div>
-      </div>
+      )}
 
-      {estaAbierta && (
-        <>
-          {filtro === "todas" ? (
-            /* Vista General agrupada en subsecciones colapsables */
-            <div className={estilos.listaSeccionesNivelMagico}>
-              {/* Subsección destacada: Forma salvaje de la bestia activa */}
-              {bestiaActiva && rasgosFormaSalvaje.length > 0 && (
-                <div key="formaSalvaje" className={estilos.seccionFormaSalvajeAtaques}>
-                  <div
-                    className={estilos.cabeceraFormaSalvajeAtaques}
-                    onClick={() => alternarSubseccion("formaSalvaje")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para mostrar u ocultar rasgos de la Forma salvaje activa"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <PawPrint size={14} color="#22c55e" />
-                      <span className={estilos.tituloFormaSalvajeAtaques}>
-                        Forma salvaje: {bestiaActiva.nombre}
-                      </span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeFormaSalvajeAtaques}>
-                        {rasgosFormaSalvaje.length}
-                      </span>
-                      {subseccionesAbiertas.formaSalvaje !== false ? (
-                        <ChevronDown size={13} color="#22c55e" />
-                      ) : (
-                        <ChevronRight size={13} color="#22c55e" />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.formaSalvaje !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {rasgosFormaSalvaje.map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
+      {rasgosOcultos.length > 0 && (
+        <div className={estilos.seccionOcultosRasgos}>
+          <div className={estilos.barraCabeceraOcultosRasgos}>
+            <button
+              type="button"
+              className={estilos.botonColapsarOcultosRasgos}
+              onClick={alternarCajonOcultos}
+              aria-expanded={estaAbiertoOcultos}
+              title={`Clic para ${estaAbiertoOcultos ? "colapsar" : "expandir"} rasgos ocultos`}
+            >
+              <div className={estilos.tituloOcultosRasgos}>
+                <EyeOff size={14} color="var(--pj-texto-terciario)" aria-hidden="true" />
+                <span>Rasgos Ocultos</span>
+                <span className={estilos.badgeConteoOcultosRasgos}>{rasgosOcultos.length}</span>
+              </div>
+              <div className={estilos.ladoDerechoCabeceraNivel}>
+                {estaAbiertoOcultos ? (
+                  <ChevronDown size={13} aria-hidden="true" />
+                ) : (
+                  <ChevronRight size={13} aria-hidden="true" />
+                )}
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => alDesocultarTodos?.(personajeActivo.id)}
+              className={estilos.botonDesocultarTodosRasgos}
+              title="Mostrar y devolver todos los rasgos a sus categorías correspondientes"
+            >
+              Mostrar todos
+            </button>
+          </div>
 
-              {subsecciones.map(({ clave, lista, titulo, ayuda, icono }) => (
-                lista.length > 0 && (
-                  <div key={clave} className={estilos.seccionNivelMagico}>
-                    <div
-                      className={estilos.cabeceraNivelMagico}
-                      onClick={() => alternarSubseccion(clave)}
-                      role="button"
-                      tabIndex={0}
-                      title={ayuda}
-                    >
-                      <div className={estilos.tituloNivelMagico}>
-                        {icono}
-                        <span>{titulo}</span>
-                      </div>
-                      <div className={estilos.ladoDerechoCabecera}>
-                        <span className={estilos.badgeConteoNivelMagico}>{lista.length}</span>
-                        {subseccionesAbiertas[clave] !== false ? (
-                          <ChevronDown size={13} />
-                        ) : (
-                          <ChevronRight size={13} />
-                        )}
-                      </div>
-                    </div>
-                    {subseccionesAbiertas[clave] !== false && (
-                      <div className={estilos.listaAtaques}>
-                        {lista.map((item, idx) => renderTarjeta(item, idx, false))}
-                      </div>
-                    )}
-                  </div>
-                )
-              ))}
-
-              {/* Subsección: Rasgos Ocultos */}
-              {subseccionOcultos}
-            </div>
-          ) : (
-            /* Vista Filtrada Táctica Directa con separación de Forma Salvaje */
-            <div className={estilos.listaSeccionesNivelMagico}>
-              {bestiaActiva && rasgosVisibles.some((item) => item.esDeFormaSalvaje) && (
-                <div className={estilos.seccionFormaSalvajeAtaques}>
-                  <div
-                    className={estilos.cabeceraFormaSalvajeAtaques}
-                    onClick={() => alternarSubseccion("formaSalvaje")}
-                    role="button"
-                    tabIndex={0}
-                    title="Clic para alternar rasgos de la Forma salvaje"
-                  >
-                    <div className={estilos.tituloNivelMagico}>
-                      <PawPrint size={14} color="#22c55e" />
-                      <span className={estilos.tituloFormaSalvajeAtaques}>
-                        Forma salvaje: {bestiaActiva.nombre}
-                      </span>
-                    </div>
-                    <div className={estilos.ladoDerechoCabecera}>
-                      <span className={estilos.badgeFormaSalvajeAtaques}>
-                        {rasgosVisibles.filter((item) => item.esDeFormaSalvaje).length}
-                      </span>
-                      {subseccionesAbiertas.formaSalvaje !== false ? (
-                        <ChevronDown size={13} color="#22c55e" />
-                      ) : (
-                        <ChevronRight size={13} color="#22c55e" />
-                      )}
-                    </div>
-                  </div>
-                  {subseccionesAbiertas.formaSalvaje !== false && (
-                    <div className={estilos.listaAtaques}>
-                      {rasgosVisibles
-                        .filter((item) => item.esDeFormaSalvaje)
-                        .map((item, idx) => renderTarjeta(item, idx, false))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {rasgosVisibles.some((item) => !item.esDeFormaSalvaje) && (
-                <div className={estilos.listaAtaques}>
-                  {rasgosVisibles
-                    .filter((item) => !item.esDeFormaSalvaje)
-                    .map((item, idx) => renderTarjeta(item, idx, false))}
-                </div>
-              )}
-
-              {subseccionOcultos}
+          {estaAbiertoOcultos && (
+            <div className={estilos.listaAtaques}>
+              {rasgosOcultos.map((item, idx) => renderTarjeta(item, idx, true))}
             </div>
           )}
-        </>
+        </div>
       )}
-    </div>
+    </section>
   );
 };
-
-export default SeccionRasgosAtaque;

@@ -11,6 +11,8 @@ export interface ResumenMaestriaVisual {
 const REGEX_ALCANCE_DUPLICADO = /^(\d+)\s*\/\s*\1(\s*(?:ft|pies))?$/i;
 const REGEX_DADOS_INDIVIDUAL = /(\d+)d(\d+)/gi;
 const REGEX_BONO_MAGICO_NOMBRE = /\+(\d+)/;
+const REGEX_PROPIEDAD_CON_RANGO = /^([^(]+)\(([^)]+)\)$/;
+const REGEX_TIENE_DADOS = /\d+d\d+/i;
 
 /**
  * Normaliza alcances redundantes como "5/5 ft" -> "5 ft".
@@ -62,7 +64,7 @@ export function obtenerEtiquetaPropiedadCompacta(propiedad: string, alcance?: st
   const limpia = propiedad.trim();
   if (!limpia || !alcance) return limpia;
 
-  const matchRango = limpia.match(/^([^(]+)\(([^)]+)\)$/);
+  const matchRango = limpia.match(REGEX_PROPIEDAD_CON_RANGO);
   if (!matchRango) return limpia;
 
   const base = matchRango[1].trim();
@@ -99,7 +101,7 @@ export function calcularFormulaCriticoVisual(
 
   for (let i = 0; i < subgrupos.length; i++) {
     const sub = subgrupos[i].trim();
-    const tieneDados = /\d+d\d+/i.test(sub);
+    const tieneDados = REGEX_TIENE_DADOS.test(sub);
 
     if (tieneDados) {
       let extraRestante = i === 0 ? Math.max(0, dadosExtraCritico) : 0;

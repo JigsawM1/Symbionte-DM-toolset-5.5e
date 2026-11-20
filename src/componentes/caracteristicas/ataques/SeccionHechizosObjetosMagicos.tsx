@@ -1,5 +1,6 @@
-import React from "react";
-import { Sparkles, Zap, ChevronDown, ChevronRight } from "lucide-react";
+import React, { useMemo } from "react";
+import { Sparkles, Zap, BookOpen, AlertTriangle } from "lucide-react";
+import { DivisorSeccionAccion } from "./DivisorSeccionAccion";
 import type { HechizoBase } from "@/tipos";
 import type { HechizoObjetoMagicoAccion } from "./usarCalculoAtaquesJugador";
 import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
@@ -7,11 +8,11 @@ import estilos from "./VistaAtaquesJugador.module.css";
 
 interface SeccionHechizosObjetosMagicosProps {
   hechizosObjetosFiltrados: HechizoObjetoMagicoAccion[];
-  estaAbierta: boolean;
-  alAlternar: () => void;
+  mostrarDivisor?: boolean;
   estaBloqueadoPorArmadura: boolean;
   motivoBloqueoArmadura?: string;
   cdSalvacionPersonaje?: number;
+  alAbrirDetalle?: (hechizo: HechizoBase) => void;
   alLanzar: (opciones: {
     modo: "objetoMagico";
     hechizo: HechizoBase;
@@ -23,73 +24,71 @@ interface SeccionHechizosObjetosMagicosProps {
   }) => Promise<boolean>;
 }
 
-export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagicosProps> = ({
+export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagicosProps> = React.memo(({
   hechizosObjetosFiltrados,
-  estaAbierta,
-  alAlternar,
+  mostrarDivisor = true,
   estaBloqueadoPorArmadura,
   motivoBloqueoArmadura,
   cdSalvacionPersonaje,
+  alAbrirDetalle,
   alLanzar
 }) => {
   const { baseDatosHechizos } = usarEstadoHomebrew();
+
+  const indiceCompendio = useMemo(() => {
+    if (hechizosObjetosFiltrados.length === 0 || !baseDatosHechizos?.length) {
+      return null;
+    }
+    const porId = new Map<string, HechizoBase>();
+    const porNombre = new Map<string, HechizoBase>();
+    for (const h of baseDatosHechizos) {
+      porId.set(h.id, h);
+      porNombre.set(h.nombre.toLowerCase().trim(), h);
+    }
+    return { porId, porNombre };
+  }, [hechizosObjetosFiltrados.length, baseDatosHechizos]);
 
   if (hechizosObjetosFiltrados.length === 0) {
     return null;
   }
 
-  return (
-    <div className={estilos.seccionGrupoAtaques}>
-      <div
-        className={estilos.cabeceraGrupoAtaques}
-        onClick={alAlternar}
-        role="button"
-        tabIndex={0}
-        title="Clic para mostrar u ocultar hechizos de objetos mágicos"
-      >
-        <div className={estilos.tituloGrupoAtaques}>
-          <Sparkles size={14} color="var(--pj-texto-magia)" />
-          <span>Hechizos de Objetos Mágicos</span>
-          <span className={estilos.badgeConteoSeccion}>{hechizosObjetosFiltrados.length}</span>
-        </div>
-        <div className={estilos.ladoDerechoCabecera}>
-          {estaAbierta ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </div>
-      </div>
-
-      {estaAbierta && (
-        <div className={estilos.listaAtaques}>
-          {hechizosObjetosFiltrados.map((item, idx) => {
+  const listaTarjetas = (
+    <div className={estilos.listaAtaques}>
+      {hechizosObjetosFiltrados.map((item) => {
             const coste = Number(item.hechizo.costeCargas) || 0;
             const tieneCargas = coste === 0 || item.cargasActuales >= coste;
 
-            // Buscar en compendio si existe el hechizo real
-            const hechizoCompendio = (baseDatosHechizos || []).find(
-              (h) => (item.hechizo.hechizoId && h.id === item.hechizo.hechizoId) ||
-                     h.nombre.toLowerCase().trim() === item.hechizo.nombre.toLowerCase().trim()
-            );
+            // Búsqueda O(1) en el índice precalculado del compendio
+            const hechizoCompendio =
+              (item.hechizo.hechizoId ? indiceCompendio?.porId.get(item.hechizo.hechizoId) : undefined) ||
+              indiceCompendio?.porNombre.get(item.hechizo.nombre.toLowerCase().trim());
 
             const cdFinal = item.hechizo.cd !== undefined ? item.hechizo.cd : cdSalvacionPersonaje;
 
-            const lanzarHechizo = async () => {
-              const objetoHechizoBase: HechizoBase = hechizoCompendio || {
-                id: item.hechizo.hechizoId || item.hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
-                nombre: item.hechizo.nombre,
-                nivel: item.hechizo.nivel ?? 1,
-                escuela: "Universal",
-                tiempoLanzamiento: item.tipoAccion === "accionAdicional" ? "1 Accion Adicional" : item.tipoAccion === "reaccion" ? "1 Reaccion" : "1 Accion",
-                alcance: "60 pies",
-                componentesSeleccionados: {
-                  verbal: true,
-                  somatico: true,
-                  material: false
-                },
-                duracion: "Instantaneo",
-                concentracion: false,
-                ritual: false,
-                descripcion: ""
-              };
+            const objetoHechizoBase: HechizoBase = hechizoCompendio || {
+              id: item.hechizo.hechizoId || item.hechizo.nombre.toLowerCase().replace(/\s+/g, "-"),
+              nombre: item.hechizo.nombre,
+              nivel: item.hechizo.nivel ?? 1,
+              escuela: "Universal",
+              tiempoLanzamiento:
+                item.tipoAccion === "accionAdicional"
+                  ? "1 Accion Adicional"
+                  : item.tipoAccion === "reaccion"
+                  ? "1 Reaccion"
+                  : "1 Accion",
+              alcance: "60 pies",
+              componentesSeleccionados: {
+                verbal: true,
+                somatico: true,
+                material: false
+              },
+              duracion: "Instantaneo",
+              concentracion: false,
+              ritual: false,
+              descripcion: ""
+            };
 
+            const lanzarHechizo = async () => {
               await alLanzar({
                 modo: "objetoMagico",
                 hechizo: objetoHechizoBase,
@@ -101,76 +100,176 @@ export const SeccionHechizosObjetosMagicos: React.FC<SeccionHechizosObjetosMagic
               });
             };
 
+            const claseBadgeAccion =
+              item.tipoAccion === "accionAdicional"
+                ? estilos.badgeAccionAdicional
+                : item.tipoAccion === "reaccion"
+                ? estilos.badgeReaccion
+                : "";
+
+            const etiquetaBadgeAccion =
+              item.tipoAccion === "accionAdicional"
+                ? "Adicional"
+                : item.tipoAccion === "reaccion"
+                ? "Reacción"
+                : "Acción";
+
+            const estaBloqueado = !tieneCargas || estaBloqueadoPorArmadura;
+
             return (
-              <div
-                key={idx}
-                className={`${estilos.tarjetaAtaque} ${estilos.tarjetaHechizoObjeto}`}
+              <article
+                key={`${item.objetoInstanciaId}_${item.hechizo.hechizoId || item.hechizo.nombre}_${item.tipoAccion}`}
+                className={estilos.tarjetaHechizoObjetoV2}
+                data-accion={item.tipoAccion}
+                data-bloqueado={estaBloqueado ? "true" : undefined}
               >
-                <div className={estilos.filaSuperiorAtaque}>
-                  <div className={estilos.grupoTitulo}>
-                    <Sparkles size={14} color="var(--pj-texto-magia)" />
-                    <span className={estilos.nombreAtaque}>{item.hechizo.nombre}</span>
-                    <span className={estilos.nombreFuenteObjeto}>({item.objetoNombre})</span>
-                  </div>
-                  <div className={estilos.grupoTitulo}>
-                    {item.cargasMaximas > 0 && (
-                      <span className={item.cargasActuales > 0 ? estilos.badgeCargasObjeto : estilos.badgeCargasVacias}>
-                        <Zap size={10} /> {item.cargasActuales}/{item.cargasMaximas} cargas
-                      </span>
-                    )}
-                    <span className={estilos.badgeAccionTipo}>
-                      {item.tipoAccion === "accionAdicional" ? "Acción Adicional" : item.tipoAccion === "reaccion" ? "Reacción" : "Acción"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={estilos.filaMetricasAtaque}>
-                  <div className={estilos.bloqueBonoImpacto}>
-                    <span className={estilos.etiquetaMicro}>
-                      {item.hechizo.bonoAtaque !== undefined ? "Impacto" : cdFinal !== undefined ? "Salvación" : "Efecto"}
-                    </span>
-                    <span className={estilos.valorBonoImpacto}>
-                      {item.hechizo.bonoAtaque !== undefined
-                        ? `+${item.hechizo.bonoAtaque}`
-                        : cdFinal !== undefined
-                        ? `CD ${cdFinal}`
-                        : "Especial"}
-                    </span>
-                  </div>
-
-                  {coste > 0 && (
-                    <div className={estilos.bloqueDano}>
-                      <span className={estilos.etiquetaMicro}>Coste</span>
-                      <span className={`${estilos.valorDano} ${estilos.costeCargasTexto}`}>
-                        {coste} {coste === 1 ? "carga" : "cargas"}
+                <div className={estilos.filaSuperiorTarjetaV2}>
+                  <div className={estilos.grupoTituloIzquierdaV2}>
+                    <Sparkles size={14} color="var(--pj-texto-magia)" aria-hidden="true" />
+                    <div className={estilos.bloqueTituloObjetoV2}>
+                      {alAbrirDetalle ? (
+                        <button
+                          type="button"
+                          className={estilos.botonTituloHechizoObjeto}
+                          onClick={() => alAbrirDetalle(objetoHechizoBase)}
+                          title={`Ver ficha completa de ${item.hechizo.nombre}`}
+                        >
+                          <span>{item.hechizo.nombre}</span>
+                          <span className={estilos.chipFichaObjeto}>
+                            <BookOpen size={10} aria-hidden="true" />
+                            <span>Ficha</span>
+                          </span>
+                        </button>
+                      ) : (
+                        <span>{item.hechizo.nombre}</span>
+                      )}
+                      <span className={estilos.subtituloOrigenObjeto}>
+                        {item.objetoNombre}
+                        {hechizoCompendio
+                          ? ` · Nv. ${hechizoCompendio.nivel} · ${hechizoCompendio.escuela} · ${hechizoCompendio.alcance}`
+                          : ""}
                       </span>
                     </div>
-                  )}
+                  </div>
 
-                  <div className={estilos.filaAccionesTirada}>
-                    <button
-                      type="button"
-                      className={`${estilos.botonTirarAtaque} ${estilos.botonLanzarObjeto}`}
-                      onClick={lanzarHechizo}
-                      disabled={!tieneCargas || estaBloqueadoPorArmadura}
-                      title={
-                        estaBloqueadoPorArmadura
-                          ? (motivoBloqueoArmadura || "Bloqueado por armadura sin competencia")
-                          : !tieneCargas
-                          ? "Cargas insuficientes para lanzar este conjuro"
-                          : "Lanzar conjuro desde el objeto"
-                      }
-                    >
-                      <Sparkles size={11} />
-                      <span>{coste > 0 ? `Lanzar (-${coste})` : "Lanzar"}</span>
-                    </button>
+                  <div className={estilos.badgesDerechaTarjetaV2}>
+                    {item.cargasMaximas > 0 ? (
+                      <span
+                        className={estilos.pillCargasObjeto}
+                        data-estado={tieneCargas ? "disponible" : "agotado"}
+                      >
+                        <Zap size={10} aria-hidden="true" /> {item.cargasActuales}/{item.cargasMaximas}
+                      </span>
+                    ) : (
+                      coste === 0 && (
+                        <span className={estilos.pillCargasObjeto} data-estado="voluntad">
+                          A voluntad
+                        </span>
+                      )
+                    )}
+                    <span className={`${estilos.badgeAccionTipo} ${claseBadgeAccion}`.trim()}>
+                      {etiquetaBadgeAccion}
+                    </span>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+
+                <div className={estilos.bandaMetricasObjetoV2}>
+                  <div className={estilos.grupoMetricasObjetoV2}>
+                    <div className={estilos.itemMetricaObjetoV2}>
+                      <span className={estilos.etiquetaMetricaObjeto}>
+                        {item.hechizo.bonoAtaque !== undefined
+                          ? "Impacto"
+                          : cdFinal !== undefined
+                          ? "Salvación"
+                          : "Efecto"}
+                      </span>
+                      <span className={estilos.valorMetricaObjeto}>
+                        {item.hechizo.bonoAtaque !== undefined
+                          ? `+${item.hechizo.bonoAtaque}`
+                          : cdFinal !== undefined
+                          ? `CD ${cdFinal}`
+                          : "Especial"}
+                      </span>
+                    </div>
+
+                    {(hechizoCompendio?.dadosDaño || hechizoCompendio?.duracion) && (
+                      <>
+                        <span className={estilos.separadorMetricaObjeto} aria-hidden="true" />
+                        <div className={estilos.itemMetricaObjetoV2}>
+                          <span className={estilos.etiquetaMetricaObjeto}>
+                            {hechizoCompendio.dadosDaño ? "Daño" : "Duración"}
+                          </span>
+                          <span className={estilos.valorMetricaSecundaria}>
+                            {hechizoCompendio.dadosDaño
+                              ? `${hechizoCompendio.dadosDaño}${
+                                  hechizoCompendio.tipoDaño ? ` ${hechizoCompendio.tipoDaño}` : ""
+                                }`
+                              : hechizoCompendio.duracion}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {estaBloqueado ? (
+                    <button
+                      type="button"
+                      disabled
+                      className={estilos.botonBloqueadoObjeto}
+                      title={
+                        estaBloqueadoPorArmadura
+                          ? motivoBloqueoArmadura || "Bloqueado por armadura sin competencia"
+                          : "Cargas insuficientes para lanzar este conjuro"
+                      }
+                    >
+                      <AlertTriangle size={12} aria-hidden="true" />
+                      <span>
+                        {estaBloqueadoPorArmadura
+                          ? "Bloqueado: Armadura"
+                          : `Sin cargas (${item.cargasActuales}/${item.cargasMaximas})`}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className={estilos.splitLanzarObjeto}>
+                      <span
+                        className={estilos.celdaCosteObjeto}
+                        data-voluntad={coste === 0 ? "true" : undefined}
+                      >
+                        {coste > 0 ? `-${coste} ${coste === 1 ? "carga" : "cargas"}` : "0 cargas"}
+                      </span>
+                      <button
+                        type="button"
+                        className={estilos.botonLanzarSplitObjeto}
+                        onClick={lanzarHechizo}
+                        title="Lanzar conjuro desde el objeto"
+                      >
+                        <Sparkles size={12} aria-hidden="true" />
+                        <span>Lanzar</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </article>
+          );
+        })}
+      </div>
   );
-};
+
+  if (!mostrarDivisor) {
+    return listaTarjetas;
+  }
+
+  return (
+    <section className={estilos.bloqueSeccionPlana} aria-label="Hechizos de objetos mágicos">
+      <DivisorSeccionAccion
+        icono={<Sparkles size={13} color="var(--pj-texto-magia)" aria-hidden="true" />}
+        titulo="Objetos Mágicos"
+        conteo={hechizosObjetosFiltrados.length}
+        tono="magia"
+      />
+      {listaTarjetas}
+    </section>
+  );
+});
+
+SeccionHechizosObjetosMagicos.displayName = "SeccionHechizosObjetosMagicos";

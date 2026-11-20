@@ -8,7 +8,7 @@ import {
   Shield,
   Hourglass
 } from "lucide-react";
-import type { Caracteristica, TipoAccionConsumida, AtaquePersonajeCalculado } from "@/tipos";
+import type { Caracteristica, AtaquePersonajeCalculado } from "@/tipos";
 import type { ResultadoEvaluacionCondiciones } from "@/servicios/procesadorCondiciones";
 import { TooltipUniversal } from "@/componentes/comunes/TooltipUniversal";
 import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
@@ -27,8 +27,6 @@ import {
 } from "./utilesTarjetaAtaque";
 import { BloqueDanoTarjeta } from "./BloqueDanoTarjeta";
 import estilos from "./TarjetaAtaquePersonaje.module.css";
-
-export type { TipoAccionConsumida, AtaquePersonajeCalculado };
 
 interface TarjetaAtaquePersonajeProps {
   ataque: AtaquePersonajeCalculado;

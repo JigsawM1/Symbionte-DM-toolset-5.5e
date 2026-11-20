@@ -6,7 +6,7 @@ import { EsquemaRasgoPersonaje } from "@/tipos/rasgos";
 import type { HechizoBase, PersonajeJugador } from "@/tipos";
 import type { ConjuroAccionElemento } from "./usarCalculoAtaquesJugador";
 
-describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
+describe("SeccionAtaquesMagicos — Flujo Plano A + C de Conjuros Fijados", () => {
   const personajeBase: PersonajeJugador = {
     ...PERSONAJE_POR_DEFECTO,
     id: "pj-mago-test",
@@ -60,36 +60,13 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
   };
 
   const conjurosFiltradosBase: ConjuroAccionElemento[] = [
-    { hechizo: trucoDescarga, tipoAccion: "accion" },
     { hechizo: conjuroMisil, tipoAccion: "accion" },
+    { hechizo: trucoDescarga, tipoAccion: "accion" },
     { hechizo: conjuroEscudo, tipoAccion: "reaccion" }
   ];
 
-  const conjurosPorNivelBase: Record<number, ConjuroAccionElemento[]> = {
-    0: [{ hechizo: trucoDescarga, tipoAccion: "accion" }],
-    1: [
-      { hechizo: conjuroMisil, tipoAccion: "accion" },
-      { hechizo: conjuroEscudo, tipoAccion: "reaccion" }
-    ],
-    2: [],
-    3: [],
-    4: [],
-    5: [],
-    6: [],
-    7: [],
-    8: [],
-    9: []
-  };
-
   const propsBase = {
     conjurosFiltrados: conjurosFiltradosBase,
-    conjurosPorNivel: conjurosPorNivelBase,
-    seccionesAbiertas: {
-      magicos: true,
-      magicos_nv_0: true,
-      magicos_nv_1: true
-    },
-    alAlternarSeccion: vi.fn(),
     personajeActivo: personajeBase,
     espaciosConjuroMaximos: personajeBase.espaciosConjuroMaximos,
     bonoAtaqueMagico: 5,
@@ -102,18 +79,36 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
     alAlternarAcciones: vi.fn()
   };
 
-  it("renderiza conjuros visibles con su toggle activo en Acciones y sin sección Conjuros Ocultos", () => {
+  it("renderiza conjuros en flujo plano ordenados por nivel sin acordeones ni subniveles colapsables", () => {
     const html = renderToStaticMarkup(<SeccionAtaquesMagicos {...propsBase} />);
 
-    expect(html).toContain("Conjuros y Acciones Mágicas");
-    expect(html).toContain("Trucos Listos");
-    expect(html).toContain("Nivel 1");
+    expect(html).toContain("<section");
+    expect(html).toContain('aria-label="Conjuros y acciones mágicas"');
+    expect(html).toContain("Magia de Combate</h3>");
+    expect(html).not.toContain("Conjuros y Acciones Mágicas");
+    expect(html).not.toContain("Trucos Listos");
+    expect(html).not.toContain("Conjuros Ocultos");
+    expect(html).not.toContain("Clic para mostrar u ocultar");
+
+    // Truco nivel 0 aparece antes que los de nivel 1 aunque llegase después en el array
+    const posDescarga = html.indexOf("Descarga de Fuego");
+    const posEscudo = html.indexOf("Escudo");
+    const posMisil = html.indexOf("Proyectil Mágico");
+    expect(posDescarga).toBeGreaterThan(-1);
+    expect(posEscudo).toBeGreaterThan(posDescarga);
+    expect(posMisil).toBeGreaterThan(posEscudo);
+    expect(html).toContain('title="Quitar de la pestaña Acciones"');
+  });
+
+  it("omite el divisor ligero cuando mostrarDivisor es false", () => {
+    const html = renderToStaticMarkup(
+      <SeccionAtaquesMagicos {...propsBase} mostrarDivisor={false} />
+    );
+
+    expect(html).not.toContain("<section");
+    expect(html).not.toContain("Magia de Combate");
     expect(html).toContain("Descarga de Fuego");
     expect(html).toContain("Proyectil Mágico");
-    expect(html).toContain("Escudo");
-    expect(html).toContain('title="Quitar de la pestaña Acciones"');
-    expect(html).toContain('aria-pressed="true"');
-    expect(html).not.toContain("Conjuros Ocultos");
   });
 
   it("ignora conjurosOcultos heredados y mantiene visibles los conjuros fijados en Acciones", () => {
@@ -135,40 +130,10 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
 
   it("no renderiza nada cuando conjurosFiltrados está completamente vacío", () => {
     const html = renderToStaticMarkup(
-      <SeccionAtaquesMagicos
-        {...propsBase}
-        conjurosFiltrados={[]}
-        conjurosPorNivel={{}}
-      />
+      <SeccionAtaquesMagicos {...propsBase} conjurosFiltrados={[]} />
     );
 
     expect(html).toBe("");
-  });
-
-  it("respeta el estado de colapso general (seccionesAbiertas.magicos = false)", () => {
-    const html = renderToStaticMarkup(
-      <SeccionAtaquesMagicos
-        {...propsBase}
-        seccionesAbiertas={{ ...propsBase.seccionesAbiertas, magicos: false }}
-      />
-    );
-
-    expect(html).toContain("Conjuros y Acciones Mágicas");
-    expect(html).not.toContain("Trucos Listos");
-    expect(html).not.toContain("Descarga de Fuego");
-  });
-
-  it("respeta el colapso individual por nivel (seccionesAbiertas.magicos_nv_1 = false)", () => {
-    const html = renderToStaticMarkup(
-      <SeccionAtaquesMagicos
-        {...propsBase}
-        seccionesAbiertas={{ ...propsBase.seccionesAbiertas, magicos_nv_1: false }}
-      />
-    );
-
-    expect(html).toContain("Descarga de Fuego");
-    expect(html).toContain("Nivel 1");
-    expect(html).not.toContain("Proyectil Mágico");
   });
 
   it("no muestra el botón 'Gratis' para conjuros solo otorgados como preparados (efecto conjuro_otorgado)", () => {
@@ -197,10 +162,7 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
     };
 
     const html = renderToStaticMarkup(
-      <SeccionAtaquesMagicos
-        {...propsBase}
-        personajeActivo={personajeConPreparado}
-      />
+      <SeccionAtaquesMagicos {...propsBase} personajeActivo={personajeConPreparado} />
     );
 
     expect(html).toContain("Proyectil Mágico");
@@ -216,7 +178,6 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
         personajeActivo={{ ...personajeBase, espaciosConjuroGastados: { 1: 4, 2: 3 } }}
         espaciosConjuroMaximos={{ 1: 4, 2: 3, 3: 1 }}
         conjurosFiltrados={[item]}
-        conjurosPorNivel={{ 3: [item] }}
       />
     );
     expect(html).toContain("Nv. 3 (1/1)");
@@ -252,8 +213,6 @@ describe("SeccionAtaquesMagicos - Conjuros fijados en Acciones", () => {
         {...propsBase}
         sistemaMagia="puntos"
         conjurosFiltrados={[{ hechizo: conjuroNv3, tipoAccion: "accion" }]}
-        conjurosPorNivel={{ 3: [{ hechizo: conjuroNv3, tipoAccion: "accion" }] }}
-        seccionesAbiertas={{ magicos: true, magicos_nv_3: true }}
         personajeActivo={{
           ...personajeBase,
           nivelConjuroMaximo: 3,

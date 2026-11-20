@@ -16,20 +16,21 @@ import {
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { esLanzadorCarisma, esLanzadorSabiduria, esClasePacto } from "@/constantes";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
-export type {
+import type {
   AtaquePersonajeCalculado,
-  TipoAccionConsumida
-} from "./TarjetaAtaquePersonaje";
-export type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
-import type { AtaquePersonajeCalculado } from "./TarjetaAtaquePersonaje";
-import type { ConsumibleAccionCalculado } from "./TarjetaConsumibleAccion.tipos";
+  ConsumibleAccionCalculado,
+  ObjetoJuego,
+  HechizoBase,
+  Caracteristica,
+  RasgoPersonaje
+} from "@/tipos";
+export type { AtaquePersonajeCalculado, ConsumibleAccionCalculado };
 import { calcularBonoAtaqueConjuro, calcularCDConjuros } from "@/servicios/calculadorMagia";
 import { desduplicarEntidades } from "@/utiles/busquedaTolerante";
-import type { ObjetoJuego, HechizoBase, Caracteristica, RasgoPersonaje } from "@/tipos";
 import { usarEstadoPersistido, usarLanzadorConjuros } from "@/hooks";
 import { generarListaAtaquesFisicos } from "@/servicios/calculadorAtaquesArmas";
 import { sincronizarRasgosAutomaticos } from "@/servicios/compendioRasgos";
-import { usarSeccionesColapsablesAtaque } from "./usarSeccionesColapsablesAtaque";
+import { calcularConteosFeedCombate, dividirRasgosParaFlujoPlano } from "./clasificadorSwitchesCombate";
 import {
   resolverConjurosAcciones,
   resolverConsumiblesCombate,
@@ -37,8 +38,7 @@ import {
   resolverRasgosAcciones,
   HechizoObjetoMagicoAccion,
   ConjuroAccionElemento,
-  RasgoAccionCombate,
-  CategoriaCombateRasgo
+  RasgoAccionCombate
 } from "@/servicios/calculadorAccionesCombate";
 import { verificarHechizoDeSubclase } from "@/servicios/logicaPertenenciaConjuros";
 import { esCondicionFuria } from "@/servicios/procesadorCondiciones";
@@ -61,9 +61,19 @@ export type FiltroAccion =
   | "accion"
   | "accionAdicional"
   | "reaccion"
-  | "consumibles"
-  | "activables";
-export type { HechizoObjetoMagicoAccion, ConjuroAccionElemento, RasgoAccionCombate, CategoriaCombateRasgo };
+  | "consumibles";
+export type { HechizoObjetoMagicoAccion, ConjuroAccionElemento, RasgoAccionCombate };
+
+const LISTA_HECHIZOS_VACIA: HechizoBase[] = [];
+const RASGOS_VACIOS: RasgoPersonaje[] = [];
+
+const FILTROS_ACCION_VALIDOS: ReadonlySet<string> = new Set<FiltroAccion>([
+  "todas",
+  "accion",
+  "accionAdicional",
+  "reaccion",
+  "consumibles"
+]);
 
 export function usarCalculoAtaquesJugador() {
   const { personajeActivo } = usarEstadoPersonajes();
@@ -84,16 +94,21 @@ export function usarCalculoAtaquesJugador() {
   const { objetosHomebrew, baseDatosHechizos } = usarEstadoHomebrew();
   const { sistemaMagia, tipoTirada } = usarEstadoConfiguracion();
 
-  // Filtro activo persistente
-  const [filtro, setFiltro] = usarEstadoPersistido<FiltroAccion>("ts_acciones_filtro", "todas");
+  // Filtro activo persistente (normaliza claves heredadas como "activables")
+  const [filtroGuardado, setFiltroGuardado] = usarEstadoPersistido<string>("ts_acciones_filtro", "todas");
+  const filtro: FiltroAccion = FILTROS_ACCION_VALIDOS.has(filtroGuardado)
+    ? (filtroGuardado as FiltroAccion)
+    : "todas";
+  const setFiltro: (nuevoFiltro: FiltroAccion) => void = setFiltroGuardado;
 
-  // Control de secciones colapsables persistente
-  const {
-    seccionesAbiertas,
-    alternarSeccion,
-    colapsarTodasSecciones,
-    expandirTodasSecciones,
-  } = usarSeccionesColapsablesAtaque();
+  // Único acordeón de la vista: cajón de Rasgos Ocultos (cerrado por defecto)
+  const [ocultosAbiertos, setOcultosAbiertos] = usarEstadoPersistido<boolean>(
+    "ts_acciones_ocultos_abiertos",
+    false
+  );
+  const alternarOcultos = useCallback(() => {
+    setOcultosAbiertos((prev) => !prev);
+  }, [setOcultosAbiertos]);
 
   // Modal de detalle de conjuro y de rasgo
   const [hechizoDetalle, setHechizoDetalle] = useState<HechizoBase | null>(null);
@@ -118,7 +133,7 @@ export function usarCalculoAtaquesJugador() {
     return desduplicarEntidades(OBJETOS_INICIALES, objetosHomebrew);
   }, [objetosHomebrew]);
 
-  const baseDatosConjuros = baseDatosHechizos || [];
+  const baseDatosConjuros = baseDatosHechizos || LISTA_HECHIZOS_VACIA;
 
   const statsCalculadas = useMemo(() => {
     if (!personajeActivo) return null;
@@ -126,19 +141,15 @@ export function usarCalculoAtaquesJugador() {
   }, [personajeActivo, objetosHomebrew]);
 
   // Habilidad mágica del personaje
-  const habilidadMagica: Caracteristica = useMemo(() => {
-    if (personajeActivo?.clasesLanzadoras && personajeActivo.clasesLanzadoras.length > 0) {
-      return personajeActivo.clasesLanzadoras[0].habilidadConjuro as Caracteristica;
-    }
-    const clase = personajeActivo?.clase || "";
-    if (esLanzadorCarisma(clase)) {
-      return "carisma";
-    }
-    if (esLanzadorSabiduria(clase)) {
-      return "sabiduria";
-    }
-    return "inteligencia";
-  }, [personajeActivo]);
+  const clasePersonaje = personajeActivo?.clase || "";
+  const habilidadMagica: Caracteristica =
+    personajeActivo?.clasesLanzadoras && personajeActivo.clasesLanzadoras.length > 0
+      ? (personajeActivo.clasesLanzadoras[0].habilidadConjuro as Caracteristica)
+      : esLanzadorCarisma(clasePersonaje)
+      ? "carisma"
+      : esLanzadorSabiduria(clasePersonaje)
+      ? "sabiduria"
+      : "inteligencia";
 
   const modMagico = statsCalculadas ? statsCalculadas.modificadores[habilidadMagica] || 0 : 0;
   const bonoAtaqueMagico = statsCalculadas
@@ -193,34 +204,37 @@ export function usarCalculoAtaquesJugador() {
     return resolverHechizosObjetosMagicos(personajeActivo, objetosHomebrew);
   }, [personajeActivo, objetosHomebrew]);
 
-  // 5. Rasgos tácticos de combate (acciones, adicionales, reacciones, consumibles, activables)
+  // 5. Rasgos tácticos de combate (calculados una sola vez a partir de los rasgos canónicos)
+  const idPj = personajeActivo?.id;
+  const rasgosPj = personajeActivo?.rasgos;
+  const condicionesPj = personajeActivo?.condicionesActivas;
+
+  const rasgosCanonicos = useMemo(
+    () => (personajeActivo ? sincronizarRasgosAutomaticos(personajeActivo) : RASGOS_VACIOS),
+    [personajeActivo]
+  );
+
   const listaRasgosCombate = useMemo<RasgoAccionCombate[]>(() => {
     if (!personajeActivo) return [];
-    const rasgosSincronizados = sincronizarRasgosAutomaticos(personajeActivo);
-    return resolverRasgosAcciones({ ...personajeActivo, rasgos: rasgosSincronizados });
-  }, [personajeActivo]);
+    return resolverRasgosAcciones({ ...personajeActivo, rasgos: rasgosCanonicos });
+  }, [personajeActivo, rasgosCanonicos]);
 
   // Auto-sincronizar rasgos en el almacén si faltan rasgos canónicos en el personaje activo
   useEffect(() => {
-    if (!personajeActivo) return;
-    const canonicos = sincronizarRasgosAutomaticos(personajeActivo);
-    const idsActuales = new Set((personajeActivo.rasgos || []).map((r) => r.id));
-    const faltanRasgos = canonicos.some((r) => !idsActuales.has(r.id));
-    if (faltanRasgos) {
-      sincronizarRasgosPersonaje(personajeActivo.id);
+    if (!idPj) return;
+    const idsActuales = new Set((rasgosPj || RASGOS_VACIOS).map((r) => r.id));
+    if (rasgosCanonicos.some((r) => !idsActuales.has(r.id))) {
+      sincronizarRasgosPersonaje(idPj);
     }
-  }, [personajeActivo?.id, personajeActivo?.rasgos, sincronizarRasgosPersonaje]);
+  }, [idPj, rasgosPj, rasgosCanonicos, sincronizarRasgosPersonaje]);
 
   const furiaEstaActiva = useMemo(() => {
-    if (!personajeActivo) return false;
-    const tieneRasgoFuriaActivo = (personajeActivo.rasgos || []).some(
+    const tieneRasgoFuriaActivo = (rasgosPj || RASGOS_VACIOS).some(
       (r) => (r.id === "rasgo_cls_barbaro_furia" || r.id === "furia") && r.activo
     );
-    const tieneCondicionFuria = (personajeActivo.condicionesActivas || []).some(
-      (c) => esCondicionFuria(c)
-    );
+    const tieneCondicionFuria = (condicionesPj || []).some((c) => esCondicionFuria(c));
     return tieneRasgoFuriaActivo || tieneCondicionFuria;
-  }, [personajeActivo]);
+  }, [rasgosPj, condicionesPj]);
 
   // Manejadores de tiradas delegados a servicios puros
   const manejarTirarAtaque = useCallback(async (ataque: AtaquePersonajeCalculado) => {
@@ -339,92 +353,71 @@ export function usarCalculoAtaquesJugador() {
     return verificarHechizoDeSubclase(hechizo, personajeActivo);
   }, [personajeActivo]);
 
+  // Clasificación entre switches de combate (Opción C) y feed plano inferior (Opción A)
+  const { rasgosSwitches, rasgosFeed } = useMemo(
+    () => dividirRasgosParaFlujoPlano(listaRasgosCombate),
+    [listaRasgosCombate]
+  );
+
   // Listas filtradas según filtro activo
   const ataquesFisicosFiltrados = useMemo(() => {
     if (filtro === "todas") return listaAtaquesFisicos;
-    if (filtro === "consumibles" || filtro === "activables") return [];
+    if (filtro === "consumibles") return [];
     return listaAtaquesFisicos.filter((a) => a.tipoAccion === filtro);
   }, [listaAtaquesFisicos, filtro]);
 
   const conjurosFiltrados = useMemo(() => {
     if (filtro === "todas") return conjurosAcciones;
-    if (filtro === "consumibles" || filtro === "activables") return [];
+    if (filtro === "consumibles") return [];
     return conjurosAcciones.filter((c) => c.tipoAccion === filtro);
   }, [conjurosAcciones, filtro]);
 
-  const conjurosPorNivel = useMemo(() => {
-    const agrupados: Record<number, ConjuroAccionElemento[]> = {};
-    for (let i = 0; i <= 9; i++) {
-      agrupados[i] = [];
-    }
-    for (const item of conjurosFiltrados) {
-      const niv = item.hechizo.nivel || 0;
-      if (agrupados[niv]) {
-        agrupados[niv].push(item);
-      }
-    }
-    return agrupados;
-  }, [conjurosFiltrados]);
-
   const consumiblesFiltrados = useMemo(() => {
     if (filtro === "todas" || filtro === "consumibles") return listaConsumibles;
-    if (filtro === "activables") return [];
     return listaConsumibles.filter((c) => c.tipoAccion === filtro);
   }, [listaConsumibles, filtro]);
 
   const hechizosObjetosFiltrados = useMemo(() => {
     if (filtro === "todas") return hechizosObjetosMagicos;
-    if (filtro === "consumibles" || filtro === "activables") return [];
+    if (filtro === "consumibles") return [];
     return hechizosObjetosMagicos.filter((h) => h.tipoAccion === filtro);
   }, [hechizosObjetosMagicos, filtro]);
 
   const rasgosFiltrados = useMemo(() => {
-    if (filtro === "todas") return listaRasgosCombate;
-    if (filtro === "accion") return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accion"));
-    if (filtro === "accionAdicional") return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accionAdicional"));
-    if (filtro === "reaccion") return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("reaccion"));
-    if (filtro === "consumibles") return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("consumible"));
-    if (filtro === "activables") return listaRasgosCombate.filter((r) => r.categoriasCombate.includes("activable"));
-    return listaRasgosCombate;
-  }, [listaRasgosCombate, filtro]);
+    if (filtro === "todas") return rasgosFeed;
+    const categoria = filtro === "consumibles" ? "consumible" : filtro;
+    return rasgosFeed.filter((r) => r.categoriasCombate.includes(categoria));
+  }, [rasgosFeed, filtro]);
 
-  const rasgosAcciones = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accion")), [listaRasgosCombate]);
-  const rasgosAccionesAdicionales = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("accionAdicional")), [listaRasgosCombate]);
-  const rasgosReacciones = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("reaccion")), [listaRasgosCombate]);
-  const rasgosConsumibles = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("consumible")), [listaRasgosCombate]);
-  const rasgosActivables = useMemo(() => listaRasgosCombate.filter((r) => r.categoriasCombate.includes("activable")), [listaRasgosCombate]);
-
-  // Conteos numéricos consolidados por tipo de acción
-  const contarPorTipoAccion = useCallback((tipo: "accion" | "accionAdicional" | "reaccion") => {
-    return (
-      listaAtaquesFisicos.filter((a) => a.tipoAccion === tipo).length +
-      conjurosAcciones.filter((c) => c.tipoAccion === tipo).length +
-      listaConsumibles.filter((c) => c.tipoAccion === tipo).length +
-      hechizosObjetosMagicos.filter((h) => h.tipoAccion === tipo).length +
-      listaRasgosCombate.filter((r) => r.categoriasCombate.includes(tipo)).length
+  const { conteoTotal, conteoAccion, conteoAccionAdicional, conteoReaccion, conteoConsumibles } =
+    useMemo(
+      () =>
+        calcularConteosFeedCombate(
+          listaAtaquesFisicos,
+          conjurosAcciones,
+          listaConsumibles,
+          hechizosObjetosMagicos,
+          rasgosFeed
+        ),
+      [listaAtaquesFisicos, conjurosAcciones, listaConsumibles, hechizosObjetosMagicos, rasgosFeed]
     );
-  }, [listaAtaquesFisicos, conjurosAcciones, listaConsumibles, hechizosObjetosMagicos, listaRasgosCombate]);
-
-  const conteoAccion = useMemo(() => contarPorTipoAccion("accion"), [contarPorTipoAccion]);
-  const conteoAccionAdicional = useMemo(() => contarPorTipoAccion("accionAdicional"), [contarPorTipoAccion]);
-  const conteoReaccion = useMemo(() => contarPorTipoAccion("reaccion"), [contarPorTipoAccion]);
-
-  const conteoConsumibles = listaConsumibles.length + rasgosConsumibles.length;
-
-  const conteoActivables = rasgosActivables.length;
-
-  const conteoTotal =
-    listaAtaquesFisicos.length +
-    conjurosAcciones.length +
-    listaConsumibles.length +
-    hechizosObjetosMagicos.length +
-    listaRasgosCombate.length;
 
   const espaciosConjuroMaximos = useMemo(
-    () => personajeActivo ? obtenerMaximosEspaciosEfectivos(personajeActivo) : {},
+    () => (personajeActivo ? obtenerMaximosEspaciosEfectivos(personajeActivo) : {}),
     [personajeActivo]
   );
   const tienePacto = (personajeActivo?.espaciosPactoMaximos || 0) > 0 || esClasePacto(personajeActivo?.clase);
+
+  const obtenerBloqueoToggleRasgoCb = useCallback(
+    (r: RasgoPersonaje) => {
+      const bloqueoFuria = obtenerBloqueoToggleRasgo(r, furiaEstaActiva);
+      return bloqueoFuria.bloqueado ? bloqueoFuria : obtenerBloqueoActivacionRasgo(personajeActivo, r);
+    },
+    [personajeActivo, furiaEstaActiva]
+  );
+
+  const resolverRecursosPadreCb = useCallback((r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r), [personajeActivo]);
+  const obtenerNivelEfectivoParaRasgoCb = useCallback((r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r), [personajeActivo]);
 
   return {
     personajeActivo,
@@ -432,10 +425,8 @@ export function usarCalculoAtaquesJugador() {
     sistemaMagia,
     filtro,
     setFiltro,
-    seccionesAbiertas,
-    alternarSeccion,
-    colapsarTodasSecciones,
-    expandirTodasSecciones,
+    ocultosAbiertos,
+    alternarOcultos,
     hechizoDetalle,
     setHechizoDetalle,
     rasgoDetalle,
@@ -446,21 +437,15 @@ export function usarCalculoAtaquesJugador() {
     motivoBloqueoArmadura,
     ataquesFisicosFiltrados,
     conjurosFiltrados,
-    conjurosPorNivel,
     consumiblesFiltrados,
     hechizosObjetosFiltrados,
+    rasgosSwitches,
     rasgosFiltrados,
-    rasgosAcciones,
-    rasgosAccionesAdicionales,
-    rasgosReacciones,
-    rasgosConsumibles,
-    rasgosActivables,
     conteoTotal,
     conteoAccion,
     conteoAccionAdicional,
     conteoReaccion,
     conteoConsumibles,
-    conteoActivables,
     espaciosConjuroMaximos,
     tienePacto,
     esHechizoDeSubclase,
@@ -472,12 +457,9 @@ export function usarCalculoAtaquesJugador() {
     alternarOcultarRasgo,
     desocultarTodosLosRasgos,
     alternarConjuroEnAcciones,
-    obtenerBloqueoToggleRasgo: (r: RasgoPersonaje) => {
-      const bloqueoFuria = obtenerBloqueoToggleRasgo(r, furiaEstaActiva);
-      return bloqueoFuria.bloqueado ? bloqueoFuria : obtenerBloqueoActivacionRasgo(personajeActivo, r);
-    },
-    resolverRecursosPadre: (r: RasgoPersonaje) => resolverRecursosPadre(personajeActivo, r),
-    obtenerNivelEfectivoParaRasgo: (r: RasgoPersonaje) => obtenerNivelEfectivoParaRasgo(personajeActivo, r),
+    obtenerBloqueoToggleRasgo: obtenerBloqueoToggleRasgoCb,
+    resolverRecursosPadre: resolverRecursosPadreCb,
+    obtenerNivelEfectivoParaRasgo: obtenerNivelEfectivoParaRasgoCb,
     manejarCambiarCaracteristicaArma,
     manejarTirarAtaque,
     manejarTirarDano,

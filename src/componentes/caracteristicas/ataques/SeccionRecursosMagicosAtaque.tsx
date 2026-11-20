@@ -95,11 +95,11 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
       data-concentracion={tieneConcentracion ? "true" : "false"}
       aria-label="Resumen de recursos mágicos"
     >
-      <div className={estilos.filaSuperiorPuenteMagia}>
-        <div className={estilos.estadoConcentracionPuente}>
-          {personajeActivo.concentracionActiva ? (
-            <>
-              <Flame size={14} color="var(--pj-texto-oro)" />
+      {tieneConcentracion && personajeActivo.concentracionActiva ? (
+        <>
+          <div className={estilos.filaSuperiorPuenteMagia}>
+            <div className={estilos.estadoConcentracionPuente}>
+              <Flame size={14} color="var(--pj-texto-oro)" aria-hidden="true" />
               <span className={estilos.etiquetaConcentracionPuente}>
                 Conc.: <strong>{personajeActivo.concentracionActiva.nombreHechizo}</strong>
               </span>
@@ -110,37 +110,58 @@ export const SeccionRecursosMagicosAtaque: React.FC<SeccionRecursosMagicosAtaque
               >
                 Romper
               </button>
-            </>
-          ) : (
-            <>
-              <Sparkles size={14} color="var(--pj-texto-magia)" />
-              <span className={estilos.tituloPuenteMagia}>Estado Mágico</span>
-            </>
-          )}
-        </div>
+            </div>
 
-        <button
-          type="button"
-          className={estilos.botonIrAMagia}
-          onClick={irAMagia}
-          title="Abrir la pestaña Magia para gestionar ranuras y conjuros"
-        >
-          <span>Ir a Magia</span>
-          <ArrowRight size={12} />
-        </button>
-      </div>
-
-      {pillsRecursos.length > 0 && (
-        <div className={estilos.resumenRecursosPuente}>
-          {pillsRecursos.map((pill) => (
-            <span
-              key={pill.texto}
-              className={estilos.pillRecursoPuente}
-              data-agotado={pill.agotado ? "true" : "false"}
+            <button
+              type="button"
+              className={estilos.botonIrAMagia}
+              onClick={irAMagia}
+              title="Abrir la pestaña Magia para gestionar ranuras y conjuros"
             >
-              {pill.texto}
-            </span>
-          ))}
+              <span>Ir a Magia</span>
+              <ArrowRight size={12} aria-hidden="true" />
+            </button>
+          </div>
+
+          {pillsRecursos.length > 0 && (
+            <div className={estilos.resumenRecursosPuente}>
+              {pillsRecursos.map((pill) => (
+                <span
+                  key={pill.texto}
+                  className={estilos.pillRecursoPuente}
+                  data-agotado={pill.agotado ? "true" : "false"}
+                >
+                  {pill.texto}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className={estilos.filaCompactaPuenteMagia}>
+          <div className={estilos.grupoIzquierdoPuenteCompacto}>
+            <Sparkles size={13} color="var(--pj-texto-magia)" aria-hidden="true" />
+            <span className={estilos.tituloPuenteMagia}>Estado Mágico</span>
+            {pillsRecursos.map((pill) => (
+              <span
+                key={pill.texto}
+                className={estilos.pillRecursoPuente}
+                data-agotado={pill.agotado ? "true" : "false"}
+              >
+                {pill.texto}
+              </span>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            className={estilos.botonIrAMagia}
+            onClick={irAMagia}
+            title="Abrir la pestaña Magia para gestionar ranuras y conjuros"
+          >
+            <span>Ir a Magia</span>
+            <ArrowRight size={12} aria-hidden="true" />
+          </button>
         </div>
       )}
     </section>

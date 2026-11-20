@@ -268,21 +268,19 @@ describe("TarjetaAtaquePersonaje v2 — El Dato como Botón y Modo Crítico", ()
   });
 });
 
-describe("SeccionAtaquesFisicos — Cabecera con Toggle Global Crítico (×2 Dados)", () => {
+describe("SeccionAtaquesFisicos — Divisor Ligero con Toggle Global Crítico (×2 Dados)", () => {
   const pjBase: PersonajeJugador = {
     ...PERSONAJE_POR_DEFECTO,
     id: "pj-guerrero-test",
     nombre: "Valerius"
   };
 
-  it("renderiza la cabecera con botón colapsable y toggle de crítico desacoplado con aria-pressed", () => {
+  it("renderiza el divisor ligero con toggle de crítico con aria-pressed y conserva el toggle en vista filtrada", () => {
     const html = renderToStaticMarkup(
       <SeccionAtaquesFisicos
         ataquesFisicos={[ataqueEspadaLarga, ataqueDesarmado]}
         personajeActivo={pjBase}
         statsCalculadas={null}
-        estaAbierta={true}
-        alAlternar={vi.fn()}
         alTirarAtaque={vi.fn()}
         alTirarDano={vi.fn()}
         alTirarCritico={vi.fn()}
@@ -290,9 +288,26 @@ describe("SeccionAtaquesFisicos — Cabecera con Toggle Global Crítico (×2 Dad
       />
     );
 
-    expect(html).toContain("Ataques con Armas &amp; Maestría");
-    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain("Armas y Maestría</h3>");
+    expect(html).not.toContain("Clic para mostrar u ocultar armas");
+    expect(html).not.toContain("Ataques con Armas &amp; Maestría");
     expect(html).toContain('aria-pressed="false"');
     expect(html).toContain("Crítico (×2 Dados)");
+
+    const htmlFiltrado = renderToStaticMarkup(
+      <SeccionAtaquesFisicos
+        ataquesFisicos={[ataqueEspadaLarga]}
+        personajeActivo={pjBase}
+        statsCalculadas={null}
+        mostrarDivisor={false}
+        alTirarAtaque={vi.fn()}
+        alTirarDano={vi.fn()}
+        alTirarCritico={vi.fn()}
+        alCambiarCaracteristica={vi.fn()}
+      />
+    );
+
+    expect(htmlFiltrado).not.toContain("Armas y Maestría");
+    expect(htmlFiltrado).toContain("Crítico (×2 Dados)");
   });
 });

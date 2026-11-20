@@ -1,6 +1,7 @@
 import React from "react";
-import { Swords, ChevronDown, ChevronRight, Target, Zap } from "lucide-react";
+import { Swords, Target, Zap } from "lucide-react";
 import { TarjetaAtaquePersonaje } from "./TarjetaAtaquePersonaje";
+import { DivisorSeccionAccion } from "./DivisorSeccionAccion";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
 import { obtenerDadosExtraCriticoArma } from "@/servicios/evaluadorEfectosRasgos";
 import type { Caracteristica, PersonajeJugador } from "@/tipos";
@@ -13,8 +14,7 @@ interface SeccionAtaquesFisicosProps {
   ataquesFisicos: AtaquePersonajeCalculado[];
   personajeActivo: PersonajeJugador;
   statsCalculadas: EstadisticasCalculadasPersonaje | null;
-  estaAbierta: boolean;
-  alAlternar: () => void;
+  mostrarDivisor?: boolean;
   alTirarAtaque: (ataque: AtaquePersonajeCalculado) => void;
   alTirarDano: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
   alTirarCritico: (ataque: AtaquePersonajeCalculado, versatil?: boolean | "adicional") => void;
@@ -26,8 +26,7 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
   ataquesFisicos,
   personajeActivo,
   statsCalculadas,
-  estaAbierta,
-  alAlternar,
+  mostrarDivisor = true,
   alTirarAtaque,
   alTirarDano,
   alTirarCritico,
@@ -93,83 +92,78 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
     return null;
   }
 
+  const toggleCritico = (
+    <div className={estilos.grupoToggleCritico}>
+      <button
+        type="button"
+        className={estilos.botonToggleCritico}
+        aria-pressed={modoCritico}
+        data-activo={modoCritico ? "true" : undefined}
+        onClick={() => setModoCritico((prev) => !prev)}
+        title={
+          modoCritico
+            ? "Modo Crítico activo: el próximo daño duplicará los dados y volverá a modo normal"
+            : "Activar modo Crítico (×2 Dados) para la próxima tirada de daño"
+        }
+      >
+        {modoCritico ? (
+          <Zap size={12} className={estilos.iconoToggleOn} aria-hidden="true" />
+        ) : (
+          <Target size={12} className={estilos.iconoToggleOff} aria-hidden="true" />
+        )}
+        <span>{modoCritico ? "Crítico ×2 · Activo" : "Crítico (×2 Dados)"}</span>
+      </button>
+    </div>
+  );
+
   return (
     <section
-      className={estilosVista.seccionGrupoAtaques}
+      className={`${estilosVista.bloqueSeccionPlana} ${estilos.bloqueCriticoArmas}`}
       aria-label="Ataques con armas y maestría"
     >
-      <div
-        className={estilos.cabeceraSeccionFisicos}
-        data-critico={modoCritico ? "true" : undefined}
-      >
-        <button
-          type="button"
-          className={estilos.botonColapsarSeccion}
-          onClick={alAlternar}
-          aria-expanded={estaAbierta}
-          title="Clic para mostrar u ocultar armas y ataques físicos"
+      {mostrarDivisor ? (
+        <DivisorSeccionAccion
+          icono={<Swords size={13} color="var(--pj-texto-cian)" aria-hidden="true" />}
+          titulo="Armas y Maestría"
+          conteo={ataquesFisicos.length}
+          tono="cian"
+          accionDerecha={toggleCritico}
+        />
+      ) : (
+        <div
+          className={estilos.barraCriticoFiltrado}
+          data-critico={modoCritico ? "true" : undefined}
         >
-          <Swords size={14} color="var(--pj-texto-cian)" aria-hidden="true" />
-          <span className={estilos.tituloSeccionTexto}>Ataques con Armas &amp; Maestría</span>
-          <span className={estilos.badgeConteoFisicos}>{ataquesFisicos.length}</span>
-          {estaAbierta ? (
-            <ChevronDown size={14} className={estilos.iconoChevron} aria-hidden="true" />
-          ) : (
-            <ChevronRight size={14} className={estilos.iconoChevron} aria-hidden="true" />
-          )}
-        </button>
-
-        <div className={estilos.grupoToggleCritico}>
-          <button
-            type="button"
-            className={estilos.botonToggleCritico}
-            aria-pressed={modoCritico}
-            data-activo={modoCritico ? "true" : undefined}
-            onClick={() => setModoCritico((prev) => !prev)}
-            title={
-              modoCritico
-                ? "Modo Crítico activo: el próximo daño duplicará los dados y volverá a modo normal"
-                : "Activar modo Crítico (×2 Dados) para la próxima tirada de daño"
-            }
-          >
-            {modoCritico ? (
-              <Zap size={12} className={estilos.iconoToggleOn} aria-hidden="true" />
-            ) : (
-              <Target size={12} className={estilos.iconoToggleOff} aria-hidden="true" />
-            )}
-            <span>{modoCritico ? "Crítico ×2 · Activo" : "Crítico (×2 Dados)"}</span>
-          </button>
-        </div>
-      </div>
-
-      {estaAbierta && (
-        <div className={estilosVista.listaAtaques}>
-          {tarjetasPreparadas.map(
-            ({
-              ataque,
-              permiteDanoAdicional,
-              esDanoFijoPasivo,
-              evalCond,
-              dadosExtraCritico,
-              modAtributoAtaque
-            }) => (
-              <TarjetaAtaquePersonaje
-                key={ataque.id}
-                ataque={ataque}
-                evaluacionCondiciones={evalCond}
-                permiteDanoAdicional={permiteDanoAdicional}
-                modoCritico={modoCritico && !esDanoFijoPasivo}
-                dadosExtraCritico={dadosExtraCritico}
-                modAtributoAtaque={modAtributoAtaque}
-                alTirarAtaque={alTirarAtaque}
-                alTirarDano={manejarTirarDanoConModo}
-                alCambiarCaracteristica={alCambiarCaracteristica}
-                alAjustarMunicion={alAjustarMunicion}
-              />
-            )
-          )}
+          {toggleCritico}
         </div>
       )}
+
+      <div className={estilosVista.listaAtaques}>
+        {tarjetasPreparadas.map(
+          ({
+            ataque,
+            permiteDanoAdicional,
+            esDanoFijoPasivo,
+            evalCond,
+            dadosExtraCritico,
+            modAtributoAtaque
+          }) => (
+            <TarjetaAtaquePersonaje
+              key={ataque.id}
+              ataque={ataque}
+              evaluacionCondiciones={evalCond}
+              permiteDanoAdicional={permiteDanoAdicional}
+              modoCritico={modoCritico && !esDanoFijoPasivo}
+              dadosExtraCritico={dadosExtraCritico}
+              modAtributoAtaque={modAtributoAtaque}
+              alTirarAtaque={alTirarAtaque}
+              alTirarDano={manejarTirarDanoConModo}
+              alCambiarCaracteristica={alCambiarCaracteristica}
+              alAjustarMunicion={alAjustarMunicion}
+            />
+          )
+        )}
+      </div>
     </section>
   );
 };

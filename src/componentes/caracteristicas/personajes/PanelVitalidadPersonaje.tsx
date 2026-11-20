@@ -124,32 +124,6 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                 <Plus size={13} />
               </BotonNumerico>
             </div>
-
-            {/* Tarjeta lateral de PG Temporal */}
-            <div
-              className={estilos.tarjetaPgTemporalCompacta}
-              onClick={() => setEditandoTemp(true)}
-              title="Haz clic para ajustar PG Temporal"
-            >
-              <span className={estilos.etiquetaPgTemporal}>PG TEMP</span>
-              {editandoTemp ? (
-                <CampoNumerico
-                  value={personaje.hpTemporal ?? 0}
-                  alConfirmar={(valor) => {
-                    alModificarHPTemporal(valor);
-                    setEditandoTemp(false);
-                  }}
-                  onBlur={() => setEditandoTemp(false)}
-                  autoFocus
-                  className={estilos.inputPgTempDirecto}
-                  min="0"
-                  identidad={personaje.id}
-                />
-              ) : (
-                <span className={estilos.valorPgTemporal}>{personaje.hpTemporal || 0}</span>
-              )}
-              <span className={estilos.subtituloPgTemporal}>AJUSTAR</span>
-            </div>
           </div>
 
           {/* Barra de Vida con Texto Grande y Badge */}
@@ -193,6 +167,35 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
             </span>
           </div>
         </div>
+
+        {/* Columna Derecha dedicada: PG Temporal */}
+        <div
+          className={estilos.tarjetaPgTemporalCompacta}
+          role="button"
+          tabIndex={0}
+          aria-label="Ajustar puntos de golpe temporales"
+          onClick={() => setEditandoTemp(true)}
+          title="Haz clic para ajustar PG Temporal"
+        >
+          <span className={estilos.etiquetaPgTemporal}>PG TEMP</span>
+          {editandoTemp ? (
+            <CampoNumerico
+              value={personaje.hpTemporal ?? 0}
+              alConfirmar={(valor) => {
+                alModificarHPTemporal(valor);
+                setEditandoTemp(false);
+              }}
+              onBlur={() => setEditandoTemp(false)}
+              autoFocus
+              className={estilos.inputPgTempDirecto}
+              min="0"
+              identidad={personaje.id}
+            />
+          ) : (
+            <span className={estilos.valorPgTemporal}>{personaje.hpTemporal || 0}</span>
+          )}
+          <span className={estilos.subtituloPgTemporal}>AJUSTAR</span>
+        </div>
       </div>
 
       {/* 2. Sub-fila de 3 Columnas: Dados de Golpe, Salvaciones de Muerte y Cansancio */}
@@ -233,7 +236,10 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
         </div>
 
         {/* Columna 2: Salvaciones de Muerte */}
-        <div className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}>
+        <div
+          className={`${estilos.tarjetaRecursoSalud} ${estilos.neoPressed}`}
+          data-critico={personaje.hpActual <= 0}
+        >
           <div className={estilos.filaCabeceraRecurso}>
             <button
               type="button"
@@ -265,6 +271,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                     type="button"
                     key={`exito-dot-${i}`}
                     className={`${estilos.circuloSalvacion} ${activo ? estilos.circuloSalvacionExitoActivo : ""}`}
+                    aria-pressed={activo}
                     onClick={(e) => {
                       e.stopPropagation();
                       alternarSalvacion("exitos", i);
@@ -286,6 +293,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
                     type="button"
                     key={`fallo-dot-${i}`}
                     className={`${estilos.circuloSalvacion} ${activo ? estilos.circuloSalvacionFalloActivo : ""}`}
+                    aria-pressed={activo}
                     onClick={(e) => {
                       e.stopPropagation();
                       alternarSalvacion("fallos", i);
@@ -297,11 +305,7 @@ const PanelVitalidadPersonajeComponent: React.FC<PanelVitalidadPersonajeProps> =
               })}
             </div>
 
-            <span
-              className={estilos.pieSalvacionCd}
-              onClick={alTirarSalvacionMuerte3D}
-              title="Tirar Salvación de Muerte en 3D"
-            >
+            <span className={estilos.pieSalvacionCd}>
               CD 10
             </span>
           </div>

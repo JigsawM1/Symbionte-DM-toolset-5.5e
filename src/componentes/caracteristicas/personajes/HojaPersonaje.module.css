@@ -194,9 +194,9 @@
 }
 
 .botonPillActivoPlano {
-  background-color: #f8fafc !important;
-  color: #090d16 !important;
-  border-color: #cbd5e1 !important;
+  background-color: var(--pj-fondo-tarjeta-elevada) !important;
+  color: var(--pj-texto-primario) !important;
+  border-color: var(--pj-borde-acento-fuerte) !important;
   font-weight: 800;
 }
 
@@ -256,8 +256,15 @@
   transition: none;
 }
 
-.botonAgregarCondicion:hover {
+.botonAgregarCondicion:hover:not(:disabled) {
   background-color: var(--pj-acento-primario-hover);
+}
+
+.botonAgregarCondicion:disabled {
+  background-color: var(--pj-fondo-hundido);
+  border-color: var(--pj-borde-sutil);
+  color: var(--pj-texto-apagado);
+  cursor: not-allowed;
 }
 
 .filaChipsActivosVacia {
@@ -411,6 +418,7 @@
   font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
   font-size: var(--pj-fuente-numero-lg);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-primario);
   line-height: 1;
 }
@@ -934,22 +942,23 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   background: var(--pj-fondo-hundido);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: 4px;
-  padding: 4px 10px;
+  border: 1px solid var(--pj-borde-cian-tenue);
+  border-radius: var(--pj-radio-control);
+  padding: 6px 10px;
   cursor: pointer;
-  min-width: 68px;
+  min-width: 78px;
   user-select: none;
 }
 
 .tarjetaPgTemporalCompacta:hover {
-  border-color: var(--pj-borde-acento-fuerte);
+  border-color: var(--pj-borde-cian-fuerte);
   background: var(--pj-fondo-tarjeta-hover);
 }
 
 .etiquetaPgTemporal {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--pj-texto-terciario);
   letter-spacing: 0.05em;
@@ -957,14 +966,15 @@
 
 .valorPgTemporal {
   font-family: var(--fuente-codigo, monospace);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-cian);
   line-height: 1.1;
 }
 
 .subtituloPgTemporal {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--pj-texto-cian);
   letter-spacing: 0.04em;
@@ -972,15 +982,17 @@
 
 .inputPgTempDirecto {
   width: 48px;
-  height: 22px;
+  height: 24px;
   text-align: center;
   font-family: var(--fuente-codigo, monospace);
   font-size: 13px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-cian);
   background: var(--pj-fondo-tarjeta);
   border: 1px solid var(--pj-borde-acento-fuerte);
   border-radius: 3px;
+  box-shadow: none !important;
 }
 
 .filaBarraProgresoVida {
@@ -997,6 +1009,7 @@
   font-family: var(--fuente-codigo, monospace);
   font-size: 18px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-exito);
   white-space: nowrap;
   flex-shrink: 0;
@@ -1010,15 +1023,18 @@
   text-align: right;
   background: transparent;
   border: none;
+  border-bottom: 1px dashed transparent;
   font: inherit;
   color: inherit;
   font-weight: inherit;
-  transition: background-color 0.15s ease, border-radius 0.15s ease;
+  box-shadow: none !important;
+  transition: none;
 }
 
 .inputHpDirecto:hover,
 .inputHpDirecto:focus {
   background: rgba(255, 255, 255, 0.08);
+  border-bottom-color: var(--pj-borde-cian);
   border-radius: 3px;
   outline: none;
 }
@@ -1104,6 +1120,11 @@
   background: var(--pj-fondo-tarjeta);
   min-height: 90px;
   box-sizing: border-box;
+}
+
+.tarjetaRecursoSalud[data-critico="true"] {
+  border-color: var(--pj-borde-peligro);
+  background: var(--pj-acento-peligro-fondo);
 }
 
 .filaCabeceraRecurso {
@@ -1206,6 +1227,8 @@
 }
 
 .botonTituloSalvacionMuerte:hover {
+  background: transparent;
+  border-color: transparent;
   color: var(--pj-texto-primario);
 }
 
@@ -1221,6 +1244,8 @@
 }
 
 .botonReiniciarSalvaciones:hover {
+  background: transparent;
+  border-color: transparent;
   color: var(--pj-texto-primario);
 }
 
@@ -1243,8 +1268,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 1.5px solid var(--pj-borde-control, #334155);
-  background-color: var(--pj-fondo-hundido, #090d16);
+  border: 1.5px solid var(--pj-borde-fuerte);
+  background-color: var(--pj-fondo-hundido);
   padding: 0;
   cursor: pointer;
   display: inline-flex;
@@ -1255,17 +1280,23 @@
   transition: none;
 }
 
-.circuloSalvacionExitoActivo {
-  background-color: #10b981 !important;
-  border-color: #34d399 !important;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+.circuloSalvacion:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-cian-fuerte);
+}
+
+.circuloSalvacionExitoActivo,
+.circuloSalvacionExitoActivo:hover {
+  background-color: var(--pj-acento-exito) !important;
+  border-color: var(--pj-texto-exito) !important;
 }
 
 .circuloSalvacionFalloActivo,
-.circuloCansancioActivo {
-  background-color: #ef4444 !important;
-  border-color: #f87171 !important;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+.circuloSalvacionFalloActivo:hover,
+.circuloCansancioActivo,
+.circuloCansancioActivo:hover {
+  background-color: var(--pj-acento-peligro) !important;
+  border-color: var(--pj-texto-alerta) !important;
 }
 
 .pieSalvacionCd {
@@ -1274,13 +1305,13 @@
   color: var(--pj-texto-terciario);
   letter-spacing: 0.04em;
   margin-top: 2px;
-  cursor: pointer;
 }
 
 .indicadorPenalizadorCansancio {
   font-family: var(--fuente-codigo, monospace);
   font-size: 12px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-alerta);
 }
 
@@ -1299,8 +1330,8 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  border: 1.5px solid var(--pj-borde-control, #334155);
-  background-color: var(--pj-fondo-hundido, #090d16);
+  border: 1.5px solid var(--pj-borde-fuerte);
+  background-color: var(--pj-fondo-hundido);
   padding: 0;
   cursor: pointer;
   display: inline-flex;
@@ -1309,6 +1340,11 @@
   flex-shrink: 0;
   box-sizing: border-box;
   transition: none;
+}
+
+.circuloCansancioMatriz:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-peligro);
 }
 
 .pieCansancioTexto {
@@ -3399,7 +3435,18 @@
 }
 @media (max-width: 480px) {
   .filaMetricasRapidas {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .filaMetricasRapidas > :nth-child(-n + 3) {
+    grid-column: span 2;
+  }
+  .filaMetricasRapidas > :nth-child(n + 4) {
+    grid-column: span 3;
+  }
+  .popoverVelocidad {
+    left: auto;
+    right: 0;
+    transform: none;
   }
   .contenedorPrincipal .filaSaludPrincipal {
     flex-direction: column;

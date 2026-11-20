@@ -101,10 +101,16 @@ export const FilaHabilidadPersonaje: React.FC<Props> = ({ hab, nombre, personaje
       </button>
       <button type="button" className={estilos.tiradaHabilidad} title={tooltipHab}
         onClick={() => alTirarHabilidad(hab, nombreMostrar, bono, caracAsociada)}>
-        <span className={estilos.nombreHabilidad}>{nombreMostrar}</span>
+        <span className={`${estilos.nombreHabilidad} ${esCompetente ? estilos.nombreHabilidadCompetente : ""}`}>{nombreMostrar}</span>
         {evalHab.tieneDesventaja && <AlertTriangle size={12} aria-label={`Desventaja: ${motivosHab}`} />}
         {evalHab.tieneVentaja && !evalHab.tieneDesventaja && <Sparkles size={12} aria-label={`Ventaja: ${motivosHab}`} />}
-        <span className={`${estilos.valorBonoHabilidad} ${esCompetente ? estilos.valorBonoHabilidadDestacado : ""}`}>{bonoTexto}</span>
+        <span
+          className={`${estilos.valorBonoHabilidad} ${esCompetente ? estilos.valorBonoHabilidadDestacado : ""}`}
+          data-grado={grado}
+          data-negativo={bono < 0}
+        >
+          {bonoTexto}
+        </span>
       </button>
       {tirada.opciones.length > 0 && <div className={estilos.selectorCaracteristicaHabilidad}>
         <SelectorDesplegable titulo={`Característica para ${nombreMostrar}`} valor={caracAsociada} tamano="mini"

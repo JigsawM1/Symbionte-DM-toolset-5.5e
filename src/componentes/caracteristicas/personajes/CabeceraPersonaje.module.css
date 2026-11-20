@@ -15,7 +15,7 @@
   align-self: center;
   position: relative;
   padding: 0;
-  border: 2px solid var(--pj-dorado-borde, #d4af37);
+  border: 2px solid var(--pj-borde-oro);
   border-radius: 20%;
   background: var(--pj-acento-primario-fondo);
   color: var(--pj-texto-acento);
@@ -23,13 +23,13 @@
   font-weight: 800;
   cursor: pointer;
   user-select: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: var(--pj-sombra-tarjeta);
+  transition: none;
 }
 
 .avatar:hover {
-  transform: scale(1.05);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+  border-color: var(--pj-texto-oro);
+  background: var(--pj-fondo-tarjeta-hover);
 }
 
 .avatar img {

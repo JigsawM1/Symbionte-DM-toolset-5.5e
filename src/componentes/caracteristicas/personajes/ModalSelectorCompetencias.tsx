@@ -61,28 +61,35 @@ export const ModalSelectorCompetencias: React.FC<ModalSelectorCompetenciasProps>
   });
 
   return (
-    <div className={estilos.overlayModal} onClick={alCerrar}>
+    <div
+      className={estilos.overlayModal}
+      onClick={alCerrar}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-selector-competencias"
+    >
       <div
-        className={`${estilos.contenedorModal} ${estilosCompetencias.cuerpoModalCompetencias}`}
+        className={`${estilos.cuerpoModal} ${estilosCompetencias.cuerpoModalCompetencias}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del Modal */}
         <div className={estilos.cabeceraModal}>
           <div className={estilosCompetencias.cabeceraModalTitulo}>
-            <h3 className={estilos.tituloModal}>Selector de Competencias</h3>
+            <h3 id="titulo-selector-competencias" className={estilos.tituloModal}>Selector de Competencias</h3>
           </div>
           <button
             type="button"
-            className={estilos.botonCerrar}
+            className={estilosCompetencias.botonCerrarModal}
             onClick={alCerrar}
             title="Cerrar modal"
+            aria-label="Cerrar selector de competencias"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Pestañas de Categoría */}
-        <div className={estilos.barraPestañasModal}>
+        {/* Pestañas de Categoría (4 columnas simétricas) */}
+        <div className={estilosCompetencias.barraPestanasCompetencias}>
           <button
             type="button"
             className={`${estilos.botonPestañaModal} ${

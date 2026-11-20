@@ -45,10 +45,14 @@ export const PopoverMovimientoVelocidad: React.FC<PopoverMovimientoVelocidadProp
   const infoTerrenoActual = INFORMACION_TERRENO[tipoTerrenoActual] || INFORMACION_TERRENO.normal;
 
   return (
-    <div className={estilos.popoverVelocidad}>
+    <div
+      className={estilos.popoverVelocidad}
+      role="dialog"
+      aria-label="Control de movimiento"
+    >
       <div className={estilos.cabeceraPopoverVelocidad}>
         <span className={estilos.tituloPopoverVelocidad}>
-          <Footprints size={14} color="#38bdf8" />
+          <Footprints size={14} color="var(--pj-texto-cian)" />
           Control de Movimiento
         </span>
         <button
@@ -73,7 +77,7 @@ export const PopoverMovimientoVelocidad: React.FC<PopoverMovimientoVelocidadProp
         <div className={estilos.seccionTerrenoPopover}>
           <div className={estilos.cabeceraTerreno}>
             <span className={estilos.tituloTerreno}>
-              <Mountain size={12} color="#94a3b8" />
+              <Mountain size={12} color="var(--pj-texto-terciario)" />
               Terreno
             </span>
           </div>

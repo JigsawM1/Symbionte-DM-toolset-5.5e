@@ -63,15 +63,17 @@ export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPe
         <div className={estilos.detalles}>
           <div className={estilos.cajaDetalle}>
             <span className={estilos.etiquetaDetalle}>CLASE</span>
-            <strong className={estilos.valorDetalle}>{clase}</strong>
+            <strong className={estilos.valorDetalle} title={clase}>{clase}</strong>
           </div>
           <div className={estilos.cajaDetalle}>
             <span className={estilos.etiquetaDetalle}>ESPECIE</span>
-            <strong className={estilos.valorDetalle}>{especie}</strong>
+            <strong className={estilos.valorDetalle} title={especie}>{especie}</strong>
           </div>
           <div className={estilos.cajaDetalle}>
             <span className={estilos.etiquetaDetalle}>TRASFONDO</span>
-            <strong className={estilos.valorDetalle}>{personaje.trasfondo || "Personalizado"}</strong>
+            <strong className={estilos.valorDetalle} title={personaje.trasfondo || "Personalizado"}>
+              {personaje.trasfondo || "Personalizado"}
+            </strong>
           </div>
         </div>
       </div>

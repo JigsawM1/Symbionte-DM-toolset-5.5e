@@ -41,8 +41,8 @@
 }
 
 .dotLeyenda {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -50,37 +50,41 @@
 .gridAtributos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: 8px;
 }
 
 .tarjetaAtributo {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 48px;
-  gap: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   padding: 10px;
   min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
+  border-radius: var(--pj-radio-panel);
   background: var(--pj-fondo-tarjeta);
 }
 
-.cabeceraAtributoColumna {
+.cabeceraAtributoFila {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
 }
 
 .filaTituloAtributo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .nombreAtributo {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 800;
   color: var(--pj-texto-primario);
   letter-spacing: 0.03em;
@@ -88,25 +92,24 @@
 }
 
 .puntuacion {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
   min-width: 0;
-  font-size: 11px;
-  color: var(--pj-texto-terciario);
 }
 
 .badgePuntuacionBase {
-  width: 38px;
-  min-height: 24px;
-  padding: 1px 3px;
+  width: 36px;
+  min-height: 32px;
+  padding: 2px 4px;
   box-sizing: border-box;
   text-align: center;
   border: 1px solid var(--pj-borde-sutil);
-  border-radius: 3px;
+  border-radius: 4px;
   background: var(--pj-fondo-hundido);
   color: var(--pj-texto-secundario);
   font: 700 12px var(--fuente-codigo, monospace);
+  font-variant-numeric: tabular-nums;
+  box-shadow: none !important;
 }
 
 .badgePuntuacionBase[data-bono="true"] {
@@ -115,15 +118,13 @@
 }
 
 .circuloModificador {
-  grid-column: 2;
-  grid-row: 1 / 2;
-  align-self: start;
-  width: 48px;
-  height: 48px;
+  flex-shrink: 0;
+  width: 46px;
+  height: 36px;
   border-radius: var(--pj-radio-control);
-  border: 1px solid var(--pj-borde-acento-fuerte);
+  border: 1px solid var(--pj-borde-cian);
   background: var(--pj-fondo-hundido);
-  color: var(--pj-texto-acento);
+  color: var(--pj-texto-cian);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -135,31 +136,52 @@
 
 .circuloModificador:hover {
   background: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-texto-cian);
+  border-color: var(--pj-borde-cian-fuerte);
+  color: var(--pj-texto-primario);
 }
 
-.modificadorNegativo {
-  border-color: rgba(239, 68, 68, 0.4) !important;
-  color: var(--pj-texto-alerta) !important;
+.tarjetaAtributo .modificadorPrimario {
+  background: var(--pj-acento-primario-solido);
+  border-color: var(--pj-borde-acento-luminoso);
+  color: var(--pj-texto-primario);
 }
 
-.modificadorNegativo:hover {
-  border-color: #ef4444 !important;
+.tarjetaAtributo .modificadorPrimario:hover {
+  background: var(--pj-acento-primario-solido-hover);
+  border-color: var(--pj-texto-primario);
+}
+
+.modificadorNeutro {
+  border-color: var(--pj-borde-medio);
+  color: var(--pj-texto-secundario);
+}
+
+.tarjetaAtributo .modificadorNegativo {
+  background: var(--pj-acento-peligro-fondo);
+  border-color: var(--pj-borde-peligro);
+  color: var(--pj-texto-alerta);
+}
+
+.tarjetaAtributo .modificadorNegativo:hover {
+  border-color: var(--pj-acento-peligro);
 }
 
 .textoModificador {
-  font: 800 22px var(--fuente-codigo, monospace);
+  font: 800 18px var(--fuente-codigo, monospace);
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .filaSalvacionAtributo {
-  grid-column: 1 / -1;
   display: flex;
   align-items: stretch;
-  background: var(--pj-fondo-tarjeta-elevada);
+  background: var(--pj-fondo-hundido);
   border: 1px solid var(--pj-borde-sutil);
-  margin: 4px 0 2px 0;
-  border-radius: 4px;
+  border-radius: 6px;
+}
+
+.filaSalvacionCompetente {
+  border-color: var(--pj-borde-cian-tenue);
 }
 
 .botonToggleSalvacion,
@@ -167,9 +189,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 28px;
-  width: 28px;
-  min-height: 28px;
+  flex: 0 0 32px;
+  width: 32px;
+  min-height: 32px;
   padding: 0;
   background: transparent;
   border: 0;
@@ -186,27 +208,45 @@
   gap: 6px;
   flex: 1;
   min-width: 0;
-  min-height: 28px;
-  padding: 2px 8px 2px 0;
+  min-height: 32px;
+  padding: 2px 6px 2px 0;
   border: 0;
   background: transparent;
   color: var(--pj-texto-secundario);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  letter-spacing: 0.04em;
+  text-transform: none;
   transition: none;
 }
 
-.botonTextoSalvacion strong {
-  margin-left: auto;
-  font-family: var(--fuente-codigo, monospace);
-  font-size: 12px;
-  font-weight: 800;
+.textoSalvacionCompetente {
+  color: var(--pj-texto-primario);
+  font-weight: 700;
 }
 
-.textoSalvacionCompetente {
+.pillBonoSalvacion {
+  margin-left: auto;
+  min-width: 34px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-align: center;
+  background: var(--pj-fondo-tarjeta);
+  color: var(--pj-texto-secundario);
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.pillBonoSalvacion[data-competente="true"] {
+  background: var(--pj-acento-cian-fondo);
   color: var(--pj-texto-cian);
+}
+
+.pillBonoSalvacion[data-negativo="true"]:not([data-competente="true"]) {
+  background: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
 }
 
 .puntoCompetenciaSalvacion {
@@ -221,13 +261,12 @@
 .puntoCompetenciaActivo {
   background: var(--pj-texto-cian);
   border-color: var(--pj-texto-cian);
-  box-shadow: 0 0 5px var(--pj-texto-cian);
 }
 
 .puntoGradoHabilidad {
-  width: 6px;
-  height: 6px;
-  border: 1px solid transparent;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid transparent;
   border-radius: 50%;
   box-sizing: border-box;
   background: transparent;
@@ -236,7 +275,6 @@
 .puntoGradoCompetente {
   background: var(--pj-texto-cian);
   border-color: var(--pj-texto-cian);
-  box-shadow: 0 0 4px var(--pj-texto-cian);
 }
 
 .puntoGradoMedio {
@@ -245,24 +283,28 @@
 }
 
 .puntoGradoPericia {
-  background: var(--pj-texto-cian);
-  border-color: var(--pj-texto-cian);
-  box-shadow: 4px 0 0 var(--pj-texto-cian);
-  transform: translateX(-2px);
+  background: var(--pj-texto-oro);
+  border-color: var(--pj-texto-oro);
 }
 
 .puntoGradoVacio {
-  border-color: rgba(148, 163, 184, 0.3);
+  border-color: var(--pj-borde-fuerte);
   background: transparent;
 }
 
+.cuerpoHabilidadesAtributo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
 .itemHabilidad {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   min-width: 0;
   border-radius: 4px;
-  padding: 1px 0;
 }
 
 .tiradaHabilidad {
@@ -272,11 +314,12 @@
   gap: 6px;
   flex: 1;
   min-width: 0;
-  min-height: 24px;
-  padding: 2px 4px 2px 0;
+  min-height: 32px;
+  padding: 2px 6px 2px 0;
   border: 0;
   background: transparent;
   text-align: left;
+  text-transform: none;
   color: var(--pj-texto-secundario);
   cursor: pointer;
   transition: none;
@@ -287,23 +330,41 @@
   min-width: 0;
   overflow-wrap: anywhere;
   font-size: 12px;
-  line-height: 1.35;
-  text-transform: lowercase;
+  font-weight: 500;
+  line-height: 1.3;
 }
 
-.nombreHabilidad::first-letter,
-.cajaTextoCompetencia::first-letter {
-  text-transform: uppercase;
+.nombreHabilidadCompetente {
+  color: var(--pj-texto-primario);
+  font-weight: 700;
 }
 
 .valorBonoHabilidad {
   flex-shrink: 0;
-  font: 700 12px var(--fuente-codigo, monospace);
+  min-width: 34px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-align: center;
+  background: var(--pj-fondo-hundido);
+  font: 700 11px var(--fuente-codigo, monospace);
+  font-variant-numeric: tabular-nums;
   color: var(--pj-texto-secundario);
 }
 
-.valorBonoHabilidadDestacado {
-  color: var(--pj-texto-cian) !important;
+.valorBonoHabilidad[data-negativo="true"] {
+  background: var(--pj-acento-peligro-fondo);
+  color: var(--pj-texto-alerta);
+}
+
+.valorBonoHabilidad.valorBonoHabilidadDestacado {
+  background: var(--pj-acento-cian-fondo);
+  color: var(--pj-texto-cian);
+  font-weight: 800;
+}
+
+.valorBonoHabilidad[data-grado="pericia"] {
+  background: var(--pj-acento-oro-fondo);
+  color: var(--pj-texto-oro);
   font-weight: 800;
 }
 
@@ -315,7 +376,7 @@
 }
 
 .selectorCaracteristicaHabilidad button {
-  min-height: 26px;
+  min-height: 32px;
   padding: 2px 4px;
 }
 
@@ -323,15 +384,53 @@
   flex-shrink: 0;
 }
 
-.sinHabilidadesNativas {
-  grid-column: 1 / -1;
+.resumenTacticoAtributo {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
+  color: var(--pj-texto-terciario);
+  font-size: 11px;
+}
+
+.resumenTacticoAtributo strong {
+  color: var(--pj-texto-secundario);
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sinHabilidadesNativas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  min-height: 48px;
+  gap: 4px;
+  min-height: 64px;
+  padding: 10px;
+  border-radius: 6px;
+  background: var(--pj-fondo-hundido);
+  border: 1px solid var(--pj-borde-sutil);
   font-size: 11px;
   font-style: italic;
   color: var(--pj-texto-terciario);
+  text-align: center;
+}
+
+.subtextoSinHabilidades {
+  font-family: var(--fuente-codigo, monospace);
+  font-size: 11px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--pj-texto-secundario);
 }
 
 .itemHabilidad:hover,
@@ -371,6 +470,7 @@
   color: var(--pj-texto-primario);
   font-family: var(--fuente-codigo, monospace);
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .panelCompetencias {
@@ -410,9 +510,9 @@
   border: 1px solid var(--pj-borde-sutil);
   border-radius: 4px;
   background: var(--pj-fondo-hundido);
-  color: var(--pj-texto-secundario);
+  color: var(--pj-texto-secundario-claro);
   text-align: center;
-  text-transform: lowercase;
+  text-transform: none;
   font: inherit;
   font-size: 12px;
   overflow-wrap: anywhere;

@@ -133,7 +133,7 @@ export const HojaPersonaje: React.FC<HojaPersonajeProps> = ({ alAbrirConfiguraci
           <BotonSubPestana
             activa={subPestanaEfectiva === "formaSalvaje"}
             etiqueta="FORMA SALVAJE"
-            icono={<PawPrint size={14} color={subPestanaEfectiva === "formaSalvaje" ? "#22c55e" : "var(--pj-texto-terciario)"} />}
+            icono={<PawPrint size={14} color={subPestanaEfectiva === "formaSalvaje" ? "var(--pj-texto-exito)" : "var(--pj-texto-terciario)"} />}
             badge={personajeActivo.formaSalvaje?.formaActivaId ? "Activa" : undefined}
             alClick={() => setSubPestanaActiva("formaSalvaje")}
           />

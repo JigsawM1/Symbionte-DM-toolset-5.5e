@@ -16,6 +16,36 @@
   gap: 8px;
 }
 
+.botonCerrarModal {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--pj-radio-control);
+  color: var(--pj-texto-secundario);
+  cursor: pointer;
+}
+
+.botonCerrarModal:hover {
+  background-color: var(--pj-fondo-tarjeta-hover);
+  border-color: var(--pj-borde-medio);
+  color: var(--pj-texto-primario);
+}
+
+.barraPestanasCompetencias {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background-color: var(--pj-fondo-modal-cuerpo);
+  border-bottom: 1px solid var(--pj-borde-sutil);
+  padding: 0;
+  gap: 0;
+  width: 100%;
+}
+
 .iconoPestana {
   margin-right: 4px;
 }

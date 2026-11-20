@@ -124,9 +124,14 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
         </div>
 
         {/* Selector Tri-estado de Ventaja / Desventaja */}
-        <div className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}>
+        <div
+          className={`${estilos.grupoBotonesPill} ${estilos.neoPressed}`}
+          role="group"
+          aria-label="Modo de tirada d20"
+        >
           <button
             type="button"
+            aria-pressed={modoTirada === "disv"}
             className={`${estilos.botonPill} ${estilos.botonPillDisv} ${
               modoTirada === "disv" ? estilos.botonPillActivoDisv : ""
             }`}
@@ -137,6 +142,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
           </button>
           <button
             type="button"
+            aria-pressed={modoTirada === "plano"}
             className={`${estilos.botonPill} ${estilos.botonPillPlano} ${
               modoTirada === "plano" ? estilos.botonPillActivoPlano : ""
             }`}
@@ -147,6 +153,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
           </button>
           <button
             type="button"
+            aria-pressed={modoTirada === "vent"}
             className={`${estilos.botonPill} ${estilos.botonPillVent} ${
               modoTirada === "vent" ? estilos.botonPillActivoVent : ""
             }`}
@@ -182,6 +189,7 @@ const BarraTacticaPersonajeComponent: React.FC<BarraTacticaPersonajeProps> = ({
           type="button"
           className={estilos.botonAgregarCondicion}
           onClick={manejarAgregarManual}
+          disabled={!condicionSeleccionada.trim()}
           title="Añadir la condición seleccionada o escrita"
           aria-label="Añadir condición activa"
         >

@@ -224,7 +224,9 @@ export function calcularAtaqueArmaEquipada(
 
   let alcanceStr = inferidos.alcance;
   if (objetoCompendio?.alcanceNormal) {
-    alcanceStr = `${objetoCompendio.alcanceNormal}/${objetoCompendio.alcanceLargo || objetoCompendio.alcanceNormal} ft`;
+    const normal = objetoCompendio.alcanceNormal;
+    const largo = objetoCompendio.alcanceLargo;
+    alcanceStr = largo && largo !== normal ? `${normal}/${largo} ft` : `${normal} ft`;
   }
 
   const estadoMunicion = resolverEstadoMunicionArma(
@@ -276,6 +278,8 @@ export function calcularAtaqueArmaEquipada(
     nombreContenedor: estadoMunicion.tieneContenedorEnInventario ? estadoMunicion.nombreContenedorDetectado : undefined,
     tieneContenedor: estadoMunicion.tieneContenedorEnInventario,
     municionEnContenedor: estadoMunicion.municionEnContenedor,
+    municionCapacidadContenedor: estadoMunicion.capacidadContenedoresTotal,
+    municionItemId: estadoMunicion.itemPrincipal?.idInstancia,
     municionSueltEnMochila: estadoMunicion.municionSueltEnMochila,
     municionEnCompartimentosExternos: estadoMunicion.municionEnCompartimentosExternos,
     puedeDisparar: estadoMunicion.puedeDisparar,

@@ -54,6 +54,7 @@ import {
   ejecutarTiradaCritico,
   ejecutarUsoConsumible
 } from "@/servicios/ejecutorTiradasCombate";
+import { esMunicionCompatibleConArma } from "@/servicios/gestorMunicion";
 
 export type FiltroAccion =
   | "todas"
@@ -305,6 +306,25 @@ export function usarCalculoAtaquesJugador() {
     await emitirDanoConRasgos(ataque, (extra, tipoElegido) => ejecutarTiradaCritico(ataque, personajeActivo, modo, extra, tipoElegido));
   }, [personajeActivo, emitirDanoConRasgos]);
 
+  const manejarAjustarMunicionArma = useCallback((ataque: AtaquePersonajeCalculado, delta: 1 | -1) => {
+    if (!personajeActivo || !ataque.requiereMunicion) return;
+    const inv = personajeActivo.inventario || [];
+    const municion =
+      (ataque.municionItemId
+        ? inv.find((it) => it.idInstancia === ataque.municionItemId && (it.contenedor || "mochila") === "mochila")
+        : undefined) ||
+      inv.find(
+        (it) =>
+          (it.contenedor || "mochila") === "mochila" &&
+          esMunicionCompatibleConArma(ataque.nombre, it, ataque.propiedades, baseDatosObjetos)
+      );
+
+    if (!municion) return;
+    if (delta < 0 && municion.cantidad <= 0) return;
+
+    modificarCantidadObjeto(personajeActivo.id, municion.idInstancia, delta);
+  }, [personajeActivo, baseDatosObjetos, modificarCantidadObjeto]);
+
   const manejarUsarConsumible = useCallback(async (consumible: ConsumibleAccionCalculado) => {
     await ejecutarUsoConsumible({
       consumible,
@@ -462,6 +482,7 @@ export function usarCalculoAtaquesJugador() {
     manejarTirarAtaque,
     manejarTirarDano,
     manejarTirarCritico,
+    manejarAjustarMunicionArma,
     manejarUsarConsumible
   };
 }

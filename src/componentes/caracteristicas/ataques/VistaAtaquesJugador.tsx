@@ -70,6 +70,7 @@ export const VistaAtaquesJugador: React.FC = () => {
     manejarTirarAtaque,
     manejarTirarDano,
     manejarTirarCritico,
+    manejarAjustarMunicionArma,
     manejarUsarConsumible
   } = usarCalculoAtaquesJugador();
 
@@ -96,6 +97,16 @@ export const VistaAtaquesJugador: React.FC = () => {
       }
     },
     [personajeActivo?.conjurosEnAcciones, alternarConjuroEnAcciones, agregarNotificacion]
+  );
+
+  const alternarSeccionFisicos = React.useCallback(
+    () => alternarSeccion("fisicos"),
+    [alternarSeccion]
+  );
+
+  const irAMagia = React.useCallback(
+    () => establecerPestaña("magia"),
+    [establecerPestaña]
   );
 
   if (!personajeActivo) {
@@ -137,7 +148,7 @@ export const VistaAtaquesJugador: React.FC = () => {
         tienePacto={tienePacto}
         sistemaMagia={sistemaMagia}
         alRomperConcentracion={romperConcentracion}
-        alIrAMagia={() => establecerPestaña("magia")}
+        alIrAMagia={irAMagia}
       />
 
       {/* Sección 1: Ataques con Armas y Desarmado */}
@@ -146,11 +157,12 @@ export const VistaAtaquesJugador: React.FC = () => {
         personajeActivo={personajeActivo}
         statsCalculadas={statsCalculadas}
         estaAbierta={seccionesAbiertas.fisicos !== false}
-        alAlternar={() => alternarSeccion("fisicos")}
+        alAlternar={alternarSeccionFisicos}
         alTirarAtaque={manejarTirarAtaque}
         alTirarDano={manejarTirarDano}
         alTirarCritico={manejarTirarCritico}
         alCambiarCaracteristica={manejarCambiarCaracteristicaArma}
+        alAjustarMunicion={manejarAjustarMunicionArma}
       />
 
       {/* Sección 2: Conjuros y Trucos de Combate */}

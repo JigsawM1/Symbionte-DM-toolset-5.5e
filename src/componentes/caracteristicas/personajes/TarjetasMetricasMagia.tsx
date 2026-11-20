@@ -19,33 +19,10 @@ export const TarjetasMetricasMagia: React.FC<TarjetasMetricasMagiaProps> = ({
   conteoTrucosLibres,
   conteoTrucosSubclase,
   maxTrucos,
-  modelo
+  modelo: _modelo
 }) => {
   return (
     <div className={estilos.gridMetricasMagiaLibres}>
-      {/* Tarjeta CONJUROS */}
-      <div className={estilos.tarjetaMetricaMagiaItem}>
-        <span className={estilos.etiquetaMetricaMagia}>
-          CONJUROS
-        </span>
-        <div className={estilos.filaValorMetricaMagia}>
-          <span className={estilos.numeroMetricaMagia}>
-            {conteoConjurosLibres}{maxConjuros > 0 ? ` / ${maxConjuros}` : ""}
-          </span>
-          {conteoConjurosSubclase > 0 && (
-            <span
-              title={`${conteoConjurosSubclase} conjuros otorgados por subclase que no consumen tu límite de clase`}
-              className={estilos.badgeSubclaseMetrica}
-            >
-              +{conteoConjurosSubclase} Subclase
-            </span>
-          )}
-        </div>
-        <span className={estilos.subtextoMetricaMagia}>
-          {(modelo === "preparados" || modelo === "grimorio") ? "PREPARADOS (LIBRES)" : "CONOCIDOS (LIBRES)"}
-        </span>
-      </div>
-
       {/* Tarjeta TRUCOS */}
       <div className={estilos.tarjetaMetricaMagiaItem}>
         <span className={estilos.etiquetaMetricaMagia}>
@@ -64,9 +41,26 @@ export const TarjetasMetricasMagia: React.FC<TarjetasMetricasMagiaProps> = ({
             </span>
           )}
         </div>
-        <span className={estilos.subtextoMetricaMagia}>
-          CONOCIDOS
+      </div>
+
+      {/* Tarjeta CONJUROS */}
+      <div className={estilos.tarjetaMetricaMagiaItem}>
+        <span className={estilos.etiquetaMetricaMagia}>
+          CONJUROS
         </span>
+        <div className={estilos.filaValorMetricaMagia}>
+          <span className={estilos.numeroMetricaMagia}>
+            {conteoConjurosLibres}{maxConjuros > 0 ? ` / ${maxConjuros}` : ""}
+          </span>
+          {conteoConjurosSubclase > 0 && (
+            <span
+              title={`${conteoConjurosSubclase} conjuros otorgados por subclase que no consumen tu límite de clase`}
+              className={estilos.badgeSubclaseMetrica}
+            >
+              +{conteoConjurosSubclase} Subclase
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

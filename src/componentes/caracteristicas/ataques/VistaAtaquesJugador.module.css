@@ -281,21 +281,11 @@
   box-shadow: var(--pj-sombra-tarjeta);
 }
 
-.tarjetaAtaque:hover,
-.tarjetaAtaqueCompacta:hover {
+.tarjetaAtaque:hover {
   border-color: var(--pj-borde-acento);
   box-shadow: var(--pj-sombra-tarjeta);
 }
 
-.tarjetaAtaqueDesarmado {
-  border-left-color: var(--pj-texto-terciario);
-}
-
-.tarjetaAtaqueAdicional {
-  border-left-color: var(--pj-borde-oro);
-}
-
-.tarjetaAtaqueReaccion,
 .tarjetaHechizoObjeto {
   border-left-color: var(--pj-borde-magia);
 }
@@ -383,12 +373,6 @@
   color: var(--pj-texto-cian);
 }
 
-.bloqueAtributoSelector {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 .bloqueDano {
   display: flex;
   flex-direction: column;
@@ -401,12 +385,6 @@
   font-size: var(--pj-fuente-subtitulo);
   font-weight: 800;
   color: var(--pj-texto-primario);
-}
-
-.tipoDanoTexto {
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-  font-weight: 500;
 }
 
 .filaAccionesTirada {
@@ -448,40 +426,6 @@
   border-color: var(--pj-texto-cian);
   box-shadow: var(--pj-sombra-tarjeta);
   color: var(--pj-texto-primario);
-}
-
-.badgePropiedad {
-  font-size: var(--pj-fuente-badge);
-  padding: 1px 4px;
-  border-radius: 3px;
-  background-color: var(--pj-fondo-tarjeta-elevada);
-  border: 1px solid var(--pj-borde-sutil);
-  color: var(--pj-texto-acento);
-  cursor: help;
-  transition: none;
-}
-
-.badgePropiedad:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  color: var(--pj-texto-primario);
-  border-color: var(--pj-borde-sutil);
-}
-
-.badgeMaestria {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 3px;
-  background-color: var(--pj-acento-magia-fondo);
-  border: 1px solid var(--pj-borde-magia);
-  color: var(--pj-texto-magia);
-  cursor: help;
-  transition: none;
-}
-
-.badgeMaestria:hover {
-  background-color: var(--pj-acento-magia-fondo);
-  border-color: var(--pj-borde-magia);
 }
 
 /* ==========================================
@@ -617,62 +561,6 @@
   cursor: not-allowed;
 }
 
-.badgeMagicoAtaque {
-  font-size: var(--pj-fuente-badge);
-  color: var(--pj-texto-magia);
-  font-weight: 700;
-}
-
-.badgeMunicion {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background-color: var(--pj-acento-cian-fondo);
-  border: 1px solid var(--pj-borde-cian);
-  color: var(--pj-texto-cian);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.badgeMunicionVacia {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background-color: var(--pj-acento-peligro-fondo);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.badgeNoCompetente {
-  font-size: var(--pj-fuente-badge);
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background-color: var(--pj-acento-oro-fondo);
-  border: 1px solid var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.badgeDesventajaAtaque {
-  border-color: var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-}
-
 .bannerPenalizacionArmadura {
   background: linear-gradient(90deg, var(--pj-acento-peligro-fondo) 0%, var(--pj-acento-peligro-fondo) 100%);
   border: 1px solid var(--pj-borde-peligro);
@@ -695,14 +583,6 @@
 .bannerPenalizacionIcono {
   flex-shrink: 0;
   margin-top: 1px;
-}
-
-.textoAlcance {
-  font-size: var(--pj-fuente-label);
-  color: var(--pj-texto-acento);
-  display: flex;
-  align-items: center;
-  gap: 2px;
 }
 
 /* Modal de Hechizo */
@@ -916,164 +796,6 @@
 .botonDesocultarTodosRasgos:hover {
   background-color: var(--pj-acento-cian-fondo);
   border-color: var(--pj-borde-cian);
-  color: var(--pj-texto-primario);
-}
-
-/* =========================================================================
-   DISEÑO UNIFICADO DE TARJETA DE ATAQUE (SIMILAR A TARJETA CONJURO COMPACTA)
-   ========================================================================= */
-
-.tarjetaAtaqueCompacta {
-  background: var(--pj-fondo-cabecera-gradiente);
-  border: 1px solid var(--pj-borde-sutil);
-  border-left: 3px solid var(--pj-texto-cian);
-  border-radius: var(--pj-radio-control);
-  padding: 6px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  box-shadow: var(--pj-sombra-tarjeta);
-  transition: none;
-}
-
-.ladoIzquierdoAtaque {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-
-.filaTituloAtaque {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin: 4px;
-}
-
-.filaMetadatosAtaque {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 4px;
-  font-size: var(--pj-fuente-micro);
-  color: var(--pj-texto-terciario);
-  flex-wrap: wrap;
-}
-
-.danoMetadatoTexto {
-  color: var(--pj-texto-primario-suave);
-  font-weight: 700;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.impactoMetadatoTexto {
-  color: var(--pj-texto-cian);
-  font-weight: 800;
-  font-family: var(--fuente-codigo, 'JetBrains Mono', monospace);
-}
-
-.filaPropiedadesAtaqueCompacta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.ladoDerechoAtaque {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  align-items: flex-start
-}
-
-.columnaAccionesAtaque {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  align-items: stretch;
-  min-width: 80px;
-}
-
-.botonAtacarPrincipal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: var(--pj-acento-cian-solido);
-  border: 1px solid var(--pj-borde-medio);
-  border-radius: var(--pj-radio-control);
-  color: var(--pj-texto-primario);
-  font-size: var(--pj-fuente-boton);
-  font-weight: 700;
-  padding: 4px 10px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  transition: none;
-}
-
-.botonAtacarPrincipal:hover {
-  background-color: var(--pj-acento-cian-solido);
-}
-
-.filaAccionesSecundariasAtaque {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 3px;
-}
-
-.botonSecundarioDano {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-peligro);
-  color: var(--pj-texto-alerta-brillante);
-  cursor: pointer;
-  padding: 3px 6px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  white-space: nowrap;
-}
-
-.botonSecundarioDano:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-peligro);
-  color: var(--pj-texto-primario);
-}
-
-.botonSecundarioCrit {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border: 1px solid var(--pj-borde-oro);
-  color: var(--pj-texto-oro);
-  cursor: pointer;
-  padding: 3px 5px;
-  border-radius: var(--pj-radio-control);
-  font-size: var(--pj-fuente-micro);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-.botonSecundarioCrit:hover {
-  background-color: var(--pj-fondo-tarjeta-hover);
-  border-color: var(--pj-borde-oro);
   color: var(--pj-texto-primario);
 }
 

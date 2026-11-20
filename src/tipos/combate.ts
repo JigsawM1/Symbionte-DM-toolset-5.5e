@@ -33,6 +33,8 @@ export interface AtaquePersonajeCalculado {
   nombreContenedor?: string;
   tieneContenedor?: boolean;
   municionEnContenedor?: number;
+  municionCapacidadContenedor?: number;
+  municionItemId?: string;
   municionSueltEnMochila?: number;
   municionEnCompartimentosExternos?: number;
   puedeDisparar?: boolean;

@@ -1,6 +1,6 @@
 import type { PersonajeJugador } from "@/tipos";
 import { useState } from "react";
-import { Settings } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { ModalRetratoPersonaje } from "./ModalRetratoPersonaje";
 import estilos from "./CabeceraPersonaje.module.css";
 
@@ -55,7 +55,7 @@ export function CabeceraPersonaje({ personaje, alAbrirModalEdicion }: CabeceraPe
               title="Configuración de la ficha"
               aria-label="Configuración de la ficha"
             >
-              <Settings size={15} />
+              <Wrench size={15} />
             </button>
           </div>
         </div>

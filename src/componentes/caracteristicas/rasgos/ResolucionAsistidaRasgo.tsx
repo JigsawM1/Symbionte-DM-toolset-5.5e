@@ -1,15 +1,22 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
-import { prepararResolucionAsistida, resultadoConstante } from "@/servicios/rasgos/resolucionAsistidaRasgos";
+import {
+  calcularCosteResolucionAsistida,
+  prepararResolucionAsistida,
+  resultadoConstante,
+  type SolicitudResolucionAsistida
+} from "@/servicios/rasgos/resolucionAsistidaRasgos";
+import { resolverSolicitudUnClic } from "@/servicios/rasgos/respuestasPredefinidasRasgos";
+import { guardarResolucionPredefinida } from "./guardarRespuestaPredefinida";
 import { resolverFormulaDinamica } from "@/servicios/rasgos/evaluadorExpresionesRasgos";
 import { lanzarDadosTaleSpire, solicitarResultadoTirada } from "@/utiles/lanzadorDados";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
 import { obtenerModificadoresConjuroRasgos } from "@/servicios/rasgos/modificadoresConjuroRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { logger } from "@/utiles/logger";
-import { SelectorDesplegable } from "@/componentes/comunes";
-import { Sparkles, X, Zap, Shield, Dices, CheckCircle2, User, AlertCircle } from "lucide-react";
+import { SelectorDesplegable } from "@/componentes/comunes/SelectorDesplegable";
+import { Sparkles, X, Zap, Shield, Dices, User, AlertCircle, SlidersHorizontal } from "lucide-react";
 import { TarjetaToggle, TarjetaStat, IconoCabeceraRasgo, IconoOpcionResolucion, TarjetaResultadoResolucion, AvisoDirectivaMesa } from "./TarjetaResolucionAsistida";
 import { separarTituloRasgo, formatearHabilidad, resolverColorOpcion } from "./utilidadesRasgosResolucion";
 import modal from "./DialogoRasgo.module.css";
@@ -24,9 +31,9 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
   const [opcion, elegir] = useState("");
   const [incluirDados, cambiarDados] = useState(false);
   const [propio, cambiarPropio] = useState(false);
-  const [confirmado, confirmar] = useState(false);
   const [cantidadPropia, cambiarCantidad] = useState(0);
   const [tiradaOriginal, cambiarTirada] = useState(0);
+  const [guardarPredef, setGuardarPredef] = useState(false);
   const [ocupado, ocupar] = useState(false);
   const [mensaje, informar] = useState("");
   const dialogo = useRef<HTMLDialogElement>(null);
@@ -48,12 +55,16 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
     idOpcion: elegida?.id ?? "",
     incluirDados,
     propio,
-    confirmado, cantidadPropia, tiradaOriginal
+    confirmado: true, cantidadPropia, tiradaOriginal
   };
 
-  const preparada = prepararResolucionAsistida(personaje, solicitud);
+  const unClic = resolverSolicitudUnClic(personaje, rasgo);
+  const etiquetaUnClic = unClic ? opciones.find(o => o.id === unClic.idOpcion)?.etiqueta : undefined;
+  const preparada = mostrar ? prepararResolucionAsistida(personaje, solicitud) : undefined;
   const aptitudSalvacion = rasgo.salvacionObjetivo?.aptitud;
-  const stats = aptitudSalvacion ? calcularEstadisticasPersonaje(personaje, objetosHomebrew) : undefined;
+  const stats = (mostrar || Boolean(unClic)) && aptitudSalvacion
+    ? calcularEstadisticasPersonaje(personaje, objetosHomebrew)
+    : undefined;
   const cd = aptitudSalvacion && stats
     ? 8 + stats.bonoCompetencia + stats.modificadores[aptitudSalvacion]
       + obtenerModificadoresConjuroRasgos(personaje, rasgo.claseConjurosOtorgados).bonoCD
@@ -62,7 +73,7 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
   const recurso = rasgo.gastarDePadre ? resolverRasgoRecurso(rasgo, personaje.rasgos) : rasgo;
   const usosRestantes = recurso?.usosRestantes ?? recurso?.usosMaximos ?? 0;
   const usosMaximos = recurso?.usosMaximos ?? 0;
-  const coste = (rasgo.gastarDePadre && !rasgo.esActivable) || rasgo.tieneUsosLimitados ? rasgo.costeFijo ?? 1 : 0;
+  const coste = calcularCosteResolucionAsistida(rasgo);
   const { categoria, titulo } = separarTituloRasgo(rasgo.nombre);
   const formulaEvaluada = rasgo.formulaDados
     ? resolverFormulaDinamica(rasgo.formulaDados, personaje, rasgo.fuente, rasgo)
@@ -97,10 +108,21 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
     }
   };
 
-  const resolver = async () => {
+  const precargar = () => {
+    const pref = rasgo.respuestaPredefinida?.resolucion;
+    const opcionValida = pref && opciones.some(o => o.id === pref.idOpcion) ? pref.idOpcion : "";
+    elegir(opcionValida);
+    cambiarDados(Boolean(pref?.incluirDados));
+    cambiarPropio(Boolean(pref?.propio));
+    cambiarCantidad(pref?.cantidadPropia ?? 0);
+    setGuardarPredef(false);
+    informar("");
+  };
+
+  const resolver = async (sol: SolicitudResolucionAsistida = solicitud) => {
     if (enCurso.has(personaje.id)) return;
     const vigente = usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
-    const actual = vigente && prepararResolucionAsistida(vigente, solicitud);
+    const actual = vigente && prepararResolucionAsistida(vigente, sol);
     if (!actual) return;
 
     enCurso.add(personaje.id);
@@ -127,11 +149,23 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
         }
       }
 
-      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(personaje.id, { tipo: "resolverAsistida", solicitud, resultado, curacion }))
+      if (!usarAlmacenDM.getState().operarRecursoRasgoPersonaje(personaje.id, { tipo: "resolverAsistida", solicitud: sol, resultado, curacion }))
         throw new Error("La capacidad o sus recursos cambiaron durante la resolución.");
 
-      const texto = `${actual.opcion.etiqueta}${resultado === undefined ? "" : `: ${actual.opcion.restar ? "−" : ""}${resultado}${actual.opcion.tipoDano ? ` de daño ${actual.opcion.tipoDano.toLowerCase()}` : ""}`}${actual.opcion.salvacion ? ` · Salvación de ${actual.opcion.salvacion}, CD ${cd}${actual.opcion.tipo === "dano" && actual.opcion.mitadAlSalvar !== false && resultado !== undefined ? ` · Mitad: ${Math.floor(resultado / 2)}` : ""}` : ""}${curacion === undefined ? "" : ` · Curación: ${curacion} PG`}. ${propio ? actual.opcion.tipo === "curacion" || cfg.curacionSimultanea ? "PG propios actualizados." : "PG temporales propios actualizados." : "Aplica el resultado a los destinatarios en mesa."}`;
-      informar(`${texto}${actual.opcion.tipo === "modificador_tirada" && !actual.opcion.resultadoTabla ? ` Total corregido: ${tiradaOriginal + (resultado ?? 0)}.` : ""}${cfg.reparto ? ` Resto para reparto manual: ${(resultado ?? 0) - (propio ? cantidadPropia : 0)} PG.` : ""}`);
+      if (mostrar && guardarPredef && sol.idOpcion) {
+        guardarResolucionPredefinida(personaje.id, rasgo.id, {
+          idOpcion: sol.idOpcion,
+          incluirDados: sol.incluirDados,
+          propio: sol.propio,
+          cantidadPropia: sol.cantidadPropia
+        });
+        setGuardarPredef(false);
+      }
+
+      const cantPropia = sol.cantidadPropia ?? 0;
+      const tiradaOrig = sol.tiradaOriginal ?? 0;
+      const texto = `${actual.opcion.etiqueta}${resultado === undefined ? "" : `: ${actual.opcion.restar ? "−" : ""}${resultado}${actual.opcion.tipoDano ? ` de daño ${actual.opcion.tipoDano.toLowerCase()}` : ""}`}${actual.opcion.salvacion ? ` · Salvación de ${actual.opcion.salvacion}, CD ${cd}${actual.opcion.tipo === "dano" && actual.opcion.mitadAlSalvar !== false && resultado !== undefined ? ` · Mitad: ${Math.floor(resultado / 2)}` : ""}` : ""}${curacion === undefined ? "" : ` · Curación: ${curacion} PG`}. ${sol.propio ? actual.opcion.tipo === "curacion" || cfg.curacionSimultanea ? "PG propios actualizados." : "PG temporales propios actualizados." : "Aplica el resultado a los destinatarios en mesa."}`;
+      informar(`${texto}${actual.opcion.tipo === "modificador_tirada" && !actual.opcion.resultadoTabla ? ` Total corregido: ${tiradaOrig + (resultado ?? 0)}.` : ""}${cfg.reparto ? ` Resto para reparto manual: ${(resultado ?? 0) - (sol.propio ? cantPropia : 0)} PG.` : ""}`);
       usarAlmacenDM.getState().agregarNotificacion(`${rasgo.nombre}: resolución completada.`, "info");
       abrir(false);
     } catch (error) {
@@ -145,26 +179,55 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
 
   return (
     <section className={estilos.seccionRitual} aria-label={`Resolución de ${rasgo.nombre}`}>
-      <button
-        type="button"
-        className={estilos.botonResolver}
-        aria-label={`Resolver ${rasgo.nombre}`}
-        onClick={() => {
-          informar("");
-          confirmar(false);
-          abrir(true);
-        }}
-      >
-        <span className={estilos.contenidoBotonResolver}>
-          <Sparkles size={13} className={estilos.iconoBotonResolver} />
-          <span>Resolver capacidad</span>
-        </span>
-        {coste > 0 && (
-          <span className={estilos.badgeCosteBoton}>
-            {coste} {coste === 1 ? "uso" : "usos"}
+      {unClic && etiquetaUnClic ? (
+        <div className={estilos.filaBotonesResolver}>
+          <button
+            type="button"
+            className={estilos.botonResolver}
+            aria-label={`Resolver ${rasgo.nombre}: ${etiquetaUnClic}`}
+            disabled={ocupado}
+            onClick={() => void resolver(unClic)}
+          >
+            <span className={estilos.contenidoBotonResolver}>
+              <Sparkles size={13} className={estilos.iconoBotonResolver} />
+              <span>Resolver: {etiquetaUnClic}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            className={estilos.botonConfigurarResolver}
+            aria-label="Configurar resolución"
+            title="Configurar resolución"
+            disabled={ocupado}
+            onClick={() => {
+              precargar();
+              abrir(true);
+            }}
+          >
+            <SlidersHorizontal size={13} aria-hidden="true" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className={estilos.botonResolver}
+          aria-label={`Resolver ${rasgo.nombre}`}
+          onClick={() => {
+            precargar();
+            abrir(true);
+          }}
+        >
+          <span className={estilos.contenidoBotonResolver}>
+            <Sparkles size={13} className={estilos.iconoBotonResolver} />
+            <span>Resolver capacidad</span>
           </span>
-        )}
-      </button>
+          {coste > 0 && (
+            <span className={estilos.badgeCosteBoton}>
+              {coste} {coste === 1 ? "uso" : "usos"}
+            </span>
+          )}
+        </button>
+      )}
 
       {!mostrar && mensaje && (
         <TarjetaResultadoResolucion mensaje={mensaje} alDescartar={() => informar("")} />
@@ -252,18 +315,6 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
                 />
               )}
 
-              {cfg.confirmacion && (
-                <TarjetaToggle
-                  activo={confirmado}
-                  disabled={ocupado}
-                  alCambiar={confirmar}
-                  icono={<CheckCircle2 size={16} />}
-                  titulo="Condición de activación requerida"
-                  descripcion={cfg.confirmacion}
-                  esAlerta
-                />
-              )}
-
               {cfg.permitePropio && (cfg.curacionSimultanea || ["curacion", "hp_temporal"].includes(elegida?.tipo ?? "")) && (
                 <TarjetaToggle
                   activo={propio}
@@ -274,6 +325,17 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
                   descripcion="Aplica el resultado propio a tu ficha respetando sus límites."
                 />
               )}
+
+              <TarjetaToggle
+                activo={guardarPredef}
+                disabled={ocupado}
+                alCambiar={setGuardarPredef}
+                icono={<Sparkles size={16} />}
+                titulo="Guardar como configuración predefinida"
+                descripcion={coste > 0
+                  ? "Preseleccionará estas opciones al abrir el diálogo."
+                  : "Permitirá resolver esta opción en 1 clic desde la tarjeta."}
+              />
             </div>
 
             {!elegida?.resultadoTabla && <CamposResolucionAdicionales rasgo={rasgo} idOpcion={solicitud.idOpcion} propio={propio} cantidad={cantidadPropia} tirada={tiradaOriginal} cambiarCantidad={cambiarCantidad} cambiarTirada={cambiarTirada} />}
@@ -302,7 +364,7 @@ export function ResolucionAsistidaRasgo({ personaje, rasgo }: { personaje: Perso
               </div>
             )}
 
-            <AvisoDirectivaMesa texto="Resuelve manualmente el alcance, los destinatarios y las condiciones indicadas en el rasgo." />
+            <AvisoDirectivaMesa texto={cfg.confirmacion ?? "Resuelve manualmente el alcance, los destinatarios y las condiciones indicadas en el rasgo."} />
 
             {mensaje && (
               <div

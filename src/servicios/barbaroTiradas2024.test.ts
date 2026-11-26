@@ -5,6 +5,7 @@ import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculador
 import { obtenerRasgosClaseYSubclase } from "./gestorClases";
 import { generarListaAtaquesFisicos } from "./calculadorAtaquesArmas";
 import { emitirTiradaDanoConRasgos } from "./rasgos/emisionTiradaRasgos";
+import { prepararDanoIntegrado } from "./rasgos/resolucionAsistidaRasgos";
 import { ejecutarTiradaAtaqueFisico, ejecutarTiradaDanoFisico, ejecutarTiradaCritico } from "./ejecutorTiradasCombate";
 import { validarLanzamiento, type ModoLanzamiento } from "./servicioLanzamientoConjuros";
 import { lanzarDadosTaleSpire } from "@/utiles/lanzadorDados";
@@ -114,21 +115,36 @@ describe("Bárbaro base: restricciones y emisiones reales del consumidor", () =>
     expect(normalizarCondicionesRasgos(pj).rasgos.find(r => r.nombre === "Golpe brutal")!.activo).toBe(false);
   });
 
-  it("Furia divina conserva el daño desarmado físico y su grupo necrótico también en crítico", async () => {
+  it("Furia divina conserva el daño desarmado físico y su grupo necrótico integrado también en crítico", async () => {
     const pj = preparar(14);
     pj.subclase = "Senda del Fanático"; pj.clases[0].subclase = pj.subclase;
     pj.rasgos = obtenerRasgosClaseYSubclase("Bárbaro", 14, pj.subclase);
     pj.caracteristicas.fuerza = 18;
-    for (const r of pj.rasgos) if (["Furia", "Furia divina"].includes(r.nombre)) {
-      r.activo = true;
-      if (r.nombre === "Furia divina") r.selectores![0].valorActual = ["necrotico"];
-    }
+    pj.rasgos.find(r => r.nombre === "Furia")!.activo = true;
+    const furiaDivina = pj.rasgos.find(r => r.nombre === "Furia divina")!;
     const a = ataque(pj);
-    expect(a.dadoDano).toBe("8/1d6+7"); expect(a.tipoDano).toBe("Contundente / Necrótico");
+    expect(a.dadoDano).toBe("8");
+    expect(a.tipoDano).toBe("Contundente");
+    const extra = prepararDanoIntegrado(pj, {
+      idRasgo: furiaDivina.id, idOpcion: "necrotico", confirmado: true, incluirDados: true, propio: false
+    }, a.tipoDano, a.caracteristicaUsada)!;
+    expect(extra).toEqual({ formula: "1d6+7", tipoDano: "Necrótico" });
     vi.mocked(lanzarDadosTaleSpire).mockResolvedValue(true);
-    await ejecutarTiradaDanoFisico(a, pj);
+    await ejecutarTiradaDanoFisico(a, pj, false, [extra]);
     expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toMatch(/1d1\+7\/.*Necr[oó]tico.*:1d6\+7/);
-    await ejecutarTiradaCritico(a, pj);
+    await ejecutarTiradaCritico(a, pj, false, [extra]);
     expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toMatch(/1d1\+7\/.*Necr[oó]tico.*:2d6\+7/);
+  });
+
+  it("anuncia los efectos elegidos de Golpe brutal en daño normal y crítico", async () => {
+    const pj = preparar(17);
+    const a = ataque(pj);
+    await ejecutarTiradaDanoFisico(a, pj, false, undefined, undefined, ["Golpe contundente"]);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toContain("(Golpe contundente):");
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[1]).toContain("(Golpe contundente)");
+
+    await ejecutarTiradaCritico(a, pj, false, undefined, undefined, ["Golpe desestabilizador", "Golpe desgarrador"]);
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[0]).toContain("(Golpe desestabilizador + Golpe desgarrador):");
+    expect(vi.mocked(lanzarDadosTaleSpire).mock.calls.at(-1)?.[1]).toContain("(Golpe desestabilizador + Golpe desgarrador)");
   });
 });

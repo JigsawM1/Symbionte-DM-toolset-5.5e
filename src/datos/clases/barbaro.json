@@ -351,6 +351,12 @@
       "tipoAccion": "especial",
       "esActivable": true,
       "condicionAlActivar": "Ataque Temerario",
+      "preguntarAlAtacar": {
+        "caracteristica": "fuerza",
+        "soloArmaODesarmado": true,
+        "etiquetaActivar": "Usar Ataque temerario (ventaja)",
+        "descripcion": "Obtienes ventaja en tiradas de ataque con Fuerza hasta tu siguiente turno; los ataques contra ti también tienen ventaja."
+      },
       "categoriaMecanica": "activable",
       "efectos": [
         {
@@ -594,7 +600,30 @@
           "descripcion": "Golpe brutal (Renuncia a ventaja)"
         }
       ],
-      "autoDesactivarAlTirarDano": true
+      "autoDesactivarAlTirarDano": true,
+      "preguntarAlAtacar": {
+        "caracteristica": "fuerza",
+        "soloArmaODesarmado": true,
+        "etiquetaActivar": "Usar Golpe brutal (renunciar a ventaja)",
+        "descripcion": "Renuncia a la ventaja en este ataque con Fuerza para añadir daño adicional y un efecto de Golpe brutal si aciertas."
+      },
+      "eleccionEfectoEnTirada": {
+        "momento": "dano",
+        "maxElecciones": 1,
+        "etiqueta": "Efecto de Golpe brutal",
+        "opciones": [
+          {
+            "id": "contundente",
+            "nombre": "Golpe contundente",
+            "detalle": "Empuja 15 pies y muévete hasta la mitad de tu velocidad sin AO."
+          },
+          {
+            "id": "inmovilizador",
+            "nombre": "Golpe inmovilizador",
+            "detalle": "Reduce la velocidad del objetivo en 15 pies hasta tu siguiente turno."
+          }
+        ]
+      }
     },
     {
       "nivel": 10,
@@ -633,7 +662,21 @@
       "descripcion": "Has perfeccionado nuevas formas de atacar furiosamente. Los siguientes efectos se encuentran ahora entre tus opciones de Golpe brutal:\n\n***Golpe desestabilizador.*** El objetivo tiene desventaja en la siguiente tirada de salvación que haga, y no puede hacer ataques de oportunidad hasta el principio de tu siguiente turno.\n\n***Golpe desgarrador.*** Antes del principio de tu siguiente turno, la siguiente tirada de ataque realizada por otra criatura contra el objetivo obtiene un bonificador de +5 a la tirada. Una tirada de ataque solo puede obtener un bonificador de Golpe desgarrador.",
       "tipoAccion": "pasivo",
       "ligadoA": "rasgo_cls_barbaro_golpe_brutal",
-      "categoriaMecanica": "extension"
+      "categoriaMecanica": "extension",
+      "eleccionEfectoEnTirada": {
+        "opciones": [
+          {
+            "id": "desestabilizador",
+            "nombre": "Golpe desestabilizador",
+            "detalle": "Desventaja en su siguiente salvación y no puede hacer AO hasta tu siguiente turno."
+          },
+          {
+            "id": "desgarrador",
+            "nombre": "Golpe desgarrador",
+            "detalle": "+5 a la siguiente tirada de ataque de otra criatura contra el objetivo."
+          }
+        ]
+      }
     },
     {
       "nivel": 14,
@@ -694,7 +737,10 @@
       "tipoAccion": "pasivo",
       "formulaDados": "2d10",
       "ligadoA": "rasgo_cls_barbaro_golpe_brutal",
-      "categoriaMecanica": "extension"
+      "categoriaMecanica": "extension",
+      "eleccionEfectoEnTirada": {
+        "maxElecciones": 2
+      }
     },
     {
       "nivel": 18,
@@ -777,21 +823,21 @@
               "valor": "4d6"
             }
           ],
-          "sincronizarEfectosConFormula": true,
-          "esActivable": true,
-          "autoDesactivarAlTirarDano": true,
+          "limitePorTurnoPropio": true,
           "ligadoA": "rasgo_cls_barbaro_ataque_temerario",
-          "categoriaMecanica": "activable",
-          "efectos": [
-            {
-              "tipo": "dado_extra_dano",
-              "objetivo": "ataque_fuerza",
-              "valor": "2d6",
-              "activo": true,
-              "aplicaA": "arma_o_desarmado_fuerza",
-              "condicion": "rasgo_activo:rasgo_cls_barbaro_furia"
-            }
-          ],
+          "categoriaMecanica": "pasivo_permanente",
+          "resolucionAsistida": {
+            "integrarEnDanoDeArma": true,
+            "caracteristicaAtaque": "fuerza",
+            "opciones": [
+              {
+                "id": "frenesi",
+                "etiqueta": "Daño de Frenesí",
+                "tipo": "dano",
+                "heredarTipoDanoArma": true
+              }
+            ]
+          },
           "id": "rasgo_sub_senda_del_berserker_frenesi",
           "requiereRasgosActivos": [
             "rasgo_cls_barbaro_furia",
@@ -808,13 +854,7 @@
           "efectos": [
             {
               "tipo": "inmunidad_condicion",
-              "objetivo": "Hechizado",
-              "valor": "inmune",
-              "activo": true
-            },
-            {
-              "tipo": "inmunidad_condicion",
-              "objetivo": "Asustado",
+              "objetivo": "Hechizado, Asustado",
               "valor": "inmune",
               "activo": true
             }
@@ -895,66 +935,10 @@
                   "efectos": [
                     {
                       "tipo": "resistencia_dano",
-                      "objetivo": "Ácido",
+                      "objetivo": "Ácido, Frío, Fuego, Relámpago, Veneno, Trueno, Contundente, Perforante, Cortante",
                       "valor": "resistencia",
                       "activo": true,
-                      "tipoDano": "Ácido"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Frío",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Frío"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Fuego",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Fuego"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Relámpago",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Relámpago"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Veneno",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Veneno"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Trueno",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Trueno"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Contundente",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Contundente"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Perforante",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Perforante"
-                    },
-                    {
-                      "tipo": "resistencia_dano",
-                      "objetivo": "Cortante",
-                      "valor": "resistencia",
-                      "activo": true,
-                      "tipoDano": "Cortante"
+                      "tipoDano": "Ácido, Frío, Fuego, Relámpago, Veneno, Trueno, Contundente, Perforante, Cortante"
                     }
                   ]
                 },
@@ -1146,6 +1130,17 @@
           "id": "rasgo_sub_senda_del_arbol_del_mundo_vitalidad_del_arbol",
           "hpTemporalAlActivarRasgo": "rasgo_cls_barbaro_furia",
           "noGastarAlTirarDados": true,
+          "resolucionAsistida": {
+            "permitePropio": false,
+            "opciones": [
+              {
+                "id": "aliado",
+                "etiqueta": "Fuerza dadora de vida (aliado a 10 pies)",
+                "tipo": "hp_temporal"
+              }
+            ],
+            "confirmacion": "Confirma que es el inicio de tu turno con Furia activa y eliges a otra criatura a 10 pies o menos."
+          },
           "efectos": [
             {
               "tipo": "hp_temporal",
@@ -1259,45 +1254,27 @@
               "valor": "1d6+10"
             }
           ],
-          "sincronizarEfectosConFormula": true,
-          "esActivable": true,
+          "limitePorTurnoPropio": true,
           "ligadoA": "rasgo_cls_barbaro_furia",
-          "categoriaMecanica": "activable",
-          "efectos": [
-            {
-              "tipo": "dano_secundario",
-              "objetivo": "arma_o_desarmado",
-              "valor": "1d6+1",
-              "activo": true,
-              "aplicaA": "arma_o_desarmado",
-              "tipoDano": "Radiante",
-              "condicion": "rasgo_activo:rasgo_cls_barbaro_furia"
-            }
-          ],
-          "id": "rasgo_sub_senda_del_fanatico_furia_divina",
-          "autoDesactivarAlTirarDano": true,
-          "idSelectorTipoDano": "furia_divina_tipo_dano",
-          "selectores": [
-            {
-              "id": "furia_divina_tipo_dano",
-              "tipoSelector": "general",
-              "etiqueta": "Tipo de daño divino",
-              "opciones": [
-                {
-                  "id": "radiante",
-                  "nombre": "Radiante",
-                  "descripcion": "Daño radiante."
-                },
-                {
-                  "id": "necrotico",
-                  "nombre": "Necrótico",
-                  "descripcion": "Daño necrótico."
-                }
-              ],
-              "visualizacion": "normal",
-              "momentoEleccion": "activacion"
-            }
-          ]
+          "categoriaMecanica": "pasivo_permanente",
+          "resolucionAsistida": {
+            "integrarEnDanoDeArma": true,
+            "opciones": [
+              {
+                "id": "radiante",
+                "etiqueta": "Radiante",
+                "tipo": "dano",
+                "tipoDano": "Radiante"
+              },
+              {
+                "id": "necrotico",
+                "etiqueta": "Necrótico",
+                "tipo": "dano",
+                "tipoDano": "Necrótico"
+              }
+            ]
+          },
+          "id": "rasgo_sub_senda_del_fanatico_furia_divina"
         },
         {
           "nivel": 3,
@@ -1418,7 +1395,7 @@
           "efectos": [
             {
               "tipo": "movimiento_especial",
-              "objetivo": "velocidad.volar",
+              "objetivo": "velocidad.volar_flota",
               "valor": "velocidad_caminar",
               "activo": true
             },

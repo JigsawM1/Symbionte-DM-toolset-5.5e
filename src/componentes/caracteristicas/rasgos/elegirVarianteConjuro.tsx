@@ -46,3 +46,20 @@ export async function elegirVarianteConjuro(idPersonaje: string, nombre: string)
     ] });
   return eleccion === undefined ? undefined : eleccion === "breve";
 }
+
+/** Confirma una opción del diálogo común aplicando el recordatorio si está marcado y permitido. */
+export function confirmarOpcionDialogo(
+  idOpcion: string,
+  marcado: boolean,
+  recordar: OpcionesDialogoLanzamiento["recordar"],
+  resolver: (valor?: string) => void
+): void {
+  if (marcado && recordar?.permitido(idOpcion)) {
+    try {
+      recordar.alRecordar(idOpcion);
+    } catch (error) {
+      logger.error("[DialogoVariante] Error al recordar elección:", error);
+    }
+  }
+  resolver(idOpcion);
+}

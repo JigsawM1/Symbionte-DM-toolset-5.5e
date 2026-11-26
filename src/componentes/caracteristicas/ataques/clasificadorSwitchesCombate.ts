@@ -15,7 +15,8 @@ export interface RasgosClasificadosFlujoPlano {
  * a la barra superior de Modos Activos / Switches de Combate.
  *
  * Excluye rasgos ocultos, transformaciones de Forma Salvaje (requieren elegir bestia),
- * lanzamientos al activar aún inactivos, resolución asistida y listas/conjuros de recurso.
+ * lanzamientos al activar aún inactivos, consultas al atacar aún inactivas,
+ * resolución asistida y listas/conjuros de recurso.
  */
 export function esRasgoSwitchCombate(item: RasgoAccionCombate): boolean {
   const r = item.rasgo;
@@ -24,6 +25,7 @@ export function esRasgoSwitchCombate(item: RasgoAccionCombate): boolean {
       !r.oculto &&
       !r.formasBestia &&
       (!r.lanzamientoConActivacion || r.activo) &&
+      (!r.preguntarAlAtacar || r.activo) &&
       !r.resolucionAsistida &&
       !r.lanzamientoConRecurso?.lista &&
       !r.lanzamientoConRecurso?.conjuros &&

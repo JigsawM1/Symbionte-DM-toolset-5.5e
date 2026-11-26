@@ -4,6 +4,7 @@ import {
   componerFormulasDano
 } from "./calculadorDanoCombate";
 import { aplicarBuildClaseAPersonaje } from "./gestorClases";
+import { prepararDanoIntegrado } from "./rasgos/resolucionAsistidaRasgos";
 import { PERSONAJE_POR_DEFECTO } from "@/constantes";
 import type { PersonajeJugador } from "@/tipos";
 import { calcularEstadisticasPersonaje } from "@/servicios/personajes/calculadorEstadisticasPersonaje";
@@ -40,8 +41,16 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
         yaIncluyeFuriaEnEfectos: true
       });
 
-      expect(resultado.dadosExtra).toContain(dados);
       expect(resultado.modDanoTotal).toBe(danoTotal);
+      const frenesi = personaje.rasgos.find((r) => r.nombre === "Frenesí")!;
+      expect(
+        prepararDanoIntegrado(
+          personaje,
+          { idRasgo: frenesi.id, idOpcion: "frenesi", confirmado: true, incluirDados: true, propio: false },
+          "Cortante",
+          "fuerza"
+        )
+      ).toEqual({ formula: dados, tipoDano: "Cortante" });
     });
   });
 
@@ -126,9 +135,17 @@ describe("Servicio Calculador de Daño en Combate (calculadorDanoCombate.ts)", (
         yaIncluyeFuriaEnEfectos: true
       });
 
-      expect(resultado.dadosExtra).toContain("3d6");
       expect(resultado.dadosExtra).toContain("1d10");
       expect(resultado.modDanoTotal).toBe(8); // 4 (Fuerza) + 1 (Mágico) + 3 (Furia vía efectos)
+      const frenesi = pjNv9.rasgos.find((r) => r.nombre === "Frenesí")!;
+      expect(
+        prepararDanoIntegrado(
+          pjNv9,
+          { idRasgo: frenesi.id, idOpcion: "frenesi", confirmado: true, incluirDados: true, propio: false },
+          "Cortante",
+          "fuerza"
+        )
+      ).toEqual({ formula: "3d6", tipoDano: "Cortante" });
     });
   });
 

@@ -85,7 +85,7 @@ export const crearSubSliceCondiciones: StateCreator<
 > = (set, get) => ({
   aplicarCondicionPersonaje: (id, condicion) => {
     const objetivo = get().personajes.find(p => p.id === id);
-    if (objetivo && evaluarEfectosRasgosActivos(objetivo).some(e => e.tipo === "inmunidad_condicion" && claveEstado(e.objetivo) === claveEstado(condicion))) return;
+    if (objetivo && evaluarEfectosRasgosActivos(objetivo).some(e => e.tipo === "inmunidad_condicion" && e.objetivo.split(/[,;]/).some(item => claveEstado(item) === claveEstado(condicion)))) return;
     let pjObjetivo: PersonajeJugador | null = null;
     let condicionesFinales: string[] = [];
     mutarPersonaje(set, id, (pj) => {

@@ -64,7 +64,7 @@ export const SeccionAtaquesFisicos: React.FC<SeccionAtaquesFisicosProps> = ({
   const tarjetasPreparadas = React.useMemo(
     () =>
       ataquesFisicos.map((ataque) => {
-        const permiteDanoAdicional = ataque.tipo === "Arma" && tieneDanoAdicional;
+        const permiteDanoAdicional = (ataque.tipo === "Arma" || ataque.tipo === "Desarmado") && tieneDanoAdicional;
         return {
           ataque,
           permiteDanoAdicional,

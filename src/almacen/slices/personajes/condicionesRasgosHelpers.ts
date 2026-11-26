@@ -157,7 +157,7 @@ export function desactivarRasgosPorCondicionOEfecto(
 
   if (clavesPadresApagados.size > 0) {
     rasgosActualizados = rasgosActualizados.map((r) => {
-      if (!r.activo) return r;
+      if (!r.esActivable || !r.activo) return r;
       if (r.ligadoA) {
         const lig = normalizarTextoSeguro(r.ligadoA);
         if (clavesPadresApagados.has(lig)) {

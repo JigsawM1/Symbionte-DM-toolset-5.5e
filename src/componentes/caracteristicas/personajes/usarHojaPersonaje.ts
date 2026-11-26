@@ -11,6 +11,7 @@ import { usarEstadoHomebrew } from "@/almacen/selectores/usarEstadoHomebrew";
 import { usarAccionesIniciativa, usarEstadoIniciativa } from "@/almacen/selectores/usarEstadoIniciativa";
 import { lanzarDadosTaleSpire, sanitizarEtiqueta, solicitarResultadoTirada, type MetadataIniciativa } from "@/utiles/lanzadorDados";
 import { elegirOpcionLanzamiento } from "../rasgos/elegirVarianteConjuro";
+import { guardarRespuestaPredefinida } from "../rasgos/guardarRespuestaPredefinida";
 import { ts } from "@/utiles/TaleSpireAdapter";
 import { logger } from "@/utiles/logger";
 import { evaluarEfectosCondicionesEnTirada } from "@/servicios/procesadorCondiciones";
@@ -168,12 +169,35 @@ export function usarHojaPersonaje() {
     if (!personajeActivo) return;
     let concentracion = false;
     if (carac === "constitucion" && personajeActivo.concentracionActiva && obtenerMinimoNaturalD20(personajeActivo, "concentracion") > 1) {
-      const motivo = await elegirOpcionLanzamiento(personajeActivo.id, { nombre: etiqueta, etiqueta: "Motivo de la salvación",
-        descripcion: "El mínimo del d20 se aplica al mantener la concentración.", opciones: [
-          { id: "normal", texto: "Salvación de Constitución" }, { id: "concentracion", texto: "Mantener la concentración" }
-        ] });
-      if (!motivo) return;
-      concentracion = motivo === "concentracion";
+      const rasgoConc = personajeActivo.rasgos.find(r =>
+        r.activo !== false
+        && r.efectos?.some(e => e.activo !== false && e.tipo === "minimo_d20" && e.objetivo.split(",").includes("concentracion"))
+      );
+      const prefConc = rasgoConc?.respuestaPredefinida?.consulta;
+      if (prefConc === "automatico") {
+        concentracion = true;
+      } else if (prefConc !== "omitir") {
+        const motivo = await elegirOpcionLanzamiento(personajeActivo.id, {
+          nombre: etiqueta,
+          etiqueta: "Motivo de la salvación",
+          descripcion: "El mínimo del d20 se aplica al mantener la concentración.",
+          opciones: [
+            { id: "normal", texto: "Salvación de Constitución" },
+            { id: "concentracion", texto: "Mantener la concentración" }
+          ],
+          recordar: rasgoConc ? {
+            permitido: id => id === "normal" || id === "concentracion",
+            alRecordar: id => guardarRespuestaPredefinida(
+              personajeActivo.id,
+              rasgoConc.id,
+              "consulta",
+              id === "concentracion" ? "automatico" : "omitir"
+            )
+          } : undefined
+        });
+        if (!motivo) return;
+        concentracion = motivo === "concentracion";
+      }
     }
     const etiquetaLimpia = etiqueta.replace(/^Salvaci[oó]n(\s+de)?\s+/i, "");
     const ev = evaluarEfectosCondicionesEnTirada({

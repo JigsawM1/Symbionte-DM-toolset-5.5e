@@ -37,8 +37,24 @@ export const EsquemaDefinicionSubtirada = z.object({
 });
 export type DefinicionSubtirada = z.infer<typeof EsquemaDefinicionSubtirada>;
 
+export const EsquemaRespuestaPredefinidaRasgo = z.object({
+  alAtacar: z.enum(["omitir", "activar"]).optional(),
+  danoIntegrado: z.object({ modo: z.enum(["omitir", "automatico"]), idOpcion: z.string().optional() }).optional(),
+  efectosTirada: z.array(z.string()).optional(),
+  tipoDanoBestia: z.enum(["normal", "cambiar"]).optional(),
+  consulta: z.enum(["omitir", "automatico"]).optional(),
+  resolucion: z.object({
+    idOpcion: z.string(),
+    incluirDados: z.boolean().optional(),
+    propio: z.boolean().optional(),
+    cantidadPropia: z.number().int().nonnegative().optional()
+  }).optional()
+});
+export type RespuestaPredefinidaRasgo = z.infer<typeof EsquemaRespuestaPredefinidaRasgo>;
+
 /** Capacidades opcionales compartidas por plantillas, fichas y constructor. */
 export const EsquemaMecanicasRasgo = z.object({
+  respuestaPredefinida: EsquemaRespuestaPredefinidaRasgo.optional(),
   formasBestia: z.object({
     progresion: z.array(z.object({
       nivelMinimo: z.number().int().min(1).max(20),
@@ -127,6 +143,7 @@ export const EsquemaMecanicasRasgo = z.object({
   resolucionAsistida: z.object({
     integrarEnDanoDeArma: z.boolean().optional(),
     soloAtaqueBestia: z.boolean().optional(),
+    caracteristicaAtaque: EsquemaCaracteristica.optional(),
     requiereActivo: z.boolean().optional(),
     curacionSimultanea: z.boolean().optional(),
     ataqueConjuro: EsquemaCaracteristica.optional(),
@@ -139,12 +156,29 @@ export const EsquemaMecanicasRasgo = z.object({
       restar: z.boolean().optional(),
       mitadAlSalvar: z.boolean().optional(),
       tipoDano: z.string().optional(),
+      heredarTipoDanoArma: z.boolean().optional(),
       salvacion: EsquemaCaracteristica.optional()
     })).min(1),
     dadosOpcionales: z.boolean().optional(),
     confirmacion: z.string().optional(),
     permitePropio: z.boolean().optional(),
     reparto: z.object({ limitePropioFraccion: z.number().positive().max(1) }).optional()
+  }).optional(),
+  preguntarAlAtacar: z.object({
+    caracteristica: EsquemaCaracteristica.optional(),
+    soloArmaODesarmado: z.boolean().optional(),
+    descripcion: z.string().optional(),
+    etiquetaActivar: z.string().optional()
+  }).optional(),
+  eleccionEfectoEnTirada: z.object({
+    momento: z.enum(["ataque", "dano"]).optional(),
+    maxElecciones: z.number().int().min(1).max(3).optional(),
+    etiqueta: z.string().optional(),
+    opciones: z.array(z.object({
+      id: z.string().min(1),
+      nombre: z.string().min(1),
+      detalle: z.string().optional()
+    })).optional()
   }).optional(),
   ignorarMaterialesConjuro: z.boolean().optional(),
   varianteSinConcentracion: z.boolean().optional(),

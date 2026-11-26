@@ -25,6 +25,14 @@ Los selectores derivados calculan bono de competencia, puntuaciones efectivas, m
 
 Los rasgos pueden tener usos, recuperación, activación, selectores y efectos mecánicos. `evaluadorEfectosRasgos.ts` aplica modificadores de características, defensa sin armadura, velocidad y ventajas en tiradas según los rasgos activos.
 
+### Respuestas predefinidas en consultas y resolución asistida
+
+Los rasgos con consultas automáticas durante el combate o lanzamiento (`preguntarAlAtacar`, daño integrado al impactar, elección de efectos en tirada, cambio de tipo de daño en Forma Salvaje, iniciativa opcional, bono de curación, variante sin concentración, salvación de concentración y capacidad tras lanzar un conjuro) y los rasgos con modal manual `Resolver capacidad` admiten guardar respuestas predefinidas en la ficha del personaje (`respuestaPredefinida`):
+
+- **Recordar desde el diálogo**: en las consultas emergentes puede marcarse **Recordar mi elección para este rasgo** para que las siguientes tiradas apliquen u omitan la opción sin volver a preguntar.
+- **Regla de seguridad sobre usos limitados**: si activar o usar el rasgo consume recursos limitados, los flujos automáticos solo permiten recordar **Omitir siempre** / **Preguntar siempre** para evitar gastos accidentales; en el modal manual de `Resolver capacidad`, los rasgos con coste precargan las opciones elegidas para confirmar tras revisar, mientras que los rasgos sin coste permiten resolver en **1 clic** (`Resolver: <Opción>`) dejando un botón secundario para abrir el diálogo completo.
+- **Píldora en tarjeta y configuración en detalle**: cuando un rasgo tiene una respuesta activa se muestra la píldora `⚡ Auto: ...` en su tarjeta (`ChipsSelectoresYDadosRasgo.tsx`), con un botón `×` para volver a **Preguntar siempre** en un clic. El panel completo de configuración por flujo se edita desde el modal de detalle del rasgo (`ConfiguracionRespuestaPredefinida.tsx`).
+
 ## Ataques y acciones
 
 `VistaAtaquesJugador.tsx` organiza el turno mediante el flujo táctico plano *Flujo Táctico Plano + Switches de Combate*:

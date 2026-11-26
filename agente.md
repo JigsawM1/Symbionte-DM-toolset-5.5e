@@ -1,5 +1,80 @@
 # agente.md — Aprendizaje Autónomo del Simbionte DM
 
+## [2026-11-25] Respuestas predefinidas en consultas de rasgos y resolución asistida
+
+- **Contexto**: reducir la fricción y los diálogos repetidos en ataques, daño, conjuros, salvaciones, iniciativa y el modal `Resolver capacidad` permitiendo al jugador definir respuestas predefinidas por rasgo (diseño acordado en sesión `/grill-me`).
+- **Decisiones**:
+  - **Esquema por flujo (`respuestaPredefinida`)**: añadido `EsquemaRespuestaPredefinidaRasgo` en [mecanicasRasgos.ts](src/tipos/mecanicasRasgos.ts) con una clave independiente por flujo (`alAtacar`, `danoIntegrado`, `efectosTirada`, `tipoDanoBestia`, `consulta`, `resolucion`), porque un mismo rasgo puede combinar varios flujos (p. ej. *Golpe brutal* usa `preguntarAlAtacar` y `eleccionEfectoEnTirada`).
+  - **Separación del builder**: `respuestaPredefinida` no se incluye en `EsquemaCamposConstructor` ([camposConstructor.ts](src/servicios/rasgos/camposConstructor.ts)), ya que es una preferencia mutable del usuario y no una mecánica del compendio.
+  - **Persistencia en ficha**: conservado en `fusionarEstadoRasgo` ([fusionarEstadoRasgo.ts](src/servicios/rasgos/fusionarEstadoRasgo.ts)) y añadido a la lista blanca de `deshidratarRasgo` ([serializadorPersonaje.ts](src/servicios/serializadorPersonaje.ts)). `confirmado` no se persiste porque representa una condición situacional de mesa.
+  - **Regla de seguridad sobre usos limitados**: si el rasgo gasta usos limitados (`rasgoGastaUsosAlActivar` o `calcularCosteResolucionAsistida > 0`), los flujos automáticos solo permiten recordar «Omitir» / «Preguntar siempre». La resolución en 1 clic (`resolverSolicitudUnClic`) se habilita con coste `0`, sin `ataqueConjuro`, sin `reparto` propio y sin `modificador_tirada` sin tabla; con coste > 0 el modal abre precargado para confirmar. En `ResolucionAsistidaRasgo.tsx` se retiró el checkbox bloqueante de `cfg.confirmacion` (pasando a texto informativo en `AvisoDirectivaMesa` con `confirmado: true`) para no frenar el combate pidiendo confirmar acciones/reacciones.
+  - **Archivos nuevos**: [respuestasPredefinidasRasgos.ts](src/servicios/rasgos/respuestasPredefinidasRasgos.ts), [guardarRespuestaPredefinida.ts](src/componentes/caracteristicas/rasgos/guardarRespuestaPredefinida.ts) y [ConfiguracionRespuestaPredefinida.tsx](src/componentes/caracteristicas/rasgos/ConfiguracionRespuestaPredefinida.tsx) (integrado en [ModalDetalleRasgo.tsx](src/componentes/caracteristicas/rasgos/ModalDetalleRasgo.tsx), más píldora `Auto:` con botón `×` en [ChipsSelectoresYDadosRasgo.tsx](src/componentes/caracteristicas/rasgos/ChipsSelectoresYDadosRasgo.tsx) y casilla «Recordar mi elección» en [DialogoVarianteConjuro.tsx](src/componentes/caracteristicas/rasgos/DialogoVarianteConjuro.tsx)).
+- **Lecciones**:
+  - Exportar funciones no componentes desde un `.tsx` de componente rompe `react-refresh/only-export-components` en ESLint; mover esos helpers a un `.ts` hermano (`guardarRespuestaPredefinida.ts`).
+  - El repositorio no usa `jsdom` ni `@testing-library/react`: las pruebas de componentes usan `renderToStaticMarkup` y validan la lógica interactiva mediante funciones puras extraídas.
+  - `deshidratarRasgo` usa una lista blanca explícita para rasgos canónicos: todo estado mutable nuevo de un rasgo debe añadirse allí o se perderá al guardar/exportar.
+- **Validación**:
+  - 4 suites nuevas (**14/14** pruebas aprobadas): [respuestasPredefinidasRasgos.test.ts](src/servicios/rasgos/respuestasPredefinidasRasgos.test.ts), [consultarRasgosEnAtaque.test.ts](src/componentes/caracteristicas/ataques/consultarRasgosEnAtaque.test.ts), [DialogoVarianteConjuro.test.tsx](src/componentes/caracteristicas/rasgos/DialogoVarianteConjuro.test.tsx) y [RespuestasPredefinidasUI.test.tsx](src/componentes/caracteristicas/rasgos/RespuestasPredefinidasUI.test.tsx).
+  - `pnpm run ci` (salida 0): `tsc --noEmit` (0 errores), `eslint src --max-warnings=0` (0 errores, 0 avisos), `vitest run` (**219 archivos, 2.961 pruebas aprobadas**), `vitest.simulacion.config.ts` (**1 archivo, 5 pruebas aprobadas**), `verificar-limite-lineas.js` (**586 archivos** auditados, **0** errores críticos), `vite build` (`12.01s`).
+  - Documentado en [Modo-Jugador.md](docs/wiki/Modo-Jugador.md) y actualizado el grafo de código con `graphify update .`.
+
+## [2026-11-24] Migración completa de Bárbaro (Bloques 1 y 2) + `eleccionEfectoEnTirada` en Golpe brutal
+
+- **Contexto**: segunda revisión exhaustiva de Bárbaro ([barbaro.json](src/datos/clases/barbaro.json) y [barbaro.md](docs/auditoria-builder/barbaro.md)) para eliminar los últimos switches manuales de daño al impactar, corregir brechas detectadas en evaluadores y añadir la elección de efectos de *Golpe brutal* en la etiqueta de tirada.
+- **Decisiones Arquitectónicas**:
+  - **Migración a daño integrado (`resolucionAsistida.integrarEnDanoDeArma`)**: migrados *Frenesí* (Berserker nv 3, exigiendo `requiereRasgosActivos` en `prepararResolucionAsistida` de [resolucionAsistidaRasgos.ts](src/servicios/rasgos/resolucionAsistidaRasgos.ts), `caracteristicaAtaque: "fuerza"`, `heredarTipoDanoArma: true`, `limitePorTurnoPropio: true`) y *Furia divina* (Fanático nv 3, opciones `radiante`/`necrotico`, `limitePorTurnoPropio: true`). Habilitado daño adicional para ataques `"Desarmado"` en [SeccionAtaquesFisicos.tsx](src/componentes/caracteristicas/ataques/SeccionAtaquesFisicos.tsx).
+  - **Elección de efecto en tirada (`eleccionEfectoEnTirada`)**: añadido a `EsquemaMecanicasRasgo` ([mecanicasRasgos.ts](src/tipos/mecanicasRasgos.ts)), [camposConstructor.ts](src/servicios/rasgos/camposConstructor.ts) y `fusionarExtensionRasgo` ([extensionesRasgos.ts](src/servicios/rasgos/extensionesRasgos.ts)). [consultaAtaqueRasgos.ts](src/servicios/rasgos/consultaAtaqueRasgos.ts) (`obtenerRasgosConEleccionEfectoEnDano`), [consultarRasgosEnAtaque.ts](src/componentes/caracteristicas/ataques/consultarRasgosEnAtaque.ts) y [ejecutorTiradasCombate.ts](src/servicios/ejecutorTiradasCombate.ts) anuncian los efectos elegidos con paréntesis `(Efecto 1 + Efecto 2)` compatibles con `sanitizarEtiqueta` (los corchetes `[]` son eliminados por la regex del normalizador). Extraído `ejecutarConsultaDanoAtaque` desde [usarCalculoAtaquesJugador.ts](src/componentes/caracteristicas/ataques/usarCalculoAtaquesJugador.ts) bajándolo a `429` líneas.
+  - **Correcciones y consolidaciones**: añadida resolución asistida para aliados (`permitePropio: false`) en *Vitalidad del Árbol*; propagado `planea: true` para `volar_flota` con `velocidad_caminar` en [evaluadorMovilidadRasgos.ts](src/servicios/rasgos/evaluadorMovilidadRasgos.ts) (*Furia de los dioses*); consolidados *Oso* (9 resistencias en 1) y *Furia ciega* (`Hechizado, Asustado`) con soporte `split(/[,;]/)` en [sliceCondiciones.ts](src/almacen/slices/personajes/sliceCondiciones.ts); retirado *Aspecto de las tierras salvajes* de `RESOLUCION_EN_MESA` en [verificacionBuilderBarbaro.test.ts](src/servicios/verificacionBuilderBarbaro.test.ts) (sus opciones `buho`, `pantera`, `salmon` ya eran consumidas por los evaluadores); actualizada [SKILL.md](.agents/skills/toolset-consumo-builder/SKILL.md).
+- **Corrección de regresión en apagado en cascada**: en [sliceActivacionRasgos.ts](src/almacen/slices/personajes/sliceActivacionRasgos.ts) y [condicionesRasgosHelpers.ts](src/almacen/slices/personajes/condicionesRasgosHelpers.ts), el apagado en cascada por `ligadoA` solo debe afectar a rasgos `esActivable`; sin ese filtro ponía `activo: false` a rasgos pasivos ligados (*Frenesí*, *Furia divina*, *Vitalidad del Árbol*) al desactivar *Ataque temerario* o *Furia*, inhabilitándolos permanentemente. Cubierto con prueba de regresión en [barbaroSubclases2024.test.ts](src/servicios/barbaroSubclases2024.test.ts) (82/82 pruebas en 4 suites + `tsc` + `lint` en verde).
+- **Validación (`pnpm run ci`, salida 0)**:
+  - `tsc --noEmit` (0 errores) y `eslint src --max-warnings=0` (0 errores, 0 avisos).
+  - `vitest run`: **215 archivos, 2.947 pruebas aprobadas** (incluyendo 31 en `verificacionBuilderBarbaro.test.ts` y las suites externas adaptadas: `calculadorDanoCombate.test.ts`, `gestorClases.test.ts`, `rasgoGenericidad.test.ts`).
+  - `vitest.simulacion.config.ts`: **1 archivo, 5 pruebas aprobadas**.
+  - `verificar-limite-lineas.js`: **583 archivos** auditados, 0 errores críticos (> 500 líneas).
+  - `vite build`: **2.285 módulos** transformados en `13.92s`.
+
+## [2026-11-21] Consulta previa al ataque (`preguntarAlAtacar`), mejoras a `integrarEnDanoDeArma` y actualización de `toolset-consumo-builder`
+
+- **Contexto**: al revisar *Ataque temerario* y *Golpe brutal* del Bárbaro se observó que los rasgos decididos en el momento de atacar o impactar estaban modelados como switches manuales (`esActivable: true`), cuando en el motor de daño ya existía un patrón asistido superior (`resolucionAsistida.integrarEnDanoDeArma`).
+- **Decisiones Arquitectónicas**:
+  - **Consulta previa al ataque (`preguntarAlAtacar`)**: añadido a `EsquemaMecanicasRasgo` ([mecanicasRasgos.ts](src/tipos/mecanicasRasgos.ts)) y a `EsquemaCamposConstructor` ([camposConstructor.ts](src/servicios/rasgos/camposConstructor.ts)). El servicio puro [consultaAtaqueRasgos.ts](src/servicios/rasgos/consultaAtaqueRasgos.ts) (`obtenerRasgosPreguntablesEnAtaque`) filtra por `soloArmaODesarmado`, `caracteristica`, estado activo, `ligadoA`, usos disponibles, límites de turno (`disponibleEnTurnoPropio`) y oculta rasgos con `renunciar_ventaja` si el ataque tiene desventaja manual o por condición.
+  - **Flujo en ataques y switches**: [consultarRasgosEnAtaque.ts](src/componentes/caracteristicas/ataques/consultarRasgosEnAtaque.ts) consulta secuencialmente en `manejarTirarAtaque` de [usarCalculoAtaquesJugador.ts](src/componentes/caracteristicas/ataques/usarCalculoAtaquesJugador.ts) (se mantuvo bajo el límite de 500 líneas en `481`). En [clasificadorSwitchesCombate.ts](src/componentes/caracteristicas/ataques/clasificadorSwitchesCombate.ts), los rasgos con `preguntarAlAtacar` se ocultan de la barra de switches mientras están inactivos (`!r.preguntarAlAtacar || r.activo`) y aparecen al activarse para permitir consultar su estado o desactivarlos.
+  - **Mejoras a `resolucionAsistida.integrarEnDanoDeArma`**: soportado `caracteristicaAtaque` y `heredarTipoDanoArma` por opción en [resolucionAsistidaRasgos.ts](src/servicios/rasgos/resolucionAsistidaRasgos.ts) (`prepararDanoIntegrado`) y [conversionRecursosRasgos.ts](src/servicios/rasgos/conversionRecursosRasgos.ts) (`confirmarDanoIntegrado`), habilitando también ataques `"Desarmado"` en `emitirDanoConRasgos`.
+  - **Bárbaro y skill**: aplicados `preguntarAlAtacar` a *Ataque temerario* y *Golpe brutal* en [barbaro.json](src/datos/clases/barbaro.json) manteniendo su estado, condiciones y `ligadoA`. Actualizada [SKILL.md](.agents/skills/toolset-consumo-builder/SKILL.md) con el inventario de ambas capacidades y la «regla de patrón óptimo».
+- **Corrección de regresión en apagado en cascada**: en [sliceActivacionRasgos.ts](src/almacen/slices/personajes/sliceActivacionRasgos.ts) y [condicionesRasgosHelpers.ts](src/almacen/slices/personajes/condicionesRasgosHelpers.ts), el apagado en cascada por `ligadoA` solo debe afectar a rasgos `esActivable`; sin ese filtro ponía `activo: false` a rasgos pasivos ligados (*Frenesí*, *Furia divina*, *Vitalidad del Árbol*) al desactivar *Ataque temerario* o *Furia*, inhabilitándolos permanentemente. Cubierto con prueba de regresión en [barbaroSubclases2024.test.ts](src/servicios/barbaroSubclases2024.test.ts) (82/82 pruebas en 4 suites + `tsc` + `lint` en verde).
+- **Validación (`pnpm run ci`, salida 0)**:
+  - Pruebas focales previas: 8 archivos, **183/183** tests pasados (incluyendo [consultaAtaqueRasgos.test.ts](src/servicios/rasgos/consultaAtaqueRasgos.test.ts), [BarraSwitchesCombate.test.tsx](src/componentes/caracteristicas/ataques/BarraSwitchesCombate.test.tsx) y [verificacionBuilderBarbaro.test.ts](src/servicios/verificacionBuilderBarbaro.test.ts) con 29 tests).
+  - `tsc --noEmit` (0 errores) y `eslint src --max-warnings=0` (0 errores, 0 avisos).
+  - `vitest run`: **215 archivos, 2.943 pruebas aprobadas**.
+  - `vitest.simulacion.config.ts`: **1 archivo, 5 pruebas aprobadas**.
+  - `verificar-limite-lineas.js`: **583 archivos** auditados, 0 errores críticos (> 500 líneas).
+  - `vite build`: **2.285 módulos** transformados en `18.22s`.
+
+## [2026-11-21] Consumo completo del builder: Bárbaro
+
+- **Contexto**: re-auditoría de Bárbaro (base 1-20 y 4 subclases, 51 rasgos) con el estándar `toolset-consumo-builder`. Informe en [barbaro.md](docs/auditoria-builder/barbaro.md).
+- **Decisiones**:
+  - `barbaro.json` sin cambios: todas las mecánicas calculables ya estaban declaradas.
+  - 15 mecánicas pasan a resolución en mesa y 2 rasgos son narrativos, registrados en `RESOLUCION_EN_MESA` y `RASGOS_NARRATIVOS` de `verificacionBuilderBarbaro.test.ts` (de 6 a 28 pruebas, con guardia de cobertura y pruebas de escalado y nivel límite).
+  - La guardia define «mecánica declarada» como efectos más cualquier clave de `EsquemaCamposConstructor`, selectores, tablas, fórmula o usos.
+- **Lecciones**:
+  - Una clase puede estar ya modelada y faltar solo la guardia y las pruebas de límites de nivel.
+  - Lo que sigue sin modelar es todo lo que afecta a terceros.
+- **Capacidades que faltan en el builder (por frecuencia)**: efectos sobre otras criaturas; movimiento posicional; ataques por acción (Ataque adicional); suelo del total en pruebas de característica; disparador al llegar a 0 PG con CD acumulativa; alcance por propiedad de arma y maestrías extra; efectos ligados a opciones de selectores informativos.
+- **Validación**: suite 28/28; focales 8 archivos y 174 pruebas; `tsc` y `lint` sin errores; `pnpm run ci` salida 0.
+
+## [2026-11-20] Skill `toolset-consumo-builder` y agente `auditor_builder_clase`
+
+- **Contexto**: se acordó (sesión `/grill-me`) un procedimiento reutilizable para que cada rasgo de cada clase consuma por completo las capacidades declarativas del builder, generalizando las auditorías previas de Bárbaro y Brujo (`verificacionBuilderBarbaro.test.ts`, `verificacionBuilderBrujo.test.ts`).
+- **Decisiones**:
+  - Objetivo doble: migrar cada mecánica a campos/efectos existentes y verificar su consumo real con `verificacionBuilder<Clase>.test.ts`.
+  - **No se modifica el builder** (esquemas, servicios de clases/rasgos, evaluadores, almacén). Lo que no cabe se registra como resolución en mesa en la lista `RESOLUCION_EN_MESA` de la suite y en `docs/auditoria-builder/<clase>.md`; una guardia de cobertura falla ante rasgos sin modelar ni justificar.
+  - Fuente de la mecánica: `descripcion` del JSON leída con PHB 2024 y adaptaciones de este archivo; las discrepancias se reportan sin cambiar el texto.
+  - Alcance: base 1-20, subclases y catálogos de opciones ligados; Bárbaro y Brujo no se re-auditan por defecto.
+  - Ejecución secuencial, un agente por clase; los catálogos compartidos solo los modifica la primera clase que los usa y el agente devuelve su entrada para `agente.md` al coordinador.
+- **Archivos**: [SKILL.md](.agents/skills/toolset-consumo-builder/SKILL.md) y [auditor_builder_clase.md](.agents/agents/auditor_builder_clase.md).
+- **Validación**: solo se crearon instrucciones; aún no se ha ejecutado ninguna pasada por clase.
+
 ## [2026-11-20] Implementación de la Propuesta A + C («Flujo Táctico Plano + Switches de Combate») en `VistaAtaquesJugador`
 
 - **Contexto**:

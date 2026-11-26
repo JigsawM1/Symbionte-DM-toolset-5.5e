@@ -65,6 +65,7 @@ export function fusionarEstadoRasgo(nuevo: RasgoPersonaje, existente?: RasgoPers
       ? existente?.activo ?? nuevo.activo ?? !nuevo.esActivable : !nuevo.esActivable,
     dadosGuardados: existente?.dadosGuardados ? [...existente.dadosGuardados] : nuevo.dadosGuardados,
     oculto: existente?.oculto ?? nuevo.oculto ?? false,
-    notas: existente?.notas ?? nuevo.notas
+    notas: existente?.notas ?? nuevo.notas,
+    respuestaPredefinida: existente?.respuestaPredefinida
   };
 }

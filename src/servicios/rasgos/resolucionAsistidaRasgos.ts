@@ -1,10 +1,15 @@
-import type { PersonajeJugador } from "@/tipos";
+import type { PersonajeJugador, RasgoPersonaje } from "@/tipos";
 import { rasgoMagicoHabilitado } from "./ampliacionesListaConjuros";
 import { resolverRasgoRecurso, estaRasgoActivo } from "./utilidadesRasgos";
 import { resolverFormulaDinamica, evaluarExpresionNumericaSegura } from "./evaluadorExpresionesRasgos";
 import { maximizaCuracion, maximizarDadosCuracion } from "./curacionDeclarativa";
 import { calcularEstadisticasPersonaje } from "../personajes/calculadorEstadisticasPersonaje";
 import { obtenerBestiaFormaActiva } from "../reglasFormaSalvaje";
+
+/** Calcula el coste en usos de una resolución asistida para un rasgo dado. */
+export function calcularCosteResolucionAsistida(r: RasgoPersonaje): number {
+  return (r.gastarDePadre && !r.esActivable) || r.tieneUsosLimitados ? r.costeFijo ?? 1 : 0;
+}
 
 export interface DanoIntegrado {
   formula: string;
@@ -30,11 +35,12 @@ export function prepararResolucionAsistida(pj: PersonajeJugador, solicitud: Soli
     || (cfg.requiereActivo && !r.activo) || (cfg.soloAtaqueBestia && !obtenerBestiaFormaActiva(pj))
     || (opcion.resultadoTabla && r.resultadoTabla?.idFila !== opcion.resultadoTabla)
     || (r.ligadoA && !estaRasgoActivo(pj, r.ligadoA))
+    || Boolean(r.requiereRasgosActivos?.some(id => !estaRasgoActivo(pj, id)))
     || (cfg.confirmacion && !solicitud.confirmado)
     || (solicitud.propio && (!cfg.permitePropio || (!cfg.curacionSimultanea && !["hp_temporal", "curacion"].includes(opcion.tipo))))
     || (opcion.tipo === "modificador_tirada" && !opcion.resultadoTabla && !Number.isSafeInteger(solicitud.tiradaOriginal))) return;
   const recurso = r.gastarDePadre ? resolverRasgoRecurso(r, pj.rasgos) : r;
-  const coste = (r.gastarDePadre && !r.esActivable) || r.tieneUsosLimitados ? r.costeFijo ?? 1 : 0;
+  const coste = calcularCosteResolucionAsistida(r);
   if (coste && (!recurso?.tieneUsosLimitados || (recurso.activo === false && !r.idRasgoRecurso) || recurso.recuperacionDiferida
     || (recurso.usosRestantes ?? recurso.usosMaximos ?? 0) < coste)) return;
   const padre = r.heredarDadosPadre && pj.rasgos.find(p => p.id === r.ligadoA);
@@ -52,12 +58,21 @@ export function prepararResolucionAsistida(pj: PersonajeJugador, solicitud: Soli
   return { rasgo: r, opcion, recurso, coste, formula };
 }
 
-/** El daño integrado añade un grupo a la tirada del arma. Sus opciones se limitan a daño sin gasto propio. */
-export function prepararDanoIntegrado(pj: PersonajeJugador, solicitud: SolicitudResolucionAsistida): DanoIntegrado | undefined {
+/** El daño integrado añade un grupo a la tirada del arma o ataque desarmado. Sus opciones se limitan a daño sin gasto propio. */
+export function prepararDanoIntegrado(
+  pj: PersonajeJugador,
+  solicitud: SolicitudResolucionAsistida,
+  tipoDanoArma?: string,
+  caracteristicaAtaque?: string
+): DanoIntegrado | undefined {
   const cfg = prepararResolucionAsistida(pj, solicitud);
-  if (cfg?.rasgo.resolucionAsistida?.integrarEnDanoDeArma && !cfg.coste && cfg.opcion.tipo === "dano" && cfg.formula && cfg.opcion.tipoDano)
-    return { formula: cfg.formula, tipoDano: cfg.opcion.tipoDano };
-  return undefined;
+  if (!cfg?.rasgo.resolucionAsistida?.integrarEnDanoDeArma || cfg.coste || cfg.opcion.tipo !== "dano" || !cfg.formula) {
+    return undefined;
+  }
+  const reqCar = cfg.rasgo.resolucionAsistida.caracteristicaAtaque;
+  if (reqCar && caracteristicaAtaque && reqCar !== caracteristicaAtaque) return undefined;
+  const tipoDano = cfg.opcion.tipoDano ?? (cfg.opcion.heredarTipoDanoArma ? tipoDanoArma : undefined);
+  return tipoDano ? { formula: cfg.formula, tipoDano } : undefined;
 }
 
 export function aplicarResolucionAsistida(pj: PersonajeJugador, solicitud: SolicitudResolucionAsistida, resultado?: number, curacion?: number): PersonajeJugador | undefined {

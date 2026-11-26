@@ -1,7 +1,9 @@
 import React from "react";
 import type { RasgoPersonaje } from "@/tipos";
-import { Dices } from "lucide-react";
+import { Dices, X, Zap } from "lucide-react";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
+import { resolverExtensionesRasgos } from "@/servicios/rasgos/extensionesRasgos";
+import { resumenRespuestaPredefinida } from "@/servicios/rasgos/respuestasPredefinidasRasgos";
 import estilos from "./VistaRasgosJugador.module.css";
 
 interface ChipsSelectoresYDadosRasgoProps {
@@ -19,8 +21,15 @@ export const ChipsSelectoresYDadosRasgo: React.FC<ChipsSelectoresYDadosRasgoProp
     Array.isArray(rasgo.selectores) && rasgo.selectores.length > 0;
   const tieneDadosGuardados =
     Array.isArray(rasgo.dadosGuardados) && rasgo.dadosGuardados.length > 0;
+  const pjParaResumen = idPersonaje && rasgo.respuestaPredefinida?.efectosTirada?.length
+    ? usarAlmacenDM.getState().personajes.find((p) => p.id === idPersonaje)
+    : undefined;
+  const rasgoResumen = pjParaResumen
+    ? resolverExtensionesRasgos(pjParaResumen.rasgos, pjParaResumen.nivel).find((r) => r.id === rasgo.id) ?? rasgo
+    : rasgo;
+  const resumenAuto = resumenRespuestaPredefinida(rasgoResumen);
 
-  if (!tieneSelectoresConOpciones && !tieneDadosGuardados) {
+  if (!tieneSelectoresConOpciones && !tieneDadosGuardados && !resumenAuto) {
     return null;
   }
 
@@ -84,6 +93,40 @@ export const ChipsSelectoresYDadosRasgo: React.FC<ChipsSelectoresYDadosRasgoProp
                 <strong>{dado}</strong>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {resumenAuto && (
+        <div className={estilos.contenedorChipsSelectores}>
+          <div className={estilos.filaChipsSelector}>
+            <span
+              className={`${estilos.chipOpcionSeleccionada} ${estilos.chipRespuestaAuto}`}
+              title="Respuesta predefinida activa (clic para editar en detalle)"
+              onClick={(e) => {
+                e.stopPropagation();
+                alVerDetalle?.();
+              }}
+            >
+              <Zap size={10} aria-hidden="true" />
+              <span>{resumenAuto}</span>
+              {idPersonaje && (
+                <button
+                  type="button"
+                  className={estilos.botonLimpiarAuto}
+                  aria-label="Volver a preguntar siempre"
+                  title="Volver a preguntar siempre"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    usarAlmacenDM.getState().actualizarRasgoPersonaje(idPersonaje, rasgo.id, {
+                      respuestaPredefinida: undefined
+                    });
+                  }}
+                >
+                  <X size={10} aria-hidden="true" />
+                </button>
+              )}
+            </span>
           </div>
         </div>
       )}

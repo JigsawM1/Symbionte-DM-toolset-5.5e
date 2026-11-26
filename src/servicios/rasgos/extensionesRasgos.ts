@@ -25,6 +25,18 @@ export function fusionarExtensionRasgo(
     if (r.costeActivacionPorSelector) padre.costeActivacionPorSelector = { ...r.costeActivacionPorSelector };
     if (r.lanzamientoConRecurso) padre.lanzamientoConRecurso = structuredClone(r.lanzamientoConRecurso);
     if (r.resolucionAsistida) padre.resolucionAsistida = { ...padre.resolucionAsistida, ...structuredClone(r.resolucionAsistida) };
+    if (r.eleccionEfectoEnTirada) {
+      const base = padre.eleccionEfectoEnTirada;
+      const previas = base?.opciones ?? [];
+      const idsPrevios = new Set(previas.map(o => o.id));
+      const nuevas = (r.eleccionEfectoEnTirada.opciones ?? []).filter(o => !idsPrevios.has(o.id));
+      padre.eleccionEfectoEnTirada = {
+        momento: r.eleccionEfectoEnTirada.momento ?? base?.momento ?? "dano",
+        maxElecciones: r.eleccionEfectoEnTirada.maxElecciones ?? base?.maxElecciones ?? 1,
+        etiqueta: r.eleccionEfectoEnTirada.etiqueta ?? base?.etiqueta,
+        opciones: [...previas, ...structuredClone(nuevas)]
+      };
+    }
     if (r.curacionAlFinalizar) padre.curacionAlFinalizar = structuredClone(r.curacionAlFinalizar);
     if (r.curacionConjuros) padre.curacionConjuros = { ...padre.curacionConjuros, ...r.curacionConjuros };
     if (padre.sincronizarEfectosConFormula && padre.formulaDados) {

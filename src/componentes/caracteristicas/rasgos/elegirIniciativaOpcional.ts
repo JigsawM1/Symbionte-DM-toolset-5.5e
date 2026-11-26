@@ -3,6 +3,7 @@ import { solicitarResultadoTirada } from "@/utiles/lanzadorDados";
 import { resolverIniciativaOpcional } from "@/servicios/rasgos/iniciativaOpcionalRasgos";
 import { resolverRasgoRecurso } from "@/servicios/rasgos/utilidadesRasgos";
 import { elegirOpcionLanzamiento } from "./elegirVarianteConjuro";
+import { guardarRespuestaPredefinida } from "./guardarRespuestaPredefinida";
 
 const pendientes = new Set<string>();
 
@@ -11,14 +12,23 @@ export async function elegirIniciativaOpcional(id: string) {
   const estado = usarAlmacenDM.getState;
   const actual = () => estado().personajes.find(p => p.id === id);
   const opciones = actual()?.rasgos.filter(r => r.iniciativaOpcional) ?? [];
-  if (!opciones.length) return { bono: 0, usada: false, confirmar: () => true };
+  if (!opciones.length || opciones.every(r => r.respuestaPredefinida?.consulta === "omitir")) {
+    return { bono: 0, usada: false, confirmar: () => true };
+  }
   pendientes.add(id);
   try {
     const decisiones = opciones.flatMap(r => [true, false].map(antes => ({ id: `${r.id}:${antes ? "antes" : "despues"}`, texto: `${r.nombre} · Recuperar ${antes ? "antes" : "después"} de gastar`,
       deshabilitado: !actual() || !resolverIniciativaOpcional(actual()!, r.id, antes) })));
     const eleccion = await elegirOpcionLanzamiento(id, { nombre: "Iniciativa", etiqueta: "Elegir capacidad de iniciativa",
       descripcion: "Puedes gastar Inspiración y elegir el orden respecto a las recuperaciones. El mismo resultado del dado beneficia a los aliados elegibles; su aplicación es manual.",
-      opciones: [{ id: "normal", texto: "Tirar sin gastar Inspiración" }, ...decisiones] });
+      opciones: [{ id: "normal", texto: "Tirar sin gastar Inspiración" }, ...decisiones],
+      recordar: {
+        permitido: op => op === "normal",
+        alRecordar: () => {
+          for (const r of opciones) guardarRespuestaPredefinida(id, r.id, "consulta", "omitir");
+        },
+        aviso: "Gastar Inspiración requiere confirmación manual: solo se puede recordar tirar sin gastar."
+      } });
     if (!eleccion) return;
     if (eleccion === "normal") return { bono: 0, usada: false, confirmar: () => true };
     const r = opciones.find(r => eleccion.startsWith(`${r.id}:`));

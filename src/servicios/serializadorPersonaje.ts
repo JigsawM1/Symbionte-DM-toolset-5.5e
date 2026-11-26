@@ -89,6 +89,7 @@ export function deshidratarRasgo(rasgo: RasgoPersonaje): RasgoPersonaje {
     categoriaMecanica: rasgo.categoriaMecanica,
     selectores: selectoresDeshidratados,
     dadosGuardados: rasgo.dadosGuardados ? [...rasgo.dadosGuardados] : undefined,
+    respuestaPredefinida: rasgo.respuestaPredefinida,
     efectos: [], // Se reconstituyen al sincronizar con el catálogo
     notas: rasgo.notas || ""
   };

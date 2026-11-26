@@ -1,0 +1,113 @@
+.seccion {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--pj-fondo-panel);
+  border: 1px solid var(--pj-borde-acento-tenue);
+  border-radius: var(--pj-radio-control);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pj-texto-acento-brillante);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--pj-fuente-label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.listaGrupos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.etiquetaFila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.etiqueta {
+  font-size: var(--pj-fuente-badge);
+  font-weight: 600;
+  color: var(--pj-texto-secundario);
+}
+
+.nota {
+  font-size: var(--pj-fuente-micro);
+  color: var(--pj-texto-terciario);
+}
+
+.listaChecks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.opcionCheck {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: var(--pj-fuente-boton);
+  color: var(--pj-texto-secundario);
+  background: var(--pj-fondo-tarjeta-elevada);
+  border: 1px solid var(--pj-borde-sutil);
+  border-radius: var(--pj-radio-control);
+  cursor: pointer;
+  user-select: none;
+}
+
+.opcionCheck input {
+  accent-color: var(--pj-acento-primario-solido);
+  cursor: pointer;
+}
+
+.opcionCheckActiva {
+  background: var(--pj-acento-primario-fondo);
+  border-color: var(--pj-borde-acento);
+  color: var(--pj-texto-primario);
+}
+
+.opcionCheckBloqueada {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.opcionesExtra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.checkExtra {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--pj-fuente-cuerpo);
+  color: var(--pj-texto-secundario);
+  cursor: pointer;
+}
+
+.checkExtra input {
+  accent-color: var(--pj-acento-primario-solido);
+  cursor: pointer;
+}

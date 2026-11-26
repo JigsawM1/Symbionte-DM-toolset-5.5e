@@ -1308,6 +1308,34 @@
   cursor: help;
 }
 
+.chipRespuestaAuto {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--pj-acento-primario-fondo);
+  color: var(--pj-texto-acento-brillante);
+  border-color: var(--pj-borde-acento);
+  cursor: pointer;
+}
+
+.botonLimpiarAuto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px;
+  margin-left: 2px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.botonLimpiarAuto:hover {
+  background: var(--pj-fondo-tarjeta-hover);
+  color: var(--pj-texto-primario);
+}
+
 .chipDadoPresagio {
   background: var(--pj-acento-primario-solido);
   color: var(--pj-texto-primario);

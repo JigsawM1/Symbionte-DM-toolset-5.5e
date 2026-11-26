@@ -129,7 +129,7 @@ alternarActivoRasgo: (idPj, idRasgo, decisiones) => {
         const tId = normalizar(targetTrait.id);
         const tNom = normalizar(targetTrait.nombre);
         for (const r of (pj.rasgos || [])) {
-          if (r.activo && r.ligadoA) {
+          if (r.esActivable && r.activo && r.ligadoA) {
             const lig = normalizar(r.ligadoA);
             if (lig === tId || lig === tNom) {
               idsHijosADesactivar.add(r.id);

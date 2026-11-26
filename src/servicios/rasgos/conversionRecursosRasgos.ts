@@ -19,7 +19,7 @@ export type OperacionRecursoRasgo = OperacionAvanzadaRasgo | OperacionResolucion
   | { tipo: "curacionPendiente"; idRasgo: string; id: string; propio: boolean; resultado?: number; enTurno?: boolean; dano?: number }
   | { tipo: "resolverAsistida"; solicitud: SolicitudResolucionAsistida; resultado?: number; curacion?: number }
   | { tipo: "confirmarAtaqueAsistido"; solicitud: SolicitudResolucionAsistida; turnoPrevio?: string }
-  | { tipo: "confirmarDanoIntegrado"; solicitud: SolicitudResolucionAsistida; turnoPrevio?: string }
+  | { tipo: "confirmarDanoIntegrado"; solicitud: SolicitudResolucionAsistida; turnoPrevio?: string; tipoDanoArma?: string; caracteristicaAtaque?: string }
   | { tipo: "establecerRecuperacionDiferida"; idRasgo: string; resultado: number }
   | { tipo: "iniciativaOpcional"; idRasgo: string; recuperarAntes: boolean }
   | { tipo: "recuperarUsosConEspacio"; idRasgo: string; modo?: "espacio"; nivel: number; pacto?: boolean }
@@ -156,8 +156,11 @@ export function operarRecursoRasgo(pj: PersonajeJugador, op: OperacionRecursoRas
   }
   if (op.tipo === "confirmarDanoIntegrado") {
     const rasgo = pj.rasgos.find(r => r.id === op.solicitud.idRasgo);
+    const tipoDanoArma = op.tipoDanoArma
+      ?? (rasgo?.resolucionAsistida?.opciones.find(o => o.id === op.solicitud.idOpcion)?.heredarTipoDanoArma ? "Arma" : undefined);
     if (!rasgo || !disponibleEnTurnoPropio(rasgo, turno, pj)
-      || (op.turnoPrevio !== undefined && op.turnoPrevio !== turno) || !prepararDanoIntegrado(pj, op.solicitud)) return;
+      || (op.turnoPrevio !== undefined && op.turnoPrevio !== turno)
+      || !prepararDanoIntegrado(pj, op.solicitud, tipoDanoArma, op.caracteristicaAtaque)) return;
     return (rasgo.limitePorTurnoPropio || rasgo.limitePorTurno) && turno ? { ...pj,
       rasgos: pj.rasgos.map(r => r.id === rasgo.id || r.id === rasgo.idRasgoSelectorOrigen
         ? { ...r, ultimoUsoTurno: turno } : r) } : pj;

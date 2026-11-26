@@ -9,18 +9,15 @@ import { obtenerVelocidadesEfectivas, obtenerSentidosEfectivos } from "./rasgos/
 import { sincronizarRasgosAutomaticos } from "./compendioRasgos";
 import { deshidratarPersonaje, hidratarPersonaje } from "./serializadorPersonaje";
 import { ejecutarDescansoLargo, ejecutarDescansoCorto } from "./procesadorDescansos";
-import { evaluarEfectosRasgosActivos } from "./rasgos/evaluadorExpresionesRasgos";
 import { obtenerResumenDefensasRasgos } from "./rasgos/resumenDefensasRasgos";
 import { normalizarCondicionesRasgos } from "./rasgos/estadoCondicionesRasgos";
-import { emitirTiradaDanoConRasgos } from "./rasgos/emisionTiradaRasgos";
+import { prepararDanoIntegrado, prepararResolucionAsistida } from "./rasgos/resolucionAsistidaRasgos";
 import { emitirSalvacionConRasgos } from "./rasgos/emisionSalvacionRasgos";
 import { obtenerBonosSalvacionesRasgos } from "./rasgos/evaluadorSalvacionesRasgos";
-import { aplicaEfectoAAtaque } from "./rasgos/evaluadorCombateRasgos";
 import { obtenerRasgosRituales } from "./rasgos/conjurosRitualesRasgos";
 import { aplicarConfiguracionConjurosRasgos } from "./rasgos/conjurosGratuitosRasgos";
 import { validarLanzamiento, prepararLanzamiento } from "./servicioLanzamientoConjuros";
 import { HECHIZOS_INICIALES } from "@/utiles/datosIniciales";
-import { ataqueMock } from "./barbaroSubclasesFixtures";
 import { emitirCuracionConDados } from "./rasgos/tiradaCuracionDados";
 import { crearObjetoInventarioDesdeCompendio } from "./calculadorInventario";
 import { OBJETOS_INICIALES } from "@/utiles/datosIniciales";
@@ -57,18 +54,25 @@ describe("Bárbaro: cuatro subclases PHB 2024", () => {
     expect(rasgo("Frenesí").formulaDados).toBe(formula);
   });
 
-  it("Frenesí requiere ambos padres y se conserva ante daño ajeno o emisión fallida", async () => {
-    const { leer, rasgo, activar } = crear(subclases[0]);
-    activar("Frenesí"); expect(rasgo("Frenesí").activo).toBe(false);
-    activar("Furia"); activar("Ataque temerario"); activar("Frenesí");
-    const apagar = vi.fn();
-    await emitirTiradaDanoConRasgos(leer(), ataqueMock("destreza"), async () => true, apagar);
-    await emitirTiradaDanoConRasgos(leer(), ataqueMock("fuerza"), async () => false, apagar);
-    expect(apagar).not.toHaveBeenCalled();
-    await emitirTiradaDanoConRasgos(leer(), ataqueMock("fuerza"), async () => true, apagar);
-    expect(apagar).toHaveBeenCalledWith(rasgo("Frenesí").id);
-    expect(normalizarCondicionesRasgos(leer(),101).rasgos.find(r=>r.nombre==="Frenesí")?.activo).toBe(false);
-    activar("Furia"); expect(rasgo("Frenesí").activo).toBe(false);
+  it("Frenesí requiere ambos padres, Fuerza, hereda tipo de daño del arma y respeta el límite por turno", () => {
+    const { id, leer, rasgo, activar } = crear(subclases[0]);
+    const idFrenesi = rasgo("Frenesí").id;
+    const sol = { idRasgo: idFrenesi, idOpcion: "frenesi", confirmado: true, incluirDados: true, propio: false };
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toBeUndefined();
+    activar("Furia");
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toBeUndefined();
+    activar("Ataque temerario");
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "destreza")).toBeUndefined();
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toEqual({ formula: "3d6", tipoDano: "Cortante" });
+    expect(prepararDanoIntegrado(leer(), sol, "Perforante", "fuerza")).toEqual({ formula: "3d6", tipoDano: "Perforante" });
+    estado().operarRecursoRasgoPersonaje(id, { tipo: "confirmarDanoIntegrado", solicitud: sol, tipoDanoArma: "Cortante", caracteristicaAtaque: "fuerza" });
+    activar("Ataque temerario");
+    expect(rasgo("Frenesí").activo).toBe(true);
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toBeUndefined();
+    activar("Ataque temerario");
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toEqual({ formula: "3d6", tipoDano: "Cortante" });
+    activar("Furia");
+    expect(prepararDanoIntegrado(leer(), sol, "Cortante", "fuerza")).toBeUndefined();
   });
 
   it("Furia ciega retira estados previos y bloquea los nuevos solo durante Furia", () => {
@@ -115,10 +119,15 @@ describe("Bárbaro: cuatro subclases PHB 2024", () => {
     expect(guardado.rasgos.find(r => r.nombre === "Aspecto de las tierras salvajes")?.selectores?.[0].cambioDisponible).toBe(false);
   });
 
-  it("Vitalidad usa nivel de Bárbaro, respeta PG temporales mayores y no se repite al reconstruir", () => {
-    const { id, leer, activar } = crear(subclases[2], 3);
+  it("Vitalidad usa nivel de Bárbaro, respeta PG temporales mayores y ofrece resolución asistida para aliados", () => {
+    const { id, leer, rasgo, activar } = crear(subclases[2], 3);
     estado().actualizarPersonaje(id, { nivel: 12, clases: [{ nombre: "Guerrero", nivel: 9, subclase: "" }, { nombre: "Bárbaro", nivel: 3, subclase: subclases[2] }] });
+    const idVitalidad = rasgo("Vitalidad del Árbol").id;
+    expect(prepararResolucionAsistida(leer(), { idRasgo: idVitalidad, idOpcion: "aliado", incluirDados: true, propio: false, confirmado: true })).toBeUndefined();
     activar("Furia"); expect(leer().hpTemporal).toBe(3);
+    expect(prepararResolucionAsistida(leer(), { idRasgo: idVitalidad, idOpcion: "aliado", incluirDados: true, propio: false, confirmado: false })).toBeUndefined();
+    expect(prepararResolucionAsistida(leer(), { idRasgo: idVitalidad, idOpcion: "aliado", incluirDados: true, propio: true, confirmado: true })).toBeUndefined();
+    expect(prepararResolucionAsistida(leer(), { idRasgo: idVitalidad, idOpcion: "aliado", incluirDados: true, propio: false, confirmado: true })?.formula).toBe("2d6");
     estado().actualizarPersonaje(id, { hpTemporal: 1, rasgos: sincronizarRasgosAutomaticos(leer()) }); expect(leer().hpTemporal).toBe(1);
     activar("Furia"); expect(leer().hpTemporal).toBe(1);
     estado().actualizarPersonaje(id, { hpTemporal: 20 }); activar("Furia"); expect(leer().hpTemporal).toBe(20);
@@ -132,14 +141,16 @@ describe("Bárbaro: cuatro subclases PHB 2024", () => {
     activar("Furia"); activar("Furia"); expect(rasgo(String(nombre)).usosRestantes).toBe(1);
   });
 
-  it.each([3,4,6,8,10,12,14,16,18,20])("Furia divina usa Bárbaro %i y admite Destreza, sin conjuros", nivel => {
+  it.each([3,4,6,8,10,12,14,16,18,20])("Furia divina usa Bárbaro %i, se integra al daño y admite Destreza o Fuerza", nivel => {
     const { leer, rasgo, activar } = crear(subclases[3], nivel);
-    activar("Furia"); activar("Furia divina", { furia_divina_tipo_dano: ["necrotico"] });
-    const dano = evaluarEfectosRasgosActivos(leer()).find(e => e.tipo === "dano_secundario")!;
-    expect(dano.valor).toBe(`1d6+${Math.floor(nivel/2)}`); expect(dano.tipoDano).toBe("Necrótico");
-    expect(aplicaEfectoAAtaque(dano.aplicaA, dano.objetivo, {tipo:"arma",caracteristica:"destreza",esDistancia:true,esCuerpoACuerpo:false})).toBe(true);
-    expect(aplicaEfectoAAtaque(dano.aplicaA, dano.objetivo, {tipo:"conjuro",caracteristica:"fuerza",esDistancia:false,esCuerpoACuerpo:true})).toBe(false);
-    expect(rasgo("Furia divina").autoDesactivarAlTirarDano).toBe(true);
+    const idFD = rasgo("Furia divina").id;
+    const solNecrotico = { idRasgo: idFD, idOpcion: "necrotico", confirmado: true, incluirDados: true, propio: false };
+    const solRadiante = { idRasgo: idFD, idOpcion: "radiante", confirmado: true, incluirDados: true, propio: false };
+    expect(prepararDanoIntegrado(leer(), solNecrotico, "Cortante", "destreza")).toBeUndefined();
+    activar("Furia");
+    expect(prepararDanoIntegrado(leer(), solNecrotico, "Cortante", "destreza")).toEqual({ formula: `1d6+${Math.floor(nivel / 2)}`, tipoDano: "Necrótico" });
+    expect(prepararDanoIntegrado(leer(), solRadiante, "Contundente", "fuerza")).toEqual({ formula: `1d6+${Math.floor(nivel / 2)}`, tipoDano: "Radiante" });
+    expect(rasgo("Furia divina").limitePorTurnoPropio).toBe(true);
   });
 
   it.each([[3,4],[5,4],[6,5],[11,5],[12,6],[16,6],[17,7],[20,7]])("reserva d12 de Guerrero en %i", (nivel, cantidad) => {
@@ -182,6 +193,7 @@ describe("Bárbaro: cuatro subclases PHB 2024", () => {
     expect(normalizarCondicionesRasgos(leer(), 11).rasgos.find(r => r.nombre === "Furia de los dioses")?.activo).toBe(false);
     activar("Furia"); expect(rasgo("Furia de los dioses").activo).toBe(true);
     expect(obtenerResumenDefensasRasgos(leer()).resistencias).toContain("Psíquico");
+    expect(obtenerVelocidadesEfectivas(leer())).toMatchObject({ volar: 40, planea: true });
     activar("Revivificación"); expect(rasgo("Furia").usosRestantes).toBe(3);
     estado().actualizarPersonaje(id, { hpActual: 0 }); expect(rasgo("Furia de los dioses").activo).toBe(false);
   });

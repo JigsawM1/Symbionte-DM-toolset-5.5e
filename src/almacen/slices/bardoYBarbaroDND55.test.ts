@@ -1054,12 +1054,13 @@ describe("D&D 5.5e - Bardo, Subclases y Hotfix Bárbaro", () => {
       expect(velSalmon.nadar).toBe(30);
     });
 
-    it("Frenesí de Senda del Berserker tiene autoDesactivarAlTirarDano activo", () => {
+    it("Frenesí de Senda del Berserker se integra en el daño de arma con límite por turno", () => {
       const rasgosBerserker = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Berserker");
       const frenesi = rasgosBerserker.find((r) => r.nombre === "Frenesí");
 
       expect(frenesi).toBeDefined();
-      expect(frenesi?.autoDesactivarAlTirarDano).toBe(true);
+      expect(frenesi?.resolucionAsistida?.integrarEnDanoDeArma).toBe(true);
+      expect(frenesi?.limitePorTurnoPropio).toBe(true);
     });
 
     it("Movimiento Inspirador del Bardo del Colegio de la Danza gasta del padre pero no hereda ni tira dados", () => {

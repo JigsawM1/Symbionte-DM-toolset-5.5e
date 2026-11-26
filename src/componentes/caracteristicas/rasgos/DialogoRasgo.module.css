@@ -35,3 +35,7 @@
 .opcionesLanzamiento button:hover:not(:disabled) { background: var(--pj-fondo-tarjeta-hover); border-color: var(--pj-borde-acento-fuerte); }
 .opcionesLanzamiento strong { font-size: var(--pj-fuente-cuerpo); }
 .opcionesLanzamiento span { font-size: var(--pj-fuente-badge); color: var(--pj-texto-terciario); }
+.bloqueRecordar { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--pj-borde-sutil); display: flex; flex-direction: column; gap: 4px; }
+.labelRecordar { display: inline-flex; align-items: center; gap: 8px; font-size: var(--pj-fuente-cuerpo); color: var(--pj-texto-secundario); cursor: pointer; user-select: none; }
+.labelRecordar input { accent-color: var(--pj-acento-primario-solido); width: 15px; height: 15px; cursor: pointer; }
+.avisoRecordar { font-size: var(--pj-fuente-micro); color: var(--pj-texto-terciario); padding-left: 23px; line-height: 1.35; }

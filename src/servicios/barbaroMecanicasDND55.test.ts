@@ -162,13 +162,15 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
 
   // ── NIVELES 9 A 14 ──
   describe("Niveles 9 a 14: Golpe brutal y Furia implacable", () => {
-    it("Golpe brutal es activable con dado 1d10 y efectos consultables a nivel 9", () => {
+    it("Golpe brutal es activable con dado 1d10 y efectos consultables en tirada a nivel 9", () => {
       const rasgosNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9);
       const golpeBrutal = rasgosNv9.find((r) => r.nombre === "Golpe brutal");
 
       expect(golpeBrutal?.categoriaMecanica).toBe("activable");
       expect(golpeBrutal?.formulaDados).toBe("1d10");
       expect(golpeBrutal?.selectores).toEqual([]);
+      expect(golpeBrutal?.eleccionEfectoEnTirada?.maxElecciones).toBe(1);
+      expect(golpeBrutal?.eleccionEfectoEnTirada?.opciones?.map((o) => o.id)).toEqual(["contundente", "inmovilizador"]);
       expect(golpeBrutal?.descripcion).toContain("Golpe contundente");
       expect(golpeBrutal?.descripcion).toContain("Golpe inmovilizador");
     });
@@ -183,11 +185,15 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(tarjetaHuérfana).toBeUndefined();
     });
 
-    it("Golpe brutal mejorado se fusiona a nivel 13 incorporando las reglas de sus efectos", () => {
+    it("Golpe brutal mejorado se fusiona a nivel 13 incorporando las reglas y opciones en tirada", () => {
       const rasgosNv13 = obtenerRasgosClaseYSubclase("Bárbaro", 13);
       const golpeBrutalNv13 = rasgosNv13.find((r) => r.nombre === "Golpe brutal");
 
       expect(golpeBrutalNv13?.selectores).toEqual([]);
+      expect(golpeBrutalNv13?.eleccionEfectoEnTirada?.maxElecciones).toBe(1);
+      expect(golpeBrutalNv13?.eleccionEfectoEnTirada?.opciones?.map((o) => o.id)).toEqual([
+        "contundente", "inmovilizador", "desestabilizador", "desgarrador"
+      ]);
       expect(golpeBrutalNv13?.descripcion).toContain("Golpe desestabilizador");
       expect(golpeBrutalNv13?.descripcion).toContain("Golpe desgarrador");
     });
@@ -207,12 +213,14 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
       expect(persistente?.restaurarUsosAlActivar?.cantidad).toBe("maximo");
     });
 
-    it("Golpe brutal mejorado (II) escala a 2d10 y permite dos efectos manuales a nivel 17", () => {
+    it("Golpe brutal mejorado (II) escala a 2d10 y permite dos efectos diferentes a nivel 17", () => {
       const rasgosNv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17);
       const golpeBrutalNv17 = rasgosNv17.find((r) => r.nombre === "Golpe brutal");
 
       expect(golpeBrutalNv17?.formulaDados).toBe("2d10");
       expect(golpeBrutalNv17?.selectores).toEqual([]);
+      expect(golpeBrutalNv17?.eleccionEfectoEnTirada?.maxElecciones).toBe(2);
+      expect(golpeBrutalNv17?.eleccionEfectoEnTirada?.opciones).toHaveLength(4);
       expect(golpeBrutalNv17?.descripcion).toContain("dos efectos diferentes");
     });
 
@@ -246,13 +254,16 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 1: Reglas y Mecánicas de la Clase
 describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
   // ── SENDA DEL BERSERKER ──
   describe("Subclase: Senda del Berserker", () => {
-    it("Frenesí es activable con escalado de daño de furia y auto-desactivación", () => {
+    it("Frenesí se integra al daño de arma con escalado de daño de furia y límite por turno", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Berserker");
       const frenesiNv3 = rasgosNv3.find((r) => r.nombre === "Frenesí");
 
-      expect(frenesiNv3?.categoriaMecanica).toBe("activable");
+      expect(frenesiNv3?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(frenesiNv3?.esActivable).toBe(false);
+      expect(frenesiNv3?.limitePorTurnoPropio).toBe(true);
+      expect(frenesiNv3?.resolucionAsistida?.integrarEnDanoDeArma).toBe(true);
+      expect(frenesiNv3?.resolucionAsistida?.caracteristicaAtaque).toBe("fuerza");
       expect(frenesiNv3?.formulaDados).toBe("2d6");
-      expect(frenesiNv3?.autoDesactivarAlTirarDano).toBe(true);
 
       const frenesiNv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9, "Senda del Berserker").find((r) => r.nombre === "Frenesí");
       expect(frenesiNv9?.formulaDados).toBe("3d6");
@@ -266,8 +277,7 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
       const furiaCiega = rasgosNv6.find((r) => r.nombre === "Furia");
 
       expect(rasgosNv6.some(r => r.nombre === "Furia ciega")).toBe(false);
-      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "Hechizado" && e.tipo === "inmunidad_condicion")).toBe(true);
-      expect(furiaCiega?.efectos?.some((e) => e.objetivo === "Asustado" && e.tipo === "inmunidad_condicion")).toBe(true);
+      expect(furiaCiega?.efectos?.some((e) => e.tipo === "inmunidad_condicion" && e.objetivo.includes("Hechizado") && e.objetivo.includes("Asustado"))).toBe(true);
     });
 
     it("Represalia es reacción pasiva y Presencia intimidante es consumible ligado a Furia", () => {
@@ -352,16 +362,16 @@ describe("Bárbaro D&D 5.5e (PHB 2024) - Fase 2: Subclases Canónicas", () => {
 
   // ── SENDA DEL FANÁTICO ──
   describe("Subclase: Senda del Fanático", () => {
-    it("Furia divina es activable con daño secundario 1d6 + mitad nivel", () => {
+    it("Furia divina se integra en el daño al impactar con 1d6 + mitad nivel y opciones radiante/necrótico", () => {
       const rasgosNv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Fanático");
       const furiaDivina = rasgosNv3.find((r) => r.nombre === "Furia divina");
 
-      expect(furiaDivina?.categoriaMecanica).toBe("activable");
-      expect(furiaDivina?.esActivable).toBe(true);
+      expect(furiaDivina?.categoriaMecanica).toBe("pasivo_permanente");
+      expect(furiaDivina?.esActivable).toBe(false);
+      expect(furiaDivina?.limitePorTurnoPropio).toBe(true);
       expect(furiaDivina?.formulaDados).toBe("1d6+1");
-      expect(furiaDivina?.efectos?.[0].tipo).toBe("dano_secundario");
-      expect(furiaDivina?.idSelectorTipoDano).toBe("furia_divina_tipo_dano");
-      expect(furiaDivina?.selectores?.[0].valorActual).toEqual([]);
+      expect(furiaDivina?.resolucionAsistida?.integrarEnDanoDeArma).toBe(true);
+      expect(furiaDivina?.resolucionAsistida?.opciones.map((o) => o.id)).toEqual(["radiante", "necrotico"]);
     });
 
     it("Guerrero de los dioses es curación con reserva de dados d12 (4 a 7 dados)", () => {

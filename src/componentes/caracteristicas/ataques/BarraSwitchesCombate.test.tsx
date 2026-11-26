@@ -114,11 +114,26 @@ describe("clasificadorSwitchesCombate — Criterio declarativo A + C", () => {
       activo: true,
       lanzamientoConActivacion: { conjuroId: "escudo", nivel: 1 }
     });
+    const preguntarInactivo = crearRasgoAccion({
+      id: "preg_inactivo",
+      nombre: "Ataque temerario",
+      esActivable: true,
+      activo: false,
+      preguntarAlAtacar: { caracteristica: "fuerza", soloArmaODesarmado: true }
+    });
+    const preguntarActivo = crearRasgoAccion({
+      id: "preg_activo",
+      nombre: "Ataque temerario",
+      esActivable: true,
+      activo: true,
+      preguntarAlAtacar: { caracteristica: "fuerza", soloArmaODesarmado: true }
+    });
 
-    for (const item of [oculto, formaSalvaje, asistido, conLista, conversion, lanzamientoInactivo]) {
+    for (const item of [oculto, formaSalvaje, asistido, conLista, conversion, lanzamientoInactivo, preguntarInactivo]) {
       expect(esRasgoSwitchCombate(item)).toBe(false);
     }
     expect(esRasgoSwitchCombate(lanzamientoActivo)).toBe(true);
+    expect(esRasgoSwitchCombate(preguntarActivo)).toBe(true);
   });
 
   it("conserva tarjeta en feed además del switch cuando el rasgo activable tiene tirada de dados propia", () => {

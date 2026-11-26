@@ -94,23 +94,18 @@ describe("Genericidad Arquitectónica de Rasgos (D&D 5.5e PHB 2024)", () => {
     });
 
     it("sincroniza automáticamente los efectos mecánicos con la fórmula escalada si sincronizarEfectosConFormula es true", () => {
-      // Berserker nv 3 (2d6) vs nv 9 (3d6) vs nv 16 (4d6)
-      const nv3 = obtenerRasgosClaseYSubclase("Bárbaro", 3, "Senda del Berserker");
-      const nv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9, "Senda del Berserker");
-      const nv16 = obtenerRasgosClaseYSubclase("Bárbaro", 16, "Senda del Berserker");
+      // Golpe brutal nv 9 (1d10) vs nv 17 (2d10)
+      const nv9 = obtenerRasgosClaseYSubclase("Bárbaro", 9);
+      const nv17 = obtenerRasgosClaseYSubclase("Bárbaro", 17);
 
-      const rasgo3 = nv3.find((r) => r.sincronizarEfectosConFormula && r.formulaDados === "2d6");
-      const rasgo9 = nv9.find((r) => r.sincronizarEfectosConFormula && r.formulaDados === "3d6");
-      const rasgo16 = nv16.find((r) => r.sincronizarEfectosConFormula && r.formulaDados === "4d6");
-
-      expect(rasgo3).toBeDefined();
-      expect(rasgo3?.efectos?.[0]?.valor).toBe("2d6");
+      const rasgo9 = nv9.find((r) => r.sincronizarEfectosConFormula && r.formulaDados === "1d10");
+      const rasgo17 = nv17.find((r) => r.sincronizarEfectosConFormula && r.formulaDados === "2d10");
 
       expect(rasgo9).toBeDefined();
-      expect(rasgo9?.efectos?.[0]?.valor).toBe("3d6");
+      expect(rasgo9?.efectos?.[0]?.valor).toBe("1d10");
 
-      expect(rasgo16).toBeDefined();
-      expect(rasgo16?.efectos?.[0]?.valor).toBe("4d6");
+      expect(rasgo17).toBeDefined();
+      expect(rasgo17?.efectos?.[0]?.valor).toBe("2d10");
     });
 
     it("desbloquea opciones dinámicas y escala maxSelecciones en selectores por nivel", () => {

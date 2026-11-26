@@ -1,5 +1,6 @@
 import { obtenerVarianteConjuro, obtenerOpcionesRecursoConjuro } from "@/servicios/rasgos/lanzamientoRecursoRasgos";
 import { elegirVarianteConjuro, elegirOpcionLanzamiento } from "@/componentes/caracteristicas/rasgos/elegirVarianteConjuro";
+import { guardarRespuestaPredefinida } from "@/componentes/caracteristicas/rasgos/guardarRespuestaPredefinida";
 import { resolverRecuperacionDiferida } from "@/servicios/rasgos/emitirRecuperacionDiferida";
 import { emitirTiradaConRasgos } from "@/servicios/rasgos/emisionTiradaRasgos";
 import { obtenerMaximosEspaciosEfectivos } from "@/servicios/rasgos/conversionRecursosRasgos";
@@ -251,11 +252,20 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           nivelLanzamiento: solicitudIncompleta.hechizo.nivel, claseLanzamiento: elegida.clase ?? solicitudIncompleta.claseLanzamiento };
       }
       const vigenteTrasEleccion = personaje && usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
-      if (vigenteTrasEleccion && solicitudIncompleta.modo !== "objetoMagico" && solicitudIncompleta.sinConcentracion === undefined
-        && obtenerVarianteConjuro(vigenteTrasEleccion, solicitudIncompleta.hechizo)) {
-        const variante = await elegirVarianteConjuro(vigenteTrasEleccion.id, solicitudIncompleta.hechizo.nombre);
-        if (variante === undefined) return false;
-        solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: variante };
+      const rasgoVariante = vigenteTrasEleccion && solicitudIncompleta.modo !== "objetoMagico" && solicitudIncompleta.sinConcentracion === undefined
+        ? obtenerVarianteConjuro(vigenteTrasEleccion, solicitudIncompleta.hechizo)
+        : undefined;
+      if (vigenteTrasEleccion && rasgoVariante) {
+        const prefVar = rasgoVariante.respuestaPredefinida?.consulta;
+        if (prefVar === "automatico") {
+          solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: true };
+        } else if (prefVar === "omitir") {
+          solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: false };
+        } else {
+          const variante = await elegirVarianteConjuro(vigenteTrasEleccion.id, solicitudIncompleta.hechizo.nombre);
+          if (variante === undefined) return false;
+          solicitudIncompleta = { ...solicitudIncompleta, sinConcentracion: variante };
+        }
       }
       const previa = prepararSolicitud(solicitudIncompleta);
       if (vigenteTrasEleccion && validarLanzamiento(previa.solicitudCompleta, previa.contextoEfectivo).requiereConfirmarMaterial) {
@@ -283,12 +293,27 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
       if (personaje) lanzamientosEnCurso.add(personaje.id);
       try {
         const pjCuracion = contextoEfectivo.personajeActual;
-        if (pjCuracion && solicitudCompleta.hechizo.curacion?.tipo === "directa" && nivelEspacioGastado(preparado.gasto) !== undefined
-          && pjCuracion.rasgos.some(r => r.curacionConjuros?.bonoPorEspacio && rasgoMagicoHabilitado(pjCuracion, r))) {
-          const eleccion = await elegirOpcionLanzamiento(pjCuracion.id, { nombre: "Curación del conjuro", etiqueta: "Confirmar curación en el turno del lanzamiento",
-            descripcion: "El bono por espacio solo se aplica a criaturas que recuperen PG en el turno en que lanzas el conjuro.",
-            opciones: [{ id: "si", texto: "Sí, recuperan PG en este turno" }, { id: "no", texto: "Resolver sin el bono condicionado" }] });
-          if (eleccion === undefined) return false;
+        const rasgoBonoCuracion = pjCuracion && solicitudCompleta.hechizo.curacion?.tipo === "directa" && nivelEspacioGastado(preparado.gasto) !== undefined
+          ? pjCuracion.rasgos.find(r => r.curacionConjuros?.bonoPorEspacio && rasgoMagicoHabilitado(pjCuracion, r))
+          : undefined;
+        if (pjCuracion && rasgoBonoCuracion) {
+          const prefCuracion = rasgoBonoCuracion.respuestaPredefinida?.consulta;
+          let eleccion: string | undefined;
+          if (prefCuracion === "automatico") eleccion = "si";
+          else if (prefCuracion === "omitir") eleccion = "no";
+          else {
+            eleccion = await elegirOpcionLanzamiento(pjCuracion.id, {
+              nombre: "Curación del conjuro",
+              etiqueta: "Confirmar curación en el turno del lanzamiento",
+              descripcion: "El bono por espacio solo se aplica a criaturas que recuperen PG en el turno en que lanzas el conjuro.",
+              opciones: [{ id: "si", texto: "Sí, recuperan PG en este turno" }, { id: "no", texto: "Resolver sin el bono condicionado" }],
+              recordar: {
+                permitido: id => id === "si" || id === "no",
+                alRecordar: id => guardarRespuestaPredefinida(pjCuracion.id, rasgoBonoCuracion.id, "consulta", id === "si" ? "automatico" : "omitir")
+              }
+            });
+            if (eleccion === undefined) return false;
+          }
           const contextoActual = contextoVigente(contexto, personaje);
           preparado = prepararLanzamiento({ ...solicitudCompleta, curacionEnTurno: eleccion === "si" }, contextoActual);
           if (!validarLanzamiento(solicitudCompleta, contextoActual, preparado).permitido) return false;
@@ -320,11 +345,31 @@ export function usarLanzadorConjuros(opciones: OpcionesLanzadorConjuros): Contro
           const pj = usarAlmacenDM.getState().personajes.find(p => p.id === personaje.id);
           const posteriores = pj?.rasgos.filter(r => r.trasLanzarConjuro && rasgoMagicoHabilitado(pj, r)
             && r.trasLanzarConjuro.escuelas.some(e => normalizar(e) === normalizar(solicitudCompleta.hechizo.escuela))) ?? [];
-          if (pj && posteriores.length) {
-            const opcion = await elegirOpcionLanzamiento(pj.id, { nombre: "Tras el lanzamiento", etiqueta: "Capacidad opcional tras lanzar un conjuro",
+          if (pj && posteriores.length && !posteriores.every(r => r.respuestaPredefinida?.consulta === "omitir")) {
+            const opcion = await elegirOpcionLanzamiento(pj.id, {
+              nombre: "Tras el lanzamiento",
+              etiqueta: "Capacidad opcional tras lanzar un conjuro",
               descripcion: "El conjuro ya se ha lanzado. Puedes usar una capacidad disponible; la salvación y sus destinatarios se resuelven manualmente.",
-              opciones: posteriores.map(r => ({ id: r.id, texto: r.nombre, detalle: "Gastar 1 uso", deshabilitado: (r.usosRestantes ?? r.usosMaximos ?? 0) < 1 })) });
-            if (opcion && posteriores.some(r => r.id === opcion)) usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj.id, opcion);
+              opciones: [
+                { id: "omitir", texto: "No usar ninguna" },
+                ...posteriores.map(r => ({
+                  id: r.id,
+                  texto: r.nombre,
+                  detalle: "Gastar 1 uso",
+                  deshabilitado: (r.usosRestantes ?? r.usosMaximos ?? 0) < 1
+                }))
+              ],
+              recordar: {
+                permitido: id => id === "omitir",
+                alRecordar: () => {
+                  for (const r of posteriores) guardarRespuestaPredefinida(pj.id, r.id, "consulta", "omitir");
+                },
+                aviso: "Gastar usos requiere confirmación manual: solo se puede recordar «No usar ninguna»."
+              }
+            });
+            if (opcion && opcion !== "omitir" && posteriores.some(r => r.id === opcion)) {
+              usarAlmacenDM.getState().gastarUsoRasgoPersonaje(pj.id, opcion);
+            }
           }
         }
 

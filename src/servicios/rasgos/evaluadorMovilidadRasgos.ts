@@ -158,7 +158,7 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
       } else if (objetivo.includes("volar")) {
         const velVolar = Number(ef.valor) || caminar;
         volar = Math.max(volar || 0, velVolar);
-        if (objetivo === "volar_flota") planea = true;
+        if (objetivo.includes("volar_flota")) planea = true;
       } else if (objetivo.includes("escalar") || objetivo.includes("trepar")) {
         const velEscalar = Number(ef.valor) || caminar;
         escalar = Math.max(escalar || 0, velEscalar);
@@ -288,7 +288,10 @@ export function obtenerVelocidadesEfectivas(personaje: PersonajeJugador): Veloci
 
   for (const e of efectos) if (e.tipo === "movimiento_especial" && String(e.valor).includes("velocidad_caminar")) {
     const valor = Math.max(0, evaluarExpresionNumericaSegura(String(e.valor).replace(/velocidad_caminar/g, String(caminar))));
-    if (e.objetivo.includes("volar")) volar = Math.max(volar ?? 0, valor);
+    if (e.objetivo.includes("volar")) {
+      volar = Math.max(volar ?? 0, valor);
+      if (e.objetivo.includes("volar_flota")) planea = true;
+    }
     else if (e.objetivo.includes("nadar")) nadar = Math.max(nadar ?? 0, valor);
     else if (e.objetivo.includes("escalar")) escalar = Math.max(escalar ?? 0, valor);
     else if (e.objetivo.includes("excavar")) excavar = Math.max(excavar ?? 0, valor);

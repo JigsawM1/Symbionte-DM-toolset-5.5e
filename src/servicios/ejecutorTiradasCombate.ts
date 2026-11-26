@@ -140,10 +140,12 @@ export async function ejecutarTiradaDanoFisico(
   personajeActivo: PersonajeJugador | null,
   modo: boolean | "adicional" = false,
   extra?: DanoIntegrado | DanoIntegrado[],
-  tipoElegido?: string
+  tipoElegido?: string,
+  efectosEtiqueta?: string[]
 ): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
+    const sufijoEfectos = efectosEtiqueta?.length ? ` (${efectosEtiqueta.join(" + ")})` : "";
     const esAdic = modo === "adicional";
     const esVersatil = modo === true;
     const formulaRaw = esAdic && ataque.danoAccionAdicional
@@ -160,7 +162,7 @@ export async function ejecutarTiradaDanoFisico(
       let etiquetaSub: string;
       if (i === 0) {
         const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
-        etiquetaSub = `${nombrePj} - Daño ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}`;
+        etiquetaSub = `${nombrePj} - Daño ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}${sufijoEfectos}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijo = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
@@ -180,7 +182,7 @@ export async function ejecutarTiradaDanoFisico(
 
     if (extra) for (const grupo of [extra].flat()) formulasTaleSpire.push(grupoDanoIntegrado(nombrePj, ataque, grupo, false));
     const formulaCompuesta = formulasTaleSpire.join("/");
-    return await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}`);
+    return await lanzarDadosTaleSpire(formulaCompuesta, `${nombrePj}: Daño ${ataque.nombre}${sufijoEfectos}`);
   } catch (error) {
     logger.error("Error al tirar daño:", error);
     return false;
@@ -192,10 +194,12 @@ export async function ejecutarTiradaCritico(
   personajeActivo: PersonajeJugador | null,
   modo: boolean | "adicional" = false,
   extra?: DanoIntegrado | DanoIntegrado[],
-  tipoElegido?: string
+  tipoElegido?: string,
+  efectosEtiqueta?: string[]
 ): Promise<boolean> {
   try {
     const nombrePj = personajeActivo?.nombre?.trim() || "Personaje";
+    const sufijoEfectos = efectosEtiqueta?.length ? ` (${efectosEtiqueta.join(" + ")})` : "";
     const esAdic = modo === "adicional";
     const esVersatil = modo === true;
     const dadoBaseRaw = esAdic && ataque.dadoAccionAdicionalBase
@@ -213,7 +217,7 @@ export async function ejecutarTiradaCritico(
       let etiquetaSub: string;
       if (i === 0) {
         const sufijoModo = esAdic ? " (Acción adicional)" : (esVersatil ? " (A dos manos)" : "");
-        etiquetaSub = `${nombrePj} - CRÍTICO ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}`;
+        etiquetaSub = `${nombrePj} - CRÍTICO ${tipoElegido ? tipoElegido + " " : ""}${ataque.nombre}${sufijoModo}${sufijoEfectos}`;
       } else {
         const tipoTexto = tipoEspecifico?.trim() || "Extra";
         const prefijoCrit = tipoTexto.toLowerCase().startsWith("daño") || tipoTexto.toLowerCase().startsWith("dano")
@@ -259,7 +263,7 @@ export async function ejecutarTiradaCritico(
 
     if (extra) for (const grupo of [extra].flat()) formulasTaleSpire.push(grupoDanoIntegrado(nombrePj, ataque, grupo, true));
     const formulaFinal = formulasTaleSpire.join("/");
-    return await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}`);
+    return await lanzarDadosTaleSpire(formulaFinal, `${nombrePj}: CRÍTICO con ${ataque.nombre}${sufijoEfectos}`);
   } catch (error) {
     logger.error("Error al tirar daño crítico:", error);
     return false;

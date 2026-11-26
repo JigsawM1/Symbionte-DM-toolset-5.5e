@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { TablaProgresionRasgo } from "./TablaProgresionRasgo";
 import { SeccionSelectoresModalRasgo } from "./SeccionSelectoresModalRasgo";
+import { ConfiguracionRespuestaPredefinida } from "./ConfiguracionRespuestaPredefinida";
 import { TextoEnriquecidoDND } from "@/componentes/comunes";
 import { usarAlmacenDM } from "@/almacen/usarAlmacenDM";
 import { ModalTiendaRecuperacionEspacios } from "./ModalTiendaRecuperacionEspacios";
@@ -330,6 +331,10 @@ export const ModalDetalleRasgo: React.FC<ModalDetalleRasgoProps> = ({
               nivelPersonaje={nivelPersonaje}
               alActualizarSeleccion={alActualizarSeleccion}
             />
+          )}
+
+          {personajeActivoAlmacen && (
+            <ConfiguracionRespuestaPredefinida personaje={personajeActivoAlmacen} rasgo={rasgo} />
           )}
 
           {rasgo.notas && (
